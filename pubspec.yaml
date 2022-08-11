@@ -41,6 +41,26 @@ dependencies:
   provider: ^6.0.3
   collapsible_sidebar: ^2.0.1+2
   connectivity_plus: ^2.3.0
+  quantity_input: ^1.0.2
+  grouped_list: ^5.1.1
+  side_navigation: ^1.0.2
+  flutter_material_color_picker: ^1.1.0+2
+  flutter_login: ^3.2.0
+  sqflite: ^2.0.2+1
+  fluttertoast: ^8.0.9
+  dropdown_button2: ^1.6.2
+  page_transition: ^2.0.5
+  animations: ^2.0.3
+  path_provider: ^2.0.11
+  custom_pin_screen: "^0.3.0"
+  virtual_keyboard_multi_language: ^1.0.3
+  group_radio_button: ^1.2.0
+  confirm_dialog: ^1.0.1
+  image_picker: ^0.8.5+3
+  path: ^1.8.1
+  checkbox_grouped: ^1.8.1
+
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.4

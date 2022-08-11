@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pos_system/page/login.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/translation/appLanguage.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
 import 'notifier/connectivity_change_notifier.dart';
 import 'notifier/theme_color.dart';
 import 'page/home.dart';
@@ -29,6 +29,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Set landscape orientation
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+    ));
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AppLanguage>(
@@ -83,7 +93,7 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
               )),
-          routes: {'/loading': (context) => LoadingPage(), '/': (context) => HomePage()},
+          routes: {'/loading': (context) => LoadingPage(), '/': (context) => LoginPage()},
         );
       }),
     );
