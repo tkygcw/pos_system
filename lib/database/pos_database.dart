@@ -35,6 +35,7 @@ import '../object/branch_link_tax.dart';
 class PosDatabase {
   static final PosDatabase instance = PosDatabase.init();
   static Database? _database;
+
   PosDatabase.init();
 
   Future<Database> get database async {
@@ -654,6 +655,7 @@ class PosDatabase {
         ['', '', '', name, 1]);
     return result.map((json) => Product.fromJson(json)).toList();
   }
+
 /*
   set default sku
 */
@@ -664,6 +666,7 @@ class PosDatabase {
         ['', companyID]);
     return result.map((json) => Product.fromJson(json)).toList();
   }
+
 /*
   check sku for add product
 */
@@ -674,6 +677,7 @@ class PosDatabase {
         ['', sku]);
     return result.map((json) => Product.fromJson(json)).toList();
   }
+
 /*
   check sku for edit product
 */
@@ -736,19 +740,19 @@ class PosDatabase {
   Future<List<ModifierGroup>> readAllModifier() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableModifierGroup WHERE soft_delete = ?',
-        ['']);
+        'SELECT * FROM $tableModifierGroup WHERE soft_delete = ?', ['']);
     return result.map((json) => ModifierGroup.fromJson(json)).toList();
   }
 
   /*
   read all product modifier group name
   */
-  Future<List<ModifierLinkProduct>> readProductModifier(String productID) async {
+  Future<List<ModifierLinkProduct>> readProductModifier(
+      String productID) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT * FROM $tableModifierLinkProduct WHERE soft_delete = ? AND product_id = ?',
-        ['',productID]);
+        ['', productID]);
     return result.map((json) => ModifierLinkProduct.fromJson(json)).toList();
   }
 
@@ -782,6 +786,16 @@ class PosDatabase {
     return await db.rawUpdate(
         'UPDATE $tableCategories SET name = ?, color = ?, updated_at = ? WHERE category_sqlite_id = ?',
         [data.name, data.color, data.updated_at, data.category_sqlite_id]);
+  }
+
+/*
+  update Pos Table
+*/
+  Future<int> updatePosTable(PosTable data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $PosTable SET number = ?, seats = ?, updated_at = ? WHERE table_sqlite_id = ?',
+        [data.number, data.seats, data.updated_at, data.table_sqlite_id]);
   }
 
 /*

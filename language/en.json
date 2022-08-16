@@ -1,3 +1,7 @@
 {
-  "product": "Product"
+  "product": "Product",
+  "close": "Close",
+  "add": "Add",
+  "table_no_required": "Table number is required",
+  "seat_required": "Seat is required"
 }

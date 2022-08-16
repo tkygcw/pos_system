@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/cart.dart';
-import 'package:pos_system/fragment/table_menu.dart';
+import 'table/table_menu.dart';
 
 class TablePage extends StatefulWidget {
   const TablePage({Key? key}) : super(key: key);

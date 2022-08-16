@@ -639,7 +639,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
               }
               else{
                 _submit(context);
-
               }
             },
           ),
