@@ -570,12 +570,13 @@ class PosDatabase {
 /*
   verify pos pin
 */
-  Future<User?> verifyPosPin11111(String pos_pin, String branch_id) async {
+  Future<User?> verifyPosPin1111122222222(String pos_pin, String branch_id) async {
     final db = await instance.database;
     // final maps = await db.query(tableUser!,columns: UserFields.values, where: '${UserFields.pos_pin} = ?', whereArgs: [pos_pin]);
     final maps = await db.rawQuery(
         'SELECT a.* FROM $tableUser AS a JOIN $tableBranchLinkUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.branch_id = ? AND a.pos_pin = ?',
         ['', '', branch_id, pos_pin]);
+    print(maps);
     if (maps.isNotEmpty) {
       return User.fromJson(maps.first);
     }
