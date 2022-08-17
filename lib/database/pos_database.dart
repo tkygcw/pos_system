@@ -570,7 +570,7 @@ class PosDatabase {
 /*
   verify pos pin
 */
-  Future<User?> verifyPosPin(String pos_pin, String branch_id) async {
+  Future<User?> verifyPosPin11111(String pos_pin, String branch_id) async {
     final db = await instance.database;
     // final maps = await db.query(tableUser!,columns: UserFields.values, where: '${UserFields.pos_pin} = ?', whereArgs: [pos_pin]);
     final maps = await db.rawQuery(
