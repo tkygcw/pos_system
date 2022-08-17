@@ -794,7 +794,7 @@ class PosDatabase {
   Future<int> updatePosTable(PosTable data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $PosTable SET number = ?, seats = ?, updated_at = ? WHERE table_sqlite_id = ?',
+        'UPDATE $tablePosTable SET number = ?, seats = ?, updated_at = ? WHERE table_sqlite_id = ?',
         [data.number, data.seats, data.updated_at, data.table_sqlite_id]);
   }
 
@@ -808,6 +808,15 @@ class PosDatabase {
         [data.soft_delete, data.category_sqlite_id]);
   }
 
+/*
+  update Pos Table
+*/
+  Future<int> deletePosTable(PosTable data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+      'UPDATE $tablePosTable SET soft_delete = ? WHERE table_sqlite_id = ?',
+      [data.soft_delete, data.table_sqlite_id]);
+  }
   // Future<List<Categories>> readAllNotes() async {
   //   final db = await instance.database;
   //   final orderBy = '${UserFields.user_id} ASC';

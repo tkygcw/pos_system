@@ -1,3 +1,4 @@
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -21,19 +22,20 @@ class _AddTableDialogState extends State<AddTableDialog> {
   final tableNoController = TextEditingController();
   final seatController = TextEditingController();
   bool _submitted = false;
+  bool isUpdate = false;
 
   @override
   void initState() {
     // TODO: implement initState
-
-    if(widget.object.created_at != null) {
+    if (widget.object.created_at != null) {
+      isUpdate = true;
       tableNoController.text = widget.object.number!;
       seatController.text = widget.object.seats!;
-    }else {
-      super.initState();
+    } else {
+      isUpdate = false;
     }
+    super.initState();
   }
-
 
   @override
   void dispose() {
@@ -61,20 +63,20 @@ class _AddTableDialogState extends State<AddTableDialog> {
 
   void _submit(BuildContext context) {
     setState(() => _submitted = true);
-    if (errorTableNo == '' && errorSeat == '' && widget.object.created_at == '') {
-      createPosMenu();
+    if (errorTableNo == '' && errorSeat == '') {
+      if (isUpdate) {
+        updatePosTable();
+      } else {
+        createPosMenu();
+      }
       widget.callBack();
       closeDialog(context);
       return;
-    }else if () {
-      updatePosTable();
-      widget.callBack();
-      closeDialog(context);
     }
   }
 
   void createPosMenu() async {
-    print('calling!');
+    print('create called!');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
 
@@ -94,14 +96,26 @@ class _AddTableDialogState extends State<AddTableDialog> {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
 
-     PosTable posTableData = PosTable(
-        table_sqlite_id: widget.object!.table_sqlite_id,
+    PosTable posTableData = PosTable(
+        table_sqlite_id: widget.object.table_sqlite_id,
         number: tableNoController.text,
         seats: seatController.text,
         updated_at: dateTime);
 
-    PosTable status = (await PosDatabase.instance.updatePosTable(posTableData)) as PosTable;
+    int data = await PosDatabase.instance.updatePosTable(posTableData);
+  }
 
+  void deletePosTable() async {
+    print('deleted');
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+
+    PosTable posTableData = PosTable(
+        soft_delete: dateTime, table_sqlite_id: widget.object.table_sqlite_id);
+
+    int data = await PosDatabase.instance.deletePosTable(posTableData);
+    widget.callBack();
+    Navigator.of(context).pop();
   }
 
   closeDialog(BuildContext context) {
@@ -112,12 +126,36 @@ class _AddTableDialogState extends State<AddTableDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return AlertDialog(
-        title: Text(
-          "Create Table",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+        title: Row(
+          children: [
+            Text(
+              "Create Table",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Spacer(),
+            IconButton(
+              icon: const Icon(Icons.delete_outlined),
+              color: Colors.red,
+              onPressed: () async {
+                if (await confirm(
+                  context,
+                  title: Text(
+                      '${AppLocalizations.of(context)?.translate('confirm')}'),
+                  content: Text(
+                      '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                  textOK:
+                      Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                  textCancel:
+                      Text('${AppLocalizations.of(context)?.translate('no')}'),
+                )) {
+                  return deletePosTable();
+                }
+              },
+            ),
+          ],
         ),
         content: Container(
           height: 200.0, // Change as per your requirement

@@ -2,6 +2,11 @@
   "product": "Product",
   "close": "Close",
   "add": "Add",
+  "delete": "Delete",
+  "confirm": "Confirm",
   "table_no_required": "Table number is required",
-  "seat_required": "Seat is required"
+  "seat_required": "Seat is required",
+  "would you like to remove?": "Would you like to remove?",
+  "yes": "Yes",
+  "no": "No"
 }
