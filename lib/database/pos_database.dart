@@ -241,8 +241,9 @@ class PosDatabase {
 */
     await db.execute(
         '''CREATE TABLE $tableBranchLinkModifier ( ${BranchLinkModifierFields.branch_link_modifier_id} $idType, ${BranchLinkModifierFields.branch_id} $textType,
-           ${BranchLinkModifierFields.mod_group_id} $textType, ${BranchLinkModifierFields.created_at} $textType, ${BranchLinkModifierFields.updated_at} $textType,
-           ${BranchLinkModifierFields.soft_delete} $textType)''');
+           ${BranchLinkModifierFields.mod_group_id} $textType, ${BranchLinkModifierFields.mod_item_id} $textType, ${BranchLinkModifierFields.name} $textType, 
+           ${BranchLinkModifierFields.price} $textType, ${BranchLinkModifierFields.sequence} $integerType, ${BranchLinkModifierFields.status} $textType,
+           ${BranchLinkModifierFields.created_at} $textType, ${BranchLinkModifierFields.updated_at} $textType,${BranchLinkModifierFields.soft_delete} $textType)''');
 /*
     create branch link product table
 */
@@ -281,6 +282,10 @@ class PosDatabase {
            ${BranchFields.branchID} $idType,
            ${BranchFields.name} $textType)''');
   }
+
+/*
+  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
 
 /*
   add user to sqlite

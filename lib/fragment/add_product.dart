@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:checkbox_grouped/checkbox_grouped.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
@@ -15,6 +16,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../database/pos_database.dart';
 import '../notifier/theme_color.dart';
 import '../object/branch_link_product.dart';
+import '../object/modifier_group.dart';
+import '../object/modifier_link_product.dart';
 import '../object/product.dart';
 
 class AddProductDialog extends StatefulWidget {
@@ -55,6 +58,10 @@ class _AddProductDialogState extends State<AddProductDialog> {
         soft_delete: '')
   ];
   Categories? selectCategory;
+  GroupController switchController = GroupController(isMultipleSelection: true);
+  List<ModifierGroup> modifierElement = [];
+
+
 
   Future getImage(ImageSource source) async {
     try {
@@ -89,6 +96,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
     super.initState();
     readAllCategories();
     setDefaultSKU();
+    readProductModifier();
   }
 
   @override
@@ -145,7 +153,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
     }
     return null;
   }
-
   String? get errorSKUText {
     final text = skuController.value.text;
     if (text.isEmpty) {
@@ -198,6 +205,17 @@ class _AddProductDialogState extends State<AddProductDialog> {
         }
       }
     }
+  }
+
+
+  readProductModifier() async {
+    List<ModifierGroup> data = await PosDatabase.instance.readAllModifier();
+    for (int i = 0; i <data.length; i++) {
+      setState(() {
+        modifierElement.add(data[i]);
+      });
+    }
+    print(modifierElement);
   }
 
   setDefaultSKU() async {
@@ -345,6 +363,22 @@ class _AddProductDialogState extends State<AddProductDialog> {
                         ),
                       );
                     }),
+                Text("Modifier"),
+                SimpleGroupedCheckbox<int>(
+                  controller: switchController,
+                  itemsTitle: List.generate(modifierElement.length, (index) => modifierElement[index].name!),
+                  values: List.generate(modifierElement.length, (index) => modifierElement[index].mod_group_id!),
+                  groupStyle: GroupStyle(
+                      activeColor: Colors.red,
+                      itemTitleStyle: TextStyle(
+                          fontSize: 13
+                      )
+                  ),
+                  checkFirstElement: false,
+                  onItemSelected: (data) {
+                    print(data);
+                  },
+                ),
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: DropdownButton<Categories>(

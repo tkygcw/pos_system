@@ -1,6 +1,7 @@
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:provider/provider.dart';
@@ -63,32 +64,50 @@ class _EditCategoryDialogState extends State<EditCategoryDialog> {
   }
 
   updateCategory() async {
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    Categories categoryData = Categories(
-        category_sqlite_id: widget.category!.category_sqlite_id,
-        color: categoryColor,
-        name: myController.value.text,
-        updated_at: dateTime);
-    int data = await PosDatabase.instance.updateCategory(categoryData);
-    if (data != '') {
-      widget.callBack();
-      Navigator.of(context).pop(true);
+    try{
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      Categories categoryData = Categories(
+          category_sqlite_id: widget.category!.category_sqlite_id,
+          color: categoryColor,
+          name: myController.value.text,
+          updated_at: dateTime);
+      int data = await PosDatabase.instance.updateCategory(categoryData);
+      if (data != '') {
+        widget.callBack();
+        Navigator.of(context).pop(true);
+        Fluttertoast.showToast(msg: 'Successfully update');
+      }
+      else{
+        Fluttertoast.showToast(msg: 'Fail update');
+      }
+    }catch(error){
+      Fluttertoast.showToast(msg: 'Something went wrong. Please try again');
     }
+
   }
 
   deleteCategory() async {
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    Categories categoryData = Categories(
-      soft_delete: dateTime,
-      category_sqlite_id: widget.category!.category_sqlite_id,
-    );
-    int data = await PosDatabase.instance.deleteCategory(categoryData);
-    if (data != '') {
-      widget.callBack();
-      Navigator.of(context).pop(true);
+    try{
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      Categories categoryData = Categories(
+        soft_delete: dateTime,
+        category_sqlite_id: widget.category!.category_sqlite_id,
+      );
+      int data = await PosDatabase.instance.deleteCategory(categoryData);
+      if (data != '') {
+        widget.callBack();
+        Navigator.of(context).pop(true);
+        Fluttertoast.showToast(msg: 'Successfully delete');
+      }
+      else{
+        Fluttertoast.showToast(msg: 'Fail delete');
+      }
+    }catch(error){
+      Fluttertoast.showToast(msg: 'Something went wrong. Missing Parameter');
     }
+
   }
 
   @override

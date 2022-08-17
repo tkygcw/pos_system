@@ -182,7 +182,7 @@ class _CartPageState extends State<CartPage> {
             ],
           ),
           body: Container(
-            decoration: BoxDecoration(
+             decoration: BoxDecoration(
               color: color.iconColor,
               border: Border.all(color: Colors.grey.shade100, width: 3.0),
             ),

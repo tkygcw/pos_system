@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../database/pos_database.dart';
 import '../notifier/theme_color.dart';
 import '../object/categories.dart';
+import '../page/progress_bar.dart';
 
 class CategorySetting extends StatefulWidget {
   const CategorySetting({Key? key}) : super(key: key);
@@ -16,6 +17,7 @@ class CategorySetting extends StatefulWidget {
 
 class _CategorySettingState extends State<CategorySetting> {
   List<Categories> categoryList = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -27,86 +29,93 @@ class _CategorySettingState extends State<CategorySetting> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Scaffold(
-        body: Container(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(18, 0, 0, 0),
-                      child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                              primary: color.backgroundColor),
-                          onPressed: () async {
-                            openAddCategoryDialog();
-                          },
-                          icon: Icon(Icons.add),
-                          label: Text("Category")),
-                    ),
-                    SizedBox(width: 544),
-                    Expanded(
-                      child: TextField(
-                        onChanged: (value) {
-                          searchCategories(value);
-                        },
-                        decoration: InputDecoration(
-                          contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 10),
-                          isDense: true,
-                          border: InputBorder.none,
-                          labelText: 'Search',
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                color: Colors.grey, width: 2.0),
-                            borderRadius: BorderRadius.circular(25.0),
+      return isLoading
+          ? CustomProgressBar()
+          : Scaffold(
+              body: Container(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(18, 0, 0, 0),
+                            child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                    primary: color.backgroundColor),
+                                onPressed: () async {
+                                  openAddCategoryDialog();
+                                },
+                                icon: Icon(Icons.add),
+                                label: Text("Category")),
                           ),
-                        ),
+                          SizedBox(width: 544),
+                          Expanded(
+                            child: TextField(
+                              onChanged: (value) {
+                                searchCategories(value);
+                              },
+                              decoration: InputDecoration(
+                                contentPadding:
+                                    EdgeInsets.fromLTRB(10, 10, 10, 10),
+                                isDense: true,
+                                border: InputBorder.none,
+                                labelText: 'Search',
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                      color: Colors.grey, width: 2.0),
+                                  borderRadius: BorderRadius.circular(25.0),
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
                       ),
-                    )
-                  ],
-                ),
-                Expanded(
-                    child: categoryList.length != 0
-                        ? ListView.builder(
-                            padding: const EdgeInsets.all(10),
-                            shrinkWrap: true,
-                            itemCount: categoryList.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return ListTile(
-                                  onTap: () {
-                                    openEditCategoryDialog(categoryList[index]);
-                                  },
-                                  leading: CircleAvatar(
-                                    backgroundColor:
-                                        HexColor(categoryList[index].color!),
-                                  ),
-                                  trailing: Text(
-                                    (categoryList[index].item_sum).toString() +
-                                        ' Items',
+                      Expanded(
+                          child: categoryList.length != 0
+                              ? ListView.builder(
+                                  padding: const EdgeInsets.all(10),
+                                  shrinkWrap: true,
+                                  itemCount: categoryList.length,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    return ListTile(
+                                        onTap: () {
+                                          openEditCategoryDialog(
+                                              categoryList[index]);
+                                        },
+                                        leading: CircleAvatar(
+                                          backgroundColor: HexColor(
+                                              categoryList[index].color!),
+                                        ),
+                                        trailing: Text(
+                                          (categoryList[index].item_sum)
+                                                  .toString() +
+                                              ' Items',
+                                          style: TextStyle(
+                                              color: Colors.grey, fontSize: 18),
+                                        ),
+                                        title: Text(
+                                          categoryList[index].name!,
+                                          style: TextStyle(fontSize: 18),
+                                        ));
+                                  })
+                              : Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(0, 0, 0, 100),
+                                  child: Center(
+                                      child: Text(
+                                    'No Category Found',
                                     style: TextStyle(
-                                        color: Colors.grey, fontSize: 18),
-                                  ),
-                                  title: Text(
-                                    categoryList[index].name!,
-                                    style: TextStyle(fontSize: 18),
-                                  ));
-                            })
-                        : Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 0, 0, 100),
-                            child: Center(
-                                child: Text(
-                              'No Category Found',
-                              style:
-                                  TextStyle(fontSize: 18, color: Colors.grey),
-                            )),
-                          )),
-              ],
-            ),
-          ),
-        ),
-      );
+                                        fontSize: 18, color: Colors.grey),
+                                  )),
+                                )),
+                    ],
+                  ),
+                ),
+              ),
+            );
     });
   }
 
@@ -158,6 +167,7 @@ class _CategorySettingState extends State<CategorySetting> {
     List<Categories> data = await PosDatabase.instance.readCategories();
     setState(() {
       categoryList = data;
+      isLoading = false;
     });
   }
 

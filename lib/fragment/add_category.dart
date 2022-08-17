@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:provider/provider.dart';
@@ -49,25 +50,34 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   }
 
   insertCategory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? user = prefs.getString('user');
-    Map userObject = json.decode(user!);
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    Categories data = await PosDatabase.instance.insertCategories(Categories(
-      category_id: 0,
-      company_id: userObject['company_id'],
-      sequence: '',
-      updated_at: '',
-      soft_delete: '',
-      name: myController.value.text,
-      color: categoryColor,
-      created_at: dateTime,
-    ));
-    if(data!=''){
-      widget.callBack();
-      Navigator.of(context).pop(true);
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final String? user = prefs.getString('user');
+      Map userObject = json.decode(user!);
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      Categories data = await PosDatabase.instance.insertCategories(Categories(
+        category_id: 0,
+        company_id: userObject['company_id'],
+        sequence: '',
+        updated_at: '',
+        soft_delete: '',
+        name: myController.value.text,
+        color: categoryColor,
+        created_at: dateTime,
+      ));
+      if(data!=''){
+        widget.callBack();
+        Navigator.of(context).pop(true);
+        Fluttertoast.showToast(msg: 'Successfully Insert');
+      }
+      else{
+        Fluttertoast.showToast(msg: 'Fail Insert');
+      }
+    }catch(error){
+      Fluttertoast.showToast(msg: 'Something went wrong. Missing Parameter');
     }
+
   }
 
   @override
