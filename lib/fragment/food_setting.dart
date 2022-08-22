@@ -56,6 +56,7 @@ class _FoodSettingState extends State<FoodSetting> {
                                 style: ElevatedButton.styleFrom(
                                     primary: color.backgroundColor),
                                 onPressed: () {
+                                  print('open add dialog');
                                   openAddProductDialog();
                                 },
                                 icon: Icon(Icons.add),

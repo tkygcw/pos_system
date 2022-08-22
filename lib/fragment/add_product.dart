@@ -22,7 +22,7 @@ import '../object/product.dart';
 
 class AddProductDialog extends StatefulWidget {
   final Function() callBack;
-  const AddProductDialog({required this.callBack,Key? key}) : super(key: key);
+  const AddProductDialog({required this.callBack, Key? key}) : super(key: key);
 
   @override
   _AddProductDialogState createState() => _AddProductDialogState();
@@ -60,8 +60,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
   Categories? selectCategory;
   GroupController switchController = GroupController(isMultipleSelection: true);
   List<ModifierGroup> modifierElement = [];
-
-
 
   Future getImage(ImageSource source) async {
     try {
@@ -153,6 +151,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
     }
     return null;
   }
+
   String? get errorSKUText {
     final text = skuController.value.text;
     if (text.isEmpty) {
@@ -207,10 +206,9 @@ class _AddProductDialogState extends State<AddProductDialog> {
     }
   }
 
-
   readProductModifier() async {
     List<ModifierGroup> data = await PosDatabase.instance.readAllModifier();
-    for (int i = 0; i <data.length; i++) {
+    for (int i = 0; i < data.length; i++) {
       setState(() {
         modifierElement.add(data[i]);
       });
@@ -260,7 +258,9 @@ class _AddProductDialogState extends State<AddProductDialog> {
         price: priceController.value.text,
         description: descriptionController.value.text,
         SKU: skuController.value.text,
-        image: imageDir != null ? basename(imageDir!).replaceAll('image_picker', '') : ' ',
+        image: imageDir != null
+            ? basename(imageDir!).replaceAll('image_picker', '')
+            : ' ',
         has_variant: 0,
         stock_type: selectStock == 'Daily Limit' ? 1 : 2,
         stock_quantity: stockQuantityController.value.text,
@@ -363,22 +363,21 @@ class _AddProductDialogState extends State<AddProductDialog> {
                         ),
                       );
                     }),
-                Text("Modifier"),
-                SimpleGroupedCheckbox<int>(
-                  controller: switchController,
-                  itemsTitle: List.generate(modifierElement.length, (index) => modifierElement[index].name!),
-                  values: List.generate(modifierElement.length, (index) => modifierElement[index].mod_group_id!),
-                  groupStyle: GroupStyle(
-                      activeColor: Colors.red,
-                      itemTitleStyle: TextStyle(
-                          fontSize: 13
-                      )
-                  ),
-                  checkFirstElement: false,
-                  onItemSelected: (data) {
-                    print(data);
-                  },
-                ),
+                Text('check box here'),
+                // SimpleGroupedCheckbox<int>(
+                //   controller: switchController,
+                //   itemsTitle: List.generate(modifierElement.length,
+                //           (index) => modifierElement[index].name!),
+                //   values: List.generate(modifierElement.length,
+                //           (index) => modifierElement[index].mod_group_id!),
+                //   groupStyle: GroupStyle(
+                //       activeColor: Colors.red,
+                //       itemTitleStyle: TextStyle(fontSize: 13)),
+                //   checkFirstElement: false,
+                //   onItemSelected: (data) {
+                //     print(data);
+                //   },
+                // ),
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: DropdownButton<Categories>(
@@ -416,6 +415,29 @@ class _AddProductDialogState extends State<AddProductDialog> {
                               child: Text(e.name!),
                             ))
                         .toList(),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Modifier', style: TextStyle(fontWeight: FontWeight.bold)),
+                      SimpleGroupedSwitch<int>(
+                        controller: switchController,
+                        itemsTitle: List.generate(modifierElement.length,
+                                (index) => modifierElement[index].name!),
+                        values: List.generate(modifierElement.length,
+                                (index) => modifierElement[index].mod_group_id!),
+                        groupStyle: SwitchGroupStyle(
+                          itemTitleStyle: TextStyle(
+                            fontSize: 16,
+                            color: Colors.black,
+                          ),
+                          activeColor: color.backgroundColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Padding(
@@ -670,8 +692,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
                 Fluttertoast.showToast(
                     backgroundColor: Color(0xFFFFC107),
                     msg: "SKU already in used");
-              }
-              else{
+              } else {
                 _submit(context);
               }
             },

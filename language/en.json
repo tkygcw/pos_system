@@ -1,5 +1,7 @@
 {
   "product": "Product",
+  "create table": "Create Table",
+  "edit table": "Edit Table",
   "close": "Close",
   "add": "Add",
   "delete": "Delete",

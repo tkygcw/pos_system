@@ -31,6 +31,7 @@ import '../object/branch_link_modifier.dart';
 import '../object/branch_link_product.dart';
 import '../object/branch_link_promotion.dart';
 import '../object/branch_link_tax.dart';
+import '../object/color.dart';
 
 class PosDatabase {
   static final PosDatabase instance = PosDatabase.init();
@@ -281,6 +282,20 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableBranch (
            ${BranchFields.branchID} $idType,
            ${BranchFields.name} $textType)''');
+
+/*
+    create app color table
+*/
+    await db.execute(
+        '''CREATE TABLE  $tableAppColors ( 
+          ${AppColorsFields.app_color_sqlite_id} $idType, 
+          ${AppColorsFields.app_color_id} $integerType,
+          ${AppColorsFields.background_color} $textType,
+          ${AppColorsFields.button_color} $textType,
+          ${AppColorsFields.icon_color} $textType,
+          ${AppColorsFields.created_at} $textType,
+          ${AppColorsFields.updated_at} $textType,
+          ${AppColorsFields.soft_delete} $textType)''');
   }
 
 /*
@@ -564,13 +579,22 @@ class PosDatabase {
   }
 
 /*
+  add branch to sqlite
+*/
+  Future<AppColors> insertColor(AppColors data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableAppColors!, data.toJson());
+    return data.copy(app_color_id: id);
+  }
+
+/*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
 /*
   verify pos pin
 */
-  Future<User?> verifyPosPin1111122222222(String pos_pin, String branch_id) async {
+  Future<User?> verifyPosPin(String pos_pin, String branch_id) async {
     final db = await instance.database;
     // final maps = await db.query(tableUser!,columns: UserFields.values, where: '${UserFields.pos_pin} = ?', whereArgs: [pos_pin]);
     final maps = await db.rawQuery(
@@ -594,6 +618,18 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return Branch.fromJson(maps.first);
     }
+  }
+
+/*
+  read app colors
+*/
+  Future<List<AppColors>> readAppColors() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      'SELECT * FROM $tableAppColors WHERE soft_delete = ? ' ,
+      ['']
+    );
+    return result.map((json) => AppColors.fromJson(json)).toList();
   }
 
 /*
@@ -792,6 +828,16 @@ class PosDatabase {
     return await db.rawUpdate(
         'UPDATE $tableCategories SET name = ?, color = ?, updated_at = ? WHERE category_sqlite_id = ?',
         [data.name, data.color, data.updated_at, data.category_sqlite_id]);
+  }
+
+/*
+  update App color
+*/
+  Future<int> updateAppColor(AppColors data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableAppColors SET background_color = ?, button_color = ?, icon_color = ?, updated_at = ? WHERE app_color_sqlite_id = ?',
+        [data.background_color, data.button_color, data.icon_color, data.updated_at, data.app_color_sqlite_id]);
   }
 
 /*

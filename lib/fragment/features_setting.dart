@@ -11,12 +11,15 @@ class FeaturesSetting extends StatefulWidget {
 }
 
 class _FeaturesSettingState extends State<FeaturesSetting> {
-  Color? _tempMainColor;
-  Color _mainColor = ThemeColor().backgroundColor;
+  late ThemeColor color;
+
+  late Color _mainColor;
+
   Color? _tempButtonColor;
-  Color _buttonColor = ThemeColor().buttonColor;
+  late Color _buttonColor;
+
   Color? _tempIconColor;
-  Color _iconColor = ThemeColor().iconColor;
+  late Color _iconColor;
 
   void _openDialog(String title, Widget content) {
     showDialog(
@@ -34,10 +37,15 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
             TextButton(
               child: Text('SUBMIT'),
               onPressed: () {
+                print('color selected');
                 Navigator.of(context).pop();
-                setState(() => _mainColor = _tempMainColor!);
-                // setState(() => _buttonColor = _tempButtonColor!);
-                // setState(() => _iconColor = _tempIconColor!);
+                setState(() {
+                    _mainColor = this.color.backgroundColor;
+                    _buttonColor = this.color.buttonColor;
+                    _iconColor = this.color.iconColor;
+
+                  color.changeColor(_mainColor, _buttonColor, _iconColor);
+                });
               },
             ),
           ],
@@ -50,9 +58,10 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
     _openDialog(
       "Main Color picker",
       MaterialColorPicker(
-        selectedColor: _mainColor,
+        selectedColor: color.backgroundColor,
         allowShades: false,
-        onMainColorChange: (color) => setState(() => _tempMainColor = color),
+        onMainColorChange: (color) =>
+            setState(() => this.color.backgroundColor = color as Color),
       ),
     );
   }
@@ -61,19 +70,20 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
     _openDialog(
       "Main Color picker",
       MaterialColorPicker(
-        selectedColor: _buttonColor,
+        selectedColor: color.buttonColor,
         allowShades: false,
-        onMainColorChange: (color) => setState(() => _tempButtonColor = color),
+        onMainColorChange: (color) => setState(() => this.color.buttonColor = color as Color),
       ),
     );
   }
+
   void _openIconColorPicker() async {
     _openDialog(
       "Main Color picker",
       MaterialColorPicker(
-        selectedColor: _iconColor,
+        selectedColor: color.iconColor,
         allowShades: false,
-        onMainColorChange: (color) => setState(() => _tempIconColor = color),
+        onMainColorChange: (color) => setState(() => this.color.iconColor = color as Color),
       ),
     );
   }
@@ -81,6 +91,8 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
+      this.color = color;
+      //print(color.backgroundColor);
       return Scaffold(
         body: Column(
           children: [
@@ -89,9 +101,9 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                 children: [
                   ListTile(
                     title: Text("Change Background Color"),
-                    subtitle: Text("Main Color for the apearance of app"),
+                    subtitle: Text("Main Color for the appearance of app"),
                     trailing: CircleAvatar(
-                      backgroundColor: _mainColor,
+                      backgroundColor: color.backgroundColor,
                       child: InkWell(
                         onTap: () {
                           _openMainColorPicker();
@@ -101,9 +113,9 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                   ),
                   ListTile(
                     title: Text("Change Button Color"),
-                    subtitle: Text("Button Color for the apearance of app"),
+                    subtitle: Text("Button Color for the appearance of app"),
                     trailing: CircleAvatar(
-                      backgroundColor: _buttonColor,
+                      backgroundColor: color.buttonColor,
                       child: InkWell(
                         onTap: () {
                           _openButtonColorPicker();
@@ -113,9 +125,9 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                   ),
                   ListTile(
                     title: Text("Change Icon Color"),
-                    subtitle: Text("Icon Color for the apearance of app"),
+                    subtitle: Text("Icon Color for the appearance of app"),
                     trailing: CircleAvatar(
-                      backgroundColor: _iconColor,
+                      backgroundColor: color.iconColor,
                       child: InkWell(
                         onTap: () {
                           _openIconColorPicker();

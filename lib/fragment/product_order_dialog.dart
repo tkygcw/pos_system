@@ -14,6 +14,7 @@ import '../object/variant_group.dart';
 
 class ProductOrderDialog extends StatefulWidget {
   final Product? productDetail;
+
   const ProductOrderDialog({Key? key, this.productDetail}) : super(key: key);
 
   @override
@@ -23,8 +24,9 @@ class ProductOrderDialog extends StatefulWidget {
 class Variant {
   String? item;
   String? group;
+  bool? isChecked;
 
-  Variant({this.item, this.group});
+  Variant({this.item, this.group, this.isChecked});
 
   Map<String, Object?> toJson() => {
         'name': item,
@@ -35,12 +37,14 @@ class Variant {
 class Modifier {
   String? name;
   String? group;
+  bool? isChecked;
 
-  Modifier({this.name, this.group});
+  Modifier({this.name, this.group, this.isChecked});
 
   Map<String, Object?> toJson() => {
         'name': name,
         'group': group,
+        'isChecked': isChecked,
       };
 }
 
@@ -52,186 +56,223 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   List<Modifier> modifierElement = [];
   bool isLoading = true;
 
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     productChecking();
-
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return isLoading != true ? AlertDialog(
-        title: Text(
-          widget.productDetail!.name!,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: Container(
-          height: 500.0, // Change as per your requirement
-          width: 350.0,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                (widget.productDetail!.has_variant == 1
-                    ? Column(
+      return isLoading != true
+          ? AlertDialog(
+              title: Text(
+                widget.productDetail!.name!,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: Container(
+                height: 500.0, // Change as per your requirement
+                width: 350.0,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      (widget.productDetail!.has_variant == 1
+                          ? Column(
+                              children: [
+                                GroupedListView<Variant, String>(
+                                  physics: NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  elements: variantElement,
+                                  groupBy: (element) => element.group!,
+                                  groupComparator: (value1, value2) =>
+                                      value2.compareTo(value1),
+                                  itemComparator: (item1, item2) =>
+                                      item1.item!.compareTo(item2.item!),
+                                  order: GroupedListOrder.DESC,
+                                  useStickyGroupSeparators: true,
+                                  stickyHeaderBackgroundColor:
+                                      Colors.transparent,
+                                  groupSeparatorBuilder: (String value) {
+                                    return Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            value,
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                  itemBuilder: (c, element) {
+                                    // return ListTile(
+                                    //   trailing: Radio(
+                                    //       value: element.name!,
+                                    //       activeColor: color.backgroundColor,
+                                    //       groupValue: selected,
+                                    //       onChanged: (String? value) {
+                                    //         selected = value!;
+                                    //       }),
+                                    //   leading: Text(element.name!,
+                                    //       style: TextStyle(fontSize: 14)),
+                                    //   dense: true,
+                                    // );
+                                    return RadioListTile<Variant>(
+                                      value: element,
+                                      groupValue: element,
+                                      onChanged: (ind) => setState(() {
+                                        selected = ind!;
+                                        print('main item: ${ind.item}');
+                                      }),
+                                      title: Text(element.item!),
+                                      controlAffinity:
+                                          ListTileControlAffinity.trailing,
+                                    );
+                                  },
+                                ),
+                              ],
+                            )
+                          : Container()),
+                      Column(
                         children: [
-                          GroupedListView<Variant, String>(
+                          GroupedListView<Modifier, String>(
                             physics: NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
-                            elements: variantElement,
+                            elements: modifierElement,
                             groupBy: (element) => element.group!,
                             groupComparator: (value1, value2) =>
                                 value2.compareTo(value1),
                             itemComparator: (item1, item2) =>
-                                item1.item!.compareTo(item2.item!),
+                                item1.name!.compareTo(item2.name!),
                             order: GroupedListOrder.DESC,
                             useStickyGroupSeparators: true,
                             stickyHeaderBackgroundColor: Colors.transparent,
                             groupSeparatorBuilder: (String value) => Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                value,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    value,
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
                               ),
                             ),
                             itemBuilder: (c, element) {
-                              // return ListTile(
-                              //   trailing: Radio(
-                              //       value: element.name!,
-                              //       activeColor: color.backgroundColor,
-                              //       groupValue: selected,
-                              //       onChanged: (String? value) {
-                              //         selected = value!;
-                              //       }),
-                              //   leading: Text(element.name!,
-                              //       style: TextStyle(fontSize: 14)),
-                              //   dense: true,
-                              // );
-                              return RadioListTile<Variant>(
-                                value: element,
-                                groupValue: selected,
-                                onChanged: (ind) => setState(() => selected = ind!),
-                                title: Text(element.item!),
+                              return ListTile(
+                                trailing: Checkbox(
+                                  activeColor: color.backgroundColor,
+                                  value: element.isChecked,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      element.isChecked = value!;
+                                      print(
+                                          'flavour ${element.name},is check ${element.isChecked}');
+                                    });
+                                  },
+                                ),
+                                title: Text(element.name!,
+                                    style: TextStyle(fontSize: 14)),
+                                dense: true,
                               );
                             },
                           ),
                         ],
+                      ),
+                      Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Quantity",
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                          QuantityInput(
+                              inputWidth: 273,
+                              decoration: InputDecoration(
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: color.backgroundColor),
+                                ),
+                              ),
+                              buttonColor: color.backgroundColor,
+                              value: simpleIntInput,
+                              onChanged: (value) => setState(() =>
+                                  simpleIntInput =
+                                      int.parse(value.replaceAll(',', ''))))
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Remark",
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                          TextField(
+                            decoration: InputDecoration(
+                              focusedBorder: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: color.backgroundColor),
+                              ),
+                            ),
+                            keyboardType: TextInputType.multiline,
+                            maxLines: null,
+                          )
+                        ],
                       )
-                    : Container()),
-                Column(
-                  children: [
-                    GroupedListView<Modifier, String>(
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      elements: modifierElement,
-                      groupBy: (element) => element.group!,
-                      groupComparator: (value1, value2) =>
-                          value2.compareTo(value1),
-                      itemComparator: (item1, item2) =>
-                          item1.name!.compareTo(item2.name!),
-                      order: GroupedListOrder.DESC,
-                      useStickyGroupSeparators: true,
-                      stickyHeaderBackgroundColor: Colors.transparent,
-                      groupSeparatorBuilder: (String value) => Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          value,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      itemBuilder: (c, element) {
-                        return ListTile(
-                          trailing: Checkbox(
-                            activeColor: color.backgroundColor,
-                            value: checkboxValueA,
-                            onChanged: (value) {},
-                          ),
-                          title: Text(element.name!,
-                              style: TextStyle(fontSize: 14)),
-                          dense: true,
-                        );
-                      },
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "Quantity",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    QuantityInput(
-                        inputWidth: 273,
-                        decoration: InputDecoration(
-                          focusedBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: color.backgroundColor),
-                          ),
-                        ),
-                        buttonColor: color.backgroundColor,
-                        value: simpleIntInput,
-                        onChanged: (value) => setState(() => simpleIntInput =
-                            int.parse(value.replaceAll(',', ''))))
-                  ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Close'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
                 ),
-                Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
-                      child: Text(
-                        "Remark",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    TextField(
-                      decoration: InputDecoration(
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: color.backgroundColor),
-                        ),
-                      ),
-                      keyboardType: TextInputType.multiline,
-                      maxLines: null,
-                    )
-                  ],
-                )
+                TextButton(
+                  child: const Text('Add'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
               ],
-            ),
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('Close'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-
-          TextButton(
-            child: const Text('Add'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ) : CustomProgressBar();
+            )
+          : CustomProgressBar();
     });
   }
 
@@ -242,8 +283,8 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       List<VariantItem> itemData = await PosDatabase.instance
           .readProductVariantItem(data[i].variant_group_id!);
       for (int j = 0; j < itemData.length; j++) {
-        variantElement
-            .add(Variant(item: itemData[j].name!, group: data[i].name!));
+        variantElement.add(Variant(
+            item: itemData[j].name!, group: data[i].name!, isChecked: j == 0));
       }
     }
   }
@@ -255,15 +296,15 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       List<ModifierItem> itemData = await PosDatabase.instance
           .readProductModifierItem(data[i].mod_group_id!);
       for (int j = 0; j < itemData.length; j++) {
-        modifierElement
-            .add(Modifier(name: itemData[j].name!, group: data[i].name!));
+        modifierElement.add(Modifier(
+            name: itemData[j].name!, group: data[i].name!, isChecked: false));
       }
     }
   }
 
   productChecking() async {
-   await readProductVariant(widget.productDetail!.product_id!);
-   await readProductModifier(widget.productDetail!.product_id!);
-   this.isLoading = false;
+    await readProductVariant(widget.productDetail!.product_id!);
+    await readProductModifier(widget.productDetail!.product_id!);
+    this.isLoading = false;
   }
 }

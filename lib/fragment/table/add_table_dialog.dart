@@ -129,6 +129,13 @@ class _AddTableDialogState extends State<AddTableDialog> {
         title: Row(
           children: [
             Text(
+        '${AppLocalizations.of(context)?.translate('confirm')}',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
               "Create Table",
               style: TextStyle(
                 fontSize: 20,

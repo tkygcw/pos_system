@@ -8,6 +8,7 @@ class ModifierItemFields {
     price,
     sequence,
     quantity,
+    isChecked,
     created_at,
     updated_at,
     soft_delete
@@ -19,6 +20,7 @@ class ModifierItemFields {
   static String price = 'price';
   static String sequence = 'sequence';
   static String quantity = 'quantity';
+  static String isChecked = 'isChecked';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';

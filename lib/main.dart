@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'notifier/connectivity_change_notifier.dart';
 import 'notifier/theme_color.dart';
-import 'page/home.dart';
 import 'page/loading.dart';
 
 Future<void> main() async {
@@ -16,6 +15,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   AppLanguage appLanguage = AppLanguage();
+  //create default app color
   await appLanguage.fetchLocale();
   runApp(MyApp(
     appLanguage: appLanguage,
@@ -38,14 +38,14 @@ class MyApp extends StatelessWidget {
       DeviceOrientation.landscapeRight,
     ]);
 
-
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AppLanguage>(
           create: (_) => appLanguage,
         ),
         ChangeNotifierProvider(create: (_) {
-          ConnectivityChangeNotifier changeNotifier = ConnectivityChangeNotifier();
+          ConnectivityChangeNotifier changeNotifier =
+              ConnectivityChangeNotifier();
           changeNotifier.initialLoad();
           return changeNotifier;
         }),
@@ -93,7 +93,10 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
               )),
-          routes: {'/loading': (context) => LoadingPage(), '/': (context) => LoginPage()},
+          routes: {
+            '/loading': (context) => LoadingPage(),
+            '/': (context) => LoginPage()
+          },
         );
       }),
     );

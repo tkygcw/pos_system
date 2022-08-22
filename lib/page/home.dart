@@ -1,11 +1,8 @@
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
-import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/fragment/bill.dart';
 import 'package:pos_system/fragment/order.dart';
 import 'package:pos_system/fragment/product.dart';
-import 'package:pos_system/fragment/setting.dart';
-import 'package:pos_system/fragment/cart.dart';
 import 'package:pos_system/fragment/setting.dart';
 import 'package:pos_system/fragment/table.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
@@ -19,6 +16,7 @@ import '../object/user.dart';
 
 class HomePage extends StatefulWidget {
   final User? user;
+
   const HomePage({Key? key, this.user}) : super(key: key);
 
   @override
@@ -43,9 +41,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
+    var size = MediaQuery
+        .of(context)
+        .size;
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Scaffold(
+          return Scaffold(
           resizeToAvoidBottomInset: false,
           body: SafeArea(
             child: CollapsibleSidebar(
@@ -59,7 +59,8 @@ class _HomePageState extends State<HomePage> {
               items: _items,
               avatarImg: NetworkImage(
                   'https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg'),
-              title: widget.user!.name! + "\n" +(branchName??'')+ " - " + role,
+              title: widget.user!.name! + "\n" + (branchName ?? '') + " - " +
+                  role,
               backgroundColor: color.backgroundColor,
               selectedTextColor: color.iconColor,
               textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
@@ -68,7 +69,7 @@ class _HomePageState extends State<HomePage> {
                   fontStyle: FontStyle.italic,
                   fontWeight: FontWeight.bold),
               toggleTitleStyle:
-                  TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               selectedIconColor: color.iconColor,
               selectedIconBox: color.buttonColor,
               body: Consumer<ConnectivityChangeNotifier>(builder:
@@ -141,7 +142,8 @@ class _HomePageState extends State<HomePage> {
   getBranchName() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    Branch? data = await PosDatabase.instance.readBranchName(branch_id.toString());
+    Branch? data = await PosDatabase.instance.readBranchName(
+        branch_id.toString());
     setState(() {
       branchName = data!.name!;
     });

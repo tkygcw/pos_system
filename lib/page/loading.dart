@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/bill.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
@@ -35,6 +36,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../database/domain.dart';
 import '../notifier/theme_color.dart';
 import '../object/branch_link_user.dart';
+import '../object/color.dart';
 import '../object/customer.dart';
 import '../object/dining_option.dart';
 import '../object/tax.dart';
@@ -653,4 +655,10 @@ class _LoadingPageState extends State<LoadingPage> {
       }
     }
   }
-}
+
+
+  }
+
+
+
+
