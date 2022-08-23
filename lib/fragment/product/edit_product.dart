@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'package:checkbox_grouped/checkbox_grouped.dart';
 import 'package:flutter/material.dart';
@@ -7,22 +6,27 @@ import 'package:flutter/services.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:group_radio_button/group_radio_button.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart';
+import 'package:pos_system/fragment/variant_option.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/branch_link_product.dart';
 import '../../object/modifier_group.dart';
-import '../../object/modifier_item.dart';
 import '../../object/modifier_link_product.dart';
 import '../../object/product.dart';
 import '../../page/progress_bar.dart';
 
+
 class EditProductDialog extends StatefulWidget {
+  final Function() callBack;
   final Product? product;
-  const EditProductDialog({Key? key, this.product}) : super(key: key);
+  const EditProductDialog({required this.callBack, Key? key, this.product})
+      : super(key: key);
 
   @override
   _EditProductDialogState createState() => _EditProductDialogState();
@@ -35,6 +39,8 @@ class _EditProductDialogState extends State<EditProductDialog> {
   final stockQuantityController = TextEditingController();
   final priceController = TextEditingController();
   final skuController = TextEditingController();
+  final priceVariantController = TextEditingController();
+  final stockVariantController = TextEditingController();
   bool _submitted = false;
   String selectGraphic = "Image";
   List<String> graphicType = ["Image", "Color"];
@@ -42,6 +48,8 @@ class _EditProductDialogState extends State<EditProductDialog> {
   List<String> stockType = ["Daily Limit", "Stock"];
   String selectStatus = "Available Sale";
   List<String> productStatus = ["Available Sale", "Not Available"];
+  String selectVariant = "Have Variant";
+  List<String> productVariant = ["Have Variant", "No Variant"];
   String? imageDir;
   File? image;
   String productColor = '#ff0000';
@@ -61,8 +69,11 @@ class _EditProductDialogState extends State<EditProductDialog> {
   List<ModifierGroup> modifierElement = [];
   List<int> initModifier = [];
   bool isLoading = true;
-  GroupController switchController = GroupController(isMultipleSelection: true, initSelectedItem: []);
-
+  GroupController switchController =
+      GroupController(isMultipleSelection: true, initSelectedItem: []);
+  bool isAdd = false;
+  List<Map> variantList = [];
+  List<Map> productVariantList = [];
 
   Future getImage(ImageSource source) async {
     try {
@@ -91,12 +102,17 @@ class _EditProductDialogState extends State<EditProductDialog> {
     return File(imagePath).copy(image.path);
   }
 
-
   @override
   void initState() {
     // TODO: implement initState
+    if (widget.product!.product_id != null) {
+      setAllDefaultProduct();
+      isAdd = false;
+    } else {
+      isAdd = true;
+      startAdd();
+    }
     super.initState();
-    setAllDefaultProduct();
   }
 
   @override
@@ -109,6 +125,8 @@ class _EditProductDialogState extends State<EditProductDialog> {
     stockQuantityController.dispose();
     priceController.dispose();
     skuController.dispose();
+    stockVariantController.dispose();
+    priceVariantController.dispose();
   }
 
   String? get errorNameText {
@@ -181,6 +199,16 @@ class _EditProductDialogState extends State<EditProductDialog> {
           if (selectGraphic == 'Image') {
             saveFilePermanently(imageDir!);
           }
+          if (isAdd == true) {
+            createProduct();
+            Fluttertoast.showToast(
+                backgroundColor: Color(0xff0c1f32),
+                msg: "Create Product Success");
+            widget.callBack();
+          } else {
+            widget.callBack();
+          }
+
           closeDialog(context);
         }
       }
@@ -192,11 +220,20 @@ class _EditProductDialogState extends State<EditProductDialog> {
           errorSKUText == null) {
         if (selectGraphic == 'Image' && imageDir == null) {
           Fluttertoast.showToast(
-              backgroundColor: Color(0xFFFFC107),
+              backgroundColor: ThemeColor().backgroundColor,
               msg: "Please pick product image");
         } else {
           if (selectGraphic == 'Image') {
             saveFilePermanently(imageDir!);
+          }
+          if (isAdd == true) {
+            createProduct();
+            Fluttertoast.showToast(
+                backgroundColor: ThemeColor().backgroundColor,
+                msg: "Create Product Success");
+            widget.callBack();
+          } else {
+            widget.callBack();
           }
           closeDialog(context);
         }
@@ -207,17 +244,38 @@ class _EditProductDialogState extends State<EditProductDialog> {
   readAllCategories() async {
     List<Categories> data = await PosDatabase.instance.readCategories();
     for (int i = 0; i < data.length; i++) {
-        categoryList.add(data[i]);
+      categoryList.add(data[i]);
     }
+    selectCategory = categoryList[0];
+  }
+
+  setDefaultSKU() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    List<Product> data =
+        await PosDatabase.instance.readDefaultSKU(userObject['company_id']);
+    int defaultSKU = int.parse(data[0].SKU!) + 1;
+    skuController.text = defaultSKU.toString();
   }
 
   checKProductSKU() async {
-    List<Product> data = await PosDatabase.instance
-        .checkProductSKUForEdit(skuController.value.text);
-    if (data.length > 0) {
-      skuInUsed = true;
+    if (isAdd) {
+      List<Product> data =
+          await PosDatabase.instance.checkProductSKU(skuController.value.text);
+      if (data.length > 0) {
+        skuInUsed = true;
+      } else {
+        skuInUsed = false;
+      }
     } else {
-      skuInUsed = false;
+      List<Product> data = await PosDatabase.instance
+          .checkProductSKUForEdit(skuController.value.text);
+      if (data.length > 0) {
+        skuInUsed = true;
+      } else {
+        skuInUsed = false;
+      }
     }
   }
 
@@ -227,14 +285,17 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
   readProductModifier() async {
     List<ModifierGroup> data = await PosDatabase.instance.readAllModifier();
-    List<ModifierLinkProduct> productModifier = await PosDatabase.instance.readProductModifier(widget.product!.product_id.toString());
-    for (int i = 0; i <data.length; i++) {
-      modifierElement.add(data[i]);
-    }
-    if(productModifier.length > 0){
-      for(int j = 0; j<productModifier.length;j++){
-        initModifier.add(int.parse(productModifier[j].mod_group_id!));
+    if (isAdd == false) {
+      List<ModifierLinkProduct> productModifier = await PosDatabase.instance
+          .readProductModifier(widget.product!.product_id.toString());
+      if (productModifier.length > 0) {
+        for (int j = 0; j < productModifier.length; j++) {
+          initModifier.add(int.parse(productModifier[j].mod_group_id!));
+        }
       }
+    }
+    for (int i = 0; i < data.length; i++) {
+      modifierElement.add(data[i]);
     }
     switchController.initSelectedItem = initModifier;
   }
@@ -282,403 +343,657 @@ class _EditProductDialogState extends State<EditProductDialog> {
     setState(() {
       isLoading = false;
     });
-
   }
 
+  createProduct() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    Product productInserted = await PosDatabase.instance.insertProduct(Product(
+        product_id: 0,
+        category_id: selectCategory!.category_id.toString(),
+        company_id: userObject['company_id'],
+        name: nameController.value.text,
+        price: priceController.value.text,
+        description: descriptionController.value.text,
+        SKU: skuController.value.text,
+        image: imageDir != null
+            ? basename(imageDir!).replaceAll('image_picker', '')
+            : ' ',
+        has_variant: 0,
+        stock_type: selectStock == 'Daily Limit' ? 1 : 2,
+        stock_quantity: stockQuantityController.value.text,
+        available: selectStatus == 'Available Sale' ? 1 : 0,
+        graphic_type: selectGraphic == 'Image' ? '2' : '1',
+        color: productColor,
+        daily_limit: dailyLimitController.value.text,
+        daily_limit_amount: dailyLimitController.value.text,
+        created_at: dateTime,
+        updated_at: '',
+        soft_delete: ''));
+    final int? branch_id = prefs.getInt('branch_id');
+    BranchLinkProduct branchProduct = await PosDatabase.instance
+        .insertBranchLinkProduct(BranchLinkProduct(
+            branch_link_product_id: 0,
+            branch_id: branch_id.toString(),
+            product_id: productInserted.product_id.toString(),
+            has_variant: '0',
+            product_variant_id: ' ',
+            b_SKU: branch_id.toString() + skuController.value.text,
+            price: priceController.value.text,
+            stock_type: selectStock == 'Daily Limit' ? '1' : '2',
+            daily_limit: dailyLimitController.value.text,
+            daily_limit_amount: dailyLimitController.value.text,
+            stock_quantity: stockQuantityController.value.text,
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: ''));
+  }
+
+  startAdd() async {
+    await readAllCategories();
+    await readProductModifier();
+    await setDefaultSKU();
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return isLoading != true ? AlertDialog(
-        title: Text(
-          "Edit Product",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: Container(
-          height: 450.0, // Change as per your requirement
-          width: 350.0,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ValueListenableBuilder(
-                    // Note: pass _controller to the animation argument
-                    valueListenable: nameController,
-                    builder: (context, TextEditingValue value, __) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextField(
-                          controller: nameController,
-                          decoration: InputDecoration(
-                            errorText: _submitted ? errorNameText : null,
-                            border: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: color.backgroundColor),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: color.backgroundColor),
-                            ),
-                            labelText: 'Name',
-                          ),
-                        ),
-                      );
-                    }),
-                ValueListenableBuilder(
-                    valueListenable: descriptionController,
-                    builder: (context, TextEditingValue value, __) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextField(
-                          controller: descriptionController,
-                          minLines:
-                              3, // any number you need (It works as the rows for the textarea)
-                          keyboardType: TextInputType.multiline,
-                          maxLines: null,
-                          decoration: InputDecoration(
-                            errorText: _submitted ? errorDescriptionText : null,
-                            border: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: color.backgroundColor),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: color.backgroundColor),
-                            ),
-                            labelText: 'Description(Optional)',
-                          ),
-                        ),
-                      );
-                    }),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: DropdownButton<Categories>(
-                    onChanged: (Categories? value) {
-                      setState(() {
-                        selectCategory = value!;
-                        print(selectCategory);
-                      });
-                    },
-                    menuMaxHeight: 300,
-                    value: selectCategory,
-                    // Hide the default underline
-                    underline: Container(),
-                    icon: Icon(
-                      Icons.arrow_drop_down,
-                      color: color.backgroundColor,
-                    ),
-                    isExpanded: true,
-                    // The list of options
-                    items: categoryList
-                        .map((e) => DropdownMenuItem(
-                              value: e,
-                              child: Container(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  e.name!,
-                                  style: TextStyle(fontSize: 18),
-                                ),
-                              ),
-                            ))
-                        .toList(),
-                    // Customize the selected item
-                    selectedItemBuilder: (BuildContext context) => categoryList
-                        .map((e) => Center(
-                              child: Text(e.name!),
-                            ))
-                        .toList(),
-                  ),
+      return isLoading != true
+          ? AlertDialog(
+              title: Text(
+                isAdd ? "Add Product" : "Edit Product",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(15.0,0,15,0),
-                  child: Text(
-                    'Modifier',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                SimpleGroupedSwitch<int>(
-                  controller: switchController,
-                  itemsTitle: List.generate(modifierElement.length, (index) => modifierElement[index].name!),
-                  values: List.generate(modifierElement.length, (index) => modifierElement[index].mod_group_id!),
-                  groupStyle: SwitchGroupStyle(
-                    itemTitleStyle: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                    ),
-                    activeColor: color.backgroundColor,
-                  ),
-                  onItemSelected: (data) {
-                     print(switchController.selectedItem);
-                     print(data);
-                  },
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: RadioGroup<String>.builder(
-                    direction: Axis.horizontal,
-                    groupValue: selectStock,
-                    horizontalAlignment: MainAxisAlignment.spaceBetween,
-                    onChanged: (value) => setState(() {
-                      selectStock = value!;
-                      print(selectStock);
-                    }),
-                    items: stockType,
-                    textStyle:
-                        TextStyle(fontSize: 15, color: color.buttonColor),
-                    itemBuilder: (item) => RadioButtonBuilder(
-                      item,
-                    ),
-                    activeColor: color.backgroundColor,
-                  ),
-                ),
-                selectStock == 'Daily Limit'
-                    ? ValueListenableBuilder(
-                        valueListenable: dailyLimitController,
-                        builder: (context, TextEditingValue value, __) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextField(
-                              controller: dailyLimitController,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly
-                              ],
-                              decoration: InputDecoration(
-                                errorText:
-                                    _submitted ? errorDailyLimitText : null,
-                                border: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: color.backgroundColor),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: color.backgroundColor),
-                                ),
-                                labelText: 'Daily Limit Amount',
-                              ),
-                            ),
-                          );
-                        })
-                    : ValueListenableBuilder(
-                        valueListenable: stockQuantityController,
-                        builder: (context, TextEditingValue value, __) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextField(
-                              controller: stockQuantityController,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly
-                              ],
-                              decoration: InputDecoration(
-                                errorText:
-                                    _submitted ? errorStockQuantityText : null,
-                                border: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: color.backgroundColor),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: color.backgroundColor),
-                                ),
-                                labelText: 'Stock Quantity',
-                              ),
-                            ),
-                          );
-                        }),
-                ValueListenableBuilder(
-                    valueListenable: priceController,
-                    builder: (context, TextEditingValue value, __) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextField(
-                          controller: priceController,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                                RegExp(r'^\d+\.?\d{0,2}'))
-                          ],
-                          decoration: InputDecoration(
-                            errorText: _submitted ? errorPriceText : null,
-                            border: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: color.backgroundColor),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: color.backgroundColor),
-                            ),
-                            labelText: 'Price',
-                          ),
-                        ),
-                      );
-                    }),
-                ValueListenableBuilder(
-                    valueListenable: skuController,
-                    builder: (context, TextEditingValue value, __) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextField(
-                          controller: skuController,
-                          keyboardType: TextInputType.number,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly
-                          ],
-                          decoration: InputDecoration(
-                            errorText: _submitted ? errorSKUText : null,
-                            border: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: color.backgroundColor),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: color.backgroundColor),
-                            ),
-                            labelText: 'SKU',
-                          ),
-                        ),
-                      );
-                    }),
-                Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: RadioGroup<String>.builder(
-                    direction: Axis.horizontal,
-                    groupValue: selectGraphic,
-                    horizontalAlignment: MainAxisAlignment.spaceBetween,
-                    onChanged: (value) => setState(() {
-                      selectGraphic = value!;
-                      print(selectGraphic);
-                    }),
-                    items: graphicType,
-                    textStyle:
-                        TextStyle(fontSize: 15, color: color.buttonColor),
-                    itemBuilder: (item) => RadioButtonBuilder(
-                      item,
-                    ),
-                    activeColor: color.backgroundColor,
-                  ),
-                ),
-                selectGraphic == 'Image'
-                    ? Center(
-                        child: Column(
-                          children: [
-                            image != null
-                                ? Image.file(
-                                    image!,
-                                    width: 250,
-                                    height: 250,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Container(),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            ElevatedButton(
-                              child: Row(
-                                children: [
-                                  Icon(Icons.image_outlined),
-                                  SizedBox(
-                                    width: 10,
+              ),
+              content: Container(
+                height: 450.0, // Change as per your requirement
+                width: 400.0,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ValueListenableBuilder(
+                          // Note: pass _controller to the animation argument
+                          valueListenable: nameController,
+                          builder: (context, TextEditingValue value, __) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextField(
+                                controller: nameController,
+                                decoration: InputDecoration(
+                                  errorText: _submitted ? errorNameText : null,
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
                                   ),
-                                  Text("Pick Image from Gallery"),
-                                ],
-                              ),
-                              onPressed: () {
-                                getImage(ImageSource.gallery);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                  primary: color.backgroundColor,
-                                  textStyle: TextStyle(
-                                      color: Colors.white70,
-                                      fontWeight: FontWeight.bold)),
-                            ),
-                            ElevatedButton(
-                              child: Row(
-                                children: [
-                                  Icon(Icons.camera_alt_outlined),
-                                  SizedBox(
-                                    width: 10,
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
                                   ),
-                                  Text("Pick Image from Camera"),
-                                ],
+                                  labelText: 'Name',
+                                ),
                               ),
-                              onPressed: () {
-                                getImage(ImageSource.camera);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                  primary: color.backgroundColor,
-                                  textStyle: TextStyle(
-                                      color: Colors.white70,
-                                      fontWeight: FontWeight.bold)),
-                            ),
-                          ],
+                            );
+                          }),
+                      ValueListenableBuilder(
+                          valueListenable: descriptionController,
+                          builder: (context, TextEditingValue value, __) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextField(
+                                controller: descriptionController,
+                                minLines:
+                                    3, // any number you need (It works as the rows for the textarea)
+                                keyboardType: TextInputType.multiline,
+                                maxLines: null,
+                                decoration: InputDecoration(
+                                  errorText:
+                                      _submitted ? errorDescriptionText : null,
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
+                                  ),
+                                  labelText: 'Description(Optional)',
+                                ),
+                              ),
+                            );
+                          }),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: DropdownButton<Categories>(
+                          onChanged: (Categories? value) {
+                            setState(() {
+                              selectCategory = value!;
+                              print(selectCategory);
+                            });
+                          },
+                          menuMaxHeight: 300,
+                          value: selectCategory,
+                          // Hide the default underline
+                          underline: Container(),
+                          icon: Icon(
+                            Icons.arrow_drop_down,
+                            color: color.backgroundColor,
+                          ),
+                          isExpanded: true,
+                          // The list of options
+                          items: categoryList
+                              .map((e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Container(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        e.name!,
+                                        style: TextStyle(fontSize: 18),
+                                      ),
+                                    ),
+                                  ))
+                              .toList(),
+                          // Customize the selected item
+                          selectedItemBuilder: (BuildContext context) =>
+                              categoryList
+                                  .map((e) => Center(
+                                        child: Text(e.name!),
+                                      ))
+                                  .toList(),
                         ),
-                      )
-                    : MaterialColorPicker(
-                        physics: NeverScrollableScrollPhysics(),
-                        allowShades: false,
-                        selectedColor: Color(
-                            int.parse(productColor.replaceAll('#', '0xff'))),
-                        circleSize: 190,
-                        shrinkWrap: true,
-                        onMainColorChange: (color) {
-                          var hex =
-                              '#${color!.value.toRadixString(16).substring(2)}';
-                          productColor = hex;
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: RadioGroup<String>.builder(
+                          direction: Axis.horizontal,
+                          groupValue: selectStock,
+                          horizontalAlignment: MainAxisAlignment.spaceBetween,
+                          onChanged: (value) => setState(() {
+                            selectStock = value!;
+                          }),
+                          items: stockType,
+                          textStyle:
+                              TextStyle(fontSize: 15, color: color.buttonColor),
+                          itemBuilder: (item) => RadioButtonBuilder(
+                            item,
+                          ),
+                          activeColor: color.backgroundColor,
+                        ),
+                      ),
+                      selectStock == 'Daily Limit'
+                          ? ValueListenableBuilder(
+                              valueListenable: dailyLimitController,
+                              builder: (context, TextEditingValue value, __) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: TextField(
+                                    controller: dailyLimitController,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly
+                                    ],
+                                    decoration: InputDecoration(
+                                      errorText: _submitted
+                                          ? errorDailyLimitText
+                                          : null,
+                                      border: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: color.backgroundColor),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: color.backgroundColor),
+                                      ),
+                                      labelText: 'Daily Limit Amount',
+                                    ),
+                                  ),
+                                );
+                              })
+                          : ValueListenableBuilder(
+                              valueListenable: stockQuantityController,
+                              builder: (context, TextEditingValue value, __) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: TextField(
+                                    controller: stockQuantityController,
+                                    keyboardType: TextInputType.number,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly
+                                    ],
+                                    decoration: InputDecoration(
+                                      errorText: _submitted
+                                          ? errorStockQuantityText
+                                          : null,
+                                      border: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: color.backgroundColor),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: color.backgroundColor),
+                                      ),
+                                      labelText: 'Stock Quantity',
+                                    ),
+                                  ),
+                                );
+                              }),
+                      ValueListenableBuilder(
+                          valueListenable: priceController,
+                          builder: (context, TextEditingValue value, __) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextField(
+                                controller: priceController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp(r'^\d+\.?\d{0,2}'))
+                                ],
+                                decoration: InputDecoration(
+                                  errorText: _submitted ? errorPriceText : null,
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
+                                  ),
+                                  labelText: 'Price',
+                                ),
+                              ),
+                            );
+                          }),
+                      ValueListenableBuilder(
+                          valueListenable: skuController,
+                          builder: (context, TextEditingValue value, __) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextField(
+                                controller: skuController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly
+                                ],
+                                decoration: InputDecoration(
+                                  errorText: _submitted ? errorSKUText : null,
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
+                                  ),
+                                  labelText: 'SKU',
+                                ),
+                              ),
+                            );
+                          }),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(15, 10, 15, 0),
+                        child: Text(
+                          'Modifier',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      SimpleGroupedCheckbox<int>(
+                        controller: switchController,
+                        itemsTitle: List.generate(modifierElement.length,
+                            (index) => modifierElement[index].name!),
+                        values: List.generate(modifierElement.length,
+                            (index) => modifierElement[index].mod_group_id!),
+                        groupStyle: GroupStyle(
+                          itemTitleStyle: TextStyle(
+                            fontSize: 16,
+                            color: Colors.black,
+                          ),
+                          activeColor: color.backgroundColor,
+                        ),
+                        checkFirstElement: false,
+                        onItemSelected: (data) {
+                          print(data);
                         },
                       ),
-                Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: RadioGroup<String>.builder(
-                    direction: Axis.horizontal,
-                    groupValue: selectStatus,
-                    horizontalAlignment: MainAxisAlignment.spaceBetween,
-                    onChanged: (value) => setState(() {
-                      selectStatus = value!;
-                      print(selectStatus);
-                    }),
-                    items: productStatus,
-                    textStyle:
-                        TextStyle(fontSize: 15, color: color.buttonColor),
-                    itemBuilder: (item) => RadioButtonBuilder(
-                      item,
-                    ),
-                    activeColor: color.backgroundColor,
+                      Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: RadioGroup<String>.builder(
+                          direction: Axis.horizontal,
+                          groupValue: selectVariant,
+                          horizontalAlignment: MainAxisAlignment.spaceBetween,
+                          onChanged: (value) => setState(() {
+                            selectVariant = value!;
+                          }),
+                          items: productVariant,
+                          textStyle:
+                              TextStyle(fontSize: 15, color: color.buttonColor),
+                          itemBuilder: (item) => RadioButtonBuilder(
+                            item,
+                          ),
+                          activeColor: color.backgroundColor,
+                        ),
+                      ),
+                      selectVariant == 'Have Variant'
+                          ? Padding(
+                              padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
+                              child: Text(
+                                'Variant',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            )
+                          : Container(),
+                      Column(
+                        children: [
+                          ListView.builder(
+                              physics: NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              itemCount: variantList.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                return ListTile(
+                                  title: Text(variantList[index]['modGroup']),
+                                  subtitle:
+                                      customText(variantList[index]['modItem']),
+                                  trailing: IconButton(
+                                    icon: Icon(Icons.close),
+                                    onPressed: () {
+                                      setState(() {
+                                        variantList.removeAt(index);
+                                        createProductVariantList();
+                                      });
+                                    },
+                                  ),
+                                );
+                              }),
+                        ],
+                      ),
+                      selectVariant == 'Have Variant' && variantList.length < 3
+                          ? Padding(
+                              padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
+                              child: ElevatedButton(
+                                child: Text("Add Variant"),
+                                onPressed: () {
+                                  openVariantOptionDialog(context);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    primary: color.backgroundColor,
+                                    textStyle: TextStyle(
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                            )
+                          : Container(),
+                      Card(
+                        elevation: 3,
+                        child: Column(
+                          children: [
+                            ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: productVariantList.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return ListTile(
+                                    dense: true,
+                                    leading: Text(productVariantList[index]
+                                        ['variant_name']),
+                                    title: TextField(
+                                      controller: stockVariantController
+                                        ..text = productVariantList[index]
+                                            ['quantity'],
+                                      decoration: InputDecoration(
+                                        isDense: true,
+                                        border: InputBorder.none,
+                                        focusedBorder: InputBorder.none,
+                                        enabledBorder: InputBorder.none,
+                                        errorBorder: InputBorder.none,
+                                        disabledBorder: InputBorder.none,
+                                        labelText: selectStock == 'Daily Limit'
+                                            ? 'Daily Limit'
+                                            : 'Stock',
+                                      ),
+                                    ),
+
+                                  );
+                                }),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: RadioGroup<String>.builder(
+                          direction: Axis.horizontal,
+                          groupValue: selectGraphic,
+                          horizontalAlignment: MainAxisAlignment.spaceBetween,
+                          onChanged: (value) => setState(() {
+                            selectGraphic = value!;
+                          }),
+                          items: graphicType,
+                          textStyle:
+                              TextStyle(fontSize: 15, color: color.buttonColor),
+                          itemBuilder: (item) => RadioButtonBuilder(
+                            item,
+                          ),
+                          activeColor: color.backgroundColor,
+                        ),
+                      ),
+                      selectGraphic == 'Image'
+                          ? Center(
+                              child: Column(
+                                children: [
+                                  image != null
+                                      ? Image.file(
+                                          image!,
+                                          width: 250,
+                                          height: 250,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Container(),
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  ElevatedButton(
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.image_outlined),
+                                        SizedBox(
+                                          width: 10,
+                                        ),
+                                        Text("Pick Image from Gallery"),
+                                      ],
+                                    ),
+                                    onPressed: () {
+                                      getImage(ImageSource.gallery);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                        primary: color.backgroundColor,
+                                        textStyle: TextStyle(
+                                            color: Colors.white70,
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+                                  ElevatedButton(
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.camera_alt_outlined),
+                                        SizedBox(
+                                          width: 10,
+                                        ),
+                                        Text("Pick Image from Camera"),
+                                      ],
+                                    ),
+                                    onPressed: () {
+                                      getImage(ImageSource.camera);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                        primary: color.backgroundColor,
+                                        textStyle: TextStyle(
+                                            color: Colors.white70,
+                                            fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : MaterialColorPicker(
+                              physics: NeverScrollableScrollPhysics(),
+                              allowShades: false,
+                              selectedColor: Color(int.parse(
+                                  productColor.replaceAll('#', '0xff'))),
+                              circleSize: 190,
+                              shrinkWrap: true,
+                              onMainColorChange: (color) {
+                                var hex =
+                                    '#${color!.value.toRadixString(16).substring(2)}';
+                                productColor = hex;
+                              },
+                            ),
+                      Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: RadioGroup<String>.builder(
+                          direction: Axis.horizontal,
+                          groupValue: selectStatus,
+                          horizontalAlignment: MainAxisAlignment.spaceBetween,
+                          onChanged: (value) => setState(() {
+                            selectStatus = value!;
+                          }),
+                          items: productStatus,
+                          textStyle:
+                              TextStyle(fontSize: 15, color: color.buttonColor),
+                          itemBuilder: (item) => RadioButtonBuilder(
+                            item,
+                          ),
+                          activeColor: color.backgroundColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Close'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text('Add'),
+                  onPressed: () async {
+                    await checKProductSKU();
+                    if (skuInUsed) {
+                      Fluttertoast.showToast(
+                          backgroundColor: Color(0xFFFFC107),
+                          msg: "SKU already in used");
+                    } else {
+                      _submit(context);
+                    }
+                  },
+                ),
               ],
-            ),
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('Close'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: const Text('Add'),
-            onPressed: () async {
-              await checKProductSKU();
-              if (skuInUsed) {
-                Fluttertoast.showToast(
-                    backgroundColor: Color(0xFFFFC107),
-                    msg: "SKU already in used");
-              } else {
-                _submit(context);
-              }
-            },
-          ),
-        ],
-      ): CustomProgressBar();
+            )
+          : CustomProgressBar();
     });
   }
+
+  Future<Future<Object?>> openVariantOptionDialog(BuildContext context) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: VariantOptionDialog(
+                  callback: (value) => readGroupAndItem(value)),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          return null!;
+        });
+  }
+
+  readGroupAndItem(Map data) {
+    variantList.add(data);
+    print(variantList);
+    createProductVariantList();
+  }
+
+  createProductVariantList() {
+    productVariantList.clear();
+    int num = 0;
+    if (variantList.length == 3) {
+      for (int i = 0; i < variantList[0]['modItem'].length; i++) {
+        for (int j = 0; j < variantList[1]['modItem'].length; j++) {
+          for (int k = 0; k < variantList[2]['modItem'].length; k++) {
+            productVariantList.add({
+              'variant_name': variantList[0]['modItem'][i] +
+                  " | " +
+                  variantList[1]['modItem'][j] +
+                  " | " +
+                  variantList[2]['modItem'][k],
+              'price': priceController.text,
+              'quantity': selectStock == 'Daily Limit'
+                  ? dailyLimitController.text
+                  : stockQuantityController.text,
+              'SKU': skuController.text + (num++).toString()
+            });
+          }
+        }
+      }
+    } else if (variantList.length == 2) {
+      for (int i = 0; i < variantList[0]['modItem'].length; i++) {
+        for (int j = 0; j < variantList[1]['modItem'].length; j++) {
+          productVariantList.add({
+            'variant_name': variantList[0]['modItem'][i] +
+                " | " +
+                variantList[1]['modItem'][j],
+            'price': priceController.text,
+            'quantity': selectStock == 'Daily Limit'
+                ? dailyLimitController.text
+                : stockQuantityController.text,
+            'SKU': skuController.text + (num++).toString()
+          });
+        }
+      }
+    } else if (variantList.length == 1) {
+      for (int i = 0; i < variantList[0]['modItem'].length; i++) {
+        productVariantList.add({
+          'variant_name': variantList[0]['modItem'][i],
+          'price': priceController.text,
+          'quantity': selectStock == 'Daily Limit'
+              ? dailyLimitController.text
+              : stockQuantityController.text,
+          'SKU': skuController.text + (num++).toString()
+        });
+      }
+    }
+
+    print(productVariantList);
+  }
+
+  Widget customText(List data) {
+    String value = '';
+    for (int i = 0; i < data.length; i++) {
+      if (i < data.length - 1) {
+        value += data[i] + ', ';
+      } else {
+        value += data[i];
+      }
+    }
+    return Text(
+      value,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
 }
-
-

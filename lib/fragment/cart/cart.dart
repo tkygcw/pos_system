@@ -30,120 +30,119 @@ class _CartPageState extends State<CartPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      Future<void> tableDialog(BuildContext context) {
-        return showDialog<void>(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title:
-                  Text("Table", style: TextStyle(fontWeight: FontWeight.bold)),
-              content: Builder(builder: (context) {
-                var width = MediaQuery.of(context).size.width;
-                return Container(
-                  width: width - 1000,
-                  child: ScrollConfiguration(
-                    behavior: ScrollConfiguration.of(context)
-                        .copyWith(scrollbars: false),
-                    child: GridView.count(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      shrinkWrap: true,
-                      children: [
-                        Container(
-                            child: Stack(
-                          children: [
-                            Ink.image(
-                              image: NetworkImage(
-                                  "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png"),
-                              child: InkWell(
-                                splashColor: Colors.blue.withAlpha(30),
-                                onTap: () {},
-                              ),
-                              fit: BoxFit.cover,
-                            ),
-                            Container(
-                                alignment: Alignment.center, child: Text("#1"))
-                          ],
-                        )),
-                        Container(
-                            child: Stack(
-                          children: [
-                            Ink.image(
-                              image: NetworkImage(
-                                  "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png"),
-                              child: InkWell(
-                                splashColor: Colors.blue.withAlpha(30),
-                                onTap: () {},
-                              ),
-                              fit: BoxFit.cover,
-                            ),
-                            Container(
-                                alignment: Alignment.center, child: Text("#2"))
-                          ],
-                        )),
-                        Container(
-                            child: Stack(
-                          children: [
-                            Ink.image(
-                              image: NetworkImage(
-                                  "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png"),
-                              child: InkWell(
-                                splashColor: Colors.blue.withAlpha(30),
-                                onTap: () {},
-                              ),
-                              fit: BoxFit.cover,
-                            ),
-                            Container(
-                                alignment: Alignment.center, child: Text("#3"))
-                          ],
-                        )),
-                        Container(
-                            child: Stack(
-                          children: [
-                            Ink.image(
-                              image: NetworkImage(
-                                  "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png"),
-                              child: InkWell(
-                                splashColor: Colors.blue.withAlpha(30),
-                                onTap: () {},
-                              ),
-                              fit: BoxFit.cover,
-                            ),
-                            Container(
-                                alignment: Alignment.center, child: Text("#4"))
-                          ],
-                        )),
-                        Container(
-                            child: Stack(
-                          children: [
-                            Ink.image(
-                              image: NetworkImage(
-                                  "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png"),
-                              child: InkWell(
-                                splashColor: Colors.blue.withAlpha(30),
-                                onTap: () {},
-                              ),
-                              fit: BoxFit.cover,
-                            ),
-                            Container(
-                                alignment: Alignment.center, child: Text("#5"))
-                          ],
-                        )),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-            );
-          },
-        );
-      }
-
+      // Future<void> tableDialog(BuildContext context) {
+      //   return showDialog<void>(
+      //     context: context,
+      //     builder: (BuildContext context) {
+      //       return AlertDialog(
+      //         title:
+      //             Text("Table", style: TextStyle(fontWeight: FontWeight.bold)),
+      //         content: Builder(builder: (context) {
+      //           var width = MediaQuery.of(context).size.width;
+      //           return Container(
+      //             width: width - 1000,
+      //             child: ScrollConfiguration(
+      //               behavior: ScrollConfiguration.of(context)
+      //                   .copyWith(scrollbars: false),
+      //               child: GridView.count(
+      //                 crossAxisCount: 2,
+      //                 mainAxisSpacing: 10,
+      //                 crossAxisSpacing: 10,
+      //                 shrinkWrap: true,
+      //                 children: [
+      //                   Container(
+      //                       child: Stack(
+      //                     children: [
+      //                       Ink.image(
+      //                         image: NetworkImage(
+      //                             "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png"),
+      //                         child: InkWell(
+      //                           splashColor: Colors.blue.withAlpha(30),
+      //                           onTap: () {},
+      //                         ),
+      //                         fit: BoxFit.cover,
+      //                       ),
+      //                       Container(
+      //                           alignment: Alignment.center, child: Text("#1"))
+      //                     ],
+      //                   )),
+      //                   Container(
+      //                       child: Stack(
+      //                     children: [
+      //                       Ink.image(
+      //                         image: NetworkImage(
+      //                             "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png"),
+      //                         child: InkWell(
+      //                           splashColor: Colors.blue.withAlpha(30),
+      //                           onTap: () {},
+      //                         ),
+      //                         fit: BoxFit.cover,
+      //                       ),
+      //                       Container(
+      //                           alignment: Alignment.center, child: Text("#2"))
+      //                     ],
+      //                   )),
+      //                   Container(
+      //                       child: Stack(
+      //                     children: [
+      //                       Ink.image(
+      //                         image: NetworkImage(
+      //                             "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png"),
+      //                         child: InkWell(
+      //                           splashColor: Colors.blue.withAlpha(30),
+      //                           onTap: () {},
+      //                         ),
+      //                         fit: BoxFit.cover,
+      //                       ),
+      //                       Container(
+      //                           alignment: Alignment.center, child: Text("#3"))
+      //                     ],
+      //                   )),
+      //                   Container(
+      //                       child: Stack(
+      //                     children: [
+      //                       Ink.image(
+      //                         image: NetworkImage(
+      //                             "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png"),
+      //                         child: InkWell(
+      //                           splashColor: Colors.blue.withAlpha(30),
+      //                           onTap: () {},
+      //                         ),
+      //                         fit: BoxFit.cover,
+      //                       ),
+      //                       Container(
+      //                           alignment: Alignment.center, child: Text("#4"))
+      //                     ],
+      //                   )),
+      //                   Container(
+      //                       child: Stack(
+      //                     children: [
+      //                       Ink.image(
+      //                         image: NetworkImage(
+      //                             "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png"),
+      //                         child: InkWell(
+      //                           splashColor: Colors.blue.withAlpha(30),
+      //                           onTap: () {},
+      //                         ),
+      //                         fit: BoxFit.cover,
+      //                       ),
+      //                       Container(
+      //                           alignment: Alignment.center, child: Text("#5"))
+      //                     ],
+      //                   )),
+      //                 ],
+      //               ),
+      //             ),
+      //           );
+      //         }),
+      //       );
+      //     },
+      //   );
+      // }
       return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Scaffold(
-          resizeToAvoidBottomInset : false,
+          resizeToAvoidBottomInset: false,
           appBar: AppBar(
             automaticallyImplyLeading: false,
             title: Text('Bill',
@@ -157,7 +156,7 @@ class _CartPageState extends State<CartPage> {
                 ),
                 color: color.backgroundColor,
                 onPressed: () {
-                  tableDialog(context);
+                  // tableDialog(context);
                 },
               ),
               IconButton(
@@ -182,11 +181,12 @@ class _CartPageState extends State<CartPage> {
             ],
           ),
           body: Container(
-             decoration: BoxDecoration(
+            decoration: BoxDecoration(
               color: color.iconColor,
               border: Border.all(color: Colors.grey.shade100, width: 3.0),
             ),
-            child: Column(              children: [
+            child: Column(
+              children: [
                 Padding(
                   padding: EdgeInsets.fromLTRB(10, 8, 14, 0),
                   child: Column(children: [
@@ -226,65 +226,67 @@ class _CartPageState extends State<CartPage> {
                     ),
                   ]),
                 ),
-                Container(
-                  height: 350,
-                  child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: product.length,
-                      itemBuilder: (context, index) {
-                        return Dismissible(
-                          key: ValueKey(product[index].name),
-                          child: ListTile(
-                            hoverColor: Colors.transparent,
-                            onTap: () {},
-                            isThreeLine: true,
-                            title: RichText(
-                              text: TextSpan(
-                                children: <TextSpan>[
-                                  TextSpan(
-                                      text: product[index].name + '\n',
-                                      style: TextStyle(
-                                          fontSize: 14,
+                Expanded(
+                  child: Container(
+                    height: 350,
+                    child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: product.length,
+                        itemBuilder: (context, index) {
+                          return Dismissible(
+                            key: ValueKey(product[index].name),
+                            child: ListTile(
+                              hoverColor: Colors.transparent,
+                              onTap: () {},
+                              isThreeLine: true,
+                              title: RichText(
+                                text: TextSpan(
+                                  children: <TextSpan>[
+                                    TextSpan(
+                                        text: product[index].name + '\n',
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            color: color.backgroundColor,
+                                            fontWeight: FontWeight.bold)),
+                                    TextSpan(
+                                        text: "RM" + product[index].price,
+                                        style: TextStyle(
+                                          fontSize: 13,
                                           color: color.backgroundColor,
-                                          fontWeight: FontWeight.bold)),
-                                  TextSpan(
-                                      text: "RM" + product[index].price,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: color.backgroundColor,
-                                      )),
-                                ],
-                              ),
-                            ),
-                            subtitle: Text(
-                                product[index].modifier +
-                                    '\n' +
-                                    product[index].variant,
-                                style: TextStyle(fontSize: 10)),
-                            trailing: Container(
-                              child: FittedBox(
-                                child: Row(
-                                  children: [
-                                    IconButton(
-                                        hoverColor: Colors.transparent,
-                                        icon: Icon(Icons.remove),
-                                        onPressed: () => setState(() =>
-                                            simpleIntInput != 0
-                                                ? simpleIntInput--
-                                                : simpleIntInput)),
-                                    Text(simpleIntInput.toString()),
-                                    IconButton(
-                                        hoverColor: Colors.transparent,
-                                        icon: Icon(Icons.add),
-                                        onPressed: () =>
-                                            setState(() => simpleIntInput++))
+                                        )),
                                   ],
                                 ),
                               ),
+                              subtitle: Text(
+                                  product[index].modifier +
+                                      '\n' +
+                                      product[index].variant,
+                                  style: TextStyle(fontSize: 10)),
+                              trailing: Container(
+                                child: FittedBox(
+                                  child: Row(
+                                    children: [
+                                      IconButton(
+                                          hoverColor: Colors.transparent,
+                                          icon: Icon(Icons.remove),
+                                          onPressed: () => setState(() =>
+                                              simpleIntInput != 0
+                                                  ? simpleIntInput--
+                                                  : simpleIntInput)),
+                                      Text(simpleIntInput.toString()),
+                                      IconButton(
+                                          hoverColor: Colors.transparent,
+                                          icon: Icon(Icons.add),
+                                          onPressed: () =>
+                                              setState(() => simpleIntInput++))
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        );
-                      }),
+                          );
+                        }),
+                  ),
                 ),
                 SizedBox(height: 20),
                 Divider(
@@ -295,42 +297,43 @@ class _CartPageState extends State<CartPage> {
                   endIndent: 20,
                 ),
                 SizedBox(height: 10),
-                Expanded(
-                  child: ListView(
-                    physics: NeverScrollableScrollPhysics() ,
-                    children: [
-                      ListTile(
-                        title: Text("Subtotal", style: TextStyle(fontSize: 14)),
-                        trailing: Text("12.00", style: TextStyle(fontSize: 14)),
-                        visualDensity: VisualDensity(vertical: -4),
-                        dense: true,
-                      ),
-                      ListTile(
-                        title: Text("Promotion", style: TextStyle(fontSize: 14)),
-                        trailing: Text("- 12.00", style: TextStyle(fontSize: 14)),
-                        visualDensity: VisualDensity(vertical: -4),
-                        dense: true,
-                      ),
-                      ListTile(
-                        title: Text("Tax", style: TextStyle(fontSize: 14)),
-                        trailing: Text("12.00", style: TextStyle(fontSize: 14)),
-                        visualDensity: VisualDensity(vertical: -4),
-                        dense: true,
-                      ),
-                      ListTile(
-                        visualDensity: VisualDensity(vertical: -4),
-                        title: Text("Total",
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
-                        trailing: Text("12.00",
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
-                        dense: true,
-                      ),
-                    ],
-                    shrinkWrap: true,
-                  ),
+                ListView(
+                  physics: NeverScrollableScrollPhysics(),
+                  children: [
+                    ListTile(
+                      title: Text("Subtotal", style: TextStyle(fontSize: 14)),
+                      trailing: Text("12.00", style: TextStyle(fontSize: 14)),
+                      visualDensity: VisualDensity(vertical: -4),
+                      dense: true,
+                    ),
+                    ListTile(
+                      title:
+                          Text("Promotion", style: TextStyle(fontSize: 14)),
+                      trailing:
+                          Text("- 12.00", style: TextStyle(fontSize: 14)),
+                      visualDensity: VisualDensity(vertical: -4),
+                      dense: true,
+                    ),
+                    ListTile(
+                      title: Text("Tax", style: TextStyle(fontSize: 14)),
+                      trailing: Text("12.00", style: TextStyle(fontSize: 14)),
+                      visualDensity: VisualDensity(vertical: -4),
+                      dense: true,
+                    ),
+                    ListTile(
+                      visualDensity: VisualDensity(vertical: -4),
+                      title: Text("Total",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      trailing: Text("12.00",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      dense: true,
+                    ),
+                  ],
+                  shrinkWrap: true,
                 ),
+                SizedBox(height: 10),
                 Divider(
                   color: Colors.grey,
                   height: 1,

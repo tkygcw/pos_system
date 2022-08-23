@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -6,25 +7,39 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 
-class AddCategoryDialog extends StatefulWidget {
+class CategoryDialog extends StatefulWidget {
+  final Categories? category;
   final Function() callBack;
-  const AddCategoryDialog({required this.callBack, Key? key}) : super(key: key);
+
+  const CategoryDialog({Key? key, required this.callBack, this.category})
+      : super(key: key);
+
   @override
-  _AddCategoryDialogState createState() => _AddCategoryDialogState();
+  _CategoryDialogState createState() => _CategoryDialogState();
 }
 
-class _AddCategoryDialogState extends State<AddCategoryDialog> {
+class _CategoryDialogState extends State<CategoryDialog> {
   final myController = TextEditingController();
-  String categoryColor = '#ff0000';
   bool _submitted = false;
+  String categoryColor = '';
+  bool isAdd = false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    if (widget.category!.category_id == null) {
+      categoryColor = '#ff0000';
+      isAdd = true;
+    } else {
+      isAdd = false;
+      myController.text = widget.category!.name!;
+      categoryColor = widget.category!.color!;
+    }
   }
 
   @override
@@ -45,12 +60,67 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
   void _submit() {
     setState(() => _submitted = true);
     if (_errorText == null) {
-      insertCategory();
+      if (isAdd) {
+        insertCategory();
+      } else {
+        updateCategory();
+      }
+    }
+  }
+
+  changeHexToCode(String hex) {
+    hex = hex.toUpperCase().replaceAll("#", "");
+    if (hex.length == 6) {
+      hex = "FF" + hex;
+    }
+    return int.parse(hex, radix: 16);
+  }
+
+  updateCategory() async {
+    try {
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      Categories categoryData = Categories(
+          category_sqlite_id: widget.category!.category_sqlite_id,
+          color: categoryColor,
+          name: myController.value.text,
+          updated_at: dateTime);
+      int data = await PosDatabase.instance.updateCategory(categoryData);
+      if (data != '') {
+        widget.callBack();
+        Navigator.of(context).pop(true);
+        Fluttertoast.showToast(msg: 'Successfully update');
+      } else {
+        Fluttertoast.showToast(msg: 'Fail update');
+      }
+    } catch (error) {
+      Fluttertoast.showToast(msg: 'Something went wrong. Please try again');
+    }
+  }
+
+  deleteCategory() async {
+    try {
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      Categories categoryData = Categories(
+        soft_delete: dateTime,
+        category_sqlite_id: widget.category!.category_sqlite_id,
+      );
+      int data = await PosDatabase.instance.deleteCategory(categoryData);
+      if (data != '') {
+        widget.callBack();
+        Navigator.of(context).pop(true);
+        Fluttertoast.showToast(msg: 'Successfully delete');
+      } else {
+        Fluttertoast.showToast(msg: 'Fail delete');
+      }
+    } catch (error) {
+      Fluttertoast.showToast(msg: 'Something went wrong. Missing Parameter');
     }
   }
 
   insertCategory() async {
-    try{
+    try {
       final prefs = await SharedPreferences.getInstance();
       final String? user = prefs.getString('user');
       Map userObject = json.decode(user!);
@@ -66,30 +136,51 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
         color: categoryColor,
         created_at: dateTime,
       ));
-      if(data!=''){
+      if (data != '') {
         widget.callBack();
         Navigator.of(context).pop(true);
         Fluttertoast.showToast(msg: 'Successfully Insert');
-      }
-      else{
+      } else {
         Fluttertoast.showToast(msg: 'Fail Insert');
       }
-    }catch(error){
+    } catch (error) {
       Fluttertoast.showToast(msg: 'Something went wrong. Missing Parameter');
     }
-
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return AlertDialog(
-        title: Text(
-          "Create Category",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+        title: Row(
+          children: [
+            Text(
+              isAdd ? "Add Category" : "Edit Category",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Spacer(),
+            isAdd
+                ? Container()
+                : IconButton(
+                    icon: const Icon(Icons.delete_outlined),
+                    color: Colors.red,
+                    onPressed: () async {
+                      if (await confirm(
+                        context,
+                        title: const Text('Confirm'),
+                        content: const Text('Would you like to remove?'),
+                        textOK: const Text('Yes'),
+                        textCancel: const Text('No'),
+                      )) {
+                        return deleteCategory();
+                      }
+                      // deleteCategory();
+                    },
+                  ),
+          ],
         ),
         content: Container(
           height: 450.0, // Change as per your requirement
@@ -104,7 +195,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                     valueListenable: myController,
                     builder: (context, TextEditingValue value, __) {
                       return Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
                         child: TextField(
                           controller: myController,
                           decoration: InputDecoration(
@@ -131,7 +222,9 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
                 ),
                 MaterialColorPicker(
                   allowShades: false,
-                  selectedColor: Colors.red,
+                  selectedColor: isAdd
+                      ? Colors.red
+                      : Color(changeHexToCode(widget.category!.color!)),
                   circleSize: 190,
                   shrinkWrap: true,
                   onMainColorChange: (color) {
@@ -151,7 +244,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
             },
           ),
           TextButton(
-            child: const Text('Add'),
+            child: const Text('Submit'),
             onPressed: () {
               _submit();
               // print(selectColor);

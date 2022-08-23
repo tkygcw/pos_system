@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pos_system/fragment/category/add_category.dart';
-import 'package:pos_system/fragment/category/edit_category.dart';
+import 'package:pos_system/fragment/category/category_dialog.dart';
 import 'package:pos_system/object/colorCode.dart';
 import 'package:provider/provider.dart';
 import '../../database/pos_database.dart';
@@ -45,7 +44,7 @@ class _CategorySettingState extends State<CategorySetting> {
                                 style: ElevatedButton.styleFrom(
                                     primary: color.backgroundColor),
                                 onPressed: () async {
-                                  openAddCategoryDialog();
+                                  openEditCategoryDialog(Categories());
                                 },
                                 icon: Icon(Icons.add),
                                 label: Text("Category")),
@@ -118,28 +117,6 @@ class _CategorySettingState extends State<CategorySetting> {
             );
     });
   }
-
-  Future<Future<Object?>> openAddCategoryDialog() async {
-    return showGeneralDialog(
-        barrierColor: Colors.black.withOpacity(0.5),
-        transitionBuilder: (context, a1, a2, widget) {
-          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
-          return Transform(
-            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
-            child: Opacity(
-              opacity: a1.value,
-              child: AddCategoryDialog(callBack: () => readAllCategories()),
-            ),
-          );
-        },
-        transitionDuration: Duration(milliseconds: 200),
-        barrierDismissible: false,
-        context: context,
-        pageBuilder: (context, animation1, animation2) {
-          return null!;
-        });
-  }
-
   Future<Future<Object?>> openEditCategoryDialog(Categories categories) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
@@ -149,7 +126,7 @@ class _CategorySettingState extends State<CategorySetting> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
                 opacity: a1.value,
-                child: EditCategoryDialog(
+                child: CategoryDialog(
                   callBack: () => readAllCategories(),
                   category: categories,
                 )),

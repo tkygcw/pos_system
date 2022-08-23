@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:pos_system/fragment/product/add_product.dart';
-import 'package:pos_system/fragment/product/edit_product.dart';
+
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,6 +11,8 @@ import '../../object/categories.dart';
 import '../../object/colorCode.dart';
 import '../../object/product.dart';
 import '../../page/progress_bar.dart';
+import '../product/edit_product.dart';
+
 
 class FoodSetting extends StatefulWidget {
   const FoodSetting({Key? key}) : super(key: key);
@@ -56,8 +56,7 @@ class _FoodSettingState extends State<FoodSetting> {
                                 style: ElevatedButton.styleFrom(
                                     primary: color.backgroundColor),
                                 onPressed: () {
-                                  print('open add dialog');
-                                  openAddProductDialog();
+                                  openEditProductDialog(Product());
                                 },
                                 icon: Icon(Icons.add),
                                 label: Text("Product")),
@@ -196,27 +195,6 @@ class _FoodSettingState extends State<FoodSetting> {
     });
   }
 
-  Future<Future<Object?>> openAddProductDialog() async {
-    return showGeneralDialog(
-        barrierColor: Colors.black.withOpacity(0.5),
-        transitionBuilder: (context, a1, a2, widget) {
-          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
-          return Transform(
-            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
-            child: Opacity(
-              opacity: a1.value,
-              child: AddProductDialog(callBack: () => readAllCategories()),
-            ),
-          );
-        },
-        transitionDuration: Duration(milliseconds: 200),
-        barrierDismissible: false,
-        context: context,
-        pageBuilder: (context, animation1, animation2) {
-          return null!;
-        });
-  }
-
   Future<Future<Object?>> openEditProductDialog(Product data) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
@@ -227,6 +205,7 @@ class _FoodSettingState extends State<FoodSetting> {
             child: Opacity(
               opacity: a1.value,
               child: EditProductDialog(
+                callBack: () => readAllCategories(),
                 product: data,
               ),
             ),
@@ -250,8 +229,8 @@ class _FoodSettingState extends State<FoodSetting> {
         categoryList.add(data[i].name!);
       }
     }
-    readCompanyID();
-    readAllProduct();
+    await readCompanyID();
+    await readAllProduct();
   }
 
   readAllProduct() async {
