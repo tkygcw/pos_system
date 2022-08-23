@@ -600,7 +600,6 @@ class PosDatabase {
     final maps = await db.rawQuery(
         'SELECT a.* FROM $tableUser AS a JOIN $tableBranchLinkUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.branch_id = ? AND a.pos_pin = ?',
         ['', '', branch_id, pos_pin]);
-    print(maps);
     if (maps.isNotEmpty) {
       return User.fromJson(maps.first);
     }

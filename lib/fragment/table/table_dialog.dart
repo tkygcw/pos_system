@@ -7,18 +7,18 @@ import 'package:pos_system/object/table.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 
-class AddTableDialog extends StatefulWidget {
+class TableDialog extends StatefulWidget {
   final Function() callBack;
   final PosTable object;
 
-  const AddTableDialog({required this.callBack, required this.object, Key? key})
+  const TableDialog({required this.callBack, required this.object, Key? key})
       : super(key: key);
 
   @override
-  _AddTableDialogState createState() => _AddTableDialogState();
+  _TableDialogState createState() => _TableDialogState();
 }
 
-class _AddTableDialogState extends State<AddTableDialog> {
+class _TableDialogState extends State<TableDialog> {
   final tableNoController = TextEditingController();
   final seatController = TextEditingController();
   bool _submitted = false;

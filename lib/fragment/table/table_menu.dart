@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pos_system/fragment/table/add_table_dialog.dart';
+import 'package:pos_system/fragment/table/table_dialog.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -265,7 +265,7 @@ class _TableMenuState extends State<TableMenu> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
                 opacity: a1.value,
-                child: AddTableDialog(
+                child: TableDialog(
                   object: posTable,
                   callBack: () {
                     readAllTable();
