@@ -1,7 +1,7 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/choose_branch.dart';
-import 'package:pos_system/fragment/device_register.dart';
+import 'package:pos_system/fragment/device_register/device_register.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/page/loading.dart';
 import 'package:pos_system/page/login.dart';

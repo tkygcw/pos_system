@@ -3,10 +3,10 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../database/domain.dart';
-import '../notifier/theme_color.dart';
-import '../object/branch.dart';
-import '../object/device.dart';
+import '../../database/domain.dart';
+import '../../notifier/theme_color.dart';
+import '../../object/branch.dart';
+import '../../object/device.dart';
 
 class DeviceRegister extends StatefulWidget {
   final Function(Device) callBack;
