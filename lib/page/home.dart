@@ -1,10 +1,10 @@
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
-import 'package:pos_system/fragment/bill.dart';
-import 'package:pos_system/fragment/order.dart';
-import 'package:pos_system/fragment/product.dart';
-import 'package:pos_system/fragment/setting.dart';
-import 'package:pos_system/fragment/table.dart';
+import 'package:pos_system/fragment/bill/bill.dart';
+import 'package:pos_system/fragment/order/order.dart';
+import 'package:pos_system/fragment/product/product.dart';
+import 'package:pos_system/fragment/setting/setting.dart';
+import 'package:pos_system/fragment/table/table.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:provider/provider.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
-import '../notifier/theme_color.dart';
+import '../../notifier/theme_color.dart';
 
 class FeaturesSetting extends StatefulWidget {
   const FeaturesSetting({Key? key}) : super(key: key);
@@ -15,10 +15,8 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
 
   late Color _mainColor;
 
-  Color? _tempButtonColor;
   late Color _buttonColor;
 
-  Color? _tempIconColor;
   late Color _iconColor;
 
   void _openDialog(String title, Widget content) {

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/cart.dart';
-import 'package:pos_system/fragment/food_menu.dart';
+import 'package:pos_system/fragment/food/food_menu.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
-import '../notifier/theme_color.dart';
+import '../../notifier/theme_color.dart';
 
 class OrderPage extends StatefulWidget {
   const OrderPage({Key? key}) : super(key: key);

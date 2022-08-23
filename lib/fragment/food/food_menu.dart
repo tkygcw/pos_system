@@ -2,15 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:pos_system/fragment/product_order_dialog.dart';
+import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../database/pos_database.dart';
-import '../notifier/theme_color.dart';
-import '../object/colorCode.dart';
+import '../../database/pos_database.dart';
+import '../../notifier/theme_color.dart';
+import '../../object/colorCode.dart';
 
 class Variant {
   String? name;

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
 import 'package:pos_system/object/product.dart';
+import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:quantity_input/quantity_input.dart';
 
-import '../database/pos_database.dart';
-import '../notifier/theme_color.dart';
-import '../object/modifier_group.dart';
-import '../object/modifier_item.dart';
-import '../object/variant_group.dart';
+import '../../database/pos_database.dart';
+import '../../notifier/theme_color.dart';
+import '../../object/modifier_group.dart';
+import '../../object/modifier_item.dart';
 
 class ProductOrderDialog extends StatefulWidget {
   final Product? productDetail;
@@ -21,39 +21,15 @@ class ProductOrderDialog extends StatefulWidget {
   _ProductOrderDialogState createState() => _ProductOrderDialogState();
 }
 
-class Variant {
-  String? item;
-  String? group;
-  bool? isChecked;
 
-  Variant({this.item, this.group, this.isChecked});
-
-  Map<String, Object?> toJson() => {
-        'name': item,
-        'group': group,
-      };
-}
-
-class Modifier {
-  String? name;
-  String? group;
-  bool? isChecked;
-
-  Modifier({this.name, this.group, this.isChecked});
-
-  Map<String, Object?> toJson() => {
-        'name': name,
-        'group': group,
-        'isChecked': isChecked,
-      };
-}
 
 class _ProductOrderDialogState extends State<ProductOrderDialog> {
   int simpleIntInput = 0;
-  List<Variant> variantElement = [];
-  late Variant selected = Variant(item: '', group: '');
+  List<VariantGroup> variantGroup = [];
+
+  // late Variant selected = Variant(item: '', group: '');
   bool checkboxValueA = false;
-  List<Modifier> modifierElement = [];
+  List<ModifierItem> modifierElement = [];
   bool isLoading = true;
 
   @override
@@ -61,6 +37,28 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     // TODO: implement initState
     super.initState();
     productChecking();
+  }
+
+  Widget variantGroupLayout(VariantGroup variantGroup) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(variantGroup.name!,
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        for (int i = 0; i < variantGroup.child.length; i++)
+          RadioListTile<int?>(
+            value: variantGroup.child[i].variant_item_id,
+            groupValue: variantGroup.variant_item_id,
+            onChanged: (ind) => setState(() {
+              print(ind);
+              variantGroup.variant_item_id = ind;
+              // print('main item: ${ind.item}');
+            }),
+            title: Text(variantGroup.child[i].name!),
+            controlAffinity: ListTileControlAffinity.trailing,
+          )
+      ],
+    );
   }
 
   @override
@@ -83,75 +81,15 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      (widget.productDetail!.has_variant == 1
-                          ? Column(
-                              children: [
-                                GroupedListView<Variant, String>(
-                                  physics: NeverScrollableScrollPhysics(),
-                                  shrinkWrap: true,
-                                  elements: variantElement,
-                                  groupBy: (element) => element.group!,
-                                  groupComparator: (value1, value2) =>
-                                      value2.compareTo(value1),
-                                  itemComparator: (item1, item2) =>
-                                      item1.item!.compareTo(item2.item!),
-                                  order: GroupedListOrder.DESC,
-                                  useStickyGroupSeparators: true,
-                                  stickyHeaderBackgroundColor:
-                                      Colors.transparent,
-                                  groupSeparatorBuilder: (String value) {
-                                    return Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            value,
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                  itemBuilder: (c, element) {
-                                    // return ListTile(
-                                    //   trailing: Radio(
-                                    //       value: element.name!,
-                                    //       activeColor: color.backgroundColor,
-                                    //       groupValue: selected,
-                                    //       onChanged: (String? value) {
-                                    //         selected = value!;
-                                    //       }),
-                                    //   leading: Text(element.name!,
-                                    //       style: TextStyle(fontSize: 14)),
-                                    //   dense: true,
-                                    // );
-                                    return RadioListTile<Variant>(
-                                      value: element,
-                                      groupValue: element,
-                                      onChanged: (ind) => setState(() {
-                                        selected = ind!;
-                                        print('main item: ${ind.item}');
-                                      }),
-                                      title: Text(element.item!),
-                                      controlAffinity:
-                                          ListTileControlAffinity.trailing,
-                                    );
-                                  },
-                                ),
-                              ],
-                            )
-                          : Container()),
+                      for (int i = 0; i < variantGroup.length; i++)
+                        variantGroupLayout(variantGroup[i]),
                       Column(
                         children: [
-                          GroupedListView<Modifier, String>(
+                          GroupedListView<ModifierItem, String>(
                             physics: NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
                             elements: modifierElement,
-                            groupBy: (element) => element.group!,
+                            groupBy: (element) => element.mod_group_id!,
                             groupComparator: (value1, value2) =>
                                 value2.compareTo(value1),
                             itemComparator: (item1, item2) =>
@@ -277,27 +215,37 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   readProductVariant(int productID) async {
-    List<VariantGroup> data =
-        await PosDatabase.instance.readProductVariantGroup(productID);
+    //loop variant group first
+    List<VariantGroup> data = await PosDatabase.instance.readProductVariantGroup(productID);
     for (int i = 0; i < data.length; i++) {
-      List<VariantItem> itemData = await PosDatabase.instance
-          .readProductVariantItem(data[i].variant_group_id!);
+      variantGroup.add(VariantGroup(child: [], name: data[i].name));
+
+      //loop variant child based on variant group id
+      List<VariantItem> itemData = await PosDatabase.instance.readProductVariantItem(data[i].variant_group_id!);
+      List<VariantItem> itemChild = [];
       for (int j = 0; j < itemData.length; j++) {
-        variantElement.add(Variant(
-            item: itemData[j].name!, group: data[i].name!, isChecked: j == 0));
+        //pre-check radio button
+        if (j == 0) {
+          variantGroup[i].variant_item_id = itemData[j].variant_item_id;
+        }
+        //store all child into one list
+        itemChild.add(VariantItem(
+            name: itemData[j].name, variant_item_id: itemData[j].variant_item_id));
       }
+      //assign list into group child
+      variantGroup[i].child = itemChild;
     }
   }
 
   readProductModifier(int productID) async {
-    List<ModifierGroup> data =
-        await PosDatabase.instance.readProductModifierGroupName(productID);
+    List<ModifierGroup> data = await PosDatabase.instance.readProductModifierGroupName(productID);
+
     for (int i = 0; i < data.length; i++) {
-      List<ModifierItem> itemData = await PosDatabase.instance
-          .readProductModifierItem(data[i].mod_group_id!);
+      List<ModifierItem> itemData = await PosDatabase.instance.readProductModifierItem(data[i].mod_group_id!);
+
       for (int j = 0; j < itemData.length; j++) {
-        modifierElement.add(Modifier(
-            name: itemData[j].name!, group: data[i].name!, isChecked: false));
+        modifierElement.add(ModifierItem(
+            name: itemData[j].name!, mod_group_id: data[i].name!, isChecked: false));
       }
     }
   }

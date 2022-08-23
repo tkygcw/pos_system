@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pos_system/fragment/bill_menu.dart';
+import 'package:pos_system/fragment/bill/bill_menu.dart';
 import 'package:pos_system/fragment/cart.dart';
 
 class BillPage extends StatefulWidget {

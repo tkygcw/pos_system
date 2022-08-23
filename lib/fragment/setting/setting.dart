@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:pos_system/fragment/features_setting.dart';
-import 'package:pos_system/fragment/printer_setting.dart';
+import 'package:pos_system/fragment/setting/features_setting.dart';
+import 'package:pos_system/fragment/setting/printer_setting.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:side_navigation/side_navigation.dart';
-import '../notifier/theme_color.dart';
+import '../../notifier/theme_color.dart';
 
 class SettingMenu extends StatefulWidget {
   const SettingMenu({Key? key}) : super(key: key);

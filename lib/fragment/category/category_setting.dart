@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:pos_system/fragment/add_category.dart';
-import 'package:pos_system/fragment/edit_category.dart';
+import 'package:pos_system/fragment/category/add_category.dart';
+import 'package:pos_system/fragment/category/edit_category.dart';
 import 'package:pos_system/object/colorCode.dart';
 import 'package:provider/provider.dart';
-import '../database/pos_database.dart';
-import '../notifier/theme_color.dart';
-import '../object/categories.dart';
-import '../page/progress_bar.dart';
+import '../../database/pos_database.dart';
+import '../../notifier/theme_color.dart';
+import '../../object/categories.dart';
+import '../../page/progress_bar.dart';
 
 class CategorySetting extends StatefulWidget {
   const CategorySetting({Key? key}) : super(key: key);

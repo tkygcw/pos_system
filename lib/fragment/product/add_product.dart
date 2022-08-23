@@ -13,12 +13,12 @@ import 'package:pos_system/object/categories.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../database/pos_database.dart';
-import '../notifier/theme_color.dart';
-import '../object/branch_link_product.dart';
-import '../object/modifier_group.dart';
-import '../object/modifier_link_product.dart';
-import '../object/product.dart';
+import '../../database/pos_database.dart';
+import '../../notifier/theme_color.dart';
+import '../../object/branch_link_product.dart';
+import '../../object/modifier_group.dart';
+import '../../object/modifier_link_product.dart';
+import '../../object/product.dart';
 
 class AddProductDialog extends StatefulWidget {
   final Function() callBack;

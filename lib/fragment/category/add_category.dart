@@ -6,8 +6,8 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../database/pos_database.dart';
-import '../notifier/theme_color.dart';
+import '../../database/pos_database.dart';
+import '../../notifier/theme_color.dart';
 
 class AddCategoryDialog extends StatefulWidget {
   final Function() callBack;

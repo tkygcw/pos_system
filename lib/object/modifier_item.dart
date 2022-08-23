@@ -36,6 +36,7 @@ class ModifierItem{
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  bool? isChecked;
 
   ModifierItem(
       { this.mod_item_id,
@@ -46,7 +47,8 @@ class ModifierItem{
         this.quantity,
         this.created_at,
         this.updated_at,
-        this.soft_delete});
+        this.soft_delete,
+        this.isChecked });
 
   ModifierItem copy({
     int? mod_item_id,

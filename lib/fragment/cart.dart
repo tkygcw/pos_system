@@ -186,8 +186,7 @@ class _CartPageState extends State<CartPage> {
               color: color.iconColor,
               border: Border.all(color: Colors.grey.shade100, width: 3.0),
             ),
-            child: Column(
-              children: [
+            child: Column(              children: [
                 Padding(
                   padding: EdgeInsets.fromLTRB(10, 8, 14, 0),
                   child: Column(children: [

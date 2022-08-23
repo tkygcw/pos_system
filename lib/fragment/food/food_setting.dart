@@ -2,17 +2,17 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:pos_system/fragment/add_product.dart';
-import 'package:pos_system/fragment/edit_product.dart';
+import 'package:pos_system/fragment/product/add_product.dart';
+import 'package:pos_system/fragment/product/edit_product.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../database/pos_database.dart';
-import '../notifier/theme_color.dart';
-import '../object/categories.dart';
-import '../object/colorCode.dart';
-import '../object/product.dart';
-import '../page/progress_bar.dart';
+import '../../database/pos_database.dart';
+import '../../notifier/theme_color.dart';
+import '../../object/categories.dart';
+import '../../object/colorCode.dart';
+import '../../object/product.dart';
+import '../../page/progress_bar.dart';
 
 class FoodSetting extends StatefulWidget {
   const FoodSetting({Key? key}) : super(key: key);

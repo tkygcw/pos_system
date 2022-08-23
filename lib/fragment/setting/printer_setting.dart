@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../notifier/theme_color.dart';
+import '../../notifier/theme_color.dart';
 
 class PrinterSetting extends StatefulWidget {
   const PrinterSetting({Key? key}) : super(key: key);

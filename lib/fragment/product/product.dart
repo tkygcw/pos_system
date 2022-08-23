@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:pos_system/fragment/category_setting.dart';
-import 'package:pos_system/fragment/food_setting.dart';
+import 'package:pos_system/fragment/category/category_setting.dart';
+import 'package:pos_system/fragment/food/food_setting.dart';
 import 'package:provider/provider.dart';
 import 'package:side_navigation/side_navigation.dart';
-import '../notifier/theme_color.dart';
+import '../../notifier/theme_color.dart';
 
 class ProductPage extends StatefulWidget {
   const ProductPage({Key? key}) : super(key: key);

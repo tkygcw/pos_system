@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:grouped_list/grouped_list.dart';
-import '../notifier/theme_color.dart';
+import '../../notifier/theme_color.dart';
 
 List _elements = [
   {'name': 'RM19.00','time':'12:00', 'id':'#1-1000', 'group': '2022-6-1'},

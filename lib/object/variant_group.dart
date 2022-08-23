@@ -1,3 +1,5 @@
+import 'package:pos_system/object/variant_item.dart';
+
 String? tableVariantGroup = 'tb_variant_group ';
 
 class VariantGroupFields {
@@ -20,6 +22,8 @@ class VariantGroupFields {
 
 class VariantGroup{
   int? variant_group_id;
+  int? variant_item_id;
+  late List<VariantItem> child;
   String? product_id;
   String? name;
   String? created_at;
@@ -28,6 +32,8 @@ class VariantGroup{
 
   VariantGroup(
       {this.variant_group_id,
+        this.variant_item_id,
+        required this.child,
         this.product_id,
         this.name,
         this.created_at,
@@ -48,7 +54,7 @@ class VariantGroup{
           name: name ?? this.name,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
-          soft_delete: soft_delete ?? this.soft_delete);
+          soft_delete: soft_delete ?? this.soft_delete, child: []);
 
   static VariantGroup fromJson(Map<String, Object?> json) => VariantGroup  (
     variant_group_id: json[VariantGroupFields.variant_group_id] as int?,
@@ -56,7 +62,7 @@ class VariantGroup{
     name: json[VariantGroupFields.name] as String?,
     created_at: json[VariantGroupFields.created_at] as String?,
     updated_at: json[VariantGroupFields.updated_at] as String?,
-    soft_delete: json[VariantGroupFields .soft_delete] as String?,
+    soft_delete: json[VariantGroupFields .soft_delete] as String?, child: [],
   );
 
   Map<String, Object?> toJson() => {
