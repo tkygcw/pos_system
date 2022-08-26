@@ -2,6 +2,7 @@ String? tableProductVariant = 'tb_product_variant ';
 
 class ProductVariantFields {
   static List<String> values = [
+    product_variant_sqlite_id,
     product_variant_id,
     product_id,
     variant_name,
@@ -15,7 +16,7 @@ class ProductVariantFields {
     updated_at,
     soft_delete
   ];
-
+  static String product_variant_sqlite_id = 'product_variant_sqlite_id';
   static String product_variant_id = 'product_variant_id';
   static String product_id = 'product_id';
   static String variant_name = 'variant_name';
@@ -31,6 +32,7 @@ class ProductVariantFields {
 }
 
 class ProductVariant {
+  int? product_variant_sqlite_id;
   int? product_variant_id;
   String? product_id;
   String? variant_name;
@@ -45,7 +47,8 @@ class ProductVariant {
   String? soft_delete;
 
   ProductVariant(
-      {this.product_variant_id,
+      {this.product_variant_sqlite_id,
+      this.product_variant_id,
       this.product_id,
       this.variant_name,
       this.SKU,
@@ -59,6 +62,7 @@ class ProductVariant {
       this.soft_delete});
 
   ProductVariant copy({
+    int? product_variant_sqlite_id,
     int? product_variant_id,
     String? product_id,
     String? variant_name,
@@ -73,6 +77,7 @@ class ProductVariant {
     String? soft_delete,
   }) =>
       ProductVariant(
+          product_variant_sqlite_id: product_variant_sqlite_id ?? this.product_variant_sqlite_id,
           product_variant_id: product_variant_id ?? this.product_variant_id,
           product_id: product_id ?? this.product_id,
           variant_name: variant_name ?? this.variant_name,
@@ -87,6 +92,7 @@ class ProductVariant {
           soft_delete: soft_delete ?? this.soft_delete);
 
   static ProductVariant fromJson(Map<String, Object?> json) => ProductVariant(
+        product_variant_sqlite_id: json[ProductVariantFields.product_variant_sqlite_id] as int?,
         product_variant_id: json[ProductVariantFields.product_variant_id] as int?,
         product_id: json[ProductVariantFields.product_id] as String?,
         variant_name: json[ProductVariantFields.variant_name] as String?,
@@ -94,7 +100,8 @@ class ProductVariant {
         price: json[ProductVariantFields.price] as String?,
         stock_type: json[ProductVariantFields.stock_type] as String?,
         daily_limit: json[ProductVariantFields.daily_limit] as String?,
-        daily_limit_amount: json[ProductVariantFields.daily_limit_amount] as String?,
+        daily_limit_amount:
+            json[ProductVariantFields.daily_limit_amount] as String?,
         stock_quantity: json[ProductVariantFields.stock_quantity] as String?,
         created_at: json[ProductVariantFields.created_at] as String?,
         updated_at: json[ProductVariantFields.updated_at] as String?,
@@ -102,17 +109,18 @@ class ProductVariant {
       );
 
   Map<String, Object?> toJson() => {
-    ProductVariantFields.product_variant_id: product_variant_id,
-    ProductVariantFields.product_id: product_id,
-    ProductVariantFields.variant_name: variant_name,
-    ProductVariantFields.SKU: SKU,
-    ProductVariantFields.price: price,
-    ProductVariantFields.stock_type: stock_type,
-    ProductVariantFields.daily_limit: daily_limit,
-    ProductVariantFields.daily_limit_amount: daily_limit_amount,
-    ProductVariantFields.stock_quantity: stock_quantity,
-    ProductVariantFields.created_at: created_at,
-    ProductVariantFields.updated_at: updated_at,
-    ProductVariantFields.soft_delete: soft_delete,
+        ProductVariantFields.product_variant_sqlite_id: product_variant_sqlite_id,
+        ProductVariantFields.product_variant_id: product_variant_id,
+        ProductVariantFields.product_id: product_id,
+        ProductVariantFields.variant_name: variant_name,
+        ProductVariantFields.SKU: SKU,
+        ProductVariantFields.price: price,
+        ProductVariantFields.stock_type: stock_type,
+        ProductVariantFields.daily_limit: daily_limit,
+        ProductVariantFields.daily_limit_amount: daily_limit_amount,
+        ProductVariantFields.stock_quantity: stock_quantity,
+        ProductVariantFields.created_at: created_at,
+        ProductVariantFields.updated_at: updated_at,
+        ProductVariantFields.soft_delete: soft_delete,
       };
 }

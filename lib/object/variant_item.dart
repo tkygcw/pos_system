@@ -2,6 +2,7 @@ String? tableVariantItem = 'tb_variant_item ';
 
 class VariantItemFields {
   static List<String> values = [
+    variant_item_sqlite_id,
     variant_item_id,
     variant_group_id,
     name,
@@ -10,6 +11,7 @@ class VariantItemFields {
     soft_delete
   ];
 
+  static String variant_item_sqlite_id = 'variant_item_sqlite_id';
   static String variant_item_id = 'variant_item_id';
   static String variant_group_id = 'variant_group_id';
   static String name = 'name';
@@ -19,6 +21,7 @@ class VariantItemFields {
 }
 
 class VariantItem{
+  int? variant_item_sqlite_id;
   int? variant_item_id;
   String? variant_group_id;
   String? name;
@@ -27,7 +30,8 @@ class VariantItem{
   String? soft_delete;
 
   VariantItem(
-      {this.variant_item_id,
+      {this.variant_item_sqlite_id,
+        this.variant_item_id,
         this.variant_group_id,
         this.name,
         this.created_at,
@@ -35,6 +39,7 @@ class VariantItem{
         this.soft_delete});
 
   VariantItem copy({
+    int? variant_item_sqlite_id,
     int? variant_item_id,
     String? variant_group_id,
     String? name,
@@ -43,6 +48,7 @@ class VariantItem{
     String? soft_delete,
   }) =>
       VariantItem(
+          variant_item_sqlite_id: variant_item_sqlite_id ?? this.variant_item_sqlite_id,
           variant_item_id: variant_item_id ?? this.variant_item_id,
           variant_group_id: variant_group_id ?? this.variant_group_id,
           name: name ?? this.name,
@@ -51,6 +57,7 @@ class VariantItem{
           soft_delete: soft_delete ?? this.soft_delete);
 
   static VariantItem fromJson(Map<String, Object?> json) => VariantItem  (
+    variant_item_sqlite_id: json[VariantItemFields.variant_item_sqlite_id] as int?,
     variant_item_id: json[VariantItemFields.variant_item_id] as int?,
     variant_group_id: json[VariantItemFields.variant_group_id] as String?,
     name: json[VariantItemFields.name] as String?,
@@ -60,6 +67,7 @@ class VariantItem{
   );
 
   Map<String, Object?> toJson() => {
+    VariantItemFields.variant_item_sqlite_id: variant_item_sqlite_id,
     VariantItemFields.variant_item_id: variant_item_id,
     VariantItemFields.variant_group_id: variant_group_id,
     VariantItemFields.name: name,

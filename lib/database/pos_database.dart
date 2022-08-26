@@ -109,7 +109,7 @@ class PosDatabase {
     create modifier link product table
 */
     await db.execute(
-        '''CREATE TABLE $tableModifierLinkProduct ( ${ModifierLinkProductFields.modifier_link_product_id} $idType, ${ModifierLinkProductFields.mod_group_id} $textType,
+        '''CREATE TABLE $tableModifierLinkProduct ( ${ModifierLinkProductFields.modifier_link_product_sqlite_id} $idType, ${ModifierLinkProductFields.modifier_link_product_id} $integerType, ${ModifierLinkProductFields.mod_group_id} $textType,
            ${ModifierLinkProductFields.product_id} $textType, ${ModifierLinkProductFields.created_at} $textType, ${ModifierLinkProductFields.updated_at} $textType,
            ${ModifierLinkProductFields.soft_delete} $textType)''');
 /*
@@ -156,15 +156,15 @@ class PosDatabase {
     create product variant table
 */
     await db.execute(
-        '''CREATE TABLE $tableProductVariant ( ${ProductVariantFields.product_variant_id} $idType, ${ProductVariantFields.product_id} $textType, ${ProductVariantFields.variant_name} $textType,
+        '''CREATE TABLE $tableProductVariant ( ${ProductVariantFields.product_variant_sqlite_id} $idType, ${ProductVariantFields.product_variant_id} $integerType, ${ProductVariantFields.product_id} $textType, ${ProductVariantFields.variant_name} $textType,
            ${ProductVariantFields.SKU} $textType,${ProductVariantFields.price} $textType,${ProductVariantFields.stock_type} $textType, ${ProductVariantFields.daily_limit} $textType, ${ProductVariantFields.daily_limit_amount} $textType,
            ${ProductVariantFields.stock_quantity} $textType,${ProductVariantFields.created_at} $textType, ${ProductVariantFields.updated_at} $textType, ${ProductVariantFields.soft_delete} $textType)''');
 /*
     create product variant detail table
 */
     await db.execute(
-        '''CREATE TABLE $tableProductVariantDetail ( ${ProductVariantDetailFields.product_variant_detail_id} $idType, ${ProductVariantDetailFields.product_variant_id} $textType,
-           ${ProductVariantDetailFields.variant_item_id} $textType, ${ProductVariantDetailFields.created_at} $textType, 
+        '''CREATE TABLE $tableProductVariantDetail ( ${ProductVariantDetailFields.product_variant_detail_sqlite_id} $idType, ${ProductVariantDetailFields.product_variant_detail_id} $integerType,
+           ${ProductVariantDetailFields.product_variant_id} $textType,${ProductVariantDetailFields.variant_item_id} $textType, ${ProductVariantDetailFields.created_at} $textType, 
            ${ProductVariantDetailFields.updated_at} $textType, ${ProductVariantDetailFields.soft_delete} $textType)''');
 /*
     create promotion table
@@ -222,13 +222,13 @@ class PosDatabase {
     create variant group table
 */
     await db.execute(
-        '''CREATE TABLE $tableVariantGroup ( ${VariantGroupFields.variant_group_id} $idType, ${VariantGroupFields.product_id} $textType,${VariantGroupFields.name} $textType,
+        '''CREATE TABLE $tableVariantGroup ( ${VariantGroupFields.variant_group_sqlite_id} $idType, ${VariantGroupFields.variant_group_id} $integerType,${VariantGroupFields.product_id} $textType,${VariantGroupFields.name} $textType,
            ${VariantGroupFields.created_at} $textType,${VariantGroupFields.updated_at} $textType,${VariantGroupFields.soft_delete} $textType)''');
 /*
     create variant item table
 */
     await db.execute(
-        '''CREATE TABLE $tableVariantItem ( ${VariantItemFields.variant_item_id} $idType, ${VariantItemFields.variant_group_id} $textType,${VariantItemFields.name} $textType,
+        '''CREATE TABLE $tableVariantItem ( ${VariantItemFields.variant_item_sqlite_id} $idType, ${VariantItemFields.variant_item_id} $integerType , ${VariantItemFields.variant_group_id} $textType,${VariantItemFields.name} $textType,
            ${VariantItemFields.created_at} $textType,${VariantItemFields.updated_at} $textType,${VariantItemFields.soft_delete} $textType)''');
 /*
     create branch link dining table
@@ -502,7 +502,7 @@ class PosDatabase {
   Future<VariantGroup> insertVariantGroup(VariantGroup data) async {
     final db = await instance.database;
     final id = await db.insert(tableVariantGroup!, data.toJson());
-    return data.copy(variant_group_id: id);
+    return data.copy(variant_group_sqlite_id: id);
   }
 
 /*
@@ -617,6 +617,45 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return Branch.fromJson(maps.first);
     }
+  }
+
+  /*
+  read specific variant item
+*/
+  Future<VariantItem?> readVariantItem(String name) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery(
+        'SELECT * FROM $tableVariantItem WHERE soft_delete = ? AND name = ?',
+        ['', name]);
+    if (maps.isNotEmpty) {
+      return VariantItem.fromJson(maps.first);
+    }
+  }
+
+  /*
+  read variant group
+*/
+  Future<List<VariantGroup>> readVariantGroup(String product_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableVariantGroup WHERE soft_delete = ? AND product_id = ?',
+        ['', product_id]);
+
+    return result.map((json) => VariantGroup.fromJson(json)).toList();
+
+  }
+
+  /*
+  read variant item
+*/
+  Future<List<VariantItem>> readVariantItemForGroup(String variant_group_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableVariantItem WHERE soft_delete = ? AND variant_group_id = ?',
+        ['', variant_group_id]);
+
+    return result.map((json) => VariantItem.fromJson(json)).toList();
+
   }
 
 /*

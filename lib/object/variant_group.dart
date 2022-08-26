@@ -4,6 +4,7 @@ String? tableVariantGroup = 'tb_variant_group ';
 
 class VariantGroupFields {
   static List<String> values = [
+    variant_group_sqlite_id,
     variant_group_id,
     product_id,
     name,
@@ -12,6 +13,7 @@ class VariantGroupFields {
     soft_delete
   ];
 
+  static String variant_group_sqlite_id = 'variant_group_sqlite_id';
   static String variant_group_id = 'variant_group_id';
   static String product_id = 'product_id';
   static String name = 'name';
@@ -21,6 +23,7 @@ class VariantGroupFields {
 }
 
 class VariantGroup{
+  int? variant_group_sqlite_id;
   int? variant_group_id;
   int? variant_item_id;
   late List<VariantItem> child;
@@ -31,7 +34,8 @@ class VariantGroup{
   String? soft_delete;
 
   VariantGroup(
-      {this.variant_group_id,
+      {this.variant_group_sqlite_id,
+        this.variant_group_id,
         this.variant_item_id,
         required this.child,
         this.product_id,
@@ -41,6 +45,7 @@ class VariantGroup{
         this.soft_delete});
 
   VariantGroup copy({
+    int? variant_group_sqlite_id,
     int? variant_group_id,
     String? product_id,
     String? name,
@@ -49,6 +54,7 @@ class VariantGroup{
     String? soft_delete,
   }) =>
       VariantGroup(
+          variant_group_sqlite_id: variant_group_sqlite_id ?? this.variant_group_sqlite_id,
           variant_group_id: variant_group_id ?? this.variant_group_id,
           product_id: product_id ?? this.product_id,
           name: name ?? this.name,
@@ -56,7 +62,8 @@ class VariantGroup{
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete, child: []);
 
-  static VariantGroup fromJson(Map<String, Object?> json) => VariantGroup  (
+  static VariantGroup fromJson(Map<String, Object?> json) => VariantGroup (
+    variant_group_sqlite_id: json[VariantGroupFields.variant_group_sqlite_id] as int?,
     variant_group_id: json[VariantGroupFields.variant_group_id] as int?,
     product_id: json[VariantGroupFields.product_id] as String?,
     name: json[VariantGroupFields.name] as String?,
@@ -66,6 +73,7 @@ class VariantGroup{
   );
 
   Map<String, Object?> toJson() => {
+    VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
     VariantGroupFields.variant_group_id: variant_group_id,
     VariantGroupFields.product_id: product_id,
     VariantGroupFields.name: name,

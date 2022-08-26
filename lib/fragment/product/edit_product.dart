@@ -10,6 +10,10 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:pos_system/fragment/variant_option.dart';
 import 'package:pos_system/object/categories.dart';
+import 'package:pos_system/object/product_variant.dart';
+import 'package:pos_system/object/product_variant_detail.dart';
+import 'package:pos_system/object/variant_group.dart';
+import 'package:pos_system/object/variant_item.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,7 +24,6 @@ import '../../object/modifier_group.dart';
 import '../../object/modifier_link_product.dart';
 import '../../object/product.dart';
 import '../../page/progress_bar.dart';
-
 
 class EditProductDialog extends StatefulWidget {
   final Function() callBack;
@@ -39,8 +42,6 @@ class _EditProductDialogState extends State<EditProductDialog> {
   final stockQuantityController = TextEditingController();
   final priceController = TextEditingController();
   final skuController = TextEditingController();
-  final priceVariantController = TextEditingController();
-  final stockVariantController = TextEditingController();
   bool _submitted = false;
   String selectGraphic = "Image";
   List<String> graphicType = ["Image", "Color"];
@@ -125,8 +126,6 @@ class _EditProductDialogState extends State<EditProductDialog> {
     stockQuantityController.dispose();
     priceController.dispose();
     skuController.dispose();
-    stockVariantController.dispose();
-    priceVariantController.dispose();
   }
 
   String? get errorNameText {
@@ -185,60 +184,80 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
   void _submit(BuildContext context) {
     setState(() => _submitted = true);
-    if (selectStock == 'Daily Limit') {
-      if (errorNameText == null &&
-          errorDescriptionText == null &&
-          errorDailyLimitText == null &&
-          errorPriceText == null &&
-          errorSKUText == null) {
+
+    bool productVariantListIsEmpty = false;
+
+    for (int i = 0; i < productVariantList.length; i++) {
+      if (productVariantList[i]['quantity'] == '' ||
+          productVariantList[i]['price'] == '') {
+        productVariantListIsEmpty = true;
+        break;
+      }
+    }
+    if (errorNameText == null &&
+        errorDescriptionText == null &&
+        errorPriceText == null &&
+        errorSKUText == null) {
+      if (selectStock == 'Daily Limit' && errorDailyLimitText == null) {
         if (selectGraphic == 'Image' && imageDir == null) {
           Fluttertoast.showToast(
               backgroundColor: Color(0xFFFFC107),
               msg: "Please pick product image");
         } else {
-          if (selectGraphic == 'Image') {
-            saveFilePermanently(imageDir!);
-          }
-          if (isAdd == true) {
-            createProduct();
+          if (productVariantListIsEmpty && selectVariant == 'Have Variant') {
             Fluttertoast.showToast(
-                backgroundColor: Color(0xff0c1f32),
-                msg: "Create Product Success");
-            widget.callBack();
+                backgroundColor: Color(0xFFFFC107),
+                msg: "Please fill in all the variant list info");
           } else {
-            widget.callBack();
+            if (selectGraphic == 'Image') {
+              saveFilePermanently(imageDir!);
+            }
+            if (isAdd == true) {
+              createProduct();
+              Fluttertoast.showToast(
+                  backgroundColor: Color(0xff0c1f32),
+                  msg: "Create Product Success");
+              widget.callBack();
+            } else {
+              widget.callBack();
+            }
+            closeDialog(context);
           }
-
-          closeDialog(context);
         }
-      }
-    } else {
-      if (errorNameText == null &&
-          errorDescriptionText == null &&
-          errorStockQuantityText == null &&
-          errorPriceText == null &&
-          errorSKUText == null) {
+      } else if (selectStock == 'Stock' && errorStockQuantityText == null) {
         if (selectGraphic == 'Image' && imageDir == null) {
           Fluttertoast.showToast(
-              backgroundColor: ThemeColor().backgroundColor,
+              backgroundColor: Color(0xFFFFC107),
               msg: "Please pick product image");
         } else {
-          if (selectGraphic == 'Image') {
-            saveFilePermanently(imageDir!);
-          }
-          if (isAdd == true) {
-            createProduct();
+          if (productVariantListIsEmpty && selectVariant == 'Have Variant') {
             Fluttertoast.showToast(
-                backgroundColor: ThemeColor().backgroundColor,
-                msg: "Create Product Success");
-            widget.callBack();
+                backgroundColor: Color(0xFFFFC107),
+                msg: "Please fill in all the variant list info");
           } else {
-            widget.callBack();
+            if (selectGraphic == 'Image') {
+              saveFilePermanently(imageDir!);
+            }
+            if (isAdd == true) {
+              createProduct();
+              Fluttertoast.showToast(
+                  backgroundColor: Color(0xff0c1f32),
+                  msg: "Create Product Success");
+              widget.callBack();
+            } else {
+              widget.callBack();
+            }
+            closeDialog(context);
           }
-          closeDialog(context);
         }
       }
     }
+  }
+  readProductVariantList() async{
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+
   }
 
   readAllCategories() async {
@@ -283,6 +302,20 @@ class _EditProductDialogState extends State<EditProductDialog> {
     return Navigator.of(context).pop(true);
   }
 
+  readVariantGroupAndItem() async {
+    List<VariantGroup> group = await PosDatabase.instance
+        .readVariantGroup(widget.product!.product_id.toString());
+    for (int i = 0; i < group.length; i++) {
+      List<String> itemName = [];
+      List<VariantItem> item = await PosDatabase.instance
+          .readVariantItemForGroup(group[i].variant_group_id.toString());
+      for (int j = 0; j < item.length; j++) {
+        itemName.add(item[j].name.toString());
+      }
+      variantList.add({'modGroup': group[i].name, 'modItem': itemName});
+    }
+  }
+
   readProductModifier() async {
     List<ModifierGroup> data = await PosDatabase.instance.readAllModifier();
     if (isAdd == false) {
@@ -303,11 +336,13 @@ class _EditProductDialogState extends State<EditProductDialog> {
   setAllDefaultProduct() async {
     await readAllCategories();
     await readProductModifier();
+    await readVariantGroupAndItem();
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);
     nameController.text = widget.product!.name!;
     descriptionController.text = widget.product!.description!;
+    widget.product!.has_variant == 1 ? selectVariant = 'Have Variant' : selectVariant='No Variant';
     if (widget.product!.stock_type == 1) {
       selectStock = 'Daily Limit';
       dailyLimitController.text = widget.product!.daily_limit!;
@@ -347,6 +382,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
   createProduct() async {
     final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -362,7 +398,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
         image: imageDir != null
             ? basename(imageDir!).replaceAll('image_picker', '')
             : ' ',
-        has_variant: 0,
+        has_variant: selectVariant == 'Have Variant' ? 1 : 0,
         stock_type: selectStock == 'Daily Limit' ? 1 : 2,
         stock_quantity: stockQuantityController.value.text,
         available: selectStatus == 'Available Sale' ? 1 : 0,
@@ -373,23 +409,117 @@ class _EditProductDialogState extends State<EditProductDialog> {
         created_at: dateTime,
         updated_at: '',
         soft_delete: ''));
-    final int? branch_id = prefs.getInt('branch_id');
-    BranchLinkProduct branchProduct = await PosDatabase.instance
-        .insertBranchLinkProduct(BranchLinkProduct(
-            branch_link_product_id: 0,
-            branch_id: branch_id.toString(),
-            product_id: productInserted.product_id.toString(),
-            has_variant: '0',
-            product_variant_id: ' ',
-            b_SKU: branch_id.toString() + skuController.value.text,
-            price: priceController.value.text,
-            stock_type: selectStock == 'Daily Limit' ? '1' : '2',
-            daily_limit: dailyLimitController.value.text,
-            daily_limit_amount: dailyLimitController.value.text,
-            stock_quantity: stockQuantityController.value.text,
-            created_at: dateTime,
-            updated_at: '',
-            soft_delete: ''));
+
+    if (switchController.selectedItem.length != 0) {
+      for (int i = 0; i < switchController.selectedItem.length; i++) {
+        ModifierLinkProduct data = await PosDatabase.instance
+            .insertModifierLinkProduct(ModifierLinkProduct(
+                modifier_link_product_id: 0,
+                mod_group_id: switchController.selectedItem[i].toString(),
+                product_id: productInserted.product_id.toString(),
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+      }
+    }
+
+    if (selectVariant == 'Have Variant') {
+      for (int i = 0; i < variantList.length; i++) {
+        VariantGroup group = await PosDatabase.instance.insertVariantGroup(
+            VariantGroup(
+                child: [],
+                variant_group_id: 0,
+                product_id: productInserted.product_id.toString(),
+                name: variantList[i]['modGroup'],
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+        for (int j = 0; j < variantList[i]['modItem'].length; j++) {
+          VariantItem item = await PosDatabase.instance.insertVariantItem(
+              VariantItem(
+                  variant_item_id: 0,
+                  variant_group_id: group.variant_group_id.toString(),
+                  name: variantList[i]['modItem'][j],
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
+        }
+      }
+
+      for (int k = 0; k < productVariantList.length; k++) {
+        ProductVariant variant = await PosDatabase.instance
+            .insertProductVariant(ProductVariant(
+                product_variant_id: 0,
+                product_id: productInserted.product_id.toString(),
+                variant_name: productVariantList[k]['variant_name'],
+                SKU: productVariantList[k]['SKU'],
+                price: productVariantList[k]['price'],
+                stock_type: selectStock == 'Daily Limit' ? '1' : '2',
+                daily_limit: selectStock == 'Daily Limit'
+                    ? productVariantList[k]['quantity']
+                    : '',
+                daily_limit_amount: selectStock == 'Daily Limit'
+                    ? productVariantList[k]['quantity']
+                    : '',
+                stock_quantity: selectStock != 'Daily Limit'
+                    ? productVariantList[k]['quantity']
+                    : '',
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+
+        BranchLinkProduct variantBranchProduct = await PosDatabase.instance
+            .insertBranchLinkProduct(BranchLinkProduct(
+                branch_link_product_id: 0,
+                branch_id: branch_id.toString(),
+                product_id: productInserted.product_id.toString(),
+                has_variant: '1',
+                product_variant_id: variant.product_variant_id.toString(),
+                b_SKU: branch_id.toString() + variant.SKU.toString(),
+                price: variant.price,
+                stock_type: selectStock == 'Daily Limit' ? '1' : '2',
+                daily_limit:
+                    selectStock == 'Daily Limit' ? variant.daily_limit : '',
+                daily_limit_amount:
+                    selectStock == 'Daily Limit' ? variant.daily_limit : '',
+                stock_quantity:
+                    selectStock != 'Daily Limit' ? variant.stock_quantity : '',
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+        final splitted = productVariantList[k]['variant_name'].split(' | ');
+
+        for (int l = 0; l < splitted.length; l++) {
+          VariantItem? item =
+              await PosDatabase.instance.readVariantItem(splitted[l]);
+          ProductVariantDetail variantdetail = await PosDatabase.instance
+              .insertProductVariantDetail(ProductVariantDetail(
+                  product_variant_detail_id: 0,
+                  product_variant_id: variant.product_variant_id.toString(),
+                  variant_item_id: item!.variant_item_id.toString(),
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
+        }
+      }
+    } else {
+      BranchLinkProduct branchProduct = await PosDatabase.instance
+          .insertBranchLinkProduct(BranchLinkProduct(
+              branch_link_product_id: 0,
+              branch_id: branch_id.toString(),
+              product_id: productInserted.product_id.toString(),
+              has_variant: '0',
+              product_variant_id: ' ',
+              b_SKU: branch_id.toString() + skuController.value.text,
+              price: priceController.value.text,
+              stock_type: selectStock == 'Daily Limit' ? '1' : '2',
+              daily_limit: dailyLimitController.value.text,
+              daily_limit_amount: dailyLimitController.value.text,
+              stock_quantity: stockQuantityController.value.text,
+              created_at: dateTime,
+              updated_at: '',
+              soft_delete: ''));
+    }
   }
 
   startAdd() async {
@@ -415,7 +545,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
               ),
               content: Container(
                 height: 450.0, // Change as per your requirement
-                width: 400.0,
+                width: 480.0,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -639,30 +769,36 @@ class _EditProductDialogState extends State<EditProductDialog> {
                               ),
                             );
                           }),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(15, 10, 15, 0),
-                        child: Text(
-                          'Modifier',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      SimpleGroupedCheckbox<int>(
-                        controller: switchController,
-                        itemsTitle: List.generate(modifierElement.length,
-                            (index) => modifierElement[index].name!),
-                        values: List.generate(modifierElement.length,
-                            (index) => modifierElement[index].mod_group_id!),
-                        groupStyle: GroupStyle(
-                          itemTitleStyle: TextStyle(
-                            fontSize: 16,
-                            color: Colors.black,
+                      Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(15, 10, 15, 0),
+                            child: Text(
+                              'Modifier',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                           ),
-                          activeColor: color.backgroundColor,
-                        ),
-                        checkFirstElement: false,
-                        onItemSelected: (data) {
-                          print(data);
-                        },
+                          SimpleGroupedCheckbox<int>(
+                            controller: switchController,
+                            itemsTitle: List.generate(modifierElement.length,
+                                (index) => modifierElement[index].name!),
+                            values: List.generate(
+                                modifierElement.length,
+                                (index) =>
+                                    modifierElement[index].mod_group_id!),
+                            groupStyle: GroupStyle(
+                              itemTitleStyle: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
+                              ),
+                              activeColor: color.backgroundColor,
+                            ),
+                            checkFirstElement: false,
+                            onItemSelected: (data) {
+                              print(data);
+                            },
+                          ),
+                        ],
                       ),
                       Padding(
                         padding: const EdgeInsets.all(15.0),
@@ -683,89 +819,176 @@ class _EditProductDialogState extends State<EditProductDialog> {
                         ),
                       ),
                       selectVariant == 'Have Variant'
-                          ? Padding(
-                              padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
-                              child: Text(
-                                'Variant',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            )
-                          : Container(),
-                      Column(
-                        children: [
-                          ListView.builder(
-                              physics: NeverScrollableScrollPhysics(),
-                              shrinkWrap: true,
-                              itemCount: variantList.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                return ListTile(
-                                  title: Text(variantList[index]['modGroup']),
-                                  subtitle:
-                                      customText(variantList[index]['modItem']),
-                                  trailing: IconButton(
-                                    icon: Icon(Icons.close),
-                                    onPressed: () {
-                                      setState(() {
-                                        variantList.removeAt(index);
-                                        createProductVariantList();
-                                      });
-                                    },
+                          ? Column(
+                              children: [
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(15, 15, 15, 0),
+                                  child: Text(
+                                    'Variant',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
                                   ),
-                                );
-                              }),
-                        ],
-                      ),
-                      selectVariant == 'Have Variant' && variantList.length < 3
-                          ? Padding(
-                              padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
-                              child: ElevatedButton(
-                                child: Text("Add Variant"),
-                                onPressed: () {
-                                  openVariantOptionDialog(context);
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    primary: color.backgroundColor,
-                                    textStyle: TextStyle(
-                                        color: Colors.white70,
-                                        fontWeight: FontWeight.bold)),
-                              ),
+                                ),
+                                ListView.builder(
+                                    physics: NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    itemCount: variantList.length,
+                                    itemBuilder:
+                                        (BuildContext context, int index) {
+                                      return ListTile(
+                                        title: Text(
+                                            variantList[index]['modGroup']),
+                                        subtitle: customText(
+                                            variantList[index]['modItem']),
+                                        trailing: IconButton(
+                                          icon: Icon(Icons.close),
+                                          onPressed: () {
+                                            setState(() {
+                                              variantList.removeAt(index);
+                                              createProductVariantList();
+                                            });
+                                          },
+                                        ),
+                                      );
+                                    }),
+                                variantList.length < 3
+                                    ? Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            15, 0, 15, 0),
+                                        child: ElevatedButton(
+                                          child: Text("Add Variant"),
+                                          onPressed: () {
+                                            openVariantOptionDialog(context);
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                              primary: color.backgroundColor,
+                                              textStyle: TextStyle(
+                                                  color: Colors.white70,
+                                                  fontWeight: FontWeight.bold)),
+                                        ),
+                                      )
+                                    : Container(),
+                                variantList.length != 0
+                                    ? Card(
+                                        elevation: 2,
+                                        child: Column(
+                                          children: [
+                                            SizedBox(
+                                              width: 500,
+                                              child: DataTable(
+                                                  columns: <DataColumn>[
+                                                    DataColumn(
+                                                      label: Text(
+                                                        'Product Variant',
+                                                        style: TextStyle(
+                                                            fontStyle: FontStyle
+                                                                .italic),
+                                                      ),
+                                                    ),
+                                                    DataColumn(
+                                                      label: Text(
+                                                        selectStock ==
+                                                                'Daily Limit'
+                                                            ? 'Daily limit'
+                                                            : 'Stock',
+                                                        style: TextStyle(
+                                                            fontStyle: FontStyle
+                                                                .italic),
+                                                      ),
+                                                    ),
+                                                    DataColumn(
+                                                      label: Text(
+                                                        'Price',
+                                                        style: TextStyle(
+                                                            fontStyle: FontStyle
+                                                                .italic),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                  rows: List<DataRow>.generate(
+                                                      productVariantList.length,
+                                                      (int index) => DataRow(
+                                                            cells: <DataCell>[
+                                                              DataCell(Text(
+                                                                  productVariantList[
+                                                                          index]
+                                                                      [
+                                                                      'variant_name'])),
+                                                              DataCell(
+                                                                Padding(
+                                                                  padding:
+                                                                      const EdgeInsets
+                                                                              .all(
+                                                                          8.0),
+                                                                  child:
+                                                                      TextField(
+                                                                    keyboardType:
+                                                                        TextInputType
+                                                                            .number,
+                                                                    inputFormatters: [
+                                                                      FilteringTextInputFormatter
+                                                                          .digitsOnly
+                                                                    ],
+                                                                    controller:
+                                                                        TextEditingController(
+                                                                            text:
+                                                                                productVariantList[index]['quantity']),
+                                                                    decoration:
+                                                                        InputDecoration(),
+                                                                    onChanged:
+                                                                        (value) {
+                                                                      changeValue(
+                                                                          'quantity',
+                                                                          value,
+                                                                          productVariantList[
+                                                                              index]);
+                                                                    },
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              DataCell(
+                                                                Padding(
+                                                                  padding:
+                                                                      const EdgeInsets
+                                                                              .all(
+                                                                          8.0),
+                                                                  child:
+                                                                      TextField(
+                                                                    keyboardType:
+                                                                        TextInputType
+                                                                            .number,
+                                                                    inputFormatters: [
+                                                                      FilteringTextInputFormatter
+                                                                          .digitsOnly
+                                                                    ],
+                                                                    controller:
+                                                                        TextEditingController(
+                                                                            text:
+                                                                                productVariantList[index]['price']),
+                                                                    decoration:
+                                                                        InputDecoration(),
+                                                                    onChanged:
+                                                                        (value) {
+                                                                      changeValue(
+                                                                          'price',
+                                                                          value,
+                                                                          productVariantList[
+                                                                              index]);
+                                                                    },
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ))),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : Container(),
+                              ],
                             )
                           : Container(),
-                      Card(
-                        elevation: 3,
-                        child: Column(
-                          children: [
-                            ListView.builder(
-                                physics: NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                itemCount: productVariantList.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  return ListTile(
-                                    dense: true,
-                                    leading: Text(productVariantList[index]
-                                        ['variant_name']),
-                                    title: TextField(
-                                      controller: stockVariantController
-                                        ..text = productVariantList[index]
-                                            ['quantity'],
-                                      decoration: InputDecoration(
-                                        isDense: true,
-                                        border: InputBorder.none,
-                                        focusedBorder: InputBorder.none,
-                                        enabledBorder: InputBorder.none,
-                                        errorBorder: InputBorder.none,
-                                        disabledBorder: InputBorder.none,
-                                        labelText: selectStock == 'Daily Limit'
-                                            ? 'Daily Limit'
-                                            : 'Stock',
-                                      ),
-                                    ),
-
-                                  );
-                                }),
-                          ],
-                        ),
-                      ),
                       Padding(
                         padding: const EdgeInsets.all(15.0),
                         child: RadioGroup<String>.builder(
@@ -980,6 +1203,15 @@ class _EditProductDialogState extends State<EditProductDialog> {
     }
 
     print(productVariantList);
+    print(switchController.selectedItem);
+  }
+
+  changeValue(String key, dynamic value, Map data) {
+    for (int i = 0; i < productVariantList.length; i++) {
+      if (productVariantList[i] == data) {
+        productVariantList[i][key] = value;
+      }
+    }
   }
 
   Widget customText(List data) {

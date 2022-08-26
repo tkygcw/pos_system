@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
 import '../notifier/theme_color.dart';
 
 class VariantOptionDialog extends StatefulWidget {
   final Function(Map) callback;
-  const VariantOptionDialog({Key? key, required this.callback}) : super(key: key);
+  const VariantOptionDialog({Key? key, required this.callback})
+      : super(key: key);
 
   @override
   _VariantOptionDialogState createState() => _VariantOptionDialogState();
@@ -22,6 +24,7 @@ class _VariantOptionDialogState extends State<VariantOptionDialog> {
     // TODO: implement initState
     super.initState();
   }
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -48,7 +51,12 @@ class _VariantOptionDialogState extends State<VariantOptionDialog> {
                     controller: modGroupNameController,
                     decoration: InputDecoration(
                         isDense: true,
-                        border: OutlineInputBorder(),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: color.backgroundColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: color.backgroundColor),
+                        ),
                         labelText: 'Variant Group Name'),
                   ),
                 ),
@@ -70,7 +78,12 @@ class _VariantOptionDialogState extends State<VariantOptionDialog> {
                         helperText:
                             'Please type the item name and press return or enter on your keyboard',
                         isDense: true,
-                        border: OutlineInputBorder(),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: color.backgroundColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: color.backgroundColor),
+                        ),
                         labelText: 'Variant Item Name'),
                   ),
                 ),
@@ -120,15 +133,25 @@ class _VariantOptionDialogState extends State<VariantOptionDialog> {
     });
   }
 
-  addOption(){
-    Map productVariantList = new Map();
+  addOption() {
+    if(modGroupNameController.text == null || modGroupNameController.text == ''){
+      Fluttertoast.showToast(
+          backgroundColor: Color(0xFFFFC107),
+          msg: "Please fill the name");
+    }
+    else if(selected.length<=0){
+      Fluttertoast.showToast(
+          backgroundColor: Color(0xFFFFC107),
+          msg: "Please set the option");
+    }
+    else{
+      Map productVariantList = new Map();
 
-    productVariantList['modGroup'] = modGroupNameController.text;
-    productVariantList['modItem'] = selected;
+      productVariantList['modGroup'] = modGroupNameController.text;
+      productVariantList['modItem'] = selected;
 
-    Navigator.pop(context);
-    widget.callback(productVariantList);
-
+      Navigator.pop(context);
+      widget.callback(productVariantList);
+    }
   }
-
 }

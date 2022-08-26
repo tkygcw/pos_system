@@ -2,6 +2,7 @@ String? tableModifierLinkProduct = 'tb_modifier_link_product';
 
 class ModifierLinkProductFields {
   static List<String> values = [
+    modifier_link_product_sqlite_id,
     modifier_link_product_id,
     mod_group_id,
     product_id,
@@ -10,6 +11,7 @@ class ModifierLinkProductFields {
     soft_delete
   ];
 
+  static String modifier_link_product_sqlite_id = 'modifier_link_product_sqlite_id';
   static String modifier_link_product_id = 'modifier_link_product_id';
   static String mod_group_id = 'mod_group_id';
   static String product_id = 'product_id';
@@ -19,6 +21,7 @@ class ModifierLinkProductFields {
 }
 
 class ModifierLinkProduct{
+  int? modifier_link_product_sqlite_id;
   int? modifier_link_product_id;
   String? mod_group_id;
   String? product_id;
@@ -27,7 +30,8 @@ class ModifierLinkProduct{
   String? soft_delete;
 
   ModifierLinkProduct(
-      { this.modifier_link_product_id,
+      { this.modifier_link_product_sqlite_id,
+        this.modifier_link_product_id,
         this.mod_group_id,
         this.product_id,
         this.created_at,
@@ -35,6 +39,7 @@ class ModifierLinkProduct{
         this.soft_delete});
 
   ModifierLinkProduct copy({
+    int? modifier_link_product_sqlite_id,
     int? modifier_link_product_id,
     String? mod_group_id,
     String? product_id,
@@ -43,6 +48,7 @@ class ModifierLinkProduct{
     String? soft_delete,
   }) =>
       ModifierLinkProduct(
+          modifier_link_product_sqlite_id: modifier_link_product_sqlite_id ?? this.modifier_link_product_sqlite_id,
           modifier_link_product_id: modifier_link_product_id ?? this.modifier_link_product_id,
           mod_group_id: mod_group_id ?? this.mod_group_id,
           product_id: product_id ?? this.product_id,
@@ -51,6 +57,7 @@ class ModifierLinkProduct{
           soft_delete: soft_delete ?? this.soft_delete);
 
   static ModifierLinkProduct fromJson(Map<String, Object?> json) => ModifierLinkProduct(
+    modifier_link_product_sqlite_id: json[ModifierLinkProductFields.modifier_link_product_sqlite_id] as int?,
     modifier_link_product_id: json[ModifierLinkProductFields.modifier_link_product_id] as int?,
     mod_group_id: json[ModifierLinkProductFields.mod_group_id] as String?,
     product_id: json[ModifierLinkProductFields.product_id] as String?,
@@ -60,6 +67,7 @@ class ModifierLinkProduct{
   );
 
   Map<String, Object?> toJson() => {
+    ModifierLinkProductFields.modifier_link_product_sqlite_id: modifier_link_product_sqlite_id,
     ModifierLinkProductFields.modifier_link_product_id: modifier_link_product_id,
     ModifierLinkProductFields.mod_group_id: mod_group_id,
     ModifierLinkProductFields.product_id: product_id,
