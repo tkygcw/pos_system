@@ -3,7 +3,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/bill.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
@@ -36,7 +35,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../database/domain.dart';
 import '../notifier/theme_color.dart';
 import '../object/branch_link_user.dart';
-import '../object/color.dart';
 import '../object/customer.dart';
 import '../object/dining_option.dart';
 import '../object/tax.dart';
@@ -49,40 +47,42 @@ class LoadingPage extends StatefulWidget {
 }
 
 class _LoadingPageState extends State<LoadingPage> {
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _createProductImgFolder();
-    getAllUser();
-    getAllTable();
-    getBranchLinkUser();
-    getAllDiningOption();
-    getBranchLinkDiningOption();
-    getAllTax();
-    getBranchLinkTax();
-    getTaxLinkDining();
-    getAllCategory();
-    getAllPromotion();
-    getBranchLinkPromotion();
-    getAllCustomer();
-    getAllBill();
-    getPaymentLinkCompany();
-    getAllRefund();
-    getModifierGroup();
-    getModifierItem();
-    getBranchLinkModifier();
-    getAllProduct();
-    getBranchLinkProduct();
-    getModifierLinkProduct();
-    getVariantGroup();
-    getVariantItem();
-    getProductVariant();
-    getProductVariantDetail();
-    getAllOrder();
-    getAllOrderCache();
-    getAllOrderDetail();
-    getSale();
+      _createProductImgFolder();
+      getAllUser();
+      getAllTable();
+      getBranchLinkUser();
+      getAllDiningOption();
+      getBranchLinkDiningOption();
+      getAllTax();
+      getBranchLinkTax();
+      getTaxLinkDining();
+      getAllCategory();
+      getAllPromotion();
+      getBranchLinkPromotion();
+      getAllCustomer();
+      getAllBill();
+      getPaymentLinkCompany();
+      getAllRefund();
+      getModifierGroup();
+      getModifierItem();
+      getBranchLinkModifier();
+      getAllProduct();
+      getBranchLinkProduct();
+      getModifierLinkProduct();
+      getVariantGroup();
+      getVariantItem();
+      getProductVariant();
+      getProductVariantDetail();
+      getAllOrder();
+      getAllOrderCache();
+      getAllOrderDetail();
+      getSale();
+
 
     // Go to Page2 after 5s.
     Timer(Duration(seconds: 4), () {
@@ -150,8 +150,9 @@ class _LoadingPageState extends State<LoadingPage> {
     if (data['status'] == '1') {
       List responseJson = data['table'];
       for (var i = 0; i < responseJson.length; i++) {
-        PosTable table = await PosDatabase.instance
-            .insertPosTable(PosTable.fromJson(responseJson[i]));
+          PosTable table = await PosDatabase.instance.insertPosTable(
+              PosTable.fromJson(responseJson[i]));
+        }
       }
     }
   }
@@ -167,8 +168,7 @@ class _LoadingPageState extends State<LoadingPage> {
     if (data['status'] == '1') {
       List responseJson = data['dining_option'];
       for (var i = 0; i < responseJson.length; i++) {
-        DiningOption data = await PosDatabase.instance
-            .insertDiningOption(DiningOption.fromJson(responseJson[i]));
+        DiningOption data = await PosDatabase.instance.insertDiningOption(DiningOption.fromJson(responseJson[i]));
       }
     }
   }
@@ -460,8 +460,7 @@ class _LoadingPageState extends State<LoadingPage> {
     if (data['status'] == '1') {
       List responseJson = data['product'];
       for (var i = 0; i < responseJson.length; i++) {
-        ModifierLinkProduct data = await PosDatabase.instance
-            .insertModifierLinkProduct(
+        ModifierLinkProduct data = await PosDatabase.instance.insertModifierLinkProduct(
                 ModifierLinkProduct.fromJson(responseJson[i]));
       }
     }
@@ -657,7 +656,7 @@ class _LoadingPageState extends State<LoadingPage> {
   }
 
 
-  }
+
 
 
 

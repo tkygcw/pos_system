@@ -1,10 +1,15 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/setting/features_setting.dart';
+import 'package:pos_system/fragment/setting/logout_dialog.dart';
 import 'package:pos_system/fragment/setting/printer_setting.dart';
+import 'package:pos_system/object/user.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:side_navigation/side_navigation.dart';
+import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 
 class SettingMenu extends StatefulWidget {
@@ -24,7 +29,6 @@ class _SettingMenuState extends State<SettingMenu> {
     ),
   ];
   int selectedIndex = 0;
-
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +57,7 @@ class _SettingMenuState extends State<SettingMenu> {
                         primary: color.backgroundColor,
                       ),
                       onPressed: () {
-                        logout();
+                        openLogoutDialog();
                       },
                       child: Text('Logout'),
                     ),
@@ -102,4 +106,27 @@ class _SettingMenuState extends State<SettingMenu> {
         builder: (context) => LoginPage()));
 
   }
+
+  Future<Future<Object?>> openLogoutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: logout_dialog()),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+  
+
 }

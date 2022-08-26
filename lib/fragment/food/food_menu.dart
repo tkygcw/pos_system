@@ -313,30 +313,38 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);
-    setState(() {
-      companyID = userObject['company_id'];
-    });
+    if(mounted) {
+      setState(() {
+        companyID = userObject['company_id'];
+      });
+    }
   }
 
   readAllProduct() async {
     List<Product> data = await PosDatabase.instance.readAllProduct();
-    setState(() {
-      allProduct = data;
-      this.isLoading = false;
-    });
+    if(mounted) {
+      setState(() {
+        allProduct = data;
+        this.isLoading = false;
+      });
+    }
   }
 
   readSpecificProduct(String label) async {
     List<Product> data = await PosDatabase.instance.readSpecificProduct(label);
-    setState(() {
-      specificProduct = data;
-    });
+    if(mounted) {
+      setState(() {
+        specificProduct = data;
+      });
+    }
   }
 
   searchProduct(String text) async {
     List<Product> data = await PosDatabase.instance.searchProduct(text);
-    setState(() {
-      allProduct = data;
-    });
+    if(mounted) {
+      setState(() {
+        allProduct = data;
+      });
+    }
   }
 }

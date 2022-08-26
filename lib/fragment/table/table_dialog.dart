@@ -45,20 +45,20 @@ class _TableDialogState extends State<TableDialog> {
     seatController.dispose();
   }
 
-  String get errorTableNo {
+  String? get errorTableNo {
     final text = tableNoController.value.text;
     if (text.isEmpty) {
       return 'table_no_required';
     }
-    return '';
+    return null;
   }
 
-  String get errorSeat {
+  String? get errorSeat {
     final text = seatController.value.text;
     if (text.isEmpty) {
       return 'seat_required';
     }
-    return '';
+    return null;
   }
 
   void _submit(BuildContext context) {
@@ -129,7 +129,7 @@ class _TableDialogState extends State<TableDialog> {
         title: Row(
           children: [
             Text(
-        '${AppLocalizations.of(context)?.translate('confirm')}',
+              '${AppLocalizations.of(context)?.translate('confirm')}',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -182,8 +182,10 @@ class _TableDialogState extends State<TableDialog> {
                           controller: tableNoController,
                           decoration: InputDecoration(
                             errorText: _submitted
-                                ? AppLocalizations.of(context)
-                                    ?.translate(errorTableNo)
+                                ? errorTableNo == null
+                                    ? errorTableNo
+                                    : AppLocalizations.of(context)
+                                        ?.translate(errorTableNo!)
                                 : null,
                             border: OutlineInputBorder(
                               borderSide:
@@ -209,8 +211,10 @@ class _TableDialogState extends State<TableDialog> {
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             errorText: _submitted
-                                ? AppLocalizations.of(context)
-                                    ?.translate(errorSeat)
+                                ? errorSeat == null
+                                    ? errorSeat
+                                    : AppLocalizations.of(context)
+                                        ?.translate(errorSeat!)
                                 : null,
                             border: OutlineInputBorder(
                               borderSide:

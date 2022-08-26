@@ -9,6 +9,11 @@
   "table_no_required": "Table number is required",
   "seat_required": "Seat is required",
   "would you like to remove?": "Would you like to remove?",
+  "logout-Desc": "All this app data will be deleted permanently. This includes all files, setting, database etc.",
+  "password_required": "Password is required",
+  "password_incorrect":"Password incorrect",
   "yes": "Yes",
-  "no": "No"
+  "no": "No",
+  "": "",
+  "incorrect_password": "incorrect password"
 }

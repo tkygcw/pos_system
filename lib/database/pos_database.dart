@@ -820,6 +820,18 @@ class PosDatabase {
   }
 
 /*
+  read specific user
+*/
+  Future<List<User>> readSpecificUserWithRole(String pin) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableUser WHERE soft_delete = ? AND role = ? AND pos_pin = ?',
+        ['', 0, pin]);
+    return result.map((json) => User.fromJson(json)).toList();
+  }
+
+
+/*
   update category
 */
   Future<int> updateCategory(Categories data) async {
@@ -860,7 +872,7 @@ class PosDatabase {
   }
 
 /*
-  update Pos Table
+  Soft-delete Pos Table
 */
   Future<int> deletePosTable(PosTable data) async {
     final db = await instance.database;
@@ -868,6 +880,191 @@ class PosDatabase {
       'UPDATE $tablePosTable SET soft_delete = ? WHERE table_sqlite_id = ?',
       [data.soft_delete, data.table_sqlite_id]);
   }
+
+/*
+  Delete All Branch
+*/
+  Future clearAllBranch() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableBranch');
+  }
+
+/*
+  Delete All Branch Link Modifier
+*/
+  Future clearAllBranchLinkModifier() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableBranchLinkModifier');
+  }
+
+/*
+  Delete All Branch Link Modifier
+*/
+  Future clearAllBranchLinkProduct() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableBranchLinkProduct');
+  }
+
+/*
+  Delete All Branch Link Promotion
+*/
+  Future clearAllBranchLinkPromotion() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableBranchLinkPromotion');
+  }
+
+/*
+  Delete All Branch Link Tax
+*/
+  Future clearAllBranchLinkTax() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableBranchLinkTax');
+  }
+
+/*
+  Delete All Branch Link Dining Option
+*/
+  Future clearAllBranchLinkDining() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableBranchLinkDining');
+  }
+
+/*
+  Delete All Branch Link User
+*/
+  Future clearAllBranchLinkUser() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableBranchLinkUser');
+  }
+
+/*
+  Delete all category
+*/
+  Future clearAllCategory() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableCategories');
+  }
+
+/*
+  Delete All Dining Option
+*/
+  Future clearAllDiningOption() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableDiningOption');
+  }
+
+/*
+  Delete All ModifierItem
+*/
+  Future clearAllModifierItem() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableModifierItem');
+  }
+
+/*
+  Delete All ModifierGroup
+*/
+  Future clearAllModifierGroup() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableModifierGroup');
+  }
+
+/*
+  Delete All Modifier link Product
+*/
+  Future clearAllModifierLinkProduct() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableModifierLinkProduct');
+  }
+
+/*
+  Delete Pos Table
+*/
+  Future clearAllPosTable() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tablePosTable');
+  }
+
+/*
+  Delete All Product
+*/
+  Future clearAllProduct() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableProduct');
+  }
+
+/*
+  Delete All ProductVariant
+*/
+  Future clearAllProductVariant() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableProductVariant');
+  }
+
+/*
+  Delete All ProductVariantDetail
+*/
+  Future clearAllProductVariantDetail() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableProductVariantDetail');
+  }
+
+/*
+  Delete all promotion
+*/
+  Future clearAllPromotion() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tablePromotion');
+  }
+
+/*
+  Delete all payment link company
+*/
+  Future clearAllPaymentLinkCompany() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tablePaymentLinkCompany');
+  }
+
+/*
+  Delete all tax
+*/
+  Future clearAllTax() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableTax');
+  }
+
+/*
+  Delete all tax link dining
+*/
+  Future clearAllTaxLinkDining() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableTaxLinkDining');
+  }
+
+/*
+  Delete all User
+*/
+  Future clearAllUser() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableUser');
+  }
+
+/*
+  Delete All VariantItem
+*/
+  Future clearAllVariantItem() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableVariantItem');
+  }
+
+/*
+  Delete All VariantGroup
+*/
+  Future clearAllVariantGroup() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableVariantGroup');
+  }
+
   // Future<List<Categories>> readAllNotes() async {
   //   final db = await instance.database;
   //   final orderBy = '${UserFields.user_id} ASC';
