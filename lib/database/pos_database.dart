@@ -287,8 +287,7 @@ class PosDatabase {
 /*
     create app color table
 */
-    await db.execute(
-        '''CREATE TABLE  $tableAppColors ( 
+    await db.execute('''CREATE TABLE  $tableAppColors ( 
           ${AppColorsFields.app_color_sqlite_id} $idType, 
           ${AppColorsFields.app_color_id} $integerType,
           ${AppColorsFields.background_color} $textType,
@@ -298,6 +297,7 @@ class PosDatabase {
           ${AppColorsFields.updated_at} $textType,
           ${AppColorsFields.soft_delete} $textType)''');
   }
+
 /*
   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -645,9 +645,10 @@ class PosDatabase {
   }
 
   /*
-  read variant item
+  read variant item for group
 */
-  Future<List<VariantItem>> readVariantItemForGroup(String variant_group_id) async {
+  Future<List<VariantItem>> readVariantItemForGroup(
+      String variant_group_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT * FROM $tableVariantItem WHERE soft_delete = ? AND variant_group_id = ?',
@@ -656,12 +657,26 @@ class PosDatabase {
     return result.map((json) => VariantItem.fromJson(json)).toList();
   }
 
+  /*
+  read branch link product
+*/
+  Future<List<BranchLinkProduct>> readBranchLinkProduct(
+      String branch_id, String product_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.variant_name FROM $tableBranchLinkProduct AS a JOIN $tableProductVariant AS b ON a.product_variant_id = b.product_variant_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ? AND a.product_id = ?',
+        ['', '', branch_id, product_id]);
+
+    return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
+  }
+
 /*
   read app colors
 */
   Future<List<AppColors>> readAppColors() async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableAppColors WHERE soft_delete = ? ', ['']);
+    final result = await db
+        .rawQuery('SELECT * FROM $tableAppColors WHERE soft_delete = ? ', ['']);
     return result.map((json) => AppColors.fromJson(json)).toList();
   }
 
@@ -756,11 +771,11 @@ class PosDatabase {
 /*
   check sku for edit product
 */
-  Future<List<Product>> checkProductSKUForEdit(String sku) async {
+  Future<List<Product>> checkProductSKUForEdit(String sku, int product_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableProduct WHERE soft_delete = ? AND SKU = ?',
-        ['', sku]);
+        'SELECT * FROM $tableProduct WHERE soft_delete = ? AND SKU = ? AND product_id != ?',
+        ['', sku, product_id]);
     return result.map((json) => Product.fromJson(json)).toList();
   }
 
@@ -877,6 +892,28 @@ class PosDatabase {
   /*
   update product
 */
+  Future<int> updateProduct(Product data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableProduct SET category_id = ?, name = ?, price = ?, description = ?, SKU = ?, image = ?, has_variant = ?, stock_type = ?, stock_quantity = ?, available = ?, graphic_type = ?, color = ?, daily_limit_amount = ?, updated_at = ? WHERE product_id = ?',
+        [
+          data.category_id,
+          data.name,
+          data.price,
+          data.description,
+          data.SKU,
+          data.image,
+          data.has_variant,
+          data.stock_type,
+          data.stock_quantity,
+          data.available,
+          data.graphic_type,
+          data.color,
+          data.daily_limit_amount,
+          data.updated_at
+        ]);
+  }
+
 
 /*
   update App color

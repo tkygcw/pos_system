@@ -8,9 +8,6 @@ import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:provider/provider.dart';
-import 'package:pos_system/globals.dart' as globals;
-
-import '../../globals.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({Key? key}) : super(key: key);
@@ -23,130 +20,11 @@ class _CartPageState extends State<CartPage> {
   String _selectedColor = 'Dine in';
   List<String> _animals = ["Dine in", "Delivery", "Take Away"];
 
-  // List<cartProductItem> product = [
-  //   // cartProductItem('Chicken rice', '12.00', '1', 'big', 'With Water'),
-  //   // cartProductItem('Milk Tea', '12.00', '2', 'big', 'With Water'),
-  //   // cartProductItem('Wantan Mee', '12.00', '3', 'big', 'With Water'),
-  //   // cartProductItem('ABC soup', '12.00', '4', 'big', 'With Water'),
-  //   // cartProductItem('ice', '12.00', '5', 'big', 'With Water'),
-  //   // cartProductItem('ice', '12.00', '5', 'big', 'With Water'),
-  //   // cartProductItem('ice', '12.00', '5', 'big', 'With Water'),
-  //   // cartProductItem('ice', '12.00', '5', 'big', 'With Water'),
-  // ];
   int simpleIntInput = 0;
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      // Future<void> tableDialog(BuildContext context) {
-      //   return showDialog<void>(
-      //     context: context,
-      //     builder: (BuildContext context) {
-      //       return AlertDialog(
-      //         title:
-      //             Text("Table", style: TextStyle(fontWeight: FontWeight.bold)),
-      //         content: Builder(builder: (context) {
-      //           var width = MediaQuery.of(context).size.width;
-      //           return Container(
-      //             width: width - 1000,
-      //             child: ScrollConfiguration(
-      //               behavior: ScrollConfiguration.of(context)
-      //                   .copyWith(scrollbars: false),
-      //               child: GridView.count(
-      //                 crossAxisCount: 2,
-      //                 mainAxisSpacing: 10,
-      //                 crossAxisSpacing: 10,
-      //                 shrinkWrap: true,
-      //                 children: [
-      //                   Container(
-      //                       child: Stack(
-      //                     children: [
-      //                       Ink.image(
-      //                         image: NetworkImage(
-      //                             "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png"),
-      //                         child: InkWell(
-      //                           splashColor: Colors.blue.withAlpha(30),
-      //                           onTap: () {},
-      //                         ),
-      //                         fit: BoxFit.cover,
-      //                       ),
-      //                       Container(
-      //                           alignment: Alignment.center, child: Text("#1"))
-      //                     ],
-      //                   )),
-      //                   Container(
-      //                       child: Stack(
-      //                     children: [
-      //                       Ink.image(
-      //                         image: NetworkImage(
-      //                             "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png"),
-      //                         child: InkWell(
-      //                           splashColor: Colors.blue.withAlpha(30),
-      //                           onTap: () {},
-      //                         ),
-      //                         fit: BoxFit.cover,
-      //                       ),
-      //                       Container(
-      //                           alignment: Alignment.center, child: Text("#2"))
-      //                     ],
-      //                   )),
-      //                   Container(
-      //                       child: Stack(
-      //                     children: [
-      //                       Ink.image(
-      //                         image: NetworkImage(
-      //                             "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png"),
-      //                         child: InkWell(
-      //                           splashColor: Colors.blue.withAlpha(30),
-      //                           onTap: () {},
-      //                         ),
-      //                         fit: BoxFit.cover,
-      //                       ),
-      //                       Container(
-      //                           alignment: Alignment.center, child: Text("#3"))
-      //                     ],
-      //                   )),
-      //                   Container(
-      //                       child: Stack(
-      //                     children: [
-      //                       Ink.image(
-      //                         image: NetworkImage(
-      //                             "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png"),
-      //                         child: InkWell(
-      //                           splashColor: Colors.blue.withAlpha(30),
-      //                           onTap: () {},
-      //                         ),
-      //                         fit: BoxFit.cover,
-      //                       ),
-      //                       Container(
-      //                           alignment: Alignment.center, child: Text("#4"))
-      //                     ],
-      //                   )),
-      //                   Container(
-      //                       child: Stack(
-      //                     children: [
-      //                       Ink.image(
-      //                         image: NetworkImage(
-      //                             "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png"),
-      //                         child: InkWell(
-      //                           splashColor: Colors.blue.withAlpha(30),
-      //                           onTap: () {},
-      //                         ),
-      //                         fit: BoxFit.cover,
-      //                       ),
-      //                       Container(
-      //                           alignment: Alignment.center, child: Text("#5"))
-      //                     ],
-      //                   )),
-      //                 ],
-      //               ),
-      //             ),
-      //           );
-      //         }),
-      //       );
-      //     },
-      //   );
-      // }
       return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Scaffold(
