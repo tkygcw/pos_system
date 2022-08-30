@@ -184,80 +184,109 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
   void _submit(BuildContext context) {
     setState(() => _submitted = true);
-
     bool productVariantListIsEmpty = false;
 
-    for (int i = 0; i < productVariantList.length; i++) {
-      if (productVariantList[i]['quantity'] == '' ||
-          productVariantList[i]['price'] == '') {
-        productVariantListIsEmpty = true;
-        break;
+    if(isAdd){
+      for (int i = 0; i < productVariantList.length; i++) {
+        if (productVariantList[i]['quantity'] == '' ||
+            productVariantList[i]['price'] == '') {
+          productVariantListIsEmpty = true;
+          break;
+        }
+      }
+      if (errorNameText == null &&
+          errorDescriptionText == null &&
+          errorPriceText == null &&
+          errorSKUText == null) {
+        if (selectStock == 'Daily Limit' && errorDailyLimitText == null) {
+          if (selectGraphic == 'Image' && imageDir == null) {
+            Fluttertoast.showToast(
+                backgroundColor: Color(0xFFFFC107),
+                msg: "Please pick product image");
+          } else {
+            if (productVariantListIsEmpty && selectVariant == 'Have Variant') {
+              Fluttertoast.showToast(
+                  backgroundColor: Color(0xFFFFC107),
+                  msg: "Please fill in all the variant list info");
+            } else {
+              if (selectGraphic == 'Image') {
+                saveFilePermanently(imageDir!);
+              }
+              if (isAdd == true) {
+                createProduct();
+                Fluttertoast.showToast(
+                    backgroundColor: Color(0xff0c1f32),
+                    msg: "Create Product Success");
+                widget.callBack();
+              } else {
+                widget.callBack();
+              }
+              closeDialog(context);
+            }
+          }
+        } else if (selectStock == 'Stock' && errorStockQuantityText == null) {
+          if (selectGraphic == 'Image' && imageDir == null) {
+            Fluttertoast.showToast(
+                backgroundColor: Color(0xFFFFC107),
+                msg: "Please pick product image");
+          } else {
+            if (productVariantListIsEmpty && selectVariant == 'Have Variant') {
+              Fluttertoast.showToast(
+                  backgroundColor: Color(0xFFFFC107),
+                  msg: "Please fill in all the variant list info");
+            } else {
+              if (selectGraphic == 'Image') {
+                saveFilePermanently(imageDir!);
+              }
+              if (isAdd == true) {
+                createProduct();
+                Fluttertoast.showToast(
+                    backgroundColor: Color(0xff0c1f32),
+                    msg: "Create Product Success");
+                widget.callBack();
+              } else {
+                widget.callBack();
+              }
+              closeDialog(context);
+            }
+          }
+        }
       }
     }
-    if (errorNameText == null &&
-        errorDescriptionText == null &&
-        errorPriceText == null &&
-        errorSKUText == null) {
-      if (selectStock == 'Daily Limit' && errorDailyLimitText == null) {
-        if (selectGraphic == 'Image' && imageDir == null) {
-          Fluttertoast.showToast(
-              backgroundColor: Color(0xFFFFC107),
-              msg: "Please pick product image");
-        } else {
-          if (productVariantListIsEmpty && selectVariant == 'Have Variant') {
-            Fluttertoast.showToast(
-                backgroundColor: Color(0xFFFFC107),
-                msg: "Please fill in all the variant list info");
-          } else {
-            if (selectGraphic == 'Image') {
-              saveFilePermanently(imageDir!);
-            }
-            if (isAdd == true) {
-              createProduct();
-              Fluttertoast.showToast(
-                  backgroundColor: Color(0xff0c1f32),
-                  msg: "Create Product Success");
-              widget.callBack();
-            } else {
-              widget.callBack();
-            }
-            closeDialog(context);
-          }
-        }
-      } else if (selectStock == 'Stock' && errorStockQuantityText == null) {
-        if (selectGraphic == 'Image' && imageDir == null) {
-          Fluttertoast.showToast(
-              backgroundColor: Color(0xFFFFC107),
-              msg: "Please pick product image");
-        } else {
-          if (productVariantListIsEmpty && selectVariant == 'Have Variant') {
-            Fluttertoast.showToast(
-                backgroundColor: Color(0xFFFFC107),
-                msg: "Please fill in all the variant list info");
-          } else {
-            if (selectGraphic == 'Image') {
-              saveFilePermanently(imageDir!);
-            }
-            if (isAdd == true) {
-              createProduct();
-              Fluttertoast.showToast(
-                  backgroundColor: Color(0xff0c1f32),
-                  msg: "Create Product Success");
-              widget.callBack();
-            } else {
-              widget.callBack();
-            }
-            closeDialog(context);
-          }
-        }
+    else{
+      if(imageDir == null && widget.product!.image == '' && selectGraphic == 'Image'){
+        Fluttertoast.showToast(
+            backgroundColor: Color(0xFFFFC107),
+            msg: "Please pick product image");
       }
+      if(imageDir != null){
+
+
+        saveFilePermanently(imageDir!);
+        updateProduct();
+      }
+
+      // widget.callBack();
+      // closeDialog(context);
     }
   }
-  readProductVariantList() async{
+
+  readProductVariantList() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-
-
+    List<BranchLinkProduct> data = await PosDatabase.instance
+        .readBranchLinkProduct(
+            branch_id.toString(), widget.product!.product_id.toString());
+    for (int i = 0; i < data.length; i++) {
+      productVariantList.add({
+        'variant_name': data[i].variant_name,
+        'price': data[i].price,
+        'quantity': data[i].stock_type == '1'
+            ? data[i].daily_limit_amount
+            : data[i].stock_quantity,
+        'SKU': data[i].b_SKU
+      });
+    }
   }
 
   readAllCategories() async {
@@ -278,7 +307,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
     skuController.text = defaultSKU.toString();
   }
 
-  checKProductSKU() async {
+   checKProductSKU() async {
     if (isAdd) {
       List<Product> data =
           await PosDatabase.instance.checkProductSKU(skuController.value.text);
@@ -289,7 +318,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
       }
     } else {
       List<Product> data = await PosDatabase.instance
-          .checkProductSKUForEdit(skuController.value.text);
+          .checkProductSKUForEdit(skuController.value.text, widget.product!.product_id!);
       if (data.length > 0) {
         skuInUsed = true;
       } else {
@@ -337,12 +366,15 @@ class _EditProductDialogState extends State<EditProductDialog> {
     await readAllCategories();
     await readProductModifier();
     await readVariantGroupAndItem();
+    await readProductVariantList();
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);
     nameController.text = widget.product!.name!;
     descriptionController.text = widget.product!.description!;
-    widget.product!.has_variant == 1 ? selectVariant = 'Have Variant' : selectVariant='No Variant';
+    widget.product!.has_variant == 1
+        ? selectVariant = 'Have Variant'
+        : selectVariant = 'No Variant';
     if (widget.product!.stock_type == 1) {
       selectStock = 'Daily Limit';
       dailyLimitController.text = widget.product!.daily_limit!;
@@ -380,145 +412,186 @@ class _EditProductDialogState extends State<EditProductDialog> {
     });
   }
 
-  createProduct() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    final String? user = prefs.getString('user');
-    Map userObject = json.decode(user!);
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    Product productInserted = await PosDatabase.instance.insertProduct(Product(
-        product_id: 0,
+  updateProduct() async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      final String? user = prefs.getString('user');
+      Map userObject = json.decode(user!);
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      int productUpdated = await PosDatabase.instance.updateProduct(Product(
         category_id: selectCategory!.category_id.toString(),
-        company_id: userObject['company_id'],
         name: nameController.value.text,
         price: priceController.value.text,
         description: descriptionController.value.text,
         SKU: skuController.value.text,
         image: imageDir != null
             ? basename(imageDir!).replaceAll('image_picker', '')
-            : ' ',
+            : widget.product!.image,
         has_variant: selectVariant == 'Have Variant' ? 1 : 0,
         stock_type: selectStock == 'Daily Limit' ? 1 : 2,
         stock_quantity: stockQuantityController.value.text,
         available: selectStatus == 'Available Sale' ? 1 : 0,
         graphic_type: selectGraphic == 'Image' ? '2' : '1',
         color: productColor,
-        daily_limit: dailyLimitController.value.text,
         daily_limit_amount: dailyLimitController.value.text,
-        created_at: dateTime,
-        updated_at: '',
-        soft_delete: ''));
-
-    if (switchController.selectedItem.length != 0) {
-      for (int i = 0; i < switchController.selectedItem.length; i++) {
-        ModifierLinkProduct data = await PosDatabase.instance
-            .insertModifierLinkProduct(ModifierLinkProduct(
-                modifier_link_product_id: 0,
-                mod_group_id: switchController.selectedItem[i].toString(),
-                product_id: productInserted.product_id.toString(),
-                created_at: dateTime,
-                updated_at: '',
-                soft_delete: ''));
-      }
+        updated_at: dateTime,
+        product_id: widget.product!.product_id,
+      ));
+      print(productUpdated);
+    }catch(error){
+      Fluttertoast.showToast(msg: error.toString());
     }
 
-    if (selectVariant == 'Have Variant') {
-      for (int i = 0; i < variantList.length; i++) {
-        VariantGroup group = await PosDatabase.instance.insertVariantGroup(
-            VariantGroup(
-                child: [],
-                variant_group_id: 0,
-                product_id: productInserted.product_id.toString(),
-                name: variantList[i]['modGroup'],
-                created_at: dateTime,
-                updated_at: '',
-                soft_delete: ''));
-        for (int j = 0; j < variantList[i]['modItem'].length; j++) {
-          VariantItem item = await PosDatabase.instance.insertVariantItem(
-              VariantItem(
-                  variant_item_id: 0,
-                  variant_group_id: group.variant_group_id.toString(),
-                  name: variantList[i]['modItem'][j],
-                  created_at: dateTime,
-                  updated_at: '',
-                  soft_delete: ''));
-        }
-      }
+    // if(productUpdated!=''){
+    //
+    // }
+  }
 
-      for (int k = 0; k < productVariantList.length; k++) {
-        ProductVariant variant = await PosDatabase.instance
-            .insertProductVariant(ProductVariant(
-                product_variant_id: 0,
-                product_id: productInserted.product_id.toString(),
-                variant_name: productVariantList[k]['variant_name'],
-                SKU: productVariantList[k]['SKU'],
-                price: productVariantList[k]['price'],
-                stock_type: selectStock == 'Daily Limit' ? '1' : '2',
-                daily_limit: selectStock == 'Daily Limit'
-                    ? productVariantList[k]['quantity']
-                    : '',
-                daily_limit_amount: selectStock == 'Daily Limit'
-                    ? productVariantList[k]['quantity']
-                    : '',
-                stock_quantity: selectStock != 'Daily Limit'
-                    ? productVariantList[k]['quantity']
-                    : '',
-                created_at: dateTime,
-                updated_at: '',
-                soft_delete: ''));
+  createProduct() async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      final String? user = prefs.getString('user');
+      Map userObject = json.decode(user!);
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      Product productInserted = await PosDatabase.instance.insertProduct(Product(
+          product_id: 0,
+          category_id: selectCategory!.category_id.toString(),
+          company_id: userObject['company_id'],
+          name: nameController.value.text,
+          price: priceController.value.text,
+          description: descriptionController.value.text,
+          SKU: skuController.value.text,
+          image: imageDir != null
+              ? basename(imageDir!).replaceAll('image_picker', '')
+              : ' ',
+          has_variant: selectVariant == 'Have Variant' ? 1 : 0,
+          stock_type: selectStock == 'Daily Limit' ? 1 : 2,
+          stock_quantity: stockQuantityController.value.text,
+          available: selectStatus == 'Available Sale' ? 1 : 0,
+          graphic_type: selectGraphic == 'Image' ? '2' : '1',
+          color: productColor,
+          daily_limit: dailyLimitController.value.text,
+          daily_limit_amount: dailyLimitController.value.text,
+          created_at: dateTime,
+          updated_at: '',
+          soft_delete: ''));
 
-        BranchLinkProduct variantBranchProduct = await PosDatabase.instance
-            .insertBranchLinkProduct(BranchLinkProduct(
-                branch_link_product_id: 0,
-                branch_id: branch_id.toString(),
-                product_id: productInserted.product_id.toString(),
-                has_variant: '1',
-                product_variant_id: variant.product_variant_id.toString(),
-                b_SKU: branch_id.toString() + variant.SKU.toString(),
-                price: variant.price,
-                stock_type: selectStock == 'Daily Limit' ? '1' : '2',
-                daily_limit:
-                    selectStock == 'Daily Limit' ? variant.daily_limit : '',
-                daily_limit_amount:
-                    selectStock == 'Daily Limit' ? variant.daily_limit : '',
-                stock_quantity:
-                    selectStock != 'Daily Limit' ? variant.stock_quantity : '',
-                created_at: dateTime,
-                updated_at: '',
-                soft_delete: ''));
-        final splitted = productVariantList[k]['variant_name'].split(' | ');
-
-        for (int l = 0; l < splitted.length; l++) {
-          VariantItem? item =
-              await PosDatabase.instance.readVariantItem(splitted[l]);
-          ProductVariantDetail variantdetail = await PosDatabase.instance
-              .insertProductVariantDetail(ProductVariantDetail(
-                  product_variant_detail_id: 0,
-                  product_variant_id: variant.product_variant_id.toString(),
-                  variant_item_id: item!.variant_item_id.toString(),
-                  created_at: dateTime,
-                  updated_at: '',
-                  soft_delete: ''));
-        }
-      }
-    } else {
-      BranchLinkProduct branchProduct = await PosDatabase.instance
-          .insertBranchLinkProduct(BranchLinkProduct(
-              branch_link_product_id: 0,
-              branch_id: branch_id.toString(),
+      if (switchController.selectedItem.length != 0) {
+        for (int i = 0; i < switchController.selectedItem.length; i++) {
+          ModifierLinkProduct data = await PosDatabase.instance
+              .insertModifierLinkProduct(ModifierLinkProduct(
+              modifier_link_product_id: 0,
+              mod_group_id: switchController.selectedItem[i].toString(),
               product_id: productInserted.product_id.toString(),
-              has_variant: '0',
-              product_variant_id: ' ',
-              b_SKU: branch_id.toString() + skuController.value.text,
-              price: priceController.value.text,
-              stock_type: selectStock == 'Daily Limit' ? '1' : '2',
-              daily_limit: dailyLimitController.value.text,
-              daily_limit_amount: dailyLimitController.value.text,
-              stock_quantity: stockQuantityController.value.text,
               created_at: dateTime,
               updated_at: '',
               soft_delete: ''));
+        }
+      }
+
+      if (selectVariant == 'Have Variant') {
+        for (int i = 0; i < variantList.length; i++) {
+          VariantGroup group = await PosDatabase.instance.insertVariantGroup(
+              VariantGroup(
+                  child: [],
+                  variant_group_id: 0,
+                  product_id: productInserted.product_id.toString(),
+                  name: variantList[i]['modGroup'],
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
+          for (int j = 0; j < variantList[i]['modItem'].length; j++) {
+            VariantItem item = await PosDatabase.instance.insertVariantItem(
+                VariantItem(
+                    variant_item_id: 0,
+                    variant_group_id: group.variant_group_id.toString(),
+                    name: variantList[i]['modItem'][j],
+                    created_at: dateTime,
+                    updated_at: '',
+                    soft_delete: ''));
+          }
+        }
+
+        for (int k = 0; k < productVariantList.length; k++) {
+          ProductVariant variant = await PosDatabase.instance
+              .insertProductVariant(ProductVariant(
+              product_variant_id: 0,
+              product_id: productInserted.product_id.toString(),
+              variant_name: productVariantList[k]['variant_name'],
+              SKU: productVariantList[k]['SKU'],
+              price: productVariantList[k]['price'],
+              stock_type: selectStock == 'Daily Limit' ? '1' : '2',
+              daily_limit: selectStock == 'Daily Limit'
+                  ? productVariantList[k]['quantity']
+                  : '',
+              daily_limit_amount: selectStock == 'Daily Limit'
+                  ? productVariantList[k]['quantity']
+                  : '',
+              stock_quantity: selectStock != 'Daily Limit'
+                  ? productVariantList[k]['quantity']
+                  : '',
+              created_at: dateTime,
+              updated_at: '',
+              soft_delete: ''));
+
+          BranchLinkProduct variantBranchProduct = await PosDatabase.instance
+              .insertBranchLinkProduct(BranchLinkProduct(
+              branch_link_product_id: 0,
+              branch_id: branch_id.toString(),
+              product_id: productInserted.product_id.toString(),
+              has_variant: '1',
+              product_variant_id: variant.product_variant_id.toString(),
+              b_SKU: branch_id.toString() + variant.SKU.toString(),
+              price: variant.price,
+              stock_type: selectStock == 'Daily Limit' ? '1' : '2',
+              daily_limit:
+              selectStock == 'Daily Limit' ? variant.daily_limit : '',
+              daily_limit_amount:
+              selectStock == 'Daily Limit' ? variant.daily_limit : '',
+              stock_quantity:
+              selectStock != 'Daily Limit' ? variant.stock_quantity : '',
+              created_at: dateTime,
+              updated_at: '',
+              soft_delete: ''));
+          final splitted = productVariantList[k]['variant_name'].split(' | ');
+
+          for (int l = 0; l < splitted.length; l++) {
+            VariantItem? item =
+            await PosDatabase.instance.readVariantItem(splitted[l]);
+            ProductVariantDetail variantdetail = await PosDatabase.instance
+                .insertProductVariantDetail(ProductVariantDetail(
+                product_variant_detail_id: 0,
+                product_variant_id: variant.product_variant_id.toString(),
+                variant_item_id: item!.variant_item_id.toString(),
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+          }
+        }
+      } else {
+        BranchLinkProduct branchProduct = await PosDatabase.instance
+            .insertBranchLinkProduct(BranchLinkProduct(
+            branch_link_product_id: 0,
+            branch_id: branch_id.toString(),
+            product_id: productInserted.product_id.toString(),
+            has_variant: '0',
+            product_variant_id: ' ',
+            b_SKU: branch_id.toString() + skuController.value.text,
+            price: priceController.value.text,
+            stock_type: selectStock == 'Daily Limit' ? '1' : '2',
+            daily_limit: dailyLimitController.value.text,
+            daily_limit_amount: dailyLimitController.value.text,
+            stock_quantity: stockQuantityController.value.text,
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: ''));
+      }
+    }catch(error){
+      Fluttertoast.showToast(msg: 'Something went wrong. Please try again');
     }
   }
 
@@ -1106,7 +1179,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                   },
                 ),
                 TextButton(
-                  child: const Text('Add'),
+                  child: isAdd ? Text('Add'): Text('Edit'),
                   onPressed: () async {
                     await checKProductSKU();
                     if (skuInUsed) {

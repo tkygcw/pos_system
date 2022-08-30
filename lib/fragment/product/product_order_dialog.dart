@@ -200,12 +200,14 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                   child: Text('Close'),
                   onPressed: () {
                     Navigator.of(context).pop();
+
                   },
                 ),
                 TextButton(
                   child: const Text('Add'),
                   onPressed: () {
                     Navigator.of(context).pop();
+                    print(modifierElement[0].toJson());
                   },
                 ),
               ],

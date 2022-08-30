@@ -16,7 +16,8 @@ class BranchLinkProductFields {
     stock_quantity,
     created_at,
     updated_at,
-    soft_delete
+    soft_delete,
+
   ];
 
   static String branch_link_product_sqlite_id = 'branch_link_product_sqlite_id';
@@ -52,6 +53,7 @@ class BranchLinkProduct {
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  String? variant_name;
 
   BranchLinkProduct(
       {this.branch_link_product_sqlite_id,
@@ -68,7 +70,8 @@ class BranchLinkProduct {
         this.stock_quantity,
         this.created_at,
         this.updated_at,
-        this.soft_delete});
+        this.soft_delete,
+      this.variant_name});
 
   BranchLinkProduct copy({
     int? branch_link_product_sqlite_id,
@@ -86,6 +89,7 @@ class BranchLinkProduct {
     String? created_at,
     String? updated_at,
     String? soft_delete,
+    String? variant_name,
   }) =>
       BranchLinkProduct(
           branch_link_product_sqlite_id: branch_link_product_sqlite_id ?? this.branch_link_product_sqlite_id,
@@ -102,7 +106,9 @@ class BranchLinkProduct {
           stock_quantity: stock_quantity ?? this.stock_quantity,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
-          soft_delete: soft_delete ?? this.soft_delete);
+          soft_delete: soft_delete ?? this.soft_delete,
+          variant_name: variant_name ?? this.variant_name
+      );
 
   static BranchLinkProduct fromJson(Map<String, Object?> json) => BranchLinkProduct(
     branch_link_product_sqlite_id: json[BranchLinkProductFields.branch_link_product_sqlite_id] as int?,
@@ -120,6 +126,7 @@ class BranchLinkProduct {
     created_at: json[BranchLinkProductFields.created_at] as String?,
     updated_at: json[BranchLinkProductFields.updated_at] as String?,
     soft_delete: json[BranchLinkProductFields.soft_delete] as String?,
+    variant_name: json['variant_name'] as String?,
   );
 
   Map<String, Object?> toJson() => {
@@ -138,5 +145,6 @@ class BranchLinkProduct {
     BranchLinkProductFields.created_at: created_at,
     BranchLinkProductFields.updated_at: updated_at,
     BranchLinkProductFields.soft_delete: soft_delete,
+
   };
 }
