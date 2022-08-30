@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:pos_system/object/modifier_item.dart';
+
 String? tableModifierGroup = 'tb_modifier_group';
 
 class ModifierGroupFields {
@@ -16,12 +20,15 @@ class ModifierGroupFields {
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
+  static String modifier_item = 'modifier_item';
 }
 
 class ModifierGroup{
   int? mod_group_id;
   String? company_id;
   String? name;
+  int? modifier_item_id;
+  late List<ModifierItem> modifierChild;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -29,6 +36,8 @@ class ModifierGroup{
   ModifierGroup(
       {this.mod_group_id,
         this.company_id,
+        this.modifier_item_id,
+        required this.modifierChild,
         this.name,
         this.created_at,
         this.updated_at,
@@ -48,7 +57,7 @@ class ModifierGroup{
           name: name ?? this.name,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
-          soft_delete: soft_delete ?? this.soft_delete);
+          soft_delete: soft_delete ?? this.soft_delete, modifierChild: []);
 
   static ModifierGroup fromJson(Map<String, Object?> json) => ModifierGroup(
     mod_group_id: json[ModifierGroupFields.mod_group_id] as int?,
@@ -56,7 +65,7 @@ class ModifierGroup{
     name: json[ModifierGroupFields.name] as String?,
     created_at: json[ModifierGroupFields.created_at] as String?,
     updated_at: json[ModifierGroupFields.updated_at] as String?,
-    soft_delete: json[ModifierGroupFields.soft_delete] as String?,
+    soft_delete: json[ModifierGroupFields.soft_delete] as String?, modifierChild: [],
   );
 
   Map<String, Object?> toJson() => {
@@ -66,5 +75,11 @@ class ModifierGroup{
     ModifierGroupFields.created_at: created_at,
     ModifierGroupFields.updated_at: updated_at,
     ModifierGroupFields.soft_delete: soft_delete,
+  };
+
+  Map addToCartJSon() => {
+    ModifierGroupFields.mod_group_id: mod_group_id,
+    ModifierGroupFields.name: name,
+    ModifierGroupFields.modifier_item: jsonEncode(modifierChild.map((e) => e.addToCartJSon()).toList()),
   };
 }

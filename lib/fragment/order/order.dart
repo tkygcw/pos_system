@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/food/food_menu.dart';
-import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import '../../notifier/theme_color.dart';
 

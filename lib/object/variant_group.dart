@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:pos_system/object/variant_item.dart';
 
 String? tableVariantGroup = 'tb_variant_group ';
@@ -20,9 +22,10 @@ class VariantGroupFields {
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
+  static String variant_item = 'variant_item';
 }
 
-class VariantGroup{
+class VariantGroup {
   int? variant_group_sqlite_id;
   int? variant_group_id;
   int? variant_item_id;
@@ -35,14 +38,14 @@ class VariantGroup{
 
   VariantGroup(
       {this.variant_group_sqlite_id,
-        this.variant_group_id,
-        this.variant_item_id,
-        required this.child,
-        this.product_id,
-        this.name,
-        this.created_at,
-        this.updated_at,
-        this.soft_delete});
+      this.variant_group_id,
+      this.variant_item_id,
+      required this.child,
+      this.product_id,
+      this.name,
+      this.created_at,
+      this.updated_at,
+      this.soft_delete});
 
   VariantGroup copy({
     int? variant_group_sqlite_id,
@@ -54,31 +57,42 @@ class VariantGroup{
     String? soft_delete,
   }) =>
       VariantGroup(
-          variant_group_sqlite_id: variant_group_sqlite_id ?? this.variant_group_sqlite_id,
+          variant_group_sqlite_id:
+              variant_group_sqlite_id ?? this.variant_group_sqlite_id,
           variant_group_id: variant_group_id ?? this.variant_group_id,
           product_id: product_id ?? this.product_id,
           name: name ?? this.name,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
-          soft_delete: soft_delete ?? this.soft_delete, child: []);
+          soft_delete: soft_delete ?? this.soft_delete,
+          child: []);
 
-  static VariantGroup fromJson(Map<String, Object?> json) => VariantGroup (
-    variant_group_sqlite_id: json[VariantGroupFields.variant_group_sqlite_id] as int?,
-    variant_group_id: json[VariantGroupFields.variant_group_id] as int?,
-    product_id: json[VariantGroupFields.product_id] as String?,
-    name: json[VariantGroupFields.name] as String?,
-    created_at: json[VariantGroupFields.created_at] as String?,
-    updated_at: json[VariantGroupFields.updated_at] as String?,
-    soft_delete: json[VariantGroupFields .soft_delete] as String?, child: [],
-  );
+  static VariantGroup fromJson(Map<String, Object?> json) => VariantGroup(
+        variant_group_sqlite_id:
+            json[VariantGroupFields.variant_group_sqlite_id] as int?,
+        variant_group_id: json[VariantGroupFields.variant_group_id] as int?,
+        product_id: json[VariantGroupFields.product_id] as String?,
+        name: json[VariantGroupFields.name] as String?,
+        created_at: json[VariantGroupFields.created_at] as String?,
+        updated_at: json[VariantGroupFields.updated_at] as String?,
+        soft_delete: json[VariantGroupFields.soft_delete] as String?,
+        child: [],
+      );
 
   Map<String, Object?> toJson() => {
-    VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
-    VariantGroupFields.variant_group_id: variant_group_id,
-    VariantGroupFields.product_id: product_id,
-    VariantGroupFields.name: name,
-    VariantGroupFields.created_at: created_at,
-    VariantGroupFields.updated_at: updated_at,
-    VariantGroupFields.soft_delete: soft_delete,
-  };
+        VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
+        VariantGroupFields.variant_group_id: variant_group_id,
+        VariantGroupFields.product_id: product_id,
+        VariantGroupFields.name: name,
+        VariantGroupFields.created_at: created_at,
+        VariantGroupFields.updated_at: updated_at,
+        VariantGroupFields.soft_delete: soft_delete,
+      };
+
+  Map addToCartJSon() => {
+        VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
+        VariantGroupFields.variant_group_id: variant_group_id,
+        VariantGroupFields.name: name,
+        VariantGroupFields.variant_item: jsonEncode(child.map((e) => e.addToCartJSon()).toList()),
+      };
 }

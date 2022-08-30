@@ -95,4 +95,9 @@ class ModifierItem{
     ModifierItemFields.updated_at: updated_at,
     ModifierItemFields.soft_delete: soft_delete,
   };
+
+  Map<String, Object?> addToCartJSon() => {
+    ModifierItemFields.name: name,
+    ModifierItemFields.isChecked: isChecked,
+  };
 }

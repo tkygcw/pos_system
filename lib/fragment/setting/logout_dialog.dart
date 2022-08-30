@@ -60,6 +60,7 @@ class _logout_dialogState extends State<logout_dialog> {
 
   Future showSecondDialog(BuildContext context, ThemeColor color) {
     return showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) => AlertDialog(
         title: Text('Enter admin PIN'),

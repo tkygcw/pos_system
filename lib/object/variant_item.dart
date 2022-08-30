@@ -15,12 +15,13 @@ class VariantItemFields {
   static String variant_item_id = 'variant_item_id';
   static String variant_group_id = 'variant_group_id';
   static String name = 'name';
+  static String isSelected = 'selected';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
 }
 
-class VariantItem{
+class VariantItem {
   int? variant_item_sqlite_id;
   int? variant_item_id;
   String? variant_group_id;
@@ -28,15 +29,17 @@ class VariantItem{
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  bool? isSelected;
 
   VariantItem(
       {this.variant_item_sqlite_id,
-        this.variant_item_id,
-        this.variant_group_id,
-        this.name,
-        this.created_at,
-        this.updated_at,
-        this.soft_delete});
+      this.variant_item_id,
+      this.variant_group_id,
+      this.name,
+      this.isSelected,
+      this.created_at,
+      this.updated_at,
+      this.soft_delete});
 
   VariantItem copy({
     int? variant_item_sqlite_id,
@@ -56,23 +59,29 @@ class VariantItem{
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
 
-  static VariantItem fromJson(Map<String, Object?> json) => VariantItem  (
-    variant_item_sqlite_id: json[VariantItemFields.variant_item_sqlite_id] as int?,
-    variant_item_id: json[VariantItemFields.variant_item_id] as int?,
-    variant_group_id: json[VariantItemFields.variant_group_id] as String?,
-    name: json[VariantItemFields.name] as String?,
-    created_at: json[VariantItemFields.created_at] as String?,
-    updated_at: json[VariantItemFields.updated_at] as String?,
-    soft_delete: json[VariantItemFields .soft_delete] as String?,
-  );
+  static VariantItem fromJson(Map<String, Object?> json) => VariantItem(
+        variant_item_sqlite_id:
+            json[VariantItemFields.variant_item_sqlite_id] as int?,
+        variant_item_id: json[VariantItemFields.variant_item_id] as int?,
+        variant_group_id: json[VariantItemFields.variant_group_id] as String?,
+        name: json[VariantItemFields.name] as String?,
+        created_at: json[VariantItemFields.created_at] as String?,
+        updated_at: json[VariantItemFields.updated_at] as String?,
+        soft_delete: json[VariantItemFields.soft_delete] as String?,
+      );
 
   Map<String, Object?> toJson() => {
-    VariantItemFields.variant_item_sqlite_id: variant_item_sqlite_id,
-    VariantItemFields.variant_item_id: variant_item_id,
-    VariantItemFields.variant_group_id: variant_group_id,
-    VariantItemFields.name: name,
-    VariantItemFields.created_at: created_at,
-    VariantItemFields.updated_at: updated_at,
-    VariantItemFields.soft_delete: soft_delete,
-  };
+        VariantItemFields.variant_item_sqlite_id: variant_item_sqlite_id,
+        VariantItemFields.variant_item_id: variant_item_id,
+        VariantItemFields.variant_group_id: variant_group_id,
+        VariantItemFields.name: name,
+        VariantItemFields.created_at: created_at,
+        VariantItemFields.updated_at: updated_at,
+        VariantItemFields.soft_delete: soft_delete,
+      };
+
+  Map<String, Object?> addToCartJSon() => {
+        VariantItemFields.name: name,
+        VariantItemFields.isSelected: isSelected,
+      };
 }

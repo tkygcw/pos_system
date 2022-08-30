@@ -63,7 +63,7 @@ class _TableDialogState extends State<TableDialog> {
 
   void _submit(BuildContext context) {
     setState(() => _submitted = true);
-    if (errorTableNo == '' && errorSeat == '') {
+    if (errorTableNo == null && errorSeat == null) {
       if (isUpdate) {
         updatePosTable();
       } else {

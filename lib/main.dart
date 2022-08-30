@@ -6,6 +6,7 @@ import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/translation/appLanguage.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'notifier/cart_notifier.dart';
 import 'notifier/connectivity_change_notifier.dart';
 import 'notifier/theme_color.dart';
 import 'page/loading.dart';
@@ -52,6 +53,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => ThemeColor(),
         ),
+        ChangeNotifierProvider(
+            create: (_) => CartModel(),
+        )
       ],
       child: Consumer<AppLanguage>(builder: (context, model, child) {
         return MaterialApp(
