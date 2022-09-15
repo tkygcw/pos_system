@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/setup.dart';
@@ -122,28 +123,28 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<String> get _localPath async {
+    final directory = await getApplicationSupportDirectory();
+    return directory.path;
+  }
+
+  Future<Directory> get _localDirectory async {
+    final path = await _localPath;
+    return Directory('$path/assets');
+  }
+
   _createDir() async {
-    final folderName = "assets";
-    final path =
-    Directory("data/user/0/com.example.pos_system/files/$folderName");
-    if ((await path.exists())) {
-      _createOtherImgFolder();
-    } else {
+    final path = await _localDirectory;
       path.create();
       _createOtherImgFolder();
-
-    }
   }
   _createOtherImgFolder() async {
     final folderName = 'img';
-    final path =
-    Directory("data/user/0/com.example.pos_system/files/assets/$folderName");
-    if ((await path.exists())) {
-      downloadOtherImage(path.path);
-    } else {
-      path.create();
-      downloadOtherImage(path.path);
-    }
+    final path = await _localPath;
+    final pathImg = Directory('$path/assets/$folderName');
+    pathImg.create();
+    downloadOtherImage(pathImg.path);
+
   }
   downloadOtherImage(String path) async{
     final String url = 'https://pos.lkmng.com/asset/output-onlinegiftools.gif';

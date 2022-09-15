@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -80,40 +81,50 @@ class _CategoryDialogState extends State<CategoryDialog> {
     try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-      Categories categoryData = Categories(
-          category_sqlite_id: widget.category!.category_sqlite_id,
-          color: categoryColor,
-          name: myController.value.text,
-          updated_at: dateTime);
-      int data = await PosDatabase.instance.updateCategory(categoryData);
-      if (data != '') {
-        widget.callBack();
-        Navigator.of(context).pop(true);
-        Fluttertoast.showToast(msg: 'Successfully update');
-      } else {
+      Map response = await Domain().editCategory(categoryColor, myController.value.text, widget.category!.category_id.toString());
+      if(response['status']=='1'){
+        int data = await PosDatabase.instance.updateCategory(Categories(
+            category_id: widget.category!.category_id,
+            color: categoryColor,
+            name: myController.value.text,
+            updated_at: dateTime));
+        if (data == 1) {
+          widget.callBack();
+          Navigator.of(context).pop(true);
+          Fluttertoast.showToast(msg: 'Successfully update');
+        } else {
+          Fluttertoast.showToast(msg: 'Fail update');
+        }
+      }
+      else{
         Fluttertoast.showToast(msg: 'Fail update');
       }
     } catch (error) {
       Fluttertoast.showToast(msg: 'Something went wrong. Please try again');
     }
   }
-
   deleteCategory() async {
     try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-      Categories categoryData = Categories(
-        soft_delete: dateTime,
-        category_sqlite_id: widget.category!.category_sqlite_id,
-      );
-      int data = await PosDatabase.instance.deleteCategory(categoryData);
-      if (data != '') {
-        widget.callBack();
-        Navigator.of(context).pop(true);
-        Fluttertoast.showToast(msg: 'Successfully delete');
-      } else {
+      Map response = await Domain().deleteCategory(widget.category!.category_id.toString());
+      if(response['status'] =='1'){
+        int data = await PosDatabase.instance.deleteCategory(Categories(
+          soft_delete: dateTime,
+          category_id: widget.category!.category_id,
+        ));
+        if (data == 1) {
+          widget.callBack();
+          Navigator.of(context).pop(true);
+          Fluttertoast.showToast(msg: 'Successfully delete');
+        } else {
+          Fluttertoast.showToast(msg: 'Fail delete');
+        }
+      }
+      else{
         Fluttertoast.showToast(msg: 'Fail delete');
       }
+
     } catch (error) {
       Fluttertoast.showToast(msg: 'Something went wrong. Missing Parameter');
     }
@@ -126,21 +137,26 @@ class _CategoryDialogState extends State<CategoryDialog> {
       Map userObject = json.decode(user!);
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-      Categories data = await PosDatabase.instance.insertCategories(Categories(
-        category_id: 0,
-        company_id: userObject['company_id'],
-        sequence: '',
-        updated_at: '',
-        soft_delete: '',
-        name: myController.value.text,
-        color: categoryColor,
-        created_at: dateTime,
-      ));
-      if (data != '') {
-        widget.callBack();
-        Navigator.of(context).pop(true);
-        Fluttertoast.showToast(msg: 'Successfully Insert');
-      } else {
+      Map response = await Domain().insertCategory(categoryColor, myController.value.text, userObject['company_id']);
+      if(response['status'] == '1'){
+        Categories data = await PosDatabase.instance.insertCategories(Categories(
+          category_id: response['category'],
+          company_id: userObject['company_id'],
+          sequence: '',
+          updated_at: '',
+          soft_delete: '',
+          name: myController.value.text,
+          color: categoryColor,
+          created_at: dateTime,
+        ));
+        if (data.category_id!='') {
+          widget.callBack();
+          Navigator.of(context).pop(true);
+        } else {
+          Fluttertoast.showToast(msg: 'Fail Insert');
+        }
+      }
+      else{
         Fluttertoast.showToast(msg: 'Fail Insert');
       }
     } catch (error) {

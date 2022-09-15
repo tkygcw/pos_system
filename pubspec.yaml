@@ -59,6 +59,8 @@ dependencies:
   image_picker: ^0.8.5+3
   path: ^1.8.1
   checkbox_grouped: ^1.8.1
+  collection: ^1.16.0
+  flutter_native_image: ^0.0.6+1
 
 
   # The following adds the Cupertino Icons font to your application.

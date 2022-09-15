@@ -276,9 +276,8 @@ class _TableMenuState extends State<TableMenu> {
                 opacity: a1.value,
                 child: TableDialog(
                   object: posTable,
-                  callBack: () {
-                    readAllTable();
-                  },
+                  callBack: () => readAllTable()
+
                 )),
           );
         },
@@ -294,7 +293,6 @@ class _TableMenuState extends State<TableMenu> {
   readAllTable() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-
     List<PosTable> data =
         await PosDatabase.instance.readAllTable(branch_id!.toInt());
 

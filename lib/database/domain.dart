@@ -9,7 +9,8 @@ class Domain {
   static Uri device = Uri.parse(domain + 'mobile-api/device/index.php');
   static Uri user = Uri.parse(domain + 'mobile-api/user/index.php');
   static Uri table = Uri.parse(domain + 'mobile-api/table/index.php');
-  static Uri dining_option = Uri.parse(domain + 'mobile-api/dining_option/index.php');
+  static Uri dining_option =
+      Uri.parse(domain + 'mobile-api/dining_option/index.php');
   static Uri tax = Uri.parse(domain + 'mobile-api/tax/index.php');
   static Uri categories = Uri.parse(domain + 'mobile-api/categories/index.php');
   static Uri promotion = Uri.parse(domain + 'mobile-api/promotion/index.php');
@@ -43,6 +44,7 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * Forget Password
   * */
@@ -57,6 +59,7 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get company branch
   * */
@@ -71,6 +74,7 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get branch device
   * */
@@ -85,6 +89,7 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get all branch user
   * */
@@ -99,6 +104,7 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get all branch user
   * */
@@ -113,6 +119,7 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get all branch table
   * */
@@ -127,6 +134,56 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
+  /*
+  * insert branch table
+  * */
+  insertTable(seats, number, branch_id) async {
+    try {
+      var response = await http.post(Domain.table, body: {
+        'addTable': '1',
+        'seats': seats,
+        'number': number,
+        'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * edit branch table
+  * */
+  editTable(seats, number, table_id) async {
+    try {
+      var response = await http.post(Domain.table, body: {
+        'editTable': '1',
+        'seats': seats,
+        'number': number,
+        'table_id': table_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * delete branch table
+  * */
+  deleteBranchTable(table_id) async {
+    try {
+      var response = await http.post(Domain.table, body: {
+        'delete': '1',
+        'table_id': table_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
   /*
   * get all dining option
   * */
@@ -141,6 +198,7 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get branch link dining option
   * */
@@ -155,6 +213,7 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get all company tax
   * */
@@ -169,6 +228,7 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get branch link tax
   * */
@@ -183,6 +243,7 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get tax link dining
   * */
@@ -197,6 +258,7 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get all categories
   * */
@@ -211,6 +273,56 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
+  /*
+  * insert categories to cloud
+  * */
+  insertCategory(color, name, company_id) async {
+    try {
+      var response = await http.post(Domain.categories, body: {
+        'addCategories': '1',
+        'color': color,
+        'name': name,
+        'company_id': company_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * insert categories to cloud
+  * */
+  editCategory(color, name, category_id) async {
+    try {
+      var response = await http.post(Domain.categories, body: {
+        'editCategories': '1',
+        'color': color,
+        'name': name,
+        'category_id': category_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * insert categories to cloud
+  * */
+  deleteCategory(category_id) async {
+    try {
+      var response = await http.post(Domain.categories, body: {
+        'deleteCategories': '1',
+        'category_id': category_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
   /*
   * get all promotion
   * */
@@ -225,6 +337,7 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get branch link promotion
   * */
@@ -239,6 +352,7 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get customer
   * */
@@ -253,10 +367,11 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get bill
   * */
-  getAllBill(company_id,branch_id) async {
+  getAllBill(company_id, branch_id) async {
     try {
       var response = await http.post(Domain.bill, body: {
         'getAllCustomer': '1',
@@ -268,20 +383,20 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get payment option
   * */
   getPaymentLinkCompany(company_id) async {
     try {
-      var response = await http.post(Domain.payment, body: {
-        'getPaymentLinkCompany': '1',
-        'company_id': company_id
-      });
+      var response = await http.post(Domain.payment,
+          body: {'getPaymentLinkCompany': '1', 'company_id': company_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get refund
   * */
@@ -297,76 +412,256 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get modifier group name
   * */
   getModifierGroup(company_id) async {
     try {
-      var response = await http.post(Domain.modifier, body: {
-        'getModifierGroup': '1',
-        'company_id': company_id
-      });
+      var response = await http.post(Domain.modifier,
+          body: {'getModifierGroup': '1', 'company_id': company_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get modifier item
   * */
   getModifierItem(company_id) async {
     try {
-      var response = await http.post(Domain.modifier, body: {
-        'getModifierItem': '1',
-        'company_id': company_id
-      });
+      var response = await http.post(Domain.modifier,
+          body: {'getModifierItem': '1', 'company_id': company_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get branch link modifier
   * */
   getBranchLinkModifier(branch_id) async {
     try {
-      var response = await http.post(Domain.modifier, body: {
-        'getBranchLinkModifier': '1',
-        'branch_id': branch_id
-      });
+      var response = await http.post(Domain.modifier,
+          body: {'getBranchLinkModifier': '1', 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get product
   * */
   getAllProduct(company_id) async {
     try {
+      var response = await http.post(Domain.product,
+          body: {'getAllProduct': '1', 'company_id': company_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * insert product
+  * */
+  insertProduct(
+      name,
+      category_id,
+      description,
+      price,
+      SKU,
+      availableSale,
+      hasVariant,
+      stockType,
+      dailyLimit,
+      stockQuantity,
+      graphic,
+      color,
+      imageName,
+      company_id) async {
+    try {
       var response = await http.post(Domain.product, body: {
-        'getAllProduct': '1',
-        'company_id': company_id
+        'addProduct': '1',
+        'pName': name,
+        'pCategories': category_id,
+        'pDescription': description,
+        'pPrice': price,
+        'pSKU': SKU,
+        'availableSale': availableSale,
+        'hasVariant': hasVariant,
+        'stockType': stockType,
+        'dailyLimit': dailyLimit,
+        'stockQuantity': stockQuantity,
+        'graphic': graphic,
+        'color': color,
+        'image_name': imageName,
+        'company_id': company_id,
       });
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
+  /*
+  * update product
+  * */
+  updateProduct(
+      name,
+      category_id,
+      description,
+      price,
+      SKU,
+      availableSale,
+      hasVariant,
+      stockType,
+      dailyLimit,
+      stockQuantity,
+      graphic,
+      color,
+      imageName,
+      product_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'editProduct': '1',
+        'pID': product_id,
+        'pName': name,
+        'pCategories': category_id,
+        'pDescription': description,
+        'pPrice': price,
+        'pSKU': SKU,
+        'availableSale': availableSale,
+        'hasVariant': hasVariant,
+        'stockType': stockType,
+        'dailyLimit': dailyLimit,
+        'stockQuantity': stockQuantity,
+        'graphic': graphic,
+        'color': color,
+        'imageName': imageName,
+
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * delete product
+  * */
+  deleteProduct(product_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'deleteProduct': '1',
+        'product_id': product_id
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+
   /*
   * get branch link product
   * */
   getBranchLinkProduct(branch_id) async {
     try {
+      var response = await http.post(Domain.product,
+          body: {'getBranchLinkProduct': '1', 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * insert branch link product
+  * */
+  insertBranchLinkProduct(branch_id, product_id, hasVariant, product_variant_id,
+      SKU, price, stockType, quantity) async {
+    try {
       var response = await http.post(Domain.product, body: {
-        'getBranchLinkProduct': '1',
-        'branch_id': branch_id
+        'addBranchLinkProduct': '1',
+        'branch_id': branch_id,
+        'product_id': product_id,
+        'hasVariant': hasVariant,
+        'product_variant_id': product_variant_id,
+        'b_SKU': SKU,
+        'price': price,
+        'stockType': stockType,
+        'quantity': quantity
       });
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
+  /*
+  * edit branch link product
+  * */
+  editBranchLinkProductForVariant(branch_id, product_id, product_variant_id,
+     daily_limit, price, stockType, stock_quantity) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'updateBranchLinkProductForVariant': '1',
+        'branch_id': branch_id,
+        'product_id': product_id,
+        'product_variant_id': product_variant_id,
+        'price': price,
+        'stockType': stockType,
+        'daily_limit' : daily_limit,
+        'stock_quantity': stock_quantity
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * edit branch link product
+  * */
+  editBranchLinkProduct(branch_id, product_id,
+      daily_limit, price, stockType, stock_quantity) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'updateBranchLinkProduct': '1',
+        'branch_id': branch_id,
+        'product_id': product_id,
+        'price': price,
+        'stockType': stockType,
+        'daily_limit' : daily_limit,
+        'stock_quantity': stock_quantity
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * delete branch link product
+  * */
+  deleteBranchLinkProduct(branch_id, product_id, product_variant_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'deleteBranchLinkProduct': '1',
+        'branch_id': branch_id,
+        'product_id': product_id,
+        'product_variant_id': product_variant_id
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
   /*
   * get modifier link product
   * */
@@ -382,6 +677,38 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
+  /*
+  * insert product modifier
+  * */
+  insertModifierLinkProduct(mod_group_id, product_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'addProductModifier': '1',
+        'mod_group_id': mod_group_id,
+        'product_id': product_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * delete product modifier
+  * */
+  deleteModifierLinkProduct(product_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'deleteModLinkProduct': '1',
+        'product_id': product_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
   /*
   * get variant group
   * */
@@ -396,6 +723,39 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
+  /*
+  * insert variant group
+  * */
+  insertVariantGroup(name, product_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'addVariantGroup': '1',
+        'name': name,
+        'product_id': product_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * delete variant group
+  * */
+  deleteVariantGroup(product_id,variant_group_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'deleteVariantGroup': '1',
+        'product_id': product_id,
+        'variant_group_id': variant_group_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
   /*
   * get variant item
   * */
@@ -410,6 +770,38 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
+  /*
+  * insert variant item
+  * */
+  insertVariantItem(name, variant_group_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'addVariantItem': '1',
+        'name': name,
+        'variant_group_id': variant_group_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * delete variant item
+  * */
+  deleteVariantItem(variant_group_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'deleteVariantItem': '1',
+        'variant_group_id': variant_group_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
   /*
   * get product variant
   * */
@@ -424,6 +816,44 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
+  /*
+  * insert product variant
+  * */
+  insertProductVariant(
+      product_id, name, SKU, price, stockType, quantity) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'addProductVariant': '1',
+        'product_id': product_id,
+        'name': name,
+        'SKU': SKU,
+        'price': price,
+        'stockType': stockType,
+        'quantity': quantity
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * delete product variant
+  * */
+  deleteProductVariant(product_id, product_variant_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'deleteProductVariant': '1',
+        'product_id': product_id,
+        'product_variant_id': product_variant_id
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
   /*
   * get product variant detail
   * */
@@ -438,10 +868,42 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
+  /*
+  * insert product variant detail
+  * */
+  insertProductVariantDetail(product_variant_id, variant_item_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'addProductVariantDetail': '1',
+        'product_variant_id': product_variant_id,
+        'variant_item_id': variant_item_id
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * delete product variant detail
+  * */
+  deleteProductVariantDetail(product_variant_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'deleteProductVariantDetail': '1',
+        'product_variant_id': product_variant_id
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
   /*
   * get all order
   * */
-  getAllOrder(company_id,branch_id) async {
+  getAllOrder(company_id, branch_id) async {
     try {
       var response = await http.post(Domain.order, body: {
         'getAllOrder': '1',
@@ -453,10 +915,11 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get all order cache
   * */
-  getAllOrderCache(company_id,branch_id) async {
+  getAllOrderCache(company_id, branch_id) async {
     try {
       var response = await http.post(Domain.order, body: {
         'getAllOrderCache': '1',
@@ -472,7 +935,7 @@ class Domain {
   /*
   * get all order detail
   * */
-  getAllOrderDetail(company_id,branch_id) async {
+  getAllOrderDetail(company_id, branch_id) async {
     try {
       var response = await http.post(Domain.order, body: {
         'getAllOrderDetail': '1',
@@ -488,12 +951,45 @@ class Domain {
   /*
   * get sale
   * */
-  getSale(company_id,branch_id) async {
+  getSale(company_id, branch_id) async {
     try {
       var response = await http.post(Domain.sale, body: {
         'getSale': '1',
         'company_id': company_id,
         'branch_id': branch_id
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * store image to cloud
+  * */
+  storeProductImage(image, image_name, company_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'storeImage': '1',
+        'image': image,
+        'image_name': image_name,
+        'company_id': company_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * delete image from cloud
+  * */
+  deleteProductImage(image_name, company_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'deleteImage': '1',
+        'image_name': image_name,
+        'company_id': company_id,
       });
       return jsonDecode(response.body);
     } catch (error) {
