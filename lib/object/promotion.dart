@@ -58,6 +58,8 @@ class Promotion{
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  double? promoAmount;
+  String? promoRate;
 
   Promotion(
       {this.promotion_id,
@@ -76,7 +78,9 @@ class Promotion{
         this.etime,
         this.created_at,
         this.updated_at,
-        this.soft_delete});
+        this.soft_delete,
+        this.promoAmount,
+        this.promoRate});
 
   Promotion copy({
     int? promotion_id,
@@ -114,7 +118,9 @@ class Promotion{
           etime: etime ?? this.etime,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
-          soft_delete: soft_delete ?? this.soft_delete);
+          soft_delete: soft_delete ?? this.soft_delete,
+          promoAmount: promoAmount ?? this.promoAmount,
+          promoRate: promoRate ?? this.promoRate);
 
   static Promotion fromJson(Map<String, Object?> json) => Promotion (
     promotion_id: json[PromotionFields.promotion_id] as int?,
@@ -155,4 +161,20 @@ class Promotion{
     PromotionFields.updated_at: updated_at,
     PromotionFields.soft_delete: soft_delete,
   };
+
+  static double callPromotion(promotionType, totalPrice, rate) {
+    try {
+      double price = double.parse(totalPrice);
+      double rate = double.parse(promotionType);
+
+      if (promotionType == 0) {
+        return price - (price * rate / 100);
+      } else {
+        return price - rate;
+      }
+    } catch (e) {
+      print('error here $e');
+      return 0;
+    }
+  }
 }

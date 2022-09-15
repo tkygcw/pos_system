@@ -1,11 +1,10 @@
 {
   "product": "Product",
-  "create table": "Create Table",
-  "edit table": "Edit Table",
+  "create_table": "Create Table",
+  "edit_table": "Edit Table",
   "close": "Close",
   "add": "Add",
   "delete": "Delete",
-  "confirm": "Confirm",
   "table_no_required": "Table number is required",
   "seat_required": "Seat is required",
   "would you like to remove?": "Would you like to remove?",
@@ -14,6 +13,9 @@
   "password_incorrect":"Password incorrect",
   "yes": "Yes",
   "no": "No",
-  "": "",
-  "incorrect_password": "incorrect password"
+  "incorrect_password": "incorrect password",
+  "confirm_delete": "will be remove from cart. Click yes to proceed",
+  "offer_ended": "Offer ended",
+  "empty_cart": "No item in cart",
+  "table_is_used": "Table is in used"
 }

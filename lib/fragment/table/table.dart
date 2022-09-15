@@ -13,12 +13,9 @@ class _TablePageState extends State<TablePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-body: Row(
-  children: [
-    Expanded(flex: 12,child: TableMenu()),
-    Expanded(flex: 4, child: CartPage())
-  ],
-),
+      body: Row(
+        children: [Expanded(flex: 12, child: TableMenu())],
+      ),
     );
   }
 }

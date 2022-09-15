@@ -128,20 +128,14 @@ class _TableDialogState extends State<TableDialog> {
       return AlertDialog(
         title: Row(
           children: [
-            Text(
-              '${AppLocalizations.of(context)?.translate('confirm')}',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              "Create Table",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            isUpdate == true
+                ? Text(
+                    '${AppLocalizations.of(context)?.translate('edit_table')}',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
+                : Text(
+                    '${AppLocalizations.of(context)?.translate('create_table')}',
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             Spacer(),
             IconButton(
               icon: const Icon(Icons.delete_outlined),

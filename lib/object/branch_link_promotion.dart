@@ -25,6 +25,7 @@ class BranchLinkPromotion {
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  String? name;
 
   BranchLinkPromotion(
       {this.branch_link_promotion_id,
@@ -32,7 +33,8 @@ class BranchLinkPromotion {
       this.promotion_id,
       this.created_at,
       this.updated_at,
-      this.soft_delete});
+      this.soft_delete,
+      this.name});
 
   BranchLinkPromotion copy({
     int? branch_link_promotion_id,
@@ -49,7 +51,8 @@ class BranchLinkPromotion {
           promotion_id: promotion_id ?? this.promotion_id,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
-          soft_delete: soft_delete ?? this.soft_delete);
+          soft_delete: soft_delete ?? this.soft_delete,
+          name: name ?? this.name);
 
   static BranchLinkPromotion fromJson(Map<String, Object?> json) =>
       BranchLinkPromotion(
@@ -60,6 +63,7 @@ class BranchLinkPromotion {
         created_at: json[BranchLinkPromotionFields.created_at] as String?,
         updated_at: json[BranchLinkPromotionFields.updated_at] as String?,
         soft_delete: json[BranchLinkPromotionFields.soft_delete] as String?,
+        name: json['name'] as String?,
       );
 
   Map<String, Object?> toJson() => {

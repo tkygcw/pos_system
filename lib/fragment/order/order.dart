@@ -69,10 +69,7 @@ class _OrderPageState extends State<OrderPage> {
       // );
       return Scaffold(
           body: Row(
-        children: [
-          Expanded(flex: 12, child: FoodMenu()),
-          Expanded(flex: 4, child: CartPage()),
-        ],
+        children: [Expanded(flex: 12, child: FoodMenu())],
       ));
     });
   }

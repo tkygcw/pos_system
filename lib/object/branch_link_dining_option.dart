@@ -31,6 +31,7 @@ class BranchLinkDining {
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  String? name;
 
   BranchLinkDining(
       {this.branch_link_dining_id,
@@ -40,7 +41,8 @@ class BranchLinkDining {
       this.sequence,
       this.created_at,
       this.updated_at,
-      this.soft_delete});
+      this.soft_delete,
+      this.name});
 
   BranchLinkDining copy({
     int? branch_link_dining_id,
@@ -51,6 +53,7 @@ class BranchLinkDining {
     String? created_at,
     String? updated_at,
     String? soft_delete,
+    String? name,
   }) =>
       BranchLinkDining(
           branch_link_dining_id:
@@ -61,7 +64,8 @@ class BranchLinkDining {
           sequence: sequence ?? this.sequence,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
-          soft_delete: soft_delete ?? this.soft_delete);
+          soft_delete: soft_delete ?? this.soft_delete,
+          name: name ?? this.name);
 
   static BranchLinkDining fromJson(Map<String, Object?> json) =>
       BranchLinkDining(
@@ -74,6 +78,7 @@ class BranchLinkDining {
         created_at: json[BranchLinkDiningFields.created_at] as String?,
         updated_at: json[BranchLinkDiningFields.updated_at] as String?,
         soft_delete: json[BranchLinkDiningFields.soft_delete] as String?,
+        name: json['name'] as String?,
       );
 
   Map<String, Object?> toJson() => {

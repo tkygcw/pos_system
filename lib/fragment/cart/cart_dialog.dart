@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,62 +34,67 @@ class _CartDialogState extends State<CartDialog> {
         content: Container(
           height: 650,
             width: 650,
-            child: Column(
-                children: [
-                  Expanded(
-                    child: GridView.count(
-                      shrinkWrap: true,
-                      crossAxisCount: 4,
-                      crossAxisSpacing: 5.0,
-                      children: List.generate(
-                          tableList.length, //this is the total number of cards
-                              (index) {
-                            // tableList[index].seats == 2;
-                            return Card(
-                              child: Stack(
-                                alignment: Alignment.bottomLeft,
-                                children: [
-                                  Ink.image(
-                                    image: tableList[index].seats == '2'
-                                        ? NetworkImage(
-                                        "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
-                                        : tableList[index].seats == '4'
-                                        ? NetworkImage(
-                                        "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
-                                        : tableList[index].seats == '6'
-                                        ? NetworkImage(
-                                        "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
-                                        : NetworkImage(
-                                        "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
-                                    child: InkWell(
-                                      splashColor: Colors.blue.withAlpha(30),
-                                      onTap: () {
-                                        print("table " + tableList[index].number! + " is selected");
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                    fit: BoxFit.cover,
+            child: Consumer<CartModel>(
+              builder: (context, CartModel cart, child) {
+                return Column(
+                    children: [
+                      Expanded(
+                        child: GridView.count(
+                          shrinkWrap: true,
+                          crossAxisCount: 4,
+                          crossAxisSpacing: 5.0,
+                          children: List.generate(
+                              tableList.length, //this is the total number of cards
+                                  (index) {
+                                // tableList[index].seats == 2;
+                                return Card(
+                                  child: Stack(
+                                    alignment: Alignment.bottomLeft,
+                                    children: [
+                                      Ink.image(
+                                        image: tableList[index].seats == '2'
+                                            ? NetworkImage(
+                                            "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
+                                            : tableList[index].seats == '4'
+                                            ? NetworkImage(
+                                            "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
+                                            : tableList[index].seats == '6'
+                                            ? NetworkImage(
+                                            "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
+                                            : NetworkImage(
+                                            "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                                        child: InkWell(
+                                          splashColor: Colors.blue.withAlpha(30),
+                                          onTap: () {
+                                            print("table " + tableList[index].number! + " is selected");
+                                            cart.addTable(tableList[index]);
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                        fit: BoxFit.cover,
+                                      ),
+                                      Container(
+                                          alignment: Alignment.center,
+                                          child: Text("#" + tableList[index].number!)),
+                                      tableList[index].status == 1
+                                          ? Container(
+                                        alignment: Alignment.topCenter,
+                                        child: Text(
+                                          "RM199.00",
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      )
+                                          : Container()
+                                    ],
                                   ),
-                                  Container(
-                                      alignment: Alignment.center,
-                                      child: Text("#" + tableList[index].number!)),
-                                  tableList[index].status == 1
-                                      ? Container(
-                                    alignment: Alignment.topCenter,
-                                    child: Text(
-                                      "RM199.00",
-                                      style: TextStyle(fontSize: 18),
-                                    ),
-                                  )
-                                      : Container()
-                                ],
-                              ),
-                            );
-                          }),
-                    ),
-                  ),
-                ],
-              ),
+                                );
+                              }),
+                        ),
+                      ),
+                    ],
+                  );
+              }
+            ),
           ),
         actions: <Widget>[
           TextButton(

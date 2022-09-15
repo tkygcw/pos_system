@@ -1,6 +1,7 @@
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/bill/bill.dart';
+import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/order/order.dart';
 import 'package:pos_system/fragment/product/product.dart';
 import 'package:pos_system/fragment/setting/setting.dart';
@@ -41,42 +42,56 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery
-        .of(context)
-        .size;
+    var size = MediaQuery.of(context).size;
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-          return Scaffold(
+      return Scaffold(
           resizeToAvoidBottomInset: false,
           body: SafeArea(
             child: CollapsibleSidebar(
-              sidebarBoxShadow: [
-                BoxShadow(
-                  color: Colors.transparent,
-                ),
-              ],
-              // maxWidth: 80,
-              isCollapsed: true,
-              items: _items,
-              avatarImg: NetworkImage(
-                  'https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg'),
-              title: widget.user!.name! + "\n" + (branchName ?? '') + " - " +
-                  role,
-              backgroundColor: color.backgroundColor,
-              selectedTextColor: color.iconColor,
-              textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
-              titleStyle: TextStyle(
-                  fontSize: 17,
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.bold),
-              toggleTitleStyle:
-              TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              selectedIconColor: color.iconColor,
-              selectedIconBox: color.buttonColor,
-              body: Consumer<ConnectivityChangeNotifier>(builder:
-                  (context, ConnectivityChangeNotifier connection, child) {
-                return _body(size, context);
-              }),
-            ),
+                sidebarBoxShadow: [
+                  BoxShadow(
+                    color: Colors.transparent,
+                  ),
+                ],
+                // maxWidth: 80,
+                isCollapsed: true,
+                items: _items,
+                avatarImg: NetworkImage(
+                    'https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg'),
+                title: widget.user!.name! +
+                    "\n" +
+                    (branchName ?? '') +
+                    " - " +
+                    role,
+                backgroundColor: color.backgroundColor,
+                selectedTextColor: color.iconColor,
+                textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
+                titleStyle: TextStyle(
+                    fontSize: 17,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.bold),
+                toggleTitleStyle:
+                    TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                selectedIconColor: color.iconColor,
+                selectedIconBox: color.buttonColor,
+                body: Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Consumer<ConnectivityChangeNotifier>(builder:
+                          (context, ConnectivityChangeNotifier connection,
+                              child) {
+                        return _body(size, context);
+                      }),
+                    ),
+                    Visibility(
+                      visible: currentPage != 'product' && currentPage != 'setting'? true: false,
+                      child: Expanded(
+                          flex: 1, child: CartPage()
+                      ),
+                    )
+                  ],
+                )),
           ));
     });
   }
@@ -142,8 +157,8 @@ class _HomePageState extends State<HomePage> {
   getBranchName() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    Branch? data = await PosDatabase.instance.readBranchName(
-        branch_id.toString());
+    Branch? data =
+        await PosDatabase.instance.readBranchName(branch_id.toString());
     setState(() {
       branchName = data!.name!;
     });

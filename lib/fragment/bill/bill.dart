@@ -15,8 +15,7 @@ class _BillPageState extends State<BillPage> {
     return Scaffold(
       body: Row(
         children: [
-          Expanded(flex: 12,child: BillMenu()),
-          Expanded(flex: 4, child: CartPage())
+          Expanded(flex: 12,child: BillMenu())
         ],
       ),
     );

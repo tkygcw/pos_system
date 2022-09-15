@@ -1,13 +1,16 @@
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/product.dart';
+import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:quantity_input/quantity_input.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/pos_database.dart';
 import '../../notifier/cart_notifier.dart';
@@ -26,6 +29,8 @@ class ProductOrderDialog extends StatefulWidget {
 }
 
 class _ProductOrderDialogState extends State<ProductOrderDialog> {
+  String branchLinkProduct_id = '';
+  String basePrice = '';
   int simpleIntInput = 1;
   List<VariantGroup> variantGroup = [];
   List<ModifierGroup> modifierGroup = [];
@@ -34,12 +39,14 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
 
   bool checkboxValueA = false;
   bool isLoading = true;
+  bool hasPromo = false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     productChecking();
+    //getProductPrice(widget.productDetail?.product_id);
   }
 
   Widget variantGroupLayout(VariantGroup variantGroup) {
@@ -110,60 +117,6 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
 
                           for(int j = 0; j < modifierGroup.length; j++)
                             modifierGroupLayout(modifierGroup[j]),
-                          // Column(
-                          //   children: [
-                          //     GroupedListView<ModifierItem, String>(
-                          //       physics: NeverScrollableScrollPhysics(),
-                          //       shrinkWrap: true,
-                          //       elements: modifierElement,
-                          //       groupBy: (element) => element.mod_group_id!,
-                          //       groupComparator: (value1, value2) =>
-                          //           value2.compareTo(value1),
-                          //       itemComparator: (item1, item2) =>
-                          //           item1.name!.compareTo(item2.name!),
-                          //       order: GroupedListOrder.DESC,
-                          //       useStickyGroupSeparators: true,
-                          //       stickyHeaderBackgroundColor: Colors.transparent,
-                          //       groupSeparatorBuilder: (String value) => Padding(
-                          //         padding: const EdgeInsets.all(8.0),
-                          //         child: Row(
-                          //           mainAxisAlignment: MainAxisAlignment.start,
-                          //           children: [
-                          //             Text(
-                          //               value,
-                          //               style: TextStyle(
-                          //                   fontSize: 16,
-                          //                   fontWeight: FontWeight.bold),
-                          //             ),
-                          //           ],
-                          //         ),
-                          //       ),
-                          //       itemBuilder: (c, element) {
-                          //         return ListTile(
-                          //           trailing: Checkbox(
-                          //             activeColor: color.backgroundColor,
-                          //             value: element.isChecked,
-                          //             onChanged: (value) {
-                          //               setState(() {
-                          //                 element.isChecked = value!;
-                          //                 if (element.isChecked!) {
-                          //                   checkedModifier.add(element);
-                          //                 } else {
-                          //                   checkedModifier.remove(element);
-                          //                 }
-                          //                 print(
-                          //                     'flavour ${element.name},is check ${element.isChecked}');
-                          //               });
-                          //             },
-                          //           ),
-                          //           title: Text(element.name!,
-                          //               style: TextStyle(fontSize: 14)),
-                          //           dense: true,
-                          //         );
-                          //       },
-                          //     ),
-                          //   ],
-                          // ),
                           Column(
                             children: [
                               Padding(
@@ -302,7 +255,63 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     this.isLoading = false;
   }
 
-  addToCart(CartModel cart) {
+  getProductPrice(int? productId) async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+
+      List<BranchLinkProduct> data = await PosDatabase.instance.readAllBranchLinkProduct(branch_id.toString(), productId.toString());
+      for(int i = 0; i < data.length; i++){
+        if(data[i].has_variant == '0'){
+          basePrice = data[i].price!;
+        }else{
+          List<BranchLinkProduct> data = await PosDatabase.instance.checkVariantPrice(await getHasVariantProductPrice(productId), productId.toString());
+          basePrice = data[0].price.toString();
+        }
+      }
+    }catch(error){
+      print('Get product base price error ${error}');
+    }
+    return basePrice;
+  }
+
+  getBranchLinkProductItem(int? productId) async{
+    branchLinkProduct_id = '';
+
+    List<BranchLinkProduct> data = await PosDatabase.instance.checkVariantPrice(await getHasVariantProductPrice(productId), productId.toString());
+    branchLinkProduct_id = data[0].branch_link_product_id.toString();
+
+    return branchLinkProduct_id;
+  }
+
+  getHasVariantProductPrice(int? product_id) async{
+    String variant = '';
+    String variant2 = '';
+    String productVariant = '';
+    try{
+      for (int j = 0; j < variantGroup.length; j++) {
+        VariantGroup group = variantGroup[j];
+        for (int i = 0; i < group.child.length; i++) {
+          if (group.variant_item_id == group.child[i].variant_item_id) {
+            group.child[i].isSelected = true;
+            if(variant == ''){
+              variant = group.child[i].name!;
+            }
+            else{
+              variant2 = variant + " | " + group.child[i].name!;
+              List<ProductVariant> data = await PosDatabase.instance.readAllProductVariant(product_id.toString(), variant2);
+              productVariant = data[0].product_variant_id.toString();
+            }
+          }
+        }
+      }
+    }catch(error){
+      print('Price checking error: ${error}');
+    }
+    return productVariant;
+  }
+
+  addToCart(CartModel cart) async {
     //check selected variant
     for (int j = 0; j < variantGroup.length; j++) {
       VariantGroup group = variantGroup[j];
@@ -315,25 +324,18 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       }
     }
 
-    print(jsonEncode(modifierGroup.map((e) => e.addToCartJSon()).toList()));
-    var value = cartProductItem(widget.productDetail!.name!, '12.00', simpleIntInput, modifierGroup, variantGroup, remarkController.text);
+    //print(jsonEncode(modifierGroup.map((e) => e.addToCartJSon()).toList()));
+    var value = cartProductItem(
+        await getBranchLinkProductItem(widget.productDetail?.product_id),
+        widget.productDetail!.name!,
+        widget.productDetail!.category_id!,
+        await getProductPrice(widget.productDetail?.product_id),
+        simpleIntInput,
+        modifierGroup,
+        variantGroup,
+        remarkController.text,
+        hasPromo
+    );
     cart.addItem(value);
   }
 }
-
-// class cartProductItem{
-//   String name ='';
-//   String price ='';
-//   int quantity = 0;
-//   String? modifier='';
-//   late List<String> variant;
-//   String? remark ='';
-//
-//   cartProductItem(String name, String price, int quantity, String modifier, variant, String remark){
-//     this.name = name;
-//     this.price = price;
-//     this.quantity = quantity;
-//     this.modifier = modifier;
-//     this.variant = variant;
-//     this.remark = remark;
-//   }

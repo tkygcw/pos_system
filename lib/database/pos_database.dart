@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/object/bill.dart';
 import 'package:pos_system/object/branch.dart';
@@ -549,6 +551,17 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableOrderCache!, data.toJson());
     return data.copy(order_cache_id: id);
+
+  }
+
+/*
+  add order cache data into sqlite
+*/
+  Future<OrderCache> insertSqLiteOrderCache(OrderCache data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableOrderCache!, data.toJson());
+    return data.copy(order_cache_sqlite_id: id);
+
   }
 
 /*
@@ -559,6 +572,16 @@ class PosDatabase {
     final id = await db.insert(tableOrderDetail!, data.toJson());
     return data.copy(order_detail_id: id);
   }
+
+/*
+  add order detail data into sqlite
+*/
+  Future<OrderDetail> insertSqliteOrderDetail(OrderDetail data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableOrderDetail!, data.toJson());
+    return data.copy(order_detail_sqlite_id: id);
+  }
+
 
 /*
   add sale to sqlite
@@ -671,6 +694,122 @@ class PosDatabase {
   }
 
 /*
+  read all branch link product
+*/
+  Future<List<BranchLinkProduct>> readAllBranchLinkProduct(
+      String branch_id, String product_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND branch_id = ? AND product_id = ?',
+        ['', branch_id, product_id]);
+
+    return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
+  }
+
+/*
+  read product variant by name
+*/
+  Future<List<ProductVariant>> readAllProductVariant(
+      String product_id, String variant_name) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableProductVariant WHERE soft_delete = ? AND product_id = ? AND variant_name = ?',
+        ['', product_id, variant_name]);
+
+    return result.map((json) => ProductVariant.fromJson(json)).toList();
+  }
+
+/*
+  checking price
+*/
+  Future<List<BranchLinkProduct>> checkVariantPrice(
+      String product_variant_id, String product_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableBranchLinkProduct WHERE soft_delete =? AND product_variant_id = ? AND product_id = ?',
+        ['', product_variant_id, product_id]);
+
+    return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
+  }
+
+/*
+  read branch link dining option
+*/
+  Future<List<BranchLinkDining>> readBranchLinkDiningOption(
+      String branch_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.name FROM $tableBranchLinkDining AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ?',
+        ['', '', branch_id]);
+
+    return result.map((json) => BranchLinkDining.fromJson(json)).toList();
+  }
+
+/*
+  read tax link dining
+*/
+  Future<List<TaxLinkDining>> readTaxLinkDining(int dining_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.tax_rate FROM $tableTaxLinkDining AS a JOIN $tableTax AS b ON a.tax_id = b.tax_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.dining_id = ?',
+        ['', '', dining_id]);
+
+    return result.map((json) => TaxLinkDining.fromJson(json)).toList();
+  }
+
+/*
+  check dining option
+*/
+  Future<List<DiningOption>> checkSelectedOption(String name) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT dining_id FROM $tableDiningOption WHERE soft_delete = ? AND name = ?',
+        ['', name]);
+
+    return result.map((json) => DiningOption.fromJson(json)).toList();
+  }
+
+/*
+  read Branch link promotion
+*/
+  Future<List<BranchLinkPromotion>> readBranchLinkPromotion(
+      String branch_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableBranchLinkPromotion WHERE soft_delete = ? AND branch_id = ?',
+        ['', branch_id]);
+    // 'SELECT a.*, b.name FROM $tableBranchLinkPromotion AS a JOIN $tablePromotion AS b ON a.promotion_id = b.promotion_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ?',
+    // ['', '', branch_id]);
+
+    return result.map((json) => BranchLinkPromotion.fromJson(json)).toList();
+  }
+
+/*
+  check promotion
+*/
+  Future<List<Promotion>> checkPromotion(String promotion_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePromotion WHERE soft_delete = ? AND promotion_id = ?',
+        ['', promotion_id]);
+
+    return result.map((json) => Promotion.fromJson(json)).toList();
+  }
+
+/*
+  read branch link modifier
+*/
+  Future<Object?> readBranchLinkModifier(
+      String branch_id, String mod_item_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT price FROM $tableBranchLinkModifier WHERE soft_delete = ? AND branch_id = ? AND mod_item_id = ?',
+        ['', branch_id, mod_item_id]);
+
+    return result[0]['price'];
+  }
+
+/*
   read app colors
 */
   Future<List<AppColors>> readAppColors() async {
@@ -771,7 +910,8 @@ class PosDatabase {
 /*
   check sku for edit product
 */
-  Future<List<Product>> checkProductSKUForEdit(String sku, int product_id) async {
+  Future<List<Product>> checkProductSKUForEdit(
+      String sku, int product_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT * FROM $tableProduct WHERE soft_delete = ? AND SKU = ? AND product_id != ?',
@@ -869,6 +1009,31 @@ class PosDatabase {
   }
 
 /*
+  check table status
+*/
+  Future<List<PosTable>> checkPosTableStatus(int branch_id, int table_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      'SELECT * FROM $tablePosTable WHERE soft_delete = ? AND branch_id = ? AND table_id = ?',
+      ['', branch_id, table_id]);
+
+    return result.map((json) => PosTable.fromJson(json)).toList();
+  }
+
+/*
+  get table amount
+*/
+  Future<List<OrderCache>> readTableOrderAmount(String branch_id, int table_id ) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND branch_id = ? AND table_id = ? ',
+      ['', branch_id, table_id]);
+
+    return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
+
+/*
   read specific user
 */
   Future<List<User>> readSpecificUserWithRole(String pin) async {
@@ -914,7 +1079,6 @@ class PosDatabase {
         ]);
   }
 
-
 /*
   update App color
 */
@@ -940,6 +1104,17 @@ class PosDatabase {
         'UPDATE $tablePosTable SET number = ?, seats = ?, updated_at = ? WHERE table_sqlite_id = ?',
         [data.number, data.seats, data.updated_at, data.table_sqlite_id]);
   }
+
+/*
+  update Pos Table status
+*/
+  Future<int> updatePosTableStatus(PosTable data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+      'UPDATE $tablePosTable SET status = ?, updated_at = ? WHERE table_sqlite_id = ?',
+      [data.status, data.updated_at, data.table_sqlite_id]);
+  }
+
 
 /*
   delete category
