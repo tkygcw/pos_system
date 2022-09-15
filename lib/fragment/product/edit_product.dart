@@ -1956,6 +1956,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
         for(int j=0; j< productVariantData.length; j++ ){
           int deleteAllProductVariantDetail = await PosDatabase.instance
               .deleteAllProductVariantDetail(
+
               ProductVariantDetail(soft_delete: dateTime, product_variant_id: productVariantData[j].product_variant_id.toString()));
         }
 
