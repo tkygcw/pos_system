@@ -3,7 +3,6 @@
   "create_table": "Create Table",
   "edit_table": "Edit Table",
   "close": "Close",
-  "confirm_logout" : "log out",
   "add": "Add",
   "delete": "Delete",
   "table_no_required": "Table number is required",

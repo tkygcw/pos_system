@@ -1024,17 +1024,12 @@ class PosDatabase {
   get table amount
 */
   Future<List<OrderCache>> readTableOrderAmount(String branch_id, int table_id ) async {
-    try{
-      final db = await instance.database;
-      final result = await db.rawQuery(
-          'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND branch_id = ? AND table_id = ? ',
-          ['', branch_id, table_id]);
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND branch_id = ? AND table_id = ? ',
+      ['', branch_id, table_id]);
 
-      return result.map((json) => OrderCache.fromJson(json)).toList();
-    }catch (e){
-      print(e);
-      return [];
-    }
+    return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
 

@@ -93,4 +93,3 @@ class PosTable{
     PosTableFields.soft_delete: soft_delete,
   };
 }
-
