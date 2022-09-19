@@ -423,9 +423,11 @@ class _CartPageState extends State<CartPage> {
                               primary: color.backgroundColor,
                               minimumSize: const Size.fromHeight(50), // NEW
                             ),
-                            onPressed: ()  {
-                              createOrderCache(cart);
-                              updatePosTable(cart);
+                            onPressed: () async {
+                                await createOrderCache(cart);
+                                await updatePosTable(cart);
+                                cart.removeAllCartItem();
+                                cart.selectedTable = null;
                             },
                             child: Text('Place Order'),
                           ),
@@ -904,7 +906,7 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  void updatePosTable(CartModel cart) async {
+  updatePosTable(CartModel cart) async {
     print('updated');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -922,17 +924,17 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  void createOrderCache(CartModel cart) async {
+  createOrderCache(CartModel cart) async {
     print('create order cache called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
 
     OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(OrderCache(
-      order_cache_id: 14,
+      order_cache_id: 0,
       company_id: '6',
       branch_id: '5',
       order_detail_id: '',
-      table_id: cart.selectedTable!.number,
+      table_id: cart.selectedTable!.table_id.toString(),
       dining_id: '1',
       order_id: '',
       order_by: '',
