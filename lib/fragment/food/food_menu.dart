@@ -26,7 +26,6 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   List<String> categoryList = [];
   late TabController _tabController;
   late String companyID;
-
   List<Product> allProduct = [];
   List<Product> specificProduct = [];
   TextEditingController searchController = new TextEditingController();
@@ -37,7 +36,6 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     super.initState();
     _tabController = TabController(length: 0, vsync: this);
     readAllCategories();
-    getWidgets();
     readAllProduct('All Category');
     readCompanyID();
   }
@@ -107,77 +105,76 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                       child: TabBarView(
                           controller: _tabController,
                           children: categoryTab.map((Tab tab) {
-                              if (allProduct.length == 0) {
-                                return Padding(
-                                  padding:
-                                  const EdgeInsets.fromLTRB(0, 0, 0, 100),
-                                  child: Center(
-                                      child: Text(
-                                        'No Product Found',
-                                        style: TextStyle(
-                                            fontSize: 18, color: Colors.grey),
-                                      )),
-                                );
-                              } else {
-                                return GridView.count(
-                                  shrinkWrap: true,
-                                  crossAxisCount: 5,
-                                  children: List.generate(
-                                      allProduct
-                                          .length, //this is the total number of cards
-                                          (index) {
-                                        return Card(
-                                          child: Container(
-                                            decoration: (allProduct[index]
-                                                .graphic_type ==
-                                                '2'
-                                                ? BoxDecoration(
-                                                image: DecorationImage(
-                                                    image: FileImage(File(
-                                                        'data/user/0/com.example.pos_system/files/assets/' +
-                                                            companyID +
-                                                            '/' +
-                                                            allProduct[index]
-                                                                .image!)),
-                                                    fit: BoxFit.cover))
-                                                : BoxDecoration(
-                                                color: HexColor(
-                                                    allProduct[index].color!))),
-                                            child: InkWell(
-                                              splashColor:
-                                              Colors.blue.withAlpha(30),
-                                              onTap: () {
-                                                openProductOrderDialog(
-                                                    allProduct[index]);
-                                              },
-                                              child: Stack(
-                                                alignment: Alignment.bottomLeft,
-                                                children: [
-                                                  Container(
-                                                    color: Colors.black
-                                                        .withOpacity(0.5),
-                                                    height: 30,
-                                                    width: 200,
-                                                    alignment: Alignment.center,
-                                                    child: Text(
-                                                      allProduct[index].SKU! +
-                                                          ' ' +
-                                                          allProduct[index].name!,
-                                                      style: TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Colors.white,
-                                                        fontSize: 13,
-                                                      ),
-                                                    ),
-                                                  )
-                                                ],
+                            if (allProduct.length == 0) {
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(0, 0, 0, 100),
+                                child: Center(
+                                    child: Text(
+                                  'No Product Found',
+                                  style: TextStyle(
+                                      fontSize: 18, color: Colors.grey),
+                                )),
+                              );
+                            } else {
+                              return GridView.count(
+                                shrinkWrap: true,
+                                crossAxisCount: 5,
+                                children: List.generate(
+                                    allProduct
+                                        .length, //this is the total number of cards
+                                    (index) {
+                                  return Card(
+                                    child: Container(
+                                      decoration: (allProduct[index]
+                                                  .graphic_type ==
+                                              '2'
+                                          ? BoxDecoration(
+                                              image: DecorationImage(
+                                                  image: FileImage(File(
+                                                      'data/user/0/com.example.pos_system/files/assets/' +
+                                                          companyID +
+                                                          '/' +
+                                                          allProduct[index]
+                                                              .image!)),
+                                                  fit: BoxFit.cover))
+                                          : BoxDecoration(
+                                              color: HexColor(
+                                                  allProduct[index].color!))),
+                                      child: InkWell(
+                                        splashColor: Colors.blue.withAlpha(30),
+                                        onTap: () {
+                                          openProductOrderDialog(
+                                              allProduct[index]);
+                                        },
+                                        child: Stack(
+                                          alignment: Alignment.bottomLeft,
+                                          children: [
+                                            Container(
+                                              color:
+                                                  Colors.black.withOpacity(0.5),
+                                              height: 30,
+                                              width: 200,
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                allProduct[index].SKU! +
+                                                    ' ' +
+                                                    allProduct[index].name!,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                  fontSize: 13,
+                                                ),
                                               ),
-                                            ),
-                                          ),
-                                        );
-                                      }),
-                                );
-                              }
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              );
+                            }
                           }).toList()),
                     ),
                   ),
@@ -221,6 +218,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
       ));
       categoryList.add(data[i].name!);
     }
+
     _tabController = TabController(length: categoryTab.length, vsync: this);
   }
 
@@ -232,26 +230,28 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   readAllProduct(String label) async {
-    if(label == 'All Category'){
+    if (label == 'All Category') {
       List<Product> data = await PosDatabase.instance.readAllProduct();
       setState(() {
         allProduct = data;
         this.isLoading = false;
       });
-    }else{
-      List<Product> data = await PosDatabase.instance.readSpecificProduct(label);
+    } else {
+      List<Product> data =
+          await PosDatabase.instance.readSpecificProduct(label);
       setState(() {
         allProduct = data;
       });
     }
   }
+
   getWidgets() {
- print(categoryList);
+
   }
 
   searchProduct(String text) async {
     List<Product> data = await PosDatabase.instance.searchProduct(text);
-    if(mounted) {
+    if (mounted) {
       setState(() {
         allProduct = data;
       });
