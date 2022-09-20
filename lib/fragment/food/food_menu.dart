@@ -94,6 +94,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                     isScrollable: true,
                     unselectedLabelColor: Colors.black,
                     labelColor: color.buttonColor,
+
                     indicatorColor: color.buttonColor,
                     tabs: categoryTab,
                     controller: _tabController,
