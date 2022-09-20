@@ -596,17 +596,17 @@ class _EditProductDialogState extends State<EditProductDialog> {
                     .deleteVariantGroup(VariantGroup(
                         child: [],
                         product_id: widget.product!.product_id.toString(),
-                        variant_group_id: variantGroupData!.variant_group_id,
+                        variant_group_id: variantGroupData.variant_group_id,
                         soft_delete: dateTime));
                 Map responseDeleteVariantItem = await Domain()
                     .deleteVariantItem(
-                        variantGroupData!.variant_group_id.toString());
+                        variantGroupData.variant_group_id.toString());
                 if (responseDeleteVariantItem['status'] == '1') {
                   int deleteVariantItem =
                       await PosDatabase.instance.deleteVariantItem(VariantItem(
                     soft_delete: dateTime,
                     variant_group_id:
-                        variantGroupData!.variant_group_id.toString(),
+                        variantGroupData.variant_group_id.toString(),
                   ));
                 }
               }
@@ -643,29 +643,29 @@ class _EditProductDialogState extends State<EditProductDialog> {
                         soft_delete: dateTime,
                         product_id: widget.product!.product_id.toString(),
                         product_variant_id:
-                            getProductVariant!.product_variant_id));
+                            getProductVariant.product_variant_id));
                 Map responseDeleteProductVariantDetail = await Domain()
                     .deleteProductVariantDetail(
-                        getProductVariant!.product_variant_id.toString());
+                        getProductVariant.product_variant_id.toString());
                 if (responseDeleteProductVariantDetail['status'] == '1') {
                   int deleteProductVariantDetail = await PosDatabase.instance
                       .deleteProductVariantDetail(ProductVariantDetail(
                           soft_delete: dateTime,
-                          product_variant_id: getProductVariant!
+                          product_variant_id: getProductVariant
                               .product_variant_id
                               .toString()));
                   Map responseDeleteBranchLinkProduct = await Domain()
                       .deleteBranchLinkProduct(
                           branch_id.toString(),
                           widget.product!.product_id.toString(),
-                          getProductVariant!.product_variant_id.toString());
+                          getProductVariant.product_variant_id.toString());
                   if (responseDeleteBranchLinkProduct['status'] == '1') {
                     int deleteBranchLinkPorduct = await PosDatabase.instance
                         .deleteBranchLinkProduct(BranchLinkProduct(
                             soft_delete: dateTime,
                             branch_id: branch_id.toString(),
                             product_id: widget.product!.product_id.toString(),
-                            product_variant_id: getProductVariant!
+                            product_variant_id: getProductVariant
                                 .product_variant_id
                                 .toString()));
                   }
@@ -771,7 +771,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                   product_variant_id:
                                       variant.product_variant_id.toString(),
                                   variant_item_id:
-                                      item!.variant_item_id.toString(),
+                                      item.variant_item_id.toString(),
                                   created_at: dateTime,
                                   updated_at: '',
                                   soft_delete: ''));
@@ -820,7 +820,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                         price: productVariantList[a]['price'],
                         branch_id: branch_id.toString(),
                         product_variant_id:
-                            getProductVariant!.product_variant_id.toString(),
+                            getProductVariant.product_variant_id.toString(),
                         product_id: widget.product!.product_id.toString()));
               }
             }
@@ -1056,7 +1056,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                 responseVariantDetail['product_detail_id'],
                             product_variant_id:
                                 variant.product_variant_id.toString(),
-                            variant_item_id: item!.variant_item_id.toString(),
+                            variant_item_id: item.variant_item_id.toString(),
                             created_at: dateTime,
                             updated_at: '',
                             soft_delete: ''));
@@ -1956,7 +1956,6 @@ class _EditProductDialogState extends State<EditProductDialog> {
         for(int j=0; j< productVariantData.length; j++ ){
           int deleteAllProductVariantDetail = await PosDatabase.instance
               .deleteAllProductVariantDetail(
-
               ProductVariantDetail(soft_delete: dateTime, product_variant_id: productVariantData[j].product_variant_id.toString()));
         }
 

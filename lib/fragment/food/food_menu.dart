@@ -47,6 +47,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   String _name = "Order";
   List<Tab> categoryTab = [];
   List<Widget> categoryTabContent = [];
+  List<String> categoryList = [];
   late TabController _tabController;
   late String companyID;
   List<Product> allProduct = [];
@@ -59,7 +60,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     super.initState();
     _tabController = TabController(length: 0, vsync: this);
     readAllCategories();
-    readAllProduct();
+    readAllProduct('All Category');
     readCompanyID();
   }
 
@@ -128,79 +129,16 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                       child: TabBarView(
                           controller: _tabController,
                           children: categoryTab.map((Tab tab) {
-                            final String label = tab.text!;
-                            if (label != 'All Category') {
-                              readSpecificProduct(label);
-                              return GridView.count(
-                                shrinkWrap: true,
-                                crossAxisCount: 5,
-                                children: List.generate(
-                                    specificProduct
-                                        .length, //this is the total number of cards
-                                    (index) {
-                                  return Card(
-                                    child: Container(
-                                      decoration: (specificProduct[index]
-                                                  .graphic_type ==
-                                              '2'
-                                          ? BoxDecoration(
-                                              image: DecorationImage(
-                                                  image: FileImage(File(
-                                                      'data/user/0/com.example.pos_system/files/assets/' +
-                                                          companyID +
-                                                          '/' +
-                                                          specificProduct[index]
-                                                              .image!)),
-                                                  fit: BoxFit.cover))
-                                          : BoxDecoration(
-                                              color: HexColor(
-                                                  specificProduct[index]
-                                                      .color!))),
-                                      child: InkWell(
-                                        splashColor: Colors.blue.withAlpha(30),
-                                        onTap: () async {
-                                          openProductOrderDialog(
-                                              specificProduct[index]);
-                                        },
-                                        child: Stack(
-                                          alignment: Alignment.bottomLeft,
-                                          children: [
-                                            Container(
-                                              color:
-                                                  Colors.black.withOpacity(0.5),
-                                              height: 30,
-                                              width: 200,
-                                              alignment: Alignment.center,
-                                              child: Text(
-                                                specificProduct[index].SKU! +
-                                                    ' ' +
-                                                    specificProduct[index]
-                                                        .name!,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }),
-                              );
-                            } else {
                               if (allProduct.length == 0) {
                                 return Padding(
                                   padding:
-                                      const EdgeInsets.fromLTRB(0, 0, 0, 100),
+                                  const EdgeInsets.fromLTRB(0, 0, 0, 100),
                                   child: Center(
                                       child: Text(
-                                    'No Product Found',
-                                    style: TextStyle(
-                                        fontSize: 18, color: Colors.grey),
-                                  )),
+                                        'No Product Found',
+                                        style: TextStyle(
+                                            fontSize: 18, color: Colors.grey),
+                                      )),
                                 );
                               } else {
                                 return GridView.count(
@@ -209,13 +147,13 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                                   children: List.generate(
                                       allProduct
                                           .length, //this is the total number of cards
-                                      (index) {
-                                    return Card(
-                                      child: Container(
-                                        decoration: (allProduct[index]
-                                                    .graphic_type ==
+                                          (index) {
+                                        return Card(
+                                          child: Container(
+                                            decoration: (allProduct[index]
+                                                .graphic_type ==
                                                 '2'
-                                            ? BoxDecoration(
+                                                ? BoxDecoration(
                                                 image: DecorationImage(
                                                     image: FileImage(File(
                                                         'data/user/0/com.example.pos_system/files/assets/' +
@@ -224,45 +162,44 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                                                             allProduct[index]
                                                                 .image!)),
                                                     fit: BoxFit.cover))
-                                            : BoxDecoration(
+                                                : BoxDecoration(
                                                 color: HexColor(
                                                     allProduct[index].color!))),
-                                        child: InkWell(
-                                          splashColor:
+                                            child: InkWell(
+                                              splashColor:
                                               Colors.blue.withAlpha(30),
-                                          onTap: () {
-                                            openProductOrderDialog(
-                                                allProduct[index]);
-                                          },
-                                          child: Stack(
-                                            alignment: Alignment.bottomLeft,
-                                            children: [
-                                              Container(
-                                                color: Colors.black
-                                                    .withOpacity(0.5),
-                                                height: 30,
-                                                width: 200,
-                                                alignment: Alignment.center,
-                                                child: Text(
-                                                  allProduct[index].SKU! +
-                                                      ' ' +
-                                                      allProduct[index].name!,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white,
-                                                    fontSize: 13,
-                                                  ),
-                                                ),
-                                              )
-                                            ],
+                                              onTap: () {
+                                                openProductOrderDialog(
+                                                    allProduct[index]);
+                                              },
+                                              child: Stack(
+                                                alignment: Alignment.bottomLeft,
+                                                children: [
+                                                  Container(
+                                                    color: Colors.black
+                                                        .withOpacity(0.5),
+                                                    height: 30,
+                                                    width: 200,
+                                                    alignment: Alignment.center,
+                                                    child: Text(
+                                                      allProduct[index].SKU! +
+                                                          ' ' +
+                                                          allProduct[index].name!,
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.white,
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                    );
-                                  }),
+                                        );
+                                      }),
                                 );
                               }
-                            }
                           }).toList()),
                     ),
                   ),
@@ -296,17 +233,17 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
 
   readAllCategories() async {
     List<Categories> data = await PosDatabase.instance.readAllCategories();
-    setState(() {
+    categoryTab.add(Tab(
+      text: 'All Category',
+    ));
+    categoryList.add('All Category');
+    for (int i = 0; i < data.length; i++) {
       categoryTab.add(Tab(
-        text: 'All Category',
+        text: data[i].name!,
       ));
-      for (int i = 0; i < data.length; i++) {
-        categoryTab.add(Tab(
-          text: data[i].name!,
-        ));
-      }
-      _tabController = TabController(length: categoryTab.length, vsync: this);
-    });
+      categoryList.add(data[i].name!);
+    }
+    _tabController = TabController(length: categoryTab.length, vsync: this);
   }
 
   readCompanyID() async {
@@ -316,23 +253,32 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     companyID = userObject['company_id'];
   }
 
-  readAllProduct() async {
-    List<Product> data = await PosDatabase.instance.readAllProduct();
-    allProduct = data;
-    this.isLoading = false;
+  readAllProduct(String label) async {
+    if(label == 'All Category'){
+      List<Product> data = await PosDatabase.instance.readAllProduct();
+      setState(() {
+        allProduct = data;
+        this.isLoading = false;
+      });
+    }else{
+      List<Product> data = await PosDatabase.instance.readSpecificProduct(label);
+      setState(() {
+        allProduct = data;
+      });
+    }
   }
-
-  readSpecificProduct(String label) async {
-    List<Product> data = await PosDatabase.instance.readSpecificProduct(label);
-    setState(() {
-      specificProduct = data;
-    });
-  }
+  // getWidgets() {
+  //   for (int i = 0; i < _tabController.length; i++) {
+  //     print("hha");
+  //   }
+  // }
 
   searchProduct(String text) async {
     List<Product> data = await PosDatabase.instance.searchProduct(text);
-    setState(() {
-      allProduct = data;
-    });
+    if(mounted) {
+      setState(() {
+        allProduct = data;
+      });
+    }
   }
 }
