@@ -100,6 +100,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                     indicatorSize: TabBarIndicatorSize.tab,
                   ),
                   Expanded(
+
                     child: Padding(
                       padding: const EdgeInsets.all(4.0),
                       child: TabBarView(
