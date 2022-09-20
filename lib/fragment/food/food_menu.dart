@@ -12,30 +12,6 @@ import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/colorCode.dart';
 
-class Variant {
-  String? name;
-  String? group;
-
-  Variant({this.name, this.group});
-
-  Map<String, Object?> toJson() => {
-        'name': name,
-        'group': group,
-      };
-}
-
-class Modifier {
-  String? name;
-  String? group;
-
-  Modifier({this.name, this.group});
-
-  Map<String, Object?> toJson() => {
-        'name': name,
-        'group': group,
-      };
-}
-
 class FoodMenu extends StatefulWidget {
   const FoodMenu({Key? key}) : super(key: key);
 
@@ -50,6 +26,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   List<String> categoryList = [];
   late TabController _tabController;
   late String companyID;
+
   List<Product> allProduct = [];
   List<Product> specificProduct = [];
   TextEditingController searchController = new TextEditingController();
@@ -60,6 +37,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     super.initState();
     _tabController = TabController(length: 0, vsync: this);
     readAllCategories();
+    getWidgets();
     readAllProduct('All Category');
     readCompanyID();
   }
@@ -267,11 +245,9 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
       });
     }
   }
-  // getWidgets() {
-  //   for (int i = 0; i < _tabController.length; i++) {
-  //     print("hha");
-  //   }
-  // }
+  getWidgets() {
+ print(categoryList);
+  }
 
   searchProduct(String text) async {
     List<Product> data = await PosDatabase.instance.searchProduct(text);
