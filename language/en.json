@@ -3,6 +3,7 @@
   "create_table": "Create Table",
   "edit_table": "Edit Table",
   "close": "Close",
+  "confirm_logout" : "log out",
   "add": "Add",
   "submit": "Submit",
   "delete": "Delete",
@@ -18,5 +19,7 @@
   "confirm_delete": "will be remove from cart. Click yes to proceed",
   "offer_ended": "Offer ended",
   "empty_cart": "No item in cart",
-  "table_is_used": "Table is in used"
+  "table_is_used": "Table is in used",
+  "no_table": "No table selected!",
+  "merge_error": "Cannot merge same table!"
 }
