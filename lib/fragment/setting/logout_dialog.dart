@@ -106,7 +106,7 @@ class _logout_dialogState extends State<logout_dialog> {
           ),
           TextButton(
             child:
-                Text('${AppLocalizations.of(context)?.translate('confirm')}'),
+                Text('${AppLocalizations.of(context)?.translate('confirm_logout')}'),
             onPressed: () async {
               _submit(context);
             },

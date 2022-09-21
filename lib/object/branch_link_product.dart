@@ -54,6 +54,7 @@ class BranchLinkProduct {
   String? updated_at;
   String? soft_delete;
   String? variant_name;
+  String? product_name;
 
   BranchLinkProduct(
       {this.branch_link_product_sqlite_id,
@@ -71,7 +72,8 @@ class BranchLinkProduct {
         this.created_at,
         this.updated_at,
         this.soft_delete,
-      this.variant_name});
+      this.variant_name,
+      this.product_name});
 
   BranchLinkProduct copy({
     int? branch_link_product_sqlite_id,
@@ -90,6 +92,7 @@ class BranchLinkProduct {
     String? updated_at,
     String? soft_delete,
     String? variant_name,
+    String? product_name
   }) =>
       BranchLinkProduct(
           branch_link_product_sqlite_id: branch_link_product_sqlite_id ?? this.branch_link_product_sqlite_id,
@@ -107,7 +110,8 @@ class BranchLinkProduct {
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete,
-          variant_name: variant_name ?? this.variant_name
+          variant_name: variant_name ?? this.variant_name,
+          product_name: product_name ?? this.product_name
       );
 
   static BranchLinkProduct fromJson(Map<String, Object?> json) => BranchLinkProduct(
@@ -127,6 +131,8 @@ class BranchLinkProduct {
     updated_at: json[BranchLinkProductFields.updated_at] as String?,
     soft_delete: json[BranchLinkProductFields.soft_delete] as String?,
     variant_name: json['variant_name'] as String?,
+    product_name: json['name'] as String?
+
   );
 
   Map<String, Object?> toJson() => {

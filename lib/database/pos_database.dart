@@ -770,6 +770,20 @@ class PosDatabase {
   }
 
 /*
+  read specific branch link product item
+*/
+ Future<List<BranchLinkProduct>> readSpecificBranchLinkProduct (String branch_link_product_id) async {
+   final db= await instance.database;
+   final result = await db.rawQuery(
+     'SELECT a.*, b.name FROM $tableBranchLinkProduct AS a JOIN $tableProduct AS b ON a.product_id = b.product_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_link_product_id = ?',
+     ['', '', branch_link_product_id]);
+
+
+   return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
+ }
+
+
+/*
   checking price
 */
   Future<List<BranchLinkProduct>> checkVariantPrice(
@@ -1073,15 +1087,31 @@ class PosDatabase {
 /*
   get table amount
 */
-  Future<List<OrderCache>> readTableOrderAmount(String branch_id, int table_id ) async {
-    final db = await instance.database;
-    final result = await db.rawQuery(
-      'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND branch_id = ? AND table_id = ? ',
-      ['', branch_id, table_id]);
+  Future<List<OrderCache>> readTableOrderCache(String branch_id, int table_id ) async {
+    try{
+      final db = await instance.database;
+      final result = await db.rawQuery(
+          'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND branch_id = ? AND table_id = ? ',
+          ['', branch_id, table_id]);
 
-    return result.map((json) => OrderCache.fromJson(json)).toList();
+      return result.map((json) => OrderCache.fromJson(json)).toList();
+    }catch (e){
+      print(e);
+      return [];
+    }
   }
 
+/*
+  read order detail
+*/
+ Future<List<OrderDetail>> readTableOrderDetail(String order_cache_id) async {
+   final db = await instance.database;
+   final result = await db.rawQuery(
+     'SELECT a.*, b.total_amount FROM $tableOrderDetail AS a JOIN $tableOrderCache AS b ON a.order_cache_id = b.order_cache_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.order_cache_id = ?',
+     ['', '', order_cache_id]);
+
+   return result.map((json) => OrderDetail.fromJson(json)).toList();
+ }
 
 /*
   read specific user
