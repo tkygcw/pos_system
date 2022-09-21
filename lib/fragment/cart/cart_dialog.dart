@@ -130,6 +130,7 @@ class _CartDialogState extends State<CartDialog> {
                     children: [
                       Expanded(
                         child: ReorderableGridView.count(
+
                           crossAxisSpacing: 10,
                           mainAxisSpacing: 10,
                           crossAxisCount: 4,
