@@ -989,7 +989,7 @@ class PosDatabase {
   Future<List<Product>> searchProduct(String text) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT DISTINCT a.* FROM $tableProduct AS a JOIN $tableBranchLinkProduct AS b ON a.product_id = b.product_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.name LIKE ? OR a.SKU LIKE ?',
+        'SELECT DISTINCT a.* FROM $tableProduct AS a JOIN $tableBranchLinkProduct AS b ON a.product_id = b.product_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND (a.name LIKE ? OR a.SKU LIKE ?)',
         ['', '', '%' + text + '%', '%' + text + '%']);
     return result.map((json) => Product.fromJson(json)).toList();
   }
