@@ -9,7 +9,7 @@ class CartModel extends ChangeNotifier {
   List<cartProductItem> cartNotifierItem = [];
   List<Promotion> autoPromotion = [];
   Promotion? selectedPromotion ;
-  PosTable? selectedTable;
+  List<PosTable> selectedTable = [];
   String selectedOption = 'Dine in';
 
 
@@ -33,7 +33,7 @@ class CartModel extends ChangeNotifier {
   }
 
   void addTable(PosTable posTable){
-    selectedTable = posTable;
+    selectedTable.add(posTable);
     notifyListeners();
   }
 

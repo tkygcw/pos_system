@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pos_system/fragment/table/table_detail_dialog.dart';
 import 'package:pos_system/fragment/table/table_dialog.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/table.dart';
@@ -31,236 +33,253 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    controller.close();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    readAllTableAmount();
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Scaffold(
         body: StreamBuilder(
             stream: controller.stream,
-          builder: (context, snapshot) {
-            return Container(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(11, 15, 11, 4),
-                    child: Row(
-                      children: [
-                        Text(
-                          "Table",
-                          style: TextStyle(fontSize: 25),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(18, 0, 0, 0),
-                          child: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                  primary: color.backgroundColor),
-                              onPressed: () {
-                                openAddTableDialog(PosTable());
-                              },
-                              icon: Icon(Icons.add),
-                              label: Text("Table")),
-                        ),
-                        SizedBox(width: 500),
-                        Expanded(
-                          child: TextField(
-                            decoration: InputDecoration(
-                              isDense: true,
-                              border: InputBorder.none,
-                              labelText: 'Search',
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    color: Colors.grey, width: 2.0),
-                                borderRadius: BorderRadius.circular(25.0),
+            builder: (context, snapshot) {
+              return Container(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(11, 15, 11, 4),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Table",
+                            style: TextStyle(fontSize: 25),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(18, 0, 0, 0),
+                            child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                    primary: color.backgroundColor),
+                                onPressed: () {
+                                  openAddTableDialog(PosTable());
+                                },
+                                icon: Icon(Icons.add),
+                                label: Text("Table")),
+                          ),
+                          SizedBox(width: 500),
+                          Expanded(
+                            child: TextField(
+                              decoration: InputDecoration(
+                                isDense: true,
+                                border: InputBorder.none,
+                                labelText: 'Search',
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: const BorderSide(
+                                      color: Colors.grey, width: 2.0),
+                                  borderRadius: BorderRadius.circular(25.0),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  Expanded(
-                    child: GridView.count(
-                      shrinkWrap: true,
-                      crossAxisCount: 5,
-                      children: List.generate(
-                          tableList.length, //this is the total number of cards
-                          (index) {
-                        // tableList[index].seats == 2;
-                        return Card(
-                          child: Stack(
-                            alignment: Alignment.bottomLeft,
-                            children: [
-                              Ink.image(
-                                image: tableList[index].seats == '2'
-                                    ? NetworkImage(
-                                        "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
-                                    : tableList[index].seats == '4'
-                                        ? NetworkImage(
-                                            "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
-                                        : tableList[index].seats == '6'
-                                            ? NetworkImage(
-                                                "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
-                                            : NetworkImage(
-                                                "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
-                                child: InkWell(
-                                  splashColor: Colors.blue.withAlpha(30),
-                                  onLongPress: () {
-                                    openAddTableDialog(tableList[index]);
-                                  },
+                    SizedBox(height: 20),
+                    Expanded(
+                      child: GridView.count(
+                        shrinkWrap: true,
+                        crossAxisCount: 5,
+                        children: List.generate(
+                          //this is the total number of cards
+                            tableList.length,
+                            (index) {
+                          // tableList[index].seats == 2;
+                          return Card(
+                            color: tableList[index].status != 0 ? Colors.red : Colors.white,
+                            child: Stack(
+                              alignment: Alignment.bottomLeft,
+                              children: [
+                                Ink.image(
+                                  image: tableList[index].seats == '2'
+                                      ? NetworkImage(
+                                          "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
+                                      : tableList[index].seats == '4'
+                                          ? NetworkImage(
+                                              "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
+                                          : tableList[index].seats == '6'
+                                              ? NetworkImage(
+                                                  "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
+                                              : NetworkImage(
+                                                  "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                                  child: InkWell(
+                                    splashColor: Colors.blue.withAlpha(30),
+                                    onLongPress: () {
+                                      openAddTableDialog(tableList[index]);
+                                    },
+                                    onTap: () {
+                                      tableList[index].status != 0 ?
+                                      openTableDetailDialog(tableList[index]) :
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Color(0xFF24EF10),
+                                          msg: "table not in used");
+                                    },
+                                  ),
+                                  fit: BoxFit.cover,
                                 ),
-                                fit: BoxFit.cover,
-                              ),
-                              Container(
-                                  alignment: Alignment.center,
-                                  child: Text("#" + tableList[index].number!)),
-                              tableList[index].status == 1
-                                  ? Container(
-                                      alignment: Alignment.topCenter,
-                                      child: Text(
-                                        "${tableList[index].total_Amount.toStringAsFixed(2)}",
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                    )
-                                  : Container()
-                            ],
-                          ),
-                        );
-                      }),
-                    ),
-                    // child: GridView.extent(
-                    //     shrinkWrap: true,
-                    //     maxCrossAxisExtent: 180.0,
-                    //     children: [
-                    //   Container(
-                    //     child: Card(
-                    //       child: Stack(
-                    //         alignment: Alignment.bottomLeft,
-                    //         children: [
-                    //           Ink.image(
-                    //             image: NetworkImage(
-                    //                 "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png"),
-                    //             child: InkWell(
-                    //               splashColor: Colors.blue.withAlpha(30),
-                    //               onTap: () {},
-                    //             ),
-                    //             fit: BoxFit.cover,
-                    //           ),
-                    //           Container(
-                    //               alignment: Alignment.center, child: Text("#1")),
-                    //           Container(
-                    //             alignment: Alignment.topCenter, child: Text("RM199.00", style: TextStyle(fontSize: 18),),
-                    //           )
-                    //         ],
-                    //       ),
-                    //     ),
-                    //   ),
-                    //   Container(
-                    //     child: Card(
-                    //       child: Stack(
-                    //         alignment: Alignment.bottomLeft,
-                    //         children: [
-                    //           Ink.image(
-                    //             image: NetworkImage(
-                    //                 "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png"),
-                    //             child: InkWell(
-                    //               splashColor: Colors.blue.withAlpha(30),
-                    //               onTap: () {},
-                    //             ),
-                    //             fit: BoxFit.cover,
-                    //           ),
-                    //           Container(
-                    //               alignment: Alignment.center, child: Text("#2"))
-                    //         ],
-                    //       ),
-                    //     ),
-                    //   ),
-                    //   Container(
-                    //     child: Card(
-                    //       child: Stack(
-                    //         alignment: Alignment.bottomLeft,
-                    //         children: [
-                    //           Ink.image(
-                    //             image: NetworkImage(
-                    //                 "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png"),
-                    //             child: InkWell(
-                    //               splashColor: Colors.blue.withAlpha(30),
-                    //               onTap: () {},
-                    //             ),
-                    //             fit: BoxFit.cover,
-                    //           ),
-                    //           Container(
-                    //               alignment: Alignment.center, child: Text("#3"))
-                    //         ],
-                    //       ),
-                    //     ),
-                    //   ),
-                    //   Container(
-                    //     child: Card(
-                    //       child: Stack(
-                    //         alignment: Alignment.bottomLeft,
-                    //         children: [
-                    //           Ink.image(
-                    //             image: NetworkImage(
-                    //                 "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png"),
-                    //             child: InkWell(
-                    //               splashColor: Colors.blue.withAlpha(30),
-                    //               onTap: () {},
-                    //             ),
-                    //             fit: BoxFit.cover,
-                    //           ),
-                    //           Container(
-                    //               alignment: Alignment.center, child: Text("#4"))
-                    //         ],
-                    //       ),
-                    //     ),
-                    //   ),
-                    //   Container(
-                    //     child: Card(
-                    //       child: Stack(
-                    //         alignment: Alignment.bottomLeft,
-                    //         children: [
-                    //           Ink.image(
-                    //             image: NetworkImage(
-                    //                 "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png"),
-                    //             child: InkWell(
-                    //               splashColor: Colors.blue.withAlpha(30),
-                    //               onTap: () {},
-                    //
-                    //             ),
-                    //             fit: BoxFit.cover,
-                    //           ),
-                    //           Container(
-                    //               alignment: Alignment.center, child: Text("#5"))
-                    //         ],
-                    //       ),
-                    //     ),
-                    //   ),
-                    //   Container(
-                    //     child: Card(
-                    //       color: Colors.grey,
-                    //       child: InkWell(
-                    //         splashColor: Colors.blue.withAlpha(30),
-                    //         onTap: () {},
-                    //         child: Stack(
-                    //           alignment: Alignment.center,
-                    //           children: [
-                    //             Icon(
-                    //               Icons.add,
-                    //               color: Colors.white,
-                    //               size: 30.0,
-                    //             ),
-                    //           ],
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   )
-                    // ])
-                  )
-                ],
-              ),
-            );
-          }
-        ),
+                                Container(
+                                    alignment: Alignment.center,
+                                    child:
+                                        Text("#" + tableList[index].number!)),
+                                tableList[index].status == 1
+                                    ? Container(
+                                        alignment: Alignment.topCenter,
+                                        child: Text(
+                                          "${tableList[index].total_Amount.toStringAsFixed(2)}",
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      )
+                                    : Container()
+                              ],
+                            ),
+                          );
+                        }),
+                      ),
+                      // child: GridView.extent(
+                      //     shrinkWrap: true,
+                      //     maxCrossAxisExtent: 180.0,
+                      //     children: [
+                      //   Container(
+                      //     child: Card(
+                      //       child: Stack(
+                      //         alignment: Alignment.bottomLeft,
+                      //         children: [
+                      //           Ink.image(
+                      //             image: NetworkImage(
+                      //                 "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png"),
+                      //             child: InkWell(
+                      //               splashColor: Colors.blue.withAlpha(30),
+                      //               onTap: () {},
+                      //             ),
+                      //             fit: BoxFit.cover,
+                      //           ),
+                      //           Container(
+                      //               alignment: Alignment.center, child: Text("#1")),
+                      //           Container(
+                      //             alignment: Alignment.topCenter, child: Text("RM199.00", style: TextStyle(fontSize: 18),),
+                      //           )
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      //   Container(
+                      //     child: Card(
+                      //       child: Stack(
+                      //         alignment: Alignment.bottomLeft,
+                      //         children: [
+                      //           Ink.image(
+                      //             image: NetworkImage(
+                      //                 "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png"),
+                      //             child: InkWell(
+                      //               splashColor: Colors.blue.withAlpha(30),
+                      //               onTap: () {},
+                      //             ),
+                      //             fit: BoxFit.cover,
+                      //           ),
+                      //           Container(
+                      //               alignment: Alignment.center, child: Text("#2"))
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      //   Container(
+                      //     child: Card(
+                      //       child: Stack(
+                      //         alignment: Alignment.bottomLeft,
+                      //         children: [
+                      //           Ink.image(
+                      //             image: NetworkImage(
+                      //                 "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png"),
+                      //             child: InkWell(
+                      //               splashColor: Colors.blue.withAlpha(30),
+                      //               onTap: () {},
+                      //             ),
+                      //             fit: BoxFit.cover,
+                      //           ),
+                      //           Container(
+                      //               alignment: Alignment.center, child: Text("#3"))
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      //   Container(
+                      //     child: Card(
+                      //       child: Stack(
+                      //         alignment: Alignment.bottomLeft,
+                      //         children: [
+                      //           Ink.image(
+                      //             image: NetworkImage(
+                      //                 "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png"),
+                      //             child: InkWell(
+                      //               splashColor: Colors.blue.withAlpha(30),
+                      //               onTap: () {},
+                      //             ),
+                      //             fit: BoxFit.cover,
+                      //           ),
+                      //           Container(
+                      //               alignment: Alignment.center, child: Text("#4"))
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      //   Container(
+                      //     child: Card(
+                      //       child: Stack(
+                      //         alignment: Alignment.bottomLeft,
+                      //         children: [
+                      //           Ink.image(
+                      //             image: NetworkImage(
+                      //                 "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png"),
+                      //             child: InkWell(
+                      //               splashColor: Colors.blue.withAlpha(30),
+                      //               onTap: () {},
+                      //
+                      //             ),
+                      //             fit: BoxFit.cover,
+                      //           ),
+                      //           Container(
+                      //               alignment: Alignment.center, child: Text("#5"))
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      //   Container(
+                      //     child: Card(
+                      //       color: Colors.grey,
+                      //       child: InkWell(
+                      //         splashColor: Colors.blue.withAlpha(30),
+                      //         onTap: () {},
+                      //         child: Stack(
+                      //           alignment: Alignment.center,
+                      //           children: [
+                      //             Icon(
+                      //               Icons.add,
+                      //               color: Colors.white,
+                      //               size: 30.0,
+                      //             ),
+                      //           ],
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   )
+                      // ])
+                    )
+                  ],
+                ),
+              );
+            }),
       );
     });
   }
@@ -291,6 +310,31 @@ class _TableMenuState extends State<TableMenu> {
         });
   }
 
+  Future<Future<Object?>> openTableDetailDialog(PosTable posTable) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: TableDetailDialog(
+                  object: posTable,
+                ),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
+
   readAllTable() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -308,14 +352,13 @@ class _TableMenuState extends State<TableMenu> {
     final int? branch_id = prefs.getInt('branch_id');
 
     for (int i = 0; i < tableList.length; i++) {
+      tableList[i].total_Amount = 0.0;
       List<OrderCache> data = await PosDatabase.instance
-          .readTableOrderAmount(branch_id.toString(), tableList[i].table_id!);
-      for (int j = 0; j < data.length; j++) {
-        print('total amount ${data[j].total_amount}');
-        tableList[i].total_Amount += double.parse(data[j].total_amount!);
-        print('total amount ${tableList[i].total_Amount}');
-      }
+          .readTableOrderCache(branch_id.toString(), tableList[i].table_id!);
 
+      for (int j = 0; j < data.length; j++) {
+        tableList[i].total_Amount += double.parse(data[j].total_amount!);
+      }
     }
     controller.add('refresh');
   }

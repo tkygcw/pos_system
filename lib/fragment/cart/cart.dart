@@ -423,9 +423,24 @@ class _CartPageState extends State<CartPage> {
                               primary: color.backgroundColor,
                               minimumSize: const Size.fromHeight(50), // NEW
                             ),
-                            onPressed: ()  {
-                              createOrderCache(cart);
-                              updatePosTable(cart);
+                            onPressed: () async {
+                              if(cart.selectedOption == 'Dine in') {
+                                if(cart.selectedTable.isNotEmpty) {
+                                  await createOrderCache(cart);
+                                  await updatePosTable(cart);
+                                  cart.removeAllCartItem();
+                                  cart.selectedTable.clear();
+                                } else {
+                                  Fluttertoast.showToast(
+                                      backgroundColor: Color(0xFFFF0000),
+                                      msg: "${AppLocalizations.of(context)?.translate('no_table')}");
+                                }
+                              } else {
+                                await createOrderCache(cart);
+                                await updatePosTable(cart);
+                                cart.removeAllCartItem();
+                                cart.selectedTable.clear();
+                              }
                             },
                             child: Text('Place Order'),
                           ),
@@ -506,12 +521,16 @@ class _CartPageState extends State<CartPage> {
 */
   getSelectedTable(CartModel cart) {
     String result = '';
-    if (cart.selectedTable == null && cart.selectedOption == 'Dine in') {
+    if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
       result = 'No table';
     } else if (cart.selectedOption != 'Dine in') {
       result = '';
     } else {
-      result = 'table ' + cart.selectedTable!.number!;
+      if(cart.selectedTable.length < 2){
+        result = 'table ' + cart.selectedTable[0].number!;
+      } else{
+        result = 'table ' + cart.selectedTable[0].number! + ',' + cart.selectedTable[1].number!;
+      }
     }
     return result;
   }
@@ -904,58 +923,64 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  void updatePosTable(CartModel cart) async {
+  updatePosTable(CartModel cart) async {
     print('updated');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
-    List<PosTable> result = await PosDatabase.instance.checkPosTableStatus(branch_id!, cart.selectedTable!.table_id!);
-    if(result[0].status == 0){
-      PosTable posTableData = PosTable(
-          table_sqlite_id: cart.selectedTable!.table_sqlite_id,
-          status: 1,
-          updated_at: dateTime);
+    for(int i = 0; i < cart.selectedTable.length; i++){
+      List<PosTable> result = await PosDatabase.instance.checkPosTableStatus(branch_id!, cart.selectedTable[i].table_id!);
+      if(result[0].status == 0){
+        PosTable posTableData = PosTable(
+            table_sqlite_id: cart.selectedTable[i].table_sqlite_id,
+            status: 1,
+            updated_at: dateTime);
 
-      int data = await PosDatabase.instance.updatePosTableStatus(posTableData);
+        int data = await PosDatabase.instance.updatePosTableStatus(posTableData);
+      }
     }
+
   }
 
-  void createOrderCache(CartModel cart) async {
+  createOrderCache(CartModel cart) async {
     print('create order cache called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
 
-    OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(OrderCache(
-      order_cache_id: 14,
-      company_id: '6',
-      branch_id: '5',
-      order_detail_id: '',
-      table_id: cart.selectedTable!.number,
-      dining_id: '1',
-      order_id: '',
-      order_by: '',
-      total_amount: totalAmount.toStringAsFixed(2),
-      created_at: dateTime,
-      updated_at: '',
-      soft_delete: ''
-    ));
+    for(int i = 0; i < cart.selectedTable.length; i++) {
+      OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
+          OrderCache(
+              order_cache_id: 3,
+              company_id: '6',
+              branch_id: '5',
+              order_detail_id: '',
+              table_id: cart.selectedTable[i].table_id.toString(),
+              dining_id: '1',
+              order_id: '',
+              order_by: '',
+              total_amount: totalAmount.toStringAsFixed(2),
+              created_at: dateTime,
+              updated_at: '',
+              soft_delete: ''
+          ));
 
-    for(int i = 0; i < cart.cartNotifierItem.length; i++){
-      print('create order detail called');
-      OrderDetail detailData = await PosDatabase.instance.insertSqliteOrderDetail(OrderDetail(
-          order_detail_id: 9,
-          order_cache_id: await data.order_cache_id.toString(),
-          branch_link_product_id: cart.cartNotifierItem[i].branchProduct_id,
-          quantity: cart.cartNotifierItem[i].quantity.toString(),
-          remark: cart.cartNotifierItem[i].remark,
-          account: '',
-          created_at: dateTime,
-          updated_at: '',
-          soft_delete: ''
-      ));
+      for (int i = 0; i < cart.cartNotifierItem.length; i++) {
+        print('create order detail called');
+        OrderDetail detailData = await PosDatabase.instance
+            .insertSqliteOrderDetail(OrderDetail(
+            order_detail_id: 9,
+            order_cache_id: await data.order_cache_id.toString(),
+            branch_link_product_id: cart.cartNotifierItem[i].branchProduct_id,
+            quantity: cart.cartNotifierItem[i].quantity.toString(),
+            remark: cart.cartNotifierItem[i].remark,
+            account: '',
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: ''
+        ));
+      }
     }
-    print(data);
   }
 }

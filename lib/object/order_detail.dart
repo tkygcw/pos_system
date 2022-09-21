@@ -37,6 +37,8 @@ class OrderDetail{
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  String? total_amount;
+  String? product_name;
 
   OrderDetail(
       {this.order_detail_sqlite_id,
@@ -48,7 +50,8 @@ class OrderDetail{
         this.account,
         this.created_at,
         this.updated_at,
-        this.soft_delete});
+        this.soft_delete,
+        this.total_amount});
 
   OrderDetail copy({
     int? order_detail_sqlite_id,
@@ -72,7 +75,8 @@ class OrderDetail{
           account: account ?? this.account,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
-          soft_delete: soft_delete ?? this.soft_delete);
+          soft_delete: soft_delete ?? this.soft_delete,
+          total_amount: total_amount ?? this.total_amount);
 
   static OrderDetail fromJson(Map<String, Object?> json) => OrderDetail(
     order_detail_sqlite_id: json[OrderDetailFields.order_detail_sqlite_id] as int?,
@@ -85,6 +89,7 @@ class OrderDetail{
     created_at: json[OrderDetailFields.created_at] as String?,
     updated_at: json[OrderDetailFields.updated_at] as String?,
     soft_delete: json[OrderDetailFields.soft_delete] as String?,
+    total_amount: json['total_amount'] as String?
   );
 
   Map<String, Object?> toJson() => {
