@@ -38,7 +38,9 @@ class OrderDetail{
   String? updated_at;
   String? soft_delete;
   String? total_amount;
-  String? product_name;
+  String product_name = '';
+  String variant_name ='';
+  List<String> modifier_name = [];
 
   OrderDetail(
       {this.order_detail_sqlite_id,

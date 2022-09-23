@@ -22,6 +22,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/pos_database.dart';
+import '../../object/order_modifier_detail.dart';
 import '../../object/table.dart';
 import '../../translation/AppLocalizations.dart';
 
@@ -425,21 +426,28 @@ class _CartPageState extends State<CartPage> {
                             ),
                             onPressed: () async {
                               if(cart.selectedOption == 'Dine in') {
-                                if(cart.selectedTable.isNotEmpty) {
-                                  await createOrderCache(cart);
+                                if(cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
+                                  //await createOrderCache(cart);
                                   await updatePosTable(cart);
                                   cart.removeAllCartItem();
                                   cart.selectedTable.clear();
                                 } else {
                                   Fluttertoast.showToast(
                                       backgroundColor: Color(0xFFFF0000),
-                                      msg: "${AppLocalizations.of(context)?.translate('no_table')}");
+                                      msg: "make sure cart is not empty and table is selected");
                                 }
                               } else {
-                                await createOrderCache(cart);
-                                await updatePosTable(cart);
-                                cart.removeAllCartItem();
-                                cart.selectedTable.clear();
+                                if(cart.cartNotifierItem.isNotEmpty){
+                                  //await createOrderCache(cart);
+                                  await updatePosTable(cart);
+                                  cart.removeAllCartItem();
+                                  cart.selectedTable.clear();
+                                } else{
+                                  Fluttertoast.showToast(
+                                      backgroundColor: Color(0xFFFF0000),
+                                      msg: "cart empty");
+                                }
+
                               }
                             },
                             child: Text('Place Order'),
@@ -766,7 +774,7 @@ class _CartPageState extends State<CartPage> {
         ModifierGroup group = object.modifier[i];
         for (int j = 0; j < group.modifierChild.length; j++) {
           if (group.modifierChild[j].isChecked!) {
-            String? price = (await PosDatabase.instance.readBranchLinkModifier(
+            String? price = (await PosDatabase.instance.readBranchLinkModifierPrice(
                 branch_id!.toString(),
                 group.modifierChild[j].mod_item_id.toString())) as String?;
             total += double.parse(price!);
@@ -952,7 +960,7 @@ class _CartPageState extends State<CartPage> {
     for(int i = 0; i < cart.selectedTable.length; i++) {
       OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
           OrderCache(
-              order_cache_id: 3,
+              order_cache_id: 5,
               company_id: '6',
               branch_id: '5',
               order_detail_id: '',
@@ -966,20 +974,38 @@ class _CartPageState extends State<CartPage> {
               soft_delete: ''
           ));
 
-      for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        print('create order detail called');
+      for (int j = 0; j < cart.cartNotifierItem.length; j++) {
         OrderDetail detailData = await PosDatabase.instance
             .insertSqliteOrderDetail(OrderDetail(
-            order_detail_id: 9,
+            order_detail_id: 5,
             order_cache_id: await data.order_cache_id.toString(),
-            branch_link_product_id: cart.cartNotifierItem[i].branchProduct_id,
-            quantity: cart.cartNotifierItem[i].quantity.toString(),
-            remark: cart.cartNotifierItem[i].remark,
+            branch_link_product_id: cart.cartNotifierItem[j].branchProduct_id,
+            quantity: cart.cartNotifierItem[j].quantity.toString(),
+            remark: cart.cartNotifierItem[j].remark,
             account: '',
             created_at: dateTime,
             updated_at: '',
             soft_delete: ''
         ));
+
+        for(int k = 0 ; k < cart.cartNotifierItem[j].modifier.length; k++){
+          ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
+          for (int m = 0; m < group.modifierChild.length; m++) {
+            if (group.modifierChild[m].isChecked!) {
+              OrderModifierDetail modifierData = await PosDatabase.instance.
+              insertSqliteOrderModifierDetail(OrderModifierDetail(
+                  order_modifier_detail_id: 0,
+                  order_detail_id: await detailData.order_detail_id.toString(),
+                  mod_item_id: group.modifierChild[m].mod_item_id.toString(),
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''
+              ));
+            }
+          }
+
+        }
+
       }
     }
   }

@@ -18,6 +18,7 @@ import 'package:pos_system/object/modifier_link_product.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/product_variant.dart';
@@ -81,6 +82,7 @@ class _LoadingPageState extends State<LoadingPage> {
     getAllOrder();
     getAllOrderCache();
     getAllOrderDetail();
+    getAllOrderModifierDetail();
     getSale();
 
     // Go to Page2 after 5s.
@@ -591,6 +593,25 @@ getAllOrderDetail() async {
     }
   }
 }
+
+/*
+  save order modifier detail to database
+*/
+ getAllOrderModifierDetail() async {
+   final prefs = await SharedPreferences.getInstance();
+   final int? branch_id = prefs.getInt('branch_id');
+   final String? user = prefs.getString('user');
+   Map userObject = json.decode(user!);
+   Map data = await Domain()
+       .getAllOrderModifierDetail(userObject['company_id'], branch_id.toString());
+   if (data['status'] == '1') {
+     List responseJson = data['order'];
+     for (var i = 0; i < responseJson.length; i++) {
+       OrderModifierDetail data = await PosDatabase.instance
+           .insertOrderModifierDetail(OrderModifierDetail.fromJson(responseJson[i]));
+       }
+     }
+ }
 
 /*
   save sale to database

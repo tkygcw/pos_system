@@ -170,20 +170,13 @@ class _TableDialogState extends State<TableDialog> {
         title: Row(
           children: [
             Text(
-              widget.object.table_id == null? '${AppLocalizations.of(context)?.translate('create table')}': '${AppLocalizations.of(context)?.translate('edit table')}',
+              widget.object.table_id == null? '${AppLocalizations.of(context)?.translate('create_table')}': '${AppLocalizations.of(context)?.translate('edit_table')}',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            isUpdate == true
-                ? Text(
-                    '${AppLocalizations.of(context)?.translate('edit_table')}',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
-                : Text(
-                    '${AppLocalizations.of(context)?.translate('create_table')}',
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+
             Spacer(),
             widget.object.table_id == null? Container():IconButton(
               icon: const Icon(Icons.delete_outlined),

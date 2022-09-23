@@ -13,6 +13,7 @@ import 'package:pos_system/object/modifier_link_product.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/product_variant.dart';
@@ -298,7 +299,21 @@ class PosDatabase {
           ${AppColorsFields.created_at} $textType,
           ${AppColorsFields.updated_at} $textType,
           ${AppColorsFields.soft_delete} $textType)''');
+
+/*
+    create order modifier detail
+*/
+    await db.execute('''CREATE TABLE $tableOrderModifierDetail(
+          ${OrderModifierDetailFields.order_modifier_detail_sqlite_id} $idType,
+          ${OrderModifierDetailFields.order_modifier_detail_id} $integerType,
+          ${OrderModifierDetailFields.order_detail_id} $textType,
+          ${OrderModifierDetailFields.mod_item_id} $textType,
+          ${OrderModifierDetailFields.created_at} $textType,
+          ${OrderModifierDetailFields.updated_at} $textType,
+          ${OrderModifierDetailFields.soft_delete} $textType)''');
+
   }
+
 
 /*
   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -561,7 +576,6 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableOrderCache!, data.toJson());
     return data.copy(order_cache_sqlite_id: id);
-
   }
 
 /*
@@ -582,6 +596,23 @@ class PosDatabase {
     return data.copy(order_detail_sqlite_id: id);
   }
 
+/*
+  add order modifier data into sqlite(cloud)
+*/
+  Future<OrderModifierDetail> insertOrderModifierDetail(OrderModifierDetail data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableOrderModifierDetail!, data.toJson());
+    return data.copy(order_modifier_detail_id: id);
+  }
+
+/*
+  add order modifier data into sqlite
+*/
+  Future<OrderModifierDetail> insertSqliteOrderModifierDetail(OrderModifierDetail data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableOrderModifierDetail!, data.toJson());
+    return data.copy(order_modifier_detail_sqlite_id: id);
+  }
 
 /*
   add sale to sqlite
@@ -782,6 +813,18 @@ class PosDatabase {
    return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
  }
 
+/*
+  read branch product variant
+*/
+  Future<List<BranchLinkProduct>> readBranchLinkProductVariant (String branch_link_product_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      'SELECT a.*, b.variant_name FROM $tableBranchLinkProduct AS a JOIN $tableProductVariant AS b ON a.product_variant_id = b.product_variant_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_link_product_id = ?',
+       ['', '', branch_link_product_id]);
+
+    return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
+  }
+
 
 /*
   checking price
@@ -861,9 +904,9 @@ class PosDatabase {
   }
 
 /*
-  read branch link modifier
+  read branch link modifier price
 */
-  Future<Object?> readBranchLinkModifier(
+  Future<Object?> readBranchLinkModifierPrice(
       String branch_id, String mod_item_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
@@ -1112,6 +1155,18 @@ class PosDatabase {
 
    return result.map((json) => OrderDetail.fromJson(json)).toList();
  }
+
+/*
+  read order mod detail
+*/
+  Future<List<OrderModifierDetail>> readOrderModifierDetail(String order_detail_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      'SELECT a.*, b.name FROM $tableOrderModifierDetail AS a JOIN $tableModifierItem AS b ON a.mod_item_id = b.mod_item_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.order_detail_id = ?',
+      ['', '', order_detail_id]);
+
+    return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
+  }
 
 /*
   read specific user

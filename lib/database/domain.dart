@@ -949,6 +949,22 @@ class Domain {
   }
 
   /*
+  * get all order modifier detail
+  * */
+  getAllOrderModifierDetail(company_id, branch_id) async {
+    try {
+      var response = await http.post(Domain.order, body: {
+        'getAllOrderModifierDetail': '1',
+        'company_id': company_id,
+        'branch_id': branch_id
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get sale
   * */
   getSale(company_id, branch_id) async {
