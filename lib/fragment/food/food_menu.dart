@@ -35,7 +35,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     readAllCategories();
-    _tabController = TabController(length: 0, vsync: this);
+    // _tabController = TabController(length: 0, vsync: this);
   }
 
   @override
@@ -69,7 +69,9 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                     child: TextField(
                       onChanged: (value) {
                         _tabController.index = 0;
-                        searchProduct(value);
+                        setState(() {
+                          searchProduct(value);
+                        });
                       },
                       controller: searchController,
                       decoration: InputDecoration(
@@ -260,10 +262,16 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   searchProduct(String text) async {
-    List<Product> data = await PosDatabase.instance.searchProduct(text);
-    categoryTabContent.removeAt(0);
-    categoryTabContent.insert(
-        0,
+    List<Product> hha = await PosDatabase.instance.searchProduct(text);
+    categoryTabContent.clear();
+    insertProduct(hha);
+    insertProduct(hha);
+    insertProduct(hha);
+
+  }
+
+  insertProduct(List<Product> data){
+    categoryTabContent.add(
         GridView.count(
             shrinkWrap: true,
             crossAxisCount: 5,
@@ -308,6 +316,5 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                 ),
               );
             })));
-
   }
 }

@@ -933,6 +933,26 @@ class Domain {
   }
 
   /*
+  * insert order cache
+  * */
+  insertOrderCache(company_id, branch_id, table_id, dining_id, order_by, total_amount) async {
+    try {
+      var response = await http.post(Domain.order, body: {
+        'insertOrderCache': '1',
+        'company_id': company_id,
+        'branch_id': branch_id,
+        'table_id' : table_id,
+        'dining_id' : dining_id,
+        'order_by' : order_by,
+        'total_amount' : total_amount
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all order detail
   * */
   getAllOrderDetail(company_id, branch_id) async {
@@ -949,6 +969,29 @@ class Domain {
   }
 
   /*
+  * insert order detail
+  * */
+  insertOrderDetail(order_cache_id, branch_link_product_id, product_name, has_variant, 	product_variant_name, price, quantity, remark, account) async {
+    try {
+      var response = await http.post(Domain.order, body: {
+        'insertOrderDetail': '1',
+        'order_cache_id': order_cache_id,
+        'branch_link_product_id': branch_link_product_id,
+        'product_name' : product_name,
+        'has_variant' : has_variant,
+        'product_variant_name' : product_variant_name,
+        'price' : price,
+        'quantity': quantity,
+        'remark' : remark,
+        'account' : account,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all order modifier detail
   * */
   getAllOrderModifierDetail(company_id, branch_id) async {
@@ -957,6 +1000,29 @@ class Domain {
         'getAllOrderModifierDetail': '1',
         'company_id': company_id,
         'branch_id': branch_id
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * insert order modifier detail
+  * */
+  insertOrderModifierDetail(order_cache_id, branch_link_product_id, product_name, has_variant, 	product_variant_name, price, quantity, remark, account) async {
+    try {
+      var response = await http.post(Domain.order, body: {
+        'insertOrderDetail': '1',
+        'order_cache_id': order_cache_id,
+        'branch_link_product_id': branch_link_product_id,
+        'product_name' : product_name,
+        'has_variant' : has_variant,
+        'product_variant_name' : product_variant_name,
+        'price' : price,
+        'quantity': quantity,
+        'remark' : remark,
+        'account' : account,
       });
       return jsonDecode(response.body);
     } catch (error) {

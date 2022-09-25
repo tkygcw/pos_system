@@ -130,14 +130,15 @@ class PosDatabase {
     await db.execute(
         '''CREATE TABLE $tableOrderCache ( ${OrderCacheFields.order_cache_sqlite_id} $idType, ${OrderCacheFields.order_cache_id} $integerType, ${OrderCacheFields.company_id} $textType, 
            ${OrderCacheFields.branch_id} $textType, ${OrderCacheFields.order_detail_id} $textType, ${OrderCacheFields.table_id} $textType, 
-           ${OrderCacheFields.dining_id} $textType, ${OrderCacheFields.order_id} $textType, ${OrderCacheFields.order_by} $textType, ${OrderCacheFields.total_amount} $textType,
+           ${OrderCacheFields.dining_id} $textType, ${OrderCacheFields.order_id} $textType, ${OrderCacheFields.order_by} $textType, ${OrderCacheFields.customer_id} $textType, ${OrderCacheFields.total_amount} $textType,
            ${OrderCacheFields.created_at} $textType, ${OrderCacheFields.updated_at} $textType, ${OrderCacheFields.soft_delete} $textType)''');
 /*
     create order detail table
 */
     await db.execute(
         '''CREATE TABLE $tableOrderDetail ( ${OrderDetailFields.order_detail_sqlite_id} $idType, ${OrderDetailFields.order_detail_id} $integerType, 
-           ${OrderDetailFields.order_cache_id} $textType, ${OrderDetailFields.branch_link_product_id} $textType, 
+           ${OrderDetailFields.order_cache_id} $textType, ${OrderDetailFields.branch_link_product_id} $textType, ${OrderDetailFields.productName} $textType,
+           ${OrderDetailFields.has_variant} $textType, ${OrderDetailFields.product_variant_name} $textType, ${OrderDetailFields.price} $textType, 
            ${OrderDetailFields.quantity} $textType, ${OrderDetailFields.remark} $textType, ${OrderDetailFields.account} $textType,
            ${OrderDetailFields.created_at} $textType, ${OrderDetailFields.updated_at} $textType, ${OrderDetailFields.soft_delete} $textType)''');
 /*
@@ -1269,8 +1270,8 @@ class PosDatabase {
   Future<int> updatePosTableStatus(PosTable data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-      'UPDATE $tablePosTable SET status = ?, updated_at = ? WHERE table_sqlite_id = ?',
-      [data.status, data.updated_at, data.table_sqlite_id]);
+      'UPDATE $tablePosTable SET status = ?, updated_at = ? WHERE table_id = ?',
+      [data.status, data.updated_at, data.table_id]);
   }
 
 

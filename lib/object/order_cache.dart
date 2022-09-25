@@ -11,6 +11,7 @@ class OrderCacheFields {
     dining_id,
     order_id,
     order_by,
+    customer_id,
     total_amount,
     created_at,
     updated_at,
@@ -26,6 +27,7 @@ class OrderCacheFields {
   static String dining_id = 'dining_id';
   static String order_id = 'order_id';
   static String order_by = 'order_by';
+  static String customer_id = 'customer_id';
   static String total_amount = 'total_amount';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -42,6 +44,7 @@ class OrderCache{
   String? dining_id;
   String? order_id;
   String? order_by;
+  String? customer_id;
   String? total_amount;
   String? created_at;
   String? updated_at;
@@ -57,6 +60,7 @@ class OrderCache{
         this.dining_id,
         this.order_id,
         this.order_by,
+        this.customer_id,
         this.total_amount,
         this.created_at,
         this.updated_at,
@@ -72,6 +76,7 @@ class OrderCache{
     String? dining_id,
     String? order_id,
     String? order_by,
+    String? customer_id,
     String? total_amount,
     String? created_at,
     String? updated_at,
@@ -87,6 +92,7 @@ class OrderCache{
           dining_id: dining_id ?? this.dining_id,
           order_id: order_id ?? this.order_id,
           order_by: order_by ?? this.order_by,
+          customer_id: customer_id ?? this.customer_id,
           total_amount: total_amount ?? this.total_amount,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -102,6 +108,7 @@ class OrderCache{
     dining_id: json[OrderCacheFields.dining_id] as String?,
     order_id: json[OrderCacheFields.order_id] as String?,
     order_by: json[OrderCacheFields.order_by] as String?,
+    customer_id: json[OrderCacheFields.customer_id] as String?,
     total_amount: json[OrderCacheFields.total_amount] as String?,
     created_at: json[OrderCacheFields.created_at] as String?,
     updated_at: json[OrderCacheFields.updated_at] as String?,
@@ -118,6 +125,7 @@ class OrderCache{
     OrderCacheFields.dining_id: dining_id,
     OrderCacheFields.order_id: order_id,
     OrderCacheFields.order_by: order_by,
+    OrderCacheFields.customer_id: customer_id,
     OrderCacheFields.total_amount: total_amount,
     OrderCacheFields.created_at: created_at,
     OrderCacheFields.updated_at: updated_at,
