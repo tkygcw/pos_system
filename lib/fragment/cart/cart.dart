@@ -967,6 +967,7 @@ class _CartPageState extends State<CartPage> {
 
   createOrderCache(CartModel cart) async {
       print('create order cache called');
+
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
