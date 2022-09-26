@@ -170,6 +170,22 @@ class Domain {
   }
 
   /*
+  * edit branch table
+  * */
+  editTableStatus(status, table_id) async {
+    try {
+      var response = await http.post(Domain.table, body: {
+        'editTableStatus': '1',
+        'status': status,
+        'table_id': table_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * delete branch table
   * */
   deleteBranchTable(table_id) async {
@@ -946,7 +962,9 @@ class Domain {
         'order_by' : order_by,
         'total_amount' : total_amount
       });
+      print(jsonDecode(response.body));
       return jsonDecode(response.body);
+
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
@@ -962,6 +980,7 @@ class Domain {
         'company_id': company_id,
         'branch_id': branch_id
       });
+
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -985,6 +1004,7 @@ class Domain {
         'remark' : remark,
         'account' : account,
       });
+      print(jsonDecode(response.body));
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -1010,20 +1030,15 @@ class Domain {
   /*
   * insert order modifier detail
   * */
-  insertOrderModifierDetail(order_cache_id, branch_link_product_id, product_name, has_variant, 	product_variant_name, price, quantity, remark, account) async {
+  insertOrderModifierDetail(order_detail_id, mod_item_id) async {
     try {
       var response = await http.post(Domain.order, body: {
-        'insertOrderDetail': '1',
-        'order_cache_id': order_cache_id,
-        'branch_link_product_id': branch_link_product_id,
-        'product_name' : product_name,
-        'has_variant' : has_variant,
-        'product_variant_name' : product_variant_name,
-        'price' : price,
-        'quantity': quantity,
-        'remark' : remark,
-        'account' : account,
+        'insertOrderModifierDetail': '1',
+        'order_detail_id': order_detail_id,
+        'mod_item_id': mod_item_id,
+
       });
+      print(jsonDecode(response.body));
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());

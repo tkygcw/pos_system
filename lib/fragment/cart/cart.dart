@@ -442,7 +442,7 @@ class _CartPageState extends State<CartPage> {
                                 }
                               } else {
                                 if (cart.cartNotifierItem.isNotEmpty) {
-                                  //await createOrderCache(cart);
+                                  await createOrderCache(cart);
                                   await updatePosTable(cart);
                                   cart.removeAllCartItem();
                                   cart.selectedTable.clear();
@@ -951,100 +951,110 @@ class _CartPageState extends State<CartPage> {
       List<PosTable> result = await PosDatabase.instance
           .checkPosTableStatus(branch_id!, cart.selectedTable[i].table_id!);
       if (result[0].status == 0) {
-        PosTable posTableData = PosTable(
-            table_id: cart.selectedTable[i].table_id,
-            status: 1,
-            updated_at: dateTime);
+        Map responseEditTableStatus = await Domain().editTableStatus('1', cart.selectedTable[i].table_id.toString());
+        if(responseEditTableStatus['status'] =='1'){
+          PosTable posTableData = PosTable(
+              table_id: cart.selectedTable[i].table_id,
+              status: 1,
+              updated_at: dateTime);
+          int data =
+          await PosDatabase.instance.updatePosTableStatus(posTableData);
+        }
 
-        int data =
-            await PosDatabase.instance.updatePosTableStatus(posTableData);
       }
     }
   }
 
   createOrderCache(CartModel cart) async {
-    print('create order cache called');
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    final String? user = prefs.getString('user');
-    Map userObject = json.decode(user!);
-    for (int i = 0; i < cart.selectedTable.length; i++) {
-      Map responseInsertOrderCache = await Domain().insertOrderCache(
-          userObject['company_id'],
-          branch_id.toString(),
-          cart.selectedTable[i].table_id.toString(),
-          '1',
-          userObject['name'],
-          totalAmount.toStringAsFixed(2));
-      if (responseInsertOrderCache['status'] == '1') {
-        OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
-            OrderCache(
-                order_cache_id: responseInsertOrderCache['order'],
-                company_id: userObject['company_id'],
-                branch_id: branch_id.toString(),
-                order_detail_id: '',
-                table_id: cart.selectedTable[i].table_id.toString(),
-                dining_id: '1',
-                order_id: '',
-                order_by: '',
-                total_amount: totalAmount.toStringAsFixed(2),
-                created_at: dateTime,
-                updated_at: '',
-                soft_delete: ''));
+      print('create order cache called');
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      final String? user = prefs.getString('user');
+      Map userObject = json.decode(user!);
+      for (int i = 0; i < cart.selectedTable.length; i++) {
+        print(cart.selectedTable[i].table_id.toString());
+        Map responseInsertOrderCache = await Domain().insertOrderCache(
+            userObject['company_id'].toString(),
+            branch_id.toString(),
+            cart.selectedTable[i].table_id.toString(),
+            '1',
+            userObject['name'].toString(),
+            totalAmount.toStringAsFixed(2).toString());
+        if (responseInsertOrderCache['status'] == '1') {
+          OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
+              OrderCache(
+                  order_cache_id: responseInsertOrderCache['order'],
+                  company_id: userObject['company_id'],
+                  branch_id: branch_id.toString(),
+                  order_detail_id: '',
+                  table_id: cart.selectedTable[i].table_id.toString(),
+                  dining_id: '1',
+                  order_id: '',
+                  order_by: '',
+                  total_amount: totalAmount.toStringAsFixed(2),
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
 
-        for (int j = 0; j < cart.cartNotifierItem.length; j++) {
-          Map responseInsertOrderDetail = await Domain().insertOrderDetail(
-              responseInsertOrderCache['order'],
-              cart.cartNotifierItem[j].branchProduct_id.toString(),
-              cart.cartNotifierItem[j].name,
-              cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
-              cart.cartNotifierItem[j].name,
-              cart.cartNotifierItem[j].price,
-              cart.cartNotifierItem[j].quantity.toString(),
-              cart.cartNotifierItem[j].remark,
-              '');
-          if(responseInsertOrderDetail['status']=='1'){
-            OrderDetail detailData = await PosDatabase.instance.insertOrderDetail(
-                OrderDetail(
-                    order_detail_id: responseInsertOrderDetail['order'],
-                    order_cache_id: responseInsertOrderCache['order'],
-                    branch_link_product_id:
-                    cart.cartNotifierItem[j].branchProduct_id,
-                    productName: cart.cartNotifierItem[j].name,
-                    has_variant:
-                    cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
-                    product_variant_name: cart.cartNotifierItem[j].name,
-                    price: cart.cartNotifierItem[j].price,
-                    quantity: cart.cartNotifierItem[j].quantity.toString(),
-                    remark: cart.cartNotifierItem[j].remark,
-                    account: '',
-                    created_at: dateTime,
-                    updated_at: '',
-                    soft_delete: ''));
+          for (int j = 0; j < cart.cartNotifierItem.length; j++) {
+            Map responseInsertOrderDetail = await Domain().insertOrderDetail(
+                responseInsertOrderCache['order'],
+                cart.cartNotifierItem[j].branchProduct_id.toString(),
+                cart.cartNotifierItem[j].name.toString(),
+                cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
+                cart.cartNotifierItem[j].name.toString(),
+                cart.cartNotifierItem[j].price.toString(),
+                cart.cartNotifierItem[j].quantity.toString(),
+                cart.cartNotifierItem[j].remark.toString(),
+                '');
+            if (responseInsertOrderDetail['status'] == '1') {
+              OrderDetail detailData = await PosDatabase.instance
+                  .insertOrderDetail(OrderDetail(
+                  order_detail_id: responseInsertOrderDetail['order'],
+                  order_cache_id: responseInsertOrderCache['order'],
+                  branch_link_product_id:
+                  cart.cartNotifierItem[j].branchProduct_id,
+                  productName: cart.cartNotifierItem[j].name,
+                  has_variant: cart.cartNotifierItem[j].variant.length == 0
+                      ? '0'
+                      : '1',
+                  product_variant_name: cart.cartNotifierItem[j].name,
+                  price: cart.cartNotifierItem[j].price,
+                  quantity: cart.cartNotifierItem[j].quantity.toString(),
+                  remark: cart.cartNotifierItem[j].remark,
+                  account: '',
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
 
-            for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
-              ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
-              for (int m = 0; m < group.modifierChild.length; m++) {
-                if (group.modifierChild[m].isChecked!) {
-                  OrderModifierDetail modifierData = await PosDatabase.instance
-                      .insertSqliteOrderModifierDetail(OrderModifierDetail(
-                      order_modifier_detail_id: 0,
-                      order_detail_id:
-                      await detailData.order_detail_id.toString(),
-                      mod_item_id:
-                      group.modifierChild[m].mod_item_id.toString(),
-                      created_at: dateTime,
-                      updated_at: '',
-                      soft_delete: ''));
+              for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
+                ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
+                for (int m = 0; m < group.modifierChild.length; m++) {
+                  if (group.modifierChild[m].isChecked!) {
+                    Map responseInsertOrderModifierDetail = await Domain()
+                        .insertOrderModifierDetail(
+                        responseInsertOrderDetail['order'].toString(),
+                        group.modifierChild[m].mod_item_id.toString());
+                    if(responseInsertOrderModifierDetail['status'] == '1'){
+                      OrderModifierDetail modifierData = await PosDatabase.instance
+                          .insertSqliteOrderModifierDetail(OrderModifierDetail(
+                          order_modifier_detail_id: responseInsertOrderModifierDetail['order'],
+                          order_detail_id: responseInsertOrderDetail['order'],
+                          mod_item_id: group.modifierChild[m].mod_item_id.toString(),
+                          created_at: dateTime,
+                          updated_at: '',
+                          soft_delete: ''));
+                    }
+
+                  }
                 }
               }
             }
           }
-
         }
       }
-    }
+
   }
 }
