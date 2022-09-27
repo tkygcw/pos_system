@@ -1003,13 +1003,14 @@ class _CartPageState extends State<CartPage> {
                   order_id: '',
                   order_by: '',
                   total_amount: totalAmount.toStringAsFixed(2),
+                  customer_id: '',
                   created_at: dateTime,
                   updated_at: '',
                   soft_delete: ''));
 
           for (int j = 0; j < cart.cartNotifierItem.length; j++) {
             Map responseInsertOrderDetail = await Domain().insertOrderDetail(
-                responseInsertOrderCache['order'],
+                responseInsertOrderCache['order'].toString(),
                 cart.cartNotifierItem[j].branchProduct_id.toString(),
                 cart.cartNotifierItem[j].name.toString(),
                 cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
@@ -1022,9 +1023,8 @@ class _CartPageState extends State<CartPage> {
               OrderDetail detailData = await PosDatabase.instance
                   .insertOrderDetail(OrderDetail(
                   order_detail_id: responseInsertOrderDetail['order'],
-                  order_cache_id: responseInsertOrderCache['order'],
-                  branch_link_product_id:
-                  cart.cartNotifierItem[j].branchProduct_id,
+                  order_cache_id: responseInsertOrderCache['order'].toString(),
+                  branch_link_product_id: cart.cartNotifierItem[j].branchProduct_id,
                   productName: cart.cartNotifierItem[j].name,
                   has_variant: cart.cartNotifierItem[j].variant.length == 0
                       ? '0'
@@ -1050,8 +1050,9 @@ class _CartPageState extends State<CartPage> {
                       OrderModifierDetail modifierData = await PosDatabase.instance
                           .insertSqliteOrderModifierDetail(OrderModifierDetail(
                           order_modifier_detail_id: responseInsertOrderModifierDetail['order'],
-                          order_detail_id: responseInsertOrderDetail['order'],
+                          order_detail_id: responseInsertOrderDetail['order'].toString(),
                           mod_item_id: group.modifierChild[m].mod_item_id.toString(),
+                          mod_group_id: '',
                           created_at: dateTime,
                           updated_at: '',
                           soft_delete: ''));

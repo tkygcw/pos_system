@@ -60,7 +60,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                 children: [
                   Expanded(
                       child: Text(
-                        "Order",
+                        "Menu",
                         style: TextStyle(
                             fontSize: 25, color: color.backgroundColor),
                       )),

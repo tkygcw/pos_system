@@ -32,7 +32,7 @@ class _ProductPageState extends State<ProductPage> {
         child: Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: false,
-            title: Text('Food Menu',
+            title: Text('Food',
                 style: TextStyle(fontSize: 25, color: Colors.black)),
             backgroundColor: Color(0xffFAFAFA),
             elevation: 0,

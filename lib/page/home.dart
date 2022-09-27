@@ -2,6 +2,7 @@ import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/bill/bill.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
+import 'package:pos_system/fragment/display_order/display_order.dart';
 import 'package:pos_system/fragment/order/order.dart';
 import 'package:pos_system/fragment/product/product.dart';
 import 'package:pos_system/fragment/setting/setting.dart';
@@ -35,7 +36,7 @@ class _HomePageState extends State<HomePage> {
     // TODO: implement initState
     super.initState();
     _items = _generateItems;
-    currentPage = 'order';
+    currentPage = 'menu';
     getRoleName();
     getBranchName();
   }
@@ -99,9 +100,9 @@ class _HomePageState extends State<HomePage> {
   List<CollapsibleItem> get _generateItems {
     return [
       CollapsibleItem(
-        text: 'Order',
+        text: 'Menu',
         icon: Icons.add_shopping_cart,
-        onPressed: () => setState(() => currentPage = 'order'),
+        onPressed: () => setState(() => currentPage = 'menu'),
         isSelected: true,
       ),
       CollapsibleItem(
@@ -116,8 +117,13 @@ class _HomePageState extends State<HomePage> {
       ),
       CollapsibleItem(
         text: 'Bill',
-        icon: Icons.receipt,
+        icon: Icons.receipt_long,
         onPressed: () => setState(() => currentPage = 'bill'),
+      ),
+      CollapsibleItem(
+        text: 'order',
+        icon: Icons.receipt,
+        onPressed: () => setState(() => currentPage = 'order'),
       ),
       CollapsibleItem(
         text: 'Setting',
@@ -129,7 +135,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _body(Size size, BuildContext context) {
     switch (currentPage) {
-      case 'order':
+      case 'menu':
         return OrderPage();
       case 'product':
         return ProductPage();
@@ -137,6 +143,8 @@ class _HomePageState extends State<HomePage> {
         return TablePage();
       case 'bill':
         return BillPage();
+      case 'order':
+        return DisplayOrderPage();
       default:
         return SettingMenu();
     }
