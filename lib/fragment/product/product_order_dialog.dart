@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:pos_system/object/branch_link_product.dart';
@@ -72,15 +71,17 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(modifierGroup.name!, style: TextStyle(fontWeight: FontWeight.bold)),
-        for(int i = 0; i < modifierGroup.modifierChild.length; i++)
+        Text(modifierGroup.name!,
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        for (int i = 0; i < modifierGroup.modifierChild.length; i++)
           CheckboxListTile(
             title: Text(modifierGroup.modifierChild[i].name!),
             value: modifierGroup.modifierChild[i].isChecked,
-            onChanged: (isChecked){
+            onChanged: (isChecked) {
               setState(() {
                 modifierGroup.modifierChild[i].isChecked = isChecked!;
-                print('flavour ${modifierGroup.modifierChild[i].name},is check ${modifierGroup.modifierChild[i].isChecked}');
+                print(
+                    'flavour ${modifierGroup.modifierChild[i].name},is check ${modifierGroup.modifierChild[i].isChecked}');
               });
             },
             controlAffinity: ListTileControlAffinity.trailing,
@@ -93,114 +94,110 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return isLoading != true
-          ? Consumer<CartModel>(
-            builder: (context, CartModel cart, child) {
+          ? Consumer<CartModel>(builder: (context, CartModel cart, child) {
               return AlertDialog(
-                  title: Text(
-                    widget.productDetail!.name!,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                title: Text(
+                  widget.productDetail!.name!,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
-                  content: Container(
-                    height: 500.0, // Change as per your requirement
-                    width: 350.0,
-                    child: SingleChildScrollView(
-                      child:
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (int i = 0; i < variantGroup.length; i++)
-                            variantGroupLayout(variantGroup[i]),
-
-                          for(int j = 0; j < modifierGroup.length; j++)
-                            modifierGroupLayout(modifierGroup[j]),
-                          Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Quantity",
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              QuantityInput(
-                                  inputWidth: 273,
-                                  decoration: InputDecoration(
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide:
-                                          BorderSide(color: color.backgroundColor),
-                                    ),
+                ),
+                content: Container(
+                  height: 500.0, // Change as per your requirement
+                  width: 350.0,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (int i = 0; i < variantGroup.length; i++)
+                          variantGroupLayout(variantGroup[i]),
+                        for (int j = 0; j < modifierGroup.length; j++)
+                          modifierGroupLayout(modifierGroup[j]),
+                        Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Quantity",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
                                   ),
-                                  buttonColor: color.backgroundColor,
-                                  value: simpleIntInput,
-                                  onChanged: (value) => setState(() =>
-                                      simpleIntInput =
-                                          int.parse(value.replaceAll(',', ''))))
-                            ],
-                          ),
-                          Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Remark",
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
+                                ],
                               ),
-                              TextField(
-                                controller: remarkController,
+                            ),
+                            QuantityInput(
+                                inputWidth: 273,
                                 decoration: InputDecoration(
                                   focusedBorder: OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: color.backgroundColor),
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
                                   ),
                                 ),
-                                keyboardType: TextInputType.multiline,
-                                maxLines: null,
-                              )
-                            ],
-                          )
-                        ],
-                      ),
+                                buttonColor: color.backgroundColor,
+                                value: simpleIntInput,
+                                onChanged: (value) => setState(() =>
+                                    simpleIntInput =
+                                        int.parse(value.replaceAll(',', ''))))
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Remark",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            TextField(
+                              controller: remarkController,
+                              decoration: InputDecoration(
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: color.backgroundColor),
+                                ),
+                              ),
+                              keyboardType: TextInputType.multiline,
+                              maxLines: null,
+                            )
+                          ],
+                        )
+                      ],
                     ),
                   ),
-                  actions: <Widget>[
-                    TextButton(
-                      child: Text(
-                          '${AppLocalizations.of(context)?.translate('close')}'),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    TextButton(
-                      child:
-                          Text('${AppLocalizations.of(context)?.translate('add')}'),
-                      onPressed: () async {
-                        await addToCart(cart);
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                );
-            }
-          )
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text(
+                        '${AppLocalizations.of(context)?.translate('close')}'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  TextButton(
+                    child: Text(
+                        '${AppLocalizations.of(context)?.translate('add')}'),
+                    onPressed: () async {
+                      await addToCart(cart);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            })
           : CustomProgressBar();
     });
   }
@@ -232,15 +229,22 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   readProductModifier(int productID) async {
-    List<ModifierGroup> data = await PosDatabase.instance.readProductModifierGroupName(productID);
+    List<ModifierGroup> data =
+        await PosDatabase.instance.readProductModifierGroupName(productID);
 
     for (int i = 0; i < data.length; i++) {
-      modifierGroup.add(ModifierGroup(modifierChild: [], name: data[i].name));
-      List<ModifierItem> itemData = await PosDatabase.instance.readProductModifierItem(data[i].mod_group_id!);
+      modifierGroup.add(ModifierGroup(
+          modifierChild: [],
+          name: data[i].name,
+          mod_group_id: data[i].mod_group_id));
+
+      List<ModifierItem> itemData = await PosDatabase.instance
+          .readProductModifierItem(data[i].mod_group_id!);
       List<ModifierItem> modItemChild = [];
 
       for (int j = 0; j < itemData.length; j++) {
         modItemChild.add(ModifierItem(
+            mod_group_id: data[i].mod_group_id.toString(),
             name: itemData[j].name!,
             mod_item_id: itemData[j].mod_item_id,
             isChecked: false));
@@ -256,56 +260,60 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   getProductPrice(int? productId) async {
-    try{
+    try {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
 
-      List<BranchLinkProduct> data = await PosDatabase.instance.readAllBranchLinkProduct(branch_id.toString(), productId.toString());
-      for(int i = 0; i < data.length; i++){
-        if(data[i].has_variant == '0'){
+      List<BranchLinkProduct> data = await PosDatabase.instance
+          .readAllBranchLinkProduct(branch_id.toString(), productId.toString());
+      for (int i = 0; i < data.length; i++) {
+        if (data[i].has_variant == '0') {
           basePrice = data[i].price!;
-        }else{
-          List<BranchLinkProduct> data = await PosDatabase.instance.checkVariantPrice(await getHasVariantProductPrice(productId), productId.toString());
+        } else {
+          List<BranchLinkProduct> data = await PosDatabase.instance
+              .checkVariantPrice(await getHasVariantProductPrice(productId),
+                  productId.toString());
           basePrice = data[0].price.toString();
         }
       }
-    }catch(error){
+    } catch (error) {
       print('Get product base price error ${error}');
     }
     return basePrice;
   }
 
-  getBranchLinkProductItem(int? productId) async{
+  getBranchLinkProductItem(int? productId) async {
     branchLinkProduct_id = '';
 
-    List<BranchLinkProduct> data = await PosDatabase.instance.checkVariantPrice(await getHasVariantProductPrice(productId), productId.toString());
+    List<BranchLinkProduct> data = await PosDatabase.instance.checkVariantPrice(
+        await getHasVariantProductPrice(productId), productId.toString());
     branchLinkProduct_id = data[0].branch_link_product_id.toString();
 
     return branchLinkProduct_id;
   }
 
-  getHasVariantProductPrice(int? product_id) async{
+  getHasVariantProductPrice(int? product_id) async {
     String variant = '';
     String variant2 = '';
     String productVariant = '';
-    try{
+    try {
       for (int j = 0; j < variantGroup.length; j++) {
         VariantGroup group = variantGroup[j];
         for (int i = 0; i < group.child.length; i++) {
           if (group.variant_item_id == group.child[i].variant_item_id) {
             group.child[i].isSelected = true;
-            if(variant == ''){
+            if (variant == '') {
               variant = group.child[i].name!;
-            }
-            else{
+            } else {
               variant2 = variant + " | " + group.child[i].name!;
-              List<ProductVariant> data = await PosDatabase.instance.readAllProductVariant(product_id.toString(), variant2);
+              List<ProductVariant> data = await PosDatabase.instance
+                  .readAllProductVariant(product_id.toString(), variant2);
               productVariant = data[0].product_variant_id.toString();
             }
           }
         }
       }
-    }catch(error){
+    } catch (error) {
       print('Price checking error: ${error}');
     }
     return productVariant;
@@ -324,17 +332,16 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       }
     }
 
-    //print(jsonEncode(modifierGroup.map((e) => e.addToCartJSon()).toList()));
+    print(jsonEncode(modifierGroup.map((e) => e.addToCartJSon()).toList()));
     var value = cartProductItem(
-        await getBranchLinkProductItem(widget.productDetail?.product_id),
-        widget.productDetail!.name!,
-        widget.productDetail!.category_id!,
-        await getProductPrice(widget.productDetail?.product_id),
-        simpleIntInput,
-        modifierGroup,
-        variantGroup,
-        remarkController.text,
-        hasPromo
+      await getBranchLinkProductItem(widget.productDetail?.product_id),
+      widget.productDetail!.name!,
+      widget.productDetail!.category_id!,
+      await getProductPrice(widget.productDetail?.product_id),
+      simpleIntInput,
+      modifierGroup,
+      variantGroup,
+      remarkController.text,
     );
     cart.addItem(value);
   }

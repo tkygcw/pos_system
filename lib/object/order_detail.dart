@@ -1,3 +1,5 @@
+import 'modifier_group.dart';
+
 String? tableOrderDetail = 'tb_order_detail ';
 
 class OrderDetailFields {
@@ -50,9 +52,13 @@ class OrderDetail{
   String? updated_at;
   String? soft_delete;
   String? total_amount;
+  String base_price = '0.0';
+  String? category_id;
   String product_name = '';
   String variant_name ='';
+  String? mod_item_id;
   List<String> modifier_name = [];
+  List<String> mod_group_id = [];
 
   OrderDetail(
       {this.order_detail_sqlite_id,

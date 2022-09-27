@@ -6,7 +6,6 @@ import 'package:pos_system/fragment/table/table_detail_dialog.dart';
 import 'package:pos_system/fragment/table/table_dialog.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/table.dart';
-import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -41,7 +40,7 @@ class _TableMenuState extends State<TableMenu> {
 
   @override
   Widget build(BuildContext context) {
-    readAllTableAmount();
+
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Scaffold(
         body: StreamBuilder(
@@ -117,7 +116,13 @@ class _TableMenuState extends State<TableMenu> {
                                   child: InkWell(
                                     splashColor: Colors.blue.withAlpha(30),
                                     onLongPress: () {
-                                      openAddTableDialog(tableList[index]);
+                                      if(tableList[index].status != 1){
+                                        openAddTableDialog(tableList[index]);
+                                      } else {
+                                        Fluttertoast.showToast(
+                                            backgroundColor: Color(0xFFFF0000),
+                                            msg: "table in used");
+                                      }
                                     },
                                     onTap: () {
                                       tableList[index].status != 0 ?
@@ -320,6 +325,7 @@ class _TableMenuState extends State<TableMenu> {
                 opacity: a1.value,
                 child: TableDetailDialog(
                   object: posTable,
+                  callBack: () => readAllTable(),
                 ),
             ),
           );
@@ -335,6 +341,7 @@ class _TableMenuState extends State<TableMenu> {
 
 
   readAllTable() async {
+    print('read all table called');
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     List<PosTable> data =
@@ -342,6 +349,7 @@ class _TableMenuState extends State<TableMenu> {
 
     tableList = data;
     readAllTableAmount();
+    controller.add('refresh');
   }
 
   readAllTableAmount() async {

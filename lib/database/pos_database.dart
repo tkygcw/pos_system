@@ -309,6 +309,7 @@ class PosDatabase {
           ${OrderModifierDetailFields.order_modifier_detail_id} $integerType,
           ${OrderModifierDetailFields.order_detail_id} $textType,
           ${OrderModifierDetailFields.mod_item_id} $textType,
+          ${OrderModifierDetailFields.mod_group_id} $textType,
           ${OrderModifierDetailFields.created_at} $textType,
           ${OrderModifierDetailFields.updated_at} $textType,
           ${OrderModifierDetailFields.soft_delete} $textType)''');
@@ -1106,6 +1107,18 @@ class PosDatabase {
   }
 
 /*
+  read product category
+*/
+  Future<List<Product>> readSpecificProductCategory(String product_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      'SELECT * FROM $tableProduct WHERE soft_delete = ? AND product_id = ?',
+      ['', product_id]);
+
+    return result.map((json) => Product.fromJson(json)).toList();
+  }
+
+/*
   read all table
 */
   Future<List<PosTable>> readAllTable(int branchID) async {
@@ -1421,6 +1434,37 @@ class PosDatabase {
         'UPDATE $tablePosTable SET soft_delete = ? WHERE table_id = ?',
         [data.soft_delete, data.table_id]);
   }
+
+/*
+  Soft-delete Order cache
+*/
+  Future<int> deleteOrderCache(OrderCache data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderCache SET soft_delete = ? WHERE order_cache_id = ?',
+        [data.soft_delete, data.order_cache_id]);
+  }
+
+/*
+  Soft-delete Order detail
+*/
+  Future<int> deleteOrderDetail(OrderDetail data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderDetail SET soft_delete = ? WHERE order_detail_id = ?',
+        [data.soft_delete, data.order_detail_id]);
+  }
+
+/*
+  Soft-delete Order modifier detail
+*/
+  Future<int> deleteOrderModifierDetail(OrderModifierDetail data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderModifierDetail SET soft_delete = ? WHERE order_detail_id = ?',
+        [data.soft_delete, data.order_detail_id]);
+  }
+
 
 /*
   Delete All Branch

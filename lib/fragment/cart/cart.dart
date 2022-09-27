@@ -430,7 +430,7 @@ class _CartPageState extends State<CartPage> {
                               if (cart.selectedOption == 'Dine in') {
                                 if (cart.selectedTable.isNotEmpty &&
                                     cart.cartNotifierItem.isNotEmpty) {
-                                  //await createOrderCache(cart);
+                                  await createOrderCache(cart);
                                   await updatePosTable(cart);
                                   cart.removeAllCartItem();
                                   cart.selectedTable.clear();
@@ -663,10 +663,13 @@ class _CartPageState extends State<CartPage> {
               }
             }
           } else {
-            hasPromo = true;
-            autoApplyPromotionList.add(promotionList[j]);
-            promoName = promotionList[j].name!;
-            autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
+            if(cart.cartNotifierItem.isNotEmpty){
+              hasPromo = true;
+              autoApplyPromotionList.add(promotionList[j]);
+              promoName = promotionList[j].name!;
+              autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
+            }
+
           }
         }
       }
@@ -939,7 +942,9 @@ class _CartPageState extends State<CartPage> {
       print('promotion list error $error');
     }
   }
-
+/*
+  taylor part
+*/
   updatePosTable(CartModel cart) async {
     print('updated');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -965,6 +970,9 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
+/*
+  Taylor part
+*/
   createOrderCache(CartModel cart) async {
       print('create order cache called');
 
@@ -1056,6 +1064,90 @@ class _CartPageState extends State<CartPage> {
           }
         }
       }
-
   }
+
+/*
+ leow part
+*/
+  // updatePosTable(CartModel cart) async {
+  //   print('update table');
+  //   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+  //   String dateTime = dateFormat.format(DateTime.now());
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final int? branch_id = prefs.getInt('branch_id');
+  //
+  //   for (int i = 0; i < cart.selectedTable.length; i++) {
+  //     List<PosTable> result = await PosDatabase.instance
+  //         .checkPosTableStatus(branch_id!, cart.selectedTable[i].table_id!);
+  //     if (result[0].status == 0) {
+  //         PosTable posTableData = PosTable(
+  //             table_id: cart.selectedTable[i].table_id,
+  //             status: 1,
+  //             updated_at: dateTime);
+  //         int data = await PosDatabase.instance.updatePosTableStatus(posTableData);
+  //     }
+  //   }
+  // }
+
+  // createOrderCache(CartModel cart) async {
+  //   print('create order cache called');
+  //   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+  //   String dateTime = dateFormat.format(DateTime.now());
+  //
+  //   for (int i = 0; i < cart.selectedTable.length; i++) {
+  //       OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
+  //           OrderCache(
+  //               order_cache_id: 12,
+  //               company_id: '6',
+  //               branch_id: '5',
+  //               order_detail_id: '',
+  //               table_id: cart.selectedTable[i].table_id.toString(),
+  //               dining_id: '1',
+  //               order_id: '',
+  //               order_by: '',
+  //               customer_id: '0',
+  //               total_amount: totalAmount.toStringAsFixed(2),
+  //               created_at: dateTime,
+  //               updated_at: '',
+  //               soft_delete: ''));
+  //
+  //       for (int j = 0; j < cart.cartNotifierItem.length; j++) {
+  //           OrderDetail detailData = await PosDatabase.instance
+  //               .insertOrderDetail(OrderDetail(
+  //               order_detail_id: 12,
+  //               order_cache_id: await data.order_cache_id.toString(),
+  //               branch_link_product_id: cart.cartNotifierItem[j].branchProduct_id,
+  //               productName: cart.cartNotifierItem[j].name,
+  //               has_variant: cart.cartNotifierItem[j].variant.length == 0
+  //                   ? '0'
+  //                   : '1',
+  //               product_variant_name: cart.cartNotifierItem[j].name,
+  //               price: cart.cartNotifierItem[j].price,
+  //               quantity: cart.cartNotifierItem[j].quantity.toString(),
+  //               remark: cart.cartNotifierItem[j].remark,
+  //               account: '',
+  //               created_at: dateTime,
+  //               updated_at: '',
+  //               soft_delete: ''));
+  //
+  //           for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
+  //             ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
+  //             print('mod group id: ${group.mod_group_id}');
+  //             for (int m = 0; m < group.modifierChild.length; m++) {
+  //               if (group.modifierChild[m].isChecked!) {
+  //                   OrderModifierDetail modifierData = await PosDatabase.instance
+  //                       .insertSqliteOrderModifierDetail(OrderModifierDetail(
+  //                       order_modifier_detail_id: 0,
+  //                       order_detail_id: await detailData.order_detail_id.toString(),
+  //                       mod_item_id: group.modifierChild[m].mod_item_id.toString(),
+  //                       mod_group_id: group.mod_group_id.toString(),
+  //                       created_at: dateTime,
+  //                       updated_at: '',
+  //                       soft_delete: ''));
+  //               }
+  //             }
+  //           }
+  //       }
+  //   }
+  // }
 }
