@@ -33,8 +33,7 @@ class _FoodSettingState extends State<FoodSetting> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    readAllCategories();
-  }
+    readAllCategories();  }
 
   @override
   Widget build(BuildContext context) {
