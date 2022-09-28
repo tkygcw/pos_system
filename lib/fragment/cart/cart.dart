@@ -509,6 +509,7 @@ class _CartPageState extends State<CartPage> {
               .replaceAll('[', '')
               .replaceAll(']', '')
               .replaceAll(',', '+')
+              .replaceAll('|', '\n+')
               .replaceFirst('', '+ ');
         }
       }
@@ -743,9 +744,14 @@ class _CartPageState extends State<CartPage> {
           await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
       List<TaxLinkDining> TaxLinkDiningData =
           await PosDatabase.instance.readTaxLinkDining(data[0].dining_id!);
-      for (int i = 0; i < TaxLinkDiningData.length; i++) {
-        taxRate = int.parse(TaxLinkDiningData[i].tax_rate!);
+      if(TaxLinkDiningData.length > 0){
+        for (int i = 0; i < TaxLinkDiningData.length; i++) {
+          taxRate = int.parse(TaxLinkDiningData[i].tax_rate!);
+        }
+      } else {
+        taxRate = 0;
       }
+
     } catch (error) {
       print('get dining tax error: $error');
       taxRate = 0;
@@ -772,8 +778,8 @@ class _CartPageState extends State<CartPage> {
     // getCartPromotion(cart);
     // getAutoApplyPromotion(cart);
     calPromotion(cart);
-    getSalesServiceTax(cart);
-    getServiceTax(cart);
+    getSalesServiceTax();
+    getServiceTax();
     getAllTotal();
     controller.add('refresh');
   }
@@ -797,13 +803,15 @@ class _CartPageState extends State<CartPage> {
       }
     } catch (e) {
       print(object.name);
-      print(e);
+      print('Get mod price error: $e');
       total = 0.0;
     }
     return total;
   }
+  
 
-  getSalesServiceTax(CartModel cart) {
+
+  getSalesServiceTax() {
     try {
       priceIncServiceTax = 0.0;
       discountPrice = 0.0;
@@ -817,7 +825,7 @@ class _CartPageState extends State<CartPage> {
     controller.add('refresh');
   }
 
-  getServiceTax(CartModel cart) {
+  getServiceTax() {
     try {
       priceIncServiceTax = 0.0;
       discountPrice = 0.0;
@@ -1098,7 +1106,7 @@ class _CartPageState extends State<CartPage> {
   //   for (int i = 0; i < cart.selectedTable.length; i++) {
   //       OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
   //           OrderCache(
-  //               order_cache_id: 12,
+  //               order_cache_id: 8,
   //               company_id: '6',
   //               branch_id: '5',
   //               order_detail_id: '',
@@ -1107,15 +1115,15 @@ class _CartPageState extends State<CartPage> {
   //               order_id: '',
   //               order_by: '',
   //               customer_id: '0',
-  //               total_amount: totalAmount.toStringAsFixed(2),
+  //               total_amount: discountPrice.toString(),
   //               created_at: dateTime,
   //               updated_at: '',
   //               soft_delete: ''));
   //
   //       for (int j = 0; j < cart.cartNotifierItem.length; j++) {
   //           OrderDetail detailData = await PosDatabase.instance
-  //               .insertOrderDetail(OrderDetail(
-  //               order_detail_id: 12,
+  //               .insertSqliteOrderDetail(OrderDetail(
+  //               order_detail_id: 8,
   //               order_cache_id: await data.order_cache_id.toString(),
   //               branch_link_product_id: cart.cartNotifierItem[j].branchProduct_id,
   //               productName: cart.cartNotifierItem[j].name,

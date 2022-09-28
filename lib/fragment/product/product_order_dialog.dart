@@ -207,7 +207,10 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     List<VariantGroup> data =
         await PosDatabase.instance.readProductVariantGroup(productID);
     for (int i = 0; i < data.length; i++) {
-      variantGroup.add(VariantGroup(child: [], name: data[i].name));
+      variantGroup.add(VariantGroup(
+          variant_group_id: data[i].variant_group_id,
+          child: [],
+          name: data[i].name));
 
       //loop variant child based on variant group id
       List<VariantItem> itemData = await PosDatabase.instance
@@ -220,6 +223,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
         }
         //store all child into one list
         itemChild.add(VariantItem(
+            variant_group_id: data[i].variant_group_id.toString(),
             name: itemData[j].name,
             variant_item_id: itemData[j].variant_item_id));
       }

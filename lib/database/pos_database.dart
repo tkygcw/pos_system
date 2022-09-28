@@ -701,7 +701,7 @@ class PosDatabase {
   }
 
   /*
-  read variant group
+  read product variant
 */
   Future<List<ProductVariant>> readProductVariant(String product_id) async {
     final db = await instance.database;
@@ -710,6 +710,29 @@ class PosDatabase {
         ['', product_id]);
 
     return result.map((json) => ProductVariant.fromJson(json)).toList();
+  }
+
+/*
+  read product variant detail
+*/
+  Future<List<ProductVariantDetail>> readProductVariantDetail(String product_variant_id) async {
+    final db = await instance.database;
+    final result  = await db.rawQuery(
+      'SELECT * FROM $tableProductVariantDetail WHERE soft_delete = ? AND product_variant_id = ?',
+      ['', product_variant_id]);
+
+    return result.map((json) => ProductVariantDetail.fromJson(json)).toList();
+  }
+
+/*
+  read product variant item
+*/
+  Future<List<VariantItem>> readProductVariantItemByVariantID(String variant_item_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      'SELECT * FROM $tableVariantItem WHERE soft_delete = ? AND variant_item_id = ?',
+      ['', variant_item_id]);
+    return result.map((json) => VariantItem.fromJson(json)).toList();
   }
 
   /*

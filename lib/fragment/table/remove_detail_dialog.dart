@@ -62,7 +62,7 @@ class _DetailRemoveDialogState extends State<DetailRemoveDialog> {
         order_cache_id: int.parse(widget.object.order_cache_id!)
       ));
 
-      if(widget.object.modifier_name.isNotEmpty){
+      if(widget.object.modifierItem.isNotEmpty){
         int orderModifierDetailDate = await PosDatabase.instance.deleteOrderModifierDetail(OrderModifierDetail(
             soft_delete: dateTime,
             order_detail_id: widget.object.order_detail_id.toString()

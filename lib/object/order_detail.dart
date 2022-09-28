@@ -1,3 +1,7 @@
+import 'package:pos_system/object/modifier_item.dart';
+import 'package:pos_system/object/product_variant.dart';
+import 'package:pos_system/object/variant_item.dart';
+
 import 'modifier_group.dart';
 
 String? tableOrderDetail = 'tb_order_detail ';
@@ -55,9 +59,10 @@ class OrderDetail{
   String base_price = '0.0';
   String? category_id;
   String product_name = '';
-  String variant_name ='';
   String? mod_item_id;
-  List<String> modifier_name = [];
+  ProductVariant? productVariant ;
+  List<VariantItem> variantItem = [];
+  List<ModifierItem> modifierItem = [];
   List<String> mod_group_id = [];
 
   OrderDetail(
