@@ -843,7 +843,8 @@ class _CartPageState extends State<CartPage> {
   getAllTotal() {
     try {
       totalAmount = 0.0;
-      totalAmount = discountPrice + priceIncSST + priceIncServiceTax;
+      totalAmount = double.parse(discountPrice.toStringAsFixed(2)) + double.parse(priceIncSST.toStringAsFixed(2)) + double.parse(priceIncServiceTax.toStringAsFixed(2));
+      print('total amount from cart: ${totalAmount}');
     } catch (error) {
       print('Total calc error: $error');
     }
@@ -998,7 +999,7 @@ class _CartPageState extends State<CartPage> {
             cart.selectedTable[i].table_id.toString(),
             '1',
             userObject['name'].toString(),
-            totalAmount.toStringAsFixed(2).toString());
+            discountPrice.toStringAsFixed(2).toString());
         if (responseInsertOrderCache['status'] == '1') {
           OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
               OrderCache(
@@ -1010,7 +1011,7 @@ class _CartPageState extends State<CartPage> {
                   dining_id: '1',
                   order_id: '',
                   order_by: '',
-                  total_amount: totalAmount.toStringAsFixed(2),
+                  total_amount: discountPrice.toStringAsFixed(2),
                   customer_id: '',
                   created_at: dateTime,
                   updated_at: '',
@@ -1053,14 +1054,15 @@ class _CartPageState extends State<CartPage> {
                     Map responseInsertOrderModifierDetail = await Domain()
                         .insertOrderModifierDetail(
                         responseInsertOrderDetail['order'].toString(),
-                        group.modifierChild[m].mod_item_id.toString());
+                        group.modifierChild[m].mod_item_id.toString(),
+                        group.mod_group_id.toString());
                     if(responseInsertOrderModifierDetail['status'] == '1'){
                       OrderModifierDetail modifierData = await PosDatabase.instance
                           .insertSqliteOrderModifierDetail(OrderModifierDetail(
                           order_modifier_detail_id: responseInsertOrderModifierDetail['order'],
                           order_detail_id: responseInsertOrderDetail['order'].toString(),
                           mod_item_id: group.modifierChild[m].mod_item_id.toString(),
-                          mod_group_id: '',
+                          mod_group_id: group.mod_group_id.toString(),
                           created_at: dateTime,
                           updated_at: '',
                           soft_delete: ''));
@@ -1106,7 +1108,7 @@ class _CartPageState extends State<CartPage> {
   //   for (int i = 0; i < cart.selectedTable.length; i++) {
   //       OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
   //           OrderCache(
-  //               order_cache_id: 8,
+  //               order_cache_id: 10,
   //               company_id: '6',
   //               branch_id: '5',
   //               order_detail_id: '',
@@ -1115,7 +1117,7 @@ class _CartPageState extends State<CartPage> {
   //               order_id: '',
   //               order_by: '',
   //               customer_id: '0',
-  //               total_amount: discountPrice.toString(),
+  //               total_amount: discountPrice.toStringAsFixed(2),
   //               created_at: dateTime,
   //               updated_at: '',
   //               soft_delete: ''));
@@ -1123,7 +1125,7 @@ class _CartPageState extends State<CartPage> {
   //       for (int j = 0; j < cart.cartNotifierItem.length; j++) {
   //           OrderDetail detailData = await PosDatabase.instance
   //               .insertSqliteOrderDetail(OrderDetail(
-  //               order_detail_id: 8,
+  //               order_detail_id: 10,
   //               order_cache_id: await data.order_cache_id.toString(),
   //               branch_link_product_id: cart.cartNotifierItem[j].branchProduct_id,
   //               productName: cart.cartNotifierItem[j].name,

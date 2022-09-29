@@ -1030,13 +1030,13 @@ class Domain {
   /*
   * insert order modifier detail
   * */
-  insertOrderModifierDetail(order_detail_id, mod_item_id) async {
+  insertOrderModifierDetail(order_detail_id, mod_item_id, mod_group_id) async {
     try {
       var response = await http.post(Domain.order, body: {
         'insertOrderModifierDetail': '1',
         'order_detail_id': order_detail_id,
         'mod_item_id': mod_item_id,
-
+        'mod_group_id': mod_group_id
       });
       print(jsonDecode(response.body));
       return jsonDecode(response.body);

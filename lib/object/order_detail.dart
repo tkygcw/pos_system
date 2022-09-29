@@ -64,6 +64,7 @@ class OrderDetail{
   List<VariantItem> variantItem = [];
   List<ModifierItem> modifierItem = [];
   List<String> mod_group_id = [];
+  bool hasModifier = false;
 
   OrderDetail(
       {this.order_detail_sqlite_id,

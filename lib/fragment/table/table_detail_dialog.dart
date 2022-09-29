@@ -21,6 +21,7 @@ import '../../notifier/theme_color.dart';
 import '../../object/cart_product.dart';
 import '../../object/modifier_group.dart';
 import '../../object/modifier_item.dart';
+import '../../object/modifier_link_product.dart';
 import '../../object/order_cache.dart';
 import '../../object/table.dart';
 import '../../object/variant_group.dart';
@@ -60,7 +61,6 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
   @override
   void dispose() {
     // TODO: implement dispose
-
     super.dispose();
   }
 
@@ -70,7 +70,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
         return AlertDialog(
           title: Text("table ${widget.object.number} detail"),
-          content: isLoad
+          content: isLoad == true
               ? Container(
                       width: 350.0,
                       height: 450.0,
@@ -105,80 +105,74 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
                                       return null;
                                     },
                                     child: Card(
-                                      child: SizedBox(
-                                        height: 85.0,
-                                        child: Column(children: [
-                                          Expanded(
-                                            child: ListTile(
-                                              hoverColor: Colors.transparent,
-                                              onTap: () {},
-                                              isThreeLine: true,
-                                              title: RichText(
-                                                text: TextSpan(
-                                                  children: <TextSpan>[
-                                                    TextSpan(
-                                                        text:
-                                                            "${orderDetailList[index].product_name}" +
-                                                                "\n",
-                                                        style: TextStyle(
+                                      child: Container(
+                                        margin: EdgeInsets.all(10),
+                                          height: 85.0,
+                                          child: Column(children: [
+                                            Expanded(
+                                              child: ListTile(
+                                                hoverColor: Colors.transparent,
+                                                onTap: () {},
+                                                isThreeLine: true,
+                                                title: RichText(
+                                                  text: TextSpan(
+                                                    children: <TextSpan>[
+                                                      TextSpan(
+                                                          text:
+                                                              "${orderDetailList[index].product_name}" +
+                                                                  "\n",
+                                                          style: TextStyle(
+                                                            fontSize: 18,
+                                                            color: color
+                                                                .backgroundColor,
+                                                          )),
+                                                      TextSpan(
+                                                          text: "RM${orderDetailList[index].base_price}",
+                                                          style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: color
+                                                                .backgroundColor,
+                                                          )),
+                                                    ],
+                                                  ),
+                                                ),
+                                                subtitle: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    orderDetailList[index].modifierItem.isNotEmpty
+                                                        ? Text("+ ${reformatModifierDetail(orderDetailList[index].modifierItem)}")
+                                                        : Container(),
+                                                    orderDetailList[index].productVariant != null
+                                                        ? Text(
+                                                            "+ ${reformatVariantDetail(orderDetailList[index].productVariant!)}")
+                                                        : Container(),
+                                                    Text(
+                                                        "${orderDetailList[index].remark}")
+                                                  ],
+                                                ),
+                                                // Text(
+                                                //     "Add on: ${reformatModifierDetail(orderDetailList[index].modifier_name) + "\n"} "
+                                                //     "${orderDetailList[index].variant_name +"\n"} "
+                                                //     "${orderDetailList[index].remark}"
+                                                // ),
+                                                trailing: Container(
+                                                  child: FittedBox(
+                                                    child: Row(
+                                                      children: [
+                                                        Text('x${orderDetailList[index].quantity}',
+                                                            style: TextStyle(
                                                           fontSize: 18,
                                                           color: color
                                                               .backgroundColor,
                                                         )),
-                                                    TextSpan(
-                                                        text: "RM" +
-                                                            "${orderDetailList[index].total_amount}" +
-                                                            " (RM${orderDetailList[index].base_price})",
-                                                        style: TextStyle(
-                                                          fontSize: 13,
-                                                          color: color
-                                                              .backgroundColor,
-                                                        )),
-                                                  ],
-                                                ),
-                                              ),
-                                              subtitle: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  orderDetailList[index]
-                                                          .modifierItem
-                                                          .isNotEmpty
-                                                      ? Text(
-                                                          "Add on: ${reformatModifierDetail(orderDetailList[index].modifierItem)}")
-                                                      : Container(),
-                                                  orderDetailList[index]
-                                                              .productVariant !=
-                                                          null
-                                                      ? Text(
-                                                          "Variant: ${reformatVariantDetail(orderDetailList[index].productVariant!)}")
-                                                      : Container(),
-                                                  Text(
-                                                      "${orderDetailList[index].remark}")
-                                                ],
-                                              ),
-                                              // Text(
-                                              //     "Add on: ${reformatModifierDetail(orderDetailList[index].modifier_name) + "\n"} "
-                                              //     "${orderDetailList[index].variant_name +"\n"} "
-                                              //     "${orderDetailList[index].remark}"
-                                              // ),
-                                              trailing: Container(
-                                                child: FittedBox(
-                                                  child: Row(
-                                                    children: [
-                                                      Text('x${orderDetailList[index].quantity}',
-                                                          style: TextStyle(
-                                                        fontSize: 18,
-                                                        color: color
-                                                            .backgroundColor,
-                                                      )),
-                                                    ],
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        ]),
+                                          ]),
                                       ),
                                     ),
                                   );
@@ -228,16 +222,18 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
+    //Get all order table cache
     List<OrderCache> data = await PosDatabase.instance
         .readTableOrderCache(branch_id.toString(), widget.object.table_id!);
     for (int i = 0; i < data.length; i++) {
       List<OrderDetail> detailData = await PosDatabase.instance
           .readTableOrderDetail(data[i].order_cache_id.toString());
-
-      for (int j = 0; j < detailData.length; j++) {
-          orderDetailList += detailData;
+      //add all order detail from db
+      if (!orderDetailList.contains(detailData)) {
+        orderDetailList..addAll(detailData);
       }
-
+    }
+      //loop all order detail
       for (int k = 0; k < orderDetailList.length; k++) {
         //Get data from branch link product
         List<BranchLinkProduct> result = await PosDatabase.instance
@@ -259,16 +255,13 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
           orderDetailList[k].productVariant = ProductVariant(
               product_variant_id: int.parse(variant[0].product_variant_id!),
               variant_name: variant[0].variant_name);
+
           //Get product variant detail
-          List<ProductVariantDetail> productVariantDetail = await PosDatabase
-              .instance
-              .readProductVariantDetail(variant[0].product_variant_id!);
+          List<ProductVariantDetail> productVariantDetail = await PosDatabase.instance.readProductVariantDetail(variant[0].product_variant_id!);
           orderDetailList[k].variantItem.clear();
           for (int v = 0; v < productVariantDetail.length; v++) {
             //Get product variant item
-            List<VariantItem> variantItemDetail = await PosDatabase.instance
-                .readProductVariantItemByVariantID(
-                    productVariantDetail[v].variant_item_id!);
+            List<VariantItem> variantItemDetail = await PosDatabase.instance.readProductVariantItemByVariantID(productVariantDetail[v].variant_item_id!);
             orderDetailList[k].variantItem.add(VariantItem(
                 variant_item_id:
                     int.parse(productVariantDetail[v].variant_item_id!),
@@ -276,59 +269,70 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
                 name: variant[0].variant_name,
                 isSelected: true));
             productVariantDetail.clear();
+
           }
         }
-        //Get order modifier detail
-        List<OrderModifierDetail> modDetail = await PosDatabase.instance
-            .readOrderModifierDetail(
-                orderDetailList[k].order_detail_id.toString());
 
-        if (modDetail.length > 0) {
-          orderDetailList[k].modifierItem.clear();
-          for (int m = 0; m < modDetail.length; m++) {
-            print('mod detail length: ${modDetail.length}');
-            if (!orderDetailList[k]
-                .modifierItem
-                .contains(modDetail[m].mod_group_id!)) {
-              orderDetailList[k].modifierItem.add(ModifierItem(
-                  mod_group_id: modDetail[m].mod_group_id!,
-                  mod_item_id: int.parse(modDetail[m].mod_item_id!),
-                  name: modDetail[m].modifier_name!));
-              orderDetailList[k].mod_group_id.add(modDetail[m].mod_group_id!);
-              orderDetailList[k].mod_item_id = modDetail[m].mod_item_id;
+        //check product modifier
+        List<ModifierLinkProduct> productMod = await PosDatabase.instance.readProductModifier(result[0].product_id!);
+        if(productMod.length > 0){
+          orderDetailList[k].hasModifier = true;
+        }
+
+        if(orderDetailList[k].hasModifier == true){
+          //Get order modifier detail
+          List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[k].order_detail_id.toString());
+          if (modDetail.length > 0) {
+            orderDetailList[k].modifierItem.clear();
+            for (int m = 0; m < modDetail.length; m++) {
+              // print('mod detail length: ${modDetail.length}');
+              if (!orderDetailList[k].modifierItem.contains(modDetail[m].mod_group_id!)) {
+                orderDetailList[k].modifierItem.add(ModifierItem(
+                    mod_group_id: modDetail[m].mod_group_id!,
+                    mod_item_id: int.parse(modDetail[m].mod_item_id!),
+                    name: modDetail[m].modifier_name!));
+                orderDetailList[k].mod_group_id.add(modDetail[m].mod_group_id!);
+                orderDetailList[k].mod_item_id = modDetail[m].mod_item_id;
+              }
             }
-          }
+        }
         }
       }
-    }
-    isLoad = true;
+    setState(() {
+      isLoad = true;
+    });
   }
 
   getAllTotalAmount() {
     totalOrderAmount = 0.0;
+    priceSST = 0.0;
+    priceServeTax = 0.0;
     for (int i = 0; i < orderDetailList.length; i++) {
       priceSST = double.parse(orderDetailList[i].total_amount!) * 0.06;
       priceServeTax = double.parse(orderDetailList[i].total_amount!) * 0.10;
 
-      totalOrderAmount = (double.parse(orderDetailList[i].total_amount!) + priceSST + priceServeTax) + totalOrderAmount ;
-      priceSST = 0.0;
-      priceServeTax = 0.0;
+      totalOrderAmount += double.parse(orderDetailList[i].total_amount!) + double.parse(priceSST.toStringAsFixed(2)) + double.parse(priceServeTax.toStringAsFixed(2));
+
+      print('order detail length: ${orderDetailList.length}');
+      print('price serve tax: ${priceServeTax.toStringAsFixed(2)}');
+      print('price sst: ${priceSST.toStringAsFixed(2)} ');
+      print('order cache total amount: ${orderDetailList[i].total_amount!}');
     }
+
     return totalOrderAmount.toStringAsFixed(2);
   }
 
   reformatModifierDetail(List<ModifierItem> modList) {
     String result = '';
     for (int i = 0; i < modList.length; i++) {
-      print('modifier item length: ${modList.length}');
-      result += modList[i].name.toString().trim() + ', ';
+      result += modList[i].name.toString().trim();
     }
     return result;
   }
 
   reformatVariantDetail(ProductVariant productVariant) {
     String result = '';
-    result = productVariant.variant_name!.trim().replaceAll('|', ',');
+    result = productVariant.variant_name!.replaceAll('|', '\n+').trim();
     return result;
   }
 
@@ -408,7 +412,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
           variant_group_id:
               int.parse(orderDetail.variantItem[i].variant_group_id!)));
     }
-    print('variant group length: ${variantGroup.length}');
+    //print('variant group length: ${variantGroup.length}');
     return variantGroup;
   }
 

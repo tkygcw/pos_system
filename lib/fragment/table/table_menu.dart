@@ -355,6 +355,8 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   readAllTableAmount() async {
+    priceSST = 0.0;
+    priceServeTax = 0.0;
     print('readAllTableAmount called');
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -367,9 +369,9 @@ class _TableMenuState extends State<TableMenu> {
       for (int j = 0; j < data.length; j++) {
         priceSST = double.parse(data[j].total_amount!) * 0.06;
         priceServeTax = double.parse(data[j].total_amount!) * 0.10;
-        tableList[i].total_Amount = (double.parse(data[j].total_amount!) + priceSST + priceServeTax) + tableList[i].total_Amount ;
-        priceSST = 0.0;
-        priceServeTax = 0.0;
+        print('table total amount: ${tableList[i].total_Amount}');
+        tableList[i].total_Amount = (
+        double.parse(data[j].total_amount!) + double.parse(priceSST.toStringAsFixed(2)) + double.parse(priceServeTax.toStringAsFixed(2))) + double.parse(tableList[i].total_Amount.toStringAsFixed(2)) ;
       }
     }
     controller.add('refresh');

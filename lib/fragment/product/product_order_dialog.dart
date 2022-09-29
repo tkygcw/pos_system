@@ -336,7 +336,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       }
     }
 
-    print(jsonEncode(modifierGroup.map((e) => e.addToCartJSon()).toList()));
+    //print(jsonEncode(modifierGroup.map((e) => e.addToCartJSon()).toList()));
     var value = cartProductItem(
       await getBranchLinkProductItem(widget.productDetail?.product_id),
       widget.productDetail!.name!,
