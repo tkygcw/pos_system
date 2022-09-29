@@ -1181,6 +1181,25 @@ class PosDatabase {
     }
   }
 
+  /*
+  get all order cache except dine in
+*/
+  Future<List<OrderCache>> readOrderCacheNoDineIn(String branch_id, String company_id) async {
+    try{
+      final db = await instance.database;
+      final result = await db.rawQuery(
+          'SELECT a.order_cache_id ,a.order_detail_id, a.dining_id, a.table_id, a.order_id, a.order_by, a.total_amount, a.customer_id, a.created_at, a.updated_at, a.soft_delete FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id WHERE a.soft_delete=? AND b.soft_delete=? AND a.branch_id = ? AND a.company_id = ? AND b.company_id = ? AND b.name != ?',
+          ['','', branch_id, company_id, company_id, 'Dine in']);
+
+      return result.map((json) => OrderCache.fromJson(json)).toList();
+    }catch (e){
+      print(e);
+      return [];
+    }
+  }
+
+
+
 /*
   read order detail
 */

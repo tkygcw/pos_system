@@ -997,7 +997,7 @@ class _CartPageState extends State<CartPage> {
             userObject['company_id'].toString(),
             branch_id.toString(),
             cart.selectedTable[i].table_id.toString(),
-            '1',
+            '2',
             userObject['name'].toString(),
             discountPrice.toStringAsFixed(2).toString());
         if (responseInsertOrderCache['status'] == '1') {
@@ -1008,7 +1008,7 @@ class _CartPageState extends State<CartPage> {
                   branch_id: branch_id.toString(),
                   order_detail_id: '',
                   table_id: cart.selectedTable[i].table_id.toString(),
-                  dining_id: '1',
+                  dining_id: '2',
                   order_id: '',
                   order_by: '',
                   total_amount: discountPrice.toStringAsFixed(2),
