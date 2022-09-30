@@ -367,11 +367,11 @@ class _TableMenuState extends State<TableMenu> {
           .readTableOrderCache(branch_id.toString(), tableList[i].table_id!);
 
       for (int j = 0; j < data.length; j++) {
-        priceSST = double.parse(data[j].total_amount!) * 0.06;
-        priceServeTax = double.parse(data[j].total_amount!) * 0.10;
-        print('table total amount: ${tableList[i].total_Amount}');
-        tableList[i].total_Amount = (
-        double.parse(data[j].total_amount!) + double.parse(priceSST.toStringAsFixed(2)) + double.parse(priceServeTax.toStringAsFixed(2))) + double.parse(tableList[i].total_Amount.toStringAsFixed(2)) ;
+        // priceSST = double.parse(data[j].total_amount!) * 0.06;
+        // priceServeTax = double.parse(data[j].total_amount!) * 0.10;
+
+        tableList[i].total_Amount += double.parse(data[j].total_amount!) ;
+            //+ double.parse(priceSST.toStringAsFixed(2)) + double.parse(priceServeTax.toStringAsFixed(2))) + double.parse(tableList[i].total_Amount.toStringAsFixed(2)) ;
       }
     }
     controller.add('refresh');

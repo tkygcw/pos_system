@@ -42,6 +42,7 @@ class _CartPageState extends State<CartPage> {
   List<String> branchLinkDiningIdList = [];
   List<cartProductItem> sameCategoryItemList = [];
   List<Promotion> autoApplyPromotionList = [];
+  int diningOptionID = 0;
   int simpleIntInput = 0;
   double total = 0.0;
   int taxRate = 0;
@@ -178,13 +179,10 @@ class _CartPageState extends State<CartPage> {
                               ),
                               isExpanded: true,
                               // The list of options
-                              items: diningList
-                                  .map((e) => DropdownMenuItem(
+                              items: diningList.map((e) => DropdownMenuItem(
                                         child: Container(
                                           alignment: Alignment.centerLeft,
-                                          child: Text(
-                                            e,
-                                            style: TextStyle(fontSize: 18),
+                                          child: Text(e, style: TextStyle(fontSize: 18),
                                           ),
                                         ),
                                         value: e,
@@ -192,9 +190,9 @@ class _CartPageState extends State<CartPage> {
                                   .toList(),
                               // Customize the selected item
                               selectedItemBuilder: (BuildContext context) =>
-                                  diningList
-                                      .map((e) => Center(child: Text(e)))
-                                      .toList(),
+                                  diningList.map(
+                                      (e) => Center(child: Text(e))
+                                  ).toList(),
                             ),
                           ]),
                         ),
@@ -441,11 +439,10 @@ class _CartPageState extends State<CartPage> {
                                           "make sure cart is not empty and table is selected");
                                 }
                               } else {
+                                cart.selectedTable.clear();
                                 if (cart.cartNotifierItem.isNotEmpty) {
                                   await createOrderCache(cart);
-                                  await updatePosTable(cart);
                                   cart.removeAllCartItem();
-                                  cart.selectedTable.clear();
                                 } else {
                                   Fluttertoast.showToast(
                                       backgroundColor: Color(0xFFFF0000),
@@ -469,6 +466,7 @@ class _CartPageState extends State<CartPage> {
 /*
   -----------------------Cart-item-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
 
 /*
   Get Cart product modifier
@@ -740,10 +738,12 @@ class _CartPageState extends State<CartPage> {
   getDiningTax(CartModel cart) async {
     try {
       taxRate = 0;
-      List<DiningOption> data =
-          await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
-      List<TaxLinkDining> TaxLinkDiningData =
-          await PosDatabase.instance.readTaxLinkDining(data[0].dining_id!);
+      diningOptionID = 0;
+      //get dining option data
+      List<DiningOption> data = await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
+      diningOptionID = data[0].dining_id!;
+      //get dining tax
+      List<TaxLinkDining> TaxLinkDiningData = await PosDatabase.instance.readTaxLinkDining(data[0].dining_id!);
       if(TaxLinkDiningData.length > 0){
         for (int i = 0; i < TaxLinkDiningData.length; i++) {
           taxRate = int.parse(TaxLinkDiningData[i].tax_rate!);
@@ -758,6 +758,7 @@ class _CartPageState extends State<CartPage> {
     }
 
     controller.add('refresh');
+    return diningOptionID;
   }
 
   getSubTotal(CartModel cart) async {
@@ -766,9 +767,7 @@ class _CartPageState extends State<CartPage> {
       promo = 0.0;
       promoAmount = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        total += (double.parse((cart.cartNotifierItem[i].price)) +
-                await getModifierPrice(cart.cartNotifierItem[i])) *
-            cart.cartNotifierItem[i].quantity;
+        total += (double.parse((cart.cartNotifierItem[i].price)) * cart.cartNotifierItem[i].quantity);
       }
     } catch (e) {
       print('Sub Total Error: $e');
@@ -783,33 +782,6 @@ class _CartPageState extends State<CartPage> {
     getAllTotal();
     controller.add('refresh');
   }
-
-  getModifierPrice(cartProductItem object) async {
-    double total = 0.0;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-
-      for (int i = 0; i < object.modifier.length; i++) {
-        ModifierGroup group = object.modifier[i];
-        for (int j = 0; j < group.modifierChild.length; j++) {
-          if (group.modifierChild[j].isChecked!) {
-            String? price = (await PosDatabase.instance
-                .readBranchLinkModifierPrice(branch_id!.toString(),
-                    group.modifierChild[j].mod_item_id.toString())) as String?;
-            total += double.parse(price!);
-          }
-        }
-      }
-    } catch (e) {
-      print(object.name);
-      print('Get mod price error: $e');
-      total = 0.0;
-    }
-    return total;
-  }
-  
-
 
   getSalesServiceTax() {
     try {
@@ -997,9 +969,9 @@ class _CartPageState extends State<CartPage> {
             userObject['company_id'].toString(),
             branch_id.toString(),
             cart.selectedTable[i].table_id.toString(),
-            '2',
+            diningOptionID.toString(),
             userObject['name'].toString(),
-            discountPrice.toStringAsFixed(2).toString());
+            totalAmount.toStringAsFixed(2));
         if (responseInsertOrderCache['status'] == '1') {
           OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
               OrderCache(
@@ -1008,10 +980,10 @@ class _CartPageState extends State<CartPage> {
                   branch_id: branch_id.toString(),
                   order_detail_id: '',
                   table_id: cart.selectedTable[i].table_id.toString(),
-                  dining_id: '2',
+                  dining_id: diningOptionID.toString(),
                   order_id: '',
                   order_by: '',
-                  total_amount: discountPrice.toStringAsFixed(2),
+                  total_amount: totalAmount.toStringAsFixed(2),
                   customer_id: '',
                   created_at: dateTime,
                   updated_at: '',

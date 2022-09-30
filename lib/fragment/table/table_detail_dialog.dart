@@ -40,7 +40,7 @@ class TableDetailDialog extends StatefulWidget {
 
 class _TableDetailDialogState extends State<TableDetailDialog> {
   late StreamController controller;
-  List<List<OrderDetail>> orderDetailList2 = [];
+  List<OrderCache> orderCacheList = [];
   List<OrderDetail> orderDetailList = [];
   List<BranchLinkProduct> branchProductList = [];
   List<VariantGroup> variantGroup = [];
@@ -219,13 +219,21 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
     print('readSpecificTableDetail called');
     isLoad = false;
     orderDetailList.clear();
+    orderCacheList.clear();
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
     //Get all order table cache
     List<OrderCache> data = await PosDatabase.instance
         .readTableOrderCache(branch_id.toString(), widget.object.table_id!);
+    //loop all table order cache
     for (int i = 0; i < data.length; i++) {
+      print('get all table cache: ${data.length}');
+      if(!orderCacheList.contains(data)){
+        orderCacheList = List.from(data);
+        print('order cache list: ${orderCacheList.length}');
+      }
+      //Get all order detail based on order cache id
       List<OrderDetail> detailData = await PosDatabase.instance
           .readTableOrderDetail(data[i].order_cache_id.toString());
       //add all order detail from db
@@ -307,20 +315,13 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
     totalOrderAmount = 0.0;
     priceSST = 0.0;
     priceServeTax = 0.0;
-    for (int i = 0; i < orderDetailList.length; i++) {
-      priceSST = double.parse(orderDetailList[i].total_amount!) * 0.06;
-      priceServeTax = double.parse(orderDetailList[i].total_amount!) * 0.10;
-
-      totalOrderAmount += double.parse(orderDetailList[i].total_amount!) + double.parse(priceSST.toStringAsFixed(2)) + double.parse(priceServeTax.toStringAsFixed(2));
-
-      print('order detail length: ${orderDetailList.length}');
-      print('price serve tax: ${priceServeTax.toStringAsFixed(2)}');
-      print('price sst: ${priceSST.toStringAsFixed(2)} ');
-      print('order cache total amount: ${orderDetailList[i].total_amount!}');
+    for (int i = 0; i < orderCacheList.length; i++) {
+      totalOrderAmount += double.parse(orderCacheList[i].total_amount!);
     }
 
     return totalOrderAmount.toStringAsFixed(2);
   }
+
 
   reformatModifierDetail(List<ModifierItem> modList) {
     String result = '';
@@ -418,7 +419,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
 
   void addToPaymentCart(CartModel cart) async {
     var value;
-    cart.removeAllCartItem();
+    //cart.removeAllCartItem();
     cart.removeAllTable();
     //get selected modifier
 

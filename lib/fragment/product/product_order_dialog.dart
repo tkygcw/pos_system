@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:pos_system/object/branch_link_modifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/product.dart';
@@ -31,6 +33,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   String branchLinkProduct_id = '';
   String basePrice = '';
   int simpleIntInput = 1;
+  String modifierItemPrice = '';
   List<VariantGroup> variantGroup = [];
   List<ModifierGroup> modifierGroup = [];
   final remarkController = TextEditingController();
@@ -75,7 +78,12 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
             style: TextStyle(fontWeight: FontWeight.bold)),
         for (int i = 0; i < modifierGroup.modifierChild.length; i++)
           CheckboxListTile(
-            title: Text(modifierGroup.modifierChild[i].name!),
+            title: Row(
+              children: [
+                Text('${modifierGroup.modifierChild[i].name!}'),
+                Text(' (+RM ${modifierGroup.modifierChild[i].price})', style: TextStyle(fontSize: 12),)
+              ],
+            ),
             value: modifierGroup.modifierChild[i].isChecked,
             onChanged: (isChecked) {
               setState(() {
@@ -96,12 +104,20 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       return isLoading != true
           ? Consumer<CartModel>(builder: (context, CartModel cart, child) {
               return AlertDialog(
-                title: Text(
-                  widget.productDetail!.name!,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                title: Row(
+                  children: [
+                    Text(widget.productDetail!.name!,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        )),
+                    Spacer(),
+                    Text("RM ${widget.productDetail!.price!}",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        )),
+                  ],
                 ),
                 content: Container(
                   height: 500.0, // Change as per your requirement
@@ -254,6 +270,18 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
             isChecked: false));
       }
       modifierGroup[i].modifierChild = modItemChild;
+      readProductModifierItemPrice(modifierGroup[i]);
+    }
+  }
+
+  readProductModifierItemPrice(ModifierGroup modGroup) async {
+    modifierItemPrice = '';
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    for (int i = 0; i < modGroup.modifierChild.length; i++) {
+      List<BranchLinkModifier> data = await PosDatabase.instance.readBranchLinkModifier(branch_id.toString(), modGroup.modifierChild[i].mod_item_id.toString());
+      modGroup.modifierChild[i].price = data[0].price!;
     }
   }
 
@@ -264,20 +292,53 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   getProductPrice(int? productId) async {
+    double totalBasePrice = 0.0;
+    double totalModPrice = 0.0;
     try {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
 
       List<BranchLinkProduct> data = await PosDatabase.instance
-          .readAllBranchLinkProduct(branch_id.toString(), productId.toString());
-      for (int i = 0; i < data.length; i++) {
-        if (data[i].has_variant == '0') {
-          basePrice = data[i].price!;
-        } else {
-          List<BranchLinkProduct> data = await PosDatabase.instance
-              .checkVariantPrice(await getHasVariantProductPrice(productId),
-                  productId.toString());
-          basePrice = data[0].price.toString();
+          .readBranchLinkSpecificProduct(
+              branch_id.toString(), productId.toString());
+      if (data[0].has_variant == '0') {
+        basePrice = data[0].price!;
+        //check product mod group
+        for (int j = 0; j < modifierGroup.length; j++) {
+          ModifierGroup group = modifierGroup[j];
+          //loop mod group child
+          for (int k = 0; k < group.modifierChild.length; k++) {
+            if (group.modifierChild[k].isChecked == true) {
+              List<BranchLinkModifier> modPrice = await PosDatabase.instance
+                  .readBranchLinkModifier(branch_id!.toString(),
+                      group.modifierChild[k].mod_item_id.toString());
+              totalModPrice += double.parse(modPrice[0].price!);
+              totalBasePrice = double.parse(data[0].price!) + totalModPrice;
+              basePrice = totalBasePrice.toStringAsFixed(2);
+            }
+          }
+        }
+      } else {
+        List<BranchLinkProduct> productVariant = await PosDatabase.instance
+            .checkVariantPrice(await getHasVariantProductPrice(productId),
+                productId.toString());
+        basePrice = productVariant[0].price!;
+
+        //loop has variant product modifier group
+        for (int j = 0; j < modifierGroup.length; j++) {
+          ModifierGroup group = modifierGroup[j];
+          //loop mod group child
+          for (int k = 0; k < group.modifierChild.length; k++) {
+            if (group.modifierChild[k].isChecked == true) {
+              List<BranchLinkModifier> modPrice = await PosDatabase.instance
+                  .readBranchLinkModifier(branch_id!.toString(),
+                      group.modifierChild[k].mod_item_id.toString());
+              totalModPrice += double.parse(modPrice[0].price!);
+              totalBasePrice =
+                  double.parse(productVariant[0].price!) + totalModPrice;
+              basePrice = totalBasePrice.toStringAsFixed(2);
+            }
+          }
         }
       }
     } catch (error) {

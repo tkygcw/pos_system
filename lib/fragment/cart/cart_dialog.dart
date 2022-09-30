@@ -236,11 +236,8 @@ class _CartDialogState extends State<CartDialog> {
           .readTableOrderCache(branch_id.toString(), tableList[i].table_id!);
 
       for (int j = 0; j < data.length; j++) {
-        priceSST = double.parse(data[j].total_amount!) * 0.06;
-        priceServeTax = double.parse(data[j].total_amount!) * 0.10;
-        tableList[i].total_Amount = (double.parse(data[j].total_amount!) + priceSST + priceServeTax) + tableList[i].total_Amount ;
-        priceSST = 0.0;
-        priceServeTax = 0.0;
+        tableList[i].total_Amount += double.parse(data[j].total_amount!);
+
       }
     }
     controller.add('refresh');

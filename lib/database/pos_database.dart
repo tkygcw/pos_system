@@ -800,9 +800,9 @@ class PosDatabase {
   }
 
 /*
-  read all branch link product
+  read branch link specific product
 */
-  Future<List<BranchLinkProduct>> readAllBranchLinkProduct(
+  Future<List<BranchLinkProduct>> readBranchLinkSpecificProduct(
       String branch_id, String product_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
@@ -931,14 +931,14 @@ class PosDatabase {
 /*
   read branch link modifier price
 */
-  Future<Object?> readBranchLinkModifierPrice(
+  Future<List<BranchLinkModifier>> readBranchLinkModifier(
       String branch_id, String mod_item_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT price FROM $tableBranchLinkModifier WHERE soft_delete = ? AND branch_id = ? AND mod_item_id = ?',
+        'SELECT * FROM $tableBranchLinkModifier WHERE soft_delete = ? AND branch_id = ? AND mod_item_id = ?',
         ['', branch_id, mod_item_id]);
 
-    return result[0]['price'];
+    return result.map((json) => BranchLinkModifier.fromJson(json)).toList();
   }
 
 /*
@@ -1095,6 +1095,11 @@ class PosDatabase {
         ['', '', productID]);
     return result.map((json) => ModifierGroup.fromJson(json)).toList();
   }
+
+/*
+  read modifier item
+*/
+
 
   /*
   read all product modifier group name
