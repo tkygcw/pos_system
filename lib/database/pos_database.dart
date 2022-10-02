@@ -1202,6 +1202,22 @@ class PosDatabase {
       return [];
     }
   }
+  /*
+  get order cache for different dine in option
+*/
+  Future<List<OrderCache>> readOrderCacheSpecial(String branch_id, String company_id, String name) async {
+    try{
+      final db = await instance.database;
+      final result = await db.rawQuery(
+          'SELECT a.order_cache_id ,a.order_detail_id, a.dining_id, a.table_id, a.order_id, a.order_by, a.total_amount, a.customer_id, a.created_at, a.updated_at, a.soft_delete FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id WHERE a.soft_delete=? AND b.soft_delete=? AND a.branch_id = ? AND a.company_id = ? AND b.company_id = ? AND b.name = ?',
+          ['','', branch_id, company_id, company_id, name]);
+
+      return result.map((json) => OrderCache.fromJson(json)).toList();
+    }catch (e){
+      print(e);
+      return [];
+    }
+  }
 
 
 
@@ -1238,6 +1254,17 @@ class PosDatabase {
         'SELECT * FROM $tableUser WHERE soft_delete = ? AND role = ? AND pos_pin = ?',
         ['', 0, pin]);
     return result.map((json) => User.fromJson(json)).toList();
+  }
+
+  /*
+  read all the dining option for company
+*/
+  Future<List<DiningOption>> readAllDiningOption(String company_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableDiningOption WHERE soft_delete = ? AND company_id = ?',
+        ['', company_id]);
+    return result.map((json) => DiningOption.fromJson(json)).toList();
   }
 
 /*

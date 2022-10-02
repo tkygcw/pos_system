@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> {
                       }),
                     ),
                     Visibility(
-                      visible: currentPage != 'product' && currentPage != 'setting'? true: false,
+                      visible: currentPage != 'product' && currentPage != 'setting' && currentPage != 'order'? true: false,
                       child: Expanded(
                           flex: 1, child: CartPage()
                       ),
