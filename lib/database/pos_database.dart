@@ -1232,6 +1232,17 @@ class PosDatabase {
 
    return result.map((json) => OrderDetail.fromJson(json)).toList();
  }
+//   /*
+//   read order detail
+// */
+//   Future<List<OrderDetail>> readTableOrderDetailOne(String order_cache_id) async {
+//     final db = await instance.database;
+//     final result = await db.rawQuery(
+//         'SELECT * FROM $tableOrderDetail WHERE soft_delete = ? AND order_cache_id = ?',
+//         ['', order_cache_id]);
+//
+//     return result.map((json) => OrderDetail.fromJson(json)).toList();
+//   }
 
 /*
   read order mod detail
@@ -1243,6 +1254,19 @@ class PosDatabase {
       ['', '', order_detail_id]);
 
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
+  }
+
+  /*
+  read order mod detail
+*/
+  Future<OrderModifierDetail?> readOrderModifierDetailOne(String order_detail_id) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery(
+        'SELECT a.*, b.name FROM $tableOrderModifierDetail AS a JOIN $tableModifierItem AS b ON a.mod_item_id = b.mod_item_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.order_detail_id = ?',
+        ['', '', order_detail_id]);
+    if (maps.isNotEmpty) {
+      return OrderModifierDetail.fromJson(maps.first);
+    }
   }
 
 /*

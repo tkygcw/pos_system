@@ -77,7 +77,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: ViewOrderDialogPage(),
+              child: ViewOrderDialogPage(orderCache: data),
             ),
           );
         },
@@ -174,7 +174,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                               size: 30.0,
                                             ),
                                   trailing: Text(
-                                    orderCacheList[index].created_at!,
+                                    '#'+orderCacheList[index].order_cache_id.toString(),
                                     style: TextStyle(fontSize: 20),
                                   ),
                                   subtitle: Text(
