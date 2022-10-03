@@ -29,7 +29,9 @@ import '../../object/table.dart';
 import '../../translation/AppLocalizations.dart';
 
 class CartPage extends StatefulWidget {
-  const CartPage({Key? key}) : super(key: key);
+  final String currentPage;
+
+  const CartPage({required this.currentPage, Key? key}) : super(key: key);
 
   @override
   State<CartPage> createState() => _CartPageState();
@@ -179,10 +181,13 @@ class _CartPageState extends State<CartPage> {
                               ),
                               isExpanded: true,
                               // The list of options
-                              items: diningList.map((e) => DropdownMenuItem(
+                              items: diningList
+                                  .map((e) => DropdownMenuItem(
                                         child: Container(
                                           alignment: Alignment.centerLeft,
-                                          child: Text(e, style: TextStyle(fontSize: 18),
+                                          child: Text(
+                                            e,
+                                            style: TextStyle(fontSize: 18),
                                           ),
                                         ),
                                         value: e,
@@ -190,9 +195,9 @@ class _CartPageState extends State<CartPage> {
                                   .toList(),
                               // Customize the selected item
                               selectedItemBuilder: (BuildContext context) =>
-                                  diningList.map(
-                                      (e) => Center(child: Text(e))
-                                  ).toList(),
+                                  diningList
+                                      .map((e) => Center(child: Text(e)))
+                                      .toList(),
                             ),
                           ]),
                         ),
@@ -220,7 +225,7 @@ class _CartPageState extends State<CartPage> {
                                     confirmDismiss: (direction) async {
                                       if (direction ==
                                           DismissDirection.startToEnd) {
-                                        openRemoveCartItemDialog(
+                                        await openRemoveCartItemDialog(
                                             cart.cartNotifierItem[index]);
                                       }
                                       return null;
@@ -431,15 +436,15 @@ class _CartPageState extends State<CartPage> {
                                   await createOrderCache(cart);
                                   await updatePosTable(cart);
                                   cart.removeAllCartItem();
-                                  cart.selectedTable.clear();
+                                  cart.removeAllTable();
                                 } else {
                                   Fluttertoast.showToast(
-                                      backgroundColor: Color(0xFFFF0000),
+                                      backgroundColor: Colors.red,
                                       msg:
                                           "make sure cart is not empty and table is selected");
                                 }
                               } else {
-                                cart.selectedTable.clear();
+                                cart.removeAllTable();
                                 if (cart.cartNotifierItem.isNotEmpty) {
                                   await createOrderCache(cart);
                                   await updatePosTable(cart);
@@ -447,12 +452,14 @@ class _CartPageState extends State<CartPage> {
                                   cart.selectedTable.clear();
                                 } else {
                                   Fluttertoast.showToast(
-                                      backgroundColor: Color(0xFFFF0000),
+                                      backgroundColor: Colors.red,
                                       msg: "cart empty");
                                 }
                               }
                             },
-                            child: Text('Place Order'),
+                            child: widget.currentPage == 'menu'
+                                ? Text('Place Order')
+                                : Text('Make payment'),
                           ),
                         ),
                       ],
@@ -468,7 +475,6 @@ class _CartPageState extends State<CartPage> {
 /*
   -----------------------Cart-item-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
-
 
 /*
   Get Cart product modifier
@@ -538,13 +544,10 @@ class _CartPageState extends State<CartPage> {
     } else if (cart.selectedOption != 'Dine in') {
       result = '';
     } else {
-      if (cart.selectedTable.length < 2) {
+      if (cart.selectedTable.length > 0) {
         result = 'table ' + cart.selectedTable[0].number!;
       } else {
-        result = 'table ' +
-            cart.selectedTable[0].number! +
-            ',' +
-            cart.selectedTable[1].number!;
+        result = 'No table';
       }
     }
     return result;
@@ -664,13 +667,12 @@ class _CartPageState extends State<CartPage> {
               }
             }
           } else {
-            if(cart.cartNotifierItem.isNotEmpty){
+            if (cart.cartNotifierItem.isNotEmpty) {
               hasPromo = true;
               autoApplyPromotionList.add(promotionList[j]);
               promoName = promotionList[j].name!;
               autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
             }
-
           }
         }
       }
@@ -742,18 +744,19 @@ class _CartPageState extends State<CartPage> {
       taxRate = 0;
       diningOptionID = 0;
       //get dining option data
-      List<DiningOption> data = await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
+      List<DiningOption> data =
+          await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
       diningOptionID = data[0].dining_id!;
       //get dining tax
-      List<TaxLinkDining> TaxLinkDiningData = await PosDatabase.instance.readTaxLinkDining(data[0].dining_id!);
-      if(TaxLinkDiningData.length > 0){
+      List<TaxLinkDining> TaxLinkDiningData =
+          await PosDatabase.instance.readTaxLinkDining(data[0].dining_id!);
+      if (TaxLinkDiningData.length > 0) {
         for (int i = 0; i < TaxLinkDiningData.length; i++) {
           taxRate = int.parse(TaxLinkDiningData[i].tax_rate!);
         }
       } else {
         taxRate = 0;
       }
-
     } catch (error) {
       print('get dining tax error: $error');
       taxRate = 0;
@@ -769,7 +772,8 @@ class _CartPageState extends State<CartPage> {
       promo = 0.0;
       promoAmount = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        total += (double.parse((cart.cartNotifierItem[i].price)) * cart.cartNotifierItem[i].quantity);
+        total += (double.parse((cart.cartNotifierItem[i].price)) *
+            cart.cartNotifierItem[i].quantity);
       }
     } catch (e) {
       print('Sub Total Error: $e');
@@ -817,8 +821,9 @@ class _CartPageState extends State<CartPage> {
   getAllTotal() {
     try {
       totalAmount = 0.0;
-      totalAmount = double.parse(discountPrice.toStringAsFixed(2)) + double.parse(priceIncSST.toStringAsFixed(2)) + double.parse(priceIncServiceTax.toStringAsFixed(2));
-      print('total amount from cart: ${totalAmount}');
+      totalAmount = double.parse(discountPrice.toStringAsFixed(2)) +
+          double.parse(priceIncSST.toStringAsFixed(2)) +
+          double.parse(priceIncServiceTax.toStringAsFixed(2));
     } catch (error) {
       print('Total calc error: $error');
     }
@@ -925,6 +930,7 @@ class _CartPageState extends State<CartPage> {
       print('promotion list error $error');
     }
   }
+
 /*
   taylor part
 */
@@ -939,16 +945,16 @@ class _CartPageState extends State<CartPage> {
       List<PosTable> result = await PosDatabase.instance
           .checkPosTableStatus(branch_id!, cart.selectedTable[i].table_id!);
       if (result[0].status == 0) {
-        Map responseEditTableStatus = await Domain().editTableStatus('1', cart.selectedTable[i].table_id.toString());
-        if(responseEditTableStatus['status'] =='1'){
+        Map responseEditTableStatus = await Domain()
+            .editTableStatus('1', cart.selectedTable[i].table_id.toString());
+        if (responseEditTableStatus['status'] == '1') {
           PosTable posTableData = PosTable(
               table_id: cart.selectedTable[i].table_id,
               status: 1,
               updated_at: dateTime);
           int data =
-          await PosDatabase.instance.updatePosTableStatus(posTableData);
+              await PosDatabase.instance.updatePosTableStatus(posTableData);
         }
-
       }
     }
   }
@@ -957,18 +963,107 @@ class _CartPageState extends State<CartPage> {
   Taylor part
 */
   createOrderCache(CartModel cart) async {
-      print('create order cache called');
-      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-      String dateTime = dateFormat.format(DateTime.now());
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-      final String? user = prefs.getString('user');
-      Map userObject = json.decode(user!);
-      if(cart.selectedTable.length == 0){
+    print('create order cache called');
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    if (cart.selectedTable.length == 0) {
+      Map responseInsertOrderCache = await Domain().insertOrderCache(
+          userObject['company_id'].toString(),
+          branch_id.toString(),
+          '',
+          diningOptionID.toString(),
+          userObject['name'].toString(),
+          totalAmount.toStringAsFixed(2));
+      if (responseInsertOrderCache['status'] == '1') {
+        OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
+            OrderCache(
+                order_cache_id: responseInsertOrderCache['order'],
+                company_id: userObject['company_id'],
+                branch_id: branch_id.toString(),
+                order_detail_id: '',
+                table_id: '',
+                dining_id: diningOptionID.toString(),
+                order_id: '',
+                order_by: userObject['name'].toString(),
+                total_amount: totalAmount.toStringAsFixed(2),
+                customer_id: '',
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+
+        for (int j = 0; j < cart.cartNotifierItem.length; j++) {
+          Map responseInsertOrderDetail = await Domain().insertOrderDetail(
+              responseInsertOrderCache['order'].toString(),
+              cart.cartNotifierItem[j].branchProduct_id.toString(),
+              cart.cartNotifierItem[j].name.toString(),
+              cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
+              cart.cartNotifierItem[j].name.toString(),
+              cart.cartNotifierItem[j].price.toString(),
+              cart.cartNotifierItem[j].quantity.toString(),
+              cart.cartNotifierItem[j].remark.toString(),
+              '');
+          if (responseInsertOrderDetail['status'] == '1') {
+            OrderDetail detailData = await PosDatabase.instance
+                .insertOrderDetail(OrderDetail(
+                    order_detail_id: responseInsertOrderDetail['order'],
+                    order_cache_id:
+                        responseInsertOrderCache['order'].toString(),
+                    branch_link_product_id:
+                        cart.cartNotifierItem[j].branchProduct_id,
+                    productName: cart.cartNotifierItem[j].name,
+                    has_variant: cart.cartNotifierItem[j].variant.length == 0
+                        ? '0'
+                        : '1',
+                    product_variant_name: cart.cartNotifierItem[j].name,
+                    price: cart.cartNotifierItem[j].price,
+                    quantity: cart.cartNotifierItem[j].quantity.toString(),
+                    remark: cart.cartNotifierItem[j].remark,
+                    account: '',
+                    created_at: dateTime,
+                    updated_at: '',
+                    soft_delete: ''));
+
+            for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
+              ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
+              for (int m = 0; m < group.modifierChild.length; m++) {
+                if (group.modifierChild[m].isChecked!) {
+                  Map responseInsertOrderModifierDetail = await Domain()
+                      .insertOrderModifierDetail(
+                          responseInsertOrderDetail['order'].toString(),
+                          group.modifierChild[m].mod_item_id.toString(),
+                          group.mod_group_id.toString());
+                  if (responseInsertOrderModifierDetail['status'] == '1') {
+                    OrderModifierDetail modifierData = await PosDatabase
+                        .instance
+                        .insertSqliteOrderModifierDetail(OrderModifierDetail(
+                            order_modifier_detail_id:
+                                responseInsertOrderModifierDetail['order'],
+                            order_detail_id:
+                                responseInsertOrderDetail['order'].toString(),
+                            mod_item_id:
+                                group.modifierChild[m].mod_item_id.toString(),
+                            mod_group_id: group.mod_group_id.toString(),
+                            created_at: dateTime,
+                            updated_at: '',
+                            soft_delete: ''));
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } else {
+      for (int i = 0; i < cart.selectedTable.length; i++) {
+        print(cart.selectedTable[i].table_id.toString());
         Map responseInsertOrderCache = await Domain().insertOrderCache(
             userObject['company_id'].toString(),
             branch_id.toString(),
-            '',
+            cart.selectedTable[i].table_id.toString(),
             diningOptionID.toString(),
             userObject['name'].toString(),
             totalAmount.toStringAsFixed(2));
@@ -979,7 +1074,7 @@ class _CartPageState extends State<CartPage> {
                   company_id: userObject['company_id'],
                   branch_id: branch_id.toString(),
                   order_detail_id: '',
-                  table_id: '',
+                  table_id: cart.selectedTable[i].table_id.toString(),
                   dining_id: diningOptionID.toString(),
                   order_id: '',
                   order_by: userObject['name'].toString(),
@@ -1003,128 +1098,49 @@ class _CartPageState extends State<CartPage> {
             if (responseInsertOrderDetail['status'] == '1') {
               OrderDetail detailData = await PosDatabase.instance
                   .insertOrderDetail(OrderDetail(
-                  order_detail_id: responseInsertOrderDetail['order'],
-                  order_cache_id: responseInsertOrderCache['order'].toString(),
-                  branch_link_product_id: cart.cartNotifierItem[j].branchProduct_id,
-                  productName: cart.cartNotifierItem[j].name,
-                  has_variant: cart.cartNotifierItem[j].variant.length == 0
-                      ? '0'
-                      : '1',
-                  product_variant_name: cart.cartNotifierItem[j].name,
-                  price: cart.cartNotifierItem[j].price,
-                  quantity: cart.cartNotifierItem[j].quantity.toString(),
-                  remark: cart.cartNotifierItem[j].remark,
-                  account: '',
-                  created_at: dateTime,
-                  updated_at: '',
-                  soft_delete: ''));
+                      order_detail_id: responseInsertOrderDetail['order'],
+                      order_cache_id:
+                          responseInsertOrderCache['order'].toString(),
+                      branch_link_product_id:
+                          cart.cartNotifierItem[j].branchProduct_id,
+                      productName: cart.cartNotifierItem[j].name,
+                      has_variant: cart.cartNotifierItem[j].variant.length == 0
+                          ? '0'
+                          : '1',
+                      product_variant_name: cart.cartNotifierItem[j].name,
+                      price: cart.cartNotifierItem[j].price,
+                      quantity: cart.cartNotifierItem[j].quantity.toString(),
+                      remark: cart.cartNotifierItem[j].remark,
+                      account: '',
+                      created_at: dateTime,
+                      updated_at: '',
+                      soft_delete: ''));
 
-              for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
+              for (int k = 0;
+                  k < cart.cartNotifierItem[j].modifier.length;
+                  k++) {
                 ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
                 for (int m = 0; m < group.modifierChild.length; m++) {
                   if (group.modifierChild[m].isChecked!) {
                     Map responseInsertOrderModifierDetail = await Domain()
                         .insertOrderModifierDetail(
-                        responseInsertOrderDetail['order'].toString(),
-                        group.modifierChild[m].mod_item_id.toString(),
-                        group.mod_group_id.toString());
-                    if(responseInsertOrderModifierDetail['status'] == '1'){
-                      OrderModifierDetail modifierData = await PosDatabase.instance
+                            responseInsertOrderDetail['order'].toString(),
+                            group.modifierChild[m].mod_item_id.toString(),
+                            group.mod_group_id.toString());
+                    if (responseInsertOrderModifierDetail['status'] == '1') {
+                      OrderModifierDetail modifierData = await PosDatabase
+                          .instance
                           .insertSqliteOrderModifierDetail(OrderModifierDetail(
-                          order_modifier_detail_id: responseInsertOrderModifierDetail['order'],
-                          order_detail_id: responseInsertOrderDetail['order'].toString(),
-                          mod_item_id: group.modifierChild[m].mod_item_id.toString(),
-                          mod_group_id: group.mod_group_id.toString(),
-                          created_at: dateTime,
-                          updated_at: '',
-                          soft_delete: ''));
-                    }
-
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      else{
-        for (int i = 0; i < cart.selectedTable.length; i++) {
-          print(cart.selectedTable[i].table_id.toString());
-          Map responseInsertOrderCache = await Domain().insertOrderCache(
-              userObject['company_id'].toString(),
-              branch_id.toString(),
-              cart.selectedTable[i].table_id.toString(),
-              diningOptionID.toString(),
-              userObject['name'].toString(),
-              totalAmount.toStringAsFixed(2));
-          if (responseInsertOrderCache['status'] == '1') {
-            OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
-                OrderCache(
-                    order_cache_id: responseInsertOrderCache['order'],
-                    company_id: userObject['company_id'],
-                    branch_id: branch_id.toString(),
-                    order_detail_id: '',
-                    table_id: cart.selectedTable[i].table_id.toString(),
-                    dining_id: diningOptionID.toString(),
-                    order_id: '',
-                    order_by: userObject['name'].toString(),
-                    total_amount: totalAmount.toStringAsFixed(2),
-                    customer_id: '',
-                    created_at: dateTime,
-                    updated_at: '',
-                    soft_delete: ''));
-
-            for (int j = 0; j < cart.cartNotifierItem.length; j++) {
-              Map responseInsertOrderDetail = await Domain().insertOrderDetail(
-                  responseInsertOrderCache['order'].toString(),
-                  cart.cartNotifierItem[j].branchProduct_id.toString(),
-                  cart.cartNotifierItem[j].name.toString(),
-                  cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
-                  cart.cartNotifierItem[j].name.toString(),
-                  cart.cartNotifierItem[j].price.toString(),
-                  cart.cartNotifierItem[j].quantity.toString(),
-                  cart.cartNotifierItem[j].remark.toString(),
-                  '');
-              if (responseInsertOrderDetail['status'] == '1') {
-                OrderDetail detailData = await PosDatabase.instance
-                    .insertOrderDetail(OrderDetail(
-                    order_detail_id: responseInsertOrderDetail['order'],
-                    order_cache_id: responseInsertOrderCache['order'].toString(),
-                    branch_link_product_id: cart.cartNotifierItem[j].branchProduct_id,
-                    productName: cart.cartNotifierItem[j].name,
-                    has_variant: cart.cartNotifierItem[j].variant.length == 0
-                        ? '0'
-                        : '1',
-                    product_variant_name: cart.cartNotifierItem[j].name,
-                    price: cart.cartNotifierItem[j].price,
-                    quantity: cart.cartNotifierItem[j].quantity.toString(),
-                    remark: cart.cartNotifierItem[j].remark,
-                    account: '',
-                    created_at: dateTime,
-                    updated_at: '',
-                    soft_delete: ''));
-
-                for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
-                  ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
-                  for (int m = 0; m < group.modifierChild.length; m++) {
-                    if (group.modifierChild[m].isChecked!) {
-                      Map responseInsertOrderModifierDetail = await Domain()
-                          .insertOrderModifierDetail(
-                          responseInsertOrderDetail['order'].toString(),
-                          group.modifierChild[m].mod_item_id.toString(),
-                          group.mod_group_id.toString());
-                      if(responseInsertOrderModifierDetail['status'] == '1'){
-                        OrderModifierDetail modifierData = await PosDatabase.instance
-                            .insertSqliteOrderModifierDetail(OrderModifierDetail(
-                            order_modifier_detail_id: responseInsertOrderModifierDetail['order'],
-                            order_detail_id: responseInsertOrderDetail['order'].toString(),
-                            mod_item_id: group.modifierChild[m].mod_item_id.toString(),
-                            mod_group_id: group.mod_group_id.toString(),
-                            created_at: dateTime,
-                            updated_at: '',
-                            soft_delete: ''));
-                      }
-
+                              order_modifier_detail_id:
+                                  responseInsertOrderModifierDetail['order'],
+                              order_detail_id:
+                                  responseInsertOrderDetail['order'].toString(),
+                              mod_item_id:
+                                  group.modifierChild[m].mod_item_id.toString(),
+                              mod_group_id: group.mod_group_id.toString(),
+                              created_at: dateTime,
+                              updated_at: '',
+                              soft_delete: ''));
                     }
                   }
                 }
@@ -1133,91 +1149,91 @@ class _CartPageState extends State<CartPage> {
           }
         }
       }
-
+    }
   }
 
 /*
  leow part
 */
-  // updatePosTable(CartModel cart) async {
-  //   print('update table');
-  //   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-  //   String dateTime = dateFormat.format(DateTime.now());
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final int? branch_id = prefs.getInt('branch_id');
-  //
-  //   for (int i = 0; i < cart.selectedTable.length; i++) {
-  //     List<PosTable> result = await PosDatabase.instance
-  //         .checkPosTableStatus(branch_id!, cart.selectedTable[i].table_id!);
-  //     if (result[0].status == 0) {
-  //         PosTable posTableData = PosTable(
-  //             table_id: cart.selectedTable[i].table_id,
-  //             status: 1,
-  //             updated_at: dateTime);
-  //         int data = await PosDatabase.instance.updatePosTableStatus(posTableData);
-  //     }
-  //   }
-  // }
+// updatePosTable(CartModel cart) async {
+//   print('update table');
+//   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+//   String dateTime = dateFormat.format(DateTime.now());
+//   final prefs = await SharedPreferences.getInstance();
+//   final int? branch_id = prefs.getInt('branch_id');
+//
+//   for (int i = 0; i < cart.selectedTable.length; i++) {
+//     List<PosTable> result = await PosDatabase.instance
+//         .checkPosTableStatus(branch_id!, cart.selectedTable[i].table_id!);
+//     if (result[0].status == 0) {
+//         PosTable posTableData = PosTable(
+//             table_id: cart.selectedTable[i].table_id,
+//             status: 1,
+//             updated_at: dateTime);
+//         int data = await PosDatabase.instance.updatePosTableStatus(posTableData);
+//     }
+//   }
+// }
 
-  // createOrderCache(CartModel cart) async {
-  //   print('create order cache called');
-  //   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-  //   String dateTime = dateFormat.format(DateTime.now());
-  //
-  //   for (int i = 0; i < cart.selectedTable.length; i++) {
-  //       OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
-  //           OrderCache(
-  //               order_cache_id: 10,
-  //               company_id: '6',
-  //               branch_id: '5',
-  //               order_detail_id: '',
-  //               table_id: cart.selectedTable[i].table_id.toString(),
-  //               dining_id: '1',
-  //               order_id: '',
-  //               order_by: '',
-  //               customer_id: '0',
-  //               total_amount: discountPrice.toStringAsFixed(2),
-  //               created_at: dateTime,
-  //               updated_at: '',
-  //               soft_delete: ''));
-  //
-  //       for (int j = 0; j < cart.cartNotifierItem.length; j++) {
-  //           OrderDetail detailData = await PosDatabase.instance
-  //               .insertSqliteOrderDetail(OrderDetail(
-  //               order_detail_id: 10,
-  //               order_cache_id: await data.order_cache_id.toString(),
-  //               branch_link_product_id: cart.cartNotifierItem[j].branchProduct_id,
-  //               productName: cart.cartNotifierItem[j].name,
-  //               has_variant: cart.cartNotifierItem[j].variant.length == 0
-  //                   ? '0'
-  //                   : '1',
-  //               product_variant_name: cart.cartNotifierItem[j].name,
-  //               price: cart.cartNotifierItem[j].price,
-  //               quantity: cart.cartNotifierItem[j].quantity.toString(),
-  //               remark: cart.cartNotifierItem[j].remark,
-  //               account: '',
-  //               created_at: dateTime,
-  //               updated_at: '',
-  //               soft_delete: ''));
-  //
-  //           for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
-  //             ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
-  //             print('mod group id: ${group.mod_group_id}');
-  //             for (int m = 0; m < group.modifierChild.length; m++) {
-  //               if (group.modifierChild[m].isChecked!) {
-  //                   OrderModifierDetail modifierData = await PosDatabase.instance
-  //                       .insertSqliteOrderModifierDetail(OrderModifierDetail(
-  //                       order_modifier_detail_id: 0,
-  //                       order_detail_id: await detailData.order_detail_id.toString(),
-  //                       mod_item_id: group.modifierChild[m].mod_item_id.toString(),
-  //                       mod_group_id: group.mod_group_id.toString(),
-  //                       created_at: dateTime,
-  //                       updated_at: '',
-  //                       soft_delete: ''));
-  //               }
-  //             }
-  //           }
-  //       }
-  //   }
-  // }
+// createOrderCache(CartModel cart) async {
+//   print('create order cache called');
+//   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+//   String dateTime = dateFormat.format(DateTime.now());
+//
+//   for (int i = 0; i < cart.selectedTable.length; i++) {
+//       OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
+//           OrderCache(
+//               order_cache_id: 10,
+//               company_id: '6',
+//               branch_id: '5',
+//               order_detail_id: '',
+//               table_id: cart.selectedTable[i].table_id.toString(),
+//               dining_id: '1',
+//               order_id: '',
+//               order_by: '',
+//               customer_id: '0',
+//               total_amount: discountPrice.toStringAsFixed(2),
+//               created_at: dateTime,
+//               updated_at: '',
+//               soft_delete: ''));
+//
+//       for (int j = 0; j < cart.cartNotifierItem.length; j++) {
+//           OrderDetail detailData = await PosDatabase.instance
+//               .insertSqliteOrderDetail(OrderDetail(
+//               order_detail_id: 10,
+//               order_cache_id: await data.order_cache_id.toString(),
+//               branch_link_product_id: cart.cartNotifierItem[j].branchProduct_id,
+//               productName: cart.cartNotifierItem[j].name,
+//               has_variant: cart.cartNotifierItem[j].variant.length == 0
+//                   ? '0'
+//                   : '1',
+//               product_variant_name: cart.cartNotifierItem[j].name,
+//               price: cart.cartNotifierItem[j].price,
+//               quantity: cart.cartNotifierItem[j].quantity.toString(),
+//               remark: cart.cartNotifierItem[j].remark,
+//               account: '',
+//               created_at: dateTime,
+//               updated_at: '',
+//               soft_delete: ''));
+//
+//           for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
+//             ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
+//             print('mod group id: ${group.mod_group_id}');
+//             for (int m = 0; m < group.modifierChild.length; m++) {
+//               if (group.modifierChild[m].isChecked!) {
+//                   OrderModifierDetail modifierData = await PosDatabase.instance
+//                       .insertSqliteOrderModifierDetail(OrderModifierDetail(
+//                       order_modifier_detail_id: 0,
+//                       order_detail_id: await detailData.order_detail_id.toString(),
+//                       mod_item_id: group.modifierChild[m].mod_item_id.toString(),
+//                       mod_group_id: group.mod_group_id.toString(),
+//                       created_at: dateTime,
+//                       updated_at: '',
+//                       soft_delete: ''));
+//               }
+//             }
+//           }
+//       }
+//   }
+// }
 }

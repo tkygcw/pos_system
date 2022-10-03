@@ -320,7 +320,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
         }
       } else {
         List<BranchLinkProduct> productVariant = await PosDatabase.instance
-            .checkVariantPrice(await getHasVariantProductPrice(productId),
+            .checkProductVariant(await getHasVariantProductPrice(productId),
                 productId.toString());
         basePrice = productVariant[0].price!;
 
@@ -350,7 +350,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   getBranchLinkProductItem(int? productId) async {
     branchLinkProduct_id = '';
 
-    List<BranchLinkProduct> data = await PosDatabase.instance.checkVariantPrice(
+    List<BranchLinkProduct> data = await PosDatabase.instance.checkProductVariant(
         await getHasVariantProductPrice(productId), productId.toString());
     branchLinkProduct_id = data[0].branch_link_product_id.toString();
 
@@ -372,7 +372,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
             } else {
               variant2 = variant + " | " + group.child[i].name!;
               List<ProductVariant> data = await PosDatabase.instance
-                  .readAllProductVariant(product_id.toString(), variant2);
+                  .readSpecificProductVariant(product_id.toString(), variant2);
               productVariant = data[0].product_variant_id.toString();
             }
           }

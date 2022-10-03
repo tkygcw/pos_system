@@ -27,7 +27,9 @@ class _PrinterSettingState extends State<PrinterSetting> {
                           leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.print, color: Colors.grey,)),
                           title:Text("Printer "+(index+1).toString()),
                         subtitle: Text("Type"),
-                        onTap: (){},
+                        onTap: (){
+
+                        },
                       );
                     }
                 ),

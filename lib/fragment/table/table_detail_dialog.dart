@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/domain.dart';
+import 'package:pos_system/fragment/table/merge_bill_dialog.dart';
 import 'package:pos_system/fragment/table/remove_detail_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
@@ -127,7 +128,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
                                                                 .backgroundColor,
                                                           )),
                                                       TextSpan(
-                                                          text: "RM${orderDetailList[index].base_price}",
+                                                          text: "RM${orderDetailList[index].price}",
                                                           style: TextStyle(
                                                             fontSize: 13,
                                                             color: color
@@ -204,9 +205,14 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
             ),
             TextButton(
               child: Text('Make payment'),
-              onPressed: () {
-                addToPaymentCart(cart);
-                Navigator.of(context).pop();
+              onPressed: () async {
+                if(cart.cartNotifierItem.isEmpty){
+                  addToPaymentCart(cart);
+                  Navigator.of(context).pop();
+                } else {
+                  await openMergeBillDialog(widget.object);
+                }
+
               },
             ),
           ],
@@ -228,10 +234,9 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
         .readTableOrderCache(branch_id.toString(), widget.object.table_id!);
     //loop all table order cache
     for (int i = 0; i < data.length; i++) {
-      print('get all table cache: ${data.length}');
       if(!orderCacheList.contains(data)){
         orderCacheList = List.from(data);
-        print('order cache list: ${orderCacheList.length}');
+
       }
       //Get all order detail based on order cache id
       List<OrderDetail> detailData = await PosDatabase.instance
@@ -248,7 +253,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
             .readSpecificBranchLinkProduct(
                 orderDetailList[k].branch_link_product_id!);
         orderDetailList[k].product_name = result[0].product_name!;
-        orderDetailList[k].base_price = result[0].price!;
+
 
         //Get product category
         List<Product> productResult = await PosDatabase.instance
@@ -363,6 +368,31 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
         });
   }
 
+  Future<Future<Object?>> openMergeBillDialog(PosTable posTable) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: MergeBillDialog(
+                tableObject: posTable,
+                callBack: addToPaymentCart,
+              ),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
   getModifierGroupItem(OrderDetail orderDetail) {
     modifierGroup = [];
     List<ModifierItem> temp = List.from(orderDetail.modifierItem);
@@ -417,18 +447,15 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
     return variantGroup;
   }
 
-  void addToPaymentCart(CartModel cart) async {
-    var value;
-    //cart.removeAllCartItem();
-    cart.removeAllTable();
-    //get selected modifier
 
+  addToPaymentCart(CartModel cart) {
+    var value;
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
         orderDetailList[i].branch_link_product_id!,
         orderDetailList[i].product_name,
         orderDetailList[i].category_id!,
-        orderDetailList[i].base_price,
+        orderDetailList[i].price!,
         int.parse(orderDetailList[i].quantity!),
         getModifierGroupItem(orderDetailList[i]),
         getVariantGroupItem(orderDetailList[i]),
@@ -436,6 +463,9 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
       );
       cart.addItem(value);
     }
-    cart.addTable(widget.object);
+    if(cart.selectedTable.isEmpty){
+      cart.addTable(widget.object);
+    }
+
   }
 }

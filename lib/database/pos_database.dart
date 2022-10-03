@@ -815,7 +815,7 @@ class PosDatabase {
 /*
   read product variant by name
 */
-  Future<List<ProductVariant>> readAllProductVariant(
+  Future<List<ProductVariant>> readSpecificProductVariant(
       String product_id, String variant_name) async {
     final db = await instance.database;
     final result = await db.rawQuery(
@@ -852,9 +852,9 @@ class PosDatabase {
 
 
 /*
-  checking price
+  checking product variant
 */
-  Future<List<BranchLinkProduct>> checkVariantPrice(
+  Future<List<BranchLinkProduct>> checkProductVariant(
       String product_variant_id, String product_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(

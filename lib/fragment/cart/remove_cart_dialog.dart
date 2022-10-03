@@ -40,6 +40,9 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                     Text('${AppLocalizations.of(context)?.translate('yes')}'),
                 onPressed: () {
                   cart.removeItem(widget.cartItem!);
+                  if(cart.cartNotifierItem.isEmpty){
+                    cart.removeAllTable();
+                  }
                   Navigator.of(context).pop();
                 })
           ],
