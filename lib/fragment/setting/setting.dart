@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/printer/test_print.dart';
 import 'package:pos_system/fragment/setting/features_setting.dart';
@@ -23,7 +21,8 @@ class SettingMenu extends StatefulWidget {
 class _SettingMenuState extends State<SettingMenu> {
   List<Widget> views = [
     Container(
-      child: TestPrint(),
+      child: PrinterSetting(),
+      // TestPrint()
     ),
     Container(
       child: FeaturesSetting(),

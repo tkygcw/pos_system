@@ -132,12 +132,14 @@ class _CartPageState extends State<CartPage> {
                   },
                 ),
                 IconButton(
-                  tooltip: 'customer',
+                  tooltip: 'clear cart',
                   icon: const Icon(
-                    Icons.sync,
+                    Icons.delete,
                   ),
                   color: color.backgroundColor,
-                  onPressed: () {},
+                  onPressed: () {
+                    cart.removeAllCartItem();
+                  },
                 ),
                 // PopupMenuButton<Text>(
                 //     icon: Icon(Icons.more_vert, color: color.backgroundColor),
@@ -430,32 +432,37 @@ class _CartPageState extends State<CartPage> {
                               minimumSize: const Size.fromHeight(50), // NEW
                             ),
                             onPressed: () async {
-                              if (cart.selectedOption == 'Dine in') {
-                                if (cart.selectedTable.isNotEmpty &&
-                                    cart.cartNotifierItem.isNotEmpty) {
-                                  await createOrderCache(cart);
-                                  await updatePosTable(cart);
-                                  cart.removeAllCartItem();
-                                  cart.removeAllTable();
+                              if(widget.currentPage == 'menu') {
+                                if (cart.selectedOption == 'Dine in') {
+                                  if (cart.selectedTable.isNotEmpty &&
+                                      cart.cartNotifierItem.isNotEmpty) {
+                                    await createOrderCache(cart);
+                                    await updatePosTable(cart);
+                                    cart.removeAllCartItem();
+                                    cart.removeAllTable();
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Colors.red,
+                                        msg:
+                                        "make sure cart is not empty and table is selected");
+                                  }
                                 } else {
-                                  Fluttertoast.showToast(
-                                      backgroundColor: Colors.red,
-                                      msg:
-                                          "make sure cart is not empty and table is selected");
+                                  cart.removeAllTable();
+                                  if (cart.cartNotifierItem.isNotEmpty) {
+                                    await createOrderCache(cart);
+                                    await updatePosTable(cart);
+                                    cart.removeAllCartItem();
+                                    cart.selectedTable.clear();
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Colors.red,
+                                        msg: "cart empty");
+                                  }
                                 }
                               } else {
-                                cart.removeAllTable();
-                                if (cart.cartNotifierItem.isNotEmpty) {
-                                  await createOrderCache(cart);
-                                  await updatePosTable(cart);
-                                  cart.removeAllCartItem();
-                                  cart.selectedTable.clear();
-                                } else {
-                                  Fluttertoast.showToast(
-                                      backgroundColor: Colors.red,
-                                      msg: "cart empty");
-                                }
+                                print('make payment');
                               }
+
                             },
                             child: widget.currentPage == 'menu'
                                 ? Text('Place Order')

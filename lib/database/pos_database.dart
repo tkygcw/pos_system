@@ -1158,6 +1158,18 @@ class PosDatabase {
   }
 
 /*
+  read table id by table no
+*/
+  Future<List<PosTable>> readSpecificTableByTableNo(int branchID, String number) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePosTable WHERE soft_delete = ? AND branch_id = ? AND number = ?',
+        ['', branchID, number]);
+
+    return result.map((json) => PosTable.fromJson(json)).toList();
+  }
+
+/*
   check table status
 */
   Future<List<PosTable>> checkPosTableStatus(int branch_id, int table_id) async {
@@ -1383,6 +1395,16 @@ class PosDatabase {
     return await db.rawUpdate(
       'UPDATE $tablePosTable SET status = ?, updated_at = ? WHERE table_id = ?',
       [data.status, data.updated_at, data.table_id]);
+  }
+
+/*
+  update order cache
+*/
+  Future<int> updateOrderCacheTableID(OrderCache data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+      'UPDATE $tableOrderCache SET table_id = ?, updated_at = ? WHERE order_cache_id = ?',
+      [data.table_id, data.updated_at, data.order_cache_id]);
   }
 
 
