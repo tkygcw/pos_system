@@ -971,6 +971,24 @@ class Domain {
   }
 
   /*
+  * edit order cache table id
+  * */
+  editOrderCache(order_cache_id, table_id) async {
+    try {
+      var response = await http.post(Domain.order, body: {
+        'editOrderCache': '1',
+        'order_cache_id': order_cache_id,
+        'table_id' : table_id,
+      });
+      print(jsonDecode(response.body));
+      return jsonDecode(response.body);
+
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all order detail
   * */
   getAllOrderDetail(company_id, branch_id) async {
@@ -980,7 +998,6 @@ class Domain {
         'company_id': company_id,
         'branch_id': branch_id
       });
-
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());

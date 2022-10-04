@@ -1,4 +1,5 @@
 import 'package:confirm_dialog/confirm_dialog.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
@@ -31,13 +32,13 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
   getOrderDetail() async {
     List<OrderDetail> data = await PosDatabase.instance
         .readTableOrderDetail(widget.orderCache!.order_cache_id.toString());
-    // for (int i = 0; i < data.length; i++) {
-    //   OrderModifierDetail? detail = await PosDatabase.instance
-    //       .readOrderModifierDetailOne(data[i].order_detail_id.toString());
-    //   if(detail!.order_detail_id!.isNotEmpty){
-    //     orderModifierDetail.add(detail!);
-    //   }
-    // }
+    for (int i = 0; i < data.length; i++) {
+      OrderModifierDetail? detail = await PosDatabase.instance
+          .readOrderModifierDetailOne(data[i].order_detail_id.toString());
+      if (detail!.order_modifier_detail_id.toString().isNotEmpty) {
+        orderModifierDetail.add(detail);
+      }
+    }
     setState(() {
       orderDetail = data;
     });
@@ -94,32 +95,38 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: ListTile(
-                            // leading:
-                            // orderCacheList[index].dining_id == '2'
-                            //     ? Icon(
-                            //   Icons.fastfood_sharp,
-                            //   color: color.backgroundColor,
-                            //   size: 30.0,
-                            // )
-                            //     : Icon(
-                            //   Icons.delivery_dining,
-                            //   color: color.backgroundColor,
-                            //   size: 30.0,
-                            // ),
-                            trailing: Text(
-                              orderDetail[index].quantity.toString(),
-                              style: TextStyle(fontSize: 20),
-                            ),
-                            subtitle: Text(
-                                'RM'+orderDetail[index].price!,
-                              style: TextStyle(fontSize: 16),
-                            ),
-                            title: Text(
-                              orderDetail[index].productName
-                                  .toString(),
-                              style: TextStyle(fontSize: 20),
-                            )
-                          ),
+                              trailing: Text(
+                                'X' + orderDetail[index].quantity.toString(),
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    height: 20,
+                                    child: ListView.builder(itemCount: orderModifierDetail.length,itemBuilder: (context, index){
+                                      return Text(
+                                        orderModifierDetail[index].modifier_name!
+                                      );
+                                    }),
+                                  )
+                                ],
+                              ),
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    orderDetail[index].productName.toString(),
+                                    style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    'RM' + orderDetail[index].price!,
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                                ],
+                              )),
                         ),
                       ),
                     );

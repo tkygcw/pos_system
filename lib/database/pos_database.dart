@@ -1279,6 +1279,9 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return OrderModifierDetail.fromJson(maps.first);
     }
+    else{
+      return OrderModifierDetail();
+    }
   }
 
 /*

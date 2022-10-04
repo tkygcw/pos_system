@@ -6,6 +6,7 @@ import 'package:pos_system/object/table.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../translation/AppLocalizations.dart';
 
@@ -52,13 +53,19 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-
-    List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(branch_id!, tableNoController.text);
-    for(int i = 0 ; i < orderCacheList.length; i++){
-      int data = await PosDatabase.instance.updateOrderCacheTableID(OrderCache(
-          order_cache_id: orderCacheList[i].order_cache_id,
-          table_id: tableData[0].table_id.toString(),
-          updated_at: dateTime));
+    List<PosTable> tableData = await PosDatabase.instance
+        .readSpecificTableByTableNo(branch_id!, tableNoController.text);
+    for (int i = 0; i < orderCacheList.length; i++) {
+      Map responseUpdateOrderCache = await Domain().editOrderCache(
+          orderCacheList[i].order_cache_id.toString(),
+          tableData[0].table_id.toString());
+      if (responseUpdateOrderCache['status'] == '1') {
+        int data = await PosDatabase.instance.updateOrderCacheTableID(
+            OrderCache(
+                order_cache_id: orderCacheList[i].order_cache_id,
+                table_id: tableData[0].table_id.toString(),
+                updated_at: dateTime));
+      }
     }
   }
 
@@ -69,31 +76,36 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
-    List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(branch_id!, tableNoController.text);
-      List<PosTable> newTable = await PosDatabase.instance
-          .checkPosTableStatus(branch_id, tableData[0].table_id!);
-      if (newTable[0].status == 0) {
-          PosTable posTableData = PosTable(
-              table_id: tableData[0].table_id!,
-              status: 1,
-              updated_at: dateTime);
-          int data = await PosDatabase.instance.updatePosTableStatus(posTableData);
+    List<PosTable> tableData = await PosDatabase.instance
+        .readSpecificTableByTableNo(branch_id!, tableNoController.text);
+    List<PosTable> newTable = await PosDatabase.instance
+        .checkPosTableStatus(branch_id, tableData[0].table_id!);
+    if (newTable[0].status == 0) {
+      Map responseChangeTableStatus =
+          await Domain().editTableStatus('1', tableData[0].table_id.toString());
+      if (responseChangeTableStatus['status'] == '1') {
+        PosTable posTableData = PosTable(
+            table_id: tableData[0].table_id!, status: 1, updated_at: dateTime);
+        int data =
+            await PosDatabase.instance.updatePosTableStatus(posTableData);
       }
+    }
 
     List<PosTable> lastTable = await PosDatabase.instance
         .checkPosTableStatus(branch_id, widget.object.table_id!);
     if (lastTable[0].status == 1) {
-      PosTable posTableData = PosTable(
-          table_id: widget.object.table_id,
-          status: 0,
-          updated_at: dateTime);
-      int data2 = await PosDatabase.instance.updatePosTableStatus(posTableData);
+      Map responseChangeTableStatus = await Domain()
+          .editTableStatus('0', widget.object.table_id.toString());
+      if (responseChangeTableStatus['status'] == '1') {
+        PosTable posTableData = PosTable(
+            table_id: widget.object.table_id, status: 0, updated_at: dateTime);
+        int data2 =
+            await PosDatabase.instance.updatePosTableStatus(posTableData);
+      }
     }
-      widget.callBack();
-      Navigator.of(context).pop();
+    widget.callBack();
+    Navigator.of(context).pop();
   }
-
-
 
   void _submit(BuildContext context) {
     setState(() => _submitted = true);
