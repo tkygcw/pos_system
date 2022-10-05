@@ -825,6 +825,21 @@ class PosDatabase {
     return result.map((json) => ProductVariant.fromJson(json)).toList();
   }
 
+  /*
+  read product variant by branch link product id
+*/
+  Future<ProductVariant?> readProductVariantSpecial(String branch_link_product_id) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery(
+        'SELECT a.* FROM $tableProductVariant as a JOIN $tableBranchLinkProduct as b ON a.product_variant_id = b.product_variant_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.branch_link_product_id = ?',
+        ['', '', branch_link_product_id]);
+    if (maps.isNotEmpty) {
+      return ProductVariant.fromJson(maps.first);
+    }
+    else{
+      return ProductVariant();
+    }
+  }
 /*
   read specific branch link product item
 */

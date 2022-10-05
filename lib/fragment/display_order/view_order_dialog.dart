@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/order_cache.dart';
+import '../../object/product_variant.dart';
 
 class ViewOrderDialogPage extends StatefulWidget {
   final OrderCache? orderCache;
@@ -21,6 +22,7 @@ class ViewOrderDialogPage extends StatefulWidget {
 class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
   List<OrderDetail> orderDetail = [];
   List<OrderModifierDetail> orderModifierDetail = [];
+  List<ProductVariant> orderProductVariant = [];
 
   @override
   void initState() {
@@ -33,6 +35,11 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
     List<OrderDetail> data = await PosDatabase.instance
         .readTableOrderDetail(widget.orderCache!.order_cache_id.toString());
     for (int i = 0; i < data.length; i++) {
+      ProductVariant? productVariantData = await PosDatabase.instance
+          .readProductVariantSpecial(data[i].branch_link_product_id.toString());
+      if (productVariantData!.product_variant_id.toString().isNotEmpty) {
+        orderProductVariant.add(productVariantData);
+      }
       OrderModifierDetail? detail = await PosDatabase.instance
           .readOrderModifierDetailOne(data[i].order_detail_id.toString());
       if (detail!.order_modifier_detail_id.toString().isNotEmpty) {
@@ -42,6 +49,7 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
     setState(() {
       orderDetail = data;
     });
+    print(orderProductVariant);
   }
 
   deleteOrderCache() {}
@@ -102,14 +110,34 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    height: 20,
-                                    child: ListView.builder(itemCount: orderModifierDetail.length,itemBuilder: (context, index){
-                                      return Text(
-                                        orderModifierDetail[index].modifier_name!
-                                      );
-                                    }),
-                                  )
+                                  orderProductVariant[0].product_variant_id!= null
+                                      ? ListView.builder(
+                                          shrinkWrap: true,
+                                          itemCount: orderProductVariant.length,
+                                          itemBuilder: (context, index) {
+                                            return Text(
+                                              '+ ' +
+                                                  orderProductVariant[index]
+                                                      .variant_name!,
+                                              style: TextStyle(fontSize: 16),
+                                            );
+                                          })
+                                      : Container(),
+                                  orderModifierDetail[0]
+                                              .order_modifier_detail_id !=
+                                          null
+                                      ? ListView.builder(
+                                          shrinkWrap: true,
+                                          itemCount: orderModifierDetail.length,
+                                          itemBuilder: (context, index) {
+                                            return Text(
+                                              '+ ' +
+                                                  orderModifierDetail[index]
+                                                      .modifier_name!,
+                                              style: TextStyle(fontSize: 16),
+                                            );
+                                          })
+                                      : Container()
                                 ],
                               ),
                               title: Column(
@@ -133,6 +161,7 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
                   },
                 ),
               ),
+              Card()
             ],
           ),
         ),
