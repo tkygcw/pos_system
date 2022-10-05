@@ -450,6 +450,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
 
   addToPaymentCart(CartModel cart) {
     var value;
+    cart.removeAllTable();
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
         orderDetailList[i].branch_link_product_id!,

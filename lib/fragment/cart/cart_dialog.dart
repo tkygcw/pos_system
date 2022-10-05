@@ -207,12 +207,12 @@ class _CartDialogState extends State<CartDialog> {
                 splashColor: Colors.blue.withAlpha(30),
                 onTap: () async  {
                   if(tableList[index].status == 1){
-                    print("table " + tableList[index].number! + " is selected");
+                    cart.removeAllCartItem();
                     await readSpecificTableDetail(tableList[index]);
                     addToCart(cart, tableList[index]);
                     Navigator.of(context).pop();
                   } else {
-                    print("table " + tableList[index].number! + " is selected");
+                    cart.removeAllCartItem();
                     cart.removeAllTable();
                     cart.addTable(tableList[index]);
                     Navigator.of(context).pop();

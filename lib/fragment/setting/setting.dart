@@ -21,7 +21,7 @@ class SettingMenu extends StatefulWidget {
 class _SettingMenuState extends State<SettingMenu> {
   List<Widget> views = [
     Container(
-      child: PrinterSetting(),
+      child: TestPrint(),
       // TestPrint()
     ),
     Container(

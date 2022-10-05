@@ -36,6 +36,7 @@ import '../object/branch_link_product.dart';
 import '../object/branch_link_promotion.dart';
 import '../object/branch_link_tax.dart';
 import '../object/color.dart';
+import '../object/printer.dart';
 
 class PosDatabase {
   static final PosDatabase instance = PosDatabase.init();
@@ -315,7 +316,6 @@ class PosDatabase {
           ${OrderModifierDetailFields.soft_delete} $textType)''');
 
   }
-
 
 /*
   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1772,6 +1772,31 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawDelete('DELETE FROM $tableVariantGroup');
   }
+
+/*
+  Delete All Order cache
+*/
+  Future clearAllOrderCache() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableOrderCache');
+  }
+
+/*
+  Delete All Order detail
+*/
+  Future clearAllOrderDetail() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableOrderDetail');
+  }
+
+/*
+  Delete All Order modifier detail
+*/
+  Future clearAllOrderModifierDetail() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableOrderModifierDetail');
+  }
+
 
   // Future<List<Categories>> readAllNotes() async {
   //   final db = await instance.database;

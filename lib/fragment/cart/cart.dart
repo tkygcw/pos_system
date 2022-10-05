@@ -139,6 +139,7 @@ class _CartPageState extends State<CartPage> {
                   color: color.backgroundColor,
                   onPressed: () {
                     cart.removeAllCartItem();
+                    cart.removeAllTable();
                   },
                 ),
                 // PopupMenuButton<Text>(

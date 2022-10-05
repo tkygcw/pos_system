@@ -211,6 +211,10 @@ class _logout_dialogState extends State<logout_dialog> {
     PosDatabase.instance.clearAllPromotion();
     //clear categories
     PosDatabase.instance.clearAllCategory();
+    //clear order
+    PosDatabase.instance.clearAllOrderCache();
+    PosDatabase.instance.clearAllOrderDetail();
+    PosDatabase.instance.clearAllOrderModifierDetail();
   }
 
   Future<String> get _localPath async {
