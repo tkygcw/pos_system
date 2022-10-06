@@ -989,6 +989,23 @@ class Domain {
   }
 
   /*
+  * delete order cache
+  * */
+  deleteOrderCache(order_cache_id) async {
+    try {
+      var response = await http.post(Domain.order, body: {
+        'deleteOrderCache': '1',
+        'order_cache_id': order_cache_id,
+      });
+      print(jsonDecode(response.body));
+      return jsonDecode(response.body);
+
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all order detail
   * */
   getAllOrderDetail(company_id, branch_id) async {
@@ -1029,6 +1046,22 @@ class Domain {
   }
 
   /*
+  * delete order detail
+  * */
+  deleteOrderDetail(order_cache_id) async {
+    try {
+      var response = await http.post(Domain.order, body: {
+        'deleteOrderDetail': '1',
+        'order_cache_id': order_cache_id,
+      });
+      print(jsonDecode(response.body));
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all order modifier detail
   * */
   getAllOrderModifierDetail(company_id, branch_id) async {
@@ -1054,6 +1087,22 @@ class Domain {
         'order_detail_id': order_detail_id,
         'mod_item_id': mod_item_id,
         'mod_group_id': mod_group_id
+      });
+      print(jsonDecode(response.body));
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * delete order modifier detail
+  * */
+  deleteOrderModifierDetail(order_detail_id) async {
+    try {
+      var response = await http.post(Domain.order, body: {
+        'deleteOrderModifierDetail': '1',
+        'order_detail_id': order_detail_id,
       });
       print(jsonDecode(response.body));
       return jsonDecode(response.body);

@@ -5,6 +5,7 @@ import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:provider/provider.dart';
 
+import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/order_cache.dart';
@@ -52,7 +53,18 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
     print(orderProductVariant);
   }
 
-  deleteOrderCache() {}
+  deleteWholeOrder() async {
+    Map responseDeleteOrderCache = await Domain().deleteOrderCache(widget.orderCache!.order_cache_id.toString());
+    if(responseDeleteOrderCache['status']=='1'){
+      Map responseDeleteDetail = await Domain().deleteOrderDetail(widget.orderCache!.order_cache_id.toString());
+      if(responseDeleteDetail['status'] == '1'){
+        List<OrderDetail> data = await PosDatabase.instance.readTableOrderDetail(widget.orderCache!.order_cache_id.toString());
+        for(int i = 0; i < data.length; i++){
+          Map responseDeleteOrderModifierDetail = await Domain().deleteOrderModifierDetail(data[i].order_detail_id);
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +91,7 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
                   textOK: const Text('Yes'),
                   textCancel: const Text('No'),
                 )) {
-                  return deleteOrderCache();
+                  return deleteWholeOrder();
                 }
                 // deleteCategory();
               },
@@ -110,7 +122,8 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  orderProductVariant[0].product_variant_id!= null
+                                  orderProductVariant[0].product_variant_id !=
+                                          null
                                       ? ListView.builder(
                                           shrinkWrap: true,
                                           itemCount: orderProductVariant.length,
@@ -161,7 +174,12 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
                   },
                 ),
               ),
-              Card()
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ListTile(title: Text('Total', style: TextStyle(fontSize: 24,fontWeight: FontWeight.bold)) ,trailing: Text(widget.orderCache!.total_amount!,style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold))),
+                ),
+              )
             ],
           ),
         ),
@@ -175,8 +193,7 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
           TextButton(
             child: const Text('Make Payment'),
             onPressed: () {
-              // _submit();
-              // print(selectColor);
+              Navigator.of(context).pop();
             },
           ),
         ],
