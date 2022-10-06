@@ -22,6 +22,8 @@ import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/refund.dart';
 import 'package:pos_system/object/sale.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/table_use.dart';
+import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/tax.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/object/user.dart';
@@ -128,11 +130,22 @@ class PosDatabase {
 /*
     create order cache table
 */
-    await db.execute(
-        '''CREATE TABLE $tableOrderCache ( ${OrderCacheFields.order_cache_sqlite_id} $idType, ${OrderCacheFields.order_cache_id} $integerType, ${OrderCacheFields.company_id} $textType, 
-           ${OrderCacheFields.branch_id} $textType, ${OrderCacheFields.order_detail_id} $textType, ${OrderCacheFields.table_id} $textType, 
-           ${OrderCacheFields.dining_id} $textType, ${OrderCacheFields.order_id} $textType, ${OrderCacheFields.order_by} $textType, ${OrderCacheFields.customer_id} $textType, ${OrderCacheFields.total_amount} $textType,
-           ${OrderCacheFields.created_at} $textType, ${OrderCacheFields.updated_at} $textType, ${OrderCacheFields.soft_delete} $textType)''');
+    await db.execute('''CREATE TABLE $tableOrderCache ( 
+          ${OrderCacheFields.order_cache_sqlite_id} $idType, 
+          ${OrderCacheFields.order_cache_id} $integerType, 
+          ${OrderCacheFields.company_id} $textType, 
+          ${OrderCacheFields.branch_id} $textType, 
+          ${OrderCacheFields.order_detail_id} $textType, 
+          ${OrderCacheFields.table_use_id} $textType, 
+          ${OrderCacheFields.table_id} $textType, 
+          ${OrderCacheFields.dining_id} $textType, 
+          ${OrderCacheFields.order_id} $textType, 
+          ${OrderCacheFields.order_by} $textType, 
+          ${OrderCacheFields.customer_id} $textType, 
+          ${OrderCacheFields.total_amount} $textType,
+          ${OrderCacheFields.created_at} $textType, 
+          ${OrderCacheFields.updated_at} $textType, 
+          ${OrderCacheFields.soft_delete} $textType)''');
 /*
     create order detail table
 */
@@ -314,6 +327,29 @@ class PosDatabase {
           ${OrderModifierDetailFields.created_at} $textType,
           ${OrderModifierDetailFields.updated_at} $textType,
           ${OrderModifierDetailFields.soft_delete} $textType)''');
+
+/*
+    create table use table
+*/
+    await db.execute('''CREATE TABLE $tableTableUse(
+          ${TableUseFields.table_use_sqlite_id} $idType,
+          ${TableUseFields.table_use_id} $integerType,
+          ${TableUseFields.created_at} $textType,
+          ${TableUseFields.updated_at} $textType,
+          ${TableUseFields.soft_delete} $textType)''');
+
+/*
+    create table use detail table
+*/
+    await db.execute('''CREATE TABLE $tableTableUseDetail(
+          ${TableUseDetailFields.table_use_detail_sqlite_id} $idType,
+          ${TableUseDetailFields.table_use_detail_id} $integerType,
+          ${TableUseDetailFields.table_use_id} $textType,
+          ${TableUseDetailFields.table_id} $textType,
+          ${TableUseDetailFields.original_table_id} $textType,
+          ${TableUseDetailFields.created_at} $textType,
+          ${TableUseDetailFields.updated_at} $textType,
+          ${TableUseDetailFields.soft_delete} $textType)''');
 
   }
 
@@ -559,6 +595,27 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableOrder!, data.toJson());
     return data.copy(order_id: id);
+  }
+
+
+/*
+  add table use into local
+*/
+  Future<TableUse> insertSqliteTableUse(TableUse data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableTableUse!, data.toJson());
+    return data.copy(table_use_sqlite_id: id);
+
+  }
+
+/*
+  add table use detail into local
+*/
+  Future<TableUseDetail> insertSqliteTableUseDetail(TableUseDetail data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableTableUseDetail!, data.toJson());
+    return data.copy(table_use_detail_sqlite_id: id);
+
   }
 
 /*
@@ -1185,6 +1242,18 @@ class PosDatabase {
   }
 
 /*
+  read table id by table no
+*/
+  Future<List<PosTable>> readSpecificTable(int branchID, String table_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePosTable WHERE soft_delete = ? AND branch_id = ? AND table_id = ?',
+        ['', branchID, table_id]);
+
+    return result.map((json) => PosTable.fromJson(json)).toList();
+  }
+
+/*
   check table status
 */
   Future<List<PosTable>> checkPosTableStatus(int branch_id, int table_id) async {
@@ -1197,14 +1266,38 @@ class PosDatabase {
   }
 
 /*
+  read specific use table detail based on table id
+*/
+  Future<List<TableUseDetail>> readSpecificTableUseDetail(int table_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      'SELECT * FROM $tableTableUseDetail WHERE soft_delete = ? AND table_id = ?',
+      ['', table_id]);
+
+    return result.map((json) => TableUseDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all occurrence table detail based on table use id
+*/
+  Future<List<TableUseDetail>> readAllTableUseDetail(String table_use_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableTableUseDetail WHERE soft_delete = ? AND  table_use_id = ?',
+        ['', table_use_id]);
+
+    return result.map((json) => TableUseDetail.fromJson(json)).toList();
+  }
+
+/*
   get table amount
 */
-  Future<List<OrderCache>> readTableOrderCache(String branch_id, int table_id ) async {
+  Future<List<OrderCache>> readTableOrderCache(String branch_id, String table_use_id ) async {
     try{
       final db = await instance.database;
       final result = await db.rawQuery(
-          'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND branch_id = ? AND table_id = ? ',
-          ['', branch_id, table_id]);
+          'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND branch_id = ? AND table_use_id = ? ',
+          ['', branch_id, table_use_id]);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
     }catch (e){
@@ -1413,6 +1506,16 @@ class PosDatabase {
     return await db.rawUpdate(
       'UPDATE $tablePosTable SET status = ?, updated_at = ? WHERE table_id = ?',
       [data.status, data.updated_at, data.table_id]);
+  }
+
+/*
+  update table use detail
+*/
+  Future<int> updateTableUseDetail(int table_id , TableUseDetail data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableTableUseDetail SET table_id = ?, updated_at = ? WHERE table_id = ?',
+        [data.table_id, data.updated_at, table_id]);
   }
 
 /*

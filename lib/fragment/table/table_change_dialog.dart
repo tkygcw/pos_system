@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/table_use_detail.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -47,26 +48,84 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     }
     return null;
   }
-
-  void updateOrderCache() async {
+/*
+ taylor part
+*/
+  // void updateOrderCache() async {
+  //   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+  //   String dateTime = dateFormat.format(DateTime.now());
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final int? branch_id = prefs.getInt('branch_id');
+  //   List<PosTable> tableData = await PosDatabase.instance
+  //       .readSpecificTableByTableNo(branch_id!, tableNoController.text);
+  //   for (int i = 0; i < orderCacheList.length; i++) {
+  //     Map responseUpdateOrderCache = await Domain().editOrderCache(
+  //         orderCacheList[i].order_cache_id.toString(),
+  //         tableData[0].table_id.toString());
+  //     if (responseUpdateOrderCache['status'] == '1') {
+  //       int data = await PosDatabase.instance.updateOrderCacheTableID(
+  //           OrderCache(
+  //               order_cache_id: orderCacheList[i].order_cache_id,
+  //               table_id: tableData[0].table_id.toString(),
+  //               updated_at: dateTime));
+  //     }
+  //   }
+  // }
+/*
+  taylor part
+*/
+  // updatePosTable() async {
+  //   print('table updated');
+  //   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+  //   String dateTime = dateFormat.format(DateTime.now());
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final int? branch_id = prefs.getInt('branch_id');
+  //
+  //   List<PosTable> tableData = await PosDatabase.instance
+  //       .readSpecificTableByTableNo(branch_id!, tableNoController.text);
+  //   List<PosTable> newTable = await PosDatabase.instance
+  //       .checkPosTableStatus(branch_id, tableData[0].table_id!);
+  //   if (newTable[0].status == 0) {
+  //     Map responseChangeTableStatus =
+  //         await Domain().editTableStatus('1', tableData[0].table_id.toString());
+  //     if (responseChangeTableStatus['status'] == '1') {
+  //       PosTable posTableData = PosTable(
+  //           table_id: tableData[0].table_id!, status: 1, updated_at: dateTime);
+  //       int data =
+  //           await PosDatabase.instance.updatePosTableStatus(posTableData);
+  //     }
+  //   }
+  //
+  //   List<PosTable> lastTable = await PosDatabase.instance
+  //       .checkPosTableStatus(branch_id, widget.object.table_id!);
+  //   if (lastTable[0].status == 1) {
+  //     Map responseChangeTableStatus = await Domain()
+  //         .editTableStatus('0', widget.object.table_id.toString());
+  //     if (responseChangeTableStatus['status'] == '1') {
+  //       PosTable posTableData = PosTable(
+  //           table_id: widget.object.table_id, status: 0, updated_at: dateTime);
+  //       int data2 =
+  //           await PosDatabase.instance.updatePosTableStatus(posTableData);
+  //     }
+  //   }
+  //   widget.callBack();
+  //   Navigator.of(context).pop();
+  // }
+/*
+leow part
+*/
+  updateTableUse() async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    List<PosTable> tableData = await PosDatabase.instance
-        .readSpecificTableByTableNo(branch_id!, tableNoController.text);
-    for (int i = 0; i < orderCacheList.length; i++) {
-      Map responseUpdateOrderCache = await Domain().editOrderCache(
-          orderCacheList[i].order_cache_id.toString(),
-          tableData[0].table_id.toString());
-      if (responseUpdateOrderCache['status'] == '1') {
-        int data = await PosDatabase.instance.updateOrderCacheTableID(
-            OrderCache(
-                order_cache_id: orderCacheList[i].order_cache_id,
-                table_id: tableData[0].table_id.toString(),
-                updated_at: dateTime));
-      }
-    }
+    List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(branch_id!, tableNoController.text);
+    int tableUseDetailData = await PosDatabase.instance.updateTableUseDetail(
+        widget.object.table_id!,
+        TableUseDetail(
+          table_id: tableData[0].table_id.toString(),
+          updated_at: dateTime,
+        ));
   }
 
   updatePosTable() async {
@@ -78,30 +137,24 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
 
     List<PosTable> tableData = await PosDatabase.instance
         .readSpecificTableByTableNo(branch_id!, tableNoController.text);
+    //update new table status
     List<PosTable> newTable = await PosDatabase.instance
         .checkPosTableStatus(branch_id, tableData[0].table_id!);
     if (newTable[0].status == 0) {
-      Map responseChangeTableStatus =
-          await Domain().editTableStatus('1', tableData[0].table_id.toString());
-      if (responseChangeTableStatus['status'] == '1') {
         PosTable posTableData = PosTable(
             table_id: tableData[0].table_id!, status: 1, updated_at: dateTime);
         int data =
-            await PosDatabase.instance.updatePosTableStatus(posTableData);
-      }
-    }
+        await PosDatabase.instance.updatePosTableStatus(posTableData);
 
+    }
+    //update previous table status
     List<PosTable> lastTable = await PosDatabase.instance
         .checkPosTableStatus(branch_id, widget.object.table_id!);
     if (lastTable[0].status == 1) {
-      Map responseChangeTableStatus = await Domain()
-          .editTableStatus('0', widget.object.table_id.toString());
-      if (responseChangeTableStatus['status'] == '1') {
         PosTable posTableData = PosTable(
             table_id: widget.object.table_id, status: 0, updated_at: dateTime);
         int data2 =
-            await PosDatabase.instance.updatePosTableStatus(posTableData);
-      }
+        await PosDatabase.instance.updatePosTableStatus(posTableData);
     }
     widget.callBack();
     Navigator.of(context).pop();
@@ -110,7 +163,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   void _submit(BuildContext context) {
     setState(() => _submitted = true);
     if (errorTableNo == null) {
-      updateOrderCache();
+      updateTableUse();
       updatePosTable();
     }
   }
@@ -174,7 +227,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     final int? branch_id = prefs.getInt('branch_id');
 
     List<OrderCache> orderCacheData = await PosDatabase.instance
-        .readTableOrderCache(branch_id.toString(), widget.object.table_id!);
+        .readTableOrderCache(branch_id.toString(), widget.object.table_id.toString());
     //loop all table order cache
     for (int i = 0; i < orderCacheData.length; i++) {
       if (!orderCacheList.contains(orderCacheData)) {

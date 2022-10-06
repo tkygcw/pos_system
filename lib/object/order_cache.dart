@@ -7,6 +7,7 @@ class OrderCacheFields {
     company_id,
     branch_id,
     order_detail_id,
+    table_use_id,
     table_id,
     dining_id,
     order_id,
@@ -23,6 +24,7 @@ class OrderCacheFields {
   static String company_id = 'company_id';
   static String branch_id = 'branch_id';
   static String order_detail_id = 'order_detail_id';
+  static String table_use_id = 'table_use_id';
   static String table_id = 'table_id';
   static String dining_id = 'dining_id';
   static String order_id = 'order_id';
@@ -40,6 +42,7 @@ class OrderCache{
   String? company_id;
   String? branch_id;
   String? order_detail_id;
+  String? table_use_id;
   String? table_id;
   String? dining_id;
   String? order_id;
@@ -56,6 +59,7 @@ class OrderCache{
         this.company_id,
         this.branch_id,
         this.order_detail_id,
+        this.table_use_id,
         this.table_id,
         this.dining_id,
         this.order_id,
@@ -72,6 +76,7 @@ class OrderCache{
     String? company_id,
     String? branch_id,
     String? order_detail_id,
+    String? table_use_id,
     String? table_id,
     String? dining_id,
     String? order_id,
@@ -88,6 +93,7 @@ class OrderCache{
           company_id: company_id ?? this.company_id,
           branch_id: branch_id ?? this.branch_id,
           order_detail_id: order_detail_id ?? this.order_detail_id,
+          table_use_id: table_use_id ?? this.table_use_id,
           table_id: table_id ?? this.table_id,
           dining_id: dining_id ?? this.dining_id,
           order_id: order_id ?? this.order_id,
@@ -104,6 +110,7 @@ class OrderCache{
     company_id: json[OrderCacheFields.company_id] as String?,
     branch_id: json[OrderCacheFields.branch_id] as String?,
     order_detail_id: json[OrderCacheFields.order_detail_id] as String?,
+    table_use_id: json[OrderCacheFields.table_use_id] as String?,
     table_id: json[OrderCacheFields.table_id] as String?,
     dining_id: json[OrderCacheFields.dining_id] as String?,
     order_id: json[OrderCacheFields.order_id] as String?,
@@ -121,6 +128,7 @@ class OrderCache{
     OrderCacheFields.company_id: company_id,
     OrderCacheFields.branch_id: branch_id,
     OrderCacheFields.order_detail_id: order_detail_id,
+    OrderCacheFields.table_use_id: table_use_id,
     OrderCacheFields.table_id: table_id,
     OrderCacheFields.dining_id: dining_id,
     OrderCacheFields.order_id: order_id,

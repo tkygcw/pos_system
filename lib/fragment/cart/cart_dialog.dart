@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -20,6 +21,7 @@ import '../../object/product.dart';
 import '../../object/product_variant.dart';
 import '../../object/product_variant_detail.dart';
 import '../../object/table.dart';
+import '../../object/table_use_detail.dart';
 import '../../object/variant_group.dart';
 import '../../object/variant_item.dart';
 import '../../translation/AppLocalizations.dart';
@@ -51,59 +53,18 @@ class _CartDialogState extends State<CartDialog> {
     readAllTable();
   }
 
-  Widget DragItemLayout(int index) {
-    return Container(
-      width: 140.0,
-      height: 140.0,
-      child: Card(
-        key: ValueKey(tableList[index].table_id),
-        child: Stack(
-          alignment: Alignment.bottomLeft,
-          children: [
-            Ink.image(
-              image: tableList[index].seats == '2'
-                  ? NetworkImage(
-                      "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
-                  : tableList[index].seats == '4'
-                      ? NetworkImage(
-                          "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
-                      : tableList[index].seats == '6'
-                          ? NetworkImage(
-                              "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
-                          : NetworkImage(
-                              "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
-              child: InkWell(
-                splashColor: Colors.blue.withAlpha(30),
-              ),
-              fit: BoxFit.cover,
-            ),
-            Container(
-                alignment: Alignment.center,
-                child: Text("#" + tableList[index].number!)),
-            tableList[index].status == 1
-                ? Container(
-                    alignment: Alignment.topCenter,
-                    child: Text(
-                      "${tableList[index].total_Amount.toStringAsFixed(2)}",
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  )
-                : Container()
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future showSecondDialog(
-      BuildContext context, ThemeColor color, int dragIndex, int targetIndex, CartModel cart) {
+  Future showSecondDialog(BuildContext context, ThemeColor color, int dragIndex,
+      int targetIndex, CartModel cart) {
     return showDialog(
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) => AlertDialog(
         title: Text('Confirm merge table'),
         content: SizedBox(
-            height: 100.0, width: 350.0, child: Text('merge table ${tableList[dragIndex].number} with table ${tableList[targetIndex].number} ?')),
+            height: 100.0,
+            width: 350.0,
+            child: Text(
+                'merge table ${tableList[dragIndex].number} with table ${tableList[targetIndex].number} ?')),
         actions: <Widget>[
           TextButton(
             child: Text('${AppLocalizations.of(context)?.translate('close')}'),
@@ -113,15 +74,29 @@ class _CartDialogState extends State<CartDialog> {
           ),
           TextButton(
             child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-            onPressed: () {
-              if(tableList[dragIndex].table_id != tableList[targetIndex].table_id){
-                cart.selectedTable.clear();
-                cart.addTable(tableList[targetIndex]);
-                cart.addTable(tableList[dragIndex]);
-              }else{
+            onPressed: () async  {
+              if (tableList[dragIndex].table_id != tableList[targetIndex].table_id) {
+                final prefs = await SharedPreferences.getInstance();
+                final int? branch_id = prefs.getInt('branch_id');
+                cart.removeAllTable();
+                List<TableUseDetail> DragTableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[dragIndex].table_id!);
+                List<TableUseDetail> TargetTableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[targetIndex].table_id!);
+                List<TableUseDetail> allDragTableUseData = await PosDatabase.instance.readAllTableUseDetail(DragTableUseDetailData[0].table_use_id!);
+                List<TableUseDetail> allTargetTableUseData = await PosDatabase.instance.readAllTableUseDetail(TargetTableUseDetailData[0].table_use_id!);
+                for(int i = 0 ; i < allDragTableUseData.length; i++){
+                List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(branch_id!, allDragTableUseData[i].table_id!);
+                  cart.addTable(tableData[0]);
+                }
+                for(int j = 0 ; j < allTargetTableUseData.length; j++){
+                  List<PosTable> TargetTableData = await PosDatabase.instance.readSpecificTable(branch_id!, allTargetTableUseData[j].table_id!);
+                  cart.addTable(TargetTableData[0]);
+                }
+
+              } else {
                 Fluttertoast.showToast(
                     backgroundColor: Color(0xFFFF0000),
-                    msg: "${AppLocalizations.of(context)?.translate('merge_error')}");
+                    msg:
+                        "${AppLocalizations.of(context)?.translate('merge_error')}");
               }
 
               Navigator.of(context).pop();
@@ -140,16 +115,16 @@ class _CartDialogState extends State<CartDialog> {
           builder: (context, snapshot) {
             return AlertDialog(
               title: Text("Select Table"),
-              content: Container(
+              content: isLoad ?
+              Container(
                 height: 650,
-                width: 650,
+                width: MediaQuery.of(context).size.width /2,
                 child: Consumer<CartModel>(
                     builder: (context, CartModel cart, child) {
                   return Column(
                     children: [
                       Expanded(
                         child: ReorderableGridView.count(
-
                           crossAxisSpacing: 10,
                           mainAxisSpacing: 10,
                           crossAxisCount: 4,
@@ -160,14 +135,15 @@ class _CartDialogState extends State<CartDialog> {
                               .values
                               .toList(),
                           onReorder: (int oldIndex, int newIndex) {
-                            showSecondDialog(context, color, oldIndex, newIndex, cart);
+                            showSecondDialog(
+                                context, color, oldIndex, newIndex, cart);
                           },
                         ),
                       ),
                     ],
                   );
                 }),
-              ),
+              ) : CustomProgressBar(),
               actions: <Widget>[
                 TextButton(
                   child: Text(
@@ -184,72 +160,90 @@ class _CartDialogState extends State<CartDialog> {
 
   Widget tableItem(CartModel cart, index) {
     return Container(
-      height: 100,
       key: Key(index.toString()),
       child: Card(
         color: tableList[index].status != 0 ? Colors.red : Colors.white,
-        child: Stack(
-          alignment: Alignment.bottomLeft,
-          children: [
-            Ink.image(
-              image: tableList[index].seats == '2'
-                  ? NetworkImage(
-                      "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
-                  : tableList[index].seats == '4'
-                      ? NetworkImage(
-                          "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
-                      : tableList[index].seats == '6'
-                          ? NetworkImage(
-                              "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
-                          : NetworkImage(
-                              "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
-              child: InkWell(
-                splashColor: Colors.blue.withAlpha(30),
-                onTap: () async  {
-                  if(tableList[index].status == 1){
-                    cart.removeAllCartItem();
-                    await readSpecificTableDetail(tableList[index]);
-                    addToCart(cart, tableList[index]);
-                    Navigator.of(context).pop();
-                  } else {
-                    cart.removeAllCartItem();
-                    cart.removeAllTable();
-                    cart.addTable(tableList[index]);
-                    Navigator.of(context).pop();
-                  }
-
-                },
-              ),
-              fit: BoxFit.cover,
-            ),
-            Container(
-                alignment: Alignment.center,
-                child: Text("#" + tableList[index].number!)),
-            tableList[index].status == 1
-                ? Container(
-                    alignment: Alignment.topCenter,
-                    child: Text(
-                      "RM${tableList[index].total_Amount.toStringAsFixed(2)}",
+        child: Container(
+          margin: EdgeInsets.all(10),
+          child: Column(
+            children: [
+              tableList[index].group != null
+                  ? Text(
+                      "Group: ${tableList[index].group}",
                       style: TextStyle(fontSize: 18),
+                    )
+                  : Text(''),
+              Container(
+                margin: EdgeInsets.fromLTRB(0, 2, 0, 2),
+                height: MediaQuery.of(context).size.height / 8,
+                child: Stack(
+                  alignment: Alignment.bottomLeft,
+                  children: [
+                    Ink.image(
+                      image: tableList[index].seats == '2'
+                          ? NetworkImage(
+                              "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
+                          : tableList[index].seats == '4'
+                              ? NetworkImage(
+                                  "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
+                              : tableList[index].seats == '6'
+                                  ? NetworkImage(
+                                      "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
+                                  : NetworkImage(
+                                      "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                      child: InkWell(
+                        splashColor: Colors.blue.withAlpha(30),
+                        onTap: () async {
+                          if (tableList[index].status == 1) {
+                            cart.removeAllCartItem();
+                            await readSpecificTableDetail(tableList[index]);
+                            addToCart(cart, tableList[index]);
+                            Navigator.of(context).pop();
+                          } else {
+                            cart.removeAllCartItem();
+                            cart.removeAllTable();
+                            cart.addTable(tableList[index]);
+                            Navigator.of(context).pop();
+                          }
+                        },
+                      ),
+                      fit: BoxFit.cover,
                     ),
-                  )
-                : Container()
-          ],
+                    Container(
+                        alignment: Alignment.center,
+                        child: Text("#" + tableList[index].number!)),
+                  ],
+                ),
+              ),
+              tableList[index].status == 1
+                  ? Container(
+                      alignment: Alignment.topCenter,
+                      child: Text(
+                        "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    )
+                  : Container()
+            ],
+          ),
         ),
       ),
     );
   }
 
   readAllTable() async {
+    isLoad = false;
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
-    List<PosTable> data =
-        await PosDatabase.instance.readAllTable(branch_id!.toInt());
+    List<PosTable> data = await PosDatabase.instance.readAllTable(branch_id!.toInt());
 
-    tableList = data;
+    tableList = List.from(data);
     readAllTableAmount();
-
+    setState(() {
+      
+      isLoad = true;
+    });
   }
 
   readAllTableAmount() async {
@@ -258,12 +252,13 @@ class _CartDialogState extends State<CartDialog> {
     final int? branch_id = prefs.getInt('branch_id');
 
     for (int i = 0; i < tableList.length; i++) {
-      List<OrderCache> data = await PosDatabase.instance
-          .readTableOrderCache(branch_id.toString(), tableList[i].table_id!);
-
-      for (int j = 0; j < data.length; j++) {
-        tableList[i].total_Amount += double.parse(data[j].total_amount!);
-
+      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
+          .readSpecificTableUseDetail(tableList[i].table_id!);
+      if (tableUseDetailData.length > 0) {
+        List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
+            branch_id.toString(), tableUseDetailData[0].table_use_id!);
+        tableList[i].total_Amount += double.parse(data[0].total_amount!);
+        tableList[i].group = data[0].table_use_id;
       }
     }
     controller.add('refresh');
@@ -276,14 +271,17 @@ class _CartDialogState extends State<CartDialog> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
+    //Get specific table use detail
+    List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
+        .readSpecificTableUseDetail(posTable.table_id!);
+
     //Get all order table cache
-    List<OrderCache> data = await PosDatabase.instance
-        .readTableOrderCache(branch_id.toString(), posTable.table_id!);
+    List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
+        branch_id.toString(), tableUseDetailData[0].table_use_id!);
     //loop all table order cache
     for (int i = 0; i < data.length; i++) {
-      if(!orderCacheList.contains(data)){
+      if (!orderCacheList.contains(data)) {
         orderCacheList = List.from(data);
-
       }
       //Get all order detail based on order cache id
       List<OrderDetail> detailData = await PosDatabase.instance
@@ -298,9 +296,8 @@ class _CartDialogState extends State<CartDialog> {
       //Get data from branch link product
       List<BranchLinkProduct> result = await PosDatabase.instance
           .readSpecificBranchLinkProduct(
-          orderDetailList[k].branch_link_product_id!);
+              orderDetailList[k].branch_link_product_id!);
       orderDetailList[k].product_name = result[0].product_name!;
-
 
       //Get product category
       List<Product> productResult = await PosDatabase.instance
@@ -311,42 +308,50 @@ class _CartDialogState extends State<CartDialog> {
         //Get product variant
         List<BranchLinkProduct> variant = await PosDatabase.instance
             .readBranchLinkProductVariant(
-            orderDetailList[k].branch_link_product_id!);
+                orderDetailList[k].branch_link_product_id!);
         orderDetailList[k].productVariant = ProductVariant(
             product_variant_id: int.parse(variant[0].product_variant_id!),
             variant_name: variant[0].variant_name);
 
         //Get product variant detail
-        List<ProductVariantDetail> productVariantDetail = await PosDatabase.instance.readProductVariantDetail(variant[0].product_variant_id!);
+        List<ProductVariantDetail> productVariantDetail = await PosDatabase
+            .instance
+            .readProductVariantDetail(variant[0].product_variant_id!);
         orderDetailList[k].variantItem.clear();
         for (int v = 0; v < productVariantDetail.length; v++) {
           //Get product variant item
-          List<VariantItem> variantItemDetail = await PosDatabase.instance.readProductVariantItemByVariantID(productVariantDetail[v].variant_item_id!);
+          List<VariantItem> variantItemDetail = await PosDatabase.instance
+              .readProductVariantItemByVariantID(
+                  productVariantDetail[v].variant_item_id!);
           orderDetailList[k].variantItem.add(VariantItem(
               variant_item_id:
-              int.parse(productVariantDetail[v].variant_item_id!),
+                  int.parse(productVariantDetail[v].variant_item_id!),
               variant_group_id: variantItemDetail[0].variant_group_id,
               name: variant[0].variant_name,
               isSelected: true));
           productVariantDetail.clear();
-
         }
       }
 
       //check product modifier
-      List<ModifierLinkProduct> productMod = await PosDatabase.instance.readProductModifier(result[0].product_id!);
-      if(productMod.length > 0){
+      List<ModifierLinkProduct> productMod =
+          await PosDatabase.instance.readProductModifier(result[0].product_id!);
+      if (productMod.length > 0) {
         orderDetailList[k].hasModifier = true;
       }
 
-      if(orderDetailList[k].hasModifier == true){
+      if (orderDetailList[k].hasModifier == true) {
         //Get order modifier detail
-        List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[k].order_detail_id.toString());
+        List<OrderModifierDetail> modDetail = await PosDatabase.instance
+            .readOrderModifierDetail(
+                orderDetailList[k].order_detail_id.toString());
         if (modDetail.length > 0) {
           orderDetailList[k].modifierItem.clear();
           for (int m = 0; m < modDetail.length; m++) {
             // print('mod detail length: ${modDetail.length}');
-            if (!orderDetailList[k].modifierItem.contains(modDetail[m].mod_group_id!)) {
+            if (!orderDetailList[k]
+                .modifierItem
+                .contains(modDetail[m].mod_group_id!)) {
               orderDetailList[k].modifierItem.add(ModifierItem(
                   mod_group_id: modDetail[m].mod_group_id!,
                   mod_item_id: int.parse(modDetail[m].mod_item_id!),
@@ -392,7 +397,6 @@ class _CartDialogState extends State<CartDialog> {
               mod_item_id: temp[k].mod_item_id,
               name: temp[k].name,
               isChecked: true));
-          print('modifierGroup[i].modifierChild: ${temp[k].mod_item_id}');
           temp.removeAt(k);
         }
       }
@@ -408,15 +412,17 @@ class _CartDialogState extends State<CartDialog> {
       variantGroup.add(VariantGroup(
           child: orderDetail.variantItem,
           variant_group_id:
-          int.parse(orderDetail.variantItem[i].variant_group_id!)));
+              int.parse(orderDetail.variantItem[i].variant_group_id!)));
     }
     //print('variant group length: ${variantGroup.length}');
     return variantGroup;
   }
 
-
-  addToCart(CartModel cart, PosTable posTable) {
+  addToCart(CartModel cart, PosTable posTable) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
     var value;
+    List<TableUseDetail> tableUseDetailList = [];
     cart.removeAllTable();
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
@@ -431,8 +437,17 @@ class _CartDialogState extends State<CartDialog> {
       );
       cart.addItem(value);
     }
-    if(cart.selectedTable.isEmpty){
-      cart.addTable(posTable);
+    for (int j = 0; j < orderCacheList.length; j++) {
+      //Get specific table use detail
+      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
+          .readAllTableUseDetail(orderCacheList[j].table_use_id!);
+      tableUseDetailList = List.from(tableUseDetailData);
     }
 
-  }}
+    for (int k = 0; k < tableUseDetailList.length; k++) {
+      List<PosTable> tableData = await PosDatabase.instance
+          .readSpecificTable(branch_id!, tableUseDetailList[k].table_id!);
+      cart.addTable(tableData[0]);
+    }
+  }
+}

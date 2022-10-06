@@ -231,7 +231,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
 
     //Get all order table cache
     List<OrderCache> data = await PosDatabase.instance
-        .readTableOrderCache(branch_id.toString(), widget.object.table_id!);
+        .readTableOrderCache(branch_id.toString(), widget.object.table_id.toString());
     //loop all table order cache
     for (int i = 0; i < data.length; i++) {
       if(!orderCacheList.contains(data)){

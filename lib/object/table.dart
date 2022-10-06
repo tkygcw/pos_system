@@ -35,6 +35,7 @@ class PosTable{
   String? updated_at;
   String? soft_delete;
   double total_Amount = 0.0;
+  String? group;
 
   PosTable(
       {this.table_sqlite_id,

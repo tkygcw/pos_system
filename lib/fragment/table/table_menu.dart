@@ -7,6 +7,8 @@ import 'package:pos_system/fragment/table/table_detail_dialog.dart';
 import 'package:pos_system/fragment/table/table_dialog.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/table_use_detail.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,6 +27,7 @@ class _TableMenuState extends State<TableMenu> {
   late StreamController controller;
   double priceSST = 0.0;
   double priceServeTax = 0.0;
+  bool isLoaded = false;
 
   @override
   void initState() {
@@ -43,7 +46,6 @@ class _TableMenuState extends State<TableMenu> {
 
   @override
   Widget build(BuildContext context) {
-
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Scaffold(
         body: StreamBuilder(
@@ -90,65 +92,94 @@ class _TableMenuState extends State<TableMenu> {
                       ),
                     ),
                     SizedBox(height: 20),
+                    isLoaded ?
                     Expanded(
                       child: GridView.count(
                         shrinkWrap: true,
                         crossAxisCount: 5,
                         children: List.generate(
-                          //this is the total number of cards
-                            tableList.length,
-                            (index) {
+                            //this is the total number of cards
+                            tableList.length, (index) {
                           // tableList[index].seats == 2;
                           return Card(
-                            color: tableList[index].status != 0 ? Colors.red : Colors.white,
-                            child: Stack(
-                              alignment: Alignment.bottomLeft,
-                              children: [
-                                Ink.image(
-                                  image: tableList[index].seats == '2'
-                                      ? NetworkImage(
-                                          "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
-                                      : tableList[index].seats == '4'
-                                          ? NetworkImage(
-                                              "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
-                                          : tableList[index].seats == '6'
-                                              ? NetworkImage(
-                                                  "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
-                                              : NetworkImage(
-                                                  "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
-                                  child: InkWell(
-                                    splashColor: Colors.blue.withAlpha(30),
-                                    onLongPress: () {
-                                      if(tableList[index].status != 1){
-                                        openAddTableDialog(tableList[index]);
-                                      } else {
-                                        openChangeTableDialog(tableList[index]);
-                                      }
-                                    },
-                                    onTap: () {
-                                      tableList[index].status != 0 ?
-                                      openTableDetailDialog(tableList[index]) :
-                                      Fluttertoast.showToast(
-                                          backgroundColor: Color(0xFF24EF10),
-                                          msg: "table not in used");
-                                    },
-                                  ),
-                                  fit: BoxFit.cover,
-                                ),
-                                Container(
-                                    alignment: Alignment.center,
-                                    child:
-                                        Text("#" + tableList[index].number!)),
-                                tableList[index].status == 1
-                                    ? Container(
-                                        alignment: Alignment.topCenter,
-                                        child: Text(
-                                          "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
+                            color: tableList[index].status != 0
+                                ? Colors.red
+                                : Colors.white,
+                            child: Container(
+                              margin: EdgeInsets.all(2),
+                              child: Column(
+                                children: [
+                                  tableList[index].group != null
+                                      ? Text(
+                                          "Group: ${tableList[index].group}",
                                           style: TextStyle(fontSize: 18),
+                                        )
+                                      : Text(''),
+                                  Container(
+                                    margin: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                                    height:
+                                        MediaQuery.of(context).size.height / 6,
+                                    child: Stack(
+                                      alignment: Alignment.bottomLeft,
+                                      children: [
+                                        Ink.image(
+                                          image: tableList[index].seats == '2'
+                                              ? NetworkImage(
+                                                  "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
+                                              : tableList[index].seats == '4'
+                                                  ? NetworkImage(
+                                                      "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
+                                                  : tableList[index].seats == '6'
+                                                      ? NetworkImage(
+                                                          "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
+                                                      : NetworkImage(
+                                                          "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                                          child: InkWell(
+                                            splashColor:
+                                                Colors.blue.withAlpha(30),
+                                            onLongPress: () {
+                                              if (tableList[index].status != 1) {
+                                                openAddTableDialog(
+                                                    tableList[index]);
+                                              } else {
+                                                openChangeTableDialog(
+                                                    tableList[index]);
+                                              }
+                                            },
+                                            onTap: () {
+                                              tableList[index].status != 0
+                                                  ? Fluttertoast.showToast(
+                                                      backgroundColor:
+                                                          Color(0xFFFF0000),
+                                                      msg: "item add to cart")
+                                                  :
+                                                  //openTableDetailDialog(tableList[index]) :
+                                                  Fluttertoast.showToast(
+                                                      backgroundColor:
+                                                          Color(0xFF24EF10),
+                                                      msg: "table not in used");
+                                            },
+                                          ),
+                                          fit: BoxFit.cover,
                                         ),
-                                      )
-                                    : Container()
-                              ],
+                                        Container(
+                                            alignment: Alignment.center,
+                                            child: Text(
+                                                "#" + tableList[index].number!)),
+                                      ],
+                                    ),
+                                  ),
+                                  tableList[index].status == 1
+                                      ? Container(
+                                          alignment: Alignment.topCenter,
+                                          child: Text(
+                                            "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
+                                            style: TextStyle(fontSize: 18),
+                                          ),
+                                        )
+                                      : Container()
+                                ],
+                              ),
                             ),
                           );
                         }),
@@ -281,7 +312,7 @@ class _TableMenuState extends State<TableMenu> {
                       //     ),
                       //   )
                       // ])
-                    )
+                    ) : CustomProgressBar()
                   ],
                 ),
               );
@@ -300,10 +331,7 @@ class _TableMenuState extends State<TableMenu> {
             child: Opacity(
                 opacity: a1.value,
                 child: TableDialog(
-                  object: posTable,
-                  callBack: () => readAllTable()
-
-                )),
+                    object: posTable, callBack: () => readAllTable())),
           );
         },
         transitionDuration: Duration(milliseconds: 200),
@@ -325,8 +353,8 @@ class _TableMenuState extends State<TableMenu> {
             child: Opacity(
                 opacity: a1.value,
                 child: TableChangeDialog(
-                    object: posTable,
-                    callBack: () => readAllTable(),
+                  object: posTable,
+                  callBack: () => readAllTable(),
                 )),
           );
         },
@@ -347,11 +375,11 @@ class _TableMenuState extends State<TableMenu> {
           return Transform(
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
-                opacity: a1.value,
-                child: TableDetailDialog(
-                  object: posTable,
-                  callBack: () => readAllTable(),
-                ),
+              opacity: a1.value,
+              child: TableDetailDialog(
+                object: posTable,
+                callBack: () => readAllTable(),
+              ),
             ),
           );
         },
@@ -364,17 +392,18 @@ class _TableMenuState extends State<TableMenu> {
         });
   }
 
-
   readAllTable() async {
-    print('read all table called');
+    isLoaded = false;
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     List<PosTable> data =
         await PosDatabase.instance.readAllTable(branch_id!.toInt());
 
-    tableList = data;
+    tableList = List.from(data);
     readAllTableAmount();
-    controller.add('refresh');
+    setState(() {
+      isLoaded = true;
+    });
   }
 
   readAllTableAmount() async {
@@ -386,16 +415,21 @@ class _TableMenuState extends State<TableMenu> {
 
     for (int i = 0; i < tableList.length; i++) {
       tableList[i].total_Amount = 0.0;
-      List<OrderCache> data = await PosDatabase.instance
-          .readTableOrderCache(branch_id.toString(), tableList[i].table_id!);
+      //get table use detail based on table id
+      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
+          .readSpecificTableUseDetail(tableList[i].table_id!);
+      if (tableUseDetailData.length > 0) {
+        //get order cache based on table use id
+        List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
+            branch_id.toString(), tableUseDetailData[0].table_use_id!);
 
-      for (int j = 0; j < data.length; j++) {
-        // priceSST = double.parse(data[j].total_amount!) * 0.06;
-        // priceServeTax = double.parse(data[j].total_amount!) * 0.10;
-
-        tableList[i].total_Amount += double.parse(data[j].total_amount!) ;
-            //+ double.parse(priceSST.toStringAsFixed(2)) + double.parse(priceServeTax.toStringAsFixed(2))) + double.parse(tableList[i].total_Amount.toStringAsFixed(2)) ;
+        tableList[i].total_Amount += double.parse(data[0].total_amount!);
+        tableList[i].group = data[0].table_use_id;
       }
+      // priceSST = double.parse(data[j].total_amount!) * 0.06;
+      // priceServeTax = double.parse(data[j].total_amount!) * 0.10;
+      //+ double.parse(priceSST.toStringAsFixed(2)) + double.parse(priceServeTax.toStringAsFixed(2))) + double.parse(tableList[i].total_Amount.toStringAsFixed(2)) ;
+
     }
     controller.add('refresh');
   }
