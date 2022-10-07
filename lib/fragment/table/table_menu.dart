@@ -414,22 +414,14 @@ class _TableMenuState extends State<TableMenu> {
     final int? branch_id = prefs.getInt('branch_id');
 
     for (int i = 0; i < tableList.length; i++) {
-      tableList[i].total_Amount = 0.0;
-      //get table use detail based on table id
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
-          .readSpecificTableUseDetail(tableList[i].table_id!);
+      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_id!);
       if (tableUseDetailData.length > 0) {
-        //get order cache based on table use id
-        List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
-            branch_id.toString(), tableUseDetailData[0].table_use_id!);
-
-        tableList[i].total_Amount += double.parse(data[0].total_amount!);
+        List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_id!);
         tableList[i].group = data[0].table_use_id;
+        for(int j = 0; j < data.length; j++){
+          tableList[i].total_Amount += double.parse(data[j].total_amount!);
+        }
       }
-      // priceSST = double.parse(data[j].total_amount!) * 0.06;
-      // priceServeTax = double.parse(data[j].total_amount!) * 0.10;
-      //+ double.parse(priceSST.toStringAsFixed(2)) + double.parse(priceServeTax.toStringAsFixed(2))) + double.parse(tableList[i].total_Amount.toStringAsFixed(2)) ;
-
     }
     controller.add('refresh');
   }

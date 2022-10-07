@@ -1521,11 +1521,11 @@ class PosDatabase {
 /*
   update order cache
 */
-  Future<int> updateOrderCacheTableID(OrderCache data) async {
+  Future<int> updateOrderCacheTableUseId(String table_use_id, OrderCache data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-      'UPDATE $tableOrderCache SET table_id = ?, updated_at = ? WHERE order_cache_id = ?',
-      [data.table_id, data.updated_at, data.order_cache_id]);
+      'UPDATE $tableOrderCache SET table_use_id = ?, updated_at = ? WHERE table_use_id = ?',
+      [data.table_use_id, data.updated_at, table_use_id]);
   }
 
 
@@ -1704,6 +1704,26 @@ class PosDatabase {
     return await db.rawUpdate(
         'UPDATE $tableOrderModifierDetail SET soft_delete = ? WHERE order_detail_id = ?',
         [data.soft_delete, data.order_detail_id]);
+  }
+
+/*
+  Soft-delete change table table use detail
+*/
+  Future<int> deleteTableUseDetail(TableUseDetail data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableTableUseDetail SET soft_delete = ? WHERE table_use_detail_id = ?',
+        [data.soft_delete, data.table_use_detail_id]);
+  }
+
+/*
+  Soft-delete table use id
+*/
+  Future<int> deleteTableUseID(TableUse data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableTableUse SET soft_delete = ? WHERE table_use_id = ?',
+        [data.soft_delete, data.table_use_id]);
   }
 
 

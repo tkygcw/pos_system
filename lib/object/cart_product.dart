@@ -11,8 +11,18 @@ class cartProductItem{
    late List<ModifierGroup> modifier ;
    late List<VariantGroup> variant ;
    String remark='';
+   int status = 0;
 
-   cartProductItem(String branchProduct_id, String name, String category_id, String price, int quantity, List<ModifierGroup> modifier, List<VariantGroup> variant, String remark){
+   cartProductItem(
+       String branchProduct_id,
+       String name,
+       String category_id,
+       String price,
+       int quantity,
+       List<ModifierGroup> modifier,
+       List<VariantGroup> variant,
+       String remark,
+       int status){
        this.branchProduct_id = branchProduct_id;
        this.name = name;
        this.category_id = category_id;
@@ -21,6 +31,7 @@ class cartProductItem{
        this.modifier = modifier;
        this.variant = variant;
        this.remark = remark;
+       this.status = status;
    }
 
 }

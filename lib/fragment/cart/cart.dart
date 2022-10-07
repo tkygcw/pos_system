@@ -61,11 +61,11 @@ class _CartPageState extends State<CartPage> {
   double priceIncServiceTax = 0.0;
   double discountPrice = 0.0;
   double promoAmount = 0.0;
-  double subtotalAmount = 0.0;
   double totalAmount = 0.0;
   double tableOrderPrice = 0.0;
   bool hasPromo = false;
   bool hasSelectedPromo = false;
+  Color font = Colors.black45;
 
   @override
   void initState() {
@@ -105,14 +105,14 @@ class _CartPageState extends State<CartPage> {
                       style: TextStyle(fontSize: 20, color: Colors.black)),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(getSelectedTable(cart)),
+                    child: Text('Table: ${getSelectedTable(cart)}'),
                   ),
                 ],
               ),
               backgroundColor: Colors.white,
               actions: [
                 Visibility(
-                  visible: cart.selectedOption == 'Dine in' ? true : false,
+                  visible: cart.selectedOption == 'Dine in' && widget.currentPage == 'menu' ? true : false,
                   child: IconButton(
                     tooltip: 'table',
                     icon: const Icon(
@@ -125,13 +125,16 @@ class _CartPageState extends State<CartPage> {
                     },
                   ),
                 ),
-                IconButton(
-                  tooltip: 'promotion',
-                  icon: Icon(Icons.discount),
-                  color: color.backgroundColor,
-                  onPressed: () {
-                    openPromotionDialog();
-                  },
+                Visibility(
+                  visible: widget.currentPage == 'menu'? false: true,
+                  child: IconButton(
+                    tooltip: 'promotion',
+                    icon: Icon(Icons.discount),
+                    color: color.backgroundColor,
+                    onPressed: () {
+                      openPromotionDialog();
+                    },
+                  ),
                 ),
                 IconButton(
                   tooltip: 'clear cart',
@@ -249,8 +252,7 @@ class _CartPageState extends State<CartPage> {
                                                     '\n',
                                                 style: TextStyle(
                                                     fontSize: 14,
-                                                    color:
-                                                        color.backgroundColor,
+                                                    color: cart.cartNotifierItem[index].status == 1 ? font : color.backgroundColor,
                                                     fontWeight:
                                                         FontWeight.bold)),
                                             TextSpan(
@@ -259,7 +261,7 @@ class _CartPageState extends State<CartPage> {
                                                         .price,
                                                 style: TextStyle(
                                                   fontSize: 13,
-                                                  color: color.backgroundColor,
+                                                  color: cart.cartNotifierItem[index].status == 1 ? font : color.backgroundColor,
                                                 )),
                                           ],
                                         ),
@@ -281,14 +283,7 @@ class _CartPageState extends State<CartPage> {
                                                       Colors.transparent,
                                                   icon: Icon(Icons.remove),
                                                   onPressed: () {
-                                                    cart.cartNotifierItem[index]
-                                                                .quantity !=
-                                                            1
-                                                        ? setState(() => cart
-                                                            .cartNotifierItem[
-                                                                index]
-                                                            .quantity--)
-                                                        : null;
+                                                    cart.cartNotifierItem[index].quantity != 1 ? setState(() => cart.cartNotifierItem[index].quantity--) : null;
                                                   }),
                                               Text(cart.cartNotifierItem[index]
                                                   .quantity
@@ -298,12 +293,17 @@ class _CartPageState extends State<CartPage> {
                                                       Colors.transparent,
                                                   icon: Icon(Icons.add),
                                                   onPressed: () {
-                                                    setState(() {
-                                                      cart
-                                                          .cartNotifierItem[
-                                                              index]
-                                                          .quantity++;
-                                                    });
+                                                    if(cart.cartNotifierItem[index].status == 0){
+                                                      setState(() {
+                                                        cart.cartNotifierItem[index].quantity++;
+                                                      });
+                                                    } else{
+                                                      Fluttertoast.showToast(
+                                                          backgroundColor: Colors.red,
+                                                          msg:
+                                                          "order already placed!");
+                                                    }
+
                                                     controller.add('refresh');
                                                   })
                                             ],
@@ -437,12 +437,20 @@ class _CartPageState extends State<CartPage> {
                             onPressed: () async {
                               if(widget.currentPage == 'menu') {
                                 if (cart.selectedOption == 'Dine in') {
-                                  if (cart.selectedTable.isNotEmpty &&
-                                      cart.cartNotifierItem.isNotEmpty) {
-                                    await createOrderCache(cart);
-                                    await updatePosTable(cart);
-                                    cart.removeAllCartItem();
-                                    cart.removeAllTable();
+                                  if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
+                                    if(cart.cartNotifierItem[0].status == 1 ){
+                                      print('ga liao');
+                                      await addOrderCache(cart);
+                                      cart.removeAllCartItem();
+                                      cart.removeAllTable();
+                                    }else {
+                                      print('ga cache');
+                                      await createOrderCache(cart);
+                                      await updatePosTable(cart);
+                                      cart.removeAllCartItem();
+                                      cart.removeAllTable();
+                                    }
+
                                   } else {
                                     Fluttertoast.showToast(
                                         backgroundColor: Colors.red,
@@ -548,20 +556,22 @@ class _CartPageState extends State<CartPage> {
   Get Selected table
 */
   getSelectedTable(CartModel cart) {
-    String result = '';
+    List<String> result = [];
     if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
-      result = 'No table';
+      result.add('No table');
     } else if (cart.selectedOption != 'Dine in') {
-      result = '';
+      result.add('');
     } else {
       if (cart.selectedTable.length > 1) {
-        result = 'table ${cart.selectedTable[0].number!},${cart.selectedTable[1].number!}' ;
+        for(int i = 0; i < cart.selectedTable.length; i++){
+          result.add('${cart.selectedTable[i].number}');
+        }
       } else {
-        result = 'table ${cart.selectedTable[0].number!}' ;
+        result.add('${cart.selectedTable[0].number}');
       }
     }
-    controller.add('refresh');
-    return result;
+
+    return result.toString().replaceAll('[', '').replaceAll(']', '');
   }
 
 /*
@@ -660,26 +670,35 @@ class _CartPageState extends State<CartPage> {
       autoApplyPromotionList = [];
       promoName = '';
       hasPromo = false;
-
+      //loop promotion list get promotion
       for (int j = 0; j < promotionList.length; j++) {
         promotionList[j].promoAmount = 0.0;
         if (promotionList[j].auto_apply == '1') {
           if (promotionList[j].specific_category == '1') {
+            //Auto apply specific category promotion
             for (int m = 0; m < cart.cartNotifierItem.length; m++) {
-              if (cart.cartNotifierItem[m].category_id ==
-                  promotionList[j].category_id) {
-                hasPromo = true;
-                promoName = promotionList[j].name!;
-                if (!autoApplyPromotionList.contains(promotionList[j])) {
-                  autoApplyPromotionList.add(promotionList[j]);
+              //check cart item status
+              if(cart.cartNotifierItem[m].status == 0){
+                if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                  hasPromo = true;
+                  promoName = promotionList[j].name!;
+                  if (!autoApplyPromotionList.contains(promotionList[j])) {
+                    autoApplyPromotionList.add(promotionList[j]);
+                  }
+                  autoApplySpecificCategoryAmount(
+                      promotionList[j], cart.cartNotifierItem[m]);
                 }
-                autoApplySpecificCategoryAmount(
-                    promotionList[j], cart.cartNotifierItem[m]);
               }
+
             }
           } else {
+            //Auto apply non specific category promotion
             if (cart.cartNotifierItem.isNotEmpty) {
-              hasPromo = true;
+              for(int i = 0; i < cart.cartNotifierItem.length; i++){
+                if(cart.cartNotifierItem[i].status == 0){
+                  hasPromo = true;
+                }
+              }
               autoApplyPromotionList.add(promotionList[j]);
               promoName = promotionList[j].name!;
               autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
@@ -698,19 +717,21 @@ class _CartPageState extends State<CartPage> {
     try {
       promo = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        if (promotion.type == 1) {
-          promo += (double.parse(promotion.amount!) *
-              cart.cartNotifierItem[i].quantity);
-          promotion.promoAmount = promo;
-          promoRate = 'RM' + promotion.amount!;
-          promotion.promoRate = promoRate;
-        } else {
-          promo += (double.parse(cart.cartNotifierItem[i].price) *
-                  cart.cartNotifierItem[i].quantity) *
-              (double.parse(promotion.amount!) / 100);
-          promotion.promoAmount = promo;
-          promoRate = promotion.amount! + '%';
-          promotion.promoRate = promoRate;
+        if(cart.cartNotifierItem[i].status == 0){
+          if (promotion.type == 1) {
+            promo += (double.parse(promotion.amount!) *
+                cart.cartNotifierItem[i].quantity);
+            promotion.promoAmount = promo;
+            promoRate = 'RM' + promotion.amount!;
+            promotion.promoRate = promoRate;
+          } else {
+            promo += (double.parse(cart.cartNotifierItem[i].price) *
+                cart.cartNotifierItem[i].quantity) *
+                (double.parse(promotion.amount!) / 100);
+            promotion.promoAmount = promo;
+            promoRate = promotion.amount! + '%';
+            promotion.promoRate = promoRate;
+          }
         }
       }
       promoAmount += promo;
@@ -727,18 +748,19 @@ class _CartPageState extends State<CartPage> {
       Promotion promotion, cartProductItem cartItem) {
     try {
       promo = 0.0;
-
-      if (promotion.type == 1) {
-        promo += (double.parse(promotion.amount!) * cartItem.quantity);
-        promotion.promoAmount = promotion.promoAmount! + promo;
-        promoRate = 'RM' + promotion.amount!;
-        promotion.promoRate = promoRate;
-      } else {
-        promo += (double.parse(cartItem.price) * cartItem.quantity) *
-            (double.parse(promotion.amount!) / 100);
-        promotion.promoAmount = promotion.promoAmount! + promo;
-        promoRate = promotion.amount! + '%';
-        promotion.promoRate = promoRate;
+      if(cartItem.status == 0) {
+        if (promotion.type == 1) {
+          promo += (double.parse(promotion.amount!) * cartItem.quantity);
+          promotion.promoAmount = promotion.promoAmount! + promo;
+          promoRate = 'RM' + promotion.amount!;
+          promotion.promoRate = promoRate;
+        } else {
+          promo += (double.parse(cartItem.price) * cartItem.quantity) *
+              (double.parse(promotion.amount!) / 100);
+          promotion.promoAmount = promotion.promoAmount! + promo;
+          promoRate = promotion.amount! + '%';
+          promotion.promoRate = promoRate;
+        }
       }
       //calculate promo total amount
       promoAmount += promo;
@@ -783,8 +805,11 @@ class _CartPageState extends State<CartPage> {
       promo = 0.0;
       promoAmount = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        total += (double.parse((cart.cartNotifierItem[i].price)) *
-            cart.cartNotifierItem[i].quantity);
+        if(cart.cartNotifierItem[i].status == 0) {
+          total += (double.parse((cart.cartNotifierItem[i].price)) *
+              cart.cartNotifierItem[i].quantity);
+        }
+
       }
     } catch (e) {
       print('Sub Total Error: $e');
@@ -802,11 +827,12 @@ class _CartPageState extends State<CartPage> {
 
   getSalesServiceTax() {
     try {
-      priceIncServiceTax = 0.0;
-      discountPrice = 0.0;
-
+      priceIncServiceTax = 0.00;
+      discountPrice = 0.00;
+      
       discountPrice = total - promoAmount;
       priceIncSST = discountPrice * 0.06;
+      priceIncSST = (priceIncSST * 100).truncate() / 100;
     } catch (error) {
       print('SST calculation error $error');
       priceIncSST = 0.0;
@@ -821,6 +847,7 @@ class _CartPageState extends State<CartPage> {
 
       discountPrice = total - promoAmount;
       priceIncServiceTax = discountPrice * (taxRate / 100);
+      priceIncServiceTax = (priceIncServiceTax * 100).truncate() / 100;
     } catch (error) {
       print('Service Tax error $error');
       priceIncServiceTax = 0.0;
@@ -832,15 +859,17 @@ class _CartPageState extends State<CartPage> {
   getAllTotal() {
     try {
       totalAmount = 0.0;
-      totalAmount = double.parse(discountPrice.toStringAsFixed(2)) +
-          double.parse(priceIncSST.toStringAsFixed(2)) +
-          double.parse(priceIncServiceTax.toStringAsFixed(2));
+
+      totalAmount = discountPrice + priceIncSST + priceIncServiceTax;
+      totalAmount = (totalAmount * 100).truncate() / 100;
     } catch (error) {
       print('Total calc error: $error');
     }
 
     controller.add('refresh');
   }
+
+
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1166,108 +1195,175 @@ class _CartPageState extends State<CartPage> {
 /*
  leow part
 */
-updatePosTable(CartModel cart) async {
-  print('update table');
-  DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-  String dateTime = dateFormat.format(DateTime.now());
-  final prefs = await SharedPreferences.getInstance();
-  final int? branch_id = prefs.getInt('branch_id');
+  updatePosTable(CartModel cart) async {
+    print('update table');
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
 
-  for (int i = 0; i < cart.selectedTable.length; i++) {
-    List<PosTable> result = await PosDatabase.instance
-        .checkPosTableStatus(branch_id!, cart.selectedTable[i].table_id!);
-    if (result[0].status == 0) {
+    for (int i = 0; i < cart.selectedTable.length; i++) {
+      List<PosTable> result = await PosDatabase.instance
+          .checkPosTableStatus(branch_id!, cart.selectedTable[i].table_id!);
+      if (result[0].status == 0) {
         PosTable posTableData = PosTable(
             table_id: cart.selectedTable[i].table_id,
             status: 1,
             updated_at: dateTime);
         int data = await PosDatabase.instance.updatePosTableStatus(posTableData);
+      }
     }
   }
-}
 
-createOrderCache(CartModel cart) async {
-  print('create order cache local called');
-  DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-  String dateTime = dateFormat.format(DateTime.now());
+  createOrderCache(CartModel cart) async {
+    print('create order cache local called');
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
 
-  //create table use data
-  TableUse tableUseData = await PosDatabase.instance.insertSqliteTableUse(
-      TableUse(
-          table_use_id: 6,
+    //create table use data
+    TableUse tableUseData = await PosDatabase.instance.insertSqliteTableUse(
+        TableUse(
+            table_use_id: 4,
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: ''));
+
+    for (int i = 0; i < cart.selectedTable.length; i++) {
+      //create table use detail
+      TableUseDetail tableUseDetailData = await PosDatabase.instance
+          .insertSqliteTableUseDetail(
+          TableUseDetail(
+              table_use_detail_id: 4,
+              table_use_id: await tableUseData.table_use_id.toString(),
+              table_id: cart.selectedTable[i].table_id.toString(),
+              original_table_id: cart.selectedTable[i].table_id.toString(),
+              created_at: dateTime,
+              updated_at: '',
+              soft_delete: ''));
+    }
+
+    //create order cache
+    OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
+        OrderCache(
+            order_cache_id: 4,
+            company_id: '6',
+            branch_id: '5',
+            order_detail_id: '',
+            table_use_id: await tableUseData.table_use_id.toString(),
+            table_id: '',
+            dining_id: '1',
+            order_id: '',
+            order_by: '',
+            customer_id: '0',
+            total_amount: totalAmount.toStringAsFixed(2),
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: ''));
+
+    //loop cart item & create order detail
+    for (int j = 0; j < cart.cartNotifierItem.length; j++) {
+      OrderDetail detailData = await PosDatabase.instance
+          .insertSqliteOrderDetail(OrderDetail(
+          order_detail_id: 0,
+          order_cache_id: await data.order_cache_id.toString(),
+          branch_link_product_id: cart.cartNotifierItem[j].branchProduct_id,
+          productName: cart.cartNotifierItem[j].name,
+          has_variant: cart.cartNotifierItem[j].variant.length == 0
+              ? '0'
+              : '1',
+          product_variant_name: cart.cartNotifierItem[j].name,
+          price: cart.cartNotifierItem[j].price,
+          quantity: cart.cartNotifierItem[j].quantity.toString(),
+          remark: cart.cartNotifierItem[j].remark,
+          account: '',
           created_at: dateTime,
           updated_at: '',
           soft_delete: ''));
 
-  for (int i = 0; i < cart.selectedTable.length; i++) {
-    //create table use detail
-    TableUseDetail tableUseDetailData = await PosDatabase.instance
-        .insertSqliteTableUseDetail(
-        TableUseDetail(
-            table_use_detail_id: 0,
-            table_use_id: await tableUseData.table_use_id.toString(),
-            table_id: cart.selectedTable[i].table_id.toString(),
-            original_table_id: cart.selectedTable[i].table_id.toString(),
+      for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
+        ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
+        print('mod group id: ${group.mod_group_id}');
+        for (int m = 0; m < group.modifierChild.length; m++) {
+          if (group.modifierChild[m].isChecked!) {
+            OrderModifierDetail modifierData = await PosDatabase.instance
+                .insertSqliteOrderModifierDetail(OrderModifierDetail(
+                order_modifier_detail_id: 0,
+                order_detail_id: await detailData.order_detail_id.toString(),
+                mod_item_id: group.modifierChild[m].mod_item_id.toString(),
+                mod_group_id: group.mod_group_id.toString(),
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+          }
+        }
+      }
+    }
+  }
+
+  addOrderCache(CartModel cart) async {
+    TableUseDetail? tableDetail;
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    for(int i = 0; i < cart.selectedTable.length; i++){
+      List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_id!);
+      tableDetail = useDetail[0];
+    }
+    //insert order cache
+    OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
+        OrderCache(
+            order_cache_id: 3,
+            company_id: '6',
+            branch_id: '5',
+            order_detail_id: '',
+            table_use_id: await tableDetail!.table_use_id,
+            table_id: '',
+            dining_id: '1',
+            order_id: '',
+            order_by: '',
+            customer_id: '0',
+            total_amount: totalAmount.toStringAsFixed(2),
             created_at: dateTime,
             updated_at: '',
             soft_delete: ''));
-  }
 
-    //create order cache
-      OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
-          OrderCache(
-              order_cache_id: 6,
-              company_id: '6',
-              branch_id: '5',
-              order_detail_id: '',
-              table_use_id: await tableUseData.table_use_id.toString(),
-              table_id: '',
-              dining_id: '1',
-              order_id: '',
-              order_by: '',
-              customer_id: '0',
-              total_amount: totalAmount.toStringAsFixed(2),
-              created_at: dateTime,
-              updated_at: '',
-              soft_delete: ''));
+    for (int j = 0; j < cart.cartNotifierItem.length; j++) {
+      if(cart.cartNotifierItem[j].status == 0){
+        OrderDetail detailData = await PosDatabase.instance
+            .insertSqliteOrderDetail(OrderDetail(
+            order_detail_id: 2,
+            order_cache_id: await data.order_cache_id.toString(),
+            branch_link_product_id: cart.cartNotifierItem[j].branchProduct_id,
+            productName: cart.cartNotifierItem[j].name,
+            has_variant: cart.cartNotifierItem[j].variant.length == 0
+                ? '0'
+                : '1',
+            product_variant_name: cart.cartNotifierItem[j].name,
+            price: cart.cartNotifierItem[j].price,
+            quantity: cart.cartNotifierItem[j].quantity.toString(),
+            remark: cart.cartNotifierItem[j].remark,
+            account: '',
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: ''));
 
-      //loop cart item & create order detail
-      for (int j = 0; j < cart.cartNotifierItem.length; j++) {
-          OrderDetail detailData = await PosDatabase.instance
-              .insertSqliteOrderDetail(OrderDetail(
-              order_detail_id: 2,
-              order_cache_id: await data.order_cache_id.toString(),
-              branch_link_product_id: cart.cartNotifierItem[j].branchProduct_id,
-              productName: cart.cartNotifierItem[j].name,
-              has_variant: cart.cartNotifierItem[j].variant.length == 0
-                  ? '0'
-                  : '1',
-              product_variant_name: cart.cartNotifierItem[j].name,
-              price: cart.cartNotifierItem[j].price,
-              quantity: cart.cartNotifierItem[j].quantity.toString(),
-              remark: cart.cartNotifierItem[j].remark,
-              account: '',
-              created_at: dateTime,
-              updated_at: '',
-              soft_delete: ''));
-
-          for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
-            ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
-            print('mod group id: ${group.mod_group_id}');
-            for (int m = 0; m < group.modifierChild.length; m++) {
-              if (group.modifierChild[m].isChecked!) {
-                  OrderModifierDetail modifierData = await PosDatabase.instance
-                      .insertSqliteOrderModifierDetail(OrderModifierDetail(
-                      order_modifier_detail_id: 0,
-                      order_detail_id: await detailData.order_detail_id.toString(),
-                      mod_item_id: group.modifierChild[m].mod_item_id.toString(),
-                      mod_group_id: group.mod_group_id.toString(),
-                      created_at: dateTime,
-                      updated_at: '',
-                      soft_delete: ''));
-              }
+        for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
+          ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
+          print('mod group id: ${group.mod_group_id}');
+          for (int m = 0; m < group.modifierChild.length; m++) {
+            if (group.modifierChild[m].isChecked!) {
+              OrderModifierDetail modifierData = await PosDatabase.instance
+                  .insertSqliteOrderModifierDetail(OrderModifierDetail(
+                  order_modifier_detail_id: 0,
+                  order_detail_id: await detailData.order_detail_id.toString(),
+                  mod_item_id: group.modifierChild[m].mod_item_id.toString(),
+                  mod_group_id: group.mod_group_id.toString(),
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
             }
           }
+        }
       }
-}
+    }
+  }
 }

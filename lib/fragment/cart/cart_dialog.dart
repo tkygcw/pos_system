@@ -40,10 +40,12 @@ class _CartDialogState extends State<CartDialog> {
   List<OrderDetail> orderDetailList = [];
   List<VariantGroup> variantGroup = [];
   List<ModifierGroup> modifierGroup = [];
+  List<TableUseDetail> tbUseDetailList = [];
   late StreamController controller;
   double priceSST = 0.0;
   double priceServeTax = 0.0;
   bool isLoad = false;
+  bool isUse = false;
 
   @override
   void initState() {
@@ -76,21 +78,13 @@ class _CartDialogState extends State<CartDialog> {
             child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
             onPressed: () async  {
               if (tableList[dragIndex].table_id != tableList[targetIndex].table_id) {
-                final prefs = await SharedPreferences.getInstance();
-                final int? branch_id = prefs.getInt('branch_id');
                 cart.removeAllTable();
-                List<TableUseDetail> DragTableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[dragIndex].table_id!);
-                List<TableUseDetail> TargetTableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[targetIndex].table_id!);
-                List<TableUseDetail> allDragTableUseData = await PosDatabase.instance.readAllTableUseDetail(DragTableUseDetailData[0].table_use_id!);
-                List<TableUseDetail> allTargetTableUseData = await PosDatabase.instance.readAllTableUseDetail(TargetTableUseDetailData[0].table_use_id!);
-                for(int i = 0 ; i < allDragTableUseData.length; i++){
-                List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(branch_id!, allDragTableUseData[i].table_id!);
-                  cart.addTable(tableData[0]);
-                }
-                for(int j = 0 ; j < allTargetTableUseData.length; j++){
-                  List<PosTable> TargetTableData = await PosDatabase.instance.readSpecificTable(branch_id!, allTargetTableUseData[j].table_id!);
-                  cart.addTable(TargetTableData[0]);
-                }
+                await readTableUseDetail(tableList[dragIndex].table_id!, cart);
+                await readTableUseDetail(tableList[targetIndex].table_id!, cart);
+                // if(isUse == false){
+                //   cart.addTable(tableList[dragIndex]);
+                //   cart.addTable(tableList[targetIndex]);
+                // }
 
               } else {
                 Fluttertoast.showToast(
@@ -241,7 +235,6 @@ class _CartDialogState extends State<CartDialog> {
     tableList = List.from(data);
     readAllTableAmount();
     setState(() {
-      
       isLoad = true;
     });
   }
@@ -254,14 +247,42 @@ class _CartDialogState extends State<CartDialog> {
     for (int i = 0; i < tableList.length; i++) {
       List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
           .readSpecificTableUseDetail(tableList[i].table_id!);
+
       if (tableUseDetailData.length > 0) {
         List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
             branch_id.toString(), tableUseDetailData[0].table_use_id!);
-        tableList[i].total_Amount += double.parse(data[0].total_amount!);
+
         tableList[i].group = data[0].table_use_id;
+
+        for(int j = 0; j < data.length; j++){
+          tableList[i].total_Amount += double.parse(data[j].total_amount!);
+        }
       }
     }
     controller.add('refresh');
+  }
+
+  readTableUseDetail(int table_id, CartModel cart) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    List<TableUseDetail> TableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(table_id);
+    if(TableUseDetailData.length > 0) {
+      isUse = true;
+      List<TableUseDetail> allTableUseData = await PosDatabase.instance.readAllTableUseDetail(TableUseDetailData[0].table_use_id!);
+
+      for(int i = 0 ; i < allTableUseData.length; i++){
+        List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(branch_id!, allTableUseData[i].table_id!);
+        if(!cart.selectedTable.contains(tableData[0])){
+          print('table number : ${tableData[0].number}');
+          cart.addTable(tableData[0]);
+        }
+      }
+    } else if(TableUseDetailData.length <= 0){
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(branch_id!, table_id.toString());
+      cart.addTable(tableData[0]);
+    }
+
   }
 
   readSpecificTableDetail(PosTable posTable) async {
@@ -434,6 +455,7 @@ class _CartDialogState extends State<CartDialog> {
         getModifierGroupItem(orderDetailList[i]),
         getVariantGroupItem(orderDetailList[i]),
         orderDetailList[i].remark!,
+        1
       );
       cart.addItem(value);
     }
