@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -119,13 +120,38 @@ leow part
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
+
+    List<TableUseDetail> NowUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(widget.object.table_id!);
     List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(branch_id!, tableNoController.text);
-    int tableUseDetailData = await PosDatabase.instance.updateTableUseDetail(
-        widget.object.table_id!,
-        TableUseDetail(
-          table_id: tableData[0].table_id.toString(),
-          updated_at: dateTime,
-        ));
+    List<TableUseDetail> NewUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableData[0].table_id!);
+    //check new table is in use or not
+    if(NewUseDetailData.length > 0){
+      int orderCacheData = await PosDatabase.instance.updateOrderCacheTableUseId(
+          NowUseDetailData[0].table_use_id!,
+          OrderCache(
+            table_use_id: NewUseDetailData[0].table_use_id,
+            updated_at: dateTime
+          ));
+
+      int tableUseDetailData = await PosDatabase.instance.deleteTableUseDetail(
+          TableUseDetail(
+              table_use_detail_id: NowUseDetailData[0].table_use_detail_id,
+              soft_delete: dateTime
+          ));
+      
+      int tableUseData = await PosDatabase.instance.deleteTableUseID(
+          TableUse(
+            table_use_id: int.parse(NowUseDetailData[0].table_use_id!),
+            soft_delete: dateTime
+          ));
+    } else {
+      int tableUseDetailData = await PosDatabase.instance.updateTableUseDetail(
+          widget.object.table_id!,
+          TableUseDetail(
+              table_id: tableData[0].table_id.toString(),
+              updated_at: dateTime
+          ));
+    }
   }
 
   updatePosTable() async {
