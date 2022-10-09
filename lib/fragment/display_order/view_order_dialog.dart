@@ -56,6 +56,7 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
   deleteWholeOrder() async {
     Map responseDeleteOrderCache = await Domain().deleteOrderCache(widget.orderCache!.order_cache_id.toString());
     if(responseDeleteOrderCache['status']=='1'){
+
       Map responseDeleteDetail = await Domain().deleteOrderDetail(widget.orderCache!.order_cache_id.toString());
       if(responseDeleteDetail['status'] == '1'){
         List<OrderDetail> data = await PosDatabase.instance.readTableOrderDetail(widget.orderCache!.order_cache_id.toString());
