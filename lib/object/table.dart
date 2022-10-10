@@ -36,6 +36,7 @@ class PosTable{
   String? soft_delete;
   double total_Amount = 0.0;
   String? group;
+  bool isSelected = false;
 
   PosTable(
       {this.table_sqlite_id,

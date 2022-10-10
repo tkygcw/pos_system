@@ -45,7 +45,7 @@ class _CartDialogState extends State<CartDialog> {
   double priceSST = 0.0;
   double priceServeTax = 0.0;
   bool isLoad = false;
-  bool isUse = false;
+  Color cardColor = Colors.white;
 
   @override
   void initState() {
@@ -55,8 +55,7 @@ class _CartDialogState extends State<CartDialog> {
     readAllTable();
   }
 
-  Future showSecondDialog(BuildContext context, ThemeColor color, int dragIndex,
-      int targetIndex, CartModel cart) {
+  Future showSecondDialog(BuildContext context, ThemeColor color, int dragIndex, int targetIndex, CartModel cart) {
     return showDialog(
       barrierDismissible: false,
       context: context,
@@ -81,10 +80,6 @@ class _CartDialogState extends State<CartDialog> {
                 cart.removeAllTable();
                 await readTableUseDetail(tableList[dragIndex].table_id!, cart);
                 await readTableUseDetail(tableList[targetIndex].table_id!, cart);
-                // if(isUse == false){
-                //   cart.addTable(tableList[dragIndex]);
-                //   cart.addTable(tableList[targetIndex]);
-                // }
 
               } else {
                 Fluttertoast.showToast(
@@ -92,7 +87,6 @@ class _CartDialogState extends State<CartDialog> {
                     msg:
                         "${AppLocalizations.of(context)?.translate('merge_error')}");
               }
-
               Navigator.of(context).pop();
             },
           ),
@@ -156,7 +150,14 @@ class _CartDialogState extends State<CartDialog> {
     return Container(
       key: Key(index.toString()),
       child: Card(
-        color: tableList[index].status != 0 ? Colors.red : Colors.white,
+        shape: tableList[index].isSelected
+        ? new RoundedRectangleBorder(
+            side: new BorderSide(color: Colors.blue, width: 2.0),
+            borderRadius: BorderRadius.circular(4.0))
+            : new RoundedRectangleBorder(
+            side: new BorderSide(color: Colors.white, width: 2.0),
+            borderRadius: BorderRadius.circular(4.0)),
+        color: tableList[index].status != 0 ? Colors.red : cardColor,
         child: Container(
           margin: EdgeInsets.all(10),
           child: Column(
@@ -187,17 +188,37 @@ class _CartDialogState extends State<CartDialog> {
                                       "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
                       child: InkWell(
                         splashColor: Colors.blue.withAlpha(30),
+                        onDoubleTap: (){
+                          print('remove table');
+                        },
                         onTap: () async {
-                          if (tableList[index].status == 1) {
+                          if(tableList[index].isSelected == false){
+                            setState(() {
+                              tableList[index].isSelected = true;
+                            });
+                          } else if (tableList[index].isSelected == true){
+                            cart.removeAllTable();
+                            cart.removeAllCartItem();
+                            setState(() {
+                              tableList[index].isSelected = false;
+                            });
+                          }
+                          if (tableList[index].status == 1 && tableList[index].isSelected == true) {
+                            cart.removeAllTable();
                             cart.removeAllCartItem();
                             await readSpecificTableDetail(tableList[index]);
                             addToCart(cart, tableList[index]);
-                            Navigator.of(context).pop();
-                          } else {
-                            cart.removeAllCartItem();
-                            cart.removeAllTable();
+                            // Navigator.of(context).pop();
+                          } else if(tableList[index].status == 0 && tableList[index].isSelected == true) {
+                            //tableList[index].isSelected = false;
+                            // cart.removeAllCartItem();
+                            //cart.removeAllTable();
                             cart.addTable(tableList[index]);
-                            Navigator.of(context).pop();
+                            //Navigator.of(context).pop();
+                          } else {
+                            tableList[index].isSelected = false;
+                            //cart.removeAllCartItem();
+                            //cart.removeAllTable();
                           }
                         },
                       ),
@@ -265,22 +286,33 @@ class _CartDialogState extends State<CartDialog> {
   readTableUseDetail(int table_id, CartModel cart) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-
+    
+    //read table use detail data based on table id
     List<TableUseDetail> TableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(table_id);
+    //check table is in use or not
     if(TableUseDetailData.length > 0) {
-      isUse = true;
       List<TableUseDetail> allTableUseData = await PosDatabase.instance.readAllTableUseDetail(TableUseDetailData[0].table_use_id!);
-
       for(int i = 0 ; i < allTableUseData.length; i++){
         List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(branch_id!, allTableUseData[i].table_id!);
-        if(!cart.selectedTable.contains(tableData[0])){
-          print('table number : ${tableData[0].number}');
-          cart.addTable(tableData[0]);
+        if(tableData[0].status == 0){
+          if(!cart.selectedTable.contains(tableData)){
+            print('table number 1 : ${tableData[0].number}');
+            cart.addTable(tableData[0]);
+          }
+        }else {
+          if(!cart.selectedTable.contains(tableData)){
+            print('table number 3 : ${tableData[0].number}');
+            cart.addTable(tableData[0]);
+          }
         }
+
       }
     } else if(TableUseDetailData.length <= 0){
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(branch_id!, table_id.toString());
-      cart.addTable(tableData[0]);
+      if(!cart.selectedTable.contains(tableData[0])){
+        print('table number 2  : ${tableData[0].number}');
+        cart.addTable(tableData[0]);
+      }
     }
 
   }
@@ -470,6 +502,10 @@ class _CartDialogState extends State<CartDialog> {
       List<PosTable> tableData = await PosDatabase.instance
           .readSpecificTable(branch_id!, tableUseDetailList[k].table_id!);
       cart.addTable(tableData[0]);
+      tableData[0].isSelected = true;
     }
+
+
+
   }
 }
