@@ -163,11 +163,13 @@ class _CartDialogState extends State<CartDialog> {
           child: Column(
             children: [
               tableList[index].group != null
-                  ? Text(
-                      "Group: ${tableList[index].group}",
-                      style: TextStyle(fontSize: 18),
-                    )
-                  : Text(''),
+                  ? Expanded(
+                    child: Text(
+                        "Group: ${tableList[index].group}",
+                        style: TextStyle(fontSize: 18),
+                      ),
+                  )
+                  : Expanded(child: Text('')),
               Container(
                 margin: EdgeInsets.fromLTRB(0, 2, 0, 2),
                 height: MediaQuery.of(context).size.height / 8,

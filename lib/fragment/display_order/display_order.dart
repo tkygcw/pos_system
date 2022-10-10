@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -149,7 +150,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                     ),
                   ],
                 ),
-                Expanded(
+                orderCacheList.length != 0 ?Expanded(
                   child: ListView.builder(
                       itemCount: orderCacheList.length,
                       itemBuilder: (BuildContext context, int index) {
@@ -191,6 +192,18 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                           ),
                         );
                       }),
+                ): Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.list,
+                        color: Colors.grey,
+                        size: 36.0,
+                      ),
+                      Text("No Order", style: TextStyle(fontSize: 24),),
+                    ],
+                  ),
                 ),
               ],
             ),

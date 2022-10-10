@@ -105,9 +105,11 @@ class _CartPageState extends State<CartPage> {
                 children: [
                   Text('Bill',
                       style: TextStyle(fontSize: 20, color: Colors.black)),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text('Table: ${getSelectedTable(cart)}'),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text('Table: ${getSelectedTable(cart)}'),
+                    ),
                   ),
                 ],
               ),
