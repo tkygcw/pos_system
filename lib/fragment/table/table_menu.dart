@@ -105,80 +105,80 @@ class _TableMenuState extends State<TableMenu> {
                             color: tableList[index].status != 0
                                 ? Colors.red
                                 : Colors.white,
-                            child: Container(
-                              margin: EdgeInsets.all(2),
-                              child: Column(
-                                children: [
-                                  tableList[index].group != null
-                                      ? Text(
-                                          "Group: ${tableList[index].group}",
-                                          style: TextStyle(fontSize: 18),
-                                        )
-                                      : Text(''),
-                                  Container(
-                                    margin: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                                    height:
-                                        MediaQuery.of(context).size.height / 6,
-                                    child: Stack(
-                                      alignment: Alignment.bottomLeft,
-                                      children: [
-                                        Ink.image(
-                                          image: tableList[index].seats == '2'
-                                              ? NetworkImage(
-                                                  "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
-                                              : tableList[index].seats == '4'
-                                                  ? NetworkImage(
-                                                      "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
-                                                  : tableList[index].seats == '6'
-                                                      ? NetworkImage(
-                                                          "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
-                                                      : NetworkImage(
-                                                          "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
-                                          child: InkWell(
-                                            splashColor:
-                                                Colors.blue.withAlpha(30),
-                                            onLongPress: () {
-                                              if (tableList[index].status != 1) {
-                                                openAddTableDialog(
-                                                    tableList[index]);
-                                              } else {
-                                                openChangeTableDialog(
-                                                    tableList[index]);
-                                              }
-                                            },
-                                            onTap: () {
-                                              tableList[index].status != 0
-                                                  ? Fluttertoast.showToast(
-                                                      backgroundColor:
-                                                          Color(0xFFFF0000),
-                                                      msg: "item add to cart")
-                                                  :
-                                                  //openTableDetailDialog(tableList[index]) :
-                                                  Fluttertoast.showToast(
-                                                      backgroundColor:
-                                                          Color(0xFF24EF10),
-                                                      msg: "table not in used");
-                                            },
-                                          ),
-                                          fit: BoxFit.cover,
-                                        ),
-                                        Container(
-                                            alignment: Alignment.center,
-                                            child: Text(
-                                                "#" + tableList[index].number!)),
-                                      ],
-                                    ),
-                                  ),
-                                  tableList[index].status == 1
-                                      ? Container(
-                                          alignment: Alignment.topCenter,
-                                          child: Text(
-                                            "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
+                            child: InkWell(
+                              splashColor:
+                              Colors.blue.withAlpha(30),
+                              onLongPress: () {
+                                if (tableList[index].status != 1) {
+                                  openAddTableDialog(
+                                      tableList[index]);
+                                } else {
+                                  openChangeTableDialog(
+                                      tableList[index]);
+                                }
+                              },
+                              onTap: () {
+                                tableList[index].status != 0
+                                    ? Fluttertoast.showToast(
+                                    backgroundColor:
+                                    Color(0xFFFF0000),
+                                    msg: "item add to cart")
+                                    :
+                                //openTableDetailDialog(tableList[index]) :
+                                Fluttertoast.showToast(
+                                    backgroundColor:
+                                    Color(0xFF24EF10),
+                                    msg: "table not in used");
+                              },
+                              child: Container(
+                                margin: EdgeInsets.all(2),
+                                child: Column(
+                                  children: [
+                                    tableList[index].group != null
+                                        ? Text(
+                                            "Group: ${tableList[index].group}",
                                             style: TextStyle(fontSize: 18),
+                                          )
+                                        : Text(''),
+                                    Container(
+                                      margin: EdgeInsets.fromLTRB(0, 5, 0, 5),
+                                      height:
+                                          MediaQuery.of(context).size.height / 6,
+                                      child: Stack(
+                                        alignment: Alignment.bottomLeft,
+                                        children: [
+                                          Ink.image(
+                                            image: tableList[index].seats == '2'
+                                                ? NetworkImage(
+                                                    "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
+                                                : tableList[index].seats == '4'
+                                                    ? NetworkImage(
+                                                        "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
+                                                    : tableList[index].seats == '6'
+                                                        ? NetworkImage(
+                                                            "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
+                                                        : NetworkImage(
+                                                            "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                                            fit: BoxFit.cover,
                                           ),
-                                        )
-                                      : Container()
-                                ],
+                                          Container(
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                  "#" + tableList[index].number!)),
+                                        ],
+                                      ),
+                                    ),
+                                    tableList[index].status == 1
+                                        ? Container(
+                                            alignment: Alignment.topCenter,
+                                            child: Text(
+                                              "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
+                                              style: TextStyle(fontSize: 18),
+                                            ),
+                                          )
+                                        : Container()
+                                  ],
+                                ),
                               ),
                             ),
                           );

@@ -42,6 +42,11 @@ class CartModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void removeSpecificTable(PosTable posTable){
+    selectedTable.remove(posTable);
+    notifyListeners();
+  }
+
   void addPromotion(Promotion promo){
     selectedPromotion = promo;
     notifyListeners();
