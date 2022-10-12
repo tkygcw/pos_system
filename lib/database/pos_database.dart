@@ -103,7 +103,7 @@ class PosDatabase {
     create modifier group table
 */
     await db.execute(
-        '''CREATE TABLE $tableModifierGroup ( ${ModifierGroupFields.mod_group_id} $idType, ${ModifierGroupFields.company_id} $textType, ${ModifierGroupFields.name} $textType, 
+        '''CREATE TABLE $tableModifierGroup ( ${ModifierGroupFields.mod_group_id} $idType, ${ModifierGroupFields.company_id} $textType, ${ModifierGroupFields.name} $textType, ${ModifierGroupFields.dining_id} $textType, ${ModifierGroupFields.compulsory} $textType, 
            ${ModifierGroupFields.created_at} $textType, ${ModifierGroupFields.updated_at} $textType, ${ModifierGroupFields.soft_delete} $textType)''');
 /*
     create modifier item table
