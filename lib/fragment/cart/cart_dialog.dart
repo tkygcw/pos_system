@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -27,6 +28,8 @@ import '../../object/variant_item.dart';
 import '../../translation/AppLocalizations.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 
+import '../table/table_change_dialog.dart';
+
 class CartDialog extends StatefulWidget {
   const CartDialog({Key? key}) : super(key: key);
 
@@ -41,10 +44,12 @@ class _CartDialogState extends State<CartDialog> {
   List<VariantGroup> variantGroup = [];
   List<ModifierGroup> modifierGroup = [];
   List<TableUseDetail> tbUseDetailList = [];
+  List<PosTable> sameGroupTbList = [];
   late StreamController controller;
   double priceSST = 0.0;
   double priceServeTax = 0.0;
   bool isLoad = false;
+  bool isFinish = false;
   Color cardColor = Colors.white;
 
   @override
@@ -77,19 +82,23 @@ class _CartDialogState extends State<CartDialog> {
           TextButton(
             child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
             onPressed: () async {
-              if (tableList[dragIndex].table_id !=
-                  tableList[targetIndex].table_id) {
-                cart.removeAllTable();
-                await readTableUseDetail(tableList[dragIndex].table_id!, cart);
-                await readTableUseDetail(
-                    tableList[targetIndex].table_id!, cart);
+              if (tableList[dragIndex].table_id != tableList[targetIndex].table_id) {
+                if(tableList[targetIndex].status == 1){
+                  await callAddNewTableQuery(tableList[dragIndex].table_id!, tableList[targetIndex].table_id!);
+                  cart.removeAllTable();
+                } else {
+                  Fluttertoast.showToast(
+                      backgroundColor: Color(0xFFFF0000),
+                      msg:
+                      "${AppLocalizations.of(context)?.translate('merge_error_2')}");
+                }
+                Navigator.of(context).pop();
               } else {
                 Fluttertoast.showToast(
                     backgroundColor: Color(0xFFFF0000),
                     msg:
                         "${AppLocalizations.of(context)?.translate('merge_error')}");
               }
-              Navigator.of(context).pop();
             },
           ),
         ],
@@ -100,196 +109,307 @@ class _CartDialogState extends State<CartDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Consumer<CartModel>(
-        builder: (context, CartModel cart, child) {
-          return StreamBuilder(
-              stream: controller.stream,
-              builder: (context, snapshot) {
-                return AlertDialog(
-                  title: Text("Select Table"),
-                  content: isLoad
-                      ? Container(
-                          height: 650,
-                          width: MediaQuery.of(context).size.width / 2,
-                          child: Column(
-                              children: [
-                                Expanded(
-                                  child: ReorderableGridView.count(
-                                    crossAxisSpacing: 10,
-                                    mainAxisSpacing: 10,
-                                    crossAxisCount: 4,
-                                    children: tableList
-                                        .asMap()
-                                        .map((index, posTable) =>
-                                            MapEntry(index, tableItem(cart, index)))
-                                        .values
-                                        .toList(),
-                                    onReorder: (int oldIndex, int newIndex) {
-                                      showSecondDialog(
-                                          context, color, oldIndex, newIndex, cart);
-                                    },
-                                  ),
-                                ),
-                              ],
-                            )
-                        )
-                      : CustomProgressBar(),
-                  actions: <Widget>[
-                    TextButton(
-                      child: Text('Clear'),
-                      onPressed: () {
-                        for(int i = 0; i < tableList.length; i++){
-                          setState(() {
-                            tableList[i].isSelected = false;
-                            cart.removeAllCartItem();
-                            cart.removeAllTable();
-                          });
-                        }
-                      },
-                    ),
-                    TextButton(
-                      child: Text(
-                          '${AppLocalizations.of(context)?.translate('close')}'),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                );
-              });
-        }
-      );
+      return Consumer<CartModel>(builder: (context, CartModel cart, child) {
+        return StreamBuilder(
+            stream: controller.stream,
+            builder: (context, snapshot) {
+              return AlertDialog(
+                title: Text("Select Table"),
+                content: isLoad
+                    ? Container(
+                        height: 650,
+                        width: MediaQuery.of(context).size.width / 2,
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: ReorderableGridView.count(
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
+                                crossAxisCount: 4,
+                                children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, index))).values.toList(),
+                                onReorder: (int oldIndex, int newIndex) {
+                                  showSecondDialog(context, color, oldIndex, newIndex, cart);
+                                },
+                              ),
+                            ),
+                          ],
+                        ))
+                    : CustomProgressBar(),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('Clear'),
+                    onPressed: () {
+                      for (int i = 0; i < tableList.length; i++) {
+                        setState(() {
+                          tableList[i].isSelected = false;
+                          cart.removeAllCartItem();
+                          cart.removeAllTable();
+                        });
+                      }
+                    },
+                  ),
+                  TextButton(
+                    child: Text(
+                        '${AppLocalizations.of(context)?.translate('close')}'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            });
+      });
     });
   }
 
   Widget tableItem(CartModel cart, index) {
     return Container(
       key: Key(index.toString()),
-      child: Column(
-        children: [
-          Expanded(
-              child: Card(
-                elevation: 5,
-                shape: tableList[index].isSelected
-                    ? new RoundedRectangleBorder(
+      child: Column(children: [
+        Expanded(
+          child: Card(
+            elevation: 5,
+            shape: tableList[index].isSelected
+                ? new RoundedRectangleBorder(
                     side: new BorderSide(color: Colors.blue, width: 3.0),
                     borderRadius: BorderRadius.circular(4.0))
-                    : new RoundedRectangleBorder(
+                : new RoundedRectangleBorder(
                     side: new BorderSide(color: Colors.white, width: 3.0),
                     borderRadius: BorderRadius.circular(4.0)),
-                color: tableList[index].status == 1 && tableList[index].group == '1' ? Colors.yellowAccent :
-                tableList[index].status == 1 && tableList[index].group == '2' ? Colors.green :
-                tableList[index].status == 1 && tableList[index].group == '3' ? Colors.deepOrange : cardColor,
-                child: InkWell(
-                  splashColor: Colors.blue.withAlpha(30),
-                  onTap: () async {
-                    //set current action to opposite
-                    //bool action = !tableList[index].isSelected; //true
-                    //set action to all item under same group id
-                    //tableList[index].isSelected = true;
+            color: tableList[index].status == 1 && tableList[index].group == '1'
+                ? Colors.yellowAccent
+                : tableList[index].status == 1 && tableList[index].group == '2'
+                    ? Colors.green
+                    : tableList[index].status == 1 &&
+                            tableList[index].group == '3'
+                        ? Colors.deepOrange
+                        : cardColor,
+            child: InkWell(
+              splashColor: Colors.blue.withAlpha(30),
+              onDoubleTap: (){
+                openChangeTableDialog(tableList[index]);
+                cart.removeAllTable();
+                cart.removeAllCartItem();
+              },
+              onTap: () async {
+                //set current action to opposite
+                //bool action = !tableList[index].isSelected; //true
+                //set action to all item under same group id
+                //tableList[index].isSelected = true;
 
-                    //check selected table is in use or not
-                    if(tableList[index].status == 1){
-                      // table in use (colored)
-                      for (int i = 0; i < tableList.length; i++) {
+                // bool isGroup = tableList[index].status == 1;
+                // bool action = !tableList[index].isSelected;
+                //
+                // for (int i = 0; i < tableList.length; i++) {
+                //   /**
+                //    * using table
+                //    */
+                //   if (isGroup) {
+                //     if (tableList[i].group == tableList[index].group) {
+                //       tableList[i].isSelected = action;
+                //
+                //       if (tableList[i].isSelected == true) {
+                //         await readSpecificTableDetail(tableList[i]);
+                //         addToCart(cart, tableList[i]);
+                //       } else {
+                //         cart.removeSpecificTable(tableList[i]);
+                //       }
+                //     } else {
+                //       tableList[i].isSelected = false;
+                //       cart.removeSpecificTable(tableList[i]);
+                //     }
+                //   }
+                //   /**
+                //    * not using table
+                //    */
+                //   else {
+                //     if (tableList[i].group != null && tableList[i].isSelected) {
+                //       //print('table delete info ${jsonEncode(tableList[i])}');
+                //       tableList[i].isSelected = false;
+                //       cart.removeSpecificTable(tableList[i]);
+                //     }
+                //   }
+                // }
+                // if (!isGroup) {
+                //   tableList[index].isSelected = action;
+                //   if (action) {
+                //     cart.addTable(tableList[index]);
+                //   } else {
+                //     cart.removeSpecificTable(tableList[index]);
+                //   }
+                // }
+                // for (int i = 0; i < cart.selectedTable.length; i++) {
+                //   print(jsonEncode(cart.selectedTable[i]));
+                // }
+                //
+                // setState(() {});
+
+                //check selected table is in use or not
+                if (tableList[index].status == 1) {
+                  // table in use (colored)
+                  for (int i = 0; i < tableList.length; i++) {
+                    if (tableList[index].group == tableList[i].group) {
+                      if (tableList[i].isSelected == false) {
+                        tableList[i].isSelected = true;
+                      } else if (tableList[i].isSelected == true){
                         tableList[i].isSelected = false;
-
-                        if(tableList[index].group == tableList[i].group){
-                          if(tableList[i].isSelected == false){
-                            tableList[i].isSelected = true;
-                          }
-                        }
                         cart.removeAllTable();
-                        cart.removeAllCartItem();
                       }
-                    }else {
-                      //table not in use (white)
-                      for(int j = 0; j < tableList.length; j++){
-                        //reset all using table to un-select (table status == 1)
-                        if(tableList[j].status == 1){
-                          tableList[j].isSelected = false;
-                          cart.removeAllCartItem();
-                          cart.removeSpecificTable(tableList[j]);
-                        }
-                      }
-                      //for table not in use
-                      if(tableList[index].isSelected == false){
-                        setState(() {
-                          tableList[index].isSelected = true;
-                        });
+                    } else {
+                      tableList[i].isSelected = false;
 
-                      }else if (tableList[index].isSelected == true){
-                        setState(() {
-                          tableList[index].isSelected = false;
-                          cart.removeSpecificTable(tableList[index]);
-                        });
-                      }
                     }
-                    //checking table status and isSelect
-                    if (tableList[index].status == 1 && tableList[index].isSelected == true) {
-                      await readSpecificTableDetail(tableList[index]);
-                      addToCart(cart, tableList[index]);
+                    cart.removeAllTable();
+                    cart.removeAllCartItem();
+                  }
+                } else {
+                  //table not in use (white)
+                  for (int j = 0; j < tableList.length; j++) {
+                    //reset all using table to un-select (table status == 1)
+                    if (tableList[j].status == 1) {
+                      tableList[j].isSelected = false;
+                      cart.removeAllCartItem();
+                      cart.removeSpecificTable(tableList[j]);
+                    }
+                  }
+                //for table not in use
+                  if(tableList[index].isSelected == false){
+                    setState(() {
+                      tableList[index].isSelected = true;
+                    });
 
-                    } else if (tableList[index].status == 0 && tableList[index].isSelected == true) {
-                      cart.addTable(tableList[index]);
-                    }
-                  },
-                  child: Container(
-                    margin: EdgeInsets.all(10),
-                    child: Column(
-                      children: [
-                        tableList[index].group != null
-                            ? Expanded(
-                          child: Text(
-                            "Group: ${tableList[index].group}",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        )
-                            : Expanded(child: Text('')),
-                        Container(
-                          margin: EdgeInsets.fromLTRB(0, 2, 0, 2),
-                          height: MediaQuery.of(context).size.height / 8,
-                          child: Stack(
-                            alignment: Alignment.bottomLeft,
-                            children: [
-                              Ink.image(
-                                image: tableList[index].seats == '2'
-                                    ? NetworkImage(
+                  }else if (tableList[index].isSelected == true){
+                    setState(() {
+                      tableList[index].isSelected = false;
+                      cart.removeSpecificTable(tableList[index]);
+                    });
+                  }
+                }
+                //checking table status and isSelect
+                if (tableList[index].status == 1 && tableList[index].isSelected == true) {
+                  await readSpecificTableDetail(tableList[index]);
+                  addToCart(cart, tableList[index]);
+
+                } else if (tableList[index].status == 0 && tableList[index].isSelected == true) {
+                  cart.addTable(tableList[index]);
+                }
+              },
+              child: Container(
+                margin: EdgeInsets.all(10),
+                child: Column(
+                  children: [
+                    tableList[index].group != null
+                        ? Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                               Container(
+                                 child: Text("Group: ${tableList[index].group}",
+                                     style: TextStyle(fontSize: 18),
+                                   ),
+                               ),
+                                Spacer(),
+                                Visibility(
+                                  child: tableList[index].isSelected ?
+                                     Container(
+                                       child: IconButton(
+                                         icon: Icon(Icons.close, size: 18),
+                                         constraints: BoxConstraints(),
+                                         padding: EdgeInsets.zero,
+                                         onPressed: (){
+                                           sameGroupTbList = [];
+                                           for (int i = 0; i < tableList.length; i++) {
+                                             if (tableList[index].group == tableList[i].group) {
+                                               sameGroupTbList.add(tableList[i]);
+                                             }
+                                           }
+                                           if(sameGroupTbList.length > 1) {
+                                             callRemoveTableQuery(tableList[index].table_id!);
+                                             tableList[index].isSelected = false;
+                                             tableList[index].group = null;
+                                             cart.removeAllTable();
+                                             cart.removeAllCartItem();
+                                           } else {
+                                             Fluttertoast.showToast(
+                                                 backgroundColor: Color(0xFFFF0000),
+                                                 msg: "Cannot remove this table");
+                                           }
+                                         },
+                                       )
+                                     )
+                                      : SizedBox.shrink()
+                                )
+                              ],
+                            )
+                          )
+                        : Expanded(child: Text('')),
+                    Container(
+                      margin: EdgeInsets.fromLTRB(0, 2, 0, 2),
+                      height: MediaQuery.of(context).size.height / 8,
+                      child: Stack(
+                        alignment: Alignment.bottomLeft,
+                        children: [
+                          Ink.image(
+                            image: tableList[index].seats == '2'
+                                ? NetworkImage(
                                     "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
-                                    : tableList[index].seats == '4'
+                                : tableList[index].seats == '4'
                                     ? NetworkImage(
-                                    "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
+                                        "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
                                     : tableList[index].seats == '6'
-                                    ? NetworkImage(
-                                    "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
-                                    : NetworkImage(
-                                    "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
-                                fit: BoxFit.cover,
-                              ),
-                              Container(
-                                  alignment: Alignment.center,
-                                  child: Text("#" + tableList[index].number!)),
-                            ],
+                                        ? NetworkImage(
+                                            "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
+                                        : NetworkImage(
+                                            "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                            fit: BoxFit.cover,
                           ),
-                        ),
-                        tableList[index].status == 1
-                            ? Container(
-                          alignment: Alignment.topCenter,
-                          child: Text(
-                            "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                        )
-                            : Container(child: Text(''))
-                      ],
+                          Container(
+                              alignment: Alignment.center,
+                              child: Text("#" + tableList[index].number!)),
+                        ],
+                      ),
                     ),
-                  ),
+                    tableList[index].status == 1
+                        ? Container(
+                            alignment: Alignment.topCenter,
+                            child: Text(
+                              "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          )
+                        : Container(child: Text(''))
+                  ],
                 ),
               ),
-          )
-        ]
-      ),
+            ),
+          ),
+        )
+      ]),
     );
+  }
+
+  Future<Future<Object?>> openChangeTableDialog(PosTable posTable) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: TableChangeDialog(
+                  object: posTable,
+                  callBack: () => readAllTable(),
+                )),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   readAllTable() async {
@@ -334,8 +454,7 @@ class _CartDialogState extends State<CartDialog> {
     final int? branch_id = prefs.getInt('branch_id');
 
     //read table use detail data based on table id
-    List<TableUseDetail> TableUseDetailData =
-        await PosDatabase.instance.readSpecificTableUseDetail(table_id);
+    List<TableUseDetail> TableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(table_id);
     //check table is in use or not
     if (TableUseDetailData.length > 0) {
       List<TableUseDetail> allTableUseData = await PosDatabase.instance
@@ -345,22 +464,13 @@ class _CartDialogState extends State<CartDialog> {
             .readSpecificTable(branch_id!, allTableUseData[i].table_id!);
         if (tableData[0].status == 0) {
           if (!cart.selectedTable.contains(tableData)) {
-            print('table number 1 : ${tableData[0].number}');
             cart.addTable(tableData[0]);
           }
         } else {
           if (!cart.selectedTable.contains(tableData)) {
-            print('table number 3 : ${tableData[0].number}');
             cart.addTable(tableData[0]);
           }
         }
-      }
-    } else if (TableUseDetailData.length <= 0) {
-      List<PosTable> tableData = await PosDatabase.instance
-          .readSpecificTable(branch_id!, table_id.toString());
-      if (!cart.selectedTable.contains(tableData[0])) {
-        print('table number 2  : ${tableData[0].number}');
-        cart.addTable(tableData[0]);
       }
     }
   }
@@ -463,6 +573,7 @@ class _CartDialogState extends State<CartDialog> {
         }
       }
     }
+    isFinish = true;
   }
 
   getModifierGroupItem(OrderDetail orderDetail) {
@@ -534,7 +645,8 @@ class _CartDialogState extends State<CartDialog> {
           getModifierGroupItem(orderDetailList[i]),
           getVariantGroupItem(orderDetailList[i]),
           orderDetailList[i].remark!,
-          1);
+          1,
+          null);
       cart.addItem(value);
     }
     for (int j = 0; j < orderCacheList.length; j++) {
@@ -548,6 +660,68 @@ class _CartDialogState extends State<CartDialog> {
       List<PosTable> tableData = await PosDatabase.instance
           .readSpecificTable(branch_id!, tableUseDetailList[k].table_id!);
       cart.addTable(tableData[0]);
+    }
+  }
+
+  callRemoveTableQuery(int table_id) async {
+    await deleteCurrentTableUseDetail(table_id);
+    await updatePosTableStatus(table_id, 0);
+    await readAllTable();
+  }
+
+  deleteCurrentTableUseDetail(int currentTableId) async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+
+    try{
+      int tableUseData = await PosDatabase.instance.deleteTableUseDetailByTableId(
+          TableUseDetail(
+              soft_delete: dateTime,
+              table_id: currentTableId.toString(),
+          ));
+    }catch(e){
+      Fluttertoast.showToast(
+          backgroundColor: Color(0xFFFF0000),
+          msg: "Delete current table use detail error: ${e}");
+    }
+  }
+
+  updatePosTableStatus(int currentTableId, int status) async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+
+    PosTable posTableData = PosTable(table_id: currentTableId, status: status, updated_at: dateTime);
+    int data2 = await PosDatabase.instance.updatePosTableStatus(posTableData);
+  }
+
+  callAddNewTableQuery(int newTableId, int oldTableId) async {
+    await createTableUseDetail(newTableId, oldTableId);
+    await updatePosTableStatus(newTableId, 1);
+    await readAllTable();
+  }
+
+  createTableUseDetail(int newTableId, int oldTableId) async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    try{
+      //read table use detail data based on table id
+      List<TableUseDetail> TableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(oldTableId);
+
+      //create table use detail
+      TableUseDetail tableUseDetailData = await PosDatabase.instance
+            .insertSqliteTableUseDetail(
+            TableUseDetail(
+                table_use_detail_id: 3,
+                table_use_id: TableUseDetailData[0].table_use_id,
+                table_id: newTableId.toString(),
+                original_table_id: newTableId.toString(),
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+    } catch(e){
+      Fluttertoast.showToast(
+          backgroundColor: Color(0xFFFF0000),
+          msg: "Create table detail error: ${e}");
     }
   }
 }

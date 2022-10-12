@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/object/cart_product.dart';
@@ -27,6 +29,16 @@ class CartModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void removeSpecificItem(cartProductItem object){
+    for(int i = 0; i < cartNotifierItem.length; i++){
+      if(object.orderCacheId == cartNotifierItem[i].orderCacheId){
+        cartNotifierItem.removeAt(i);
+        break;
+      }
+    }
+    notifyListeners();
+  }
+
   void removeAllCartItem(){
     cartNotifierItem.clear();
     notifyListeners();
@@ -43,7 +55,12 @@ class CartModel extends ChangeNotifier {
   }
 
   void removeSpecificTable(PosTable posTable){
-    selectedTable.remove(posTable);
+    for(int i= 0; i < selectedTable.length; i++){
+      if(posTable.table_id == selectedTable[i].table_id){
+        selectedTable.removeAt(i);
+        break;
+      }
+    }
     notifyListeners();
   }
 

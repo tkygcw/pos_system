@@ -461,7 +461,8 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
         getModifierGroupItem(orderDetailList[i]),
         getVariantGroupItem(orderDetailList[i]),
         orderDetailList[i].remark!,
-        1
+        1,
+        null
       );
       cart.addItem(value);
     }

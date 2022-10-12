@@ -407,7 +407,8 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       modifierGroup,
       variantGroup,
       remarkController.text,
-      0
+      0,
+      null
     );
     cart.addItem(value);
 

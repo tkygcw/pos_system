@@ -1593,7 +1593,6 @@ class PosDatabase {
         [data.soft_delete, data.variant_group_id]);
   }
 
-
   /*
   soft delete product variant
 */
@@ -1604,7 +1603,6 @@ class PosDatabase {
         [data.soft_delete, data.product_id]);
   }
 
-
   /*
   soft delete product variant detail
 */
@@ -1614,8 +1612,6 @@ class PosDatabase {
         'UPDATE $tableProductVariantDetail SET soft_delete = ? WHERE product_variant_id = ?',
         [data.soft_delete, data.product_variant_id]);
   }
-
-
 
   /*
   soft delete product variant
@@ -1714,6 +1710,16 @@ class PosDatabase {
     return await db.rawUpdate(
         'UPDATE $tableTableUseDetail SET soft_delete = ? WHERE table_use_detail_id = ?',
         [data.soft_delete, data.table_use_detail_id]);
+  }
+
+  /*
+  Soft-delete change table table use detail by table id
+*/
+  Future<int> deleteTableUseDetailByTableId(TableUseDetail data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableTableUseDetail SET soft_delete = ? WHERE table_id = ?',
+        [data.soft_delete, data.table_id]);
   }
 
 /*

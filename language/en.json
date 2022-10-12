@@ -21,5 +21,6 @@
   "empty_cart": "No item in cart",
   "table_is_used": "Table is in used",
   "no_table": "No table selected!",
-  "merge_error": "Cannot merge same table!"
+  "merge_error": "Cannot merge same table!",
+  "merge_error_2": "Cannot join with table not in use"
 }

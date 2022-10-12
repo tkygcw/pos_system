@@ -12,6 +12,7 @@ class cartProductItem{
    late List<VariantGroup> variant ;
    String remark='';
    int status = 0;
+   String? orderCacheId;
 
    cartProductItem(
        String branchProduct_id,
@@ -22,7 +23,8 @@ class cartProductItem{
        List<ModifierGroup> modifier,
        List<VariantGroup> variant,
        String remark,
-       int status){
+       int status,
+       String? orderCacheId){
        this.branchProduct_id = branchProduct_id;
        this.name = name;
        this.category_id = category_id;
@@ -32,6 +34,7 @@ class cartProductItem{
        this.variant = variant;
        this.remark = remark;
        this.status = status;
+       this.orderCacheId = orderCacheId;
    }
 
 }
