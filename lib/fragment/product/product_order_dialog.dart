@@ -70,32 +70,33 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     );
   }
 
-  Widget modifierGroupLayout(ModifierGroup modifierGroup) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(modifierGroup.name!,
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        for (int i = 0; i < modifierGroup.modifierChild.length; i++)
-          CheckboxListTile(
-            title: Row(
-              children: [
-                Text('${modifierGroup.modifierChild[i].name!}'),
-                Text(' (+RM ${modifierGroup.modifierChild[i].price})', style: TextStyle(fontSize: 12),)
-              ],
-            ),
-            value: modifierGroup.modifierChild[i].isChecked,
-            onChanged: (isChecked) {
-              setState(() {
-                modifierGroup.modifierChild[i].isChecked = isChecked!;
-                print(
-                    'flavour ${modifierGroup.modifierChild[i].name},is check ${modifierGroup.modifierChild[i].isChecked}');
-              });
-            },
-            controlAffinity: ListTileControlAffinity.trailing,
-          )
-      ],
-    );
+  Widget modifierGroupLayout(ModifierGroup modifierGroup, CartModel cart ) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(modifierGroup.name!,
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          for (int i = 0; i < modifierGroup.modifierChild.length; i++)
+            CheckboxListTile(
+              title: Row(
+                children: [
+                  Text('${modifierGroup.modifierChild[i].name!}'),
+                  Text(' (+RM ${modifierGroup.modifierChild[i].price})', style: TextStyle(fontSize: 12),)
+                ],
+              ),
+              value: modifierGroup.modifierChild[i].isChecked,
+              onChanged: (isChecked) {
+                setState(() {
+                  modifierGroup.modifierChild[i].isChecked = isChecked!;
+                  print(
+                      'flavour ${modifierGroup.modifierChild[i].name},is check ${modifierGroup.modifierChild[i].isChecked}');
+                });
+              },
+              controlAffinity: ListTileControlAffinity.trailing,
+            )
+        ],
+      );
+
   }
 
   @override
@@ -130,7 +131,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                         for (int i = 0; i < variantGroup.length; i++)
                           variantGroupLayout(variantGroup[i]),
                         for (int j = 0; j < modifierGroup.length; j++)
-                          modifierGroupLayout(modifierGroup[j]),
+                          modifierGroupLayout(modifierGroup[j],cart),
                         Column(
                           children: [
                             Padding(
