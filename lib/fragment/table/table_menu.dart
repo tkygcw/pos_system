@@ -61,6 +61,10 @@ class _TableMenuState extends State<TableMenu> {
     super.dispose();
   }
 
+  hexToColor(String hexCode) {
+    return new Color(int.parse(hexCode.substring(1, 7), radix: 16) + 0xFF000000);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
@@ -119,7 +123,7 @@ class _TableMenuState extends State<TableMenu> {
                               // tableList[index].seats == 2;
                               return Card(
                                 color: tableList[index].status != 0
-                                    ? cardColor
+                                    ? hexToColor(tableList[index].cardColor!)
                                     : Colors.white,
                                 shape: tableList[index].isSelected
                                     ? new RoundedRectangleBorder(
@@ -349,6 +353,7 @@ class _TableMenuState extends State<TableMenu> {
       if (tableUseDetailData.length > 0) {
         List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_id!);
         tableList[i].group = data[0].table_use_id;
+        tableList[i].cardColor = data[0].cardColor;
         for(int j = 0; j < data.length; j++){
           tableList[i].total_Amount += double.parse(data[j].total_amount!);
         }
@@ -562,4 +567,6 @@ class _TableMenuState extends State<TableMenu> {
       cart.removeSpecificItem(value);
     }
   }
+
+
 }

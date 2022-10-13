@@ -1,3 +1,7 @@
+import 'dart:ui';
+
+import 'package:pos_system/object/table_use.dart';
+
 String? tablePosTable = 'tb_table ';
 
 class PosTableFields {
@@ -36,6 +40,7 @@ class PosTable{
   String? soft_delete;
   double total_Amount = 0.0;
   String? group;
+  String? cardColor;
   bool isSelected = false;
 
   PosTable(
@@ -94,5 +99,7 @@ class PosTable{
     PosTableFields.updated_at: updated_at,
     PosTableFields.soft_delete: soft_delete,
   };
+
+
 }
 

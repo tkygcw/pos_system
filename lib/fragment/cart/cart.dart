@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -46,6 +47,7 @@ class _CartPageState extends State<CartPage> {
   List<String> branchLinkDiningIdList = [];
   List<cartProductItem> sameCategoryItemList = [];
   List<Promotion> autoApplyPromotionList = [];
+  List<TableUse> tableUseList = [];
   int diningOptionID = 0;
   int simpleIntInput = 0;
   int taxRate = 0;
@@ -116,7 +118,10 @@ class _CartPageState extends State<CartPage> {
               backgroundColor: Colors.white,
               actions: [
                 Visibility(
-                  visible: cart.selectedOption == 'Dine in' && widget.currentPage == 'menu' ? true : false,
+                  visible: cart.selectedOption == 'Dine in' &&
+                          widget.currentPage == 'menu'
+                      ? true
+                      : false,
                   child: IconButton(
                     tooltip: 'table',
                     icon: const Icon(
@@ -130,7 +135,7 @@ class _CartPageState extends State<CartPage> {
                   ),
                 ),
                 Visibility(
-                  visible: widget.currentPage == 'menu'? false: true,
+                  visible: widget.currentPage == 'menu' ? false : true,
                   child: IconButton(
                     tooltip: 'promotion',
                     icon: Icon(Icons.discount),
@@ -256,7 +261,13 @@ class _CartPageState extends State<CartPage> {
                                                     '\n',
                                                 style: TextStyle(
                                                     fontSize: 14,
-                                                    color: cart.cartNotifierItem[index].status == 1 ? font : color.backgroundColor,
+                                                    color: cart
+                                                                .cartNotifierItem[
+                                                                    index]
+                                                                .status ==
+                                                            1
+                                                        ? font
+                                                        : color.backgroundColor,
                                                     fontWeight:
                                                         FontWeight.bold)),
                                             TextSpan(
@@ -265,7 +276,13 @@ class _CartPageState extends State<CartPage> {
                                                         .price,
                                                 style: TextStyle(
                                                   fontSize: 13,
-                                                  color: cart.cartNotifierItem[index].status == 1 ? font : color.backgroundColor,
+                                                  color: cart
+                                                              .cartNotifierItem[
+                                                                  index]
+                                                              .status ==
+                                                          1
+                                                      ? font
+                                                      : color.backgroundColor,
                                                 )),
                                           ],
                                         ),
@@ -287,7 +304,14 @@ class _CartPageState extends State<CartPage> {
                                                       Colors.transparent,
                                                   icon: Icon(Icons.remove),
                                                   onPressed: () {
-                                                    cart.cartNotifierItem[index].quantity != 1 ? setState(() => cart.cartNotifierItem[index].quantity--) : null;
+                                                    cart.cartNotifierItem[index]
+                                                                .quantity !=
+                                                            1
+                                                        ? setState(() => cart
+                                                            .cartNotifierItem[
+                                                                index]
+                                                            .quantity--)
+                                                        : null;
                                                   }),
                                               Text(cart.cartNotifierItem[index]
                                                   .quantity
@@ -297,15 +321,23 @@ class _CartPageState extends State<CartPage> {
                                                       Colors.transparent,
                                                   icon: Icon(Icons.add),
                                                   onPressed: () {
-                                                    if(cart.cartNotifierItem[index].status == 0){
+                                                    if (cart
+                                                            .cartNotifierItem[
+                                                                index]
+                                                            .status ==
+                                                        0) {
                                                       setState(() {
-                                                        cart.cartNotifierItem[index].quantity++;
+                                                        cart
+                                                            .cartNotifierItem[
+                                                                index]
+                                                            .quantity++;
                                                       });
-                                                    } else{
+                                                    } else {
                                                       Fluttertoast.showToast(
-                                                          backgroundColor: Colors.red,
+                                                          backgroundColor:
+                                                              Colors.red,
                                                           msg:
-                                                          "order already placed!");
+                                                              "order already placed!");
                                                     }
 
                                                     controller.add('refresh');
@@ -439,32 +471,32 @@ class _CartPageState extends State<CartPage> {
                               minimumSize: const Size.fromHeight(50), // NEW
                             ),
                             onPressed: () async {
-                              if(widget.currentPage == 'menu') {
+                              if (widget.currentPage == 'menu') {
                                 if (cart.selectedOption == 'Dine in') {
-                                  if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
-                                    if(cart.cartNotifierItem[0].status == 1 ){
+                                  if (cart.selectedTable.isNotEmpty &&
+                                      cart.cartNotifierItem.isNotEmpty) {
+                                    if (cart.cartNotifierItem[0].status == 1) {
                                       print('add new item');
                                       await callAddOrderCache(cart);
                                       cart.removeAllCartItem();
                                       cart.removeAllTable();
-                                    }else {
+                                    } else {
                                       print('add order cache');
                                       await callCreateNewOrder(cart);
                                       cart.removeAllCartItem();
                                       cart.removeAllTable();
                                     }
-
                                   } else {
                                     Fluttertoast.showToast(
                                         backgroundColor: Colors.red,
                                         msg:
-                                        "make sure cart is not empty and table is selected");
+                                            "make sure cart is not empty and table is selected");
                                   }
                                 } else {
                                   cart.removeAllTable();
                                   if (cart.cartNotifierItem.isNotEmpty) {
                                     //await createOrderCache(cart);
-                                   // await updatePosTable(cart);
+                                    // await updatePosTable(cart);
                                     cart.removeAllCartItem();
                                     cart.selectedTable.clear();
                                   } else {
@@ -476,7 +508,6 @@ class _CartPageState extends State<CartPage> {
                               } else {
                                 print('make payment');
                               }
-
                             },
                             child: widget.currentPage == 'menu'
                                 ? Text('Place Order')
@@ -566,7 +597,7 @@ class _CartPageState extends State<CartPage> {
       result.add('');
     } else {
       if (cart.selectedTable.length > 1) {
-        for(int i = 0; i < cart.selectedTable.length; i++){
+        for (int i = 0; i < cart.selectedTable.length; i++) {
           result.add('${cart.selectedTable[i].number}');
         }
       } else {
@@ -681,8 +712,9 @@ class _CartPageState extends State<CartPage> {
             //Auto apply specific category promotion
             for (int m = 0; m < cart.cartNotifierItem.length; m++) {
               //check cart item status
-              if(cart.cartNotifierItem[m].status == 0){
-                if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+              if (cart.cartNotifierItem[m].status == 0) {
+                if (cart.cartNotifierItem[m].category_id ==
+                    promotionList[j].category_id) {
                   hasPromo = true;
                   promoName = promotionList[j].name!;
                   if (!autoApplyPromotionList.contains(promotionList[j])) {
@@ -692,13 +724,12 @@ class _CartPageState extends State<CartPage> {
                       promotionList[j], cart.cartNotifierItem[m]);
                 }
               }
-
             }
           } else {
             //Auto apply non specific category promotion
             if (cart.cartNotifierItem.isNotEmpty) {
-              for(int i = 0; i < cart.cartNotifierItem.length; i++){
-                if(cart.cartNotifierItem[i].status == 0){
+              for (int i = 0; i < cart.cartNotifierItem.length; i++) {
+                if (cart.cartNotifierItem[i].status == 0) {
                   hasPromo = true;
                 }
               }
@@ -720,7 +751,7 @@ class _CartPageState extends State<CartPage> {
     try {
       promo = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        if(cart.cartNotifierItem[i].status == 0){
+        if (cart.cartNotifierItem[i].status == 0) {
           if (promotion.type == 1) {
             promo += (double.parse(promotion.amount!) *
                 cart.cartNotifierItem[i].quantity);
@@ -729,7 +760,7 @@ class _CartPageState extends State<CartPage> {
             promotion.promoRate = promoRate;
           } else {
             promo += (double.parse(cart.cartNotifierItem[i].price) *
-                cart.cartNotifierItem[i].quantity) *
+                    cart.cartNotifierItem[i].quantity) *
                 (double.parse(promotion.amount!) / 100);
             promotion.promoAmount = promo;
             promoRate = promotion.amount! + '%';
@@ -751,7 +782,7 @@ class _CartPageState extends State<CartPage> {
       Promotion promotion, cartProductItem cartItem) {
     try {
       promo = 0.0;
-      if(cartItem.status == 0) {
+      if (cartItem.status == 0) {
         if (promotion.type == 1) {
           promo += (double.parse(promotion.amount!) * cartItem.quantity);
           promotion.promoAmount = promotion.promoAmount! + promo;
@@ -808,11 +839,10 @@ class _CartPageState extends State<CartPage> {
       promo = 0.0;
       promoAmount = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        if(cart.cartNotifierItem[i].status == 0) {
+        if (cart.cartNotifierItem[i].status == 0) {
           total += (double.parse((cart.cartNotifierItem[i].price)) *
               cart.cartNotifierItem[i].quantity);
         }
-
       }
     } catch (e) {
       print('Sub Total Error: $e');
@@ -832,7 +862,7 @@ class _CartPageState extends State<CartPage> {
     try {
       priceIncServiceTax = 0.00;
       discountPrice = 0.00;
-      
+
       discountPrice = total - promoAmount;
       priceIncSST = discountPrice * 0.06;
       priceIncSST = (priceIncSST * 100).truncate() / 100;
@@ -871,8 +901,6 @@ class _CartPageState extends State<CartPage> {
 
     controller.add('refresh');
   }
-
-
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -973,6 +1001,8 @@ class _CartPageState extends State<CartPage> {
       print('promotion list error $error');
     }
   }
+
+
 
 /*
   taylor part
@@ -1198,7 +1228,9 @@ class _CartPageState extends State<CartPage> {
 /*
  leow part
 */
-
+  /**
+   * concurrent here
+   */
   callCreateNewOrder(CartModel cart) async {
     await createTableUseID();
     await createTableUseDetail(cart);
@@ -1228,25 +1260,56 @@ class _CartPageState extends State<CartPage> {
             table_id: cart.selectedTable[i].table_id,
             status: 1,
             updated_at: dateTime);
-        int data = await PosDatabase.instance.updatePosTableStatus(posTableData);
+        int data =
+            await PosDatabase.instance.updatePosTableStatus(posTableData);
       }
     }
   }
 
+  colorToHex(Color color){
+    String hex = '#' + color.value.toRadixString(16).substring(2);
+    return hex;
+  }
+
+  colorChecking() async {
+    String? hexCode ;
+    bool colorFound = false;
+    int temp = 0;
+    List<TableUse> data = await PosDatabase.instance.readAllTableUseId();
+    while (colorFound == false) {
+      hexCode = colorToHex(Color(Random().nextInt(0xffffffff)));
+      for (int i = 0; i < data.length; i++) {
+        if(hexCode == data[i].cardColor){
+          return;
+        }
+      }
+      colorFound = true;
+    }
+    return hexCode;
+  }
+
   createTableUseID() async {
+    print('create table use id called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
+    int i = 0;
+    String? hexCode;
+    Color color;
     tableUseId = '';
-    try{
-      //create table use data
-      TableUse tableUseData = await PosDatabase.instance.insertSqliteTableUse(
-          TableUse(
-              table_use_id: 3,
-              created_at: dateTime,
-              updated_at: '',
-              soft_delete: ''));
-      tableUseId = tableUseData.table_use_id.toString();
-    }catch(e){
+    try {
+      hexCode = await colorChecking();
+      if(hexCode != null){
+        //create table use data
+        TableUse tableUseData = await PosDatabase.instance.insertSqliteTableUse(
+            TableUse(
+                table_use_id: 4,
+                cardColor: hexCode.toString(),
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+        tableUseId = tableUseData.table_use_id.toString();
+      }
+    } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Create table id error: ${e}");
@@ -1257,13 +1320,12 @@ class _CartPageState extends State<CartPage> {
   createTableUseDetail(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
-    try{
+    try {
       for (int i = 0; i < cart.selectedTable.length; i++) {
         //create table use detail
         TableUseDetail tableUseDetailData = await PosDatabase.instance
-            .insertSqliteTableUseDetail(
-            TableUseDetail(
-                table_use_detail_id: 3,
+            .insertSqliteTableUseDetail(TableUseDetail(
+                table_use_detail_id: 4,
                 table_use_id: tableUseId,
                 table_id: cart.selectedTable[i].table_id.toString(),
                 original_table_id: cart.selectedTable[i].table_id.toString(),
@@ -1271,7 +1333,7 @@ class _CartPageState extends State<CartPage> {
                 updated_at: '',
                 soft_delete: ''));
       }
-    } catch(e){
+    } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Create table detail error: ${e}");
@@ -1283,11 +1345,12 @@ class _CartPageState extends State<CartPage> {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     String _tableUseId = '';
-    try{
+    try {
       //check selected table is in use or not
-      for(int i = 0; i < cart.selectedTable.length; i++){
-        List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_id!);
-        if(useDetail.length > 0) {
+      for (int i = 0; i < cart.selectedTable.length; i++) {
+        List<TableUseDetail> useDetail = await PosDatabase.instance
+            .readSpecificTableUseDetail(cart.selectedTable[i].table_id!);
+        if (useDetail.length > 0) {
           _tableUseId = useDetail[0].table_use_id!;
         } else {
           _tableUseId = this.tableUseId;
@@ -1296,7 +1359,7 @@ class _CartPageState extends State<CartPage> {
       //create order cache
       OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
           OrderCache(
-              order_cache_id: 3,
+              order_cache_id: 4,
               company_id: '6',
               branch_id: '5',
               order_detail_id: '',
@@ -1311,7 +1374,7 @@ class _CartPageState extends State<CartPage> {
               updated_at: '',
               soft_delete: ''));
       orderCacheId = data.order_cache_id.toString();
-    }catch(e){
+    } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Create order cache error: ${e}");
@@ -1325,24 +1388,24 @@ class _CartPageState extends State<CartPage> {
 
     //loop cart item & create order detail
     for (int j = 0; j < cart.cartNotifierItem.length; j++) {
-      if(cart.cartNotifierItem[j].status == 0) {
+      if (cart.cartNotifierItem[j].status == 0) {
         OrderDetail detailData = await PosDatabase.instance
             .insertSqliteOrderDetail(OrderDetail(
-            order_detail_id: 0,
-            order_cache_id: orderCacheId,
-            branch_link_product_id: cart.cartNotifierItem[j].branchProduct_id,
-            productName: cart.cartNotifierItem[j].name,
-            has_variant: cart.cartNotifierItem[j].variant.length == 0
-                ? '0'
-                : '1',
-            product_variant_name: cart.cartNotifierItem[j].name,
-            price: cart.cartNotifierItem[j].price,
-            quantity: cart.cartNotifierItem[j].quantity.toString(),
-            remark: cart.cartNotifierItem[j].remark,
-            account: '',
-            created_at: dateTime,
-            updated_at: '',
-            soft_delete: ''));
+                order_detail_id: 0,
+                order_cache_id: orderCacheId,
+                branch_link_product_id:
+                    cart.cartNotifierItem[j].branchProduct_id,
+                productName: cart.cartNotifierItem[j].name,
+                has_variant:
+                    cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
+                product_variant_name: cart.cartNotifierItem[j].name,
+                price: cart.cartNotifierItem[j].price,
+                quantity: cart.cartNotifierItem[j].quantity.toString(),
+                remark: cart.cartNotifierItem[j].remark,
+                account: '',
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
 
         for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
           ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
@@ -1350,18 +1413,19 @@ class _CartPageState extends State<CartPage> {
             if (group.modifierChild[m].isChecked!) {
               OrderModifierDetail modifierData = await PosDatabase.instance
                   .insertSqliteOrderModifierDetail(OrderModifierDetail(
-                  order_modifier_detail_id: 0,
-                  order_detail_id: await detailData.order_detail_id.toString(),
-                  mod_item_id: group.modifierChild[m].mod_item_id.toString(),
-                  mod_group_id: group.mod_group_id.toString(),
-                  created_at: dateTime,
-                  updated_at: '',
-                  soft_delete: ''));
+                      order_modifier_detail_id: 0,
+                      order_detail_id:
+                          await detailData.order_detail_id.toString(),
+                      mod_item_id:
+                          group.modifierChild[m].mod_item_id.toString(),
+                      mod_group_id: group.mod_group_id.toString(),
+                      created_at: dateTime,
+                      updated_at: '',
+                      soft_delete: ''));
             }
           }
         }
       }
     }
   }
-
 }

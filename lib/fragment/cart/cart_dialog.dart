@@ -83,7 +83,7 @@ class _CartDialogState extends State<CartDialog> {
             child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
             onPressed: () async {
               if (tableList[dragIndex].table_id != tableList[targetIndex].table_id) {
-                if(tableList[targetIndex].status == 1){
+                if(tableList[targetIndex].status == 1 && tableList[dragIndex].status == 0){
                   await callAddNewTableQuery(tableList[dragIndex].table_id!, tableList[targetIndex].table_id!);
                   cart.removeAllTable();
                 } else {
@@ -104,6 +104,10 @@ class _CartDialogState extends State<CartDialog> {
         ],
       ),
     );
+  }
+
+  hexToColor(String hexCode) {
+    return new Color(int.parse(hexCode.substring(1, 7), radix: 16) + 0xFF000000);
   }
 
   @override
@@ -128,7 +132,10 @@ class _CartDialogState extends State<CartDialog> {
                                 crossAxisCount: 4,
                                 children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, index))).values.toList(),
                                 onReorder: (int oldIndex, int newIndex) {
-                                  showSecondDialog(context, color, oldIndex, newIndex, cart);
+                                  if(oldIndex != newIndex){
+                                    showSecondDialog(context, color, oldIndex, newIndex, cart);
+                                  }
+
                                 },
                               ),
                             ),
@@ -176,14 +183,9 @@ class _CartDialogState extends State<CartDialog> {
                 : new RoundedRectangleBorder(
                     side: new BorderSide(color: Colors.white, width: 3.0),
                     borderRadius: BorderRadius.circular(4.0)),
-            color: tableList[index].status == 1 && tableList[index].group == '1'
-                ? Colors.yellowAccent
-                : tableList[index].status == 1 && tableList[index].group == '2'
-                    ? Colors.green
-                    : tableList[index].status == 1 &&
-                            tableList[index].group == '3'
-                        ? Colors.deepOrange
-                        : cardColor,
+            color: tableList[index].status == 1
+                ? hexToColor(tableList[index].cardColor!)
+                : Colors.white,
             child: InkWell(
               splashColor: Colors.blue.withAlpha(30),
               onDoubleTap: (){
@@ -192,58 +194,6 @@ class _CartDialogState extends State<CartDialog> {
                 cart.removeAllCartItem();
               },
               onTap: () async {
-                //set current action to opposite
-                //bool action = !tableList[index].isSelected; //true
-                //set action to all item under same group id
-                //tableList[index].isSelected = true;
-
-                // bool isGroup = tableList[index].status == 1;
-                // bool action = !tableList[index].isSelected;
-                //
-                // for (int i = 0; i < tableList.length; i++) {
-                //   /**
-                //    * using table
-                //    */
-                //   if (isGroup) {
-                //     if (tableList[i].group == tableList[index].group) {
-                //       tableList[i].isSelected = action;
-                //
-                //       if (tableList[i].isSelected == true) {
-                //         await readSpecificTableDetail(tableList[i]);
-                //         addToCart(cart, tableList[i]);
-                //       } else {
-                //         cart.removeSpecificTable(tableList[i]);
-                //       }
-                //     } else {
-                //       tableList[i].isSelected = false;
-                //       cart.removeSpecificTable(tableList[i]);
-                //     }
-                //   }
-                //   /**
-                //    * not using table
-                //    */
-                //   else {
-                //     if (tableList[i].group != null && tableList[i].isSelected) {
-                //       //print('table delete info ${jsonEncode(tableList[i])}');
-                //       tableList[i].isSelected = false;
-                //       cart.removeSpecificTable(tableList[i]);
-                //     }
-                //   }
-                // }
-                // if (!isGroup) {
-                //   tableList[index].isSelected = action;
-                //   if (action) {
-                //     cart.addTable(tableList[index]);
-                //   } else {
-                //     cart.removeSpecificTable(tableList[index]);
-                //   }
-                // }
-                // for (int i = 0; i < cart.selectedTable.length; i++) {
-                //   print(jsonEncode(cart.selectedTable[i]));
-                // }
-                //
-                // setState(() {});
-
                 //check selected table is in use or not
                 if (tableList[index].status == 1) {
                   // table in use (colored)
@@ -421,7 +371,7 @@ class _CartDialogState extends State<CartDialog> {
         await PosDatabase.instance.readAllTable(branch_id!.toInt());
 
     tableList = List.from(data);
-    readAllTableAmount();
+    await readAllTableAmount();
     setState(() {
       isLoad = true;
     });
@@ -440,6 +390,7 @@ class _CartDialogState extends State<CartDialog> {
             branch_id.toString(), tableUseDetailData[0].table_use_id!);
 
         tableList[i].group = data[0].table_use_id;
+        tableList[i].cardColor = data[0].cardColor;
 
         for (int j = 0; j < data.length; j++) {
           tableList[i].total_Amount += double.parse(data[j].total_amount!);
@@ -662,7 +613,9 @@ class _CartDialogState extends State<CartDialog> {
       cart.addTable(tableData[0]);
     }
   }
-
+  /**
+   * concurrent here
+   */
   callRemoveTableQuery(int table_id) async {
     await deleteCurrentTableUseDetail(table_id);
     await updatePosTableStatus(table_id, 0);
@@ -724,4 +677,5 @@ class _CartDialogState extends State<CartDialog> {
           msg: "Create table detail error: ${e}");
     }
   }
+
 }

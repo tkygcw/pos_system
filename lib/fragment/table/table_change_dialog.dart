@@ -121,7 +121,9 @@ leow part
     await deleteCurrentTableUseDetail(int.parse(currentTableUseId), dateTime);
     await deleteCurrentTableUseId(int.parse(currentTableUseId), dateTime);
   }
-
+  /**
+   * concurrent here
+   */
   changeToUnusedTable(String table_id, String dateTime) async {
     int tableUseDetailData = await PosDatabase.instance.updateTableUseDetail(
         widget.object.table_id!,
@@ -143,32 +145,10 @@ leow part
     //check new table is in use or not
     if(NewUseDetailData.length > 0){
       await callChangeToTableInUse(NowUseDetailData[0].table_use_id!, NewUseDetailData[0].table_use_id!, dateTime);
-      // int orderCacheData = await PosDatabase.instance.updateOrderCacheTableUseId(
-      //     NowUseDetailData[0].table_use_id!,
-      //     OrderCache(
-      //       table_use_id: NewUseDetailData[0].table_use_id,
-      //       updated_at: dateTime
-      //     ));
-      //
-      // int tableUseDetailData = await PosDatabase.instance.deleteTableUseDetail(
-      //     TableUseDetail(
-      //         table_use_detail_id: NowUseDetailData[0].table_use_detail_id,
-      //         soft_delete: dateTime
-      //     ));
-      //
-      // int tableUseData = await PosDatabase.instance.deleteTableUseID(
-      //     TableUse(
-      //       table_use_id: int.parse(NowUseDetailData[0].table_use_id!),
-      //       soft_delete: dateTime
-      //     ));
+
     } else {
       await changeToUnusedTable(tableData[0].table_id.toString(), dateTime);
-      // int tableUseDetailData = await PosDatabase.instance.updateTableUseDetail(
-      //     widget.object.table_id!,
-      //     TableUseDetail(
-      //         table_id: tableData[0].table_id.toString(),
-      //         updated_at: dateTime
-      //     ));
+
     }
   }
 
@@ -191,21 +171,12 @@ leow part
         .checkPosTableStatus(branch_id, tableData[0].table_id!);
     if (newTable[0].status == 0) {
       updatePosTableStatus(tableData[0].table_id!, 1, dateTime);
-        // PosTable posTableData = PosTable(
-        //     table_id: tableData[0].table_id!, status: 1, updated_at: dateTime);
-        // int data =
-        // await PosDatabase.instance.updatePosTableStatus(posTableData);
-
     }
     //update previous table status
     List<PosTable> lastTable = await PosDatabase.instance
         .checkPosTableStatus(branch_id, widget.object.table_id!);
     if (lastTable[0].status == 1) {
       updatePosTableStatus(widget.object.table_id!, 0, dateTime);
-        // PosTable posTableData = PosTable(
-        //     table_id: widget.object.table_id, status: 0, updated_at: dateTime);
-        // int data2 =
-        // await PosDatabase.instance.updatePosTableStatus(posTableData);
     }
     widget.callBack();
     Navigator.of(context).pop();

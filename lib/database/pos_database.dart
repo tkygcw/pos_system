@@ -334,6 +334,7 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableTableUse(
           ${TableUseFields.table_use_sqlite_id} $idType,
           ${TableUseFields.table_use_id} $integerType,
+          ${TableUseFields.cardColor} $textType,
           ${TableUseFields.created_at} $textType,
           ${TableUseFields.updated_at} $textType,
           ${TableUseFields.soft_delete} $textType)''');
@@ -1266,6 +1267,30 @@ class PosDatabase {
   }
 
 /*
+  read all table use id
+*/
+  Future<List<TableUse>> readAllTableUseId() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableTableUse WHERE soft_delete = ? ',
+        ['']);
+
+    return result.map((json) => TableUse.fromJson(json)).toList();
+  }
+
+/*
+  read specific table use id
+*/
+  Future<List<TableUse>> readSpecificTableUseId(String table_use_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableTableUse WHERE soft_delete = ? AND table_use_id = ?',
+        ['', table_use_id]);
+
+    return result.map((json) => TableUse.fromJson(json)).toList();
+  }
+
+/*
   read specific use table detail based on table id
 */
   Future<List<TableUseDetail>> readSpecificTableUseDetail(int table_id) async {
@@ -1296,9 +1321,9 @@ class PosDatabase {
     try{
       final db = await instance.database;
       final result = await db.rawQuery(
-          'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND branch_id = ? AND table_use_id = ? ',
-          ['', branch_id, table_use_id]);
-
+          //'SELECT a.*, b.name FROM $tableBranchLinkDining AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ?',
+          'SELECT a.*, b.cardColor FROM $tableOrderCache AS a JOIN $tableTableUse AS b ON a.table_use_id = b.table_use_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ? AND a.table_use_id = ?',
+          ['', '', branch_id, table_use_id]);
       return result.map((json) => OrderCache.fromJson(json)).toList();
     }catch (e){
       print(e);

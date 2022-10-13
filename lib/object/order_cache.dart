@@ -52,6 +52,7 @@ class OrderCache{
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  String? cardColor;
 
   OrderCache(
       {this.order_cache_sqlite_id,
@@ -68,7 +69,8 @@ class OrderCache{
         this.total_amount,
         this.created_at,
         this.updated_at,
-        this.soft_delete});
+        this.soft_delete,
+        this.cardColor});
 
   OrderCache copy({
     int? order_cache_sqlite_id,
@@ -120,6 +122,7 @@ class OrderCache{
     created_at: json[OrderCacheFields.created_at] as String?,
     updated_at: json[OrderCacheFields.updated_at] as String?,
     soft_delete: json[OrderCacheFields.soft_delete] as String?,
+    cardColor: json['cardColor'] as String?
   );
 
   Map<String, Object?> toJson() => {
