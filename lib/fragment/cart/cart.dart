@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -477,11 +476,13 @@ class _CartPageState extends State<CartPage> {
                                       cart.cartNotifierItem.isNotEmpty) {
                                     if (cart.cartNotifierItem[0].status == 1) {
                                       print('add new item');
-                                      await callAddOrderCache(cart);
+                                      //await colorChecking();
+                                      // await callAddOrderCache(cart);
                                       cart.removeAllCartItem();
                                       cart.removeAllTable();
                                     } else {
                                       print('add order cache');
+                                      //await colorChecking();
                                       await callCreateNewOrder(cart);
                                       cart.removeAllCartItem();
                                       cart.removeAllTable();
@@ -1002,8 +1003,6 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-
-
 /*
   taylor part
 */
@@ -1266,24 +1265,66 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  colorToHex(Color color){
+  colorToHex(Color color) {
     String hex = '#' + color.value.toRadixString(16).substring(2);
     return hex;
   }
 
+  hexToInteger(String hexCode) {
+    int temp = int.parse(hexCode, radix: 16);
+    return temp;
+  }
+
+  randomColor(){
+    return Color(Random().nextInt(0xffffffff));
+  }
+
   colorChecking() async {
-    String? hexCode ;
+    String? hexCode;
     bool colorFound = false;
-    int temp = 0;
+    bool found = false;
+    int tempColor = 0;
+    int matchColor = 0;
+    int diff = 0;
     List<TableUse> data = await PosDatabase.instance.readAllTableUseId();
-    while (colorFound == false) {
-      hexCode = colorToHex(Color(Random().nextInt(0xffffffff)));
-      for (int i = 0; i < data.length; i++) {
-        if(hexCode == data[i].cardColor){
-          return;
+    int loop = 0;
+
+    while (colorFound == false && loop < 10) {
+      /* change color */
+      hexCode = colorToHex(randomColor());
+      if(data.length > 0){
+        for (int i = 0; i < data.length; i++) {
+          if (hexCode == data[i].cardColor) {
+            found = false;
+            break;
+          }else {
+            tempColor = hexToInteger(hexCode!.replaceAll('#', ''));
+            matchColor = hexToInteger(data[i].cardColor!.replaceAll('#', ''));
+            diff = tempColor - matchColor;
+            if (diff.abs() < 150000) {
+              print('color too close or not yet loop finish');
+              print('diff: ${diff.abs()}');
+              i--;
+              found = false;
+              break;
+
+            } else {
+              print('color is ok');
+              print('diff: ${diff}');
+              i++;
+              if(i == data.length){
+                found = true;
+                break;
+              }
+            }
+          }
         }
+      } else {
+        found = true;
+        break;
       }
-      colorFound = true;
+      loop++;
+      if (found == true) colorFound = true;
     }
     return hexCode;
   }
@@ -1292,17 +1333,15 @@ class _CartPageState extends State<CartPage> {
     print('create table use id called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
-    int i = 0;
     String? hexCode;
-    Color color;
     tableUseId = '';
     try {
       hexCode = await colorChecking();
-      if(hexCode != null){
+      if (hexCode != null) {
         //create table use data
         TableUse tableUseData = await PosDatabase.instance.insertSqliteTableUse(
             TableUse(
-                table_use_id: 4,
+                table_use_id: 9,
                 cardColor: hexCode.toString(),
                 created_at: dateTime,
                 updated_at: '',
@@ -1325,7 +1364,7 @@ class _CartPageState extends State<CartPage> {
         //create table use detail
         TableUseDetail tableUseDetailData = await PosDatabase.instance
             .insertSqliteTableUseDetail(TableUseDetail(
-                table_use_detail_id: 4,
+                table_use_detail_id: 9,
                 table_use_id: tableUseId,
                 table_id: cart.selectedTable[i].table_id.toString(),
                 original_table_id: cart.selectedTable[i].table_id.toString(),
@@ -1359,7 +1398,7 @@ class _CartPageState extends State<CartPage> {
       //create order cache
       OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
           OrderCache(
-              order_cache_id: 4,
+              order_cache_id: 9,
               company_id: '6',
               branch_id: '5',
               order_detail_id: '',
