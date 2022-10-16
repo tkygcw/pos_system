@@ -334,6 +334,7 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableTableUse(
           ${TableUseFields.table_use_sqlite_id} $idType,
           ${TableUseFields.table_use_id} $integerType,
+          ${TableUseFields.branch_id} $integerType,
           ${TableUseFields.cardColor} $textType,
           ${TableUseFields.created_at} $textType,
           ${TableUseFields.updated_at} $textType,

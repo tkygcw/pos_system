@@ -39,6 +39,7 @@ import '../notifier/theme_color.dart';
 import '../object/branch_link_user.dart';
 import '../object/customer.dart';
 import '../object/dining_option.dart';
+import '../object/table_use.dart';
 import '../object/tax.dart';
 
 class LoadingPage extends StatefulWidget {
@@ -84,7 +85,7 @@ class _LoadingPageState extends State<LoadingPage> {
     getAllOrderDetail();
     getAllOrderModifierDetail();
     getSale();
-
+    // getAllTableUse();
     // Go to Page2 after 5s.
     Timer(Duration(seconds: 4), () {
       Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
@@ -121,6 +122,23 @@ class _LoadingPageState extends State<LoadingPage> {
         //     builder: (context) => PosPinPage(),
         //   ));
         // }
+      }
+    }
+  }
+
+  /*
+  sava table use to database
+*/
+  getAllTableUse() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    Map data = await Domain().getAllTableUse(branch_id);
+    print(data);
+    if (data['status'] == '1') {
+      List responseJson = data['table_use'];
+      for (var i = 0; i < responseJson.length; i++) {
+        TableUse user = await PosDatabase.instance
+            .insertSqliteTableUse(TableUse.fromJson(responseJson[i]));
       }
     }
   }

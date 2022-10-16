@@ -320,14 +320,16 @@ class _CartDialogState extends State<CartDialog> {
                       ),
                     ),
                     tableList[index].status == 1
-                        ? Container(
-                            alignment: Alignment.topCenter,
-                            child: Text(
-                              "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
-                              style: TextStyle(fontSize: 18),
+                        ? Expanded(
+                          child: Container(
+                              alignment: Alignment.topCenter,
+                              child: Text(
+                                "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
+                                style: TextStyle(fontSize: 18),
+                              ),
                             ),
-                          )
-                        : Container(child: Text(''))
+                        )
+                        : Expanded(child: Container(child: Text('')))
                   ],
                 ),
               ),

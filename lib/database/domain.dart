@@ -9,8 +9,7 @@ class Domain {
   static Uri device = Uri.parse(domain + 'mobile-api/device/index.php');
   static Uri user = Uri.parse(domain + 'mobile-api/user/index.php');
   static Uri table = Uri.parse(domain + 'mobile-api/table/index.php');
-  static Uri dining_option =
-      Uri.parse(domain + 'mobile-api/dining_option/index.php');
+  static Uri dining_option = Uri.parse(domain + 'mobile-api/dining_option/index.php');
   static Uri tax = Uri.parse(domain + 'mobile-api/tax/index.php');
   static Uri categories = Uri.parse(domain + 'mobile-api/categories/index.php');
   static Uri promotion = Uri.parse(domain + 'mobile-api/promotion/index.php');
@@ -23,12 +22,7 @@ class Domain {
   static Uri variant = Uri.parse(domain + 'mobile-api/variant/index.php');
   static Uri order = Uri.parse(domain + 'mobile-api/order/index.php');
   static Uri sale = Uri.parse(domain + 'mobile-api/sale/index.php');
-  // static Uri task = Uri.parse(domain + 'mobile_api/task/index.php');
-  // static Uri notification =
-  //     Uri.parse(domain + 'mobile_api/notification/index.php');
-  //
-  // static Uri proofImgPath = Uri.parse(domain + 'mobile_api/task/image/');
-
+  static Uri table_use = Uri.parse(domain + 'mobile-api/table_use/index.php');
   /*
   * login
   * */
@@ -99,6 +93,22 @@ class Domain {
         'getAllUser': '1',
         'company_id': company_id,
       });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get all table_use
+  * */
+  getAllTableUse(branch_id) async {
+    try {
+      var response = await http.post(Domain.table_use, body: {
+        'getAllTableUse': '1',
+        'branch_id': branch_id,
+      });
+      print(jsonDecode(response.body));
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
