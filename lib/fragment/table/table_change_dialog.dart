@@ -152,6 +152,9 @@ leow part
     }
   }
 
+  /**
+   * concurrent here
+   */
   updatePosTableStatus(int tableId, int status, String dateTime) async {
     PosTable posTableData = PosTable(table_id: tableId, status: status, updated_at: dateTime);
     int data2 = await PosDatabase.instance.updatePosTableStatus(posTableData);

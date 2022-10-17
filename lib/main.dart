@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'notifier/cart_notifier.dart';
 import 'notifier/connectivity_change_notifier.dart';
+import 'notifier/printer_notifier.dart';
 import 'notifier/theme_color.dart';
 import 'page/loading.dart';
 
@@ -55,7 +56,11 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
             create: (_) => CartModel(),
-        )
+        ),
+        ChangeNotifierProvider(
+          create: (_) => PrinterModel(),
+        ),
+
       ],
       child: Consumer<AppLanguage>(builder: (context, model, child) {
         return MaterialApp(

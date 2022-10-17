@@ -353,6 +353,23 @@ class PosDatabase {
           ${TableUseDetailFields.updated_at} $textType,
           ${TableUseDetailFields.soft_delete} $textType)''');
 
+/*
+    create printer table
+*/
+    await db.execute('''CREATE TABLE $tablePrinter(
+          ${PrinterFields.printer_sqlite_id} $idType,
+          ${PrinterFields.printer_id} $integerType,
+          ${PrinterFields.branch_id} $textType,
+          ${PrinterFields.company_id} $textType,
+          ${PrinterFields.value} $textType,
+          ${PrinterFields.type} $integerType,
+          ${PrinterFields.printerLabel} $textType,
+          ${PrinterFields.printer_link_category_id} $textType,
+          ${PrinterFields.created_at} $textType,
+          ${PrinterFields.updated_at} $textType,
+          ${PrinterFields.soft_delete} $textType)''');
+
+
   }
 
 /*
@@ -700,6 +717,16 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableAppColors!, data.toJson());
     return data.copy(app_color_id: id);
+  }
+
+/*
+  add printer into local db
+*/
+  Future<Printer> insertSqlitePrinter(Printer data) async {
+    final db = await instance.database;
+    final id = await db.insert(tablePrinter!, data.toJson());
+    return data.copy(printer_sqlite_id: id);
+
   }
 
 /*
@@ -1268,25 +1295,13 @@ class PosDatabase {
   }
 
 /*
-  read all table use id
+  read branch all table use id
 */
-  Future<List<TableUse>> readAllTableUseId() async {
+  Future<List<TableUse>> readAllTableUseId(int branch_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableTableUse WHERE soft_delete = ? ',
-        ['']);
-
-    return result.map((json) => TableUse.fromJson(json)).toList();
-  }
-
-/*
-  read specific table use id
-*/
-  Future<List<TableUse>> readSpecificTableUseId(String table_use_id) async {
-    final db = await instance.database;
-    final result = await db.rawQuery(
-        'SELECT * FROM $tableTableUse WHERE soft_delete = ? AND table_use_id = ?',
-        ['', table_use_id]);
+        'SELECT * FROM $tableTableUse WHERE soft_delete = ? AND branch_id = ? ',
+        ['', branch_id]);
 
     return result.map((json) => TableUse.fromJson(json)).toList();
   }
@@ -1441,6 +1456,22 @@ class PosDatabase {
   }
 
 /*
+  read branch All printer
+*/
+  Future<List<Printer>> readAllBranchPrinter(int branch_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePrinter WHERE soft_delete = ? AND branch_id = ?',
+        ['', branch_id]);
+    return result.map((json) => Printer.fromJson(json)).toList();
+  }
+
+/*
+  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+
+/*
   update category
 */
   Future<int> updateCategory(Categories data) async {
@@ -1493,27 +1524,6 @@ class PosDatabase {
         ]);
   }
 
-  /*
-  soft delete branch link product
-*/
-  Future<int> updateBranchLinkProduct(BranchLinkProduct data) async {
-    final db = await instance.database;
-    return await db.rawUpdate(
-        'UPDATE $tableBranchLinkProduct SET updated_at = ?,daily_limit = ?, daily_limit_amount = ?, stock_type = ?, stock_quantity = ?, price = ? WHERE branch_id = ? AND product_id = ?',
-        [data.updated_at,data.daily_limit,data.daily_limit_amount, data.stock_type, data.stock_quantity, data.price, data.branch_id, data.product_id]);
-  }
-
-  /*
-  soft delete branch link product
-*/
-  Future<int> updateBranchLinkProductForVariant(BranchLinkProduct data) async {
-    final db = await instance.database;
-    return await db.rawUpdate(
-        'UPDATE $tableBranchLinkProduct SET updated_at = ?,daily_limit = ?, daily_limit_amount = ?, stock_type = ?, stock_quantity = ?, price = ? WHERE branch_id = ? AND product_id = ? AND product_variant_id = ?',
-        [data.updated_at,data.daily_limit,data.daily_limit_amount, data.stock_type, data.stock_quantity, data.price, data.branch_id, data.product_id, data.product_variant_id]);
-  }
-
-
 /*
   update Pos Table
 */
@@ -1530,8 +1540,8 @@ class PosDatabase {
   Future<int> updatePosTableStatus(PosTable data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-      'UPDATE $tablePosTable SET status = ?, updated_at = ? WHERE table_id = ?',
-      [data.status, data.updated_at, data.table_id]);
+        'UPDATE $tablePosTable SET status = ?, updated_at = ? WHERE table_id = ?',
+        [data.status, data.updated_at, data.table_id]);
   }
 
 /*
@@ -1550,13 +1560,39 @@ class PosDatabase {
   Future<int> updateOrderCacheTableUseId(String table_use_id, OrderCache data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-      'UPDATE $tableOrderCache SET table_use_id = ?, updated_at = ? WHERE table_use_id = ?',
-      [data.table_use_id, data.updated_at, table_use_id]);
+        'UPDATE $tableOrderCache SET table_use_id = ?, updated_at = ? WHERE table_use_id = ?',
+        [data.table_use_id, data.updated_at, table_use_id]);
   }
 
 
 /*
-  delete category
+  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+
+  /*
+  soft delete branch link product
+*/
+  Future<int> updateBranchLinkProduct(BranchLinkProduct data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableBranchLinkProduct SET updated_at = ?,daily_limit = ?, daily_limit_amount = ?, stock_type = ?, stock_quantity = ?, price = ? WHERE branch_id = ? AND product_id = ?',
+        [data.updated_at,data.daily_limit,data.daily_limit_amount, data.stock_type, data.stock_quantity, data.price, data.branch_id, data.product_id]);
+  }
+
+/*
+  soft delete branch link product
+*/
+  Future<int> updateBranchLinkProductForVariant(BranchLinkProduct data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableBranchLinkProduct SET updated_at = ?,daily_limit = ?, daily_limit_amount = ?, stock_type = ?, stock_quantity = ?, price = ? WHERE branch_id = ? AND product_id = ? AND product_variant_id = ?',
+        [data.updated_at,data.daily_limit,data.daily_limit_amount, data.stock_type, data.stock_quantity, data.price, data.branch_id, data.product_id, data.product_variant_id]);
+  }
+
+
+/*
+  soft delete category
 */
   Future<int> deleteCategory(Categories data) async {
     final db = await instance.database;
@@ -1566,7 +1602,7 @@ class PosDatabase {
   }
 
   /*
-  delete product
+  soft delete product
 */
   Future<int> deleteProduct(Product data) async {
     final db = await instance.database;
@@ -1758,6 +1794,19 @@ class PosDatabase {
         [data.soft_delete, data.table_use_id]);
   }
 
+/*
+  Soft-delete printer
+*/
+  Future<int> deletePrinter(Printer data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tablePrinter SET soft_delete = ? WHERE printer_id = ?',
+        [data.soft_delete, data.printer_id]);
+  }
+
+/*
+  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
 
 /*
   Delete All Branch

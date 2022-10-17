@@ -34,7 +34,7 @@ class Printer {
   String? branch_id;
   String? company_id;
   String? value;
-  String? type;
+  int? type;
   String? printerLabel;
   String? printer_link_category_id;
   String? created_at;
@@ -60,7 +60,7 @@ class Printer {
     String? branch_id,
     String? company_id,
     String? value,
-    String? type,
+    int? type,
     String? printerLabel,
     String? printer_link_category_id,
     String? created_at,
@@ -86,7 +86,7 @@ class Printer {
     branch_id: json[PrinterFields.branch_id] as String?,
     company_id: json[PrinterFields.company_id] as String?,
     value: json[PrinterFields.value] as String?,
-    type: json[PrinterFields.type] as String?,
+    type: json[PrinterFields.type] as int?,
     printerLabel: json[PrinterFields.printerLabel] as String?,
     printer_link_category_id: json[PrinterFields.printer_link_category_id] as String?,
     created_at: json[PrinterFields.created_at] as String?,

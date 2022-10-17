@@ -1227,9 +1227,6 @@ class _CartPageState extends State<CartPage> {
 /*
  leow part
 */
-  /**
-   * concurrent here
-   */
   callCreateNewOrder(CartModel cart) async {
     await createTableUseID();
     await createTableUseDetail(cart);
@@ -1244,6 +1241,9 @@ class _CartPageState extends State<CartPage> {
     await createOrderDetail(cart);
   }
 
+  /**
+   * concurrent here
+   */
   updatePosTable(CartModel cart) async {
     print('update table');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -1286,10 +1286,11 @@ class _CartPageState extends State<CartPage> {
     int tempColor = 0;
     int matchColor = 0;
     int diff = 0;
-    List<TableUse> data = await PosDatabase.instance.readAllTableUseId();
-    int loop = 0;
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    List<TableUse> data = await PosDatabase.instance.readAllTableUseId(branch_id!);
 
-    while (colorFound == false && loop < 10) {
+    while (colorFound == false) {
       /* change color */
       hexCode = colorToHex(randomColor());
       if(data.length > 0){
@@ -1323,16 +1324,21 @@ class _CartPageState extends State<CartPage> {
         found = true;
         break;
       }
-      loop++;
+
       if (found == true) colorFound = true;
     }
     return hexCode;
   }
 
+  /**
+   * concurrent here
+   */
   createTableUseID() async {
     print('create table use id called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
     String? hexCode;
     tableUseId = '';
     try {
@@ -1342,6 +1348,7 @@ class _CartPageState extends State<CartPage> {
         TableUse tableUseData = await PosDatabase.instance.insertSqliteTableUse(
             TableUse(
                 table_use_id: 9,
+                branch_id: branch_id,
                 cardColor: hexCode.toString(),
                 created_at: dateTime,
                 updated_at: '',
@@ -1356,6 +1363,9 @@ class _CartPageState extends State<CartPage> {
     return tableUseId;
   }
 
+  /**
+   * concurrent here
+   */
   createTableUseDetail(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -1379,6 +1389,9 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
+  /**
+   * concurrent here
+   */
   createOrderCache(CartModel cart) async {
     print('create order cache local called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -1421,6 +1434,9 @@ class _CartPageState extends State<CartPage> {
     return orderCacheId;
   }
 
+  /**
+   * concurrent here
+   */
   createOrderDetail(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());

@@ -8,6 +8,7 @@
   "submit": "Submit",
   "delete": "Delete",
   "table_no_required": "Table number is required",
+  "printer_label_required": "Printer Label is required",
   "seat_required": "Seat is required",
   "would you like to remove?": "Would you like to remove?",
   "logout-Desc": "All this app data will be deleted permanently. This includes all files, setting, database etc.",
@@ -22,5 +23,6 @@
   "table_is_used": "Table is in used",
   "no_table": "No table selected!",
   "merge_error": "Cannot merge same table!",
-  "merge_error_2": "Cannot join with table not in use or table in use"
+  "merge_error_2": "Cannot join with table not in use or table in use",
+  "remove_printer": "Confirm remove printer?"
 }
