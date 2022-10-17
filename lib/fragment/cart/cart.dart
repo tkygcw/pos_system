@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -1242,7 +1243,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   /**
-   * concurrent here
+   * concurrent here  (done)
    */
   updatePosTable(CartModel cart) async {
     print('update table');
@@ -1255,12 +1256,16 @@ class _CartPageState extends State<CartPage> {
       List<PosTable> result = await PosDatabase.instance
           .checkPosTableStatus(branch_id!, cart.selectedTable[i].table_id!);
       if (result[0].status == 0) {
-        PosTable posTableData = PosTable(
-            table_id: cart.selectedTable[i].table_id,
-            status: 1,
-            updated_at: dateTime);
-        int data =
-            await PosDatabase.instance.updatePosTableStatus(posTableData);
+        Map responseEditTableStatus = await Domain()
+            .editTableStatus('1', cart.selectedTable[i].table_id.toString());
+        if (responseEditTableStatus['status'] == '1') {
+          PosTable posTableData = PosTable(
+              table_id: cart.selectedTable[i].table_id,
+              status: 1,
+              updated_at: dateTime);
+          int data =
+              await PosDatabase.instance.updatePosTableStatus(posTableData);
+        }
       }
     }
   }
@@ -1275,7 +1280,7 @@ class _CartPageState extends State<CartPage> {
     return temp;
   }
 
-  randomColor(){
+  randomColor() {
     return Color(Random().nextInt(0xffffffff));
   }
 
@@ -1288,17 +1293,18 @@ class _CartPageState extends State<CartPage> {
     int diff = 0;
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    List<TableUse> data = await PosDatabase.instance.readAllTableUseId(branch_id!);
+    List<TableUse> data =
+        await PosDatabase.instance.readAllTableUseId(branch_id!);
 
     while (colorFound == false) {
       /* change color */
       hexCode = colorToHex(randomColor());
-      if(data.length > 0){
+      if (data.length > 0) {
         for (int i = 0; i < data.length; i++) {
           if (hexCode == data[i].cardColor) {
             found = false;
             break;
-          }else {
+          } else {
             tempColor = hexToInteger(hexCode!.replaceAll('#', ''));
             matchColor = hexToInteger(data[i].cardColor!.replaceAll('#', ''));
             diff = tempColor - matchColor;
@@ -1308,12 +1314,11 @@ class _CartPageState extends State<CartPage> {
               i--;
               found = false;
               break;
-
             } else {
               print('color is ok');
               print('diff: ${diff}');
               i++;
-              if(i == data.length){
+              if (i == data.length) {
                 found = true;
                 break;
               }
@@ -1331,7 +1336,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   /**
-   * concurrent here
+   * concurrent here (done)
    */
   createTableUseID() async {
     print('create table use id called');
@@ -1344,16 +1349,20 @@ class _CartPageState extends State<CartPage> {
     try {
       hexCode = await colorChecking();
       if (hexCode != null) {
-        //create table use data
-        TableUse tableUseData = await PosDatabase.instance.insertSqliteTableUse(
-            TableUse(
-                table_use_id: 9,
-                branch_id: branch_id,
-                cardColor: hexCode.toString(),
-                created_at: dateTime,
-                updated_at: '',
-                soft_delete: ''));
-        tableUseId = tableUseData.table_use_id.toString();
+        Map responseInsertTableUse = new Domain()
+            .insertTableUse(branch_id.toString(), hexCode.toString());
+        if (responseInsertTableUse['status'] == '1') {
+          //create table use data
+          TableUse tableUseData = await PosDatabase.instance
+              .insertSqliteTableUse(TableUse(
+                  table_use_id: responseInsertTableUse['table_use'],
+                  branch_id: branch_id,
+                  cardColor: hexCode.toString(),
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
+          tableUseId = tableUseData.table_use_id.toString();
+        }
       }
     } catch (e) {
       Fluttertoast.showToast(
@@ -1364,23 +1373,30 @@ class _CartPageState extends State<CartPage> {
   }
 
   /**
-   * concurrent here
+   * concurrent here (done)
    */
   createTableUseDetail(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     try {
       for (int i = 0; i < cart.selectedTable.length; i++) {
+        Map responseInsertTableUseDetail = new Domain().insertTableUseDetail(
+            tableUseId.toString(),
+            cart.selectedTable[i].table_id.toString(),
+            cart.selectedTable[i].table_id.toString());
         //create table use detail
-        TableUseDetail tableUseDetailData = await PosDatabase.instance
-            .insertSqliteTableUseDetail(TableUseDetail(
-                table_use_detail_id: 9,
-                table_use_id: tableUseId,
-                table_id: cart.selectedTable[i].table_id.toString(),
-                original_table_id: cart.selectedTable[i].table_id.toString(),
-                created_at: dateTime,
-                updated_at: '',
-                soft_delete: ''));
+        if (responseInsertTableUseDetail['status'] == '1') {
+          TableUseDetail tableUseDetailData = await PosDatabase.instance
+              .insertSqliteTableUseDetail(TableUseDetail(
+                  table_use_detail_id:
+                      responseInsertTableUseDetail['table_use_detail'],
+                  table_use_id: tableUseId,
+                  table_id: cart.selectedTable[i].table_id.toString(),
+                  original_table_id: cart.selectedTable[i].table_id.toString(),
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
+        }
       }
     } catch (e) {
       Fluttertoast.showToast(
@@ -1390,12 +1406,16 @@ class _CartPageState extends State<CartPage> {
   }
 
   /**
-   * concurrent here
+   * concurrent here (done)
    */
   createOrderCache(CartModel cart) async {
     print('create order cache local called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
     String _tableUseId = '';
     try {
       //check selected table is in use or not
@@ -1408,24 +1428,34 @@ class _CartPageState extends State<CartPage> {
           _tableUseId = this.tableUseId;
         }
       }
+      Map responseInsertOrderCache = await Domain().insertOrderCache(
+          userObject['company_id'].toString(),
+          branch_id.toString(),
+          _tableUseId.toString(),
+          '',
+          diningOptionID.toString(),
+          userObject['name'].toString(),
+          totalAmount.toStringAsFixed(2));
       //create order cache
-      OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
-          OrderCache(
-              order_cache_id: 9,
-              company_id: '6',
-              branch_id: '5',
-              order_detail_id: '',
-              table_use_id: _tableUseId,
-              table_id: '',
-              dining_id: '1',
-              order_id: '',
-              order_by: '',
-              customer_id: '0',
-              total_amount: totalAmount.toStringAsFixed(2),
-              created_at: dateTime,
-              updated_at: '',
-              soft_delete: ''));
-      orderCacheId = data.order_cache_id.toString();
+      if (responseInsertOrderCache['status'] == '1') {
+        OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
+            OrderCache(
+                order_cache_id: responseInsertOrderCache['order'],
+                company_id: userObject['company_id'].toString(),
+                branch_id: branch_id.toString(),
+                order_detail_id: '',
+                table_use_id: _tableUseId,
+                table_id: '',
+                dining_id: diningOptionID.toString(),
+                order_id: '',
+                order_by: userObject['name'].toString(),
+                customer_id: '0',
+                total_amount: totalAmount.toStringAsFixed(2),
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+        orderCacheId = data.order_cache_id.toString();
+      }
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
@@ -1435,48 +1465,66 @@ class _CartPageState extends State<CartPage> {
   }
 
   /**
-   * concurrent here
+   * concurrent here (done)
    */
   createOrderDetail(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
-
     //loop cart item & create order detail
     for (int j = 0; j < cart.cartNotifierItem.length; j++) {
       if (cart.cartNotifierItem[j].status == 0) {
-        OrderDetail detailData = await PosDatabase.instance
-            .insertSqliteOrderDetail(OrderDetail(
-                order_detail_id: 0,
-                order_cache_id: orderCacheId,
-                branch_link_product_id:
-                    cart.cartNotifierItem[j].branchProduct_id,
-                productName: cart.cartNotifierItem[j].name,
-                has_variant:
-                    cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
-                product_variant_name: cart.cartNotifierItem[j].name,
-                price: cart.cartNotifierItem[j].price,
-                quantity: cart.cartNotifierItem[j].quantity.toString(),
-                remark: cart.cartNotifierItem[j].remark,
-                account: '',
-                created_at: dateTime,
-                updated_at: '',
-                soft_delete: ''));
+        Map responseInsertOrderDetail = await Domain().insertOrderDetail(
+            orderCacheId.toString(),
+            cart.cartNotifierItem[j].branchProduct_id.toString(),
+            cart.cartNotifierItem[j].name.toString(),
+            cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
+            cart.cartNotifierItem[j].name.toString(),
+            cart.cartNotifierItem[j].price.toString(),
+            cart.cartNotifierItem[j].quantity.toString(),
+            cart.cartNotifierItem[j].remark.toString(),
+            '');
+        if (responseInsertOrderDetail['status'] == '1') {
+          OrderDetail detailData = await PosDatabase.instance
+              .insertSqliteOrderDetail(OrderDetail(
+                  order_detail_id: responseInsertOrderDetail['order'],
+                  order_cache_id: orderCacheId,
+                  branch_link_product_id:
+                      cart.cartNotifierItem[j].branchProduct_id,
+                  productName: cart.cartNotifierItem[j].name,
+                  has_variant:
+                      cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
+                  product_variant_name: cart.cartNotifierItem[j].name,
+                  price: cart.cartNotifierItem[j].price,
+                  quantity: cart.cartNotifierItem[j].quantity.toString(),
+                  remark: cart.cartNotifierItem[j].remark,
+                  account: '',
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
 
-        for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
-          ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
-          for (int m = 0; m < group.modifierChild.length; m++) {
-            if (group.modifierChild[m].isChecked!) {
-              OrderModifierDetail modifierData = await PosDatabase.instance
-                  .insertSqliteOrderModifierDetail(OrderModifierDetail(
-                      order_modifier_detail_id: 0,
+          for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
+            ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
+            for (int m = 0; m < group.modifierChild.length; m++) {
+              if (group.modifierChild[m].isChecked!) {
+                Map responseInsertOrderModifierDetail = await Domain()
+                    .insertOrderModifierDetail(
+                        responseInsertOrderDetail['order'].toString(),
+                        group.modifierChild[m].mod_item_id.toString(),
+                        group.mod_group_id.toString());
+                if(responseInsertOrderModifierDetail['status'] == '1'){
+                  OrderModifierDetail modifierData = await PosDatabase.instance
+                      .insertSqliteOrderModifierDetail(OrderModifierDetail(
+                      order_modifier_detail_id: responseInsertOrderModifierDetail['order'],
                       order_detail_id:
-                          await detailData.order_detail_id.toString(),
+                      await detailData.order_detail_id.toString(),
                       mod_item_id:
-                          group.modifierChild[m].mod_item_id.toString(),
+                      group.modifierChild[m].mod_item_id.toString(),
                       mod_group_id: group.mod_group_id.toString(),
                       created_at: dateTime,
                       updated_at: '',
                       soft_delete: ''));
+                }
+              }
             }
           }
         }

@@ -108,7 +108,53 @@ class Domain {
         'getAllTableUse': '1',
         'branch_id': branch_id,
       });
-      print(jsonDecode(response.body));
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+  /*
+  * get all table_use
+  * */
+  insertTableUse(branch_id,card_color) async {
+    try {
+      var response = await http.post(Domain.table_use, body: {
+        'insertTableUse': '1',
+        'branch_id': branch_id,
+        'card_color': card_color,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get all table_use detail
+  * */
+  getAllTableUseDetail(branch_id) async {
+    try {
+      var response = await http.post(Domain.table_use, body: {
+        'getAllTableUseDetail': '1',
+        'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get all table_use
+  * */
+  insertTableUseDetail(table_use_id,table_id,original_table_id) async {
+    try {
+      var response = await http.post(Domain.table_use, body: {
+        'insertTableUseDetail': '1',
+        'table_use_id': table_use_id,
+        'table_id': table_id,
+        'original_table_id': original_table_id,
+      });
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -961,12 +1007,13 @@ class Domain {
   /*
   * insert order cache
   * */
-  insertOrderCache(company_id, branch_id, table_id, dining_id, order_by, total_amount) async {
+  insertOrderCache(company_id, branch_id, table_use_id, table_id, dining_id, order_by, total_amount) async {
     try {
       var response = await http.post(Domain.order, body: {
         'insertOrderCache': '1',
         'company_id': company_id,
         'branch_id': branch_id,
+        'table_use_id': table_use_id,
         'table_id' : table_id,
         'dining_id' : dining_id,
         'order_by' : order_by,

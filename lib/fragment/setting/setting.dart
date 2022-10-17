@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/printer/test_print.dart';
-import 'package:pos_system/fragment/printer/test_scanner.dart';
+// import 'package:pos_system/fragment/printer/test_scanner.dart';
 import 'package:pos_system/fragment/setting/features_setting.dart';
 import 'package:pos_system/fragment/setting/logout_dialog.dart';
 import 'package:pos_system/fragment/setting/printer_setting.dart';
