@@ -15,6 +15,7 @@ import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
+import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/product_variant_detail.dart';
@@ -368,6 +369,18 @@ class PosDatabase {
           ${PrinterFields.created_at} $textType,
           ${PrinterFields.updated_at} $textType,
           ${PrinterFields.soft_delete} $textType)''');
+
+/*
+    create printer link category table
+*/
+    await db.execute('''CREATE TABLE $tablePrinterLinkCategory(
+          ${PrinterLinkCategoryFields.printer_link_category_sqlite_id} $idType,
+          ${PrinterLinkCategoryFields.printer_link_category_id} $integerType,
+          ${PrinterLinkCategoryFields.printer_id} $textType,
+          ${PrinterLinkCategoryFields.category_id} $textType,
+          ${PrinterLinkCategoryFields.created_at} $textType,
+          ${PrinterLinkCategoryFields.updated_at} $textType,
+          ${PrinterLinkCategoryFields.soft_delete} $textType)''');
 
 
   }
@@ -730,6 +743,16 @@ class PosDatabase {
   }
 
 /*
+  add printer link category into local db
+*/
+  Future<PrinterLinkCategory> insertSqlitePrinterLinkCategory(PrinterLinkCategory data) async {
+    final db = await instance.database;
+    final id = await db.insert(tablePrinterLinkCategory!, data.toJson());
+    return data.copy(printer_link_category_sqlite_id: id);
+
+  }
+
+/*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -1050,6 +1073,17 @@ class PosDatabase {
     final result = await db
         .rawQuery('SELECT * FROM $tableAppColors WHERE soft_delete = ? ', ['']);
     return result.map((json) => AppColors.fromJson(json)).toList();
+  }
+
+/*
+  read all category (-)
+*/
+  Future<List<Categories>> readAllCategory() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableCategories WHERE soft_delete = ? ',
+        ['']);
+    return result.map((json) => Categories.fromJson(json)).toList();
   }
 
 /*
@@ -1464,6 +1498,19 @@ class PosDatabase {
         'SELECT * FROM $tablePrinter WHERE soft_delete = ? AND branch_id = ?',
         ['', branch_id]);
     return result.map((json) => Printer.fromJson(json)).toList();
+  }
+
+
+
+/*
+  read printer link category
+*/
+  Future<List<PrinterLinkCategory>> readPrinterLinkCategory(int printer_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePrinterLinkCategory WHERE soft_delete = ? AND printer_id = ?',
+        ['', printer_id]);
+    return result.map((json) => PrinterLinkCategory.fromJson(json)).toList();
   }
 
 /*

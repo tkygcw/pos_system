@@ -1,13 +1,12 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import 'package:lan_scanner/lan_scanner.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:pos_system/notifier/printer_notifier.dart';
-import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 
 import '../../notifier/theme_color.dart';
@@ -15,8 +14,8 @@ import '../../translation/AppLocalizations.dart';
 
 class DeviceDialog extends StatefulWidget {
   final int type;
-
-  const DeviceDialog({Key? key, required this.type}) : super(key: key);
+  final Function(String value) callBack;
+  const DeviceDialog({Key? key, required this.type, required this.callBack}) : super(key: key);
 
   @override
   State<DeviceDialog> createState() => _DeviceDialogState();
@@ -25,8 +24,11 @@ class DeviceDialog extends StatefulWidget {
 class _DeviceDialogState extends State<DeviceDialog> {
   List<Map<String, dynamic>> devices = [];
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
+  String wifi = "";
   List<String> ips = [];
+  double percentage = 0.0;
   bool isLoad = false;
+  Text? info;
 
   @override
   initState() {
@@ -38,21 +40,30 @@ class _DeviceDialogState extends State<DeviceDialog> {
     }
   }
 
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
   scan_network() async {
     final scanner = LanScanner();
     ips = [];
 
     var wifiIP = await NetworkInfo().getWifiIP();
+    var wifiName = await NetworkInfo().getWifiName();
 
     var subnet = ipToCSubnet(wifiIP!);
 
     final stream = scanner.icmpScan(subnet, progressCallback: (progress) {
-      if (progress == 1.0) {
-        print('progress: $progress');
-        setState(() {
+      setState(() {
+        info = Text('Scanning device within $wifiName');
+        percentage = progress;
+        if (percentage == 1.0) {
+          print('${wifiName}');
           isLoad = true;
-        });
-      }
+        }
+      });
     });
 
     stream.listen((HostModel host) {
@@ -64,7 +75,6 @@ class _DeviceDialogState extends State<DeviceDialog> {
     List<Map<String, dynamic>> results = [];
     results = await FlutterUsbPrinter.getUSBDeviceList();
 
-    print(" length: ${results.length}");
     setState(() {
       devices = results;
       isLoad = true;
@@ -77,43 +87,65 @@ class _DeviceDialogState extends State<DeviceDialog> {
       return Consumer<PrinterModel>(
           builder: (context, PrinterModel printerModel, child) {
         return AlertDialog(
-                title: Text('Device list'),
-                content: isLoad ? SizedBox(
-                    height: MediaQuery.of(context).size.height / 3,
-                    width: MediaQuery.of(context).size.width / 3,
-                    child: widget.type == 0
-                        ? ListView(
-                            scrollDirection: Axis.vertical,
-                            children: _buildList(devices, printerModel),
-                          )
-                        : ListView.builder(
-                            itemCount: ips.length,
-                            itemBuilder: (context, index) {
-                              return Card(
-                                elevation: 5,
-                                child: Container(
-                                  margin: EdgeInsets.all(30),
-                                  padding: EdgeInsets.only(bottom: 0),
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      printerModel.addPrinter(ips[index]);
-                                      Navigator.of(context).pop();
-                                    } ,
-                                    child: Text('${ips[index]}'),
-                                  ),
+          insetPadding: EdgeInsets.all(0),
+          title: Text('Device list'),
+          content: isLoad
+              ? SizedBox(
+                  height: MediaQuery.of(context).size.height / 2.5,
+                  width: MediaQuery.of(context).size.width / 4,
+                  child: widget.type == 0
+                      ? ListView(
+                          scrollDirection: Axis.vertical,
+                          children: _buildList(devices, printerModel),
+                        )
+                      : ListView.builder(
+                          itemCount: ips.length,
+                          itemBuilder: (context, index) {
+                            return Card(
+                              elevation: 5,
+                              child: ListTile(
+                                onTap: () {
+
+                                  widget.callBack(jsonEncode(ips[index]));
+                                  // printerModel
+                                  //     .addPrinter(jsonEncode(ips[index]));
+                                  Navigator.of(context).pop();
+                                },
+                                leading: Icon(
+                                  Icons.print,
+                                  color: Colors.black45,
                                 ),
-                              );
-                            })) : CustomProgressBar(),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text(
-                        '${AppLocalizations.of(context)?.translate('close')}'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                                title: Text('${ips[index]}'),
+                              ),
+                            );
+                          }))
+              : CircularPercentIndicator(
+                  footer: Container(
+                    margin: EdgeInsets.only(top: 10),
+                    child: info
                   ),
-                ],
-              );
+                  circularStrokeCap: CircularStrokeCap.round,
+                  radius: 90.0,
+                  lineWidth: 10.0,
+                  percent: percentage,
+                  center: Text(
+                    "${(percentage * 100).toStringAsFixed(0)} %",
+                    style: TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  progressColor: color.backgroundColor),
+          actions: <Widget>[
+            TextButton(
+              child:
+                  Text('${AppLocalizations.of(context)?.translate('close')}'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
       });
     });
   }
@@ -123,10 +155,9 @@ class _DeviceDialogState extends State<DeviceDialog> {
     return devices
         .map((device) => new ListTile(
               onTap: () {
-                print(device);
                 printerModel.removeAllPrinter();
-                printerModel.addPrinter(
-                    device['manufacturer'] + " " + device['productName']);
+                //printerModel.addPrinter(jsonEncode(device));
+                widget.callBack(jsonEncode(device));
                 Navigator.of(context).pop();
               },
               leading: new Icon(Icons.usb),

@@ -35,6 +35,7 @@ class Categories {
   String? updated_at;
   String? soft_delete;
   int? item_sum;
+  bool isChecked = false;
 
   Categories(
       {this.category_sqlite_id,

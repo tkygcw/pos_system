@@ -72,6 +72,7 @@ dependencies:
   reorderable_grid_view: ^2.2.5
   lan_scanner: ^3.5.0
   network_info_plus: ^2.1.4+1
+  percent_indicator: ^4.2.2
 
 dependency_overrides:
 #  esc_pos_utils:

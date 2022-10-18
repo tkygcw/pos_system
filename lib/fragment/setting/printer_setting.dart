@@ -62,6 +62,9 @@ class _PrinterSettingState extends State<PrinterSetting> {
                             return removePrinter(printerList[index]);
                           }
                         },
+                        onTap: (){
+                            openPrinterDialog(printerList[index]);
+                        },
                       );
                     }
                 ),
@@ -73,7 +76,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
                   child: FloatingActionButton(
                     backgroundColor: color.backgroundColor,
                     onPressed: () {
-                      openAddPrinterDialog(Printer());
+                      openPrinterDialog(null);
                     },
                     tooltip: "Add Printer",
                     child: const Icon(Icons.add),
@@ -118,7 +121,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
   }
 
 
-  Future<Future<Object?>> openAddPrinterDialog(Printer printer) async {
+  Future<Future<Object?>> openPrinterDialog(Printer? printer) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -128,7 +131,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
             child: Opacity(
                 opacity: a1.value,
                 child: PrinterDialog(
-                  object: printer,
+                  printerObject: printer,
                   callBack: () => readAllPrinters(),
                 )
             ),
