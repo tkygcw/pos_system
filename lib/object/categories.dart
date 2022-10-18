@@ -8,6 +8,7 @@ class CategoriesFields {
     name,
     sequence,
     color,
+    sync_status,
     created_at,
     updated_at,
     soft_delete
@@ -19,6 +20,7 @@ class CategoriesFields {
   static String name = 'name';
   static String sequence = 'sequence';
   static String color = 'color';
+  static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -31,6 +33,7 @@ class Categories {
   String? name;
   String? sequence;
   String? color;
+  int? sync_status;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -44,24 +47,11 @@ class Categories {
       this.name,
       this.sequence,
       this.color,
+      this.sync_status,
       this.created_at,
       this.updated_at,
       this.soft_delete,
       this.item_sum});
-
-  // factory Categories.fromsJson(Map<String, dynamic> json) {
-  //   return Categories(
-  //     category_sqlite_id: json['category_sqlite_id'],
-  //     category_id: json['category_id'],
-  //     company_id: json['company_id'] as String?,
-  //     name: json['name'] as String?,
-  //     sequence: json['sequence'] as String?,
-  //     color: json['color'] as String?,
-  //     created_at: json['created_at'] as String?,
-  //     updated_at: json['updated_at'] as String?,
-  //     soft_delete: json['soft_delete'] as String?,
-  //   );
-  // }
 
   Categories copy({
     int? category_sqlite_id,
@@ -70,6 +60,7 @@ class Categories {
     String? name,
     String? sequence,
     String? color,
+    int? sync_status,
     String? created_at,
     String? updated_at,
     String? soft_delete,
@@ -82,6 +73,7 @@ class Categories {
           name: name ?? this.name,
           sequence: sequence ?? this.sequence,
           color: color ?? this.color,
+          sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete,
@@ -94,21 +86,12 @@ class Categories {
         name: json[CategoriesFields.name] as String?,
         sequence: json[CategoriesFields.sequence] as String?,
         color: json[CategoriesFields.color] as String?,
+        sync_status: json[CategoriesFields.sync_status] as int?,
         created_at: json[CategoriesFields.created_at] as String?,
         updated_at: json[CategoriesFields.updated_at] as String?,
         soft_delete: json[CategoriesFields.soft_delete] as String?,
         item_sum: json['item_sum'] as int?,
       );
-
-  // Categories(
-  // name: 'No Category',
-  // category_id: 0,
-  // company_id: '',
-  // sequence: '',
-  // color: '',
-  // created_at: '',
-  // updated_at: '',
-  // soft_delete: '')
 
   Map<String, Object?> toJson() => {
         CategoriesFields.category_sqlite_id: category_sqlite_id,
@@ -117,6 +100,7 @@ class Categories {
         CategoriesFields.name: name,
         CategoriesFields.sequence: sequence,
         CategoriesFields.color: color,
+        CategoriesFields.sync_status: sync_status,
         CategoriesFields.created_at: created_at,
         CategoriesFields.updated_at: updated_at,
         CategoriesFields.soft_delete: soft_delete,

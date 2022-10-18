@@ -77,7 +77,7 @@ class PosDatabase {
 */
     await db.execute(
         '''CREATE TABLE $tableCategories ( ${CategoriesFields.category_sqlite_id} $idType, ${CategoriesFields.category_id} $integerType, ${CategoriesFields.company_id} $textType, ${CategoriesFields.name} $textType, 
-           ${CategoriesFields.sequence} $textType, ${CategoriesFields.color} $textType, ${CategoriesFields.created_at} $textType, ${CategoriesFields.updated_at} $textType, 
+           ${CategoriesFields.sequence} $textType, ${CategoriesFields.color} $textType, ${CategoriesFields.sync_status} $integerType, ${CategoriesFields.created_at} $textType, ${CategoriesFields.updated_at} $textType, 
            ${CategoriesFields.soft_delete} $textType)''');
 /*
     create bill table
@@ -466,8 +466,8 @@ class PosDatabase {
 */
   Future<Categories> insertCategories(Categories data) async {
     final db = await instance.database;
-    final id = await db.insert(tableCategories!, data.toJson());
-    return data.copy(category_sqlite_id: id);
+    final id = db.rawInsert('INSERT INTO $tableCategories(category_id, company_id, name, color, sync_status, sequence, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)', [data.category_id, data.company_id, data.name, data.color,2, data.sequence, data.created_at,data.updated_at, data.soft_delete]);
+    return data.copy(category_sqlite_id: await id);
   }
 
 /*
@@ -1517,6 +1517,16 @@ class PosDatabase {
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
+  /*
+  update sync and categoryID category
+*/
+  Future<int> updateSyncCategory(Categories data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableCategories SET category_id = ?, sync_status = ?, updated_at = ? WHERE category_sqlite_id = ?',
+        [data.category_id, data.sync_status, data.updated_at, data.category_sqlite_id]);
+  }
+
 
 /*
   update category
@@ -1524,8 +1534,8 @@ class PosDatabase {
   Future<int> updateCategory(Categories data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableCategories SET name = ?, color = ?, updated_at = ? WHERE category_id = ?',
-        [data.name, data.color, data.updated_at, data.category_id]);
+        'UPDATE $tableCategories SET name = ?, color = ?, sync_status = ?, updated_at = ? WHERE category_sqlite_id = ?',
+        [data.name, data.color, data.sync_status, data.updated_at, data.category_sqlite_id]);
   }
 
   /*
@@ -1644,8 +1654,8 @@ class PosDatabase {
   Future<int> deleteCategory(Categories data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableCategories SET soft_delete = ? WHERE category_id  = ?',
-        [data.soft_delete, data.category_id]);
+        'UPDATE $tableCategories SET soft_delete = ?, sync_status = ? WHERE  category_sqlite_id = ?',
+        [data.soft_delete, data.sync_status,  data.category_sqlite_id]);
   }
 
   /*
