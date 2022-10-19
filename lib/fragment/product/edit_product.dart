@@ -188,7 +188,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
     return null;
   }
 
-  void _submit(BuildContext context) {
+  void _submit(BuildContext context)  {
     setState(() => _submitted = true);
     bool productVariantListIsEmpty = false;
     if (isAdd) {

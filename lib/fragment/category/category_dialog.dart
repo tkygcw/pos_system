@@ -33,7 +33,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    if (widget.category!.category_id == null) {
+    if (widget.category!.category_sqlite_id == null) {
       categoryColor = '#ff0000';
       isAdd = true;
     } else {
@@ -125,7 +125,9 @@ class _CategoryDialogState extends State<CategoryDialog> {
         sync_status: 1,
         category_sqlite_id: widget.category!.category_sqlite_id,
       ));
-
+/*
+      --------------------sync to cloud-----------------------------
+*/
       Map response = await Domain()
           .deleteCategory(widget.category!.category_id.toString());
       if (response['status'] == '1') {
@@ -136,6 +138,9 @@ class _CategoryDialogState extends State<CategoryDialog> {
           category_sqlite_id: widget.category!.category_sqlite_id,
         ));
       }
+/*
+      -------------------sync end--------------------------------------
+*/
       if (data == 1) {
         widget.callBack();
         Navigator.of(context).pop(true);
@@ -155,7 +160,8 @@ class _CategoryDialogState extends State<CategoryDialog> {
       Map userObject = json.decode(user!);
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-      Categories data = await PosDatabase.instance.insertCategories(Categories(
+      Categories data =
+          await PosDatabase.instance.insertSyncCategories(Categories(
         category_id: 0,
         company_id: userObject['company_id'],
         sequence: '',
@@ -269,12 +275,12 @@ class _CategoryDialogState extends State<CategoryDialog> {
                   allowShades: false,
                   selectedColor: isAdd
                       ? Colors.red
-                      : Color(changeHexToCode(widget.category!.color!)),
+                      : Color(changeHexToCode(categoryColor)),
                   circleSize: 190,
                   shrinkWrap: true,
                   onMainColorChange: (color) {
-                    var hex = '#${color!.value.toRadixString(16).substring(2)}';
-                    categoryColor = hex;
+                    categoryColor =
+                        '#${color!.value.toRadixString(16).substring(2)}';
                   },
                 )
               ],
@@ -292,7 +298,6 @@ class _CategoryDialogState extends State<CategoryDialog> {
             child: const Text('Submit'),
             onPressed: () {
               _submit();
-              // print(selectColor);
             },
           ),
         ],

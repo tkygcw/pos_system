@@ -471,6 +471,15 @@ class PosDatabase {
     return data.copy(category_sqlite_id: await id);
   }
 
+
+/*
+  add product categories to sqlite
+*/
+  Future<Categories> insertSyncCategories(Categories data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableCategories!, data.toJson());
+    return data.copy(category_sqlite_id: id);
+  }
 /*
   add promotion to sqlite
 */
