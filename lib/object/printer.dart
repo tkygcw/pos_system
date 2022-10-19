@@ -10,6 +10,7 @@ class PrinterFields {
     type,
     printerLabel,
     printer_link_category_id,
+    paper_size,
     created_at,
     updated_at,
     soft_delete
@@ -23,6 +24,7 @@ class PrinterFields {
   static String type = 'type';
   static String printerLabel = 'printerLabel';
   static String printer_link_category_id = 'printer_link_category_id';
+  static String paper_size = 'paper_size';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -37,6 +39,7 @@ class Printer {
   int? type;
   String? printerLabel;
   String? printer_link_category_id;
+  int? paper_size;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -50,6 +53,7 @@ class Printer {
       this.type,
       this.printerLabel,
       this.printer_link_category_id,
+      this.paper_size,
       this.created_at,
       this.updated_at,
       this.soft_delete});
@@ -63,6 +67,7 @@ class Printer {
     int? type,
     String? printerLabel,
     String? printer_link_category_id,
+    int? paper_size,
     String? created_at,
     String? updated_at,
     String? soft_delete
@@ -76,6 +81,7 @@ class Printer {
         type: type ?? this.type,
         printerLabel: printerLabel ?? this.printerLabel,
         printer_link_category_id: printer_link_category_id ?? this.printer_link_category_id,
+        paper_size: paper_size ?? this.paper_size,
         created_at: created_at ?? this.created_at,
         updated_at: updated_at ?? this.updated_at,
         soft_delete: soft_delete ?? this.soft_delete);
@@ -89,6 +95,7 @@ class Printer {
     type: json[PrinterFields.type] as int?,
     printerLabel: json[PrinterFields.printerLabel] as String?,
     printer_link_category_id: json[PrinterFields.printer_link_category_id] as String?,
+    paper_size: json[PrinterFields.paper_size] as int?,
     created_at: json[PrinterFields.created_at] as String?,
     updated_at: json[PrinterFields.updated_at] as String?,
     soft_delete: json[PrinterFields.soft_delete] as String?,
@@ -103,6 +110,7 @@ class Printer {
     PrinterFields.type: type,
     PrinterFields.printerLabel: printerLabel,
     PrinterFields.printer_link_category_id: printer_link_category_id,
+    PrinterFields.paper_size: paper_size,
     PrinterFields.created_at: created_at,
     PrinterFields.updated_at: updated_at,
     PrinterFields.soft_delete: soft_delete,

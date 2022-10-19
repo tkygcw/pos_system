@@ -366,6 +366,7 @@ class PosDatabase {
           ${PrinterFields.type} $integerType,
           ${PrinterFields.printerLabel} $textType,
           ${PrinterFields.printer_link_category_id} $textType,
+          ${PrinterFields.paper_size} $integerType,
           ${PrinterFields.created_at} $textType,
           ${PrinterFields.updated_at} $textType,
           ${PrinterFields.soft_delete} $textType)''');
@@ -1514,6 +1515,17 @@ class PosDatabase {
   }
 
 /*
+  read specific category (category id)
+*/
+  Future<List<Categories>> readSpecificCategoryById(String category_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableCategories WHERE soft_delete = ? AND category_id = ?',
+        ['', category_id]);
+    return result.map((json) => Categories.fromJson(json)).toList();
+  }
+
+/*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -1619,6 +1631,16 @@ class PosDatabase {
     return await db.rawUpdate(
         'UPDATE $tableOrderCache SET table_use_id = ?, updated_at = ? WHERE table_use_id = ?',
         [data.table_use_id, data.updated_at, table_use_id]);
+  }
+
+/*
+  update printer
+*/
+  Future<int> updatePrinter(Printer data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tablePrinter SET printerLabel = ?, paper_size = ?, type = ?, value = ?, updated_at = ? WHERE printer_id = ?',
+        [data.printerLabel, data.paper_size, data.type, data.value, data.updated_at, data.printer_id]);
   }
 
 
@@ -1860,6 +1882,17 @@ class PosDatabase {
         'UPDATE $tablePrinter SET soft_delete = ? WHERE printer_id = ?',
         [data.soft_delete, data.printer_id]);
   }
+
+/*
+  Soft-delete printer link category
+*/
+  Future<int> deletePrinterCategory(PrinterLinkCategory data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tablePrinterLinkCategory SET soft_delete = ? WHERE printer_id = ?',
+        [data.soft_delete, data.printer_id]);
+  }
+
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

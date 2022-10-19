@@ -4,6 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/setting/printer_dialog.dart';
 import 'package:pos_system/object/printer.dart';
+import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -43,28 +44,36 @@ class _PrinterSettingState extends State<PrinterSetting> {
                 child: ListView.builder(
                     itemCount: printerList.length,
                     itemBuilder: (BuildContext context,int index){
-                      return ListTile(
-                          leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.print, color: Colors.grey,)),
-                          title:Text("Printer "+(index+1).toString()),
-                        subtitle: Text("${printerList[index].printerLabel}"),
-                        onLongPress: () async {
-                          if (await confirm(
-                            context,
-                            title: Text(
-                                '${AppLocalizations.of(context)?.translate('remove_printer')}'),
-                            content: Text(
-                                '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
-                            textOK:
-                            Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                            textCancel:
-                            Text('${AppLocalizations.of(context)?.translate('no')}'),
-                          )) {
-                            return removePrinter(printerList[index]);
-                          }
-                        },
-                        onTap: (){
-                            openPrinterDialog(printerList[index]);
-                        },
+                      return Card(
+                        elevation: 5,
+                        child: ListTile(
+                            leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.print, color: Colors.grey,)),
+                            title:Text("${printerList[index].printerLabel}"),
+                          subtitle: printerList[index].type == 0 ? Text("Type: USB") : Text('Type: LAN'),
+                          trailing: Container(
+                            child: FittedBox(
+                              child: printerList[index].type == 0 ? Icon(Icons.usb) : Icon(Icons.wifi),
+                            ),
+                          ),
+                          onLongPress: () async {
+                            if (await confirm(
+                              context,
+                              title: Text(
+                                  '${AppLocalizations.of(context)?.translate('remove_printer')}'),
+                              content: Text(
+                                  '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                              textOK:
+                              Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                              textCancel:
+                              Text('${AppLocalizations.of(context)?.translate('no')}'),
+                            )) {
+                              return callClearAllPrinterRecord(printerList[index]);
+                            }
+                          },
+                          onTap: (){
+                              openPrinterDialog(printerList[index]);
+                          },
+                        ),
                       );
                     }
                 ),
@@ -103,6 +112,11 @@ class _PrinterSettingState extends State<PrinterSetting> {
 
   }
 
+  callClearAllPrinterRecord(Printer printer) async {
+    await removePrinter(printer);
+    await clearPrinterCategory(printer);
+  }
+
   removePrinter(Printer printer) async {
     try{
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -117,6 +131,22 @@ class _PrinterSettingState extends State<PrinterSetting> {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Something went wrong, Please try again $e");
+    }
+  }
+
+  clearPrinterCategory(Printer printer) async {
+    try{
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+
+      int data = await PosDatabase.instance.deletePrinterCategory(PrinterLinkCategory(
+        soft_delete: dateTime,
+        printer_id: printer.printer_id.toString()
+      ));
+    }catch(e){
+      Fluttertoast.showToast(
+          backgroundColor: Color(0xFFFF0000),
+          msg: "Clear printer category, Please try again $e");
     }
   }
 

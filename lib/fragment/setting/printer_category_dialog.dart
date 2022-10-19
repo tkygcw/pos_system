@@ -9,7 +9,12 @@ import '../../object/categories.dart';
 import '../../translation/AppLocalizations.dart';
 
 class PrinterCategoryDialog extends StatefulWidget {
-  const PrinterCategoryDialog({Key? key}) : super(key: key);
+  final Function(List<Categories> selectedList) callBack;
+  final List<Categories> selectedList;
+
+  const PrinterCategoryDialog(
+      {Key? key, required this.callBack, required this.selectedList})
+      : super(key: key);
 
   @override
   State<PrinterCategoryDialog> createState() => _PrinterCategoryDialogState();
@@ -17,7 +22,7 @@ class PrinterCategoryDialog extends StatefulWidget {
 
 class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
   List<Categories> categoryList = [];
-  bool isLoad  = false;
+  bool isLoad = false;
 
   @override
   void initState() {
@@ -29,52 +34,41 @@ class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return  Consumer<PrinterModel>(
-        builder: (context, PrinterModel printerModel, child) {
-          return AlertDialog(
-            title: Text('Select category '),
-            content: isLoad ?
-            Container(
-              height: MediaQuery.of(context).size.height / 3,
-              width: MediaQuery.of(context).size.width / 3,
-              child: Column(
-                children: [
-                  for (int i = 0; i < categoryList.length; i++)
-                  CheckboxListTile(
-                    title: Text('${categoryList[i].name}'),
-                      value: categoryList[i].isChecked,
-                      onChanged: (isChecked) {
-                        setState(() {
-                          categoryList[i].isChecked = isChecked!;
-                        });
-                      }
-                  )
-                ],
-              )
-            ) : CustomProgressBar(),
-            actions: <Widget>[
-              TextButton(
-                child: Text(
-                    '${AppLocalizations.of(context)?.translate('add')}'),
-                onPressed: () {
-                  for(int i = 0; i < categoryList.length; i++){
-                    if(categoryList[i].isChecked){
-                      printerModel.addCategories(categoryList[i]);
-                    }
-                  }
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: Text(
-                    '${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        }
+      return AlertDialog(
+        title: Text('Select category '),
+        content: isLoad
+            ? Container(
+                height: MediaQuery.of(context).size.height / 3,
+                width: MediaQuery.of(context).size.width / 3,
+                child: Column(
+                  children: [
+                    for (int i = 0; i < categoryList.length; i++)
+                      CheckboxListTile(
+                          title: Text('${categoryList[i].name}'),
+                          value: categoryList[i].isChecked,
+                          onChanged: (isChecked) {
+                            setState(() {
+                              categoryList[i].isChecked = isChecked!;
+                            });
+                          })
+                  ],
+                ))
+            : CustomProgressBar(),
+        actions: <Widget>[
+          TextButton(
+            child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+            onPressed: () {
+              widget.callBack(categoryList);
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
       );
     });
   }
@@ -82,6 +76,15 @@ class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
   readCategory() async {
     List<Categories> data = await PosDatabase.instance.readAllCategory();
     categoryList = List.from(data);
+
+    for (int i = 0; i < categoryList.length; i++) {
+      for (int j = 0; j < widget.selectedList.length; j++) {
+        if (categoryList[i].category_id == widget.selectedList[j].category_id) {
+          categoryList[i].isChecked = true;
+        }
+      }
+    }
+
     setState(() {
       isLoad = true;
     });
