@@ -20,6 +20,7 @@ import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/product_variant_detail.dart';
 import 'package:pos_system/object/promotion.dart';
+import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/refund.dart';
 import 'package:pos_system/object/sale.dart';
 import 'package:pos_system/object/table.dart';
@@ -383,6 +384,23 @@ class PosDatabase {
           ${PrinterLinkCategoryFields.updated_at} $textType,
           ${PrinterLinkCategoryFields.soft_delete} $textType)''');
 
+/*
+    create receipt table
+*/
+    await db.execute('''CREATE TABLE $tableReceipt(
+          ${ReceiptFields.receipt_sqlite_id} $idType,
+          ${ReceiptFields.receipt_id} $integerType,
+          ${ReceiptFields.branch_id} $textType,
+          ${ReceiptFields.company_id} $textType,
+          ${ReceiptFields.header_image} $textType,
+          ${ReceiptFields.header_text} $textType,
+          ${ReceiptFields.footer_image} $textType,
+          ${ReceiptFields.footer_text} $textType,
+          ${ReceiptFields.status} $integerType,
+          ${ReceiptFields.sync_status} $integerType,
+          ${ReceiptFields.created_at} $textType,
+          ${ReceiptFields.updated_at} $textType,
+          ${ReceiptFields.soft_delete} $textType)''');
 
   }
 
@@ -759,6 +777,16 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tablePrinterLinkCategory!, data.toJson());
     return data.copy(printer_link_category_sqlite_id: id);
+
+  }
+
+/*
+  add receipt data into local db
+*/
+  Future<Receipt> insertSqliteReceipt(Receipt data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableReceipt!, data.toJson());
+    return data.copy(receipt_sqlite_id: id);
 
   }
 
@@ -1535,6 +1563,17 @@ class PosDatabase {
   }
 
 /*
+  read all receipt layout
+*/
+  Future<List<Receipt>> readAllReceipt() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableReceipt WHERE soft_delete = ? ',
+        ['']);
+    return result.map((json) => Receipt.fromJson(json)).toList();
+  }
+
+/*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -1652,11 +1691,20 @@ class PosDatabase {
         [data.printerLabel, data.paper_size, data.type, data.value, data.updated_at, data.printer_id]);
   }
 
+/*
+  update receipt status
+*/
+  Future<int> updateReceiptStatus(Receipt data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableReceipt SET status = ?, sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
+        [data.status, data.sync_status, data.updated_at, data.receipt_sqlite_id]);
+  }
+
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
-
 
   /*
   soft delete branch link product
@@ -1900,6 +1948,16 @@ class PosDatabase {
     return await db.rawUpdate(
         'UPDATE $tablePrinterLinkCategory SET soft_delete = ? WHERE printer_id = ?',
         [data.soft_delete, data.printer_id]);
+  }
+
+/*
+  Soft-delete receipt layout
+*/
+  Future<int> deleteReceiptLayout(Receipt data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableReceipt SET sync_status = ?, soft_delete = ? WHERE receipt_sqlite_id = ?',
+        [data.sync_status, data.soft_delete, data.receipt_sqlite_id]);
   }
 
 

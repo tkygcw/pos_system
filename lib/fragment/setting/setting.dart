@@ -4,6 +4,7 @@ import 'package:pos_system/fragment/printer/test_print.dart';
 import 'package:pos_system/fragment/setting/features_setting.dart';
 import 'package:pos_system/fragment/setting/logout_dialog.dart';
 import 'package:pos_system/fragment/setting/printer_setting.dart';
+import 'package:pos_system/fragment/setting/receipt_setting.dart';
 import 'package:pos_system/object/user.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:provider/provider.dart';
@@ -26,8 +27,11 @@ class _SettingMenuState extends State<SettingMenu> {
       // TestPrint()
     ),
     Container(
-      child: FeaturesSetting(),
+      child: ReceiptSetting(),
     ),
+    Container(
+      child: FeaturesSetting(),
+    )
   ];
   int selectedIndex = 0;
 
@@ -77,6 +81,10 @@ class _SettingMenuState extends State<SettingMenu> {
                   SideNavigationBarItem(
                     icon: Icons.print,
                     label: 'Printer',
+                  ),
+                  SideNavigationBarItem(
+                    icon: Icons.receipt,
+                    label: 'Receipt',
                   ),
                   SideNavigationBarItem(
                     icon: Icons.list,
