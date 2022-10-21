@@ -240,7 +240,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
       }
       //Get all order detail based on order cache id
       List<OrderDetail> detailData = await PosDatabase.instance
-          .readTableOrderDetail(data[i].order_cache_id.toString());
+          .readTableOrderDetail(data[i].order_cache_sqlite_id.toString());
       //add all order detail from db
       if (!orderDetailList.contains(detailData)) {
         orderDetailList..addAll(detailData);
@@ -251,7 +251,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
         //Get data from branch link product
         List<BranchLinkProduct> result = await PosDatabase.instance
             .readSpecificBranchLinkProduct(
-                orderDetailList[k].branch_link_product_id!);
+                orderDetailList[k].branch_link_product_sqlite_id!);
         orderDetailList[k].product_name = result[0].product_name!;
 
 
@@ -264,7 +264,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
           //Get product variant
           List<BranchLinkProduct> variant = await PosDatabase.instance
               .readBranchLinkProductVariant(
-                  orderDetailList[k].branch_link_product_id!);
+                  orderDetailList[k].branch_link_product_sqlite_id!);
           orderDetailList[k].productVariant = ProductVariant(
               product_variant_id: int.parse(variant[0].product_variant_id!),
               variant_name: variant[0].variant_name);
@@ -453,7 +453,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
     cart.removeAllTable();
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
-        orderDetailList[i].branch_link_product_id!,
+        orderDetailList[i].branch_link_product_sqlite_id!,
         orderDetailList[i].product_name,
         orderDetailList[i].category_id!,
         orderDetailList[i].price!,

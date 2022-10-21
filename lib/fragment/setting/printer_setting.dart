@@ -124,7 +124,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
 
       int data = await PosDatabase.instance.deletePrinter(Printer(
           soft_delete: dateTime,
-          printer_id: printer.printer_id
+          printer_sqlite_id: printer.printer_sqlite_id
       ));
       await readAllPrinters();
     }catch(e){
@@ -141,7 +141,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
 
       int data = await PosDatabase.instance.deletePrinterCategory(PrinterLinkCategory(
         soft_delete: dateTime,
-        printer_id: printer.printer_id.toString()
+        printer_sqlite_id: printer.printer_sqlite_id.toString()
       ));
     }catch(e){
       Fluttertoast.showToast(

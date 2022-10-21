@@ -10,8 +10,8 @@ class OrderDetailFields {
   static List<String> values = [
     order_detail_sqlite_id,
     order_detail_id,
-    order_cache_id,
-    branch_link_product_id,
+    order_cache_sqlite_id,
+    branch_link_product_sqlite_id,
     productName,
     has_variant,
     product_variant_name,
@@ -19,6 +19,7 @@ class OrderDetailFields {
     quantity,
     remark,
     account,
+    sync_status,
     created_at,
     updated_at,
     soft_delete
@@ -26,8 +27,8 @@ class OrderDetailFields {
 
   static String order_detail_sqlite_id = 'order_detail_sqlite_id';
   static String order_detail_id = 'order_detail_id';
-  static String order_cache_id = 'order_cache_id';
-  static String branch_link_product_id = 'branch_link_product_id';
+  static String order_cache_sqlite_id = 'order_cache_sqlite_id';
+  static String branch_link_product_sqlite_id = 'branch_link_product_sqlite_id';
   static String productName = 'product_name';
   static String has_variant = 'has_variant';
   static String product_variant_name = 'product_variant_name';
@@ -35,6 +36,7 @@ class OrderDetailFields {
   static String quantity = 'quantity';
   static String remark = 'remark';
   static String account = 'account';
+  static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -43,8 +45,8 @@ class OrderDetailFields {
 class OrderDetail{
   int? order_detail_sqlite_id;
   int? order_detail_id;
-  String? order_cache_id;
-  String? branch_link_product_id;
+  String? order_cache_sqlite_id;
+  String? branch_link_product_sqlite_id;
   String? productName = '';
   String? has_variant = '';
   String? product_variant_name = '';
@@ -52,6 +54,7 @@ class OrderDetail{
   String? quantity;
   String? remark;
   String? account;
+  int? sync_status;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -69,8 +72,8 @@ class OrderDetail{
   OrderDetail(
       {this.order_detail_sqlite_id,
         this.order_detail_id,
-        this.order_cache_id,
-        this.branch_link_product_id,
+        this.order_cache_sqlite_id,
+        this.branch_link_product_sqlite_id,
         this.productName,
         this.has_variant,
         this.product_variant_name,
@@ -78,6 +81,7 @@ class OrderDetail{
         this.quantity,
         this.remark,
         this.account,
+        this.sync_status,
         this.created_at,
         this.updated_at,
         this.soft_delete,
@@ -86,8 +90,8 @@ class OrderDetail{
   OrderDetail copy({
     int? order_detail_sqlite_id,
     int? order_detail_id,
-    String? order_cache_id,
-    String? branch_link_product_id,
+    String? order_cache_sqlite_id,
+    String? branch_link_product_sqlite_id,
     String? productName,
     String? has_variant,
     String? product_variant_name,
@@ -95,6 +99,7 @@ class OrderDetail{
     String? quantity,
     String? remark,
     String? account,
+    int? sync_status,
     String? created_at,
     String? updated_at,
     String? soft_delete,
@@ -102,8 +107,8 @@ class OrderDetail{
       OrderDetail(
           order_detail_sqlite_id: order_detail_sqlite_id ?? this.order_detail_sqlite_id,
           order_detail_id: order_detail_id ?? this.order_detail_id,
-          order_cache_id: order_cache_id ?? this.order_cache_id,
-          branch_link_product_id: branch_link_product_id ?? this.branch_link_product_id,
+          order_cache_sqlite_id: order_cache_sqlite_id ?? this.order_cache_sqlite_id,
+          branch_link_product_sqlite_id: branch_link_product_sqlite_id ?? this.branch_link_product_sqlite_id,
           productName: productName ?? this.productName,
           has_variant: has_variant ?? this.has_variant,
           product_variant_name: product_variant_name ?? this.product_variant_name,
@@ -111,6 +116,7 @@ class OrderDetail{
           quantity: quantity ?? this.quantity,
           remark: remark ?? this.remark,
           account: account ?? this.account,
+          sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete,
@@ -119,8 +125,8 @@ class OrderDetail{
   static OrderDetail fromJson(Map<String, Object?> json) => OrderDetail(
     order_detail_sqlite_id: json[OrderDetailFields.order_detail_sqlite_id] as int?,
     order_detail_id: json[OrderDetailFields.order_detail_id] as int?,
-    order_cache_id: json[OrderDetailFields.order_cache_id] as String?,
-    branch_link_product_id: json[OrderDetailFields.branch_link_product_id] as String?,
+    order_cache_sqlite_id: json[OrderDetailFields.order_cache_sqlite_id] as String?,
+    branch_link_product_sqlite_id: json[OrderDetailFields.branch_link_product_sqlite_id] as String?,
     productName: json[OrderDetailFields.productName] as String?,
     has_variant: json[OrderDetailFields.has_variant] as String?,
     product_variant_name: json[OrderDetailFields.product_variant_name] as String?,
@@ -128,6 +134,7 @@ class OrderDetail{
     quantity: json[OrderDetailFields.quantity] as String?,
     remark: json[OrderDetailFields.remark] as String?,
     account: json[OrderDetailFields.account] as String?,
+    sync_status: json[OrderDetailFields.sync_status] as int?,
     created_at: json[OrderDetailFields.created_at] as String?,
     updated_at: json[OrderDetailFields.updated_at] as String?,
     soft_delete: json[OrderDetailFields.soft_delete] as String?,
@@ -137,8 +144,8 @@ class OrderDetail{
   Map<String, Object?> toJson() => {
     OrderDetailFields.order_detail_sqlite_id: order_detail_sqlite_id,
     OrderDetailFields.order_detail_id: order_detail_id,
-    OrderDetailFields.order_cache_id: order_cache_id,
-    OrderDetailFields.branch_link_product_id: branch_link_product_id,
+    OrderDetailFields.order_cache_sqlite_id: order_cache_sqlite_id,
+    OrderDetailFields.branch_link_product_sqlite_id: branch_link_product_sqlite_id,
     OrderDetailFields.productName: productName,
     OrderDetailFields.has_variant: has_variant,
     OrderDetailFields.product_variant_name: product_variant_name,
@@ -146,6 +153,7 @@ class OrderDetail{
     OrderDetailFields.quantity: quantity,
     OrderDetailFields.remark: remark,
     OrderDetailFields.account: account,
+    OrderDetailFields.sync_status: sync_status,
     OrderDetailFields.created_at: created_at,
     OrderDetailFields.updated_at: updated_at,
     OrderDetailFields.soft_delete: soft_delete,

@@ -6,6 +6,7 @@ class TableUseFields {
     table_use_id,
     branch_id,
     cardColor,
+    sync_status,
     created_at,
     updated_at,
     soft_delete
@@ -15,6 +16,7 @@ class TableUseFields {
   static String table_use_id = 'table_use_id';
   static String branch_id = 'branch_id';
   static String cardColor = 'cardColor';
+  static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -25,6 +27,7 @@ class TableUse{
   int? table_use_id;
   int? branch_id;
   String? cardColor;
+  int? sync_status;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -34,6 +37,7 @@ class TableUse{
         this.table_use_id,
         this.branch_id,
         this.cardColor,
+        this.sync_status,
         this.created_at,
         this.updated_at,
         this.soft_delete});
@@ -43,6 +47,7 @@ class TableUse{
     int? table_use_id,
     int? branch_id,
     String? cardColor,
+    int? sync_status,
     String? created_at,
     String? updated_at,
     String? soft_delete,
@@ -52,6 +57,7 @@ class TableUse{
           table_use_id: table_use_id ?? this.table_use_id,
           branch_id: branch_id ?? this.branch_id,
           cardColor: cardColor ?? this.cardColor,
+          sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
@@ -61,6 +67,7 @@ class TableUse{
     table_use_id: json[TableUseFields.table_use_id] as int?,
     branch_id: json[TableUseFields.branch_id] as int?,
     cardColor: json[TableUseFields.cardColor] as String?,
+    sync_status: json[TableUseFields.sync_status] as int?,
     created_at: json[TableUseFields.created_at] as String?,
     updated_at: json[TableUseFields.updated_at] as String?,
     soft_delete: json[TableUseFields .soft_delete] as String?,
@@ -71,6 +78,7 @@ class TableUse{
     TableUseFields.table_use_id: table_use_id,
     TableUseFields.branch_id: branch_id,
     TableUseFields.cardColor: cardColor,
+    TableUseFields.sync_status: sync_status,
     TableUseFields.created_at: created_at,
     TableUseFields.updated_at: updated_at,
     TableUseFields.soft_delete: soft_delete,

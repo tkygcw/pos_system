@@ -12,6 +12,7 @@ class PosTableFields {
     number,
     seats,
     status,
+    sync_status,
     created_at,
     updated_at,
     soft_delete
@@ -23,6 +24,7 @@ class PosTableFields {
   static String number = 'number';
   static String seats = 'seats';
   static String status = 'status';
+  static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -35,6 +37,7 @@ class PosTable{
   String? number;
   String? seats;
   int? status;
+  int? sync_status;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -50,6 +53,7 @@ class PosTable{
         this.number,
         this.seats,
         this.status,
+        this.sync_status,
         this.created_at,
         this.updated_at,
         this.soft_delete});
@@ -61,6 +65,7 @@ class PosTable{
     String? number,
     String? seats,
     int? status,
+    int? sync_status,
     String? created_at,
     String? updated_at,
     String? soft_delete,
@@ -72,6 +77,7 @@ class PosTable{
           number: number ?? this.number,
           seats: seats ?? this.seats,
           status: status ?? this.status,
+          sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
@@ -83,6 +89,7 @@ class PosTable{
     number: json[PosTableFields.number] as String?,
     seats: json[PosTableFields.seats] as String?,
     status: json[PosTableFields.status] as int?,
+    sync_status: json[PosTableFields.status] as int?,
     created_at: json[PosTableFields.created_at] as String?,
     updated_at: json[PosTableFields.updated_at] as String?,
     soft_delete: json[PosTableFields .soft_delete] as String?,
@@ -95,6 +102,7 @@ class PosTable{
     PosTableFields.number: number,
     PosTableFields.seats: seats,
     PosTableFields.status: status,
+    PosTableFields.sync_status: sync_status,
     PosTableFields.created_at: created_at,
     PosTableFields.updated_at: updated_at,
     PosTableFields.soft_delete: soft_delete,

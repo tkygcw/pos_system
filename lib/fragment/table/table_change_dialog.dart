@@ -128,7 +128,7 @@ leow part
     int tableUseDetailData = await PosDatabase.instance.updateTableUseDetail(
         widget.object.table_id!,
         TableUseDetail(
-            table_id: table_id,
+            table_sqlite_id: table_id,
             updated_at: dateTime
         ));
   }
@@ -144,10 +144,10 @@ leow part
     List<TableUseDetail> NewUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableData[0].table_id!);
     //check new table is in use or not
     if(NewUseDetailData.length > 0){
-      await callChangeToTableInUse(NowUseDetailData[0].table_use_id!, NewUseDetailData[0].table_use_id!, dateTime);
+      await callChangeToTableInUse(NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
 
     } else {
-      await changeToUnusedTable(tableData[0].table_id.toString(), dateTime);
+      await changeToUnusedTable(tableData[0].table_sqlite_id.toString(), dateTime);
 
     }
   }
@@ -267,7 +267,7 @@ leow part
       int orderCacheData = await PosDatabase.instance.updateOrderCacheTableUseId(
           currentTableUseId,
           OrderCache(
-              table_use_id: NewTableUseId,
+              table_use_sqlite_id: NewTableUseId,
               updated_at: dateTime
           ));
     } catch(e){

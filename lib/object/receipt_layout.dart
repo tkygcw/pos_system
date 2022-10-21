@@ -8,8 +8,7 @@ import 'package:pos_system/object/receipt.dart';
 class ReceiptLayout{
   PaperSize? size;
   Receipt? receipt;
-  final dateFormat = DateFormat("dd/MM/yyyy");
-  final timeFormat = DateFormat("hh:mm a");
+  DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
 
 
   readReceiptLayout() async {
@@ -22,7 +21,7 @@ class ReceiptLayout{
   }
 
   testTicket(int paperSize, bool isUSB, {value}) async {
-
+    String dateTime = dateFormat.format(DateTime.now());
     await readReceiptLayout();
 
     if(paperSize == 0){
@@ -42,7 +41,6 @@ class ReceiptLayout{
     try {
       bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
       bytes += generator.emptyLines(1);
-      bytes += generator.hr(ch: '-');
       bytes += generator.reset();
       //Address
       bytes += generator.text(
@@ -53,8 +51,9 @@ class ReceiptLayout{
           styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
       bytes += generator.text('Lucky8@hotmail.com',
           styles: PosStyles(align: PosAlign.center));
+      bytes += generator.hr();
+      bytes += generator.reset();
       //receipt no
-      bytes += generator.emptyLines(1);
       bytes += generator.text('Receipt No.: 17-200-000056',
           styles: PosStyles(
               align: PosAlign.left,
@@ -63,7 +62,9 @@ class ReceiptLayout{
               bold: true));
       bytes += generator.reset();
       //other order detail
-      bytes += generator.text('2022-10-03 17:18:18');
+      bytes += generator.text('${dateTime}');
+      bytes += generator.text('Table No: 5');
+      bytes += generator.text('Dine in');
       bytes += generator.text('Close by: Taylor');
       bytes += generator.reset();
       /*
@@ -81,7 +82,7 @@ class ReceiptLayout{
       //order product
       bytes += generator.row([
         PosColumn(
-            text: 'Nasi kandar' + ' (big, white) ',
+            text: 'Nasi kandar' + '(big,white)',
             width: 6,
             containsChinese: true,
             styles: PosStyles(align: PosAlign.left, bold: true)),
@@ -91,6 +92,7 @@ class ReceiptLayout{
             width: 4,
             styles: PosStyles(align: PosAlign.right)),
       ]);
+      bytes += generator.emptyLines(1);
       bytes += generator.row([
         PosColumn(
             text: 'Nasi Ayam',
@@ -104,46 +106,70 @@ class ReceiptLayout{
             styles: PosStyles(align: PosAlign.right)),
       ]);
       bytes += generator.row([
-        PosColumn(text: '-Modifier(RM2.00)', width: 6, containsChinese: true),
+        PosColumn(text: '-Modifier(2.00)', width: 6, containsChinese: true),
         PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
         PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
       ]);
+      bytes += generator.emptyLines(1);
+      /*
+        * product with remark
+        * */
+      bytes += generator.row([
+        PosColumn(
+            text: 'Nasi Lemak' + '(big,white)',
+            width: 6,
+            containsChinese: true,
+            styles: PosStyles(align: PosAlign.left, bold: true)),
+        PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.right)),
+        PosColumn(
+            text: '11.00',
+            width: 4,
+            styles: PosStyles(align: PosAlign.right)),
+      ]);
       bytes += generator.reset();
-      bytes += generator.hr(ch: '-');
+      bytes += generator.row([
+        PosColumn(text: '**remark here', width: 6, containsChinese: true),
+        PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+        PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
+      ]);
+      bytes += generator.hr();
       bytes += generator.reset();
       //item count
-      bytes += generator.text('Items count: 1');
-      bytes += generator.emptyLines(1);
+      bytes += generator.text('Items count: 3', styles: PosStyles(bold: true));
+      bytes += generator.hr();
       bytes += generator.reset();
       //total calc
       bytes += generator.row([
-        PosColumn(
-            text: 'Subtotal:',
-            width: 8,
-            styles: PosStyles(align: PosAlign.left)),
-        PosColumn(
-            text: 'RM20.90', width: 4, styles: PosStyles(align: PosAlign.right))
+        PosColumn(text: 'SubTotal', width: 8, styles: PosStyles(align: PosAlign.right)),
+        PosColumn(text: '33.70', width: 4, styles: PosStyles(align: PosAlign.right)),
       ]);
+      //discount
       bytes += generator.row([
-        PosColumn(
-            text: 'Service Tax(10%):',
-            width: 8,
-            styles: PosStyles(align: PosAlign.left)),
-        PosColumn(
-            text: 'RM2.09', width: 4, styles: PosStyles(align: PosAlign.right))
+        PosColumn(text: 'discount(-)', width: 8, styles: PosStyles(align: PosAlign.right)),
+        PosColumn(text: '-0.00', width: 4, styles: PosStyles(align: PosAlign.right)),
       ]);
-      bytes += generator.reset();
+      //tax
+      bytes += generator.row([
+        PosColumn(text: 'Service Tax(-)', width: 8, styles: PosStyles(align: PosAlign.right)),
+        PosColumn(text: '0.00', width: 4, styles: PosStyles(align: PosAlign.right)),
+      ]);
+      //payment method
+      bytes += generator.row([
+        PosColumn(text: 'Payment method', width: 8, styles: PosStyles(align: PosAlign.right)),
+        PosColumn(text: 'Cash', width: 4, styles: PosStyles(align: PosAlign.right)),
+      ]);
       //total
+      bytes += generator.hr();
       bytes += generator.row([
+        PosColumn(text: 'Total', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2, bold: true)),
         PosColumn(
-            text: 'TOTAL:',
-            width: 8,
-            styles: PosStyles(align: PosAlign.left, bold: true)),
-        PosColumn(
-            text: 'RM22.99',
+            text: '33.70',
             width: 4,
-            styles: PosStyles(align: PosAlign.right, bold: true))
+            styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2, bold: true)),
       ]);
+      bytes += generator.hr();
+      bytes += generator.emptyLines(1);
+      //footer
       bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
 
       bytes += generator.feed(1);

@@ -92,6 +92,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: TextField(
+                              readOnly: !_isUpdate ? false : true,
                               controller: headerTextController,
                               decoration: InputDecoration(
                                 border: OutlineInputBorder(
@@ -124,6 +125,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: TextField(
+                              readOnly: !_isUpdate ? false : true,
                               controller: footerTextController,
                               decoration: InputDecoration(
                                 border: OutlineInputBorder(
@@ -155,10 +157,18 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         height: 250,
                         fit: BoxFit.cover,
                       ):
-                          Container(),
+                          Container(
+                            alignment: Alignment.center,
+                            child: Column(
+                              children: [
+                                Icon(Icons.image),
+                                Text('No image')
+                              ],
+                            ),
+                          ),
                       SizedBox(
                         height: 10,
-                      ),
+                      ), !_isUpdate ?
                       ElevatedButton(
                         child: Row(
                           children: [
@@ -177,7 +187,8 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                             textStyle: TextStyle(
                                 color: Colors.white70,
                                 fontWeight: FontWeight.bold)),
-                      ),
+                      ) :
+                      Container(),
                     ],
                   ),
                 ),
@@ -196,10 +207,18 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         height: 250,
                         fit: BoxFit.cover,
                       ):
-                      Container(),
+                      Container(
+                        alignment: Alignment.center,
+                        child: Column(
+                          children: [
+                            Icon(Icons.image),
+                            Text('No image')
+                          ],
+                        ),
+                      ),
                       SizedBox(
                         height: 10,
-                      ),
+                      ), !_isUpdate ?
                       ElevatedButton(
                         child: Row(
                           children: [
@@ -218,7 +237,8 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                             textStyle: TextStyle(
                                 color: Colors.white70,
                                 fontWeight: FontWeight.bold)),
-                      ),
+                      ) :
+                      Container(),
                     ],
                   ),
                 )

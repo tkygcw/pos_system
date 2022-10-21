@@ -225,6 +225,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
         await PosDatabase.instance.readProductVariantGroup(productID);
     for (int i = 0; i < data.length; i++) {
       variantGroup.add(VariantGroup(
+          variant_group_sqlite_id:  data[i].variant_group_sqlite_id,
           variant_group_id: data[i].variant_group_id,
           child: [],
           name: data[i].name));
@@ -240,6 +241,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
         }
         //store all child into one list
         itemChild.add(VariantItem(
+            variant_item_sqlite_id: data[i].variant_group_sqlite_id,
             variant_group_id: data[i].variant_group_id.toString(),
             name: itemData[j].name,
             variant_item_id: itemData[j].variant_item_id));
@@ -353,7 +355,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
 
     List<BranchLinkProduct> data = await PosDatabase.instance.checkProductVariant(
         await getHasVariantProductPrice(productId), productId.toString());
-    branchLinkProduct_id = data[0].branch_link_product_id.toString();
+    branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
 
     return branchLinkProduct_id;
   }

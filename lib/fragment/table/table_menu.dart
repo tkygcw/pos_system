@@ -349,10 +349,10 @@ class _TableMenuState extends State<TableMenu> {
     final int? branch_id = prefs.getInt('branch_id');
 
     for (int i = 0; i < tableList.length; i++) {
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_id!);
+      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
       if (tableUseDetailData.length > 0) {
-        List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_id!);
-        tableList[i].group = data[0].table_use_id;
+        List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
+        tableList[i].group = data[0].table_use_sqlite_id;
         tableList[i].cardColor = data[0].cardColor;
         for(int j = 0; j < data.length; j++){
           tableList[i].total_Amount += double.parse(data[j].total_amount!);
@@ -369,11 +369,11 @@ class _TableMenuState extends State<TableMenu> {
 
     //Get specific table use detail
     List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
-        .readSpecificTableUseDetail(posTable.table_id!);
+        .readSpecificTableUseDetail(posTable.table_sqlite_id!);
 
     //Get all order table cache
     List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
-        branch_id.toString(), tableUseDetailData[0].table_use_id!);
+        branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
     //loop all table order cache
     for (int i = 0; i < data.length; i++) {
       if (!orderCacheList.contains(data)) {
@@ -381,7 +381,7 @@ class _TableMenuState extends State<TableMenu> {
       }
       //Get all order detail based on order cache id
       List<OrderDetail> detailData = await PosDatabase.instance
-          .readTableOrderDetail(data[i].order_cache_id.toString());
+          .readTableOrderDetail(data[i].order_cache_sqlite_id.toString());
       //add all order detail from db
       if (!orderDetailList.contains(detailData)) {
         orderDetailList..addAll(detailData);
@@ -392,7 +392,7 @@ class _TableMenuState extends State<TableMenu> {
       //Get data from branch link product
       List<BranchLinkProduct> result = await PosDatabase.instance
           .readSpecificBranchLinkProduct(
-          orderDetailList[k].branch_link_product_id!);
+          orderDetailList[k].branch_link_product_sqlite_id!);
       orderDetailList[k].product_name = result[0].product_name!;
 
       //Get product category
@@ -404,7 +404,7 @@ class _TableMenuState extends State<TableMenu> {
         //Get product variant
         List<BranchLinkProduct> variant = await PosDatabase.instance
             .readBranchLinkProductVariant(
-            orderDetailList[k].branch_link_product_id!);
+            orderDetailList[k].branch_link_product_sqlite_id!);
         orderDetailList[k].productVariant = ProductVariant(
             product_variant_id: int.parse(variant[0].product_variant_id!),
             variant_name: variant[0].variant_name);
@@ -522,7 +522,7 @@ class _TableMenuState extends State<TableMenu> {
 
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
-          orderDetailList[i].branch_link_product_id!,
+          orderDetailList[i].branch_link_product_sqlite_id!,
           orderDetailList[i].product_name,
           orderDetailList[i].category_id!,
           orderDetailList[i].price!,
@@ -531,19 +531,19 @@ class _TableMenuState extends State<TableMenu> {
           getVariantGroupItem(orderDetailList[i]),
           orderDetailList[i].remark!,
           0,
-          orderDetailList[i].order_cache_id);
+          orderDetailList[i].order_cache_sqlite_id);
       cart.addItem(value);
     }
     for (int j = 0; j < orderCacheList.length; j++) {
       //Get specific table use detail
       List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
-          .readAllTableUseDetail(orderCacheList[j].table_use_id!);
+          .readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
       tableUseDetailList = List.from(tableUseDetailData);
     }
 
     for (int k = 0; k < tableUseDetailList.length; k++) {
       List<PosTable> tableData = await PosDatabase.instance
-          .readSpecificTable(branch_id!, tableUseDetailList[k].table_id!);
+          .readSpecificTable(branch_id!, tableUseDetailList[k].table_sqlite_id!);
       cart.addTable(tableData[0]);
     }
   }
@@ -554,7 +554,7 @@ class _TableMenuState extends State<TableMenu> {
     await readSpecificTableDetail(posTable);
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
-          orderDetailList[i].branch_link_product_id!,
+          orderDetailList[i].branch_link_product_sqlite_id!,
           orderDetailList[i].product_name,
           orderDetailList[i].category_id!,
           orderDetailList[i].price!,
@@ -563,7 +563,7 @@ class _TableMenuState extends State<TableMenu> {
           getVariantGroupItem(orderDetailList[i]),
           orderDetailList[i].remark!,
           0,
-          orderDetailList[i].order_cache_id);
+          orderDetailList[i].order_cache_sqlite_id);
       cart.removeSpecificItem(value);
     }
   }

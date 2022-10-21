@@ -356,7 +356,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       final int? branch_id = prefs.getInt('branch_id');
 
       Printer data = await PosDatabase.instance.insertSqlitePrinter(Printer(
-          printer_id: 1,
+          printer_id: 0,
           branch_id: branch_id.toString(),
           company_id: '6',
           printerLabel: printerLabelController.text,
@@ -364,10 +364,11 @@ class _PrinterDialogState extends State<PrinterDialog> {
           type: _typeStatus,
           printer_link_category_id: '0',
           paper_size: _paperSize,
+          sync_status: 0,
           created_at: dateTime,
           updated_at: '',
           soft_delete: ''));
-      printerID = data.printer_id.toString();
+      printerID = data.printer_sqlite_id.toString();
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
@@ -384,9 +385,10 @@ class _PrinterDialogState extends State<PrinterDialog> {
         if (allCategories[i].isChecked == true) {
           PrinterLinkCategory data = await PosDatabase.instance
               .insertSqlitePrinterLinkCategory(PrinterLinkCategory(
-                  printer_link_category_id: 1,
-                  printer_id: printerID,
+                  printer_link_category_id: 0,
+                  printer_sqlite_id: printerID,
                   category_id: allCategories[i].category_id.toString(),
+                  sync_status: 0,
                   created_at: dateTime,
                   updated_at: '',
                   soft_delete: ''));
@@ -404,7 +406,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
   readPrinterCategory() async {
     try {
       List<PrinterLinkCategory> data = await PosDatabase.instance
-          .readPrinterLinkCategory(widget.printerObject!.printer_id!);
+          .readPrinterLinkCategory(widget.printerObject!.printer_sqlite_id!);
       if (data.length > 0) {
         for (int i = 0; i < data.length; i++) {
           List<Categories> catData = await PosDatabase.instance
@@ -435,9 +437,10 @@ class _PrinterDialogState extends State<PrinterDialog> {
         if (allCategories[i].isChecked == true) {
           PrinterLinkCategory data = await PosDatabase.instance
               .insertSqlitePrinterLinkCategory(PrinterLinkCategory(
-                  printer_link_category_id: 1,
-                  printer_id: printer.printer_id.toString(),
+                  printer_link_category_id: 0,
+                  printer_sqlite_id: printer.printer_sqlite_id.toString(),
                   category_id: allCategories[i].category_id.toString(),
+                  sync_status: 0,
                   created_at: dateTime,
                   updated_at: '',
                   soft_delete: ''));
@@ -461,7 +464,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       int data = await PosDatabase.instance.deletePrinterCategory(
           PrinterLinkCategory(
               soft_delete: dateTime,
-              printer_id: printer.printer_id.toString()));
+              printer_sqlite_id: printer.printer_sqlite_id.toString()));
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
@@ -480,7 +483,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
           value: printerValue[0],
           paper_size: _paperSize,
           updated_at: dateTime,
-          printer_id: widget.printerObject!.printer_id));
+          printer_sqlite_id: widget.printerObject!.printer_sqlite_id));
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
@@ -560,7 +563,6 @@ class _PrinterDialogState extends State<PrinterDialog> {
   _print() async {
     try {
       var printerDetail = jsonDecode(printerValue[0]);
-      print(printerDetail);
 
       var data = Uint8List.fromList(
           await ReceiptLayout().testTicket(_paperSize!, true));

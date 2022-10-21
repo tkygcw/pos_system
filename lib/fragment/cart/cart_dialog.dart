@@ -82,9 +82,9 @@ class _CartDialogState extends State<CartDialog> {
           TextButton(
             child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
             onPressed: () async {
-              if (tableList[dragIndex].table_id != tableList[targetIndex].table_id) {
+              if (tableList[dragIndex].table_sqlite_id != tableList[targetIndex].table_sqlite_id) {
                 if(tableList[targetIndex].status == 1 && tableList[dragIndex].status == 0){
-                  await callAddNewTableQuery(tableList[dragIndex].table_id!, tableList[targetIndex].table_id!);
+                  await callAddNewTableQuery(tableList[dragIndex].table_sqlite_id!, tableList[targetIndex].table_sqlite_id!);
                   cart.removeAllTable();
                 } else {
                   Fluttertoast.showToast(
@@ -274,7 +274,7 @@ class _CartDialogState extends State<CartDialog> {
                                              }
                                            }
                                            if(sameGroupTbList.length > 1) {
-                                             callRemoveTableQuery(tableList[index].table_id!);
+                                             callRemoveTableQuery(tableList[index].table_sqlite_id!);
                                              tableList[index].isSelected = false;
                                              tableList[index].group = null;
                                              cart.removeAllTable();
@@ -385,13 +385,13 @@ class _CartDialogState extends State<CartDialog> {
 
     for (int i = 0; i < tableList.length; i++) {
       List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
-          .readSpecificTableUseDetail(tableList[i].table_id!);
+          .readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
 
       if (tableUseDetailData.length > 0) {
         List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
-            branch_id.toString(), tableUseDetailData[0].table_use_id!);
+            branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
 
-        tableList[i].group = data[0].table_use_id;
+        tableList[i].group = data[0].table_use_sqlite_id;
         tableList[i].cardColor = data[0].cardColor;
 
         for (int j = 0; j < data.length; j++) {
@@ -402,32 +402,6 @@ class _CartDialogState extends State<CartDialog> {
     controller.add('refresh');
   }
 
-  readTableUseDetail(int table_id, CartModel cart) async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
-    //read table use detail data based on table id
-    List<TableUseDetail> TableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(table_id);
-    //check table is in use or not
-    if (TableUseDetailData.length > 0) {
-      List<TableUseDetail> allTableUseData = await PosDatabase.instance
-          .readAllTableUseDetail(TableUseDetailData[0].table_use_id!);
-      for (int i = 0; i < allTableUseData.length; i++) {
-        List<PosTable> tableData = await PosDatabase.instance
-            .readSpecificTable(branch_id!, allTableUseData[i].table_id!);
-        if (tableData[0].status == 0) {
-          if (!cart.selectedTable.contains(tableData)) {
-            cart.addTable(tableData[0]);
-          }
-        } else {
-          if (!cart.selectedTable.contains(tableData)) {
-            cart.addTable(tableData[0]);
-          }
-        }
-      }
-    }
-  }
-
   readSpecificTableDetail(PosTable posTable) async {
     orderDetailList.clear();
     orderCacheList.clear();
@@ -436,11 +410,11 @@ class _CartDialogState extends State<CartDialog> {
 
     //Get specific table use detail
     List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
-        .readSpecificTableUseDetail(posTable.table_id!);
+        .readSpecificTableUseDetail(posTable.table_sqlite_id!);
 
     //Get all order table cache
     List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
-        branch_id.toString(), tableUseDetailData[0].table_use_id!);
+        branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
     //loop all table order cache
     for (int i = 0; i < data.length; i++) {
       if (!orderCacheList.contains(data)) {
@@ -448,7 +422,7 @@ class _CartDialogState extends State<CartDialog> {
       }
       //Get all order detail based on order cache id
       List<OrderDetail> detailData = await PosDatabase.instance
-          .readTableOrderDetail(data[i].order_cache_id.toString());
+          .readTableOrderDetail(data[i].order_cache_sqlite_id.toString());
       //add all order detail from db
       if (!orderDetailList.contains(detailData)) {
         orderDetailList..addAll(detailData);
@@ -459,7 +433,7 @@ class _CartDialogState extends State<CartDialog> {
       //Get data from branch link product
       List<BranchLinkProduct> result = await PosDatabase.instance
           .readSpecificBranchLinkProduct(
-              orderDetailList[k].branch_link_product_id!);
+              orderDetailList[k].branch_link_product_sqlite_id!);
       orderDetailList[k].product_name = result[0].product_name!;
 
       //Get product category
@@ -471,7 +445,7 @@ class _CartDialogState extends State<CartDialog> {
         //Get product variant
         List<BranchLinkProduct> variant = await PosDatabase.instance
             .readBranchLinkProductVariant(
-                orderDetailList[k].branch_link_product_id!);
+                orderDetailList[k].branch_link_product_sqlite_id!);
         orderDetailList[k].productVariant = ProductVariant(
             product_variant_id: int.parse(variant[0].product_variant_id!),
             variant_name: variant[0].variant_name);
@@ -590,7 +564,7 @@ class _CartDialogState extends State<CartDialog> {
     cart.removeAllTable();
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
-          orderDetailList[i].branch_link_product_id!,
+          orderDetailList[i].branch_link_product_sqlite_id!,
           orderDetailList[i].product_name,
           orderDetailList[i].category_id!,
           orderDetailList[i].price!,
@@ -605,13 +579,13 @@ class _CartDialogState extends State<CartDialog> {
     for (int j = 0; j < orderCacheList.length; j++) {
       //Get specific table use detail
       List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
-          .readAllTableUseDetail(orderCacheList[j].table_use_id!);
+          .readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
       tableUseDetailList = List.from(tableUseDetailData);
     }
 
     for (int k = 0; k < tableUseDetailList.length; k++) {
       List<PosTable> tableData = await PosDatabase.instance
-          .readSpecificTable(branch_id!, tableUseDetailList[k].table_id!);
+          .readSpecificTable(branch_id!, tableUseDetailList[k].table_sqlite_id!);
       cart.addTable(tableData[0]);
     }
   }
@@ -632,7 +606,7 @@ class _CartDialogState extends State<CartDialog> {
       int tableUseData = await PosDatabase.instance.deleteTableUseDetailByTableId(
           TableUseDetail(
               soft_delete: dateTime,
-              table_id: currentTableId.toString(),
+              table_sqlite_id: currentTableId.toString(),
           ));
     }catch(e){
       Fluttertoast.showToast(
@@ -667,9 +641,9 @@ class _CartDialogState extends State<CartDialog> {
             .insertSqliteTableUseDetail(
             TableUseDetail(
                 table_use_detail_id: 3,
-                table_use_id: TableUseDetailData[0].table_use_id,
-                table_id: newTableId.toString(),
-                original_table_id: newTableId.toString(),
+                table_use_sqlite_id: TableUseDetailData[0].table_use_sqlite_id,
+                table_sqlite_id: newTableId.toString(),
+                original_table_sqlite_id: newTableId.toString(),
                 created_at: dateTime,
                 updated_at: '',
                 soft_delete: ''));

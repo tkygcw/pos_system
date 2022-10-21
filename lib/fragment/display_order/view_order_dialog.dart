@@ -34,10 +34,10 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
 
   getOrderDetail() async {
     List<OrderDetail> data = await PosDatabase.instance
-        .readTableOrderDetail(widget.orderCache!.order_cache_id.toString());
+        .readTableOrderDetail(widget.orderCache!.order_cache_sqlite_id.toString());
     for (int i = 0; i < data.length; i++) {
       ProductVariant? productVariantData = await PosDatabase.instance
-          .readProductVariantSpecial(data[i].branch_link_product_id.toString());
+          .readProductVariantSpecial(data[i].branch_link_product_sqlite_id.toString());
       if (productVariantData!.product_variant_id.toString().isNotEmpty) {
         orderProductVariant.add(productVariantData);
       }
@@ -59,7 +59,7 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
 
       Map responseDeleteDetail = await Domain().deleteOrderDetail(widget.orderCache!.order_cache_id.toString());
       if(responseDeleteDetail['status'] == '1'){
-        List<OrderDetail> data = await PosDatabase.instance.readTableOrderDetail(widget.orderCache!.order_cache_id.toString());
+        List<OrderDetail> data = await PosDatabase.instance.readTableOrderDetail(widget.orderCache!.order_cache_sqlite_id.toString());
         for(int i = 0; i < data.length; i++){
           Map responseDeleteOrderModifierDetail = await Domain().deleteOrderModifierDetail(data[i].order_detail_id);
         }
