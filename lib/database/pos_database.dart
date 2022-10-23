@@ -979,11 +979,11 @@ class PosDatabase {
   read product variant by name
 */
   Future<List<ProductVariant>> readSpecificProductVariant(
-      String product_sqlite_id, String variant_name) async {
+      String product_id, String variant_name) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableProductVariant WHERE soft_delete = ? AND product_sqlite_id = ? AND variant_name = ?',
-        ['', product_sqlite_id, variant_name]);
+        'SELECT * FROM $tableProductVariant WHERE soft_delete = ? AND product_id = ? AND variant_name = ?',
+        ['', product_id, variant_name]);
 
     return result.map((json) => ProductVariant.fromJson(json)).toList();
   }

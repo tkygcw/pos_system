@@ -295,7 +295,7 @@ class _CartDialogState extends State<CartDialog> {
                         : Expanded(child: Text('')),
                     Container(
                       margin: EdgeInsets.fromLTRB(0, 2, 0, 2),
-                      height: MediaQuery.of(context).size.height / 8,
+                      height: MediaQuery.of(context).size.height / 9,
                       child: Stack(
                         alignment: Alignment.bottomLeft,
                         children: [
@@ -619,7 +619,7 @@ class _CartDialogState extends State<CartDialog> {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
 
-    PosTable posTableData = PosTable(table_id: currentTableId, status: status, updated_at: dateTime);
+    PosTable posTableData = PosTable(table_sqlite_id: currentTableId, status: status, updated_at: dateTime);
     int data2 = await PosDatabase.instance.updatePosTableStatus(posTableData);
   }
 
