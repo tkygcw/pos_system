@@ -139,7 +139,7 @@ class PosDatabase {
           ${OrderCacheFields.branch_id} $textType, 
           ${OrderCacheFields.order_detail_id} $textType, 
           ${OrderCacheFields.table_use_sqlite_id} $textType, 
-          ${OrderCacheFields.table_sqlite_id} $textType, 
+          ${OrderCacheFields.batch_id} $textType, 
           ${OrderCacheFields.dining_id} $textType, 
           ${OrderCacheFields.order_id} $textType, 
           ${OrderCacheFields.order_by} $textType, 
@@ -1419,7 +1419,19 @@ class PosDatabase {
   }
 
 /*
-  get table amount
+  read all order cache
+*/
+  Future<List<OrderCache>> readBranchOrderCache(int branch_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND branch_id = ?',
+        ['', branch_id]);
+    return result.map((json) => OrderCache.fromJson(json)).toList();
+
+  }
+
+/*
+  read table order cache
 */
   Future<List<OrderCache>> readTableOrderCache(String branch_id, String table_use_id ) async {
     try{
@@ -1433,6 +1445,8 @@ class PosDatabase {
       return [];
     }
   }
+
+
 
   /*
   get all order cache except dine in
@@ -1466,7 +1480,6 @@ class PosDatabase {
       return [];
     }
   }
-
 
 
 /*

@@ -565,7 +565,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       var printerDetail = jsonDecode(printerValue[0]);
 
       var data = Uint8List.fromList(
-          await ReceiptLayout().testTicket(_paperSize!, true));
+          await ReceiptLayout().printKitchenList(_paperSize!, true));
       bool? isConnected = await flutterUsbPrinter.connect(
           int.parse(printerDetail['vendorId']),
           int.parse(printerDetail['productId']));
@@ -575,6 +575,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
         print('not connected');
       }
     } catch (e) {
+      print('error $e');
       print('Printer Connection Error');
       //response = 'Failed to get platform version.';
     }

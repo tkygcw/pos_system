@@ -1,5 +1,3 @@
-
-
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -20,7 +18,8 @@ class ReceiptLayout{
     }
   }
 
-  testTicket(int paperSize, bool isUSB, {value}) async {
+
+  printReceipt(int paperSize, bool isUSB, {value}) async {
     String dateTime = dateFormat.format(DateTime.now());
     await readReceiptLayout();
 
@@ -82,7 +81,7 @@ class ReceiptLayout{
       //order product
       bytes += generator.row([
         PosColumn(
-            text: 'Nasi kandar' + '(big,white)',
+            text: 'Nasi kandar',
             width: 6,
             containsChinese: true,
             styles: PosStyles(align: PosAlign.left, bold: true)),
@@ -91,6 +90,11 @@ class ReceiptLayout{
             text: '11.00',
             width: 4,
             styles: PosStyles(align: PosAlign.right)),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '(big,white)', width: 6, containsChinese: true),
+        PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+        PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
       ]);
       bytes += generator.emptyLines(1);
       bytes += generator.row([
@@ -116,7 +120,7 @@ class ReceiptLayout{
         * */
       bytes += generator.row([
         PosColumn(
-            text: 'Nasi Lemak' + '(big,white)',
+            text: 'Nasi Lemak' + '',
             width: 6,
             containsChinese: true,
             styles: PosStyles(align: PosAlign.left, bold: true)),
@@ -125,6 +129,11 @@ class ReceiptLayout{
             text: '11.00',
             width: 4,
             styles: PosStyles(align: PosAlign.right)),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '(big,white)', width: 6, containsChinese: true),
+        PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+        PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
       ]);
       bytes += generator.reset();
       bytes += generator.row([
@@ -176,6 +185,163 @@ class ReceiptLayout{
       bytes += generator.cut(mode: PosCutMode.partial);
       return bytes;
     } catch ($e) {
+      return null;
+    }
+  }
+
+  printCheckList(int paperSize, bool isUSB, {value}) async {
+    String dateTime = dateFormat.format(DateTime.now());
+
+    if(paperSize == 0){
+      size = PaperSize.mm80;
+    } else {
+      size = PaperSize.mm58;
+    }
+    var generator;
+    if (isUSB) {
+      final profile = await CapabilityProfile.load();
+      generator = Generator(size!, profile);
+    } else {
+      generator = value;
+    }
+
+    List<int> bytes = [];
+    try {
+      bytes += generator.text('**order list**', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.emptyLines(1);
+      bytes += generator.reset();
+      //other order detail
+      bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
+      bytes += generator.text('Order No: #0123456');
+      bytes += generator.text('Order time: ${dateTime}');
+      bytes += generator.hr();
+      bytes += generator.reset();
+      /*
+    *
+    * body
+    *
+    * */
+      //order product
+      bytes += generator.row([
+        PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
+        PosColumn(
+            text: 'Nasi kandar',
+            width: 8,
+            containsChinese: true,
+            styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+        PosColumn(
+            text: '[   ]',
+            width: 2,
+            styles: PosStyles(align: PosAlign.right)),
+      ]);
+      bytes += generator.reset();
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '(Big, white)', width: 8, styles: PosStyles(align: PosAlign.left)),
+        PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+      ]);
+      bytes += generator.emptyLines(1);
+      bytes += generator.row([
+        PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
+        PosColumn(
+            text: 'Nasi Lemak',
+            width: 8,
+            containsChinese: true,
+            styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+        PosColumn(
+            text: '[   ]',
+            width: 2,
+            styles: PosStyles(align: PosAlign.right)),
+      ]);
+      bytes += generator.reset();
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '+Modifier', width: 8, styles: PosStyles(align: PosAlign.left)),
+        PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+      ]);
+      bytes += generator.emptyLines(1);
+      bytes += generator.row([
+        PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
+        PosColumn(
+            text: 'French fries',
+            width: 8,
+            containsChinese: true,
+            styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+        PosColumn(
+            text: '[   ]',
+            width: 2,
+            styles: PosStyles(align: PosAlign.right)),
+      ]);
+      bytes += generator.reset();
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '**Remark', width: 8, styles: PosStyles(align: PosAlign.left)),
+        PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+      ]);
+
+      bytes += generator.feed(1);
+      bytes += generator.cut(mode: PosCutMode.partial);
+      return bytes;
+    } catch (e) {
+      print('layout error: $e');
+      return null;
+    }
+  }
+
+  printKitchenList(int paperSize, bool isUSB, {value}) async {
+    String dateTime = dateFormat.format(DateTime.now());
+
+    if(paperSize == 0){
+      size = PaperSize.mm80;
+    } else {
+      size = PaperSize.mm58;
+    }
+    var generator;
+    if (isUSB) {
+      final profile = await CapabilityProfile.load();
+      generator = Generator(size!, profile);
+    } else {
+      generator = value;
+    }
+
+    List<int> bytes = [];
+    try {
+      bytes += generator.text('**kitchen list**', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.emptyLines(1);
+      bytes += generator.reset();
+      //other order detail
+      bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+      bytes += generator.text('order No: #0123456', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('order time: ${dateTime}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.hr();
+      bytes += generator.reset();
+      /*
+    *
+    * body
+    *
+    * */
+      //order product
+      bytes += generator.row([
+        PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
+        PosColumn(
+            text: 'Nasi kandar',
+            width: 10,
+            containsChinese: true,
+            styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+      ]);
+      bytes += generator.reset();
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '(Big, white)', width: 10, styles: PosStyles(align: PosAlign.left)),
+      ]);
+      bytes += generator.hr();
+
+      bytes += generator.feed(1);
+      bytes += generator.beep(n: 3, duration: PosBeepDuration.beep400ms);
+      bytes += generator.cut(mode: PosCutMode.partial);
+      return bytes;
+    } catch (e) {
+      print('layout error: $e');
       return null;
     }
   }
