@@ -1418,6 +1418,18 @@ class PosDatabase {
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
   }
 
+  /*
+  read all order cache
+*/
+  Future<List<OrderCache>> readBranchLatestOrderCache(int branch_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND branch_id = ? ORDER BY created_at DESC LIMIT 1',
+        ['', branch_id]);
+    return result.map((json) => OrderCache.fromJson(json)).toList();
+
+  }
+
 /*
   read all order cache
 */
@@ -1493,6 +1505,7 @@ class PosDatabase {
 
    return result.map((json) => OrderDetail.fromJson(json)).toList();
  }
+
 //   /*
 //   read order detail
 // */

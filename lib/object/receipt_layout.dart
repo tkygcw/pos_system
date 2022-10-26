@@ -1,11 +1,20 @@
 import 'package:esc_pos_utils/esc_pos_utils.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/object/order_cache.dart';
+import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/receipt.dart';
+import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/table_use_detail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ReceiptLayout{
   PaperSize? size;
   Receipt? receipt;
+  OrderCache? orderCache;
+  List<OrderDetail> orderDetailList = [];
+  List<PosTable> tableList = [];
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
 
 
@@ -14,6 +23,25 @@ class ReceiptLayout{
     for(int i = 0; i < data.length; i++){
       if(data[i].status == 1){
         receipt = data[i];
+      }
+    }
+  }
+
+  readOrderCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    List<OrderCache> data = await PosDatabase.instance.readBranchLatestOrderCache(branch_id!);
+    orderCache = data[0];
+    List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCache!.order_cache_sqlite_id.toString());
+    if(!detailData.contains(detailData)){
+      orderDetailList = List.from(detailData);
+    }
+    List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllTableUseDetail(orderCache!.table_use_sqlite_id!);
+    for(int i = 0; i < detailData2.length; i++){
+      List<PosTable> tableData = await PosDatabase.instance
+          .readSpecificTable(branch_id, detailData2[i].table_sqlite_id!);
+      if(!tableList.contains(tableData)){
+        tableList = List.from(tableData);
       }
     }
   }
@@ -191,6 +219,7 @@ class ReceiptLayout{
 
   printCheckList(int paperSize, bool isUSB, {value}) async {
     String dateTime = dateFormat.format(DateTime.now());
+    await readOrderCache();
 
     if(paperSize == 0){
       size = PaperSize.mm80;
@@ -211,8 +240,11 @@ class ReceiptLayout{
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
-      bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
-      bytes += generator.text('Order No: #0123456');
+      for(int i = 0; i < tableList.length; i++){
+        bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
+      }
+      // bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
+      bytes += generator.text('Order No: #${orderCache!.batch_id}');
       bytes += generator.text('Order time: ${dateTime}');
       bytes += generator.hr();
       bytes += generator.reset();
@@ -222,62 +254,74 @@ class ReceiptLayout{
     *
     * */
       //order product
-      bytes += generator.row([
-        PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
-        PosColumn(
-            text: 'Nasi kandar',
-            width: 8,
-            containsChinese: true,
-            styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
-        PosColumn(
-            text: '[   ]',
-            width: 2,
-            styles: PosStyles(align: PosAlign.right)),
-      ]);
-      bytes += generator.reset();
-      bytes += generator.row([
-        PosColumn(text: '', width: 2),
-        PosColumn(text: '(Big, white)', width: 8, styles: PosStyles(align: PosAlign.left)),
-        PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-      ]);
-      bytes += generator.emptyLines(1);
-      bytes += generator.row([
-        PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
-        PosColumn(
-            text: 'Nasi Lemak',
-            width: 8,
-            containsChinese: true,
-            styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
-        PosColumn(
-            text: '[   ]',
-            width: 2,
-            styles: PosStyles(align: PosAlign.right)),
-      ]);
-      bytes += generator.reset();
-      bytes += generator.row([
-        PosColumn(text: '', width: 2),
-        PosColumn(text: '+Modifier', width: 8, styles: PosStyles(align: PosAlign.left)),
-        PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-      ]);
-      bytes += generator.emptyLines(1);
-      bytes += generator.row([
-        PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
-        PosColumn(
-            text: 'French fries',
-            width: 8,
-            containsChinese: true,
-            styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
-        PosColumn(
-            text: '[   ]',
-            width: 2,
-            styles: PosStyles(align: PosAlign.right)),
-      ]);
-      bytes += generator.reset();
-      bytes += generator.row([
-        PosColumn(text: '', width: 2),
-        PosColumn(text: '**Remark', width: 8, styles: PosStyles(align: PosAlign.left)),
-        PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-      ]);
+      for(int i = 0; i < orderDetailList.length; i++){
+        bytes += generator.row([
+          PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
+          PosColumn(
+              text: '${orderDetailList[i].productName}',
+              width: 8,
+              containsChinese: true,
+              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+          PosColumn(
+              text: '[   ]',
+              width: 2,
+              styles: PosStyles(align: PosAlign.right)),
+        ]);
+        bytes += generator.reset();
+        if(orderDetailList[i].has_variant == '1'){
+          bytes += generator.row([
+            PosColumn(text: '', width: 2),
+            PosColumn(text: '(${orderDetailList[i].product_variant_name})', width: 8, styles: PosStyles(align: PosAlign.left)),
+            PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+          ]);
+        } else {
+          bytes += generator.row([
+            PosColumn(text: '', width: 2),
+            PosColumn(text: '+Modifier', width: 8, styles: PosStyles(align: PosAlign.left)),
+            PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+          ]);
+        }
+
+        bytes += generator.emptyLines(1);
+      }
+
+      // bytes += generator.row([
+      //   PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
+      //   PosColumn(
+      //       text: 'Nasi Lemak',
+      //       width: 8,
+      //       containsChinese: true,
+      //       styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+      //   PosColumn(
+      //       text: '[   ]',
+      //       width: 2,
+      //       styles: PosStyles(align: PosAlign.right)),
+      // ]);
+      // bytes += generator.reset();
+      // bytes += generator.row([
+      //   PosColumn(text: '', width: 2),
+      //   PosColumn(text: '+Modifier', width: 8, styles: PosStyles(align: PosAlign.left)),
+      //   PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+      // ]);
+      // bytes += generator.emptyLines(1);
+      // bytes += generator.row([
+      //   PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
+      //   PosColumn(
+      //       text: 'French fries',
+      //       width: 8,
+      //       containsChinese: true,
+      //       styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+      //   PosColumn(
+      //       text: '[   ]',
+      //       width: 2,
+      //       styles: PosStyles(align: PosAlign.right)),
+      // ]);
+      // bytes += generator.reset();
+      // bytes += generator.row([
+      //   PosColumn(text: '', width: 2),
+      //   PosColumn(text: '**Remark', width: 8, styles: PosStyles(align: PosAlign.left)),
+      //   PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+      // ]);
 
       bytes += generator.feed(1);
       bytes += generator.cut(mode: PosCutMode.partial);

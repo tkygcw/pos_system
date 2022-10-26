@@ -69,60 +69,61 @@ class _TestPrintState extends State<TestPrint> {
 
     //LOGO
     bytes += generator.text('Lucky 8', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
-    bytes += generator.emptyLines(1);
-    bytes += generator.reset();
-    //Address
-    bytes += generator.text('22-2, Jalan Permas 11/1A, Bandar Permas Baru, 81750, Masai', styles: PosStyles(align: PosAlign.center));
-    //telephone
-    bytes += generator.text('Tel: 07-3504533', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
-    bytes += generator.text('Lucky8@hotmail.com', styles: PosStyles(align: PosAlign.center));
-    //receipt no
-    bytes += generator.emptyLines(1);
-    bytes += generator.text('Receipt No.: 17-200-000056',
-        styles: PosStyles(align: PosAlign.left, width: PosTextSize.size1, height: PosTextSize.size1, bold: true));
-    bytes += generator.reset();
-    //other order detail
-    bytes += generator.text('2022-10-03 17:18:18');
-    bytes += generator.text('Close by: Taylor');
-    bytes += generator.hr(ch: '-');
-    bytes += generator.reset();
-    //order product
-    bytes += generator.text('Nasi kandar',styles: PosStyles(align: PosAlign.left));
-    bytes += generator.reset();
-    bytes += generator.row([
-      PosColumn(text: '1x RM11', width: 8, styles: PosStyles(align: PosAlign.left)),
-      PosColumn(text: 'RM11.00', width: 4, styles: PosStyles(align: PosAlign.right))
-    ]);
-    bytes += generator.text('Nasi Ayam',styles: PosStyles(align: PosAlign.left));
-    bytes += generator.reset();
-    bytes += generator.row([
-      PosColumn(text: '1x RM7.90 (Big + RM2.00)', width: 8, styles: PosStyles(align: PosAlign.left)),
-      PosColumn(text: 'RM9.90', width: 4, styles: PosStyles(align: PosAlign.right))
-    ]);
-    bytes += generator.reset();
-    bytes += generator.hr(ch: '-');
-    bytes += generator.reset();
-    //item count
-    bytes += generator.text('Items count: 2');
-    bytes += generator.emptyLines(1);
-    bytes += generator.reset();
-    //total calc
-    bytes += generator.row([
-      PosColumn(text: 'Subtotal:', width: 8, styles: PosStyles(align: PosAlign.left)),
-      PosColumn(text: 'RM20.90', width: 4, styles: PosStyles(align: PosAlign.right))
-    ]);
-    bytes += generator.row([
-      PosColumn(text: 'Service Tax(10%):', width: 8, styles: PosStyles(align: PosAlign.left)),
-      PosColumn(text: 'RM2.09', width: 4, styles: PosStyles(align: PosAlign.right))
-    ]);
-    bytes += generator.reset();
-    //total
-    bytes += generator.row([
-      PosColumn(text: 'TOTAL:', width: 8, styles: PosStyles(align: PosAlign.left, bold: true)),
-      PosColumn(text: 'RM22.99', width: 4, styles: PosStyles(align: PosAlign.right, bold: true))
-    ]);
+    // bytes += generator.emptyLines(1);
+    // bytes += generator.reset();
+    // //Address
+    // bytes += generator.text('22-2, Jalan Permas 11/1A, Bandar Permas Baru, 81750, Masai', styles: PosStyles(align: PosAlign.center));
+    // //telephone
+    // bytes += generator.text('Tel: 07-3504533', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
+    // bytes += generator.text('Lucky8@hotmail.com', styles: PosStyles(align: PosAlign.center));
+    // //receipt no
+    // bytes += generator.emptyLines(1);
+    // bytes += generator.text('Receipt No.: 17-200-000056',
+    //     styles: PosStyles(align: PosAlign.left, width: PosTextSize.size1, height: PosTextSize.size1, bold: true));
+    // bytes += generator.reset();
+    // //other order detail
+    // bytes += generator.text('2022-10-03 17:18:18');
+    // bytes += generator.text('Close by: Taylor');
+    // bytes += generator.hr(ch: '-');
+    // bytes += generator.reset();
+    // //order product
+    // bytes += generator.text('Nasi kandar',styles: PosStyles(align: PosAlign.left));
+    // bytes += generator.reset();
+    // bytes += generator.row([
+    //   PosColumn(text: '1x RM11', width: 8, styles: PosStyles(align: PosAlign.left)),
+    //   PosColumn(text: 'RM11.00', width: 4, styles: PosStyles(align: PosAlign.right))
+    // ]);
+    // bytes += generator.text('Nasi Ayam',styles: PosStyles(align: PosAlign.left));
+    // bytes += generator.reset();
+    // bytes += generator.row([
+    //   PosColumn(text: '1x RM7.90 (Big + RM2.00)', width: 8, styles: PosStyles(align: PosAlign.left)),
+    //   PosColumn(text: 'RM9.90', width: 4, styles: PosStyles(align: PosAlign.right))
+    // ]);
+    // bytes += generator.reset();
+    // bytes += generator.hr(ch: '-');
+    // bytes += generator.reset();
+    // //item count
+    // bytes += generator.text('Items count: 2');
+    // bytes += generator.emptyLines(1);
+    // bytes += generator.reset();
+    // //total calc
+    // bytes += generator.row([
+    //   PosColumn(text: 'Subtotal:', width: 8, styles: PosStyles(align: PosAlign.left)),
+    //   PosColumn(text: 'RM20.90', width: 4, styles: PosStyles(align: PosAlign.right))
+    // ]);
+    // bytes += generator.row([
+    //   PosColumn(text: 'Service Tax(10%):', width: 8, styles: PosStyles(align: PosAlign.left)),
+    //   PosColumn(text: 'RM2.09', width: 4, styles: PosStyles(align: PosAlign.right))
+    // ]);
+    // bytes += generator.reset();
+    // //total
+    // bytes += generator.row([
+    //   PosColumn(text: 'TOTAL:', width: 8, styles: PosStyles(align: PosAlign.left, bold: true)),
+    //   PosColumn(text: 'RM22.99', width: 4, styles: PosStyles(align: PosAlign.right, bold: true))
+    // ]);
 
     bytes += generator.feed(1);
+    bytes += generator.drawer();
     bytes += generator.cut(mode: PosCutMode.partial);
     return bytes;
   }

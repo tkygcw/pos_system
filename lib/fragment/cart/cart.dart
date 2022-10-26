@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/cart/cart_dialog.dart';
@@ -18,6 +20,7 @@ import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
@@ -29,6 +32,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../object/order_modifier_detail.dart';
+import '../../object/printer.dart';
 import '../../object/receipt_layout.dart';
 import '../../object/table.dart';
 import '../../translation/AppLocalizations.dart';
@@ -44,6 +48,8 @@ class CartPage extends StatefulWidget {
 
 class _CartPageState extends State<CartPage> {
   late StreamController controller;
+  FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
+  List<Printer> printerList = [];
   List<Promotion> promotionList = [];
   List<String> diningList = [];
   List<String> branchLinkDiningIdList = [];
@@ -81,6 +87,7 @@ class _CartPageState extends State<CartPage> {
     controller = StreamController();
     readAllBranchLinkDiningOption();
     getPromotionData();
+    readAllPrinters();
   }
 
   @override
@@ -486,6 +493,7 @@ class _CartPageState extends State<CartPage> {
                                     } else {
                                       print('add order cache');
                                       await callCreateNewOrder(cart);
+                                      await _printCheckList();
                                       cart.removeAllCartItem();
                                       cart.removeAllTable();
                                     }
@@ -510,7 +518,6 @@ class _CartPageState extends State<CartPage> {
                                 }
                               } else {
                                 print('make payment');
-
                               }
                             },
                             child: widget.currentPage == 'menu'
@@ -528,26 +535,43 @@ class _CartPageState extends State<CartPage> {
     });
   }
 
-  // _print() async {
-  //   try {
-  //     var printerDetail = jsonDecode(printerValue[0]);
-  //     print(printerDetail);
-  //
-  //     var data = Uint8List.fromList(
-  //         await ReceiptLayout().testTicket(_paperSize!, true));
-  //     bool? isConnected = await flutterUsbPrinter.connect(
-  //         int.parse(printerDetail['vendorId']),
-  //         int.parse(printerDetail['productId']));
-  //     if (isConnected == true) {
-  //       await flutterUsbPrinter.write(data);
-  //     } else {
-  //       print('not connected');
-  //     }
-  //   } catch (e) {
-  //     print('Printer Connection Error');
-  //     //response = 'Failed to get platform version.';
-  //   }
-  // }
+  _printCheckList() async {
+    try {
+
+      for(int i = 0; i < printerList.length; i++){
+        List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+        if(data[0].category_id == '7'){
+          var printerDetail = jsonDecode(printerList[i].value!);
+          print(printerDetail);
+
+          var data = Uint8List.fromList(
+              await ReceiptLayout().printCheckList(printerList[i].paper_size!, true));
+          bool? isConnected = await flutterUsbPrinter.connect(
+              int.parse(printerDetail['vendorId']),
+              int.parse(printerDetail['productId']));
+          if (isConnected == true) {
+            await flutterUsbPrinter.write(data);
+          } else {
+            print('not connected');
+          }
+        }
+      }
+
+    } catch (e) {
+      print('Printer Connection Error');
+      //response = 'Failed to get platform version.';
+    }
+  }
+
+  readAllPrinters() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter(branch_id!);
+    printerList = List.from(data);
+
+
+  }
 /*
   -----------------------Cart-item-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -593,6 +617,24 @@ class _CartPageState extends State<CartPage> {
               .replaceAll(',', '+')
               .replaceAll('|', '\n+')
               .replaceFirst('', '+ ');
+        }
+      }
+    }
+    return result;
+  }
+
+  getVariant2(cartProductItem object) {
+    List<String?> variant = [];
+    String result = '';
+    for (int i = 0; i < object.variant.length; i++) {
+      VariantGroup group = object.variant[i];
+      for (int j = 0; j < group.child.length; j++) {
+        if (group.child[j].isSelected!) {
+          variant.add(group.child[j].name!);
+          result = variant
+              .toString()
+              .replaceAll('[', '')
+              .replaceAll(']', '');
         }
       }
     }
@@ -1550,7 +1592,7 @@ class _CartPageState extends State<CartPage> {
                   productName: cart.cartNotifierItem[j].name,
                   has_variant:
                       cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
-                  product_variant_name: cart.cartNotifierItem[j].name,
+                  product_variant_name: getVariant2(cart.cartNotifierItem[j]),
                   price: cart.cartNotifierItem[j].price,
                   quantity: cart.cartNotifierItem[j].quantity.toString(),
                   remark: cart.cartNotifierItem[j].remark,
@@ -1564,17 +1606,17 @@ class _CartPageState extends State<CartPage> {
             ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
             for (int m = 0; m < group.modifierChild.length; m++) {
               if (group.modifierChild[m].isChecked!) {
-                OrderModifierDetail modifierData = await PosDatabase.instance
-                    .insertSqliteOrderModifierDetail(OrderModifierDetail(
-                    order_modifier_detail_id: 0,
-                    order_detail_id:
-                    await detailData.order_detail_id.toString(),
-                    mod_item_id:
-                    group.modifierChild[m].mod_item_id.toString(),
-                    mod_group_id: group.mod_group_id.toString(),
-                    created_at: dateTime,
-                    updated_at: '',
-                    soft_delete: ''));
+                // OrderModifierDetail modifierData = await PosDatabase.instance
+                //     .insertSqliteOrderModifierDetail(OrderModifierDetail(
+                //     order_modifier_detail_id: 0,
+                //     order_detail_id:
+                //     await detailData.order_detail_id.toString(),
+                //     mod_item_id:
+                //     group.modifierChild[m].mod_item_id.toString(),
+                //     mod_group_id: group.mod_group_id.toString(),
+                //     created_at: dateTime,
+                //     updated_at: '',
+                //     soft_delete: ''));
               }
             }
           }
