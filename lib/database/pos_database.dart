@@ -1932,8 +1932,8 @@ class PosDatabase {
   Future<int> deleteTableUseDetail(TableUseDetail data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableTableUseDetail SET soft_delete = ? WHERE table_use_detail_id = ?',
-        [data.soft_delete, data.table_use_detail_id]);
+        'UPDATE $tableTableUseDetail SET soft_delete = ? WHERE table_use_sqlite_id = ?',
+        [data.soft_delete, data.table_use_sqlite_id]);
   }
 
   /*
@@ -1952,8 +1952,8 @@ class PosDatabase {
   Future<int> deleteTableUseID(TableUse data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableTableUse SET soft_delete = ? WHERE table_use_id = ?',
-        [data.soft_delete, data.table_use_id]);
+        'UPDATE $tableTableUse SET soft_delete = ? WHERE table_use_sqlite_id = ?',
+        [data.soft_delete, data.table_use_sqlite_id]);
   }
 
 /*

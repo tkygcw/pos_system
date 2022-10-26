@@ -15,6 +15,7 @@ import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/dining_option.dart';
 import 'package:pos_system/object/modifier_group.dart';
+import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/promotion.dart';
@@ -479,19 +480,12 @@ class _CartPageState extends State<CartPage> {
                                       cart.cartNotifierItem.isNotEmpty) {
                                     if (cart.cartNotifierItem[0].status == 1) {
                                       print('add new item');
-                                      //await colorChecking();
-                                      // await callAddOrderCache(cart);
+                                      await callAddOrderCache(cart);
                                       cart.removeAllCartItem();
                                       cart.removeAllTable();
                                     } else {
                                       print('add order cache');
-                                      //await colorChecking();
-                                      await createTableUseID();
-                                      await createTableUseDetail(cart);
-                                      await updatePosTable(cart);
-                                      await createOrderCache(cart);
-                                      await createOrderDetail(cart);
-                                      //await callCreateNewOrder(cart);
+                                      await callCreateNewOrder(cart);
                                       cart.removeAllCartItem();
                                       cart.removeAllTable();
                                     }
@@ -1325,6 +1319,10 @@ class _CartPageState extends State<CartPage> {
 
   }
 
+  randomColor() {
+    return Color(Random().nextInt(0xffffffff)).withAlpha(0xff);
+  }
+
   colorToHex(Color color) {
     String hex = '#' + color.value.toRadixString(16).substring(2);
     return hex;
@@ -1335,9 +1333,6 @@ class _CartPageState extends State<CartPage> {
     return temp;
   }
 
-  randomColor() {
-    return Color(Random().nextInt(0xffffffff));
-  }
 
   colorChecking() async {
     String? hexCode;
@@ -1346,10 +1341,11 @@ class _CartPageState extends State<CartPage> {
     int tempColor = 0;
     int matchColor = 0;
     int diff = 0;
+    int count = 0;
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     List<TableUse> data =
-        await PosDatabase.instance.readAllTableUseId(branch_id!);
+    await PosDatabase.instance.readAllTableUseId(branch_id!);
 
     while (colorFound == false) {
       /* change color */
@@ -1366,66 +1362,68 @@ class _CartPageState extends State<CartPage> {
             if (diff.abs() < 150000) {
               print('color too close or not yet loop finish');
               print('diff: ${diff.abs()}');
-              i--;
               found = false;
               break;
             } else {
               print('color is ok');
               print('diff: ${diff}');
-              i++;
-              if (i == data.length) {
-                found = true;
-                break;
+              if (i < data.length) {
+                continue;
               }
             }
           }
         }
+        found = true;
       } else {
         found = true;
         break;
       }
 
       if (found == true) colorFound = true;
+      // count++;
     }
     return hexCode;
   }
 
-  /**
-   * concurrent here (done)
-   */
-  // createTableUseID() async {
-  //   print('create table use id called');
-  //   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-  //   String dateTime = dateFormat.format(DateTime.now());
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final int? branch_id = prefs.getInt('branch_id');
-  //   String? hexCode;
-  //   tableUseId = '';
-  //   try {
-  //     hexCode = await colorChecking();
-  //     if (hexCode != null) {
-  //       Map responseInsertTableUse = new Domain()
-  //           .insertTableUse(branch_id.toString(), hexCode.toString());
-  //       if (responseInsertTableUse['status'] == '1') {
-  //         //create table use data
-  //         TableUse tableUseData = await PosDatabase.instance
-  //             .insertSqliteTableUse(TableUse(
-  //                 table_use_id: responseInsertTableUse['table_use'],
-  //                 branch_id: branch_id,
-  //                 cardColor: hexCode.toString(),
-  //                 created_at: dateTime,
-  //                 updated_at: '',
-  //                 soft_delete: ''));
-  //         tableUseId = tableUseData.table_use_id.toString();
-  //       }
-  //     }
-  //   } catch (e) {
-  //     Fluttertoast.showToast(
-  //         backgroundColor: Color(0xFFFF0000),
-  //         msg: "Create table id error: ${e}");
-  //   }
-  //   return tableUseId;
-  // }
+  randomBatch(){
+    return Random().nextInt(100000) + 1;
+  }
+
+  batchChecking() async {
+    print('batch checking called!');
+    int tempBatch = 0;
+    bool batchFound = false;
+    bool founded = false;
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    List<OrderCache> data = await PosDatabase.instance.readBranchOrderCache(branch_id!);
+    while(batchFound == false ){
+      tempBatch = randomBatch();
+      if(data.length > 0){
+        for(int i = 0; i < data.length; i++){
+          if(tempBatch == int.parse(data[i].batch_id!)){
+            print('batch no same!');
+            founded = false;
+            break;
+          } else {
+            if(i < data.length){
+              print('not yet loop finish');
+              continue;
+            }
+          }
+        }
+        founded = true;
+      }else {
+        founded = true;
+        break;
+      }
+
+      if (founded == true) batchFound = true;
+    }
+    return tempBatch;
+  }
+
   createTableUseID() async {
     print('create table use id called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -1457,39 +1455,6 @@ class _CartPageState extends State<CartPage> {
     return localTableUseId;
   }
 
-  /**
-   * concurrent here (done)
-   */
-  // createTableUseDetail(CartModel cart) async {
-  //   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-  //   String dateTime = dateFormat.format(DateTime.now());
-  //   try {
-  //     for (int i = 0; i < cart.selectedTable.length; i++) {
-  //       Map responseInsertTableUseDetail = new Domain().insertTableUseDetail(
-  //           tableUseId.toString(),
-  //           cart.selectedTable[i].table_id.toString(),
-  //           cart.selectedTable[i].table_id.toString());
-  //       //create table use detail
-  //       if (responseInsertTableUseDetail['status'] == '1') {
-  //         TableUseDetail tableUseDetailData = await PosDatabase.instance
-  //             .insertSqliteTableUseDetail(TableUseDetail(
-  //                 table_use_detail_id:
-  //                     responseInsertTableUseDetail['table_use_detail'],
-  //                 table_use_id: tableUseId,
-  //                 table_id: cart.selectedTable[i].table_id.toString(),
-  //                 original_table_id: cart.selectedTable[i].table_id.toString(),
-  //                 created_at: dateTime,
-  //                 updated_at: '',
-  //                 soft_delete: ''));
-  //       }
-  //     }
-  //   } catch (e) {
-  //     Fluttertoast.showToast(
-  //         backgroundColor: Color(0xFFFF0000),
-  //         msg: "Create table detail error: ${e}");
-  //   }
-  // }
-
   createTableUseDetail(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -1514,9 +1479,6 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  /**
-   * concurrent here
-   */
   createOrderCache(CartModel cart) async {
     print('create order cache local called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -1526,7 +1488,9 @@ class _CartPageState extends State<CartPage> {
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);
     String _tableUseId = '';
+    int batch = 0;
     try {
+      batch = await batchChecking();
       //check selected table is in use or not
       for (int i = 0; i < cart.selectedTable.length; i++) {
         List<TableUseDetail> useDetail = await PosDatabase.instance
@@ -1537,25 +1501,28 @@ class _CartPageState extends State<CartPage> {
           _tableUseId = this.localTableUseId;
         }
       }
-      //create order cache
-      OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
-          OrderCache(
-              order_cache_id: 0,
-              company_id: userObject['company_id'].toString(),
-              branch_id: branch_id.toString(),
-              order_detail_id: '',
-              table_use_sqlite_id: _tableUseId,
-              table_sqlite_id: '',
-              dining_id: diningOptionID.toString(),
-              order_id: '',
-              order_by: userObject['name'].toString(),
-              customer_id: '0',
-              total_amount: totalAmount.toStringAsFixed(2),
-              sync_status: 0,
-              created_at: dateTime,
-              updated_at: '',
-              soft_delete: ''));
-      orderCacheId = data.order_cache_sqlite_id.toString();
+      if(batch != 0){
+        //create order cache
+        OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
+            OrderCache(
+                order_cache_id: 0,
+                company_id: userObject['company_id'].toString(),
+                branch_id: branch_id.toString(),
+                order_detail_id: '',
+                table_use_sqlite_id: _tableUseId,
+                batch_id: batch.toString().padLeft(6, '0'),
+                dining_id: diningOptionID.toString(),
+                order_id: '',
+                order_by: userObject['name'].toString(),
+                customer_id: '0',
+                total_amount: totalAmount.toStringAsFixed(2),
+                sync_status: 0,
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+        orderCacheId = data.order_cache_sqlite_id.toString();
+      }
+
 
     } catch (e) {
       Fluttertoast.showToast(
@@ -1566,7 +1533,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   /**
-   * concurrent here
+   * concurrent here (done)
    */
   createOrderDetail(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");

@@ -110,6 +110,16 @@ class _CartDialogState extends State<CartDialog> {
     return new Color(int.parse(hexCode.substring(1, 7), radix: 16) + 0xFF000000);
   }
 
+  toColor(String hex) {
+    var hexColor = hex.replaceAll("#", "");
+    if (hexColor.length == 6) {
+      hexColor = "FF" + hexColor;
+    }
+    if (hexColor.length == 8) {
+      return Color(int.parse("0x$hexColor"));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
@@ -184,14 +194,21 @@ class _CartDialogState extends State<CartDialog> {
                     side: new BorderSide(color: Colors.white, width: 3.0),
                     borderRadius: BorderRadius.circular(4.0)),
             color: tableList[index].status == 1
-                ? hexToColor(tableList[index].cardColor!)
+                ? toColor(tableList[index].cardColor!)
                 : Colors.white,
             child: InkWell(
               splashColor: Colors.blue.withAlpha(30),
               onDoubleTap: (){
-                openChangeTableDialog(tableList[index]);
-                cart.removeAllTable();
-                cart.removeAllCartItem();
+                if(tableList[index].status == 1){
+                  openChangeTableDialog(tableList[index]);
+                  cart.removeAllTable();
+                  cart.removeAllCartItem();
+                } else {
+                  Fluttertoast.showToast(
+                      backgroundColor: Color(0xFFFF0000),
+                      msg: "table not in use");
+                }
+
               },
               onTap: () async {
                 //check selected table is in use or not
@@ -640,14 +657,16 @@ class _CartDialogState extends State<CartDialog> {
       TableUseDetail tableUseDetailData = await PosDatabase.instance
             .insertSqliteTableUseDetail(
             TableUseDetail(
-                table_use_detail_id: 3,
+                table_use_detail_id: 0,
                 table_use_sqlite_id: TableUseDetailData[0].table_use_sqlite_id,
                 table_sqlite_id: newTableId.toString(),
                 original_table_sqlite_id: newTableId.toString(),
                 created_at: dateTime,
+                sync_status: 0,
                 updated_at: '',
                 soft_delete: ''));
     } catch(e){
+      print('create table use detail error: $e');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Create table detail error: ${e}");

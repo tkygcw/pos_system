@@ -32,7 +32,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   @override
   void initState() {
     // TODO: implement initState
-    readAllTableCache();
+    //readAllTableCache();
     super.initState();
   }
 
@@ -118,7 +118,7 @@ leow part
 */
   callChangeToTableInUse(String currentTableUseId, String NewTableUseId, String dateTime) async {
     await updateOrderCache(currentTableUseId, NewTableUseId, dateTime);
-    await deleteCurrentTableUseDetail(int.parse(currentTableUseId), dateTime);
+    await deleteCurrentTableUseDetail(currentTableUseId, dateTime);
     await deleteCurrentTableUseId(int.parse(currentTableUseId), dateTime);
   }
   /**
@@ -126,7 +126,7 @@ leow part
    */
   changeToUnusedTable(String table_id, String dateTime) async {
     int tableUseDetailData = await PosDatabase.instance.updateTableUseDetail(
-        widget.object.table_id!,
+        widget.object.table_sqlite_id!,
         TableUseDetail(
             table_sqlite_id: table_id,
             updated_at: dateTime
@@ -139,9 +139,9 @@ leow part
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
-    List<TableUseDetail> NowUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(widget.object.table_id!);
+    List<TableUseDetail> NowUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(widget.object.table_sqlite_id!);
     List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(branch_id!, tableNoController.text);
-    List<TableUseDetail> NewUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableData[0].table_id!);
+    List<TableUseDetail> NewUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableData[0].table_sqlite_id!);
     //check new table is in use or not
     if(NewUseDetailData.length > 0){
       await callChangeToTableInUse(NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
@@ -156,7 +156,7 @@ leow part
    * concurrent here
    */
   updatePosTableStatus(int tableId, int status, String dateTime) async {
-    PosTable posTableData = PosTable(table_id: tableId, status: status, updated_at: dateTime);
+    PosTable posTableData = PosTable(status: status, updated_at: dateTime, table_sqlite_id: tableId, );
     int data2 = await PosDatabase.instance.updatePosTableStatus(posTableData);
   }
 
@@ -171,15 +171,15 @@ leow part
         .readSpecificTableByTableNo(branch_id!, tableNoController.text);
     //update new table status
     List<PosTable> newTable = await PosDatabase.instance
-        .checkPosTableStatus(branch_id, tableData[0].table_id!);
+        .checkPosTableStatus(branch_id, tableData[0].table_sqlite_id!);
     if (newTable[0].status == 0) {
-      updatePosTableStatus(tableData[0].table_id!, 1, dateTime);
+      updatePosTableStatus(tableData[0].table_sqlite_id!, 1, dateTime);
     }
     //update previous table status
     List<PosTable> lastTable = await PosDatabase.instance
-        .checkPosTableStatus(branch_id, widget.object.table_id!);
+        .checkPosTableStatus(branch_id, widget.object.table_sqlite_id!);
     if (lastTable[0].status == 1) {
-      updatePosTableStatus(widget.object.table_id!, 0, dateTime);
+      updatePosTableStatus(widget.object.table_sqlite_id!, 0, dateTime);
     }
     widget.callBack();
     Navigator.of(context).pop();
@@ -246,21 +246,21 @@ leow part
     });
   }
 
-  readAllTableCache() async {
-    print('read all table cache called');
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
-    List<OrderCache> orderCacheData = await PosDatabase.instance
-        .readTableOrderCache(branch_id.toString(), widget.object.table_id.toString());
-    //loop all table order cache
-    for (int i = 0; i < orderCacheData.length; i++) {
-      if (!orderCacheList.contains(orderCacheData)) {
-        orderCacheList = List.from(orderCacheData);
-      }
-    }
-    print('order cache length: ${orderCacheList.length}');
-  }
+  // readAllTableCache() async {
+  //   print('read all table cache called');
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final int? branch_id = prefs.getInt('branch_id');
+  //
+  //   List<OrderCache> orderCacheData = await PosDatabase.instance
+  //       .readTableOrderCache(branch_id.toString(), widget.object.table_sqlite_id.toString());
+  //   //loop all table order cache
+  //   for (int i = 0; i < orderCacheData.length; i++) {
+  //     if (!orderCacheList.contains(orderCacheData)) {
+  //       orderCacheList = List.from(orderCacheData);
+  //     }
+  //   }
+  //   print('order cache length: ${orderCacheList.length}');
+  // }
 
   updateOrderCache(String currentTableUseId, String NewTableUseId, String dateTime) async {
     try{
@@ -277,20 +277,20 @@ leow part
     }
   }
 
-  deleteCurrentTableUseDetail(int currentTableUseId, String dateTime) async {
+  deleteCurrentTableUseDetail(String currentTableUseId, String dateTime) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
 
     try{
       int tableUseDetailData = await PosDatabase.instance.deleteTableUseDetail(
           TableUseDetail(
-              table_use_detail_id: currentTableUseId,
-              soft_delete: dateTime
+              soft_delete: dateTime,
+              table_use_sqlite_id: currentTableUseId,
           ));
     } catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Delete current table use detail error: ${e}");
+          msg: "Delete current table use detail error: $e");
     }
   }
 
@@ -301,8 +301,8 @@ leow part
     try{
       int tableUseData = await PosDatabase.instance.deleteTableUseID(
           TableUse(
-              table_use_id: currentTableUseId,
-              soft_delete: dateTime
+            soft_delete: dateTime,
+            table_use_sqlite_id: currentTableUseId,
           ));
     }catch(e){
       Fluttertoast.showToast(
