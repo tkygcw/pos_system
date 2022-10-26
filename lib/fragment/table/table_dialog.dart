@@ -75,47 +75,13 @@ class _TableDialogState extends State<TableDialog> {
     }
   }
 
-  // void createPosTable() async {
-  //   try{
-  //     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-  //     String dateTime = dateFormat.format(DateTime.now());
-  //     final prefs = await SharedPreferences.getInstance();
-  //     final int? branch_id = prefs.getInt('branch_id');
-  //     Map response = await Domain().insertTable(seatController.text,tableNoController.text,branch_id.toString());
-  //     if(response['status']=='1'){
-  //       PosTable data = await PosDatabase.instance.insertPosTable(PosTable(
-  //           table_id: response['table'],
-  //           branch_id: branch_id.toString(),
-  //           number: tableNoController.text,
-  //           seats: seatController.text,
-  //           status: 0,
-  //           created_at: dateTime,
-  //           updated_at: '',
-  //           soft_delete: ''));
-  //       if(data.table_id!=''){
-  //         Fluttertoast.showToast(msg: 'Successfully create');
-  //         widget.callBack();
-  //         closeDialog(context);
-  //       }
-  //       else{
-  //         Fluttertoast.showToast(msg: 'Fail create');
-  //       }
-  //     }
-  //     else{
-  //       Fluttertoast.showToast(msg: 'Fail create');
-  //     }
-  //   }catch(error){
-  //     Fluttertoast.showToast(msg: 'Something went wrong, please try again');
-  //   }
-  // }
-
   void createPosTable() async {
-    try{
+    try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      PosTable data = await PosDatabase.instance.insertPosTable(PosTable(
+      PosTable data = await PosDatabase.instance.insertSyncPosTable(PosTable(
           table_id: 0,
           branch_id: branch_id.toString(),
           number: tableNoController.text,
@@ -125,98 +91,107 @@ class _TableDialogState extends State<TableDialog> {
           created_at: dateTime,
           updated_at: '',
           soft_delete: ''));
-
-      Fluttertoast.showToast(msg: 'Successfully create');
-      widget.callBack();
-      closeDialog(context);
-    }catch(error){
+/*
+      -------------------------sync to cloud-----------------------------------
+*/
+      Map response = await Domain().insertTable(
+          seatController.text, tableNoController.text, branch_id.toString());
+      if (response['status'] == '1') {
+        int syncData = await PosDatabase.instance.updateSyncPosTable(PosTable(
+          table_id: response['table'],
+          sync_status: 2,
+          updated_at: dateTime,
+          table_sqlite_id: data.table_sqlite_id,
+        ));
+      }
+/*
+      ------------------------------sync end-----------------------------------
+*/
+      if (data.table_sqlite_id != '') {
+        Fluttertoast.showToast(msg: 'Successfully create');
+        widget.callBack();
+        closeDialog(context);
+      } else {
+        Fluttertoast.showToast(msg: 'Fail create');
+      }
+    } catch (error) {
       Fluttertoast.showToast(msg: 'Something went wrong, please try again');
     }
   }
 
   void updatePosTable() async {
-    try{
+    try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-
       int data = await PosDatabase.instance.updatePosTable(PosTable(
           table_sqlite_id: widget.object.table_sqlite_id,
           number: tableNoController.text,
           seats: seatController.text,
+          sync_status: 1,
           updated_at: dateTime));
-      Fluttertoast.showToast(msg: 'Successfully edit');
-      widget.callBack();
-      closeDialog(context);
-    }catch(error){
+/*
+      --------------------------------sync to cloud----------------------------
+*/
+      Map response = await Domain().editTable(seatController.text,
+          tableNoController.text, widget.object.table_id.toString());
+      if (response['status'] == '1') {
+        int syncData = await PosDatabase.instance.updateSyncPosTable(PosTable(
+          table_id: widget.object.table_id,
+          sync_status: 2,
+          updated_at: dateTime,
+          table_sqlite_id: widget.object.table_sqlite_id,
+        ));
+      }
+/*
+      ---------------------------------end sync--------------------------------
+*/
+      if (data == 1) {
+        Fluttertoast.showToast(msg: 'Successfully edit');
+        widget.callBack();
+        closeDialog(context);
+      } else {
+        Fluttertoast.showToast(msg: 'Fail edit');
+      }
+    } catch (error) {
       Fluttertoast.showToast(msg: 'Something went wrong, please try again');
     }
   }
 
   void deletePosTable() async {
-    try{
+    try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-
       int data = await PosDatabase.instance.deletePosTable(PosTable(
-          soft_delete: dateTime, table_sqlite_id: widget.object.table_sqlite_id));
-      Fluttertoast.showToast(msg: 'Successfully delete');
-
-      widget.callBack();
-      closeDialog(context);
-    }catch(error){
+          soft_delete: dateTime,
+          sync_status: 1,
+          table_sqlite_id: widget.object.table_sqlite_id));
+/*
+      -------------------------------sync to cloud----------------------------
+*/
+      Map response =
+          await Domain().deleteBranchTable(widget.object.table_id.toString());
+      if (response['status'] == '1') {
+        int syncData = await PosDatabase.instance.updateSyncPosTable(PosTable(
+          table_id: widget.object.table_id,
+          sync_status: 2,
+          updated_at: dateTime,
+          table_sqlite_id: widget.object.table_sqlite_id,
+        ));
+      }
+/*
+      ---------------------------------end sync-------------------------------
+*/
+      if (data == 1) {
+        Fluttertoast.showToast(msg: 'Successfully delete');
+        widget.callBack();
+        closeDialog(context);
+      } else {
+        Fluttertoast.showToast(msg: 'Fail delete');
+      }
+    } catch (error) {
       Fluttertoast.showToast(msg: 'Something went wrong, please try again');
     }
   }
-
-  // void updatePosTable() async {
-  //   try{
-  //     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-  //     String dateTime = dateFormat.format(DateTime.now());
-  //     Map response = await Domain().editTable(seatController.text,tableNoController.text,widget.object.table_id.toString());
-  //     if(response['status']=='1'){
-  //       int data = await PosDatabase.instance.updatePosTable(PosTable(
-  //           table_id: widget.object.table_id,
-  //           number: tableNoController.text,
-  //           seats: seatController.text,
-  //           updated_at: dateTime));
-  //       if(data == 1){
-  //         Fluttertoast.showToast(msg: 'Successfully edit');
-  //         widget.callBack();
-  //         closeDialog(context);
-  //       }else{
-  //         Fluttertoast.showToast(msg: 'Fail edit');
-  //       }
-  //     }
-  //     else{
-  //       Fluttertoast.showToast(msg: 'Fail edit');
-  //     }
-  //   }catch(error){
-  //     Fluttertoast.showToast(msg: 'Something went wrong, please try again');
-  //   }
-  // }
-
-  // void deletePosTable() async {
-  //   try{
-  //     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-  //     String dateTime = dateFormat.format(DateTime.now());
-  //     Map response = await Domain().deleteBranchTable(widget.object.table_id.toString());
-  //     if(response['status'] =='1'){
-  //       int data = await PosDatabase.instance.deletePosTable(PosTable(
-  //           soft_delete: dateTime, table_id: widget.object.table_id));
-  //       if(data == 1){
-  //         Fluttertoast.showToast(msg: 'Successfully delete');
-  //         widget.callBack();
-  //         closeDialog(context);
-  //       }else{
-  //         Fluttertoast.showToast(msg: 'Fail delete');
-  //       }
-  //     }else{
-  //       Fluttertoast.showToast(msg: 'Fail delete');
-  //     }
-  //   }catch(error){
-  //     Fluttertoast.showToast(msg: 'Something went wrong, please try again');
-  //   }
-  // }
 
   closeDialog(BuildContext context) {
     return Navigator.of(context).pop(true);
@@ -229,33 +204,36 @@ class _TableDialogState extends State<TableDialog> {
         title: Row(
           children: [
             Text(
-              widget.object.table_id == null? '${AppLocalizations.of(context)?.translate('create_table')}': '${AppLocalizations.of(context)?.translate('edit_table')}',
+              widget.object.table_id == null
+                  ? '${AppLocalizations.of(context)?.translate('create_table')}'
+                  : '${AppLocalizations.of(context)?.translate('edit_table')}',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             Spacer(),
-            widget.object.table_id == null? Container():IconButton(
-              icon: const Icon(Icons.delete_outlined),
-              color: Colors.red,
-              onPressed: () async {
-                if (await confirm(
-                  context,
-                  title: Text(
-                      '${AppLocalizations.of(context)?.translate('confirm')}'),
-                  content: Text(
-                      '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
-                  textOK:
-                      Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                  textCancel:
-                      Text('${AppLocalizations.of(context)?.translate('no')}'),
-                )) {
-                  return deletePosTable();
-                }
-              },
-            ),
+            widget.object.table_id == null
+                ? Container()
+                : IconButton(
+                    icon: const Icon(Icons.delete_outlined),
+                    color: Colors.red,
+                    onPressed: () async {
+                      if (await confirm(
+                        context,
+                        title: Text(
+                            '${AppLocalizations.of(context)?.translate('confirm')}'),
+                        content: Text(
+                            '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                        textOK: Text(
+                            '${AppLocalizations.of(context)?.translate('yes')}'),
+                        textCancel: Text(
+                            '${AppLocalizations.of(context)?.translate('no')}'),
+                      )) {
+                        return deletePosTable();
+                      }
+                    },
+                  ),
           ],
         ),
         content: Container(
@@ -335,7 +313,9 @@ class _TableDialogState extends State<TableDialog> {
             },
           ),
           TextButton(
-            child: widget.object.table_id == null? Text('${AppLocalizations.of(context)?.translate('add')}') : Text("Submit"),
+            child: widget.object.table_id == null
+                ? Text('${AppLocalizations.of(context)?.translate('add')}')
+                : Text("Submit"),
             onPressed: () async {
               _submit(context);
             },

@@ -189,6 +189,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
       -----------------------------sync end----------------------------------
 */
       if (data.category_sqlite_id != '') {
+        Fluttertoast.showToast(msg: 'Successfully Add');
         widget.callBack();
         Navigator.of(context).pop(true);
       } else {

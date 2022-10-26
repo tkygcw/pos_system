@@ -433,13 +433,24 @@ class PosDatabase {
     return user.copy(user_id: id);
   }
 
-/*
-  add table to sqlite
+
+  /*
+  add table to sqlite (from cloud)
 */
-  Future<PosTable> insertPosTable(PosTable table) async {
+  Future<PosTable> insertPosTable(PosTable data) async {
     final db = await instance.database;
-    final id = await db.insert(tablePosTable!, table.toJson());
-    return table.copy(table_sqlite_id: id);
+    final id = db.rawInsert('INSERT INTO $tablePosTable(table_id, branch_id, number, seats, status, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)', [data.table_id, data.branch_id, data.number, data.seats,data.status, 2, data.created_at,data.updated_at, data.soft_delete]);
+    return data.copy(table_sqlite_id: await id);
+  }
+
+
+/*
+  add product categories to sqlite
+*/
+  Future<PosTable> insertSyncPosTable(PosTable data) async {
+    final db = await instance.database;
+    final id = db.rawInsert('INSERT INTO $tablePosTable(table_id, branch_id, number, seats, status, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)', [data.table_id, data.branch_id, data.number, data.seats,data.status, data.sync_status, data.created_at,data.updated_at, data.soft_delete]);
+    return data.copy(table_sqlite_id: await id);
   }
 
 /*
@@ -497,7 +508,7 @@ class PosDatabase {
   }
 
 /*
-  add product categories to sqlite
+  add product categories to sqlite (from cloud)
 */
   Future<Categories> insertCategories(Categories data) async {
     final db = await instance.database;
@@ -511,8 +522,8 @@ class PosDatabase {
 */
   Future<Categories> insertSyncCategories(Categories data) async {
     final db = await instance.database;
-    final id = await db.insert(tableCategories!, data.toJson());
-    return data.copy(category_sqlite_id: id);
+    final id = db.rawInsert('INSERT INTO $tableCategories(category_id, company_id, name, color, sync_status, sequence, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)', [data.category_id, data.company_id, data.name, data.color,data.sync_status, data.sequence, data.created_at,data.updated_at, data.soft_delete]);
+    return data.copy(category_sqlite_id: await id);
   }
 /*
   add promotion to sqlite
@@ -1680,14 +1691,25 @@ class PosDatabase {
         ]);
   }
 
+
+  /*
+  update sync pos table
+*/
+  Future<int> updateSyncPosTable(PosTable data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tablePosTable SET table_id = ?, sync_status = ?, updated_at = ? WHERE table_sqlite_id = ?',
+        [data.table_id, data.sync_status, data.updated_at, data.table_sqlite_id]);
+  }
+
 /*
   update Pos Table
 */
   Future<int> updatePosTable(PosTable data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tablePosTable SET number = ?, seats = ?, updated_at = ? WHERE table_sqlite_id = ?',
-        [data.number, data.seats, data.updated_at, data.table_sqlite_id]);
+        'UPDATE $tablePosTable SET number = ?, seats = ?, sync_status = ?, updated_at = ? WHERE table_sqlite_id = ?',
+        [data.number, data.seats, data.sync_status, data.updated_at, data.table_sqlite_id]);
   }
 
 /*
@@ -1905,8 +1927,8 @@ class PosDatabase {
   Future<int> deletePosTable(PosTable data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tablePosTable SET soft_delete = ? WHERE table_sqlite_id = ?',
-        [data.soft_delete, data.table_sqlite_id]);
+        'UPDATE $tablePosTable SET sync_status = ?, soft_delete = ? WHERE table_sqlite_id = ?',
+        [data.sync_status, data.soft_delete, data.table_sqlite_id]);
   }
 
 /*

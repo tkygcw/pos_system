@@ -89,7 +89,7 @@ class PosTable{
     number: json[PosTableFields.number] as String?,
     seats: json[PosTableFields.seats] as String?,
     status: json[PosTableFields.status] as int?,
-    sync_status: json[PosTableFields.status] as int?,
+    sync_status: json[PosTableFields.sync_status] as int?,
     created_at: json[PosTableFields.created_at] as String?,
     updated_at: json[PosTableFields.updated_at] as String?,
     soft_delete: json[PosTableFields .soft_delete] as String?,
