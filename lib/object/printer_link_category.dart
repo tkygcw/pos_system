@@ -5,7 +5,7 @@ class PrinterLinkCategoryFields {
     printer_link_category_sqlite_id,
     printer_link_category_id,
     printer_sqlite_id,
-    category_id,
+    category_sqlite_id,
     sync_status,
     created_at,
     updated_at,
@@ -15,7 +15,7 @@ class PrinterLinkCategoryFields {
   static String printer_link_category_sqlite_id = 'printer_link_category_sqlite_id';
   static String printer_link_category_id = 'printer_link_category_id';
   static String printer_sqlite_id = 'printer_sqlite_id';
-  static String category_id = 'category_id';
+  static String category_sqlite_id = 'category_sqlite_id';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -26,7 +26,7 @@ class PrinterLinkCategory {
   int? printer_link_category_sqlite_id;
   int? printer_link_category_id;
   String? printer_sqlite_id;
-  String? category_id;
+  String? category_sqlite_id;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -36,7 +36,7 @@ class PrinterLinkCategory {
       {this.printer_link_category_sqlite_id,
         this.printer_link_category_id,
         this.printer_sqlite_id,
-        this.category_id,
+        this.category_sqlite_id,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -46,7 +46,7 @@ class PrinterLinkCategory {
     int? printer_link_category_sqlite_id,
     int? printer_link_category_id,
     String? printer_sqlite_id,
-    String? category_id,
+    String? category_sqlite_id,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -56,7 +56,7 @@ class PrinterLinkCategory {
           printer_link_category_sqlite_id: printer_link_category_sqlite_id ?? this.printer_link_category_sqlite_id,
           printer_link_category_id: printer_link_category_id ?? this.printer_link_category_id,
           printer_sqlite_id: printer_sqlite_id ?? this.printer_sqlite_id,
-          category_id: category_id ?? this.category_id,
+          category_sqlite_id: category_sqlite_id ?? this.category_sqlite_id,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -66,7 +66,7 @@ class PrinterLinkCategory {
     printer_link_category_sqlite_id: json[PrinterLinkCategoryFields.printer_link_category_sqlite_id] as int?,
     printer_link_category_id: json[PrinterLinkCategoryFields.printer_link_category_id] as int?,
     printer_sqlite_id: json[PrinterLinkCategoryFields.printer_sqlite_id] as String?,
-    category_id: json[PrinterLinkCategoryFields.category_id] as String?,
+    category_sqlite_id: json[PrinterLinkCategoryFields.category_sqlite_id] as String?,
     sync_status: json[PrinterLinkCategoryFields.sync_status] as int?,
     created_at: json[PrinterLinkCategoryFields.created_at] as String?,
     updated_at: json[PrinterLinkCategoryFields.updated_at] as String?,
@@ -77,7 +77,7 @@ class PrinterLinkCategory {
     PrinterLinkCategoryFields.printer_link_category_sqlite_id: printer_link_category_sqlite_id,
     PrinterLinkCategoryFields.printer_link_category_id: printer_link_category_id,
     PrinterLinkCategoryFields.printer_sqlite_id: printer_sqlite_id,
-    PrinterLinkCategoryFields.category_id: category_id,
+    PrinterLinkCategoryFields.category_sqlite_id: category_sqlite_id,
     PrinterLinkCategoryFields.sync_status: sync_status,
     PrinterLinkCategoryFields.created_at: created_at,
     PrinterLinkCategoryFields.updated_at: updated_at,

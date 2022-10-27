@@ -79,7 +79,7 @@ class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
 
     for (int i = 0; i < categoryList.length; i++) {
       for (int j = 0; j < widget.selectedList.length; j++) {
-        if (categoryList[i].category_id == widget.selectedList[j].category_id) {
+        if (categoryList[i].category_sqlite_id == widget.selectedList[j].category_sqlite_id) {
           categoryList[i].isChecked = true;
         }
       }

@@ -411,7 +411,8 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       variantGroup,
       remarkController.text,
       0,
-      null
+      null,
+      Colors.black
     );
     cart.addItem(value);
 

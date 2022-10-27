@@ -143,6 +143,7 @@ class PosDatabase {
           ${OrderCacheFields.dining_id} $textType, 
           ${OrderCacheFields.order_id} $textType, 
           ${OrderCacheFields.order_by} $textType, 
+          ${OrderCacheFields.cancel_by} $textType,
           ${OrderCacheFields.customer_id} $textType, 
           ${OrderCacheFields.total_amount} $textType,
           ${OrderCacheFields.sync_status} $integerType,
@@ -157,6 +158,7 @@ class PosDatabase {
         ${OrderDetailFields.order_detail_id} $integerType, 
         ${OrderDetailFields.order_cache_sqlite_id} $textType, 
         ${OrderDetailFields.branch_link_product_sqlite_id} $textType, 
+        ${OrderDetailFields.category_sqlite_id} $textType,
         ${OrderDetailFields.productName} $textType,
         ${OrderDetailFields.has_variant} $textType, 
         ${OrderDetailFields.product_variant_name} $textType, 
@@ -164,6 +166,7 @@ class PosDatabase {
         ${OrderDetailFields.quantity} $textType, 
         ${OrderDetailFields.remark} $textType, 
         ${OrderDetailFields.account} $textType,
+        ${OrderDetailFields.cancel_by} $textType,
         ${OrderDetailFields.sync_status} $integerType,
         ${OrderDetailFields.created_at} $textType, 
         ${OrderDetailFields.updated_at} $textType,
@@ -393,7 +396,7 @@ class PosDatabase {
           ${PrinterLinkCategoryFields.printer_link_category_sqlite_id} $idType,
           ${PrinterLinkCategoryFields.printer_link_category_id} $integerType,
           ${PrinterLinkCategoryFields.printer_sqlite_id} $textType,
-          ${PrinterLinkCategoryFields.category_id} $textType,
+          ${PrinterLinkCategoryFields.category_sqlite_id} $textType,
           ${PrinterFields.sync_status} $integerType,
           ${PrinterLinkCategoryFields.created_at} $textType,
           ${PrinterLinkCategoryFields.updated_at} $textType,
@@ -1710,11 +1713,11 @@ class PosDatabase {
 /*
   read specific category (category id)
 */
-  Future<List<Categories>> readSpecificCategoryById(String category_id) async {
+  Future<List<Categories>> readSpecificCategoryById(String category_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableCategories WHERE soft_delete = ? AND category_id = ?',
-        ['', category_id]);
+        'SELECT * FROM $tableCategories WHERE soft_delete = ? AND category_sqlite_id = ?',
+        ['', category_sqlite_id]);
     return result.map((json) => Categories.fromJson(json)).toList();
   }
 
@@ -2125,6 +2128,17 @@ class PosDatabase {
     return await db.rawUpdate(
         'UPDATE $tableOrderDetail SET soft_delete = ? WHERE order_detail_sqlite_id = ?',
         [data.soft_delete, data.order_detail_sqlite_id]);
+  }
+
+  /*
+  Soft-delete Order detail
+*/
+  Future<int> deleteSpecificOrderDetail(OrderDetail data) async {
+    print('called');
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderDetail SET soft_delete = ? WHERE order_cache_sqlite_id = ? AND branch_link_product_sqlite_id = ?',
+        [data.soft_delete, data.order_cache_sqlite_id, data.branch_link_product_sqlite_id]);
   }
 
 /*

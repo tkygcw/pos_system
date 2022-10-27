@@ -1,4 +1,5 @@
 
+import 'package:flutter/material.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/variant_group.dart';
 
@@ -13,6 +14,7 @@ class cartProductItem{
    String remark='';
    int status = 0;
    String? orderCacheId;
+   Color refColor = Colors.black;
 
    cartProductItem(
        String branchProduct_id,
@@ -24,7 +26,8 @@ class cartProductItem{
        List<VariantGroup> variant,
        String remark,
        int status,
-       String? orderCacheId){
+       String? orderCacheId,
+       Color refColor){
        this.branchProduct_id = branchProduct_id;
        this.name = name;
        this.category_id = category_id;
@@ -35,6 +38,7 @@ class cartProductItem{
        this.remark = remark;
        this.status = status;
        this.orderCacheId = orderCacheId;
+       this.refColor = refColor;
    }
 
 }

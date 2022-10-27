@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:esc_pos_printer/esc_pos_printer.dart';
+import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -39,7 +41,6 @@ import '../../translation/AppLocalizations.dart';
 
 class CartPage extends StatefulWidget {
   final String currentPage;
-
   const CartPage({required this.currentPage, Key? key}) : super(key: key);
 
   @override
@@ -79,10 +80,8 @@ class _CartPageState extends State<CartPage> {
   bool hasSelectedPromo = false;
   Color font = Colors.black45;
 
-
   @override
   void initState() {
-    print('refreshed');
     super.initState();
     controller = StreamController();
     readAllBranchLinkDiningOption();
@@ -155,16 +154,19 @@ class _CartPageState extends State<CartPage> {
                     },
                   ),
                 ),
-                IconButton(
-                  tooltip: 'clear cart',
-                  icon: const Icon(
-                    Icons.delete,
+                Visibility(
+                  visible: widget.currentPage == 'menu' ? true : false,
+                  child: IconButton(
+                    tooltip: 'clear cart',
+                    icon: const Icon(
+                      Icons.delete,
+                    ),
+                    color: color.backgroundColor,
+                    onPressed: () {
+                      cart.removeAllCartItem();
+                      cart.removeAllTable();
+                    },
                   ),
-                  color: color.backgroundColor,
-                  onPressed: () {
-                    cart.removeAllCartItem();
-                    cart.removeAllTable();
-                  },
                 ),
                 // PopupMenuButton<Text>(
                 //     icon: Icon(Icons.more_vert, color: color.backgroundColor),
@@ -253,7 +255,7 @@ class _CartPageState extends State<CartPage> {
                                       if (direction ==
                                           DismissDirection.startToEnd) {
                                         await openRemoveCartItemDialog(
-                                            cart.cartNotifierItem[index]);
+                                            cart.cartNotifierItem[index], widget.currentPage);
                                       }
                                       return null;
                                     },
@@ -265,21 +267,15 @@ class _CartPageState extends State<CartPage> {
                                         text: TextSpan(
                                           children: <TextSpan>[
                                             TextSpan(
-                                                text: cart
-                                                        .cartNotifierItem[index]
-                                                        .name +
-                                                    '\n',
+                                                text: cart.cartNotifierItem[index].name +'\n',
                                                 style: TextStyle(
                                                     fontSize: 14,
-                                                    color: cart
-                                                                .cartNotifierItem[
-                                                                    index]
-                                                                .status ==
-                                                            1
+                                                    color: cart.cartNotifierItem[index].status == 1
                                                         ? font
-                                                        : color.backgroundColor,
+                                                        : cart.cartNotifierItem[index].refColor,
                                                     fontWeight:
-                                                        FontWeight.bold)),
+                                                        FontWeight.bold),
+                                            ),
                                             TextSpan(
                                                 text: "RM" +
                                                     cart.cartNotifierItem[index]
@@ -292,7 +288,10 @@ class _CartPageState extends State<CartPage> {
                                                               .status ==
                                                           1
                                                       ? font
-                                                      : color.backgroundColor,
+                                                      : cart
+                                                          .cartNotifierItem[
+                                                              index]
+                                                          .refColor,
                                                 )),
                                           ],
                                         ),
@@ -309,38 +308,46 @@ class _CartPageState extends State<CartPage> {
                                         child: FittedBox(
                                           child: Row(
                                             children: [
-                                              IconButton(
-                                                  hoverColor:
-                                                      Colors.transparent,
-                                                  icon: Icon(Icons.remove),
-                                                  onPressed: () {
-                                                    cart.cartNotifierItem[index]
-                                                                .quantity !=
-                                                            1
-                                                        ? setState(() => cart
-                                                            .cartNotifierItem[
-                                                                index]
-                                                            .quantity--)
-                                                        : null;
-                                                  }),
-                                              Text(cart.cartNotifierItem[index]
-                                                  .quantity
-                                                  .toString()),
+                                              Visibility(
+                                                visible:
+                                                    widget.currentPage == 'menu'
+                                                        ? true
+                                                        : false,
+                                                child: IconButton(
+                                                    hoverColor:
+                                                        Colors.transparent,
+                                                    icon: Icon(Icons.remove),
+                                                    onPressed: () {
+                                                      cart
+                                                                  .cartNotifierItem[
+                                                                      index]
+                                                                  .quantity !=
+                                                              1
+                                                          ? setState(() => cart
+                                                              .cartNotifierItem[
+                                                                  index]
+                                                              .quantity--)
+                                                          : null;
+                                                    }),
+                                              ),
+                                              Text(
+                                                cart.cartNotifierItem[index]
+                                                    .quantity
+                                                    .toString(),
+                                                style: TextStyle(
+                                                    color: cart
+                                                        .cartNotifierItem[index]
+                                                        .refColor),
+                                              ),
+                                              widget.currentPage == 'menu' ?
                                               IconButton(
                                                   hoverColor:
                                                       Colors.transparent,
                                                   icon: Icon(Icons.add),
                                                   onPressed: () {
-                                                    if (cart
-                                                            .cartNotifierItem[
-                                                                index]
-                                                            .status ==
-                                                        0) {
+                                                    if (cart.cartNotifierItem[index].status == 0) {
                                                       setState(() {
-                                                        cart
-                                                            .cartNotifierItem[
-                                                                index]
-                                                            .quantity++;
+                                                        cart.cartNotifierItem[index].quantity++;
                                                       });
                                                     } else {
                                                       Fluttertoast.showToast(
@@ -352,6 +359,8 @@ class _CartPageState extends State<CartPage> {
 
                                                     controller.add('refresh');
                                                   })
+                                                  :
+                                                  Container()
                                             ],
                                           ),
                                         ),
@@ -492,10 +501,16 @@ class _CartPageState extends State<CartPage> {
                                       cart.removeAllTable();
                                     } else {
                                       print('add order cache');
-                                      await callCreateNewOrder(cart);
-                                      await _printCheckList();
-                                      cart.removeAllCartItem();
-                                      cart.removeAllTable();
+                                      if (printerList.length > 0) {
+                                        await callCreateNewOrder(cart);
+                                        //await _printKitchenList();
+                                        cart.removeAllCartItem();
+                                        cart.removeAllTable();
+                                      } else {
+                                        Fluttertoast.showToast(
+                                            backgroundColor: Colors.red,
+                                            msg: "Printer not found");
+                                      }
                                     }
                                   } else {
                                     Fluttertoast.showToast(
@@ -537,41 +552,90 @@ class _CartPageState extends State<CartPage> {
 
   _printCheckList() async {
     try {
-
-      for(int i = 0; i < printerList.length; i++){
-        List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-        if(data[0].category_id == '7'){
-          var printerDetail = jsonDecode(printerList[i].value!);
-          print(printerDetail);
-
-          var data = Uint8List.fromList(
-              await ReceiptLayout().printCheckList(printerList[i].paper_size!, true));
-          bool? isConnected = await flutterUsbPrinter.connect(
-              int.parse(printerDetail['vendorId']),
-              int.parse(printerDetail['productId']));
-          if (isConnected == true) {
-            await flutterUsbPrinter.write(data);
+      for (int i = 0; i < printerList.length; i++) {
+        List<PrinterLinkCategory> data = await PosDatabase.instance
+            .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+        if (data[0].category_sqlite_id == '3') {
+          if(printerList[i].type == 0){
+            var printerDetail = jsonDecode(printerList[i].value!);
+            var data = Uint8List.fromList(await ReceiptLayout()
+                .printCheckList80mm(true, null));
+            bool? isConnected = await flutterUsbPrinter.connect(
+                int.parse(printerDetail['vendorId']),
+                int.parse(printerDetail['productId']));
+            if (isConnected == true) {
+              await flutterUsbPrinter.write(data);
+            } else {
+              print('not connected');
+            }
           } else {
-            print('not connected');
+            print("print lan");
           }
         }
       }
-
     } catch (e) {
       print('Printer Connection Error');
       //response = 'Failed to get platform version.';
     }
   }
 
+  _printKitchenList() async {
+    for (int i = 0; i < printerList.length; i++) {
+      List<PrinterLinkCategory> data = await PosDatabase.instance
+          .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+      //check printer category
+      if (data[0].category_sqlite_id != '3') {
+        //check printer type
+        if(printerList[i].type == 1){
+          var printerDetail = jsonDecode(printerList[i].value!);
+          //check paper size
+          if(printerList[i].paper_size == 0){
+            //print LAN
+            final profile = await CapabilityProfile.load();
+            final printer = NetworkPrinter(PaperSize.mm80, profile);
+            final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+
+            if (res == PosPrintResult.success) {
+              await ReceiptLayout().printKitchenList80mm(false, printer);
+              printer.disconnect();
+            } else {
+              print('not connected');
+            }
+          } else {
+            print('print 58mm');
+          }
+        } else {
+          if(printerList[i].paper_size == 0) {
+            var printerDetail = jsonDecode(printerList[i].value!);
+            var data = Uint8List.fromList(await ReceiptLayout()
+                .printKitchenList80mm(true, null));
+            bool? isConnected = await flutterUsbPrinter.connect(
+                int.parse(printerDetail['vendorId']),
+                int.parse(printerDetail['productId']));
+            if (isConnected == true) {
+              await flutterUsbPrinter.write(data);
+            } else {
+              print('not connected');
+            }
+          } else {
+            print('print 58mm');
+          }
+
+        }
+      }
+    }
+
+  }
+
   readAllPrinters() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
-    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter(branch_id!);
+    List<Printer> data =
+        await PosDatabase.instance.readAllBranchPrinter(branch_id!);
     printerList = List.from(data);
-
-
   }
+
 /*
   -----------------------Cart-item-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -631,10 +695,7 @@ class _CartPageState extends State<CartPage> {
       for (int j = 0; j < group.child.length; j++) {
         if (group.child[j].isSelected!) {
           variant.add(group.child[j].name!);
-          result = variant
-              .toString()
-              .replaceAll('[', '')
-              .replaceAll(']', '');
+          result = variant.toString().replaceAll('[', '').replaceAll(']', '');
         }
       }
     }
@@ -777,28 +838,30 @@ class _CartPageState extends State<CartPage> {
           if (promotionList[j].specific_category == '1') {
             //Auto apply specific category promotion
             for (int m = 0; m < cart.cartNotifierItem.length; m++) {
-              //check cart item status
-              if (cart.cartNotifierItem[m].status == 0) {
-                if (cart.cartNotifierItem[m].category_id ==
-                    promotionList[j].category_id) {
-                  hasPromo = true;
-                  promoName = promotionList[j].name!;
-                  if (!autoApplyPromotionList.contains(promotionList[j])) {
-                    autoApplyPromotionList.add(promotionList[j]);
-                  }
-                  autoApplySpecificCategoryAmount(
-                      promotionList[j], cart.cartNotifierItem[m]);
+              if (cart.cartNotifierItem[m].category_id ==
+                  promotionList[j].category_id) {
+                hasPromo = true;
+                promoName = promotionList[j].name!;
+                if (!autoApplyPromotionList.contains(promotionList[j])) {
+                  autoApplyPromotionList.add(promotionList[j]);
                 }
+                autoApplySpecificCategoryAmount(
+                    promotionList[j], cart.cartNotifierItem[m]);
               }
+              // //check cart item status
+              // if (cart.cartNotifierItem[m].status == 0) {
+              //
+              // }
             }
           } else {
             //Auto apply non specific category promotion
             if (cart.cartNotifierItem.isNotEmpty) {
-              for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-                if (cart.cartNotifierItem[i].status == 0) {
-                  hasPromo = true;
-                }
-              }
+              // for (int i = 0; i < cart.cartNotifierItem.length; i++) {
+              //   if (cart.cartNotifierItem[i].status == 0) {
+              //
+              //   }
+              // }
+              hasPromo = true;
               autoApplyPromotionList.add(promotionList[j]);
               promoName = promotionList[j].name!;
               autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
@@ -817,22 +880,23 @@ class _CartPageState extends State<CartPage> {
     try {
       promo = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        if (cart.cartNotifierItem[i].status == 0) {
-          if (promotion.type == 1) {
-            promo += (double.parse(promotion.amount!) *
-                cart.cartNotifierItem[i].quantity);
-            promotion.promoAmount = promo;
-            promoRate = 'RM' + promotion.amount!;
-            promotion.promoRate = promoRate;
-          } else {
-            promo += (double.parse(cart.cartNotifierItem[i].price) *
-                    cart.cartNotifierItem[i].quantity) *
-                (double.parse(promotion.amount!) / 100);
-            promotion.promoAmount = promo;
-            promoRate = promotion.amount! + '%';
-            promotion.promoRate = promoRate;
-          }
+        if (promotion.type == 1) {
+          promo += (double.parse(promotion.amount!) *
+              cart.cartNotifierItem[i].quantity);
+          promotion.promoAmount = promo;
+          promoRate = 'RM' + promotion.amount!;
+          promotion.promoRate = promoRate;
+        } else {
+          promo += (double.parse(cart.cartNotifierItem[i].price) *
+              cart.cartNotifierItem[i].quantity) *
+              (double.parse(promotion.amount!) / 100);
+          promotion.promoAmount = promo;
+          promoRate = promotion.amount! + '%';
+          promotion.promoRate = promoRate;
         }
+        // if (cart.cartNotifierItem[i].status == 0) {
+        //
+        // }
       }
       promoAmount += promo;
     } catch (e) {
@@ -848,20 +912,20 @@ class _CartPageState extends State<CartPage> {
       Promotion promotion, cartProductItem cartItem) {
     try {
       promo = 0.0;
-      if (cartItem.status == 0) {
-        if (promotion.type == 1) {
-          promo += (double.parse(promotion.amount!) * cartItem.quantity);
-          promotion.promoAmount = promotion.promoAmount! + promo;
-          promoRate = 'RM' + promotion.amount!;
-          promotion.promoRate = promoRate;
-        } else {
-          promo += (double.parse(cartItem.price) * cartItem.quantity) *
-              (double.parse(promotion.amount!) / 100);
-          promotion.promoAmount = promotion.promoAmount! + promo;
-          promoRate = promotion.amount! + '%';
-          promotion.promoRate = promoRate;
-        }
+      if (promotion.type == 1) {
+        promo += (double.parse(promotion.amount!) * cartItem.quantity);
+        promotion.promoAmount = promotion.promoAmount! + promo;
+        promoRate = 'RM' + promotion.amount!;
+        promotion.promoRate = promoRate;
+      } else {
+        promo += (double.parse(cartItem.price) * cartItem.quantity) *
+            (double.parse(promotion.amount!) / 100);
+        promotion.promoAmount = promotion.promoAmount! + promo;
+        promoRate = promotion.amount! + '%';
+        promotion.promoRate = promoRate;
       }
+      // if (cartItem.status == 0) {
+      // }
       //calculate promo total amount
       promoAmount += promo;
     } catch (e) {
@@ -905,10 +969,11 @@ class _CartPageState extends State<CartPage> {
       promo = 0.0;
       promoAmount = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        if (cart.cartNotifierItem[i].status == 0) {
-          total += (double.parse((cart.cartNotifierItem[i].price)) *
-              cart.cartNotifierItem[i].quantity);
-        }
+        total += (double.parse((cart.cartNotifierItem[i].price)) *
+            cart.cartNotifierItem[i].quantity);
+        // if (cart.cartNotifierItem[i].status == 0) {
+        //
+        // }
       }
     } catch (e) {
       print('Sub Total Error: $e');
@@ -1016,7 +1081,7 @@ class _CartPageState extends State<CartPage> {
         });
   }
 
-  Future<Future<Object?>> openRemoveCartItemDialog(cartProductItem item) async {
+  Future<Future<Object?>> openRemoveCartItemDialog(cartProductItem item, String currentPage) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -1025,7 +1090,7 @@ class _CartPageState extends State<CartPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: CartRemoveDialog(cartItem: item),
+              child: CartRemoveDialog(cartItem: item, currentPage: currentPage,),
             ),
           );
         },
@@ -1298,6 +1363,7 @@ class _CartPageState extends State<CartPage> {
     await createOrderCache(cart);
     await createOrderDetail(cart);
     await updatePosTable(cart);
+    //await _printCheckList();
   }
 
   callAddOrderCache(CartModel cart) async {
@@ -1334,31 +1400,29 @@ class _CartPageState extends State<CartPage> {
   //   }
   // }
   updatePosTable(CartModel cart) async {
-    try{
+    try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
 
       for (int i = 0; i < cart.selectedTable.length; i++) {
-        List<PosTable> result = await PosDatabase.instance
-            .checkPosTableStatus(branch_id!, cart.selectedTable[i].table_sqlite_id!);
+        List<PosTable> result = await PosDatabase.instance.checkPosTableStatus(
+            branch_id!, cart.selectedTable[i].table_sqlite_id!);
         if (result[0].status == 0) {
           PosTable posTableData = PosTable(
               table_sqlite_id: cart.selectedTable[i].table_sqlite_id,
               status: 1,
               updated_at: dateTime);
           int data =
-          await PosDatabase.instance.updatePosTableStatus(posTableData);
+              await PosDatabase.instance.updatePosTableStatus(posTableData);
         }
       }
-    }catch(e){
+    } catch (e) {
       Fluttertoast.showToast(
-                  backgroundColor: Color(0xFFFF0000),
-                  msg: "update table error: ${e}");
+          backgroundColor: Color(0xFFFF0000), msg: "update table error: ${e}");
       print("$e");
     }
-
   }
 
   randomColor() {
@@ -1375,7 +1439,6 @@ class _CartPageState extends State<CartPage> {
     return temp;
   }
 
-
   colorChecking() async {
     String? hexCode;
     bool colorFound = false;
@@ -1387,7 +1450,7 @@ class _CartPageState extends State<CartPage> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     List<TableUse> data =
-    await PosDatabase.instance.readAllTableUseId(branch_id!);
+        await PosDatabase.instance.readAllTableUseId(branch_id!);
 
     while (colorFound == false) {
       /* change color */
@@ -1427,7 +1490,7 @@ class _CartPageState extends State<CartPage> {
     return hexCode;
   }
 
-  randomBatch(){
+  randomBatch() {
     return Random().nextInt(100000) + 1;
   }
 
@@ -1439,24 +1502,25 @@ class _CartPageState extends State<CartPage> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
-    List<OrderCache> data = await PosDatabase.instance.readBranchOrderCache(branch_id!);
-    while(batchFound == false ){
+    List<OrderCache> data =
+        await PosDatabase.instance.readBranchOrderCache(branch_id!);
+    while (batchFound == false) {
       tempBatch = randomBatch();
-      if(data.length > 0){
-        for(int i = 0; i < data.length; i++){
-          if(tempBatch == int.parse(data[i].batch_id!)){
+      if (data.length > 0) {
+        for (int i = 0; i < data.length; i++) {
+          if (tempBatch == int.parse(data[i].batch_id!)) {
             print('batch no same!');
             founded = false;
             break;
           } else {
-            if(i < data.length){
+            if (i < data.length) {
               print('not yet loop finish');
               continue;
             }
           }
         }
         founded = true;
-      }else {
+      } else {
         founded = true;
         break;
       }
@@ -1477,17 +1541,17 @@ class _CartPageState extends State<CartPage> {
     try {
       hexCode = await colorChecking();
       if (hexCode != null) {
-          //create table use data
-          TableUse tableUseData = await PosDatabase.instance
-              .insertSqliteTableUse(TableUse(
-              table_use_id: 0,
-              branch_id: branch_id,
-              cardColor: hexCode.toString(),
-              sync_status: 0,
-              created_at: dateTime,
-              updated_at: '',
-              soft_delete: ''));
-          localTableUseId = tableUseData.table_use_sqlite_id.toString();
+        //create table use data
+        TableUse tableUseData = await PosDatabase.instance.insertSqliteTableUse(
+            TableUse(
+                table_use_id: 0,
+                branch_id: branch_id,
+                cardColor: hexCode.toString(),
+                sync_status: 0,
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+        localTableUseId = tableUseData.table_use_sqlite_id.toString();
       }
     } catch (e) {
       Fluttertoast.showToast(
@@ -1505,14 +1569,16 @@ class _CartPageState extends State<CartPage> {
         //create table use detail
         TableUseDetail tableUseDetailData = await PosDatabase.instance
             .insertSqliteTableUseDetail(TableUseDetail(
-            table_use_detail_id: 0,
-            table_use_sqlite_id: localTableUseId,
-            table_sqlite_id: cart.selectedTable[i].table_sqlite_id.toString(),
-            original_table_sqlite_id: cart.selectedTable[i].table_sqlite_id.toString(),
-            sync_status: 0,
-            created_at: dateTime,
-            updated_at: '',
-            soft_delete: ''));
+                table_use_detail_id: 0,
+                table_use_sqlite_id: localTableUseId,
+                table_sqlite_id:
+                    cart.selectedTable[i].table_sqlite_id.toString(),
+                original_table_sqlite_id:
+                    cart.selectedTable[i].table_sqlite_id.toString(),
+                sync_status: 0,
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
       }
     } catch (e) {
       Fluttertoast.showToast(
@@ -1543,7 +1609,7 @@ class _CartPageState extends State<CartPage> {
           _tableUseId = this.localTableUseId;
         }
       }
-      if(batch != 0){
+      if (batch != 0) {
         //create order cache
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
             OrderCache(
@@ -1556,16 +1622,15 @@ class _CartPageState extends State<CartPage> {
                 dining_id: diningOptionID.toString(),
                 order_id: '',
                 order_by: userObject['name'].toString(),
+                cancel_by: '',
                 customer_id: '0',
-                total_amount: totalAmount.toStringAsFixed(2),
+                total_amount: '',//totalAmount.toStringAsFixed(1),
                 sync_status: 0,
                 created_at: dateTime,
                 updated_at: '',
                 soft_delete: ''));
         orderCacheId = data.order_cache_sqlite_id.toString();
       }
-
-
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
@@ -1583,43 +1648,45 @@ class _CartPageState extends State<CartPage> {
     //loop cart item & create order detail
     for (int j = 0; j < cart.cartNotifierItem.length; j++) {
       if (cart.cartNotifierItem[j].status == 0) {
-          OrderDetail detailData = await PosDatabase.instance
-              .insertSqliteOrderDetail(OrderDetail(
-                  order_detail_id: 0,
-                  order_cache_sqlite_id: orderCacheId,
-                  branch_link_product_sqlite_id:
-                      cart.cartNotifierItem[j].branchProduct_id,
-                  productName: cart.cartNotifierItem[j].name,
-                  has_variant:
-                      cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
-                  product_variant_name: getVariant2(cart.cartNotifierItem[j]),
-                  price: cart.cartNotifierItem[j].price,
-                  quantity: cart.cartNotifierItem[j].quantity.toString(),
-                  remark: cart.cartNotifierItem[j].remark,
-                  account: '',
-                  sync_status: 0,
-                  created_at: dateTime,
-                  updated_at: '',
-                  soft_delete: ''));
+        OrderDetail detailData = await PosDatabase.instance
+            .insertSqliteOrderDetail(OrderDetail(
+                order_detail_id: 0,
+                order_cache_sqlite_id: orderCacheId,
+                branch_link_product_sqlite_id:
+                    cart.cartNotifierItem[j].branchProduct_id,
+                category_sqlite_id: '',
+                productName: cart.cartNotifierItem[j].name,
+                has_variant:
+                    cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
+                product_variant_name: getVariant2(cart.cartNotifierItem[j]),
+                price: cart.cartNotifierItem[j].price,
+                quantity: cart.cartNotifierItem[j].quantity.toString(),
+                remark: cart.cartNotifierItem[j].remark,
+                account: '',
+                cancel_by: '',
+                sync_status: 0,
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
 
-          for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
-            ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
-            for (int m = 0; m < group.modifierChild.length; m++) {
-              if (group.modifierChild[m].isChecked!) {
-                // OrderModifierDetail modifierData = await PosDatabase.instance
-                //     .insertSqliteOrderModifierDetail(OrderModifierDetail(
-                //     order_modifier_detail_id: 0,
-                //     order_detail_id:
-                //     await detailData.order_detail_id.toString(),
-                //     mod_item_id:
-                //     group.modifierChild[m].mod_item_id.toString(),
-                //     mod_group_id: group.mod_group_id.toString(),
-                //     created_at: dateTime,
-                //     updated_at: '',
-                //     soft_delete: ''));
-              }
+        for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
+          ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
+          for (int m = 0; m < group.modifierChild.length; m++) {
+            if (group.modifierChild[m].isChecked!) {
+              // OrderModifierDetail modifierData = await PosDatabase.instance
+              //     .insertSqliteOrderModifierDetail(OrderModifierDetail(
+              //     order_modifier_detail_id: 0,
+              //     order_detail_id:
+              //     await detailData.order_detail_id.toString(),
+              //     mod_item_id:
+              //     group.modifierChild[m].mod_item_id.toString(),
+              //     mod_group_id: group.mod_group_id.toString(),
+              //     created_at: dateTime,
+              //     updated_at: '',
+              //     soft_delete: ''));
             }
           }
+        }
       }
     }
   }

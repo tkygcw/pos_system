@@ -61,8 +61,14 @@ class _TableMenuState extends State<TableMenu> {
     super.dispose();
   }
 
-  hexToColor(String hexCode) {
-    return new Color(int.parse(hexCode.substring(1, 7), radix: 16) + 0xFF000000);
+  toColor(String hex) {
+    var hexColor = hex.replaceAll("#", "");
+    if (hexColor.length == 6) {
+      hexColor = "FF" + hexColor;
+    }
+    if (hexColor.length == 8) {
+      return Color(int.parse("0x$hexColor"));
+    }
   }
 
   @override
@@ -123,7 +129,7 @@ class _TableMenuState extends State<TableMenu> {
                               // tableList[index].seats == 2;
                               return Card(
                                 color: tableList[index].status != 0
-                                    ? hexToColor(tableList[index].cardColor!)
+                                    ? toColor(tableList[index].cardColor!)
                                     : Colors.white,
                                 shape: tableList[index].isSelected
                                     ? new RoundedRectangleBorder(
@@ -232,14 +238,15 @@ class _TableMenuState extends State<TableMenu> {
                                             ],
                                           ),
                                         ),
-                                        tableList[index].status == 1 ?
-                                        Expanded(
-                                            child: Text(
-                                              "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
-                                              style: TextStyle(fontSize: 18)),
-                                        ) :
-                                            Expanded
-                                              (child: Text(''))
+                                        Container(height: 20,)
+                                        // tableList[index].status == 1 ?
+                                        // Expanded(
+                                        //     child: Text(
+                                        //       "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
+                                        //       style: TextStyle(fontSize: 18)),
+                                        // ) :
+                                        //     Expanded
+                                        //       (child: Text(''))
                                       ],
                                     ),
                                   ),
@@ -354,9 +361,9 @@ class _TableMenuState extends State<TableMenu> {
         List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
         tableList[i].group = data[0].table_use_sqlite_id;
         tableList[i].cardColor = data[0].cardColor;
-        for(int j = 0; j < data.length; j++){
-          tableList[i].total_Amount += double.parse(data[j].total_amount!);
-        }
+        // for(int j = 0; j < data.length; j++){
+        //   tableList[i].total_Amount += double.parse(data[j].total_amount!);
+        // }
       }
     }
   }
@@ -531,7 +538,8 @@ class _TableMenuState extends State<TableMenu> {
           getVariantGroupItem(orderDetailList[i]),
           orderDetailList[i].remark!,
           0,
-          orderDetailList[i].order_cache_sqlite_id);
+          orderDetailList[i].order_cache_sqlite_id,
+          toColor(posTable.cardColor!));
       cart.addItem(value);
     }
     for (int j = 0; j < orderCacheList.length; j++) {
@@ -563,7 +571,8 @@ class _TableMenuState extends State<TableMenu> {
           getVariantGroupItem(orderDetailList[i]),
           orderDetailList[i].remark!,
           0,
-          orderDetailList[i].order_cache_sqlite_id);
+          orderDetailList[i].order_cache_sqlite_id,
+          toColor(posTable.cardColor!));
       cart.removeSpecificItem(value);
     }
   }

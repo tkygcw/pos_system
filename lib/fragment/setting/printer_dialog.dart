@@ -387,7 +387,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
               .insertSqlitePrinterLinkCategory(PrinterLinkCategory(
                   printer_link_category_id: 0,
                   printer_sqlite_id: printerID,
-                  category_id: allCategories[i].category_id.toString(),
+                  category_sqlite_id: allCategories[i].category_sqlite_id.toString(),
                   sync_status: 0,
                   created_at: dateTime,
                   updated_at: '',
@@ -410,7 +410,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       if (data.length > 0) {
         for (int i = 0; i < data.length; i++) {
           List<Categories> catData = await PosDatabase.instance
-              .readSpecificCategoryById(data[i].category_id!);
+              .readSpecificCategoryById(data[i].category_sqlite_id!);
           if (!selectedCategories.contains(catData)) {
             catData[0].isChecked = true;
             selectedCategories.add(catData[0]);
@@ -439,7 +439,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
               .insertSqlitePrinterLinkCategory(PrinterLinkCategory(
                   printer_link_category_id: 0,
                   printer_sqlite_id: printer.printer_sqlite_id.toString(),
-                  category_id: allCategories[i].category_id.toString(),
+                  category_sqlite_id: allCategories[i].category_sqlite_id.toString(),
                   sync_status: 0,
                   created_at: dateTime,
                   updated_at: '',
@@ -564,16 +564,31 @@ class _PrinterDialogState extends State<PrinterDialog> {
     try {
       var printerDetail = jsonDecode(printerValue[0]);
 
-      var data = Uint8List.fromList(
-          await ReceiptLayout().printKitchenList(_paperSize!, true));
-      bool? isConnected = await flutterUsbPrinter.connect(
-          int.parse(printerDetail['vendorId']),
-          int.parse(printerDetail['productId']));
-      if (isConnected == true) {
-        await flutterUsbPrinter.write(data);
+      if(_paperSize == 0){
+        var data = Uint8List.fromList(
+            await ReceiptLayout().testTicket80mm(true, null));
+        bool? isConnected = await flutterUsbPrinter.connect(
+            int.parse(printerDetail['vendorId']),
+            int.parse(printerDetail['productId']));
+        if (isConnected == true) {
+          await flutterUsbPrinter.write(data);
+        } else {
+          print('not connected');
+        }
       } else {
-        print('not connected');
+        print('print 58mm');
+        var data = Uint8List.fromList(
+            await ReceiptLayout().testTicket58mm(true, null));
+        bool? isConnected = await flutterUsbPrinter.connect(
+            int.parse(printerDetail['vendorId']),
+            int.parse(printerDetail['productId']));
+        if (isConnected == true) {
+          await flutterUsbPrinter.write(data);
+        } else {
+          print('not connected');
+        }
       }
+
     } catch (e) {
       print('error $e');
       print('Printer Connection Error');
@@ -583,16 +598,19 @@ class _PrinterDialogState extends State<PrinterDialog> {
 
   _printLAN() async {
     var printerDetail = jsonDecode(printerValue[0]);
-    const PaperSize paper = PaperSize.mm58;
-    final profile = await CapabilityProfile.load();
-    final printer = NetworkPrinter(paper, profile);
-    final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+    if(_paperSize == 0){
+      PaperSize paper = PaperSize.mm80;
+      final profile = await CapabilityProfile.load();
+      final printer = NetworkPrinter(paper, profile);
+      final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
-    if (res == PosPrintResult.success) {
-      //testTicket(false, value: printer);
-      printer.disconnect();
-    } else {
-      print('not connected');
+      if (res == PosPrintResult.success) {
+        await ReceiptLayout().testTicket80mm(false, printer);
+        printer.disconnect();
+      } else {
+        print('not connected');
+      }
     }
+
   }
 }

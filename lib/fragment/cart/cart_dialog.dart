@@ -336,17 +336,18 @@ class _CartDialogState extends State<CartDialog> {
                         ],
                       ),
                     ),
-                    tableList[index].status == 1
-                        ? Expanded(
-                          child: Container(
-                              alignment: Alignment.topCenter,
-                              child: Text(
-                                "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
-                                style: TextStyle(fontSize: 18),
-                              ),
-                            ),
-                        )
-                        : Expanded(child: Container(child: Text('')))
+                    Container(child: Text(''),)
+                    // tableList[index].status == 1
+                    //     ? Expanded(
+                    //       child: Container(
+                    //           alignment: Alignment.topCenter,
+                    //           child: Text(
+                    //             "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
+                    //             style: TextStyle(fontSize: 18),
+                    //           ),
+                    //         ),
+                    //     )
+                    //     : Expanded(child: Container(child: Text('')))
                   ],
                 ),
               ),
@@ -411,9 +412,9 @@ class _CartDialogState extends State<CartDialog> {
         tableList[i].group = data[0].table_use_sqlite_id;
         tableList[i].cardColor = data[0].cardColor;
 
-        for (int j = 0; j < data.length; j++) {
-          tableList[i].total_Amount += double.parse(data[j].total_amount!);
-        }
+        // for (int j = 0; j < data.length; j++) {
+        //   tableList[i].total_Amount += double.parse(data[j].total_amount!);
+        // }
       }
     }
     controller.add('refresh');
@@ -590,7 +591,8 @@ class _CartDialogState extends State<CartDialog> {
           getVariantGroupItem(orderDetailList[i]),
           orderDetailList[i].remark!,
           1,
-          null);
+          null,
+          Colors.black);
       cart.addItem(value);
     }
     for (int j = 0; j < orderCacheList.length; j++) {
