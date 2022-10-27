@@ -19,6 +19,7 @@ class ProductFields {
     color,
     daily_limit,
     daily_limit_amount,
+    sync_status,
     created_at,
     updated_at,
     soft_delete
@@ -41,6 +42,7 @@ class ProductFields {
   static String color = 'color';
   static String daily_limit = 'daily_limit';
   static String daily_limit_amount = 'daily_limit_amount';
+  static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -64,6 +66,7 @@ class Product{
   String? color;
   String? daily_limit;
   String? daily_limit_amount;
+  int? sync_status;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -86,6 +89,7 @@ class Product{
         this.color,
         this.daily_limit,
         this.daily_limit_amount,
+        this.sync_status,
         this.created_at,
         this.updated_at,
         this.soft_delete});
@@ -108,6 +112,7 @@ class Product{
     String? color,
     String? daily_limit,
     String? daily_limit_amount,
+    int? sync_status,
     String? created_at,
     String? updated_at,
     String? soft_delete,
@@ -130,6 +135,7 @@ class Product{
           color: color ?? this.color,
           daily_limit: daily_limit ?? this.daily_limit,
           daily_limit_amount: daily_limit_amount ?? this.daily_limit_amount,
+          sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
@@ -152,6 +158,7 @@ class Product{
     color: json[ProductFields.color] as String?,
     daily_limit: json[ProductFields.daily_limit] as String?,
     daily_limit_amount: json[ProductFields.daily_limit_amount] as String?,
+    sync_status: json[ProductFields.sync_status] as int?,
     created_at: json[ProductFields.created_at] as String?,
     updated_at: json[ProductFields.updated_at] as String?,
     soft_delete: json[ProductFields.soft_delete] as String?,
@@ -175,6 +182,7 @@ class Product{
     ProductFields.color: color,
     ProductFields.daily_limit: daily_limit,
     ProductFields.daily_limit_amount: daily_limit_amount,
+    ProductFields.sync_status: sync_status,
     ProductFields.created_at: created_at,
     ProductFields.updated_at: updated_at,
     ProductFields.soft_delete: soft_delete,
