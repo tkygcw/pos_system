@@ -46,6 +46,30 @@ class ReceiptLayout{
     }
   }
 
+  readSpecificOrderCache(String orderCacheId, String dateTime) async {
+
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    List<OrderCache> cacheData  = await PosDatabase.instance.readSpecificDeletedOrderCache(int.parse(orderCacheId));
+    orderCache = cacheData[0];
+    print('order cache: ${orderCache!.order_cache_sqlite_id}');
+    List<OrderDetail> detailData = await PosDatabase.instance.readDeletedOrderDetail(orderCache!.order_cache_sqlite_id.toString(), dateTime);
+    orderDetailList = List.from(detailData);
+    print('order detail list: ${orderDetailList.length}');
+
+
+    List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllDeletedTableUseDetail(orderCache!.table_use_sqlite_id!);
+    for(int i = 0; i < detailData2.length; i++){
+      List<PosTable> tableData = await PosDatabase.instance
+          .readSpecificTable(branch_id!, detailData2[i].table_sqlite_id!);
+      if(!tableList.contains(tableData)){
+        tableList.add(tableData[0]);
+      }
+    }
+
+  }
+
   testTicket80mm(bool isUSB, value) async {
     // Using default profile
     var generator;
@@ -267,7 +291,7 @@ class ReceiptLayout{
 
     List<int> bytes = [];
     try {
-      bytes += generator.text('**order list**', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('** ORDER LIST **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
@@ -276,6 +300,7 @@ class ReceiptLayout{
       }
       // bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
       bytes += generator.text('Order No: #${orderCache!.batch_id}');
+      bytes += generator.text('Order By: ${orderCache!.order_by}');
       bytes += generator.text('Order time: ${dateTime}');
       bytes += generator.hr();
       bytes += generator.reset();
@@ -309,7 +334,7 @@ class ReceiptLayout{
           bytes += generator.row([
             PosColumn(text: '', width: 2),
             PosColumn(text: '+Modifier', width: 8, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+            PosColumn(text: '    ', width: 2, styles: PosStyles(align: PosAlign.right)),
           ]);
         }
         /*
@@ -388,7 +413,7 @@ class ReceiptLayout{
 
     List<int> bytes = [];
     try {
-      bytes += generator.text('**kitchen list**', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
@@ -445,6 +470,91 @@ class ReceiptLayout{
         }
         bytes += generator.feed(1);
         bytes += generator.emptyLines(1);
+      }
+
+      bytes += generator.feed(1);
+      bytes += generator.beep(n: 3, duration: PosBeepDuration.beep400ms);
+      bytes += generator.cut(mode: PosCutMode.partial);
+      return bytes;
+    } catch (e) {
+      print('layout error: $e');
+      return null;
+    }
+  }
+
+  printDeleteItemList80mm(bool isUSB, value, String orderCacheId, String deleteDateTime) async {
+    String dateTime = dateFormat.format(DateTime.now());
+    await readSpecificOrderCache(orderCacheId, deleteDateTime);
+
+    var generator;
+    if (isUSB) {
+      final profile = await CapabilityProfile.load();
+      generator = Generator(PaperSize.mm80, profile);
+    } else {
+      generator = value;
+    }
+
+    List<int> bytes = [];
+    try {
+      bytes += generator.text('CANCELLATION',
+          styles: PosStyles(align: PosAlign.center, bold: true, fontType:PosFontType.fontA, underline: true, height: PosTextSize.size2, width: PosTextSize.size2));
+      bytes += generator.emptyLines(1);
+      bytes += generator.reset();
+      //other order detail
+      for(int i = 0; i < tableList.length; i++){
+        bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+      }
+      bytes += generator.text('order No: #${orderCache!.batch_id}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('cancel time: ${dateTime}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.hr();
+      bytes += generator.reset();
+      /*
+    *
+    * body
+    *
+    * */
+      //order product
+      for(int i = 0; i < orderDetailList.length; i++){
+        bytes += generator.row([
+          PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
+          PosColumn(
+              text: '${orderDetailList[i].productName}',
+              width: 8,
+              containsChinese: true,
+              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+          PosColumn(
+              text: '',
+              width: 2,
+              styles: PosStyles(align: PosAlign.right)),
+        ]);
+        bytes += generator.reset();
+        if(orderDetailList[i].has_variant == '1'){
+          bytes += generator.row([
+            PosColumn(text: '', width: 2),
+            PosColumn(text: '(${orderDetailList[i].product_variant_name})', width: 8, styles: PosStyles(align: PosAlign.left)),
+            PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+          ]);
+        } else {
+          bytes += generator.row([
+            PosColumn(text: '', width: 2),
+            PosColumn(text: '+Modifier', width: 8, styles: PosStyles(align: PosAlign.left)),
+            PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+          ]);
+        }
+        /*
+        * product remark
+        * */
+        bytes += generator.reset();
+        if (orderDetailList[i].remark != '') {
+          bytes += generator.row([
+            PosColumn(text: '', width: 2),
+            PosColumn(text: '**${orderDetailList[i].remark}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+            PosColumn(text: '', width: 2),
+          ]);
+        }
+        bytes += generator.feed(1);
+        bytes += generator.hr();
+        bytes += generator.text('cancel by: ${orderDetailList[i].cancel_by}', styles: PosStyles(align: PosAlign.center));
       }
 
       bytes += generator.feed(1);

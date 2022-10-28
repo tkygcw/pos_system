@@ -503,7 +503,7 @@ class _CartPageState extends State<CartPage> {
                                       print('add order cache');
                                       if (printerList.length > 0) {
                                         await callCreateNewOrder(cart);
-                                        //await _printKitchenList();
+                                        await _printKitchenList();
                                         cart.removeAllCartItem();
                                         cart.removeAllTable();
                                       } else {
@@ -551,80 +551,91 @@ class _CartPageState extends State<CartPage> {
   }
 
   _printCheckList() async {
+    print('check List called!');
     try {
       for (int i = 0; i < printerList.length; i++) {
         List<PrinterLinkCategory> data = await PosDatabase.instance
             .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-        if (data[0].category_sqlite_id == '3') {
-          if(printerList[i].type == 0){
-            var printerDetail = jsonDecode(printerList[i].value!);
-            var data = Uint8List.fromList(await ReceiptLayout()
-                .printCheckList80mm(true, null));
-            bool? isConnected = await flutterUsbPrinter.connect(
-                int.parse(printerDetail['vendorId']),
-                int.parse(printerDetail['productId']));
-            if (isConnected == true) {
-              await flutterUsbPrinter.write(data);
+        print('printer link category length: ${data.length}');
+        for(int j = 0; j < data.length; j++){
+          if (data[j].category_sqlite_id == '3') {
+            if(printerList[i].type == 0){
+              var printerDetail = jsonDecode(printerList[i].value!);
+              var data = Uint8List.fromList(await ReceiptLayout()
+                  .printCheckList80mm(true, null));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']),
+                  int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              } else {
+                print('not connected');
+              }
             } else {
-              print('not connected');
+              print("print lan");
             }
-          } else {
-            print("print lan");
           }
         }
+
       }
     } catch (e) {
-      print('Printer Connection Error');
+      print('Printer Connection Error: ${e}');
       //response = 'Failed to get platform version.';
     }
   }
 
   _printKitchenList() async {
+    bool _found = false;
     for (int i = 0; i < printerList.length; i++) {
       List<PrinterLinkCategory> data = await PosDatabase.instance
           .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-      //check printer category
-      if (data[0].category_sqlite_id != '3') {
-        //check printer type
-        if(printerList[i].type == 1){
-          var printerDetail = jsonDecode(printerList[i].value!);
-          //check paper size
-          if(printerList[i].paper_size == 0){
-            //print LAN
-            final profile = await CapabilityProfile.load();
-            final printer = NetworkPrinter(PaperSize.mm80, profile);
-            final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-
-            if (res == PosPrintResult.success) {
-              await ReceiptLayout().printKitchenList80mm(false, printer);
-              printer.disconnect();
-            } else {
-              print('not connected');
-            }
-          } else {
-            print('print 58mm');
-          }
-        } else {
-          if(printerList[i].paper_size == 0) {
-            var printerDetail = jsonDecode(printerList[i].value!);
-            var data = Uint8List.fromList(await ReceiptLayout()
-                .printKitchenList80mm(true, null));
-            bool? isConnected = await flutterUsbPrinter.connect(
-                int.parse(printerDetail['vendorId']),
-                int.parse(printerDetail['productId']));
-            if (isConnected == true) {
-              await flutterUsbPrinter.write(data);
-            } else {
-              print('not connected');
-            }
-          } else {
-            print('print 58mm');
-          }
-
+      for(int j = 0; j < data.length; j++){
+        //check printer category
+        if (data[j].category_sqlite_id != '3') {
+          _found = true;
         }
       }
-    }
+     if(_found == true){
+       //check printer type
+       if(printerList[i].type == 1){
+         var printerDetail = jsonDecode(printerList[i].value!);
+         //check paper size
+         if(printerList[i].paper_size == 0){
+           //print LAN
+           final profile = await CapabilityProfile.load();
+           final printer = NetworkPrinter(PaperSize.mm80, profile);
+           final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
+           if (res == PosPrintResult.success) {
+             await ReceiptLayout().printKitchenList80mm(false, printer);
+             printer.disconnect();
+           } else {
+             print('not connected');
+           }
+         } else {
+           print('print 58mm');
+         }
+       } else {
+         if(printerList[i].paper_size == 0) {
+           var printerDetail = jsonDecode(printerList[i].value!);
+           var data = Uint8List.fromList(await ReceiptLayout()
+               .printKitchenList80mm(true, null));
+           bool? isConnected = await flutterUsbPrinter.connect(
+               int.parse(printerDetail['vendorId']),
+               int.parse(printerDetail['productId']));
+           if (isConnected == true) {
+             await flutterUsbPrinter.write(data);
+           } else {
+             print('not connected');
+           }
+         } else {
+           print('print 58mm');
+         }
+
+       }
+     }
+
+    }
   }
 
   readAllPrinters() async {
@@ -1363,7 +1374,7 @@ class _CartPageState extends State<CartPage> {
     await createOrderCache(cart);
     await createOrderDetail(cart);
     await updatePosTable(cart);
-    //await _printCheckList();
+    await _printCheckList();
   }
 
   callAddOrderCache(CartModel cart) async {
@@ -1622,7 +1633,9 @@ class _CartPageState extends State<CartPage> {
                 dining_id: diningOptionID.toString(),
                 order_id: '',
                 order_by: userObject['name'].toString(),
+                order_by_user_id: userObject['user_id'].toString(),
                 cancel_by: '',
+                cancel_by_user_id: '',
                 customer_id: '0',
                 total_amount: '',//totalAmount.toStringAsFixed(1),
                 sync_status: 0,
@@ -1664,6 +1677,7 @@ class _CartPageState extends State<CartPage> {
                 remark: cart.cartNotifierItem[j].remark,
                 account: '',
                 cancel_by: '',
+                cancel_by_user_id: '',
                 sync_status: 0,
                 created_at: dateTime,
                 updated_at: '',

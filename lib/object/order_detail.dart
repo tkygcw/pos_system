@@ -23,6 +23,7 @@ class OrderDetailFields {
     remark,
     account,
     cancel_by,
+    cancel_by_user_id,
     sync_status,
     created_at,
     updated_at,
@@ -42,6 +43,7 @@ class OrderDetailFields {
   static String remark = 'remark';
   static String account = 'account';
   static String cancel_by = 'cancel_by';
+  static String cancel_by_user_id = 'cancel_by_user_id';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -62,6 +64,7 @@ class OrderDetail{
   String? remark;
   String? account;
   String? cancel_by;
+  String? cancel_by_user_id;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -91,6 +94,7 @@ class OrderDetail{
         this.remark,
         this.account,
         this.cancel_by,
+        this.cancel_by_user_id,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -111,6 +115,7 @@ class OrderDetail{
     String? remark,
     String? account,
     String? cancel_by,
+    String? cancel_by_user_id,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -130,6 +135,7 @@ class OrderDetail{
           remark: remark ?? this.remark,
           account: account ?? this.account,
           cancel_by: cancel_by ?? this.cancel_by,
+          cancel_by_user_id: cancel_by_user_id ?? this.cancel_by_user_id,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -150,6 +156,7 @@ class OrderDetail{
     remark: json[OrderDetailFields.remark] as String?,
     account: json[OrderDetailFields.account] as String?,
     cancel_by: json[OrderDetailFields.cancel_by] as String?,
+    cancel_by_user_id: json[OrderDetailFields.cancel_by_user_id] as String?,
     sync_status: json[OrderDetailFields.sync_status] as int?,
     created_at: json[OrderDetailFields.created_at] as String?,
     updated_at: json[OrderDetailFields.updated_at] as String?,
@@ -171,6 +178,7 @@ class OrderDetail{
     OrderDetailFields.remark: remark,
     OrderDetailFields.account: account,
     OrderDetailFields.cancel_by: cancel_by,
+    OrderDetailFields.cancel_by_user_id: cancel_by_user_id,
     OrderDetailFields.sync_status: sync_status,
     OrderDetailFields.created_at: created_at,
     OrderDetailFields.updated_at: updated_at,

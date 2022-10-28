@@ -142,8 +142,10 @@ class PosDatabase {
           ${OrderCacheFields.batch_id} $textType, 
           ${OrderCacheFields.dining_id} $textType, 
           ${OrderCacheFields.order_id} $textType, 
-          ${OrderCacheFields.order_by} $textType, 
+          ${OrderCacheFields.order_by} $textType,
+          ${OrderCacheFields.order_by_user_id} $textType, 
           ${OrderCacheFields.cancel_by} $textType,
+          ${OrderCacheFields.cancel_by_user_id} $textType,
           ${OrderCacheFields.customer_id} $textType, 
           ${OrderCacheFields.total_amount} $textType,
           ${OrderCacheFields.sync_status} $integerType,
@@ -167,6 +169,7 @@ class PosDatabase {
         ${OrderDetailFields.remark} $textType, 
         ${OrderDetailFields.account} $textType,
         ${OrderDetailFields.cancel_by} $textType,
+        ${OrderDetailFields.cancel_by_user_id} $textType,
         ${OrderDetailFields.sync_status} $integerType,
         ${OrderDetailFields.created_at} $textType, 
         ${OrderDetailFields.updated_at} $textType,
@@ -1536,8 +1539,21 @@ class PosDatabase {
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
   }
 
+/*
+  read all table detail based on table use id(inc deleted)
+*/
+  Future<List<TableUseDetail>> readAllDeletedTableUseDetail(
+      String table_use_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableTableUseDetail WHERE table_use_sqlite_id = ?',
+        [table_use_sqlite_id]);
+
+    return result.map((json) => TableUseDetail.fromJson(json)).toList();
+  }
+
   /*
-  read all order cache
+  read latest order cache
 */
   Future<List<OrderCache>> readBranchLatestOrderCache(int branch_id) async {
     final db = await instance.database;
@@ -1555,6 +1571,28 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND branch_id = ?',
         ['', branch_id]);
+    return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
+/*
+  read specific order cache
+*/
+  Future<List<OrderCache>> readSpecificOrderCache(String order_cache_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND order_cache_sqlite_id = ?',
+        ['', order_cache_sqlite_id]);
+    return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
+/*
+  read specific order cache(deleted)
+*/
+  Future<List<OrderCache>> readSpecificDeletedOrderCache(int order_cache_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderCache WHERE order_cache_sqlite_id = ?',
+        [order_cache_sqlite_id]);
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
@@ -1612,7 +1650,7 @@ class PosDatabase {
   }
 
 /*
-  read order detail
+  read order detail by order cache
 */
   Future<List<OrderDetail>> readTableOrderDetail(
       String order_cache_sqlite_id) async {
@@ -1623,6 +1661,19 @@ class PosDatabase {
 
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
+
+/*
+  read order detail by order cache (deleted)
+*/
+  Future<List<OrderDetail>> readDeletedOrderDetail(String order_cache_sqlite_id, String dateTime) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderDetail WHERE order_cache_sqlite_id = ? AND soft_delete = ?',
+        [order_cache_sqlite_id, dateTime]);
+
+    return result.map((json) => OrderDetail.fromJson(json)).toList();
+  }
+
 
 //   /*
 //   read order detail
@@ -2116,8 +2167,8 @@ class PosDatabase {
   Future<int> deleteOrderCache(OrderCache data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableOrderCache SET soft_delete = ? WHERE order_cache_sqlite_id = ?',
-        [data.soft_delete, data..order_cache_sqlite_id]);
+        'UPDATE $tableOrderCache SET soft_delete = ?, cancel_by = ?, cancel_by_user_id = ? WHERE order_cache_sqlite_id = ?',
+        [data.soft_delete, data.cancel_by, data.cancel_by_user_id, data.order_cache_sqlite_id]);
   }
 
 /*
@@ -2131,14 +2182,14 @@ class PosDatabase {
   }
 
   /*
-  Soft-delete Order detail
+  Soft-delete specific Order detail
 */
   Future<int> deleteSpecificOrderDetail(OrderDetail data) async {
     print('called');
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableOrderDetail SET soft_delete = ? WHERE order_cache_sqlite_id = ? AND branch_link_product_sqlite_id = ?',
-        [data.soft_delete, data.order_cache_sqlite_id, data.branch_link_product_sqlite_id]);
+        'UPDATE $tableOrderDetail SET soft_delete = ?, cancel_by = ?, cancel_by_user_id = ? WHERE order_cache_sqlite_id = ? AND branch_link_product_sqlite_id = ?',
+        [data.soft_delete, data.cancel_by, data.cancel_by_user_id, data.order_cache_sqlite_id, data.branch_link_product_sqlite_id]);
   }
 
 /*
