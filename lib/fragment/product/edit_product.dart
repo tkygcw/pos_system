@@ -481,7 +481,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
           widget.product!.product_id.toString());
       if (response['status'] == '1') {
         int syncData = await PosDatabase.instance.updateSyncProduct(Product(
-          category_id: response['product_id'],
+          product_id: widget.product!.product_id,
           sync_status: 2,
           updated_at: dateTime,
           product_sqlite_id: widget.product!.product_sqlite_id,
@@ -490,9 +490,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
 /*
       -----------------------------end sync------------------------------------
 */
-      // if(productUpdated == 1){
-      //
-      // }
+      if (productUpdated == 1) {}
       /*
       --------------------modifier----------------------
 */
@@ -920,7 +918,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
       if (response['status'] == '1') {
         int syncData = await PosDatabase.instance.updateSyncProduct(Product(
-          category_id: response['product_id'],
+          product_id: response['product_id'],
           sync_status: 2,
           updated_at: dateTime,
           product_sqlite_id: productInserted.product_sqlite_id,
@@ -936,52 +934,83 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
       if (switchController.selectedItem.length != 0) {
         for (int i = 0; i < switchController.selectedItem.length; i++) {
+          ModifierLinkProduct data = await PosDatabase.instance
+              .insertSyncModifierLinkProduct(ModifierLinkProduct(
+                  modifier_link_product_id: 0,
+                  mod_group_id: switchController.selectedItem[i].toString(),
+                  product_id: response['product_id'].toString(),
+                  sync_status: 0,
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
+
+/*
+  --------------------------------sync to cloud---------------------------------
+*/
           Map responseModifier = await Domain().insertModifierLinkProduct(
               switchController.selectedItem[i].toString(),
               response['product_id'].toString());
           if (responseModifier['status'] == '1') {
-            ModifierLinkProduct data = await PosDatabase.instance
-                .insertModifierLinkProduct(ModifierLinkProduct(
-                    modifier_link_product_id:
-                        responseModifier['modifier_link_product_id'],
-                    mod_group_id: switchController.selectedItem[i].toString(),
-                    product_id: response['product_id'].toString(),
-                    created_at: dateTime,
-                    updated_at: '',
-                    soft_delete: ''));
+            int syncData = await PosDatabase.instance
+                .updateSyncModifierLinkProduct(ModifierLinkProduct(
+              modifier_link_product_id: response['modifier_link_product_id'],
+              sync_status: 2,
+              updated_at: dateTime,
+              modifier_link_product_sqlite_id:
+                  data.modifier_link_product_sqlite_id,
+            ));
           }
+/*
+  --------------------------------end sync--------------------------------------
+*/
         }
       }
 
       if (selectVariant == 'Have Variant') {
         for (int i = 0; i < variantList.length; i++) {
+          VariantGroup group = await PosDatabase.instance.insertSyncVariantGroup(
+              VariantGroup(
+                  child: [],
+                  variant_group_id: 0,
+                  product_id: response['product_id'].toString(),
+                  name: variantList[i]['modGroup'],
+                  sync_status: 0,
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
+/*
+          ----------------------sync to cloud----------------------------------
+*/
           Map responseVariantGroup = await Domain().insertVariantGroup(
               variantList[i]['modGroup'], response['product_id'].toString());
           if (responseVariantGroup['status'] == '1') {
-            VariantGroup group = await PosDatabase.instance.insertVariantGroup(
-                VariantGroup(
-                    child: [],
-                    variant_group_id: responseVariantGroup['variant_group_id'],
-                    product_id: response['product_id'].toString(),
-                    name: variantList[i]['modGroup'],
-                    created_at: dateTime,
-                    updated_at: '',
-                    soft_delete: ''));
-            for (int j = 0; j < variantList[i]['modItem'].length; j++) {
-              Map responseVariantItem = await Domain().insertVariantItem(
-                  variantList[i]['modItem'][j],
-                  responseVariantGroup['variant_group_id'].toString());
-              if (responseVariantItem['status'] == '1') {
-                VariantItem item = await PosDatabase.instance.insertVariantItem(
-                    VariantItem(
-                        variant_item_id: responseVariantItem['variant_item_id'],
-                        variant_group_id:
-                            responseVariantGroup['variant_group_id'].toString(),
-                        name: variantList[i]['modItem'][j],
-                        created_at: dateTime,
-                        updated_at: '',
-                        soft_delete: ''));
-              }
+            int syncData = await PosDatabase.instance
+                .updateSyncVariantGroup(VariantGroup(
+              child: [],
+              variant_group_id: response['modifier_link_product_id'],
+              sync_status: 2,
+              updated_at: dateTime,
+              variant_group_sqlite_id: group.variant_group_sqlite_id,
+            ));
+          }
+/*
+          -----------------------end sync--------------------------------------
+*/
+
+          for (int j = 0; j < variantList[i]['modItem'].length; j++) {
+            Map responseVariantItem = await Domain().insertVariantItem(
+                variantList[i]['modItem'][j],
+                responseVariantGroup['variant_group_id'].toString());
+            if (responseVariantItem['status'] == '1') {
+              VariantItem item = await PosDatabase.instance.insertVariantItem(
+                  VariantItem(
+                      variant_item_id: responseVariantItem['variant_item_id'],
+                      variant_group_id:
+                          responseVariantGroup['variant_group_id'].toString(),
+                      name: variantList[i]['modItem'][j],
+                      created_at: dateTime,
+                      updated_at: '',
+                      soft_delete: ''));
             }
           }
         }
@@ -1136,58 +1165,74 @@ class _EditProductDialogState extends State<EditProductDialog> {
     try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
+
+      deleteFile();
+      int deleteProduct = await PosDatabase.instance.deleteProduct(Product(
+          soft_delete: dateTime,
+          sync_status: 1,
+          product_id: widget.product!.product_id));
+/*
+        -------------------------sync to cloud---------------------------------
+*/
       Map response =
           await Domain().deleteProduct(widget.product!.product_id.toString());
       if (response['status'] == '1') {
-        deleteFile();
-        int deleteProduct = await PosDatabase.instance.deleteProduct(Product(
-            soft_delete: dateTime, product_id: widget.product!.product_id));
-        int deleteProductBranch = await PosDatabase.instance
-            .deleteAllProductBranch(BranchLinkProduct(
-                soft_delete: dateTime,
-                product_id: widget.product!.product_id.toString()));
-        int deleteModifierLinkProduct = await PosDatabase.instance
-            .deleteModifierLinkProduct(ModifierLinkProduct(
-                soft_delete: dateTime,
-                product_id: widget.product!.product_id.toString()));
-        int deleteAllVariantGroup = await PosDatabase.instance
-            .deleteAllVariantGroup(VariantGroup(
-                child: [],
-                soft_delete: dateTime,
-                product_id: widget.product!.product_id.toString()));
-
-        List<VariantGroup> variantGroupData = await PosDatabase.instance
-            .readProductVariantGroup(widget.product!.product_id!);
-
-        for (int i = 0; i < variantGroupData.length; i++) {
-          int deleteAllVariantItem = await PosDatabase.instance
-              .deleteAllVariantitem(VariantItem(
-                  soft_delete: dateTime,
-                  variant_group_id:
-                      variantGroupData[i].variant_group_id.toString()));
-        }
-
-        int deleteAllProductVariant = await PosDatabase.instance
-            .deleteAllProductVariant(ProductVariant(
-                soft_delete: dateTime,
-                product_id: widget.product!.product_id.toString()));
-
-        List<ProductVariant> productVariantData = await PosDatabase.instance
-            .readProductVariant(widget.product!.product_id.toString());
-
-        for (int j = 0; j < productVariantData.length; j++) {
-          int deleteAllProductVariantDetail = await PosDatabase.instance
-              .deleteAllProductVariantDetail(ProductVariantDetail(
-                  soft_delete: dateTime,
-                  product_variant_id:
-                      productVariantData[j].product_variant_id.toString()));
-        }
-
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xff0c1f32), msg: "delete Product Success");
-        widget.callBack();
-        closeDialog(context);
+        int syncData = await PosDatabase.instance.updateSyncProduct(Product(
+          product_id: widget.product!.product_id,
+          sync_status: 2,
+          updated_at: dateTime,
+          product_sqlite_id: widget.product!.product_sqlite_id,
+        ));
       }
+/*
+      ---------------------------end sync--------------------------------------
+*/
+
+      int deleteProductBranch = await PosDatabase.instance
+          .deleteAllProductBranch(BranchLinkProduct(
+              soft_delete: dateTime,
+              product_id: widget.product!.product_id.toString()));
+      int deleteModifierLinkProduct = await PosDatabase.instance
+          .deleteModifierLinkProduct(ModifierLinkProduct(
+              soft_delete: dateTime,
+              product_id: widget.product!.product_id.toString()));
+      int deleteAllVariantGroup = await PosDatabase.instance
+          .deleteAllVariantGroup(VariantGroup(
+              child: [],
+              soft_delete: dateTime,
+              product_id: widget.product!.product_id.toString()));
+
+      List<VariantGroup> variantGroupData = await PosDatabase.instance
+          .readProductVariantGroup(widget.product!.product_id!);
+
+      for (int i = 0; i < variantGroupData.length; i++) {
+        int deleteAllVariantItem = await PosDatabase.instance
+            .deleteAllVariantitem(VariantItem(
+                soft_delete: dateTime,
+                variant_group_id:
+                    variantGroupData[i].variant_group_id.toString()));
+      }
+
+      int deleteAllProductVariant = await PosDatabase.instance
+          .deleteAllProductVariant(ProductVariant(
+              soft_delete: dateTime,
+              product_id: widget.product!.product_id.toString()));
+
+      List<ProductVariant> productVariantData = await PosDatabase.instance
+          .readProductVariant(widget.product!.product_id.toString());
+
+      for (int j = 0; j < productVariantData.length; j++) {
+        int deleteAllProductVariantDetail = await PosDatabase.instance
+            .deleteAllProductVariantDetail(ProductVariantDetail(
+                soft_delete: dateTime,
+                product_variant_id:
+                    productVariantData[j].product_variant_id.toString()));
+      }
+
+      Fluttertoast.showToast(
+          backgroundColor: Color(0xff0c1f32), msg: "delete Product Success");
+      widget.callBack();
+      closeDialog(context);
     } catch (error) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFFC107), msg: error.toString());

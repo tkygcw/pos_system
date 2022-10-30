@@ -10,6 +10,7 @@ class VariantGroupFields {
     variant_group_id,
     product_id,
     name,
+    sync_status,
     created_at,
     updated_at,
     soft_delete
@@ -19,6 +20,7 @@ class VariantGroupFields {
   static String variant_group_id = 'variant_group_id';
   static String product_id = 'product_id';
   static String name = 'name';
+  static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -32,6 +34,7 @@ class VariantGroup {
   late List<VariantItem> child;
   String? product_id;
   String? name;
+  int? sync_status;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -43,6 +46,7 @@ class VariantGroup {
       required this.child,
       this.product_id,
       this.name,
+      this.sync_status,
       this.created_at,
       this.updated_at,
       this.soft_delete});
@@ -52,6 +56,7 @@ class VariantGroup {
     int? variant_group_id,
     String? product_id,
     String? name,
+    int? sync_status,
     String? created_at,
     String? updated_at,
     String? soft_delete,
@@ -62,6 +67,7 @@ class VariantGroup {
           variant_group_id: variant_group_id ?? this.variant_group_id,
           product_id: product_id ?? this.product_id,
           name: name ?? this.name,
+          sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete,
@@ -73,6 +79,7 @@ class VariantGroup {
         variant_group_id: json[VariantGroupFields.variant_group_id] as int?,
         product_id: json[VariantGroupFields.product_id] as String?,
         name: json[VariantGroupFields.name] as String?,
+        sync_status: json[VariantGroupFields.sync_status] as int?,
         created_at: json[VariantGroupFields.created_at] as String?,
         updated_at: json[VariantGroupFields.updated_at] as String?,
         soft_delete: json[VariantGroupFields.soft_delete] as String?,
@@ -84,6 +91,7 @@ class VariantGroup {
         VariantGroupFields.variant_group_id: variant_group_id,
         VariantGroupFields.product_id: product_id,
         VariantGroupFields.name: name,
+        VariantGroupFields.sync_status: sync_status,
         VariantGroupFields.created_at: created_at,
         VariantGroupFields.updated_at: updated_at,
         VariantGroupFields.soft_delete: soft_delete,
@@ -93,6 +101,7 @@ class VariantGroup {
         VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
         VariantGroupFields.variant_group_id: variant_group_id,
         VariantGroupFields.name: name,
-        VariantGroupFields.variant_item: jsonEncode(child.map((e) => e.addToCartJSon()).toList()),
+        VariantGroupFields.variant_item:
+            jsonEncode(child.map((e) => e.addToCartJSon()).toList()),
       };
 }
