@@ -6,6 +6,7 @@ import 'package:pos_system/fragment/display_order/display_order.dart';
 import 'package:pos_system/fragment/order/order.dart';
 import 'package:pos_system/fragment/product/product.dart';
 import 'package:pos_system/fragment/setting/setting.dart';
+import 'package:pos_system/fragment/settlement/settlement_page.dart';
 import 'package:pos_system/fragment/table/table.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
@@ -87,8 +88,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Visibility(
                       visible: currentPage != 'product' &&
-                              currentPage != 'setting' &&
-                              currentPage != 'order'
+                               currentPage != 'setting' &&
+                               currentPage != 'order' &&
+                               currentPage != 'settlement' 
                           ? true
                           : false,
                       child: Expanded(
@@ -132,6 +134,11 @@ class _HomePageState extends State<HomePage> {
         onPressed: () => setState(() => currentPage = 'order'),
       ),
       CollapsibleItem(
+        text: 'settlement',
+        icon: Icons.report,
+        onPressed: () => setState(() => currentPage = 'settlement'),
+      ),
+      CollapsibleItem(
         text: 'Setting',
         icon: Icons.settings,
         onPressed: () => setState(() => currentPage = 'setting'),
@@ -151,6 +158,8 @@ class _HomePageState extends State<HomePage> {
         return BillPage();
       case 'order':
         return DisplayOrderPage();
+      case 'settlement':
+        return SettlementPage();
       default:
         return SettingMenu();
     }

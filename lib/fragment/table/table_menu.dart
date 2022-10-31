@@ -46,7 +46,6 @@ class _TableMenuState extends State<TableMenu> {
   double priceSST = 0.0;
   double priceServeTax = 0.0;
   bool isLoaded = false;
-  Color cardColor = Colors.primaries[Random().nextInt(Colors.primaries.length)];
 
   @override
   void initState() {

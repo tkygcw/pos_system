@@ -4,6 +4,7 @@ import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/object/bill.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/branch_link_user.dart';
+import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/customer.dart';
 import 'package:pos_system/object/dining_option.dart';
@@ -15,6 +16,7 @@ import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
+import 'package:pos_system/object/payment_type.dart';
 import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/product_variant.dart';
@@ -422,6 +424,39 @@ class PosDatabase {
           ${ReceiptFields.created_at} $textType,
           ${ReceiptFields.updated_at} $textType,
           ${ReceiptFields.soft_delete} $textType)''');
+
+/*
+    create cash record table
+*/
+    await db.execute('''CREATE TABLE $tableCashRecord(
+          ${CashRecordFields.cash_record_sqlite_id} $idType,
+          ${CashRecordFields.cash_record_id} $integerType,
+          ${CashRecordFields.company_id} $textType,
+          ${CashRecordFields.branch_id} $textType,
+          ${CashRecordFields.remark} $textType,
+          ${CashRecordFields.payment_type_sqlite_id} $textType,
+          ${CashRecordFields.payment_type_id} $textType,
+          ${CashRecordFields.type} $integerType,
+          ${CashRecordFields.amount} $textType,
+          ${CashRecordFields.user_id} $textType,
+          ${CashRecordFields.settlement_date} $textType,
+          ${CashRecordFields.sync_status} $integerType,
+          ${CashRecordFields.created_at} $textType,
+          ${CashRecordFields.updated_at} $textType,
+          ${CashRecordFields.soft_delete} $textType)''');
+
+/*
+    create payment type table
+*/
+    await db.execute('''CREATE TABLE $tablePaymentType(
+          ${PaymentTypeFields.payment_type_sqlite_id} $idType,
+          ${PaymentTypeFields.payment_type_id} $integerType,
+          ${PaymentTypeFields.name} $textType,
+          ${PaymentTypeFields.type} $integerType,
+          ${PaymentTypeFields.sync_status} $integerType,
+          ${PaymentTypeFields.created_at} $textType,
+          ${PaymentTypeFields.updated_at} $textType,
+          ${PaymentTypeFields.soft_delete} $textType)''');
   }
 
 /*
@@ -983,6 +1018,15 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableReceipt!, data.toJson());
     return data.copy(receipt_sqlite_id: id);
+  }
+
+/*
+  add cash record data into local db
+*/
+  Future<CashRecord> insertSqliteCashRecord(CashRecord data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableCashRecord!, data.toJson());
+    return data.copy(cash_record_sqlite_id: id);
   }
 
 /*
@@ -1850,6 +1894,17 @@ class PosDatabase {
   }
 
 /*
+  read all cash record
+*/
+  Future<List<CashRecord>> readAllCashRecord() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND b.soft_delete = ?',
+        ['','']);
+    return result.map((json) => CashRecord.fromJson(json)).toList();
+  }
+
+/*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
   /*
@@ -2357,6 +2412,16 @@ class PosDatabase {
     return await db.rawUpdate(
         'UPDATE $tableReceipt SET sync_status = ?, soft_delete = ? WHERE receipt_sqlite_id = ?',
         [data.sync_status, data.soft_delete, data.receipt_sqlite_id]);
+  }
+
+/*
+  Soft-delete cash record
+*/
+  Future<int> deleteCashRecord(CashRecord data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableCashRecord SET sync_status = ?, soft_delete = ? WHERE cash_record_sqlite_id = ?',
+        [data.sync_status, data.soft_delete, data.cash_record_sqlite_id]);
   }
 
 /*

@@ -11,6 +11,8 @@
   "printer_label_required": "Printer Label is required",
   "header_text_required": "Header text is required",
   "seat_required": "Seat is required",
+  "remark_required": "Remark is required",
+  "amount_required": "Amount is required",
   "would you like to remove?": "Would you like to remove?",
   "logout-Desc": "All this app data will be deleted permanently. This includes all files, setting, database etc.",
   "password_required": "Password is required",
@@ -27,5 +29,6 @@
   "merge_error_2": "Cannot join with table not in use or table in use",
   "remove_layout_error": "remove layout error, Please try again",
   "remove_printer": "Confirm remove printer?",
-  "remove_layout": "Confirm remove layout?"
+  "remove_layout": "Confirm remove layout?",
+  "remove_cash_record": "Confirm remove cash record?"
 }

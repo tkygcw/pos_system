@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pos_system/fragment/cart/cart.dart';
 import 'table_menu.dart';
 
 class TablePage extends StatefulWidget {
