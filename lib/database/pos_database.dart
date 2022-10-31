@@ -268,7 +268,7 @@ class PosDatabase {
     create variant item table
 */
     await db.execute(
-        '''CREATE TABLE $tableVariantItem ( ${VariantItemFields.variant_item_sqlite_id} $idType, ${VariantItemFields.variant_item_id} $integerType , ${VariantItemFields.variant_group_id} $textType,${VariantItemFields.name} $textType,
+        '''CREATE TABLE $tableVariantItem ( ${VariantItemFields.variant_item_sqlite_id} $idType, ${VariantItemFields.variant_item_id} $integerType , ${VariantItemFields.variant_group_id} $textType,${VariantItemFields.name} $textType,${VariantItemFields.sync_status} $integerType,
            ${VariantItemFields.created_at} $textType,${VariantItemFields.updated_at} $textType,${VariantItemFields.soft_delete} $textType)''');
 /*
     create branch link dining table
@@ -845,14 +845,46 @@ class PosDatabase {
     return data.copy(variant_group_sqlite_id: await id);
   }
 
-/*
-  add variant group to sqlite
-*/
-  // Future<VariantGroup> insertVariantGroup(VariantGroup data) async {
-  //   final db = await instance.database;
-  //   final id = await db.insert(tableVariantGroup!, data.toJson());
-  //   return data.copy(variant_group_sqlite_id: id);
-  // }
+//   /*
+//   add variant group to sqlite (from cloud)
+// */
+//   Future<VariantGroup> insertVariantItem(VariantGroup data) async {
+//     final db = await instance.database;
+//     final id = db.rawInsert(
+//         'INSERT INTO $tableVariantGroup(variant_group_id, product_id, name, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?)',
+//         [
+//           data.variant_group_id,
+//           data.product_id,
+//           data.name,
+//           2,
+//           data.created_at,
+//           data.updated_at,
+//           data.soft_delete
+//         ]);
+//     return data.copy(variant_group_sqlite_id: await id);
+//   }
+//
+// /*
+//   add variant group to sqlite
+// */
+//   Future<VariantGroup> insertSyncVariantItem(VariantGroup data) async {
+//     final db = await instance.database;
+//     final id = db.rawInsert(
+//         'INSERT INTO $tableVariantGroup(variant_group_id, product_id, name, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?)',
+//         [
+//           data.variant_group_id,
+//           data.product_id,
+//           data.name,
+//           data.sync_status,
+//           data.created_at,
+//           data.updated_at,
+//           data.soft_delete
+//         ]);
+//     return data.copy(variant_group_sqlite_id: await id);
+//   }
+
+
+
 
 /*
   add variant item to sqlite

@@ -6,6 +6,7 @@ class VariantItemFields {
     variant_item_id,
     variant_group_id,
     name,
+    sync_status,
     created_at,
     updated_at,
     soft_delete
@@ -16,6 +17,7 @@ class VariantItemFields {
   static String variant_group_id = 'variant_group_id';
   static String name = 'name';
   static String isSelected = 'selected';
+  static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -26,6 +28,7 @@ class VariantItem {
   int? variant_item_id;
   String? variant_group_id;
   String? name;
+  int? sync_status;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -37,6 +40,7 @@ class VariantItem {
       this.variant_group_id,
       this.name,
       this.isSelected,
+      this.sync_status,
       this.created_at,
       this.updated_at,
       this.soft_delete});
@@ -46,15 +50,18 @@ class VariantItem {
     int? variant_item_id,
     String? variant_group_id,
     String? name,
+    int? sync_status,
     String? created_at,
     String? updated_at,
     String? soft_delete,
   }) =>
       VariantItem(
-          variant_item_sqlite_id: variant_item_sqlite_id ?? this.variant_item_sqlite_id,
+          variant_item_sqlite_id:
+              variant_item_sqlite_id ?? this.variant_item_sqlite_id,
           variant_item_id: variant_item_id ?? this.variant_item_id,
           variant_group_id: variant_group_id ?? this.variant_group_id,
           name: name ?? this.name,
+          sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
@@ -65,6 +72,7 @@ class VariantItem {
         variant_item_id: json[VariantItemFields.variant_item_id] as int?,
         variant_group_id: json[VariantItemFields.variant_group_id] as String?,
         name: json[VariantItemFields.name] as String?,
+        sync_status: json[VariantItemFields.sync_status] as int?,
         created_at: json[VariantItemFields.created_at] as String?,
         updated_at: json[VariantItemFields.updated_at] as String?,
         soft_delete: json[VariantItemFields.soft_delete] as String?,
@@ -75,6 +83,7 @@ class VariantItem {
         VariantItemFields.variant_item_id: variant_item_id,
         VariantItemFields.variant_group_id: variant_group_id,
         VariantItemFields.name: name,
+        VariantItemFields.sync_status: sync_status,
         VariantItemFields.created_at: created_at,
         VariantItemFields.updated_at: updated_at,
         VariantItemFields.soft_delete: soft_delete,
