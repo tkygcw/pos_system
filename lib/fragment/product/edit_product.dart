@@ -998,20 +998,34 @@ class _EditProductDialogState extends State<EditProductDialog> {
 */
 
           for (int j = 0; j < variantList[i]['modItem'].length; j++) {
-            Map responseVariantItem = await Domain().insertVariantItem(
-                variantList[i]['modItem'][j],
-                responseVariantGroup['variant_group_id'].toString());
-            if (responseVariantItem['status'] == '1') {
-              VariantItem item = await PosDatabase.instance.insertVariantItem(
+              VariantItem item = await PosDatabase.instance.insertSyncVariantItem(
                   VariantItem(
-                      variant_item_id: responseVariantItem['variant_item_id'],
-                      variant_group_id:
-                          responseVariantGroup['variant_group_id'].toString(),
+                      variant_item_id: 0,
+                      variant_group_id: responseVariantGroup['variant_group_id'].toString(),
                       name: variantList[i]['modItem'][j],
+                      sync_status: 0,
                       created_at: dateTime,
                       updated_at: '',
                       soft_delete: ''));
+/*
+              -------------------------sync to cloud--------------------------
+*/
+              Map responseVariantItem = await Domain().insertVariantItem(
+                  variantList[i]['modItem'][j],
+                  responseVariantGroup['variant_group_id'].toString());
+            if (responseVariantItem['status'] == '1') {
+              int syncData = await PosDatabase.instance.updateSyncVariantItem(VariantItem(
+                variant_item_id: responseVariantItem['variant_item_id'],
+                sync_status: 2,
+                updated_at: dateTime,
+                variant_item_sqlite_id: item.variant_item_sqlite_id,
+              ));
+
             }
+/*
+              --------------------------end sync-------------------------------
+*/
+
           }
         }
 

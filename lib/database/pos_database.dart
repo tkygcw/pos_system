@@ -198,7 +198,7 @@ class PosDatabase {
     await db.execute(
         '''CREATE TABLE $tableProductVariant ( ${ProductVariantFields.product_variant_sqlite_id} $idType, ${ProductVariantFields.product_variant_id} $integerType, ${ProductVariantFields.product_id} $textType, ${ProductVariantFields.variant_name} $textType,
            ${ProductVariantFields.SKU} $textType,${ProductVariantFields.price} $textType,${ProductVariantFields.stock_type} $textType, ${ProductVariantFields.daily_limit} $textType, ${ProductVariantFields.daily_limit_amount} $textType,
-           ${ProductVariantFields.stock_quantity} $textType,${ProductVariantFields.created_at} $textType, ${ProductVariantFields.updated_at} $textType, ${ProductVariantFields.soft_delete} $textType)''');
+           ${ProductVariantFields.stock_quantity} $textType, ${ProductVariantFields.sync_status} $integerType,${ProductVariantFields.created_at} $textType, ${ProductVariantFields.updated_at} $textType, ${ProductVariantFields.soft_delete} $textType)''');
 /*
     create product variant detail table
 */
@@ -834,63 +834,92 @@ class PosDatabase {
     return data.copy(variant_group_sqlite_id: await id);
   }
 
-//   /*
-//   add variant group to sqlite (from cloud)
-// */
-//   Future<VariantGroup> insertVariantItem(VariantGroup data) async {
-//     final db = await instance.database;
-//     final id = db.rawInsert(
-//         'INSERT INTO $tableVariantGroup(variant_group_id, product_id, name, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?)',
-//         [
-//           data.variant_group_id,
-//           data.product_id,
-//           data.name,
-//           2,
-//           data.created_at,
-//           data.updated_at,
-//           data.soft_delete
-//         ]);
-//     return data.copy(variant_group_sqlite_id: await id);
-//   }
-//
-// /*
-//   add variant group to sqlite
-// */
-//   Future<VariantGroup> insertSyncVariantItem(VariantGroup data) async {
-//     final db = await instance.database;
-//     final id = db.rawInsert(
-//         'INSERT INTO $tableVariantGroup(variant_group_id, product_id, name, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?)',
-//         [
-//           data.variant_group_id,
-//           data.product_id,
-//           data.name,
-//           data.sync_status,
-//           data.created_at,
-//           data.updated_at,
-//           data.soft_delete
-//         ]);
-//     return data.copy(variant_group_sqlite_id: await id);
-//   }
-
-
-
+  /*
+  add variant item to sqlite (from cloud)
+*/
+  Future<VariantItem> insertVariantItem(VariantItem data) async {
+    final db = await instance.database;
+    final id = db.rawInsert(
+        'INSERT INTO $tableVariantItem(variant_item_id, variant_group_id, name, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?)',
+        [
+          data.variant_item_id,
+          data.variant_group_id,
+          data.name,
+          2,
+          data.created_at,
+          data.updated_at,
+          data.soft_delete
+        ]);
+    return data.copy(variant_item_sqlite_id: await id);
+  }
 
 /*
   add variant item to sqlite
 */
-  Future<VariantItem> insertVariantItem(VariantItem data) async {
+  Future<VariantItem> insertSyncVariantItem(VariantItem data) async {
     final db = await instance.database;
-    final id = await db.insert(tableVariantItem!, data.toJson());
-    return data.copy(variant_item_id: id);
+    final id = db.rawInsert(
+        'INSERT INTO $tableVariantItem(variant_item_id, variant_group_id, name, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?)',
+        [
+          data.variant_item_id,
+          data.variant_group_id,
+          data.name,
+          data.sync_status,
+          data.created_at,
+          data.updated_at,
+          data.soft_delete
+        ]);
+    return data.copy(variant_item_sqlite_id: await id);
+  }
+
+  /*
+  add product variant to sqlite (from cloud)
+*/
+  Future<ProductVariant> insertProductVariant(ProductVariant data) async {
+    final db = await instance.database;
+    final id = db.rawInsert(
+        'INSERT INTO $tableProductVariant(product_variant_id, product_id, variant_name, SKU, price, stock_type, daily_limit, daily_limit_amount, stock_quantity, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          data.product_variant_id,
+          data.product_id,
+          data.variant_name,
+          data.SKU,
+          data.price,
+          data.stock_type,
+          data.daily_limit,
+          data.daily_limit_amount,
+          data.stock_quantity,
+          2,
+          data.created_at,
+          data.updated_at,
+          data.soft_delete
+        ]);
+    return data.copy(product_variant_sqlite_id: await id);
   }
 
 /*
   add product variant to sqlite
 */
-  Future<ProductVariant> insertProductVariant(ProductVariant data) async {
+  Future<ProductVariant> insertSyncProductVariant(ProductVariant data) async {
     final db = await instance.database;
-    final id = await db.insert(tableProductVariant!, data.toJson());
-    return data.copy(product_variant_sqlite_id: id);
+    final id = db.rawInsert(
+        'INSERT INTO $tableProductVariant(product_variant_id, product_id, variant_name, SKU, price, stock_type, daily_limit, daily_limit_amount, stock_quantity, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          data.product_variant_id,
+          data.product_id,
+          data.variant_name,
+          data.SKU,
+          data.price,
+          data.stock_type,
+          data.daily_limit,
+          data.daily_limit_amount,
+          data.stock_quantity,
+          2,
+          data.created_at,
+          data.updated_at,
+          data.soft_delete
+        ]);
+    return data.copy(product_variant_sqlite_id: await id);
   }
 
 /*
@@ -1931,6 +1960,22 @@ class PosDatabase {
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+  /*
+  update sync variant group
+*/
+  Future<int> updateSyncVariantItem(VariantItem data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableVariantItem SET variant_item_id = ?, sync_status = ?, updated_at = ? WHERE variant_item_sqlite_id = ?',
+        [
+          data.variant_item_id,
+          data.sync_status,
+          data.updated_at,
+          data.variant_item_sqlite_id
+        ]);
+  }
+
+
   /*
   update sync variant group
 */
