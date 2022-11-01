@@ -7,7 +7,7 @@ class CashRecordFields {
     company_id,
     branch_id,
     remark,
-    payment_type_sqlite_id,
+    payment_name,
     payment_type_id,
     type,
     amount,
@@ -24,7 +24,7 @@ class CashRecordFields {
   static String company_id = 'company_id';
   static String branch_id = 'branch_id';
   static String remark = 'remark';
-  static String payment_type_sqlite_id = 'payment_type_sqlite_id';
+  static String payment_name = 'payment_name';
   static String payment_type_id = 'payment_type_id';
   static String type = 'type';
   static String amount = 'amount';
@@ -42,7 +42,7 @@ class CashRecord {
   String? company_id;
   String? branch_id;
   String? remark;
-  String? payment_type_sqlite_id;
+  String? payment_name;
   String? payment_type_id;
   int? type;
   String? amount;
@@ -59,7 +59,7 @@ class CashRecord {
     this.company_id,
     this.branch_id,
     this.remark,
-    this.payment_type_sqlite_id,
+    this.payment_name,
     this.payment_type_id,
     this.type,
     this.amount,
@@ -77,7 +77,7 @@ class CashRecord {
     String? company_id,
     String? branch_id,
     String? remark,
-    String? payment_type_sqlite_id,
+    String? payment_name,
     String? payment_type_id,
     int? type,
     String? amount,
@@ -94,7 +94,7 @@ class CashRecord {
           company_id: company_id ?? this.company_id,
           branch_id: branch_id ?? this.branch_id,
           remark: remark ?? this.remark,
-          payment_type_sqlite_id: payment_type_sqlite_id ?? this.payment_type_sqlite_id,
+          payment_name: payment_name ?? this.payment_name,
           payment_type_id: payment_type_id ?? this.payment_type_id,
           type: type ?? this.type,
           amount: amount ?? this.amount,
@@ -112,7 +112,7 @@ class CashRecord {
         company_id: json[CashRecordFields.company_id] as String?,
         branch_id: json[CashRecordFields.branch_id] as String?,
         remark: json[CashRecordFields.remark] as String?,
-        payment_type_sqlite_id: json[CashRecordFields.payment_type_sqlite_id] as String?,
+        payment_name: json[CashRecordFields.payment_name] as String?,
         payment_type_id: json[CashRecordFields.payment_type_id] as String?,
         type: json[CashRecordFields.type] as int?,
         amount: json[CashRecordFields.amount] as String?,
@@ -132,7 +132,7 @@ class CashRecord {
         CashRecordFields.company_id: company_id,
         CashRecordFields.branch_id: branch_id,
         CashRecordFields.remark: remark,
-        CashRecordFields.payment_type_sqlite_id: payment_type_sqlite_id,
+        CashRecordFields.payment_name: payment_name,
         CashRecordFields.payment_type_id: payment_type_id,
         CashRecordFields.type: type,
         CashRecordFields.amount: amount,

@@ -503,7 +503,7 @@ class _CartPageState extends State<CartPage> {
                                       print('add order cache');
                                       if (printerList.length > 0) {
                                         await callCreateNewOrder(cart);
-                                        await _printKitchenList();
+                                        //await _printKitchenList();
                                         cart.removeAllCartItem();
                                         cart.removeAllTable();
                                       } else {
@@ -1374,7 +1374,7 @@ class _CartPageState extends State<CartPage> {
     await createOrderCache(cart);
     await createOrderDetail(cart);
     await updatePosTable(cart);
-    await _printCheckList();
+    //await _printCheckList();
   }
 
   callAddOrderCache(CartModel cart) async {

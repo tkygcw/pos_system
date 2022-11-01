@@ -69,18 +69,18 @@ class _TestPrintState extends State<TestPrint> {
 
     //LOGO
     bytes += generator.text('Lucky 8', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
-    // bytes += generator.emptyLines(1);
-    // bytes += generator.reset();
-    // //Address
-    // bytes += generator.text('22-2, Jalan Permas 11/1A, Bandar Permas Baru, 81750, Masai', styles: PosStyles(align: PosAlign.center));
-    // //telephone
-    // bytes += generator.text('Tel: 07-3504533', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
-    // bytes += generator.text('Lucky8@hotmail.com', styles: PosStyles(align: PosAlign.center));
-    // //receipt no
-    // bytes += generator.emptyLines(1);
-    // bytes += generator.text('Receipt No.: 17-200-000056',
-    //     styles: PosStyles(align: PosAlign.left, width: PosTextSize.size1, height: PosTextSize.size1, bold: true));
-    // bytes += generator.reset();
+    bytes += generator.emptyLines(1);
+    bytes += generator.reset();
+    //Address
+    bytes += generator.text('22-2, Jalan Permas 11/1A, Bandar Permas Baru, 81750, Masai', styles: PosStyles(align: PosAlign.center));
+    //telephone
+    bytes += generator.text('Tel: 07-3504533', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
+    bytes += generator.text('Lucky8@hotmail.com', styles: PosStyles(align: PosAlign.center));
+    //receipt no
+    bytes += generator.emptyLines(1);
+    bytes += generator.text('Receipt No.: 17-200-000056',
+        styles: PosStyles(align: PosAlign.left, width: PosTextSize.size1, height: PosTextSize.size1, bold: true));
+    bytes += generator.reset();
     // //other order detail
     // bytes += generator.text('2022-10-03 17:18:18');
     // bytes += generator.text('Close by: Taylor');

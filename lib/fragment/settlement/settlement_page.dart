@@ -134,12 +134,17 @@ class _SettlementPageState extends State<SettlementPage> {
                           return ListTile(
                             leading: Icon(Icons.monetization_on),
                             title: Text('${cashRecordList[index].remark}'),
-                            subtitle: cashRecordList[index].type == 1 ? Text('Cash in by: ${cashRecordList[index].userName}')
-                                : Text('Cash-out by: ${cashRecordList[index].userName}'),
-                            trailing: cashRecordList[index].type == 1 ?
-                            Text('+${cashRecordList[index].amount}', style: TextStyle(color: Colors.green))
+                            subtitle: cashRecordList[index].type == 1 ?
+                            Text('Cash in by: ${cashRecordList[index].userName}')
                                 :
-                            Text('-${cashRecordList[index].amount}', style: TextStyle(color: Colors.red)) ,
+                            cashRecordList[index].type == 2 ?
+                            Text('Cash-out by: ${cashRecordList[index].userName}')
+                                :
+                            Text('close By: ${cashRecordList[index].userName}'),
+                            trailing: cashRecordList[index].type == 2 ?
+                            Text('-${cashRecordList[index].amount}', style: TextStyle(color: Colors.red))
+                                :
+                            Text('+${cashRecordList[index].amount}', style: TextStyle(color: Colors.green)),
                             onLongPress: () async {
                               if (await confirm(
                                 context,
@@ -250,9 +255,9 @@ class _SettlementPageState extends State<SettlementPage> {
       double totalCashOut = 0.0;
       double totalCashDrawer = 0.0;
       for(int i = 0; i < cashRecordList.length; i++){
-        if(cashRecordList[i].type == 1 && cashRecordList[i].payment_type_sqlite_id == '1'){
+        if(cashRecordList[i].type == 1 && cashRecordList[i].payment_type_id == ''){
           totalCashIn += double.parse(cashRecordList[i].amount!);
-        } else if(cashRecordList[i].type == 2 && cashRecordList[i].payment_type_sqlite_id == '1') {
+        } else if(cashRecordList[i].type == 2 && cashRecordList[i].payment_type_id == '') {
           totalCashOut += double.parse(cashRecordList[i].amount!);
         }
       }

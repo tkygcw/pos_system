@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/translation/appLanguage.dart';
@@ -60,7 +61,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => PrinterModel(),
         ),
-
+        ChangeNotifierProvider(
+          create: (_) => TableModel(),
+        ),
       ],
       child: Consumer<AppLanguage>(builder: (context, model, child) {
         return MaterialApp(

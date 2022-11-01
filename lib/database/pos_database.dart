@@ -434,7 +434,7 @@ class PosDatabase {
           ${CashRecordFields.company_id} $textType,
           ${CashRecordFields.branch_id} $textType,
           ${CashRecordFields.remark} $textType,
-          ${CashRecordFields.payment_type_sqlite_id} $textType,
+          ${CashRecordFields.payment_name} $textType,
           ${CashRecordFields.payment_type_id} $textType,
           ${CashRecordFields.type} $integerType,
           ${CashRecordFields.amount} $textType,
@@ -445,18 +445,7 @@ class PosDatabase {
           ${CashRecordFields.updated_at} $textType,
           ${CashRecordFields.soft_delete} $textType)''');
 
-/*
-    create payment type table
-*/
-    await db.execute('''CREATE TABLE $tablePaymentType(
-          ${PaymentTypeFields.payment_type_sqlite_id} $idType,
-          ${PaymentTypeFields.payment_type_id} $integerType,
-          ${PaymentTypeFields.name} $textType,
-          ${PaymentTypeFields.type} $integerType,
-          ${PaymentTypeFields.sync_status} $integerType,
-          ${PaymentTypeFields.created_at} $textType,
-          ${PaymentTypeFields.updated_at} $textType,
-          ${PaymentTypeFields.soft_delete} $textType)''');
+
   }
 
 /*
@@ -1060,6 +1049,7 @@ class PosDatabase {
     final id = await db.insert(tableCashRecord!, data.toJson());
     return data.copy(cash_record_sqlite_id: id);
   }
+
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1935,6 +1925,8 @@ class PosDatabase {
         ['','']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
+
+
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

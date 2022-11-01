@@ -83,6 +83,24 @@ class ReceiptLayout{
 
     //LOGO
     bytes += generator.text('Lucky 8', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+    bytes += generator.text(
+        '22-2, Jalan Permas 11/1A, Bandar Permas Baru, 81750, Masai',
+        styles: PosStyles(align: PosAlign.center));
+    //telephone
+    bytes += generator.text('Tel: 07-3504533',
+        styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
+    bytes += generator.text('Lucky8@hotmail.com',
+        styles: PosStyles(align: PosAlign.center));
+    bytes += generator.hr();
+    bytes += generator.reset();
+    //receipt no
+    bytes += generator.text('Receipt No.: 17-200-000056',
+        styles: PosStyles(
+            align: PosAlign.left,
+            width: PosTextSize.size1,
+            height: PosTextSize.size1,
+            bold: true));
+    bytes += generator.reset();
 
     bytes += generator.feed(1);
     bytes += generator.drawer();
