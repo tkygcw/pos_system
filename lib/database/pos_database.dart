@@ -914,7 +914,7 @@ class PosDatabase {
           data.daily_limit,
           data.daily_limit_amount,
           data.stock_quantity,
-          2,
+          data.sync_status,
           data.created_at,
           data.updated_at,
           data.soft_delete

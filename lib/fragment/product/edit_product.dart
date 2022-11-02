@@ -1030,18 +1030,11 @@ class _EditProductDialogState extends State<EditProductDialog> {
         }
 
         for (int k = 0; k < productVariantList.length; k++) {
-          Map responseProductVariant = await Domain().insertProductVariant(
-              response['product_id'].toString(),
-              productVariantList[k]['variant_name'],
-              productVariantList[k]['SKU'],
-              productVariantList[k]['price'],
-              selectStock == 'Daily Limit' ? '1' : '2',
-              productVariantList[k]['quantity']);
-          if (responseProductVariant['status'] == '1') {
+
+          // if (responseProductVariant['status'] == '1') {}
             ProductVariant variant = await PosDatabase.instance
-                .insertProductVariant(ProductVariant(
-                    product_variant_id:
-                        responseProductVariant['product_variant_id'],
+                .insertSyncProductVariant(ProductVariant(
+                    product_variant_id: 0,
                     product_id: response['product_id'].toString(),
                     variant_name: productVariantList[k]['variant_name'],
                     SKU: productVariantList[k]['SKU'],
@@ -1056,9 +1049,24 @@ class _EditProductDialogState extends State<EditProductDialog> {
                     stock_quantity: selectStock != 'Daily Limit'
                         ? productVariantList[k]['quantity']
                         : '',
+                    sync_status: 0,
                     created_at: dateTime,
                     updated_at: '',
                     soft_delete: ''));
+/*
+            ------------------------sync to cloud------------------------------
+*/
+          Map responseProductVariant = await Domain().insertProductVariant(
+              response['product_id'].toString(),
+              productVariantList[k]['variant_name'],
+              productVariantList[k]['SKU'],
+              productVariantList[k]['price'],
+              selectStock == 'Daily Limit' ? '1' : '2',
+              productVariantList[k]['quantity']);
+
+/*
+            -------------------------end sync----------------------------------
+*/
 
             Map responseBranchLinkProduct = await Domain()
                 .insertBranchLinkProduct(
@@ -1122,7 +1130,6 @@ class _EditProductDialogState extends State<EditProductDialog> {
                 }
               }
             }
-          }
         }
       } else {
         Map responseBranchLinkProduct = await Domain().insertBranchLinkProduct(
