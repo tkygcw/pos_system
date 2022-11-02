@@ -14,6 +14,7 @@
   "remark_required": "Remark is required",
   "amount_required": "Amount is required",
   "would you like to remove?": "Would you like to remove?",
+  "settlement_desc": "All today cash record will remove, You can check history on settlement history",
   "logout-Desc": "All this app data will be deleted permanently. This includes all files, setting, database etc.",
   "password_required": "Password is required",
   "password_incorrect":"Password incorrect",

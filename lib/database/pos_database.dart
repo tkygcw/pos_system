@@ -1950,11 +1950,43 @@ class PosDatabase {
   Future<List<CashRecord>> readAllCashRecord() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND b.soft_delete = ?',
-        ['','']);
+        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date = ? AND b.soft_delete = ?',
+        ['', '', '']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
 
+/*
+  read all settlement cash record
+*/
+  Future<List<CashRecord>> readAllSettlementCashRecord() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date != ? AND b.soft_delete = ? GROUP BY a.settlement_date',
+        ['', '', '']);
+    return result.map((json) => CashRecord.fromJson(json)).toList();
+  }
+
+/*
+  read specific settlement cash record
+*/
+  Future<List<CashRecord>> readSpecificSettlementCashRecord(String dateTime) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date = ? AND b.soft_delete = ?',
+        ['', dateTime, '']);
+    return result.map((json) => CashRecord.fromJson(json)).toList();
+  }
+
+/*
+  read all payment link company
+*/
+  Future<List<PaymentLinkCompany>> readAllPaymentLinkCompany(String company_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? AND company_id = ?',
+        ['', company_id]);
+    return result.map((json) => PaymentLinkCompany.fromJson(json)).toList();
+  }
 
 
 /*
@@ -2186,6 +2218,21 @@ class PosDatabase {
           data.sync_status,
           data.updated_at,
           data.receipt_sqlite_id
+        ]);
+  }
+
+/*
+  update cash record settlement
+*/
+  Future<int> updateCashRecord(CashRecord data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableCashRecord SET settlement_date = ?, sync_status = ?, updated_at = ? WHERE cash_record_sqlite_id = ?',
+        [
+          data.settlement_date,
+          data.sync_status,
+          data.updated_at,
+          data.cash_record_sqlite_id
         ]);
   }
 

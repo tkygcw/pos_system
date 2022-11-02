@@ -28,6 +28,7 @@ class PaymentLinkCompany{
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  double  totalAmount = 0.0;
 
   PaymentLinkCompany(
       {this.payment_link_company_id,
@@ -36,7 +37,8 @@ class PaymentLinkCompany{
         this.name,
         this.created_at,
         this.updated_at,
-        this.soft_delete});
+        this.soft_delete,
+      });
 
   PaymentLinkCompany copy({
     int? payment_link_company_id,

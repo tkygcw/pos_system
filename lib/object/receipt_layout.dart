@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use_detail.dart';
@@ -15,7 +19,10 @@ class ReceiptLayout{
   OrderCache? orderCache;
   List<OrderDetail> orderDetailList = [];
   List<PosTable> tableList = [];
+  List<PaymentLinkCompany> paymentList = [];
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+  String settlement_By = '';
+  bool _isLoad = false;
 
 
   readReceiptLayout() async {
@@ -67,7 +74,38 @@ class ReceiptLayout{
         tableList.add(tableData[0]);
       }
     }
+  }
 
+  readPaymentLinkCompany(String dateTime) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+
+    settlement_By = userObject['name'];
+    List<PaymentLinkCompany> data = await PosDatabase.instance.readAllPaymentLinkCompany(userObject['company_id']);
+    for (int i = 0; i < data.length; i++) {
+      paymentList = List.from(data);
+      await calculateTotalAmount(dateTime);
+      _isLoad = true;
+    }
+  }
+
+  calculateTotalAmount(String dateTime) async {
+    double total = 0.0;
+
+    for(int j = 0; j < paymentList.length; j++){
+      total = 0.0;
+      List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(dateTime);
+      for(int i = 0; i < data.length; i++){
+        if(data[i].type == 3 && data[i].payment_type_id == paymentList[j].payment_type_id){
+          total += double.parse(data[i].amount!);
+          paymentList[j].totalAmount = total;
+        } else {
+          total = 0.0;
+          //paymentList[j].totalAmount = total.toStringAsFixed(2);
+        }
+      }
+    }
   }
 
   testTicket80mm(bool isUSB, value) async {
@@ -583,6 +621,71 @@ class ReceiptLayout{
       print('layout error: $e');
       return null;
     }
+  }
+
+  printSettlementList80mm(bool isUSB, value, String settlementDateTime) async {
+    await readPaymentLinkCompany(settlementDateTime);
+    if(_isLoad == true){
+      var generator;
+      if (isUSB) {
+        final profile = await CapabilityProfile.load();
+        generator = Generator(PaperSize.mm80, profile);
+      } else {
+        generator = value;
+      }
+
+      List<int> bytes = [];
+      try {
+        bytes += generator.text('** SETTLEMENT LIST **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+        bytes += generator.emptyLines(1);
+        bytes += generator.reset();
+
+        bytes += generator.text('settlement By: ${settlement_By}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('settlement time: ${settlementDateTime}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.hr();
+        bytes += generator.reset();
+        /*
+    *
+    * body
+    *
+    * */
+        bytes += generator.row([
+          PosColumn(text: 'Payment Type', width: 6, styles: PosStyles(bold: true)),
+          PosColumn(text: 'AMOUNT', width: 5, styles: PosStyles(bold: true, align: PosAlign.right)),
+          PosColumn(text: '', width: 1, styles: PosStyles(bold: true, align: PosAlign.center)),
+        ]);
+        bytes += generator.hr();
+        //order product
+        for(int i = 0; i < paymentList.length; i++){
+          bytes += generator.row([
+            PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
+            PosColumn(
+                text: '${paymentList[i].name}',
+                width: 8,
+                containsChinese: true,
+                styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+            PosColumn(
+                text: '${paymentList[i].totalAmount.toStringAsFixed(2)}',
+                width: 2,
+                styles: PosStyles(align: PosAlign.right)),
+            PosColumn(
+                text: '',
+                width: 1,
+                styles: PosStyles(align: PosAlign.right)),
+          ]);
+
+          bytes += generator.emptyLines(1);
+        }
+
+        //bytes += generator.feed(1);
+        bytes += generator.cut(mode: PosCutMode.partial);
+        return bytes;
+      } catch (e) {
+        print('layout error: $e');
+        return null;
+      }
+    }
+
   }
 
 }
