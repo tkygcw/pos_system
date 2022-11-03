@@ -4,11 +4,13 @@ import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/settlement/cash_dialog.dart';
 import 'package:pos_system/fragment/settlement/history_dialog.dart';
 import 'package:pos_system/fragment/settlement/settlement_dialog.dart';
 import 'package:pos_system/object/payment_link_company.dart';
+import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -139,7 +141,14 @@ class _SettlementPageState extends State<SettlementPage> {
                               ElevatedButton(
                                 child: Text('Settlement'),
                                 onPressed: () {
-                                  openSettlementDialog(cashRecordList);
+                                  if(cashRecordList.length > 0){
+                                    openSettlementDialog(cashRecordList);
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Color(0xFFFF0000),
+                                        msg: "No record");
+                                  }
+
                                 },
                                 style: ElevatedButton.styleFrom(
                                     primary: color.backgroundColor),
@@ -164,8 +173,22 @@ class _SettlementPageState extends State<SettlementPage> {
                               ),
                               ElevatedButton(
                                 child: Text('Transfer ownership'),
-                                onPressed: () {
-                                  print('do settlement');
+                                onPressed: () async {
+
+                                  if (await confirm(
+                                    context,
+                                    title: Text(
+                                        '${AppLocalizations.of(context)?.translate('confirm_pos_pin')}'),
+                                    content: Text(
+                                        '${AppLocalizations.of(context)?.translate('to_pos_pin')}'),
+                                    textOK: Text(
+                                        '${AppLocalizations.of(context)?.translate('yes')}'),
+                                    textCancel: Text(
+                                        '${AppLocalizations.of(context)?.translate('no')}'),
+                                  )) {
+                                    return toPosPinPage();
+                                  }
+
                                 },
                                 style: ElevatedButton.styleFrom(
                                     primary: color.backgroundColor),
@@ -386,6 +409,13 @@ class _SettlementPageState extends State<SettlementPage> {
     setState(() {
       isLoad = true;
     });
+  }
+
+  toPosPinPage(){
+    Navigator.push(context,
+      PageTransition(type: PageTransitionType.fade, child: PosPinPage(),
+      ),
+    );
   }
 
   removeCashRecord(CashRecord cashRecord) async {

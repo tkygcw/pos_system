@@ -93,18 +93,22 @@ class ReceiptLayout{
   calculateTotalAmount(String dateTime) async {
     double total = 0.0;
 
-    for(int j = 0; j < paymentList.length; j++){
-      total = 0.0;
-      List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(dateTime);
-      for(int i = 0; i < data.length; i++){
-        if(data[i].type == 3 && data[i].payment_type_id == paymentList[j].payment_type_id){
-          total += double.parse(data[i].amount!);
-          paymentList[j].totalAmount = total;
-        } else {
-          total = 0.0;
-          //paymentList[j].totalAmount = total.toStringAsFixed(2);
+    try{
+      for(int j = 0; j < paymentList.length; j++){
+        total = 0.0;
+        List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(dateTime);
+        for(int i = 0; i < data.length; i++){
+          if(data[i].type == 3 && data[i].payment_type_id == paymentList[j].payment_type_id){
+            total += double.parse(data[i].amount!);
+            paymentList[j].totalAmount = total;
+          } else {
+            total = 0.0;
+            //paymentList[j].totalAmount = total.toStringAsFixed(2);
+          }
         }
       }
+    }catch(e){
+      print('Layout calculate total amount error: $e');
     }
   }
 

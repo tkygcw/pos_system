@@ -1988,6 +1988,22 @@ class PosDatabase {
     return result.map((json) => PaymentLinkCompany.fromJson(json)).toList();
   }
 
+/*
+  read last owner cash record
+  'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND branch_id = ? ORDER BY created_at DESC LIMIT 1',
+*/
+  Future<CashRecord?> readLastCashRecord(String branch_id) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery(
+        'SELECT * FROM $tableCashRecord WHERE soft_delete = ? AND branch_id = ? ORDER BY cash_record_sqlite_id DESC LIMIT 1',
+        ['', branch_id]);
+    if (maps.isNotEmpty) {
+      return CashRecord.fromJson(maps.first);
+    }
+
+  }
+
+
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

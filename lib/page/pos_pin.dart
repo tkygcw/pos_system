@@ -8,6 +8,7 @@ import 'package:custom_pin_screen/custom_pin_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../database/pos_database.dart';
 import '../notifier/theme_color.dart';
+import '../object/cash_record.dart';
 import '../object/user.dart';
 
 class PosPinPage extends StatefulWidget {
@@ -74,17 +75,59 @@ class _PosPinPageState extends State<PosPinPage> {
     final int? branch_id = prefs.getInt('branch_id');
     User? user = await PosDatabase.instance.verifyPosPin(pos_pin,branch_id.toString());
     if(user!='' && user != null){
-      Navigator.push(
-        context,
-        PageTransition(
-          type: PageTransitionType.fade,
-          child: HomePage(user: user),
-        ),
-      );
+      if(await settlementCheck(user) == true){
+        print('pop a start cash dialog');
+        // Navigator.push(
+        //   context,
+        //   PageTransition(
+        //     type: PageTransitionType.fade,
+        //     child: HomePage(user: user),
+        //   ),
+        // );
+      } else {
+        Navigator.push(
+          context,
+          PageTransition(
+            type: PageTransitionType.fade,
+            child: HomePage(user: user),
+          ),
+        );
+      }
+
     }
     else {
       Fluttertoast.showToast( backgroundColor: Colors.red, msg: "Wrong pin. Please insert valid pin");
     }
 
+  }
+
+  settlementCheck(User user) async {
+    bool isNewDay = false;
+    List<CashRecord> data = await PosDatabase.instance.readAllCashRecord();
+    if(data.length > 0){
+      if(await settlementUserCheck(user.user_id.toString()) == true){
+        isNewDay = false;
+        print('print a cash balance receipt');
+      } else{
+        isNewDay = false;
+      }
+    } else {
+      isNewDay = true;
+    }
+    return isNewDay;
+  }
+
+  settlementUserCheck(String user_id) async{
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+     bool isNewUser = false;
+
+    CashRecord? cashRecord = await PosDatabase.instance.readLastCashRecord(branch_id.toString());
+    if(cashRecord?.user_id == user_id){
+      isNewUser = false;
+    } else {
+      isNewUser = true;
+    }
+    return isNewUser;
   }
 }

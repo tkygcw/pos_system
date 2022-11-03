@@ -22,6 +22,8 @@
   "no": "No",
   "incorrect_password": "incorrect password",
   "confirm_delete": "will be remove from cart. Click yes to proceed",
+  "confirm_pos_pin": "Confirm transfer ownership?",
+  "to_pos_pin": "You will be redirected to pos pin page, Click yes to proceed",
   "offer_ended": "Offer ended",
   "empty_cart": "No item in cart",
   "table_is_used": "Table is in used",
