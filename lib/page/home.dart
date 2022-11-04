@@ -14,13 +14,14 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/pos_database.dart';
+import '../fragment/settlement/cash_dialog.dart';
 import '../object/branch.dart';
 import '../object/user.dart';
 
 class HomePage extends StatefulWidget {
   final User? user;
-
-  const HomePage({Key? key, this.user}) : super(key: key);
+  final bool isNewDay;
+  const HomePage({Key? key, this.user, required this.isNewDay}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -40,6 +41,14 @@ class _HomePageState extends State<HomePage> {
     currentPage = 'menu';
     getRoleName();
     getBranchName();
+    if(widget.isNewDay){
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDialog(barrierDismissible: false,  context: context, builder: (BuildContext context) {
+          return CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
+        });
+      });
+
+    }
   }
 
   @override
@@ -186,4 +195,5 @@ class _HomePageState extends State<HomePage> {
       branchName = data!.name!;
     });
   }
+
 }
