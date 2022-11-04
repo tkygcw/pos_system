@@ -15,8 +15,9 @@ import '../../translation/AppLocalizations.dart';
 class CashDialog extends StatefulWidget {
   final bool isCashIn;
   final bool isCashOut;
+  final bool isNewDay;
   final Function() callBack;
-  const CashDialog({Key? key, required this.isCashIn, required this.callBack, required this.isCashOut}) : super(key: key);
+  const CashDialog({Key? key, required this.isCashIn, required this.callBack, required this.isCashOut, required this.isNewDay}) : super(key: key);
 
   @override
   State<CashDialog> createState() => _CashDialogState();
@@ -38,7 +39,7 @@ class _CashDialogState extends State<CashDialog> {
 
   String? get errorRemark {
     final text = remarkController.value.text;
-    if (text.isEmpty) {
+    if (text.isEmpty && widget.isNewDay == false) {
       return 'remark_required';
     }
     return null;
@@ -75,7 +76,7 @@ class _CashDialogState extends State<CashDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return AlertDialog(
-        title: widget.isCashIn ? Text('Cash-in') : Text('Cash-out'),
+        title: widget.isNewDay ? Text('Opening Balance') : widget.isCashIn ? Text('Cash-in') :  Text('Cash-out'),
         content: Container(
           height: MediaQuery.of(context).size.height / 3,
           width: MediaQuery.of(context).size.width / 3,
@@ -83,37 +84,40 @@ class _CashDialogState extends State<CashDialog> {
             child: Column(
               children: [
                 Container(
-                  child: ValueListenableBuilder(
-                    // Note: pass _controller to the animation argument
-                      valueListenable: remarkController,
-                      builder: (context, TextEditingValue value, __) {
-                        return SizedBox(
-                          height: 100,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextField(
-                              controller: remarkController,
-                              decoration: InputDecoration(
-                                errorText: _submitted
-                                    ? errorRemark == null
-                                    ? errorRemark
-                                    : AppLocalizations.of(context)
-                                    ?.translate(errorRemark!)
-                                    : null,
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: color.backgroundColor),
+                  child: Visibility(
+                    visible: widget.isNewDay ? false : true,
+                    child: ValueListenableBuilder(
+                      // Note: pass _controller to the animation argument
+                        valueListenable: remarkController,
+                        builder: (context, TextEditingValue value, __) {
+                          return SizedBox(
+                            height: 100,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextField(
+                                controller: remarkController,
+                                decoration: InputDecoration(
+                                  errorText: _submitted
+                                      ? errorRemark == null
+                                      ? errorRemark
+                                      : AppLocalizations.of(context)
+                                      ?.translate(errorRemark!)
+                                      : null,
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
+                                  ),
+                                  labelText: 'Remark',
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: color.backgroundColor),
-                                ),
-                                labelText: 'Remark',
                               ),
                             ),
-                          ),
-                        );
-                      }),
+                          );
+                        }),
+                  ),
                 ),
                 Container(
                   child: ValueListenableBuilder(
@@ -178,18 +182,18 @@ class _CashDialogState extends State<CashDialog> {
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      final String? user = prefs.getString('user');
+      final String? user = prefs.getString('pos_pin_user');
       Map userObject = json.decode(user!);
 
       CashRecord cashRecordObject  = CashRecord(
           cash_record_id: 0,
           company_id: '6',
           branch_id: branch_id.toString(),
-          remark: remarkController.text,
+          remark: widget.isNewDay ? 'opening balance' : remarkController.text,
           amount: amountController.text,
-          payment_name: 'Card',
-          payment_type_id: '2',
-          type: 3,
+          payment_name: '',
+          payment_type_id: '',
+          type: type,
           user_id: userObject['user_id'].toString(),
           settlement_date: '',
           sync_status: 0,

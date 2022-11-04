@@ -304,6 +304,7 @@ class _SettlementPageState extends State<SettlementPage> {
                 isCashIn: cashIn,
                 isCashOut: cashOut,
                 callBack: () => readCashRecord(),
+                isNewDay: false,
               ),
             ),
           );
@@ -412,8 +413,9 @@ class _SettlementPageState extends State<SettlementPage> {
   }
 
   toPosPinPage(){
+    String cashDrawer = calcCashDrawer();
     Navigator.push(context,
-      PageTransition(type: PageTransitionType.fade, child: PosPinPage(),
+      PageTransition(type: PageTransitionType.fade, child: PosPinPage(cashBalance: cashDrawer),
       ),
     );
   }
@@ -495,8 +497,7 @@ class _SettlementPageState extends State<SettlementPage> {
           totalCashOut += double.parse(cashRecordList[i].amount!);
         }
       }
-      print('total cash in: ${totalCashIn}');
-      print('total cash out: ${totalCashOut}');
+
       totalCashDrawer = totalCashIn - totalCashOut;
       print('total cash drawer: $totalCashDrawer');
       return totalCashDrawer.toStringAsFixed(2);

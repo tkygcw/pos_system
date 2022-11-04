@@ -22,6 +22,9 @@ class ReceiptLayout{
   List<PaymentLinkCompany> paymentList = [];
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   String settlement_By = '';
+  double totalCashBalance = 0.0;
+  double totalCashIn = 0.0;
+  double totalCashOut = 0.0;
   bool _isLoad = false;
 
 
@@ -103,12 +106,34 @@ class ReceiptLayout{
             paymentList[j].totalAmount = total;
           } else {
             total = 0.0;
-            //paymentList[j].totalAmount = total.toStringAsFixed(2);
+
           }
         }
       }
     }catch(e){
       print('Layout calculate total amount error: $e');
+    }
+  }
+
+
+  calculateCashDrawerAmount(String dateTime) async {
+    _isLoad = false;
+    // double totalCashIn = 0.0;
+    // double totalCashOut = 0.0;
+    try{
+      List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(dateTime);
+      for (int i = 0; i < data.length; i++) {
+        if (data[i].type == 1 || data[i].payment_type_id == '1') {
+          totalCashIn += double.parse(data[i].amount!);
+        } else if (data[i].type == 2 && data[i].payment_type_id == '') {
+          totalCashOut += double.parse(data[i].amount!);
+        }
+      }
+      totalCashBalance = totalCashIn - totalCashOut;
+      _isLoad = true;
+    }catch(e){
+      print(e);
+      totalCashBalance = 0.0;
     }
   }
 
@@ -627,8 +652,71 @@ class ReceiptLayout{
     }
   }
 
+  printCashBalanceList80mm(bool isUSB, value, String cashBalance) async {
+    String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final String? user = prefs.getString('pos_pin_user');
+    Map userObject = json.decode(user!);
+      var generator;
+      if (isUSB) {
+        final profile = await CapabilityProfile.load();
+        generator = Generator(PaperSize.mm80, profile);
+      } else {
+        generator = value;
+      }
+
+      List<int> bytes = [];
+      try {
+        bytes += generator.text('** CASH BALANCE LIST **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+        bytes += generator.emptyLines(1);
+        bytes += generator.reset();
+
+        bytes += generator.text('Transfer to: ${userObject['name']}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Transfer time: ${dateTime}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.hr();
+        bytes += generator.reset();
+        /*
+    *
+    * body
+    *
+    * */
+        bytes += generator.row([
+          PosColumn(text: 'Payment Type', width: 6, styles: PosStyles(bold: true)),
+          PosColumn(text: 'AMOUNT', width: 5, styles: PosStyles(bold: true, align: PosAlign.right)),
+          PosColumn(text: '', width: 1, styles: PosStyles(bold: true, align: PosAlign.center)),
+        ]);
+        bytes += generator.hr();
+        //order product
+        bytes += generator.row([
+          PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
+          PosColumn(
+              text: 'Cash Balance',
+              width: 8,
+              containsChinese: true,
+              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+          PosColumn(
+              text: '${cashBalance}',
+              width: 2,
+              styles: PosStyles(align: PosAlign.right)),
+          PosColumn(
+              text: '',
+              width: 1,
+              styles: PosStyles(align: PosAlign.right)),
+        ]);
+
+        bytes += generator.feed(1);
+        bytes += generator.cut(mode: PosCutMode.partial);
+        return bytes;
+      } catch (e) {
+        print('layout error: $e');
+        return null;
+      }
+
+  }
+
   printSettlementList80mm(bool isUSB, value, String settlementDateTime) async {
     await readPaymentLinkCompany(settlementDateTime);
+    await calculateCashDrawerAmount(settlementDateTime);
     if(_isLoad == true){
       var generator;
       if (isUSB) {
@@ -678,10 +766,63 @@ class ReceiptLayout{
                 styles: PosStyles(align: PosAlign.right)),
           ]);
 
-          bytes += generator.emptyLines(1);
         }
-
-        //bytes += generator.feed(1);
+        bytes += generator.hr();
+        bytes += generator.reset();
+        //cash in
+        bytes += generator.row([
+          PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
+          PosColumn(
+              text: 'Total cash in',
+              width: 8,
+              containsChinese: true,
+              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+          PosColumn(
+              text: '${totalCashIn.toStringAsFixed(2)}',
+              width: 2,
+              styles: PosStyles(align: PosAlign.right)),
+          PosColumn(
+              text: '',
+              width: 1,
+              styles: PosStyles(align: PosAlign.right)),
+        ]);
+        //cash out
+        bytes += generator.row([
+          PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
+          PosColumn(
+              text: 'Total cash out',
+              width: 8,
+              containsChinese: true,
+              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+          PosColumn(
+              text: '${totalCashOut.toStringAsFixed(2)}',
+              width: 2,
+              styles: PosStyles(align: PosAlign.right)),
+          PosColumn(
+              text: '',
+              width: 1,
+              styles: PosStyles(align: PosAlign.right)),
+        ]);
+        //total cash drawer
+        bytes += generator.row([
+          PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
+          PosColumn(
+              text: 'Total cash drawer',
+              width: 8,
+              containsChinese: true,
+              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+          PosColumn(
+              text: '${totalCashBalance.toStringAsFixed(2)}',
+              width: 2,
+              styles: PosStyles(align: PosAlign.right)),
+          PosColumn(
+              text: '',
+              width: 1,
+              styles: PosStyles(align: PosAlign.right)),
+        ]);
+        bytes += generator.hr();
+        //final part
+        bytes += generator.feed(1);
         bytes += generator.cut(mode: PosCutMode.partial);
         return bytes;
       } catch (e) {
