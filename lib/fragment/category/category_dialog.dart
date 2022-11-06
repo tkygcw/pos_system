@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class CategoryDialog extends StatefulWidget {
   final Categories? category;
@@ -79,6 +80,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
 
   updateCategory() async {
     try {
+      var connectivityResult = await (Connectivity().checkConnectivity());
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       int data = await PosDatabase.instance.updateCategory(Categories(
@@ -90,15 +92,19 @@ class _CategoryDialogState extends State<CategoryDialog> {
 /*
       ------------------------sync to cloud--------------------------------
 */
-      Map response = await Domain().editCategory(categoryColor,
-          myController.value.text, widget.category!.category_id.toString());
-      if (response['status'] == '1') {
-        int syncData = await PosDatabase.instance.updateSyncCategory(Categories(
-          category_id: widget.category!.category_id,
-          sync_status: 2,
-          updated_at: dateTime,
-          category_sqlite_id: widget.category!.category_sqlite_id,
-        ));
+      if (connectivityResult == ConnectivityResult.mobile ||
+          connectivityResult == ConnectivityResult.wifi) {
+        Map response = await Domain().editCategory(categoryColor,
+            myController.value.text, widget.category!.category_id.toString());
+        if (response['status'] == '1') {
+          int syncData =
+              await PosDatabase.instance.updateSyncCategory(Categories(
+            category_id: widget.category!.category_id,
+            sync_status: 2,
+            updated_at: dateTime,
+            category_sqlite_id: widget.category!.category_sqlite_id,
+          ));
+        }
       }
 /*
       ---------------------------sync end-----------------------------------
@@ -111,12 +117,13 @@ class _CategoryDialogState extends State<CategoryDialog> {
         Fluttertoast.showToast(msg: 'Fail update');
       }
     } catch (error) {
-      Fluttertoast.showToast(msg: 'Something went wrong. Please try again');
+      Fluttertoast.showToast(msg: 'Something went wrong.');
     }
   }
 
   deleteCategory() async {
     try {
+      var connectivityResult = await (Connectivity().checkConnectivity());
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
 
@@ -128,15 +135,19 @@ class _CategoryDialogState extends State<CategoryDialog> {
 /*
       --------------------sync to cloud-----------------------------
 */
-      Map response = await Domain()
-          .deleteCategory(widget.category!.category_id.toString());
-      if (response['status'] == '1') {
-        int syncData = await PosDatabase.instance.updateSyncCategory(Categories(
-          category_id: widget.category!.category_id,
-          sync_status: 2,
-          updated_at: dateTime,
-          category_sqlite_id: widget.category!.category_sqlite_id,
-        ));
+      if (connectivityResult == ConnectivityResult.mobile ||
+          connectivityResult == ConnectivityResult.wifi) {
+        Map response = await Domain()
+            .deleteCategory(widget.category!.category_id.toString());
+        if (response['status'] == '1') {
+          int syncData =
+              await PosDatabase.instance.updateSyncCategory(Categories(
+            category_id: widget.category!.category_id,
+            sync_status: 2,
+            updated_at: dateTime,
+            category_sqlite_id: widget.category!.category_sqlite_id,
+          ));
+        }
       }
 /*
       -------------------sync end--------------------------------------
@@ -149,12 +160,13 @@ class _CategoryDialogState extends State<CategoryDialog> {
         Fluttertoast.showToast(msg: 'Fail delete');
       }
     } catch (error) {
-      Fluttertoast.showToast(msg: 'Something went wrong. Missing Parameter');
+      Fluttertoast.showToast(msg: 'Something went wrong.');
     }
   }
 
   insertCategory() async {
     try {
+      var connectivityResult = await (Connectivity().checkConnectivity());
       final prefs = await SharedPreferences.getInstance();
       final String? user = prefs.getString('user');
       Map userObject = json.decode(user!);
@@ -162,7 +174,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
       String dateTime = dateFormat.format(DateTime.now());
       Categories data =
           await PosDatabase.instance.insertSyncCategories(Categories(
-        category_id: 0,
+        category_id: -1,
         company_id: userObject['company_id'],
         sequence: '',
         updated_at: '',
@@ -175,15 +187,19 @@ class _CategoryDialogState extends State<CategoryDialog> {
 /*
       --------------------------sync to cloud--------------------------------
 */
-      Map response = await Domain().insertCategory(
-          categoryColor, myController.value.text, userObject['company_id']);
-      if (response['status'] == '1') {
-        int syncData = await PosDatabase.instance.updateSyncCategory(Categories(
-          category_id: response['category'],
-          sync_status: 2,
-          updated_at: dateTime,
-          category_sqlite_id: data.category_sqlite_id,
-        ));
+      if (connectivityResult == ConnectivityResult.mobile ||
+          connectivityResult == ConnectivityResult.wifi) {
+        Map response = await Domain().insertCategory(
+            categoryColor, myController.value.text, userObject['company_id']);
+        if (response['status'] == '1') {
+          int syncData =
+              await PosDatabase.instance.updateSyncCategory(Categories(
+            category_id: response['category'],
+            sync_status: 2,
+            updated_at: dateTime,
+            category_sqlite_id: data.category_sqlite_id,
+          ));
+        }
       }
 /*
       -----------------------------sync end----------------------------------
@@ -196,7 +212,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
         Fluttertoast.showToast(msg: 'Fail Insert');
       }
     } catch (error) {
-      Fluttertoast.showToast(msg: 'Something went wrong. Missing Parameter');
+      Fluttertoast.showToast(msg: 'Something went wrong.');
     }
   }
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:checkbox_grouped/checkbox_grouped.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
@@ -424,6 +425,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
   updateProduct(BuildContext context) async {
     try {
+      var connectivityResult = await (Connectivity().checkConnectivity());
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
       final String? user = prefs.getString('user');
@@ -432,13 +434,20 @@ class _EditProductDialogState extends State<EditProductDialog> {
       String dateTime = dateFormat.format(DateTime.now());
       if (imageDir != null) {
         if (widget.product!.image != '' || widget.product!.image != null) {
-          deleteImage(widget.product!.image!);
+          if (connectivityResult == ConnectivityResult.mobile ||
+              connectivityResult == ConnectivityResult.wifi) {
+            deleteImage(widget.product!.image!);
+          }
           deleteFile();
         }
         saveFilePermanently(imageDir!);
-        storeImage(basename(imageDir!).replaceAll('image_picker', ''));
+        if (connectivityResult == ConnectivityResult.mobile ||
+            connectivityResult == ConnectivityResult.wifi) {
+          storeImage(basename(imageDir!).replaceAll('image_picker', ''));
+        }
       }
       int productUpdated = await PosDatabase.instance.updateProduct(Product(
+        category_sqlite_id: selectCategory!.category_sqlite_id.toString(),
         category_id: selectCategory!.category_id.toString(),
         name: nameController.value.text,
         price: priceController.value.text,
@@ -462,30 +471,33 @@ class _EditProductDialogState extends State<EditProductDialog> {
 /*
       -------------------------------sync to cloud-----------------------------
 */
-      Map response = await Domain().updateProduct(
-          nameController.value.text,
-          selectCategory!.category_id.toString(),
-          descriptionController.value.text,
-          priceController.value.text,
-          skuController.value.text,
-          selectStatus == 'Available Sale' ? '1' : '0',
-          selectVariant == 'Have Variant' ? '1' : '0',
-          selectStock == 'Daily Limit' ? '1' : '2',
-          dailyLimitController.value.text,
-          stockQuantityController.value.text,
-          selectGraphic == 'Image' ? '2' : '1',
-          productColor,
-          imageDir != null
-              ? basename(imageDir!).replaceAll('image_picker', '')
-              : widget.product!.image,
-          widget.product!.product_id.toString());
-      if (response['status'] == '1') {
-        int syncData = await PosDatabase.instance.updateSyncProduct(Product(
-          product_id: widget.product!.product_id,
-          sync_status: 2,
-          updated_at: dateTime,
-          product_sqlite_id: widget.product!.product_sqlite_id,
-        ));
+      if (connectivityResult == ConnectivityResult.mobile ||
+          connectivityResult == ConnectivityResult.wifi) {
+        Map response = await Domain().updateProduct(
+            nameController.value.text,
+            selectCategory!.category_id.toString(),
+            descriptionController.value.text,
+            priceController.value.text,
+            skuController.value.text,
+            selectStatus == 'Available Sale' ? '1' : '0',
+            selectVariant == 'Have Variant' ? '1' : '0',
+            selectStock == 'Daily Limit' ? '1' : '2',
+            dailyLimitController.value.text,
+            stockQuantityController.value.text,
+            selectGraphic == 'Image' ? '2' : '1',
+            productColor,
+            imageDir != null
+                ? basename(imageDir!).replaceAll('image_picker', '')
+                : widget.product!.image,
+            widget.product!.product_id.toString());
+        if (response['status'] == '1') {
+          int syncData = await PosDatabase.instance.updateSyncProduct(Product(
+            product_id: widget.product!.product_id,
+            sync_status: 2,
+            updated_at: dateTime,
+            product_sqlite_id: widget.product!.product_sqlite_id,
+          ));
+        }
       }
 /*
       -----------------------------end sync------------------------------------
@@ -495,14 +507,31 @@ class _EditProductDialogState extends State<EditProductDialog> {
       --------------------modifier----------------------
 */
       if (switchController.selectedItem.length == 0) {
+        int deleteModifierLinkProduct = await PosDatabase.instance
+            .deleteModifierLinkProduct(ModifierLinkProduct(
+                product_id: widget.product!.product_id.toString(),
+                sync_status: 1,
+                soft_delete: dateTime));
+
+        if (deleteModifierLinkProduct == 1) {}
+/*
+    -------------------------sync to cloud-------------------------------------
+*/
         Map responseDeleteMod = await Domain()
             .deleteModifierLinkProduct(widget.product!.product_id.toString());
         if (responseDeleteMod['status'] == '1') {
-          int deleteModifierLinkProduct = await PosDatabase.instance
-              .deleteModifierLinkProduct(ModifierLinkProduct(
-                  product_id: widget.product!.product_id.toString(),
-                  soft_delete: dateTime));
+          // int syncData = await PosDatabase.instance
+          //     .updateSyncModifierLinkProduct(ModifierLinkProduct(
+          //   modifier_link_product_id: response['modifier_link_product_id'],
+          //   sync_status: 2,
+          //   updated_at: dateTime,
+          //   modifier_link_product_sqlite_id:
+          //   data.modifier_link_product_sqlite_id,
+          // ));
         }
+/*
+        -----------------------------end sync----------------------------------
+*/
       } else {
         for (int i = 0; i < switchController.selectedItem.length; i++) {
           List<ModifierLinkProduct> readModifierLinkProduct =
@@ -938,7 +967,9 @@ class _EditProductDialogState extends State<EditProductDialog> {
               .insertSyncModifierLinkProduct(ModifierLinkProduct(
                   modifier_link_product_id: 0,
                   mod_group_id: switchController.selectedItem[i].toString(),
-                  product_id: response['product_id'].toString(),
+                  product_id: '0',
+                  product_sqlite_id:
+                      productInserted.product_sqlite_id.toString(),
                   sync_status: 0,
                   created_at: dateTime,
                   updated_at: '',
@@ -968,11 +999,13 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
       if (selectVariant == 'Have Variant') {
         for (int i = 0; i < variantList.length; i++) {
-          VariantGroup group = await PosDatabase.instance.insertSyncVariantGroup(
-              VariantGroup(
+          VariantGroup group = await PosDatabase.instance
+              .insertSyncVariantGroup(VariantGroup(
                   child: [],
                   variant_group_id: 0,
-                  product_id: response['product_id'].toString(),
+                  product_id: '0',
+                  product_sqlite_id:
+                      productInserted.product_sqlite_id.toString(),
                   name: variantList[i]['modGroup'],
                   sync_status: 0,
                   created_at: dateTime,
@@ -984,8 +1017,8 @@ class _EditProductDialogState extends State<EditProductDialog> {
           Map responseVariantGroup = await Domain().insertVariantGroup(
               variantList[i]['modGroup'], response['product_id'].toString());
           if (responseVariantGroup['status'] == '1') {
-            int syncData = await PosDatabase.instance
-                .updateSyncVariantGroup(VariantGroup(
+            int syncData =
+                await PosDatabase.instance.updateSyncVariantGroup(VariantGroup(
               child: [],
               variant_group_id: response['modifier_link_product_id'],
               sync_status: 2,
@@ -998,29 +1031,30 @@ class _EditProductDialogState extends State<EditProductDialog> {
 */
 
           for (int j = 0; j < variantList[i]['modItem'].length; j++) {
-              VariantItem item = await PosDatabase.instance.insertSyncVariantItem(
-                  VariantItem(
-                      variant_item_id: 0,
-                      variant_group_id: responseVariantGroup['variant_group_id'].toString(),
-                      name: variantList[i]['modItem'][j],
-                      sync_status: 0,
-                      created_at: dateTime,
-                      updated_at: '',
-                      soft_delete: ''));
+            VariantItem item = await PosDatabase.instance.insertSyncVariantItem(
+                VariantItem(
+                    variant_item_id: 0,
+                    variant_group_id:
+                        responseVariantGroup['variant_group_id'].toString(),
+                    name: variantList[i]['modItem'][j],
+                    sync_status: 0,
+                    created_at: dateTime,
+                    updated_at: '',
+                    soft_delete: ''));
 /*
               -------------------------sync to cloud--------------------------
 */
-              Map responseVariantItem = await Domain().insertVariantItem(
-                  variantList[i]['modItem'][j],
-                  responseVariantGroup['variant_group_id'].toString());
+            Map responseVariantItem = await Domain().insertVariantItem(
+                variantList[i]['modItem'][j],
+                responseVariantGroup['variant_group_id'].toString());
             if (responseVariantItem['status'] == '1') {
-              int syncData = await PosDatabase.instance.updateSyncVariantItem(VariantItem(
+              int syncData =
+                  await PosDatabase.instance.updateSyncVariantItem(VariantItem(
                 variant_item_id: responseVariantItem['variant_item_id'],
                 sync_status: 2,
                 updated_at: dateTime,
                 variant_item_sqlite_id: item.variant_item_sqlite_id,
               ));
-
             }
 /*
               --------------------------end sync-------------------------------
@@ -1030,29 +1064,28 @@ class _EditProductDialogState extends State<EditProductDialog> {
         }
 
         for (int k = 0; k < productVariantList.length; k++) {
-
           // if (responseProductVariant['status'] == '1') {}
-            ProductVariant variant = await PosDatabase.instance
-                .insertSyncProductVariant(ProductVariant(
-                    product_variant_id: 0,
-                    product_id: response['product_id'].toString(),
-                    variant_name: productVariantList[k]['variant_name'],
-                    SKU: productVariantList[k]['SKU'],
-                    price: productVariantList[k]['price'],
-                    stock_type: selectStock == 'Daily Limit' ? '1' : '2',
-                    daily_limit: selectStock == 'Daily Limit'
-                        ? productVariantList[k]['quantity']
-                        : '',
-                    daily_limit_amount: selectStock == 'Daily Limit'
-                        ? productVariantList[k]['quantity']
-                        : '',
-                    stock_quantity: selectStock != 'Daily Limit'
-                        ? productVariantList[k]['quantity']
-                        : '',
-                    sync_status: 0,
-                    created_at: dateTime,
-                    updated_at: '',
-                    soft_delete: ''));
+          ProductVariant variant = await PosDatabase.instance
+              .insertSyncProductVariant(ProductVariant(
+                  product_variant_id: 0,
+                  product_id: response['product_id'].toString(),
+                  variant_name: productVariantList[k]['variant_name'],
+                  SKU: productVariantList[k]['SKU'],
+                  price: productVariantList[k]['price'],
+                  stock_type: selectStock == 'Daily Limit' ? '1' : '2',
+                  daily_limit: selectStock == 'Daily Limit'
+                      ? productVariantList[k]['quantity']
+                      : '',
+                  daily_limit_amount: selectStock == 'Daily Limit'
+                      ? productVariantList[k]['quantity']
+                      : '',
+                  stock_quantity: selectStock != 'Daily Limit'
+                      ? productVariantList[k]['quantity']
+                      : '',
+                  sync_status: 0,
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
 /*
             ------------------------sync to cloud------------------------------
 */
@@ -1068,68 +1101,63 @@ class _EditProductDialogState extends State<EditProductDialog> {
             -------------------------end sync----------------------------------
 */
 
-            Map responseBranchLinkProduct = await Domain()
-                .insertBranchLinkProduct(
-                    branch_id.toString(),
-                    response['product_id'].toString(),
-                    '1',
-                    variant.product_variant_id.toString(),
-                    branch_id.toString() + variant.SKU.toString(),
-                    variant.price,
-                    selectStock == 'Daily Limit' ? '1' : '2',
-                    selectStock == 'Daily Limit'
-                        ? variant.daily_limit
-                        : variant.stock_quantity);
-            if (responseBranchLinkProduct['status'] == '1') {
-              BranchLinkProduct variantBranchProduct = await PosDatabase
-                  .instance
-                  .insertBranchLinkProduct(BranchLinkProduct(
-                      branch_link_product_id:
-                          responseBranchLinkProduct['branch_link_product_id'],
-                      branch_id: branch_id.toString(),
-                      product_id: response['product_id'].toString(),
-                      has_variant: '1',
-                      product_variant_id: variant.product_variant_id.toString(),
-                      b_SKU: branch_id.toString() + variant.SKU.toString(),
-                      price: variant.price,
-                      stock_type: selectStock == 'Daily Limit' ? '1' : '2',
-                      daily_limit: selectStock == 'Daily Limit'
-                          ? variant.daily_limit
-                          : '',
-                      daily_limit_amount: selectStock == 'Daily Limit'
-                          ? variant.daily_limit
-                          : '',
-                      stock_quantity: selectStock != 'Daily Limit'
-                          ? variant.stock_quantity
-                          : '',
-                      created_at: dateTime,
-                      updated_at: '',
-                      soft_delete: ''));
+          Map responseBranchLinkProduct = await Domain()
+              .insertBranchLinkProduct(
+                  branch_id.toString(),
+                  response['product_id'].toString(),
+                  '1',
+                  variant.product_variant_id.toString(),
+                  branch_id.toString() + variant.SKU.toString(),
+                  variant.price,
+                  selectStock == 'Daily Limit' ? '1' : '2',
+                  selectStock == 'Daily Limit'
+                      ? variant.daily_limit
+                      : variant.stock_quantity);
+          if (responseBranchLinkProduct['status'] == '1') {
+            BranchLinkProduct variantBranchProduct = await PosDatabase.instance
+                .insertBranchLinkProduct(BranchLinkProduct(
+                    branch_link_product_id:
+                        responseBranchLinkProduct['branch_link_product_id'],
+                    branch_id: branch_id.toString(),
+                    product_id: response['product_id'].toString(),
+                    has_variant: '1',
+                    product_variant_id: variant.product_variant_id.toString(),
+                    b_SKU: branch_id.toString() + variant.SKU.toString(),
+                    price: variant.price,
+                    stock_type: selectStock == 'Daily Limit' ? '1' : '2',
+                    daily_limit:
+                        selectStock == 'Daily Limit' ? variant.daily_limit : '',
+                    daily_limit_amount:
+                        selectStock == 'Daily Limit' ? variant.daily_limit : '',
+                    stock_quantity: selectStock != 'Daily Limit'
+                        ? variant.stock_quantity
+                        : '',
+                    created_at: dateTime,
+                    updated_at: '',
+                    soft_delete: ''));
 
-              final splitted =
-                  productVariantList[k]['variant_name'].split(' | ');
-              for (int l = 0; l < splitted.length; l++) {
-                VariantItem? item =
-                    await PosDatabase.instance.readVariantItem(splitted[l]);
-                Map responseVariantDetail = await Domain()
-                    .insertProductVariantDetail(
-                        variant.product_variant_id.toString(),
-                        item!.variant_item_id.toString());
-                if (responseVariantDetail['status'] == '1') {
-                  ProductVariantDetail variantdetail = await PosDatabase
-                      .instance
-                      .insertProductVariantDetail(ProductVariantDetail(
-                          product_variant_detail_id:
-                              responseVariantDetail['product_detail_id'],
-                          product_variant_id:
-                              variant.product_variant_id.toString(),
-                          variant_item_id: item.variant_item_id.toString(),
-                          created_at: dateTime,
-                          updated_at: '',
-                          soft_delete: ''));
-                }
+            final splitted = productVariantList[k]['variant_name'].split(' | ');
+            for (int l = 0; l < splitted.length; l++) {
+              VariantItem? item =
+                  await PosDatabase.instance.readVariantItem(splitted[l]);
+              Map responseVariantDetail = await Domain()
+                  .insertProductVariantDetail(
+                      variant.product_variant_id.toString(),
+                      item!.variant_item_id.toString());
+              if (responseVariantDetail['status'] == '1') {
+                ProductVariantDetail variantdetail = await PosDatabase.instance
+                    .insertProductVariantDetail(ProductVariantDetail(
+                        product_variant_detail_id:
+                            responseVariantDetail['product_detail_id'],
+                        product_variant_id:
+                            variant.product_variant_id.toString(),
+                        variant_item_id: item.variant_item_id.toString(),
+                        created_at: dateTime,
+                        updated_at: '',
+                        soft_delete: ''));
               }
             }
+          }
         }
       } else {
         Map responseBranchLinkProduct = await Domain().insertBranchLinkProduct(

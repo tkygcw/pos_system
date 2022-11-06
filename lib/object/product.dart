@@ -4,6 +4,7 @@ class ProductFields {
   static List<String> values = [
     product_sqlite_id,
     product_id,
+    category_sqlite_id,
     category_id,
     company_id,
     name,
@@ -27,6 +28,7 @@ class ProductFields {
 
   static String product_sqlite_id = 'product_sqlite_id';
   static String product_id = 'product_id';
+  static String category_sqlite_id = 'category_sqlite_id';
   static String category_id = 'category_id';
   static String company_id = 'company_id';
   static String name = 'name';
@@ -51,6 +53,7 @@ class ProductFields {
 class Product{
   int? product_sqlite_id;
   int? product_id;
+  String? category_sqlite_id;
   String? category_id;
   String? company_id;
   String? name;
@@ -74,6 +77,7 @@ class Product{
   Product(
       {this.product_sqlite_id,
         this.product_id,
+        this.category_sqlite_id,
         this.category_id,
         this.company_id,
         this.name,
@@ -97,6 +101,7 @@ class Product{
   Product copy({
     int? product_sqlite_id,
     int? product_id,
+    String? category_sqlite_id,
     String? category_id,
     String? company_id,
     String? name,
@@ -120,6 +125,7 @@ class Product{
       Product(
           product_sqlite_id: product_sqlite_id ?? this.product_sqlite_id,
           product_id: product_id ?? this.product_id,
+          category_sqlite_id: category_sqlite_id ?? this.category_sqlite_id,
           category_id: category_id ?? this.category_id,
           company_id: company_id ?? this.company_id,
           name: name ?? this.name,
@@ -143,6 +149,7 @@ class Product{
   static Product fromJson(Map<String, Object?> json) => Product(
     product_sqlite_id: json[ProductFields.product_sqlite_id] as int?,
     product_id: json[ProductFields.product_id] as int?,
+    category_sqlite_id: json[ProductFields.category_sqlite_id] as String?,
     category_id: json[ProductFields.category_id] as String?,
     company_id: json[ProductFields.company_id] as String?,
     name: json[ProductFields.name] as String?,
@@ -167,6 +174,7 @@ class Product{
   Map<String, Object?> toJson() => {
     ProductFields.product_sqlite_id: product_sqlite_id,
     ProductFields.product_id: product_id,
+    ProductFields.category_sqlite_id: category_sqlite_id,
     ProductFields.category_id: category_id,
     ProductFields.company_id: company_id,
     ProductFields.name: name,

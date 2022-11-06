@@ -9,6 +9,7 @@ class VariantGroupFields {
     variant_group_sqlite_id,
     variant_group_id,
     product_id,
+    product_sqlite_id,
     name,
     sync_status,
     created_at,
@@ -19,6 +20,7 @@ class VariantGroupFields {
   static String variant_group_sqlite_id = 'variant_group_sqlite_id';
   static String variant_group_id = 'variant_group_id';
   static String product_id = 'product_id';
+  static String product_sqlite_id = 'product_sqlite_id';
   static String name = 'name';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
@@ -33,6 +35,7 @@ class VariantGroup {
   int? variant_item_id;
   late List<VariantItem> child;
   String? product_id;
+  String? product_sqlite_id;
   String? name;
   int? sync_status;
   String? created_at;
@@ -45,6 +48,7 @@ class VariantGroup {
       this.variant_item_id,
       required this.child,
       this.product_id,
+        this.product_sqlite_id,
       this.name,
       this.sync_status,
       this.created_at,
@@ -55,6 +59,7 @@ class VariantGroup {
     int? variant_group_sqlite_id,
     int? variant_group_id,
     String? product_id,
+    String? product_sqlite_id,
     String? name,
     int? sync_status,
     String? created_at,
@@ -66,6 +71,7 @@ class VariantGroup {
               variant_group_sqlite_id ?? this.variant_group_sqlite_id,
           variant_group_id: variant_group_id ?? this.variant_group_id,
           product_id: product_id ?? this.product_id,
+          product_sqlite_id: product_sqlite_id ?? this.product_sqlite_id,
           name: name ?? this.name,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
@@ -78,6 +84,7 @@ class VariantGroup {
             json[VariantGroupFields.variant_group_sqlite_id] as int?,
         variant_group_id: json[VariantGroupFields.variant_group_id] as int?,
         product_id: json[VariantGroupFields.product_id] as String?,
+    product_sqlite_id: json[VariantGroupFields.product_sqlite_id] as String?,
         name: json[VariantGroupFields.name] as String?,
         sync_status: json[VariantGroupFields.sync_status] as int?,
         created_at: json[VariantGroupFields.created_at] as String?,
@@ -90,6 +97,7 @@ class VariantGroup {
         VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
         VariantGroupFields.variant_group_id: variant_group_id,
         VariantGroupFields.product_id: product_id,
+    VariantGroupFields.product_sqlite_id: product_sqlite_id,
         VariantGroupFields.name: name,
         VariantGroupFields.sync_status: sync_status,
         VariantGroupFields.created_at: created_at,

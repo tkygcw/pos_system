@@ -121,7 +121,7 @@ class PosDatabase {
 */
     await db.execute(
         '''CREATE TABLE $tableModifierLinkProduct ( ${ModifierLinkProductFields.modifier_link_product_sqlite_id} $idType, ${ModifierLinkProductFields.modifier_link_product_id} $integerType, ${ModifierLinkProductFields.mod_group_id} $textType,
-           ${ModifierLinkProductFields.product_id} $textType, ${ModifierLinkProductFields.sync_status} $integerType,  ${ModifierLinkProductFields.created_at} $textType, ${ModifierLinkProductFields.updated_at} $textType,
+           ${ModifierLinkProductFields.product_id} $textType, ${ModifierLinkProductFields.product_sqlite_id} $textType, ${ModifierLinkProductFields.sync_status} $integerType,  ${ModifierLinkProductFields.created_at} $textType, ${ModifierLinkProductFields.updated_at} $textType,
            ${ModifierLinkProductFields.soft_delete} $textType)''');
 /*
     create order table
@@ -262,7 +262,7 @@ class PosDatabase {
     create variant group table
 */
     await db.execute(
-        '''CREATE TABLE $tableVariantGroup ( ${VariantGroupFields.variant_group_sqlite_id} $idType, ${VariantGroupFields.variant_group_id} $integerType,${VariantGroupFields.product_id} $textType,${VariantGroupFields.name} $textType, ${VariantGroupFields.sync_status} $integerType,
+        '''CREATE TABLE $tableVariantGroup ( ${VariantGroupFields.variant_group_sqlite_id} $idType, ${VariantGroupFields.variant_group_id} $integerType,${VariantGroupFields.product_id} $textType, ${VariantGroupFields.product_sqlite_id} $textType,${VariantGroupFields.name} $textType, ${VariantGroupFields.sync_status} $integerType,
            ${VariantGroupFields.created_at} $textType,${VariantGroupFields.updated_at} $textType,${VariantGroupFields.soft_delete} $textType)''');
 /*
     create variant item table
@@ -764,11 +764,12 @@ class PosDatabase {
   Future<ModifierLinkProduct> insertModifierLinkProduct(ModifierLinkProduct data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableModifierLinkProduct(modifier_link_product_id, mod_group_id, product_id, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO $tableModifierLinkProduct(modifier_link_product_id, mod_group_id, product_id, product_sqlite_id, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.modifier_link_product_id,
           data.mod_group_id,
           data.product_id,
+          '0',
           2,
           data.created_at,
           data.updated_at,
@@ -783,11 +784,12 @@ class PosDatabase {
   Future<ModifierLinkProduct> insertSyncModifierLinkProduct(ModifierLinkProduct data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableModifierLinkProduct(modifier_link_product_id, mod_group_id, product_id, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO $tableModifierLinkProduct(modifier_link_product_id, mod_group_id, product_id, product_sqlite_id, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.modifier_link_product_id,
           data.mod_group_id,
           data.product_id,
+          data.product_sqlite_id,
           data.sync_status,
           data.created_at,
           data.updated_at,
@@ -802,10 +804,11 @@ class PosDatabase {
   Future<VariantGroup> insertVariantGroup(VariantGroup data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableVariantGroup(variant_group_id, product_id, name, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO $tableVariantGroup(variant_group_id, product_id, product_sqlite_id, name, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.variant_group_id,
           data.product_id,
+          '0',
           data.name,
           2,
           data.created_at,
@@ -821,10 +824,11 @@ class PosDatabase {
   Future<VariantGroup> insertSyncVariantGroup(VariantGroup data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableVariantGroup(variant_group_id, product_id, name, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO $tableVariantGroup(variant_group_id, product_id, product_sqlite_id, name, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.variant_group_id,
           data.product_id,
+          data.product_sqlite_id,
           data.name,
           data.sync_status,
           data.created_at,
@@ -914,7 +918,7 @@ class PosDatabase {
           data.daily_limit,
           data.daily_limit_amount,
           data.stock_quantity,
-          data.sync_status,
+          data.sync_status  ,
           data.created_at,
           data.updated_at,
           data.soft_delete
@@ -2104,8 +2108,9 @@ class PosDatabase {
   Future<int> updateProduct(Product data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableProduct SET category_id = ?, name = ?, price = ?, description = ?, SKU = ?, image = ?, has_variant = ?, stock_type = ?, stock_quantity = ?, available = ?, graphic_type = ?, color = ?, daily_limit_amount = ?, daily_limit = ?, sync_status = ?,  updated_at = ? WHERE product_sqlite_id = ?',
+        'UPDATE $tableProduct SET category_sqlite_id = ?, category_id = ?, name = ?, price = ?, description = ?, SKU = ?, image = ?, has_variant = ?, stock_type = ?, stock_quantity = ?, available = ?, graphic_type = ?, color = ?, daily_limit_amount = ?, daily_limit = ?, sync_status = ?,  updated_at = ? WHERE product_sqlite_id = ?',
         [
+          data.category_sqlite_id,
           data.category_id,
           data.name,
           data.price,
@@ -2326,8 +2331,8 @@ class PosDatabase {
   Future<int> deleteModifierLinkProduct(ModifierLinkProduct data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableModifierLinkProduct SET soft_delete = ? WHERE soft_delete = ? AND product_id = ?',
-        [data.soft_delete, '', data.product_id]);
+        'UPDATE $tableModifierLinkProduct SET soft_delete = ?, sync_status = ? WHERE soft_delete = ? AND product_id = ?',
+        [data.soft_delete, data.sync_status, '', data.product_id]);
   }
 
   /*

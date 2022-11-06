@@ -49,17 +49,17 @@ class _FoodSettingState extends State<FoodSetting> {
                     children: [
                       Row(
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(18, 0, 0, 0),
-                            child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                    primary: color.backgroundColor),
-                                onPressed: () {
-                                  openEditProductDialog(Product());
-                                },
-                                icon: Icon(Icons.add),
-                                label: Text("Product")),
-                          ),
+                          // Padding(
+                          //   padding: const EdgeInsets.fromLTRB(18, 0, 0, 0),
+                          //   child: ElevatedButton.icon(
+                          //       style: ElevatedButton.styleFrom(
+                          //           primary: color.backgroundColor),
+                          //       onPressed: () {
+                          //         openEditProductDialog(Product());
+                          //       },
+                          //       icon: Icon(Icons.add),
+                          //       label: Text("Product")),
+                          // ),
                           Expanded(
                             child: Padding(
                               padding: EdgeInsets.fromLTRB(0, 0, 60, 0),
