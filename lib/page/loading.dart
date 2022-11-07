@@ -56,6 +56,7 @@ class _LoadingPageState extends State<LoadingPage> {
     // TODO: implement initState
     super.initState();
     _createProductImgFolder();
+    getAllCategory();
     getAllUser();
     getAllTable();
     getBranchLinkUser();
@@ -64,7 +65,6 @@ class _LoadingPageState extends State<LoadingPage> {
     getAllTax();
     getBranchLinkTax();
     getTaxLinkDining();
-    getAllCategory();
     getAllPromotion();
     getBranchLinkPromotion();
     getAllCustomer();
@@ -74,9 +74,7 @@ class _LoadingPageState extends State<LoadingPage> {
     getModifierGroup();
     getModifierItem();
     getBranchLinkModifier();
-    getAllProduct();
     getBranchLinkProduct();
-    getModifierLinkProduct();
     getVariantGroup();
     getVariantItem();
     getProductVariant();
@@ -88,6 +86,7 @@ class _LoadingPageState extends State<LoadingPage> {
     getSale();
     getAllTableUse();
     getAllTableUseDetail();
+
     // Go to Page2 after 5s.
     Timer(Duration(seconds: 4), () {
       Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
@@ -155,7 +154,8 @@ class _LoadingPageState extends State<LoadingPage> {
       List responseJson = data['table_use'];
       for (var i = 0; i < responseJson.length; i++) {
         TableUseDetail user = await PosDatabase.instance
-            .insertSqliteTableUseDetail(TableUseDetail.fromJson(responseJson[i]));
+            .insertSqliteTableUseDetail(
+                TableUseDetail.fromJson(responseJson[i]));
       }
     }
   }
@@ -289,6 +289,7 @@ getAllCategory() async {
       Categories data = await PosDatabase.instance
           .insertCategories(Categories.fromJson(responseJson[i]));
     }
+    getAllProduct();
   }
 }
 
@@ -461,9 +462,33 @@ getAllProduct() async {
   if (data['status'] == '1') {
     List responseJson = data['product'];
     for (var i = 0; i < responseJson.length; i++) {
-      Product data = await PosDatabase.instance
-          .insertProduct(Product.fromJson(responseJson[i]));
+      Product productItem = Product.fromJson(responseJson[i]);
+      // Categories? categoryData = await PosDatabase.instance.readCategorySqliteID(productItem.category_id!);
+      Product data = await PosDatabase.instance.insertProduct(Product(
+        product_id: productItem.product_id,
+        category_id: productItem.category_id,
+        category_sqlite_id: productItem.category_id,
+        company_id: productItem.company_id,
+        name: productItem.name,
+        price: productItem.price,
+        description: productItem.description,
+        SKU: productItem.SKU,
+        image: productItem.image,
+        has_variant: productItem.has_variant,
+        stock_type: productItem.stock_type,
+        stock_quantity: productItem.stock_quantity,
+        available: productItem.available,
+        graphic_type: productItem.graphic_type,
+        color: productItem.color,
+        daily_limit: productItem.daily_limit,
+        daily_limit_amount: productItem.daily_limit_amount,
+        sync_status: 2,
+        created_at: productItem.created_at,
+        updated_at: productItem.updated_at,
+        soft_delete: productItem.soft_delete
+      ));
     }
+    getModifierLinkProduct();
   }
 }
 
@@ -496,9 +521,19 @@ getModifierLinkProduct() async {
   if (data['status'] == '1') {
     List responseJson = data['product'];
     for (var i = 0; i < responseJson.length; i++) {
+      ModifierLinkProduct modData = ModifierLinkProduct.fromJson(responseJson[i]);
+      Product? productData = await PosDatabase.instance.readProductSqliteID(modData.product_id!);
       ModifierLinkProduct data = await PosDatabase.instance
-          .insertModifierLinkProduct(
-              ModifierLinkProduct.fromJson(responseJson[i]));
+          .insertModifierLinkProduct(ModifierLinkProduct(
+        modifier_link_product_id: modData.modifier_link_product_id,
+        mod_group_id: modData.mod_group_id,
+        product_id: modData.product_id,
+        product_sqlite_id: productData!.product_sqlite_id.toString(),
+        sync_status: 2,
+        created_at: modData.created_at,
+        updated_at: modData.updated_at,
+        soft_delete: modData.soft_delete,
+      ));
     }
   }
 }
@@ -632,21 +667,22 @@ getAllOrderDetail() async {
 /*
   save order modifier detail to database
 */
- getAllOrderModifierDetail() async {
-   final prefs = await SharedPreferences.getInstance();
-   final int? branch_id = prefs.getInt('branch_id');
-   final String? user = prefs.getString('user');
-   Map userObject = json.decode(user!);
-   Map data = await Domain()
-       .getAllOrderModifierDetail(userObject['company_id'], branch_id.toString());
-   if (data['status'] == '1') {
-     List responseJson = data['order'];
-     for (var i = 0; i < responseJson.length; i++) {
-       OrderModifierDetail data = await PosDatabase.instance
-           .insertOrderModifierDetail(OrderModifierDetail.fromJson(responseJson[i]));
-       }
-     }
- }
+getAllOrderModifierDetail() async {
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  final String? user = prefs.getString('user');
+  Map userObject = json.decode(user!);
+  Map data = await Domain().getAllOrderModifierDetail(
+      userObject['company_id'], branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['order'];
+    for (var i = 0; i < responseJson.length; i++) {
+      OrderModifierDetail data = await PosDatabase.instance
+          .insertOrderModifierDetail(
+              OrderModifierDetail.fromJson(responseJson[i]));
+    }
+  }
+}
 
 /*
   save sale to database
@@ -674,7 +710,6 @@ Future<String> get _localPath async {
   final directory = await getApplicationSupportDirectory();
   return directory.path;
 }
-
 
 _createProductImgFolder() async {
   final prefs = await SharedPreferences.getInstance();

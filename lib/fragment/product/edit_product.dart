@@ -510,6 +510,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
         int deleteModifierLinkProduct = await PosDatabase.instance
             .deleteModifierLinkProduct(ModifierLinkProduct(
                 product_id: widget.product!.product_id.toString(),
+                product_sqlite_id: widget.product!.product_sqlite_id.toString(),
                 sync_status: 1,
                 soft_delete: dateTime));
 
@@ -517,17 +518,20 @@ class _EditProductDialogState extends State<EditProductDialog> {
 /*
     -------------------------sync to cloud-------------------------------------
 */
-        Map responseDeleteMod = await Domain()
-            .deleteModifierLinkProduct(widget.product!.product_id.toString());
-        if (responseDeleteMod['status'] == '1') {
-          // int syncData = await PosDatabase.instance
-          //     .updateSyncModifierLinkProduct(ModifierLinkProduct(
-          //   modifier_link_product_id: response['modifier_link_product_id'],
-          //   sync_status: 2,
-          //   updated_at: dateTime,
-          //   modifier_link_product_sqlite_id:
-          //   data.modifier_link_product_sqlite_id,
-          // ));
+        if (connectivityResult == ConnectivityResult.mobile ||
+            connectivityResult == ConnectivityResult.wifi) {
+          Map responseDeleteMod = await Domain()
+              .deleteModifierLinkProduct(widget.product!.product_id.toString());
+          if (responseDeleteMod['status'] == '1') {
+            // int syncData = await PosDatabase.instance
+            //     .updateSyncModifierLinkProduct(ModifierLinkProduct(
+            //   modifier_link_product_id: response['modifier_link_product_id'],
+            //   sync_status: 2,
+            //   updated_at: dateTime,
+            //   modifier_link_product_sqlite_id:
+            //   data.modifier_link_product_sqlite_id,
+            // ));
+          }
         }
 /*
         -----------------------------end sync----------------------------------

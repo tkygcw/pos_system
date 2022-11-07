@@ -187,7 +187,7 @@ class PosDatabase {
     create product table
 */
     await db.execute(
-        '''CREATE TABLE $tableProduct ( ${ProductFields.product_sqlite_id} $idType, ${ProductFields.product_id} $integerType, ${ProductFields.category_id} $textType, ${ProductFields.company_id} $textType,
+        '''CREATE TABLE $tableProduct ( ${ProductFields.product_sqlite_id} $idType, ${ProductFields.product_id} $integerType, ${ProductFields.category_id} $textType, ${ProductFields.category_sqlite_id} $textType, ${ProductFields.company_id} $textType,
            ${ProductFields.name} $textType,${ProductFields.price} $textType, ${ProductFields.description} $textType, ${ProductFields.SKU} $textType, ${ProductFields.image} $textType,
            ${ProductFields.has_variant} $integerType,${ProductFields.stock_type} $integerType, ${ProductFields.stock_quantity} $textType, ${ProductFields.available} $integerType,
            ${ProductFields.graphic_type} $textType, ${ProductFields.color} $textType, ${ProductFields.daily_limit} $textType, ${ProductFields.daily_limit_amount} $textType,${ProductFields.sync_status} $integerType,
@@ -689,10 +689,11 @@ class PosDatabase {
   Future<Product> insertProduct(Product data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableProduct(product_id, category_id, company_id, name, price, description, SKU, image, has_variant, stock_type, stock_quantity, available, graphic_type, color, daily_limit, daily_limit_amount, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO $tableProduct(product_id, category_id, category_sqlite_id, company_id, name, price, description, SKU, image, has_variant, stock_type, stock_quantity, available, graphic_type, color, daily_limit, daily_limit_amount, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.product_id,
           data.category_id,
+          data.category_sqlite_id,
           data.company_id,
           data.name,
           data.price,
@@ -707,7 +708,7 @@ class PosDatabase {
           data.color,
           data.daily_limit,
           data.daily_limit_amount,
-          2,
+          data.sync_status,
           data.created_at,
           data.updated_at,
           data.soft_delete
@@ -769,8 +770,8 @@ class PosDatabase {
           data.modifier_link_product_id,
           data.mod_group_id,
           data.product_id,
-          '0',
-          2,
+          data.product_sqlite_id,
+          data.sync_status,
           data.created_at,
           data.updated_at,
           data.soft_delete
@@ -1101,6 +1102,29 @@ class PosDatabase {
       return User.fromJson(maps.first);
     }
   }
+
+  Future<Product?> readProductSqliteID (String product_id) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery(
+        'SELECT * FROM $tableProduct WHERE soft_delete = ? AND product_id = ?',
+        ['', product_id]);
+    if (maps.isNotEmpty) {
+      return Product.fromJson(maps.first);
+    }
+  }
+
+  Future<Categories?> readCategorySqliteID (String category_id) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery(
+        'SELECT * FROM $tableCategories WHERE soft_delete = ? AND category_id = ?',
+        ['', category_id]);
+    if (maps.isNotEmpty) {
+      return Categories.fromJson(maps.first);
+    }
+  }
+
+
+
 
 /*
   read branch name
@@ -2341,7 +2365,7 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tableModifierLinkProduct SET soft_delete = ?, sync_status = ? WHERE soft_delete = ? AND product_id = ?',
-        [data.soft_delete, data.sync_status, '', data.product_id]);
+        [data.soft_delete, data.sync_status, '', data.product_id, data.product_sqlite_id]);
   }
 
   /*
