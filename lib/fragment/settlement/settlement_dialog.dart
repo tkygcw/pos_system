@@ -72,7 +72,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: Text('Enter admin PIN'),
+        title: Text('Enter Admin PIN'),
         content: SizedBox(
           height: 100.0,
           width: 350.0,
@@ -152,6 +152,10 @@ class _SettlementDialogState extends State<SettlementDialog> {
     });
   }
 
+/*
+  ----------------DB Query part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
   readAdminData(String pin) async {
     try {
       String dateTime = dateFormat.format(DateTime.now());
@@ -163,7 +167,8 @@ class _SettlementDialogState extends State<SettlementDialog> {
         //update all today cash record settlement date
         await updateAllCashRecordSettlement(dateTime);
         //print settlement list
-        await _printSettlementList(dateTime);
+        print('print settlement list');
+        //await _printSettlementList(dateTime);
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
@@ -175,6 +180,29 @@ class _SettlementDialogState extends State<SettlementDialog> {
 
   }
 
+  updateAllCashRecordSettlement(String dateTime) async {
+    for(int i = 0; i < widget.cashRecordList.length; i++){
+      CashRecord cashRecord = CashRecord(
+          settlement_date: dateTime,
+          sync_status: 0,
+          updated_at: dateTime,
+          cash_record_sqlite_id:  widget.cashRecordList[i].cash_record_sqlite_id);
+
+      int data = await PosDatabase.instance.updateCashRecord(cashRecord);
+    }
+  }
+
+  readAllPrinters() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter(branch_id!);
+    printerList = List.from(data);
+  }
+
+/*
+  ----------------Other function part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
   _printSettlementList(String dateTime) async {
     print('printer called');
     try {
@@ -204,26 +232,5 @@ class _SettlementDialogState extends State<SettlementDialog> {
       print('Printer Connection Error');
       //response = 'Failed to get platform version.';
     }
-  }
-
-
-  updateAllCashRecordSettlement(String dateTime) async {
-    for(int i = 0; i < widget.cashRecordList.length; i++){
-      CashRecord cashRecord = CashRecord(
-          settlement_date: dateTime,
-          sync_status: 0,
-          updated_at: dateTime,
-          cash_record_sqlite_id:  widget.cashRecordList[i].cash_record_sqlite_id);
-
-      int data = await PosDatabase.instance.updateCashRecord(cashRecord);
-    }
-  }
-
-  readAllPrinters() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
-    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter(branch_id!);
-    printerList = List.from(data);
   }
 }

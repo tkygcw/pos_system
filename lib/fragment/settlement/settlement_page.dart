@@ -216,14 +216,14 @@ class _SettlementPageState extends State<SettlementPage> {
                                             : Icon(Icons.wifi),
                                         title: Text(
                                             '${cashRecordList[index].remark}'),
-                                        subtitle: cashRecordList[index].type == 1
+                                        subtitle: cashRecordList[index].type == 1 || cashRecordList[index].type == 0
                                             ? Text(
                                                 'Cash in by: ${cashRecordList[index].userName}')
                                             : cashRecordList[index].type == 2
                                                 ? Text(
                                                     'Cash-out by: ${cashRecordList[index].userName}')
                                                 : Text(
-                                                    'close By: ${cashRecordList[index].userName}'),
+                                                    'Close by: ${cashRecordList[index].userName}'),
                                         trailing: cashRecordList[index].type == 2
                                             ? Text(
                                                 '-${cashRecordList[index].amount}',
@@ -234,19 +234,21 @@ class _SettlementPageState extends State<SettlementPage> {
                                                 style: TextStyle(
                                                     color: Colors.green)),
                                         onLongPress: () async {
-                                          if (await confirm(
-                                            context,
-                                            title: Text(
-                                                '${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
-                                            content: Text(
-                                                '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
-                                            textOK: Text(
-                                                '${AppLocalizations.of(context)?.translate('yes')}'),
-                                            textCancel: Text(
-                                                '${AppLocalizations.of(context)?.translate('no')}'),
-                                          )) {
-                                            return removeCashRecord(
-                                                cashRecordList[index]);
+                                          if(cashRecordList[index].type != 0){
+                                            if (await confirm(
+                                              context,
+                                              title: Text(
+                                                  '${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
+                                              content: Text(
+                                                  '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                                              textOK: Text(
+                                                  '${AppLocalizations.of(context)?.translate('yes')}'),
+                                              textCancel: Text(
+                                                  '${AppLocalizations.of(context)?.translate('no')}'),
+                                            )) {
+                                              return removeCashRecord(
+                                                  cashRecordList[index]);
+                                            }
                                           }
                                         },
                                       );
@@ -290,6 +292,10 @@ class _SettlementPageState extends State<SettlementPage> {
       );
     });
   }
+
+/*
+  -------------------Dialog part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
 
   Future<Future<Object?>> openCashDialog(bool cashIn, bool cashOut) async {
     return showGeneralDialog(
@@ -365,6 +371,10 @@ class _SettlementPageState extends State<SettlementPage> {
         });
   }
 
+/*
+  ----------------DB Query part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
   readPaymentLinkCompany() async {
     paymentNameList.add('All/Cash Drawer');
     final prefs = await SharedPreferences.getInstance();
@@ -382,7 +392,9 @@ class _SettlementPageState extends State<SettlementPage> {
   readCashRecord() async {
     isLoad = false;
     cashRecordList = [];
-    List<CashRecord> data = await PosDatabase.instance.readAllCashRecord();
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord(branch_id.toString());
     if (selectedPayment == 'All/Cash Drawer') {
       if (!cashRecordList.contains(data)) {
         cashRecordList = List.from(data);
@@ -412,14 +424,6 @@ class _SettlementPageState extends State<SettlementPage> {
     });
   }
 
-  toPosPinPage(){
-    String cashDrawer = calcCashDrawer();
-    Navigator.push(context,
-      PageTransition(type: PageTransitionType.fade, child: PosPinPage(cashBalance: cashDrawer),
-      ),
-    );
-  }
-
   removeCashRecord(CashRecord cashRecord) async {
     try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -437,12 +441,24 @@ class _SettlementPageState extends State<SettlementPage> {
     }
   }
 
+/*
+  ----------------Other function part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+  toPosPinPage(){
+    String cashDrawer = calcCashDrawer();
+    print('to pos pin call him');
+    Navigator.push(context,
+      PageTransition(type: PageTransitionType.fade, child: PosPinPage(cashBalance: cashDrawer),
+      ),
+    );
+  }
+
   getTotalAmount() {
-    double totalAmount = 0.0;
-    String totalName = '';
     String total = '';
     switch(selectedPayment) {
       case 'All/Cash Drawer': {
+        print('get total amount call calc cash drawer');
         total = 'Cash drawer: ' + calcCashDrawer();
       }
       break;
@@ -462,9 +478,7 @@ class _SettlementPageState extends State<SettlementPage> {
         total = 'N/A';
       }
       break;
-
     }
-
     return total;
   }
 
@@ -491,7 +505,7 @@ class _SettlementPageState extends State<SettlementPage> {
       double totalCashOut = 0.0;
       double totalCashDrawer = 0.0;
       for (int i = 0; i < cashRecordList.length; i++) {
-        if (cashRecordList[i].type == 1 || cashRecordList[i].payment_type_id == '1') {
+        if (cashRecordList[i].type == 0 || cashRecordList[i].type == 1 || cashRecordList[i].payment_type_id == '1') {
           totalCashIn += double.parse(cashRecordList[i].amount!);
         } else if (cashRecordList[i].type == 2 && cashRecordList[i].payment_type_id == '') {
           totalCashOut += double.parse(cashRecordList[i].amount!);
@@ -499,7 +513,7 @@ class _SettlementPageState extends State<SettlementPage> {
       }
 
       totalCashDrawer = totalCashIn - totalCashOut;
-      print('total cash drawer: $totalCashDrawer');
+
       return totalCashDrawer.toStringAsFixed(2);
     } catch (e) {
       Fluttertoast.showToast(

@@ -7,6 +7,7 @@ import 'package:grouped_list/grouped_list.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
@@ -152,7 +153,10 @@ class _HistoryDialogState extends State<HistoryDialog> {
   }
 
   readCashRecord() async {
-    List<CashRecord> data = await PosDatabase.instance.readAllSettlementCashRecord();
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    List<CashRecord> data = await PosDatabase.instance.readAllBranchSettlementCashRecord(branch_id.toString());
     cashRecordList = List.from(data);
     setState(() {
       isLoaded = true;

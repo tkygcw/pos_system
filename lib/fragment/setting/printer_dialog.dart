@@ -337,6 +337,10 @@ class _PrinterDialogState extends State<PrinterDialog> {
     });
   }
 
+/*
+  -------------------DB Query part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
   callAddNewPrinter(List<String> value, List<Categories> allCategories) async {
     await createPrinter(value);
     await createPrinterCategory(allCategories);
@@ -354,11 +358,13 @@ class _PrinterDialogState extends State<PrinterDialog> {
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
+      final String? login_user = prefs.getString('user');
+      Map logInUser = json.decode(login_user!);
 
       Printer data = await PosDatabase.instance.insertSqlitePrinter(Printer(
           printer_id: 0,
           branch_id: branch_id.toString(),
-          company_id: '6',
+          company_id: logInUser['company_id'].toString(),
           printerLabel: printerLabelController.text,
           value: value[0],
           type: _typeStatus,
@@ -492,6 +498,11 @@ class _PrinterDialogState extends State<PrinterDialog> {
     }
   }
 
+/*
+  -------------------Dialog part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+
   Future<Future<Object?>> openAddDeviceDialog(int printerType) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
@@ -559,6 +570,10 @@ class _PrinterDialogState extends State<PrinterDialog> {
       }
     });
   }
+
+/*
+  -------------------Printing part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
 
   _print() async {
     try {

@@ -30,8 +30,6 @@ class _PosPinPageState extends State<PosPinPage> {
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   List<Printer> printerList = [];
 
-
-
   @override
   void initState() {
     super.initState();
@@ -86,6 +84,21 @@ class _PosPinPageState extends State<PosPinPage> {
       );
     });
   }
+/*
+  -------------------DB Query part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+  readAllPrinters() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter(branch_id!);
+    printerList = List.from(data);
+  }
+
+/*
+  -------------------Pos pin checking part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
 
   userCheck(String pos_pin) async{
     final prefs = await SharedPreferences.getInstance();
@@ -127,11 +140,13 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   settlementCheck(User user) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
     bool isNewDay = false;
-    List<CashRecord> data = await PosDatabase.instance.readAllCashRecord();
+    List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord(branch_id.toString());
     if(data.length > 0){
       if(await settlementUserCheck(user.user_id.toString()) == true){
-        await _printCashBalanceList();
+        //await _printCashBalanceList();
         isNewDay = false;
         print('print a cash balance receipt');
       } else{
@@ -157,14 +172,9 @@ class _PosPinPageState extends State<PosPinPage> {
     return isNewUser;
   }
 
-  readAllPrinters() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
-    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter(branch_id!);
-    printerList = List.from(data);
-  }
-
+/*
+  -------------------Printing part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
   _printCashBalanceList() async {
     print('printer called');
     try {
@@ -196,6 +206,5 @@ class _PosPinPageState extends State<PosPinPage> {
       //response = 'Failed to get platform version.';
     }
   }
-
 
 }

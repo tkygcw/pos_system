@@ -33,11 +33,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../object/cash_record.dart';
 import '../../object/order_modifier_detail.dart';
 import '../../object/printer.dart';
 import '../../object/receipt_layout.dart';
 import '../../object/table.dart';
 import '../../translation/AppLocalizations.dart';
+import '../settlement/cash_dialog.dart';
 
 class CartPage extends StatefulWidget {
   final String currentPage;
@@ -78,6 +80,7 @@ class _CartPageState extends State<CartPage> {
   String? allPromo = '';
   bool hasPromo = false;
   bool hasSelectedPromo = false;
+  bool _isSettlement = false;
   Color font = Colors.black45;
 
   @override
@@ -490,50 +493,64 @@ class _CartPageState extends State<CartPage> {
                               minimumSize: const Size.fromHeight(50), // NEW
                             ),
                             onPressed: () async {
-                              if (widget.currentPage == 'menu') {
-                                if (cart.selectedOption == 'Dine in') {
-                                  if (cart.selectedTable.isNotEmpty &&
-                                      cart.cartNotifierItem.isNotEmpty) {
-                                    if (cart.cartNotifierItem[0].status == 1) {
-                                      print('add new item');
-                                      await callAddOrderCache(cart);
-                                      cart.removeAllCartItem();
-                                      cart.removeAllTable();
-                                    } else {
-                                      print('add order cache');
-                                      if (printerList.length > 0) {
-                                        await callCreateNewOrder(cart);
-                                        //await _printKitchenList();
+                              await checkCashRecord();
+                              print(_isSettlement);
+                              if(_isSettlement == true){
+                                showDialog(
+                                    barrierDismissible: false, context: context, builder: (BuildContext context) {
+                                  return WillPopScope(
+                                      child: CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true),
+                                      onWillPop: () async => false);
+                                  //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
+                                });
+                                _isSettlement = false;
+                              } else {
+                                if (widget.currentPage == 'menu') {
+                                  if (cart.selectedOption == 'Dine in') {
+                                    if (cart.selectedTable.isNotEmpty &&
+                                        cart.cartNotifierItem.isNotEmpty) {
+                                      if (cart.cartNotifierItem[0].status == 1) {
+                                        print('add new item');
+                                        await callAddOrderCache(cart);
                                         cart.removeAllCartItem();
                                         cart.removeAllTable();
                                       } else {
-                                        Fluttertoast.showToast(
-                                            backgroundColor: Colors.red,
-                                            msg: "Printer not found");
+                                        print('add order cache');
+                                        if (printerList.length > 0) {
+                                          await callCreateNewOrder(cart);
+                                          //await _printKitchenList();
+                                          cart.removeAllCartItem();
+                                          cart.removeAllTable();
+                                        } else {
+                                          Fluttertoast.showToast(
+                                              backgroundColor: Colors.red,
+                                              msg: "Printer not found");
+                                        }
                                       }
+                                    } else {
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Colors.red,
+                                          msg:
+                                          "make sure cart is not empty and table is selected");
                                     }
                                   } else {
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Colors.red,
-                                        msg:
-                                            "make sure cart is not empty and table is selected");
+                                    cart.removeAllTable();
+                                    if (cart.cartNotifierItem.isNotEmpty) {
+                                      //await createOrderCache(cart);
+                                      // await updatePosTable(cart);
+                                      cart.removeAllCartItem();
+                                      cart.selectedTable.clear();
+                                    } else {
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Colors.red,
+                                          msg: "cart empty");
+                                    }
                                   }
                                 } else {
-                                  cart.removeAllTable();
-                                  if (cart.cartNotifierItem.isNotEmpty) {
-                                    //await createOrderCache(cart);
-                                    // await updatePosTable(cart);
-                                    cart.removeAllCartItem();
-                                    cart.selectedTable.clear();
-                                  } else {
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Colors.red,
-                                        msg: "cart empty");
-                                  }
+                                  print('make payment');
                                 }
-                              } else {
-                                print('make payment');
                               }
+
                             },
                             child: widget.currentPage == 'menu'
                                 ? Text('Place Order')
@@ -1112,6 +1129,17 @@ class _CartPageState extends State<CartPage> {
           // ignore: null_check_always_fails
           return null!;
         });
+  }
+
+  checkCashRecord() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord(branch_id.toString());
+    if(data.length <= 0){
+      _isSettlement = true;
+    } else {
+      _isSettlement = false;
+    }
   }
 
   readAllBranchLinkDiningOption() async {

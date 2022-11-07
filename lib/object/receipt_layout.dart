@@ -25,9 +25,12 @@ class ReceiptLayout{
   double totalCashBalance = 0.0;
   double totalCashIn = 0.0;
   double totalCashOut = 0.0;
+  double totalOpeningCash = 0.0;
   bool _isLoad = false;
 
-
+/*
+  read receipt layout
+*/
   readReceiptLayout() async {
     List<Receipt> data = await PosDatabase.instance.readAllReceipt();
     for(int i = 0; i < data.length; i++){
@@ -37,6 +40,9 @@ class ReceiptLayout{
     }
   }
 
+/*
+  read branch latest order cache (auto print when place order click)
+*/
   readOrderCache() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -56,6 +62,9 @@ class ReceiptLayout{
     }
   }
 
+/*
+  read specific order cache/table
+*/
   readSpecificOrderCache(String orderCacheId, String dateTime) async {
 
     final prefs = await SharedPreferences.getInstance();
@@ -79,6 +88,9 @@ class ReceiptLayout{
     }
   }
 
+/*
+  read all payment link company
+*/
   readPaymentLinkCompany(String dateTime) async {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
@@ -93,20 +105,24 @@ class ReceiptLayout{
     }
   }
 
+/*
+  calculate each payment link company total amount
+*/
   calculateTotalAmount(String dateTime) async {
     double total = 0.0;
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
 
     try{
       for(int j = 0; j < paymentList.length; j++){
         total = 0.0;
-        List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(dateTime);
+        List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime);
         for(int i = 0; i < data.length; i++){
           if(data[i].type == 3 && data[i].payment_type_id == paymentList[j].payment_type_id){
             total += double.parse(data[i].amount!);
             paymentList[j].totalAmount = total;
           } else {
             total = 0.0;
-
           }
         }
       }
@@ -115,28 +131,40 @@ class ReceiptLayout{
     }
   }
 
-
+/*
+  calculate cash drawer
+*/
   calculateCashDrawerAmount(String dateTime) async {
     _isLoad = false;
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
     // double totalCashIn = 0.0;
     // double totalCashOut = 0.0;
     try{
-      List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(dateTime);
+      List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime);
       for (int i = 0; i < data.length; i++) {
         if (data[i].type == 1 || data[i].payment_type_id == '1') {
           totalCashIn += double.parse(data[i].amount!);
         } else if (data[i].type == 2 && data[i].payment_type_id == '') {
           totalCashOut += double.parse(data[i].amount!);
+        } else if(data[i].type == 0 && data[i].payment_type_id == ''){
+          totalOpeningCash = double.parse(data[i].amount!);
         }
       }
-      totalCashBalance = totalCashIn - totalCashOut;
+      totalCashBalance = (totalOpeningCash + totalCashIn) - totalCashOut;
       _isLoad = true;
     }catch(e){
       print(e);
       totalCashBalance = 0.0;
     }
   }
+/*
+  ----------------Receipt layout part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
 
+/*
+  test print layout 80mm
+*/
   testTicket80mm(bool isUSB, value) async {
     // Using default profile
     var generator;
@@ -175,6 +203,9 @@ class ReceiptLayout{
     return bytes;
   }
 
+/*
+  test print layout 58mm
+*/
   testTicket58mm(bool isUSB, value) async {
     // Using default profile
     var generator;
@@ -196,7 +227,9 @@ class ReceiptLayout{
     return bytes;
   }
 
-
+/*
+  Receipt layout 80mm
+*/
   printReceipt80mm(int paperSize, bool isUSB, {value}) async {
     String dateTime = dateFormat.format(DateTime.now());
     await readReceiptLayout();
@@ -362,6 +395,9 @@ class ReceiptLayout{
     }
   }
 
+/*
+  Check list layout 80mm
+*/
   printCheckList80mm(bool isUSB, value) async {
     String dateTime = dateFormat.format(DateTime.now());
     await readOrderCache();
@@ -484,6 +520,9 @@ class ReceiptLayout{
     }
   }
 
+/*
+  kitchen layout 80mm
+*/
   printKitchenList80mm(bool isUSB, value) async {
     String dateTime = dateFormat.format(DateTime.now());
     await readOrderCache();
@@ -567,6 +606,9 @@ class ReceiptLayout{
     }
   }
 
+/*
+  Cancellation layout 80mm
+*/
   printDeleteItemList80mm(bool isUSB, value, String orderCacheId, String deleteDateTime) async {
     String dateTime = dateFormat.format(DateTime.now());
     await readSpecificOrderCache(orderCacheId, deleteDateTime);
@@ -652,6 +694,9 @@ class ReceiptLayout{
     }
   }
 
+/*
+  Cash balance layout 80mm (print when transfer ownership)
+*/
   printCashBalanceList80mm(bool isUSB, value, String cashBalance) async {
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
@@ -714,6 +759,9 @@ class ReceiptLayout{
 
   }
 
+/*
+  Settlement layout 80mm
+*/
   printSettlementList80mm(bool isUSB, value, String settlementDateTime) async {
     await readPaymentLinkCompany(settlementDateTime);
     await calculateCashDrawerAmount(settlementDateTime);
@@ -732,8 +780,8 @@ class ReceiptLayout{
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
 
-        bytes += generator.text('settlement By: ${settlement_By}', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('settlement time: ${settlementDateTime}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Settlement By: ${settlement_By}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Settlement Time: ${settlementDateTime}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.hr();
         bytes += generator.reset();
         /*
@@ -747,7 +795,7 @@ class ReceiptLayout{
           PosColumn(text: '', width: 1, styles: PosStyles(bold: true, align: PosAlign.center)),
         ]);
         bytes += generator.hr();
-        //order product
+        //Payment link company
         for(int i = 0; i < paymentList.length; i++){
           bytes += generator.row([
             PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
@@ -769,11 +817,28 @@ class ReceiptLayout{
         }
         bytes += generator.hr();
         bytes += generator.reset();
+        //Opening balance
+        bytes += generator.row([
+          PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
+          PosColumn(
+              text: 'Total Opening Balance',
+              width: 8,
+              containsChinese: true,
+              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+          PosColumn(
+              text: '${totalOpeningCash.toStringAsFixed(2)}',
+              width: 2,
+              styles: PosStyles(align: PosAlign.right)),
+          PosColumn(
+              text: '',
+              width: 1,
+              styles: PosStyles(align: PosAlign.right)),
+        ]);
         //cash in
         bytes += generator.row([
           PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: 'Total cash in',
+              text: 'Total Cash In',
               width: 8,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
@@ -790,12 +855,12 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: 'Total cash out',
+              text: 'Total Cash Out',
               width: 8,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
           PosColumn(
-              text: '${totalCashOut.toStringAsFixed(2)}',
+              text: '-${totalCashOut.toStringAsFixed(2)}',
               width: 2,
               styles: PosStyles(align: PosAlign.right)),
           PosColumn(
@@ -807,7 +872,7 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: 'Total cash drawer',
+              text: 'Total Cash Drawer',
               width: 8,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
@@ -830,7 +895,5 @@ class ReceiptLayout{
         return null;
       }
     }
-
   }
-
 }

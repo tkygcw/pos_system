@@ -43,8 +43,12 @@ class _HomePageState extends State<HomePage> {
     getBranchName();
     if(widget.isNewDay){
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        showDialog(barrierDismissible: false,  context: context, builder: (BuildContext context) {
-          return CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
+        showDialog(
+            barrierDismissible: false, context: context, builder: (BuildContext context) {
+          return WillPopScope(
+              child: CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true),
+              onWillPop: () async => false);
+            //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
         });
       });
 

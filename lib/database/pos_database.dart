@@ -1949,35 +1949,35 @@ class PosDatabase {
   }
 
 /*
-  read all cash record
+  read branch cash record
 */
-  Future<List<CashRecord>> readAllCashRecord() async {
+  Future<List<CashRecord>> readBranchCashRecord(String branch_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date = ? AND b.soft_delete = ?',
-        ['', '', '']);
+        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date = ? AND a.branch_id = ? AND b.soft_delete = ?',
+        ['', '', branch_id, '']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
 
 /*
-  read all settlement cash record
+  read all branch settlement cash record
 */
-  Future<List<CashRecord>> readAllSettlementCashRecord() async {
+  Future<List<CashRecord>> readAllBranchSettlementCashRecord(String branch_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date != ? AND b.soft_delete = ? GROUP BY a.settlement_date',
-        ['', '', '']);
+        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date != ? AND a.branch_id = ? AND b.soft_delete = ? GROUP BY a.settlement_date',
+        ['', '', branch_id, '']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
 
 /*
   read specific settlement cash record
 */
-  Future<List<CashRecord>> readSpecificSettlementCashRecord(String dateTime) async {
+  Future<List<CashRecord>> readSpecificSettlementCashRecord(String branch_id, String dateTime) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date = ? AND b.soft_delete = ?',
-        ['', dateTime, '']);
+        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date = ? AND a.branch_id = ? AND b.soft_delete = ?',
+        ['', dateTime, branch_id, '']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
 
@@ -2006,7 +2006,16 @@ class PosDatabase {
     }
 
   }
-
+/*
+  read latest specific cash record
+*/
+  Future<List<CashRecord>> readSpecificLatestSettlementCashRecord(String branch_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      'SELECT * FROM $tableCashRecord WHERE soft_delete = ? AND branch_id = ? AND type = ? ORDER BY settlement_date DESC LIMIT 1',
+        ['', branch_id, 0]);
+    return result.map((json) => CashRecord.fromJson(json)).toList();
+  }
 
 
 /*

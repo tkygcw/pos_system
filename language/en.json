@@ -31,6 +31,7 @@
   "merge_error": "Cannot merge same table!",
   "merge_error_2": "Cannot join with table not in use or table in use",
   "remove_layout_error": "remove layout error, Please try again",
+  "remove_cash_record_error": "Cannot remove opening balance",
   "remove_printer": "Confirm remove printer?",
   "remove_layout": "Confirm remove layout?",
   "remove_cash_record": "Confirm remove cash record?"

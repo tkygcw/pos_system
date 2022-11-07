@@ -26,8 +26,15 @@ class CashDialog extends StatefulWidget {
 class _CashDialogState extends State<CashDialog> {
   final remarkController = TextEditingController();
   final amountController = TextEditingController();
+  String amount = '';
+  bool _isLoad = false;
   bool _submitted = false;
 
+  @override
+  void initState() {
+    super.initState();
+    readLastSettlement();
+  }
 
   @override
   void dispose() {
@@ -78,10 +85,12 @@ class _CashDialogState extends State<CashDialog> {
       return AlertDialog(
         title: widget.isNewDay ? Text('Opening Balance') : widget.isCashIn ? Text('Cash-in') :  Text('Cash-out'),
         content: Container(
-          height: MediaQuery.of(context).size.height / 3,
-          width: MediaQuery.of(context).size.width / 3,
+          height: widget.isNewDay ? MediaQuery.of(context).size.height / 6 : MediaQuery.of(context).size.height / 3,
+          width: widget.isNewDay ? MediaQuery.of(context).size.height / 2 : MediaQuery.of(context).size.width / 3,
           child: SingleChildScrollView(
+            physics: NeverScrollableScrollPhysics(),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   child: Visibility(
@@ -125,7 +134,7 @@ class _CashDialogState extends State<CashDialog> {
                       valueListenable: amountController,
                       builder: (context, TextEditingValue value, __) {
                         return SizedBox(
-                          height: 100,
+                          height: MediaQuery.of(context).size.height / 9.5,
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: TextField(
@@ -154,11 +163,38 @@ class _CashDialogState extends State<CashDialog> {
                         );
                       }),
                 ),
+                widget.isNewDay && _isLoad ?
+                Container(
+                  margin: EdgeInsets.only(left: 10),
+                  alignment: Alignment.topLeft,
+                  height: MediaQuery.of(context).size.height / 18,
+                  child: Row(
+                    children: [
+                      Container(
+                          child: Text('Last settlement opening balance: ${amount}')
+                      ),
+                      Spacer(),
+                      Container(
+                        margin: EdgeInsets.zero,
+                          child:
+                          ElevatedButton(
+                            child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                            onPressed: (){
+                              amountController.text = amount;
+                          },
+                            style: ElevatedButton.styleFrom(primary: color.backgroundColor),
+                          )
+                      )
+                    ],
+                  )
+                ) :
+                    Container()
               ],
             ),
           ),
         ),
         actions: [
+          widget.isNewDay ? Container() :
           TextButton(
             child: Text('${AppLocalizations.of(context)?.translate('close')}'),
             onPressed: (){
@@ -176,24 +212,30 @@ class _CashDialogState extends State<CashDialog> {
     });
   }
 
+/*
+  ----------------DB Query part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
   createCashRecord(int type) async {
     try{
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      final String? user = prefs.getString('pos_pin_user');
-      Map userObject = json.decode(user!);
+      final String? pos_user = prefs.getString('pos_pin_user');
+      final String? login_user = prefs.getString('user');
+      Map userObject = json.decode(pos_user!);
+      Map logInUser = json.decode(login_user!);
 
       CashRecord cashRecordObject  = CashRecord(
           cash_record_id: 0,
-          company_id: '6',
+          company_id: logInUser['company_id'].toString(),
           branch_id: branch_id.toString(),
           remark: widget.isNewDay ? 'opening balance' : remarkController.text,
           amount: amountController.text,
           payment_name: '',
           payment_type_id: '',
-          type: type,
+          type: widget.isNewDay ? 0 : type,
           user_id: userObject['user_id'].toString(),
           settlement_date: '',
           sync_status: 0,
@@ -210,5 +252,16 @@ class _CashDialogState extends State<CashDialog> {
           backgroundColor: Color(0xFFFF0000),
           msg: "Create cash record error: ${e}");
     }
+  }
+  readLastSettlement() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    List<CashRecord> data = await PosDatabase.instance.readSpecificLatestSettlementCashRecord(branch_id.toString());
+    amount = data[0].amount!;
+    setState(() {
+      _isLoad = true;
+    });
+
   }
 }
