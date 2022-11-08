@@ -1263,11 +1263,11 @@ class PosDatabase {
   read modifier link product
 */
   Future<List<ModifierLinkProduct>> readModifierLinkProduct(
-      String mod_group_id, String product_id) async {
+      String mod_group_id, String product_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableModifierLinkProduct WHERE soft_delete = ? AND mod_group_id = ? AND product_id = ?',
-        ['', mod_group_id, product_id]);
+        'SELECT * FROM $tableModifierLinkProduct WHERE soft_delete = ? AND mod_group_id = ? AND product_sqlite_id = ?',
+        ['', mod_group_id, product_sqlite_id]);
 
     return result.map((json) => ModifierLinkProduct.fromJson(json)).toList();
   }
@@ -2080,7 +2080,7 @@ class PosDatabase {
   }
 
   /*
-  update sync modifier link branch
+  update sync modifier link product
 */
   Future<int> updateSyncModifierLinkProduct(ModifierLinkProduct data) async {
     final db = await instance.database;
@@ -2091,6 +2091,20 @@ class PosDatabase {
           data.sync_status,
           data.updated_at,
           data.modifier_link_product_sqlite_id
+        ]);
+  }
+
+  /*
+  update sync modifier link product (update)
+*/
+  Future<int> updateSyncModifierLinkProductForUpdate(ModifierLinkProduct data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableModifierLinkProduct SET sync_status = ?, updated_at = ? WHERE product_sqlite_id = ?',
+        [
+          data.sync_status,
+          data.updated_at,
+          data.product_sqlite_id
         ]);
   }
 
@@ -2380,8 +2394,8 @@ class PosDatabase {
   Future<int> deleteModifierLinkProduct(ModifierLinkProduct data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableModifierLinkProduct SET soft_delete = ?, sync_status = ? WHERE soft_delete = ? AND product_id = ?',
-        [data.soft_delete, data.sync_status, '', data.product_id, data.product_sqlite_id]);
+        'UPDATE $tableModifierLinkProduct SET soft_delete = ?, sync_status = ? WHERE soft_delete = ? AND product_sqlite_id = ?',
+        [data.soft_delete, data.sync_status, '', data.product_sqlite_id]);
   }
 
   /*

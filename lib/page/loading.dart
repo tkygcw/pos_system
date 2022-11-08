@@ -463,11 +463,11 @@ getAllProduct() async {
     List responseJson = data['product'];
     for (var i = 0; i < responseJson.length; i++) {
       Product productItem = Product.fromJson(responseJson[i]);
-      // Categories? categoryData = await PosDatabase.instance.readCategorySqliteID(productItem.category_id!);
+      Categories? categoryData = await PosDatabase.instance.readCategorySqliteID(productItem.category_id!);
       Product data = await PosDatabase.instance.insertProduct(Product(
         product_id: productItem.product_id,
         category_id: productItem.category_id,
-        category_sqlite_id: productItem.category_id,
+        category_sqlite_id: categoryData != null ? categoryData!.category_sqlite_id.toString(): '0' ,
         company_id: productItem.company_id,
         name: productItem.name,
         price: productItem.price,

@@ -509,7 +509,6 @@ class _EditProductDialogState extends State<EditProductDialog> {
       if (switchController.selectedItem.length == 0) {
         int deleteModifierLinkProduct = await PosDatabase.instance
             .deleteModifierLinkProduct(ModifierLinkProduct(
-                product_id: widget.product!.product_id.toString(),
                 product_sqlite_id: widget.product!.product_sqlite_id.toString(),
                 sync_status: 1,
                 soft_delete: dateTime));
@@ -523,14 +522,12 @@ class _EditProductDialogState extends State<EditProductDialog> {
           Map responseDeleteMod = await Domain()
               .deleteModifierLinkProduct(widget.product!.product_id.toString());
           if (responseDeleteMod['status'] == '1') {
-            // int syncData = await PosDatabase.instance
-            //     .updateSyncModifierLinkProduct(ModifierLinkProduct(
-            //   modifier_link_product_id: response['modifier_link_product_id'],
-            //   sync_status: 2,
-            //   updated_at: dateTime,
-            //   modifier_link_product_sqlite_id:
-            //   data.modifier_link_product_sqlite_id,
-            // ));
+            int syncData = await PosDatabase.instance
+                .updateSyncModifierLinkProductForUpdate(ModifierLinkProduct(
+              sync_status: 2,
+              updated_at: dateTime,
+              product_sqlite_id: widget.product!.product_sqlite_id.toString()
+            ));
           }
         }
 /*
@@ -541,22 +538,38 @@ class _EditProductDialogState extends State<EditProductDialog> {
           List<ModifierLinkProduct> readModifierLinkProduct =
               await PosDatabase.instance.readModifierLinkProduct(
                   switchController.selectedItem[i].toString(),
-                  widget.product!.product_id.toString());
+                  widget.product!.product_sqlite_id.toString());
           if (readModifierLinkProduct.length == 0) {
+            ModifierLinkProduct data = await PosDatabase.instance
+                .insertSyncModifierLinkProduct(ModifierLinkProduct(
+                modifier_link_product_id: 0,
+                mod_group_id: switchController.selectedItem[i].toString(),
+                product_id: widget.product!.product_id.toString(),
+                product_sqlite_id:
+                widget.product!.product_sqlite_id.toString(),
+                sync_status: 0,
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+/*
+            -----------------------sync to cloud--------------------------------
+*/
             Map responseInsertMod = await Domain().insertModifierLinkProduct(
                 switchController.selectedItem[i].toString(),
                 widget.product!.product_id.toString());
             if (responseInsertMod['status'] == '1') {
-              ModifierLinkProduct data = await PosDatabase.instance
-                  .insertModifierLinkProduct(ModifierLinkProduct(
-                      modifier_link_product_id:
-                          responseInsertMod['modifier_link_product_id'],
-                      mod_group_id: switchController.selectedItem[i].toString(),
-                      product_id: widget.product!.product_id.toString(),
-                      created_at: dateTime,
-                      updated_at: '',
-                      soft_delete: ''));
+              int syncData = await PosDatabase.instance
+                  .updateSyncModifierLinkProduct(ModifierLinkProduct(
+                modifier_link_product_id: responseInsertMod['modifier_link_product_id'],
+                sync_status: 2,
+                updated_at: dateTime,
+                modifier_link_product_sqlite_id:
+                data.modifier_link_product_sqlite_id,
+              ));
             }
+/*
+              ---------------------------end sync-------------------------------
+*/
           }
         }
       }
