@@ -5,6 +5,7 @@ import 'package:pos_system/fragment/setting/features_setting.dart';
 import 'package:pos_system/fragment/setting/logout_dialog.dart';
 import 'package:pos_system/fragment/setting/printer_setting.dart';
 import 'package:pos_system/fragment/setting/receipt_setting.dart';
+import 'package:pos_system/fragment/test_sync/test_category_sync.dart';
 import 'package:pos_system/object/user.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:provider/provider.dart';
@@ -31,6 +32,9 @@ class _SettingMenuState extends State<SettingMenu> {
     ),
     Container(
       child: FeaturesSetting(),
+    ),
+    Container(
+      child: TestCategorySync(),
     )
   ];
   int selectedIndex = 0;
@@ -89,6 +93,10 @@ class _SettingMenuState extends State<SettingMenu> {
                   SideNavigationBarItem(
                     icon: Icons.list,
                     label: 'Features',
+                  ),
+                  SideNavigationBarItem(
+                    icon: Icons.list,
+                    label: 'Test sync (temp)',
                   ),
                 ],
                 onTap: (index) {

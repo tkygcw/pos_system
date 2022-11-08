@@ -23,6 +23,7 @@ class Domain {
   static Uri order = Uri.parse(domain + 'mobile-api/order/index.php');
   static Uri sale = Uri.parse(domain + 'mobile-api/sale/index.php');
   static Uri table_use = Uri.parse(domain + 'mobile-api/table_use/index.php');
+  static Uri sync_record = Uri.parse(domain + 'mobile-api/sync/index.php');
   /*
   * login
   * */
@@ -138,6 +139,22 @@ class Domain {
         'getAllTableUseDetail': '1',
         'branch_id': branch_id,
       });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get all sync_record
+  * */
+  getAllSyncRecord(branch_id) async {
+    try {
+      var response = await http.post(Domain.sync_record, body: {
+        'sync': '1',
+        'branch_id': branch_id,
+      });
+      print('domain call:${response}');
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());

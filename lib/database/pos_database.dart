@@ -1989,7 +1989,7 @@ class PosDatabase {
   Future<List<CashRecord>> readAllBranchSettlementCashRecord(String branch_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date != ? AND a.branch_id = ? AND b.soft_delete = ? GROUP BY a.settlement_date',
+        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date != ? AND a.branch_id = ? AND b.soft_delete = ? GROUP BY a.settlement_date ORDER BY a.settlement_date DESC',
         ['', '', branch_id, '']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
@@ -2121,7 +2121,8 @@ class PosDatabase {
           data.category_sqlite_id
         ]);
   }
-  /*
+
+/*
   update sync product
 */
   Future<int> updateSyncProduct(Product data) async {
@@ -2804,6 +2805,26 @@ class PosDatabase {
   Future clearAllOrderModifierDetail() async {
     final db = await instance.database;
     return await db.rawDelete('DELETE FROM $tableOrderModifierDetail');
+  }
+
+/*
+  ----------------------Sync from cloud--------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+  update category(from cloud)
+*/
+  Future<int> updateCategoryFromCloud(Categories data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableCategories SET name = ?, color = ?, updated_at = ?, soft_delete = ? WHERE category_id = ?',
+        [
+          data.name,
+          data.color,
+          data.updated_at,
+          data.soft_delete,
+          data.category_id
+        ]);
   }
 
   // Future<List<Categories>> readAllNotes() async {
