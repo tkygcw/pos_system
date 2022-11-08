@@ -163,7 +163,7 @@ class _CashDialogState extends State<CashDialog> {
                         );
                       }),
                 ),
-                widget.isNewDay && _isLoad ?
+                widget.isNewDay && _isLoad && this.amount != '' ?
                 Container(
                   margin: EdgeInsets.only(left: 10),
                   alignment: Alignment.topLeft,
@@ -258,7 +258,10 @@ class _CashDialogState extends State<CashDialog> {
     final int? branch_id = prefs.getInt('branch_id');
 
     List<CashRecord> data = await PosDatabase.instance.readSpecificLatestSettlementCashRecord(branch_id.toString());
-    amount = data[0].amount!;
+    if(data.length > 0){
+      amount = data[0].amount!;
+    }
+
     setState(() {
       _isLoad = true;
     });
