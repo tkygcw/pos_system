@@ -40,6 +40,7 @@ import '../../object/receipt_layout.dart';
 import '../../object/table.dart';
 import '../../translation/AppLocalizations.dart';
 import '../settlement/cash_dialog.dart';
+import '../payment/payment_select_dialog.dart';
 
 class CartPage extends StatefulWidget {
   final String currentPage;
@@ -548,6 +549,7 @@ class _CartPageState extends State<CartPage> {
                                   }
                                 } else {
                                   print('make payment');
+                                  openPaymentSelect();
                                 }
                               }
 
@@ -1119,6 +1121,28 @@ class _CartPageState extends State<CartPage> {
             child: Opacity(
               opacity: a1.value,
               child: CartRemoveDialog(cartItem: item, currentPage: currentPage,),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
+  Future<Future<Object?>> openPaymentSelect() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: PaymentSelect(),
             ),
           );
         },

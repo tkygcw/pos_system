@@ -181,8 +181,9 @@ class PosDatabase {
 */
     await db.execute(
         '''CREATE TABLE $tablePaymentLinkCompany ( ${PaymentLinkCompanyFields.payment_link_company_id} $idType, ${PaymentLinkCompanyFields.payment_type_id} $textType,
-           ${PaymentLinkCompanyFields.company_id} $textType,${PaymentLinkCompanyFields.name} $textType, ${PaymentLinkCompanyFields.created_at} $textType, 
-           ${PaymentLinkCompanyFields.updated_at} $textType, ${PaymentLinkCompanyFields.soft_delete} $textType)''');
+           ${PaymentLinkCompanyFields.company_id} $textType,${PaymentLinkCompanyFields.name} $textType, ${PaymentLinkCompanyFields.type} $integerType, 
+           ${PaymentLinkCompanyFields.ipay_code} $textType, 
+           ${PaymentLinkCompanyFields.created_at} $textType, ${PaymentLinkCompanyFields.updated_at} $textType, ${PaymentLinkCompanyFields.soft_delete} $textType)''');
 /*
     create product table
 */
@@ -321,7 +322,9 @@ class PosDatabase {
 */
     await db.execute('''CREATE TABLE $tableBranch (
            ${BranchFields.branchID} $idType,
-           ${BranchFields.name} $textType)''');
+           ${BranchFields.name} $textType,
+           ${BranchFields.ipay_merchant_code} $textType,
+           ${BranchFields.ipay_merchant_key} $textType)''');
 
 /*
     create app color table
@@ -2290,6 +2293,18 @@ class PosDatabase {
           data.cash_record_sqlite_id
         ]);
   }
+
+  /*
+  read all payment method
+*/
+  Future<List<PaymentLinkCompany>> readPaymentMethods() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? ',
+        ['']);
+    return result.map((json) => PaymentLinkCompany.fromJson(json)).toList();
+  }
+
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
