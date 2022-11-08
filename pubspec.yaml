@@ -73,7 +73,7 @@ dependencies:
   lan_scanner: ^3.5.0
   network_info_plus: ^2.1.4+1
   percent_indicator: ^4.2.2
-  qr_code_scanner: ^1.0.1
+  qr_code_scanner: ^1.0.0
 
 dependency_overrides:
 #  esc_pos_utils:

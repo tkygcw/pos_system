@@ -13,7 +13,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:side_navigation/side_navigation.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
-import '../payment/testqr.dart';
 
 class SettingMenu extends StatefulWidget {
   const SettingMenu({Key? key}) : super(key: key);
@@ -25,7 +24,7 @@ class SettingMenu extends StatefulWidget {
 class _SettingMenuState extends State<SettingMenu> {
   List<Widget> views = [
     Container(
-      child: MyHome(),
+      child: PrinterSetting(),
       // TestPrint()
     ),
     Container(

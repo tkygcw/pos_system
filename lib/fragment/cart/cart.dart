@@ -517,16 +517,16 @@ class _CartPageState extends State<CartPage> {
                                         cart.removeAllTable();
                                       } else {
                                         print('add order cache');
-                                        if (printerList.length > 0) {
+                                        // if (printerList.length >= 0) {
                                           await callCreateNewOrder(cart);
                                           //await _printKitchenList();
                                           cart.removeAllCartItem();
                                           cart.removeAllTable();
-                                        } else {
-                                          Fluttertoast.showToast(
-                                              backgroundColor: Colors.red,
-                                              msg: "Printer not found");
-                                        }
+                                        // } else {
+                                        //   Fluttertoast.showToast(
+                                        //       backgroundColor: Colors.red,
+                                        //       msg: "Printer not found");
+                                        // }
                                       }
                                     } else {
                                       Fluttertoast.showToast(

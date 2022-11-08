@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pos_system/fragment/payment/ipay_api.dart';
 import 'package:pos_system/fragment/payment/number_button.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'dart:io';
@@ -26,6 +27,22 @@ class _MakePamentState extends State<MakePayment> {
   void initState() {
     super.initState();
   }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    if (Platform.isAndroid) {
+      controller?.pauseCamera();
+    }
+    //controller!.resumeCamera();
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -266,7 +283,7 @@ class _MakePamentState extends State<MakePayment> {
                               height: 60,
                               child: ElevatedButton(
 
-                                style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.green) ),
+                                style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.green)),
                                 onPressed: () {
 
                               }, child: Text("Comfirm",style:TextStyle(fontSize: 25)),
@@ -284,7 +301,7 @@ class _MakePamentState extends State<MakePayment> {
                         Expanded(
                             flex:6,
                             child: Container(
-                              child: scanning==false?ClipRRect(
+                              child: scanning==false? ClipRRect(
 
                                 borderRadius:
                                 BorderRadius.circular(16.0),
@@ -321,17 +338,14 @@ class _MakePamentState extends State<MakePayment> {
 
                                   style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.blueAccent) ),
                                     onPressed: () async {
+                                      await controller?.resumeCamera();
                                       await controller?.scannedDataStream;
                                         setState(() {
                                           scanning= true;
-
                                         });
 
                                       // await controller?.resumeCamera();
                                       // scanning= true;
-                                      //
-
-                                      // await controller?.resumeCamera();
 
                                     }, child: Text(scanning==false?"Start Scan":"Scanning...",style:TextStyle(fontSize: 25)),
 
@@ -355,6 +369,7 @@ class _MakePamentState extends State<MakePayment> {
   }
 
   Widget _buildQrView(BuildContext context) {
+
     // For this example we check how width or tall the device is and change the scanArea and overlay accordingly.
     var scanArea = (MediaQuery.of(context).size.width < 400 ||
         MediaQuery.of(context).size.height < 400)
@@ -374,26 +389,6 @@ class _MakePamentState extends State<MakePayment> {
       onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
     );
   }
-
-  void _onQRViewCreated(QRViewController controller) {
-    setState(() {
-      this.controller = controller;
-    });
-    controller.scannedDataStream.listen((scanData) {
-      setState(() {
-        result = scanData;
-      });
-    });
-  }
-  @override
-  void reassemble() {
-    super.reassemble();
-    if (Platform.isAndroid) {
-      controller!.pauseCamera();
-    }
-    controller!.resumeCamera();
-  }
-
   void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
     log('${DateTime.now().toIso8601String()}_onPermissionSet $p');
     if (!p) {
@@ -403,13 +398,19 @@ class _MakePamentState extends State<MakePayment> {
     }
   }
 
-  @override
-  void dispose() {
-    controller?.dispose();
-    super.dispose();
+  void _onQRViewCreated(QRViewController p1) {
+    setState(() {
+      this.controller = p1;
+    });
+
+    p1.scannedDataStream.listen((scanData) {
+      p1.pauseCamera();
+      setState(() {
+        result = scanData;
+        print('result:${result?.code}');
+      });
+    });
   }
-
-
 
 // function to calculate the input operation
 //    equalPressed() {
