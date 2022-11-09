@@ -467,7 +467,7 @@ getAllProduct() async {
       Product data = await PosDatabase.instance.insertProduct(Product(
         product_id: productItem.product_id,
         category_id: productItem.category_id,
-        category_sqlite_id: categoryData != null ? categoryData!.category_sqlite_id.toString(): '0' ,
+        category_sqlite_id: categoryData != null ? categoryData.category_sqlite_id.toString(): '0' ,
         company_id: productItem.company_id,
         name: productItem.name,
         price: productItem.price,

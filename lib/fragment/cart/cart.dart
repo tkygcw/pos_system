@@ -453,7 +453,7 @@ class _CartPageState extends State<CartPage> {
                               dense: true,
                             ),
                             ListTile(
-                              title: Text('Service Tax ($taxRate%)',
+                              title: Text('Service Tax (${taxRate}%)',
                                   style: TextStyle(fontSize: 14)),
                               trailing: Text(
                                   '${priceIncServiceTax.toStringAsFixed(2)}',
@@ -548,8 +548,14 @@ class _CartPageState extends State<CartPage> {
                                     }
                                   }
                                 } else {
-                                  print('make payment');
-                                  openPaymentSelect();
+                                  if(cart.selectedTable.isNotEmpty){
+                                    openPaymentSelect();
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Colors.red,
+                                        msg: "cart empty");
+                                  }
+
                                 }
                               }
 
@@ -858,6 +864,7 @@ class _CartPageState extends State<CartPage> {
 
   getAutoApplyPromotion(CartModel cart) {
     try {
+      cart.removeAutoPromotion();
       autoApplyPromotionList = [];
       promoName = '';
       hasPromo = false;
@@ -874,6 +881,9 @@ class _CartPageState extends State<CartPage> {
                 promoName = promotionList[j].name!;
                 if (!autoApplyPromotionList.contains(promotionList[j])) {
                   autoApplyPromotionList.add(promotionList[j]);
+                  if(widget.currentPage !='menu'){
+                    cart.addAutoApplyPromo(promotionList[j]);
+                  }
                 }
                 autoApplySpecificCategoryAmount(
                     promotionList[j], cart.cartNotifierItem[m]);
@@ -893,6 +903,9 @@ class _CartPageState extends State<CartPage> {
               // }
               hasPromo = true;
               autoApplyPromotionList.add(promotionList[j]);
+              if(widget.currentPage !='menu'){
+                cart.addAutoApplyPromo(promotionList[j]);
+              }
               promoName = promotionList[j].name!;
               autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
             }
@@ -968,7 +981,6 @@ class _CartPageState extends State<CartPage> {
 
   getDiningTax(CartModel cart) async {
     try {
-      taxRate = 0;
       diningOptionID = 0;
       //get dining option data
       List<DiningOption> data =
@@ -1187,8 +1199,7 @@ class _CartPageState extends State<CartPage> {
           .readBranchLinkPromotion(branch_id.toString());
 
       for (int i = 0; i < data.length; i++) {
-        List<Promotion> temp =
-            await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
+        List<Promotion> temp = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
         if (temp.length > 0) promotionList.add(temp[0]);
       }
     } catch (error) {

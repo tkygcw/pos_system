@@ -193,6 +193,7 @@ class _TableMenuState extends State<TableMenu> {
                                       if (tableList[j].status == 1) {
                                         tableList[j].isSelected = false;
                                         cart.removeAllCartItem();
+                                        cart.removePromotion();
                                         cart.removeSpecificTable(tableList[j]);
                                       }
                                     }
@@ -599,6 +600,7 @@ class _TableMenuState extends State<TableMenu> {
           orderDetailList[i].order_cache_sqlite_id,
           toColor(posTable.cardColor!));
       cart.removeSpecificItem(value);
+      cart.removePromotion();
     }
   }
 }

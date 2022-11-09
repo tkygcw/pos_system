@@ -11,24 +11,24 @@ class Api {
   /*
   * create user
   * */
-  sendpayment(String merchantcode,String merchantkey,String paymentid,String refno,String amount,String currency,String proddesc,String username,String useremail,
-      String usercontact,String remark,String barcodeno,String terminalid,String xfield1,String xfield2, String backendurl) async {
-    var MerchantCode = merchantcode;
-    var MerchantKey  = merchantkey;
-    var PaymentId = paymentid;
-    var RefNo = refno;
+  sendPayment(String merchantCode,String merchantKey,String paymentId,String refNo,String amount,String currency,String prodDesc,String username,String userEmail,
+      String userContact,String remark,String barcodeNo,String terminalId,String x_Field1,String x_Field2, String backendUrl) async {
+    var MerchantCode = merchantCode;
+    var MerchantKey  = merchantKey;
+    var PaymentId = paymentId;
+    var RefNo = refNo;
     var Amount = amount;
     var Currency = currency;
-    var ProdDesc = proddesc;
+    var ProdDesc = prodDesc;
     var UserName = username;
-    var UserEmail = useremail;
-    var UserContact = usercontact;
+    var UserEmail = userEmail;
+    var UserContact = userContact;
     var Remark = remark;
-    var BarcodeNo = barcodeno;
-    var TerminalID = terminalid;
-    var xField1 = xfield1;
-    var xField2 = xfield2;
-    var BackendURL = backendurl;
+    var BarcodeNo = barcodeNo;
+    var TerminalID = terminalId;
+    var xField1 = x_Field1;
+    var xField2 = x_Field2;
+    var BackendURL = backendUrl;
     var SignatureType = 'SHA256';
     var Signature = '7dc95d825028af2379d3d2fd04b7707bbe123571a57810e243841302a50b3c24';
 

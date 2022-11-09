@@ -1087,6 +1087,14 @@ class PosDatabase {
     return data.copy(cash_record_sqlite_id: id);
   }
 
+/*
+  crate order into local(from local)
+*/
+ Future<Order>insertSqliteOrder(Order data) async{
+   final db = await instance.database;
+   final id = await db.insert(tableOrder!, data.toJson());
+   return data.copy(order_sqlite_id: id);
+ }
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2044,6 +2052,17 @@ class PosDatabase {
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
 
+/*
+  read all payment method
+*/
+  Future<List<PaymentLinkCompany>> readPaymentMethods() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? ',
+        ['']);
+    return result.map((json) => PaymentLinkCompany.fromJson(json)).toList();
+  }
+
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2308,16 +2327,17 @@ class PosDatabase {
         ]);
   }
 
-  /*
-  read all payment method
+/*
+  update order cache order id
 */
-  Future<List<PaymentLinkCompany>> readPaymentMethods() async {
-    final db = await instance.database;
-    final result = await db.rawQuery(
-        'SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? ',
-        ['']);
-    return result.map((json) => PaymentLinkCompany.fromJson(json)).toList();
-  }
+ Future<int> updateOrderCacheOrderId(OrderCache data) async {
+   final db = await instance.database;
+   return await db.rawUpdate(
+     'UPDATE $tableOrderCache SET order_id = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+     [data.order_id, data.sync_status, data.updated_at, data.order_cache_sqlite_id]
+   );
+ }
+
 
 
 /*
