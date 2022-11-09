@@ -524,10 +524,10 @@ class _EditProductDialogState extends State<EditProductDialog> {
           if (responseDeleteMod['status'] == '1') {
             int syncData = await PosDatabase.instance
                 .updateSyncModifierLinkProductForUpdate(ModifierLinkProduct(
-              sync_status: 2,
-              updated_at: dateTime,
-              product_sqlite_id: widget.product!.product_sqlite_id.toString()
-            ));
+                    sync_status: 2,
+                    updated_at: dateTime,
+                    product_sqlite_id:
+                        widget.product!.product_sqlite_id.toString()));
           }
         }
 /*
@@ -541,31 +541,35 @@ class _EditProductDialogState extends State<EditProductDialog> {
                   widget.product!.product_sqlite_id.toString());
           if (readModifierLinkProduct.length == 0) {
             ModifierLinkProduct data = await PosDatabase.instance
-                .insertSyncModifierLinkProduct(ModifierLinkProduct(
-                modifier_link_product_id: 0,
-                mod_group_id: switchController.selectedItem[i].toString(),
-                product_id: widget.product!.product_id.toString(),
-                product_sqlite_id:
-                widget.product!.product_sqlite_id.toString(),
-                sync_status: 0,
-                created_at: dateTime,
-                updated_at: '',
-                soft_delete: ''));
+                .insertModifierLinkProduct(ModifierLinkProduct(
+                    modifier_link_product_id: 0,
+                    mod_group_id: switchController.selectedItem[i].toString(),
+                    product_id: widget.product!.product_id.toString(),
+                    product_sqlite_id:
+                        widget.product!.product_sqlite_id.toString(),
+                    sync_status: 0,
+                    created_at: dateTime,
+                    updated_at: '',
+                    soft_delete: ''));
 /*
             -----------------------sync to cloud--------------------------------
 */
-            Map responseInsertMod = await Domain().insertModifierLinkProduct(
-                switchController.selectedItem[i].toString(),
-                widget.product!.product_id.toString());
-            if (responseInsertMod['status'] == '1') {
-              int syncData = await PosDatabase.instance
-                  .updateSyncModifierLinkProduct(ModifierLinkProduct(
-                modifier_link_product_id: responseInsertMod['modifier_link_product_id'],
-                sync_status: 2,
-                updated_at: dateTime,
-                modifier_link_product_sqlite_id:
-                data.modifier_link_product_sqlite_id,
-              ));
+            if (connectivityResult == ConnectivityResult.mobile ||
+                connectivityResult == ConnectivityResult.wifi) {
+              Map responseInsertMod = await Domain().insertModifierLinkProduct(
+                  switchController.selectedItem[i].toString(),
+                  widget.product!.product_id.toString());
+              if (responseInsertMod['status'] == '1') {
+                int syncData = await PosDatabase.instance
+                    .updateSyncModifierLinkProduct(ModifierLinkProduct(
+                  modifier_link_product_id:
+                      responseInsertMod['modifier_link_product_id'],
+                  sync_status: 2,
+                  updated_at: dateTime,
+                  modifier_link_product_sqlite_id:
+                      data.modifier_link_product_sqlite_id,
+                ));
+              }
             }
 /*
               ---------------------------end sync-------------------------------
@@ -580,7 +584,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
         List currentGroupName = [];
         List editGroupName = [];
         List<VariantGroup> group = await PosDatabase.instance
-            .readVariantGroup(widget.product!.product_id.toString());
+            .readVariantGroup(widget.product!.product_sqlite_id.toString());
         for (int i = 0; i < group.length; i++) {
           currentGroupName.add(group[i].name);
         }
@@ -596,41 +600,56 @@ class _EditProductDialogState extends State<EditProductDialog> {
 */
         if (needInsert.length > 0) {
           for (int k = 0; k < needInsert.length; k++) {
-            Map responseInsertVariantGroup = await Domain().insertVariantGroup(
-                needInsert[k], widget.product!.product_id.toString());
-            if (responseInsertVariantGroup['status'] == '1') {
-              VariantGroup group = await PosDatabase.instance
-                  .insertVariantGroup(VariantGroup(
-                      child: [],
-                      variant_group_id:
-                          responseInsertVariantGroup['variant_group_id'],
-                      product_id: widget.product!.product_id.toString(),
-                      name: needInsert[k],
-                      created_at: dateTime,
-                      updated_at: '',
-                      soft_delete: ''));
+            VariantGroup group = await PosDatabase.instance.insertVariantGroup(
+                VariantGroup(
+                    child: [],
+                    variant_group_id: 0,
+                    product_id: widget.product!.product_id.toString(),
+                    product_sqlite_id:
+                        widget.product!.product_sqlite_id.toString(),
+                    name: needInsert[k],
+                    sync_status: 1,
+                    created_at: dateTime,
+                    updated_at: '',
+                    soft_delete: ''));
+/*
+            -------------------------start to sync------------------------------
+*/
+            if (connectivityResult == ConnectivityResult.mobile ||
+                connectivityResult == ConnectivityResult.wifi) {
+              Map responseInsertVariantGroup = await Domain()
+                  .insertVariantGroup(
+                      needInsert[k], widget.product!.product_id.toString());
+              if (responseInsertVariantGroup['status'] == '1') {
+                int syncData = await PosDatabase.instance
+                    .updateSyncVariantGroup(VariantGroup(
+                  child: [],
+                  variant_group_id:
+                      responseInsertVariantGroup['variant_group_id'],
+                  sync_status: 2,
+                  updated_at: dateTime,
+                  variant_group_sqlite_id: group.variant_group_sqlite_id,
+                ));
+              }
             }
+/*
+            ----------------------------end sync--------------------------------
+*/
             for (int l = 0; l < variantList.length; l++) {
               if (needInsert[k] == variantList[l]['modGroup']) {
                 for (int m = 0; m < variantList[l]['modItem'].length; m++) {
-                  Map responseInsertVariantItem = await Domain()
-                      .insertVariantItem(
-                          variantList[l]['modItem'][m],
-                          responseInsertVariantGroup['variant_group_id']
-                              .toString());
-                  if (responseInsertVariantItem['status'] == '1') {
-                    VariantItem item = await PosDatabase.instance
-                        .insertVariantItem(VariantItem(
-                            variant_item_id:
-                                responseInsertVariantItem['variant_item_id'],
-                            variant_group_id:
-                                responseInsertVariantGroup['variant_group_id']
-                                    .toString(),
-                            name: variantList[l]['modItem'][m],
-                            created_at: dateTime,
-                            updated_at: '',
-                            soft_delete: ''));
-                  }
+                  // Map responseInsertVariantItem = await Domain()
+                  //     .insertVariantItem(variantList[l]['modItem'][m],
+                  //         group.variant_group_id.toString());
+                  // if (responseInsertVariantItem['status'] == '1') {}
+                  VariantItem item = await PosDatabase.instance
+                      .insertVariantItem(VariantItem(
+                          variant_item_id: 0,
+                          variant_group_id: group.variant_group_id.toString(),
+                          name: variantList[l]['modItem'][m],
+                          created_at: dateTime,
+                          updated_at: '',
+                          soft_delete: ''));
                 }
               }
             }

@@ -269,7 +269,7 @@ class PosDatabase {
     create variant item table
 */
     await db.execute(
-        '''CREATE TABLE $tableVariantItem ( ${VariantItemFields.variant_item_sqlite_id} $idType, ${VariantItemFields.variant_item_id} $integerType , ${VariantItemFields.variant_group_id} $textType,${VariantItemFields.name} $textType,${VariantItemFields.sync_status} $integerType,
+        '''CREATE TABLE $tableVariantItem ( ${VariantItemFields.variant_item_sqlite_id} $idType, ${VariantItemFields.variant_item_id} $integerType , ${VariantItemFields.variant_group_id} $textType, ${VariantItemFields.variant_group_sqlite_id} $textType,${VariantItemFields.name} $textType,${VariantItemFields.sync_status} $integerType,
            ${VariantItemFields.created_at} $textType,${VariantItemFields.updated_at} $textType,${VariantItemFields.soft_delete} $textType)''');
 /*
     create branch link dining table
@@ -812,9 +812,9 @@ class PosDatabase {
         [
           data.variant_group_id,
           data.product_id,
-          '0',
+          data.product_sqlite_id,
           data.name,
-          2,
+          data.sync_status,
           data.created_at,
           data.updated_at,
           data.soft_delete
@@ -848,12 +848,13 @@ class PosDatabase {
   Future<VariantItem> insertVariantItem(VariantItem data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableVariantItem(variant_item_id, variant_group_id, name, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO $tableVariantItem(variant_item_id, variant_group_id, variant_group_sqlite_id, name, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.variant_item_id,
           data.variant_group_id,
+          data.variant_group_sqlite_id,
           data.name,
-          2,
+          data.sync_status,
           data.created_at,
           data.updated_at,
           data.soft_delete
@@ -1124,6 +1125,16 @@ class PosDatabase {
     }
   }
 
+  Future<VariantGroup?> readVariantGroupSqliteID (String variant_group_id) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery(
+        'SELECT * FROM $tableVariantGroup WHERE soft_delete = ? AND variant_group_id = ?',
+        ['', variant_group_id]);
+    if (maps.isNotEmpty) {
+      return VariantGroup.fromJson(maps.first);
+    }
+  }
+
   Future<Categories?> readCategorySqliteID (String category_id) async {
     final db = await instance.database;
     final maps = await db.rawQuery(
@@ -1167,11 +1178,11 @@ class PosDatabase {
   /*
   read variant group
 */
-  Future<List<VariantGroup>> readVariantGroup(String product_id) async {
+  Future<List<VariantGroup>> readVariantGroup(String product_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableVariantGroup WHERE soft_delete = ? AND product_id = ?',
-        ['', product_id]);
+        'SELECT * FROM $tableVariantGroup WHERE soft_delete = ? AND product_sqlite_id = ?',
+        ['', product_sqlite_id]);
 
     return result.map((json) => VariantGroup.fromJson(json)).toList();
   }

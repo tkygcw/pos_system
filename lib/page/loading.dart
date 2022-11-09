@@ -75,7 +75,6 @@ class _LoadingPageState extends State<LoadingPage> {
     getModifierItem();
     getBranchLinkModifier();
     getBranchLinkProduct();
-    getVariantGroup();
     getVariantItem();
     getProductVariant();
     getProductVariantDetail();
@@ -489,6 +488,7 @@ getAllProduct() async {
       ));
     }
     getModifierLinkProduct();
+    getVariantGroup();
   }
 }
 
@@ -549,10 +549,26 @@ getVariantGroup() async {
   if (data['status'] == '1') {
     List responseJson = data['variant'];
     for (var i = 0; i < responseJson.length; i++) {
+      VariantGroup variantData = VariantGroup.fromJson(responseJson[i]);
+      Product? productData = await PosDatabase.instance.readProductSqliteID(variantData.product_id!);
       VariantGroup data = await PosDatabase.instance
-          .insertVariantGroup(VariantGroup.fromJson(responseJson[i]));
+          .insertVariantGroup(
+        VariantGroup(
+          child: [],
+          variant_group_id: variantData.variant_group_id,
+          product_id: variantData.product_id,
+          product_sqlite_id: productData!.product_sqlite_id.toString(),
+          name: variantData.name,
+          sync_status: 2,
+          created_at: variantData.created_at,
+          updated_at: variantData.updated_at,
+          soft_delete: variantData.soft_delete
+        )
+      );
     }
+    getVariantItem();
   }
+
 }
 
 /*
@@ -566,8 +582,20 @@ getVariantItem() async {
   if (data['status'] == '1') {
     List responseJson = data['variant'];
     for (var i = 0; i < responseJson.length; i++) {
+      VariantItem variantItemData = VariantItem.fromJson(responseJson[i]);
+      // VariantGroup? productData = await PosDatabase.instance.readVariantGroupSqliteID(variantItemData.variant_group_id!);
+      // print(productData!.variant_group_sqlite_id);
       VariantItem data = await PosDatabase.instance
-          .insertVariantItem(VariantItem.fromJson(responseJson[i]));
+          .insertVariantItem( VariantItem(
+        variant_item_id: variantItemData.variant_item_id,
+        variant_group_id: variantItemData.variant_group_id,
+        variant_group_sqlite_id: variantItemData.variant_group_id,
+        name: variantItemData.name,
+        sync_status: 2,
+        created_at: variantItemData.created_at,
+        updated_at: variantItemData.updated_at,
+        soft_delete: variantItemData.soft_delete
+      ));
     }
   }
 }
