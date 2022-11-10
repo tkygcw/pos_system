@@ -638,18 +638,35 @@ class _EditProductDialogState extends State<EditProductDialog> {
             for (int l = 0; l < variantList.length; l++) {
               if (needInsert[k] == variantList[l]['modGroup']) {
                 for (int m = 0; m < variantList[l]['modItem'].length; m++) {
-                  // Map responseInsertVariantItem = await Domain()
-                  //     .insertVariantItem(variantList[l]['modItem'][m],
-                  //         group.variant_group_id.toString());
-                  // if (responseInsertVariantItem['status'] == '1') {}
                   VariantItem item = await PosDatabase.instance
                       .insertVariantItem(VariantItem(
                           variant_item_id: 0,
                           variant_group_id: group.variant_group_id.toString(),
+                          variant_group_sqlite_id: group.variant_group_sqlite_id.toString(),
                           name: variantList[l]['modItem'][m],
+                          sync_status: 1,
                           created_at: dateTime,
                           updated_at: '',
                           soft_delete: ''));
+/*
+                  ----------------------sync to cloud---------------------------
+*/
+                  Map responseInsertVariantItem = await Domain()
+                      .insertVariantItem(variantList[l]['modItem'][m],
+                          group.variant_group_id.toString());
+                  if (responseInsertVariantItem['status'] == '1') {
+                    int syncData =
+                    await PosDatabase.instance.updateSyncVariantItem(VariantItem(
+                      variant_item_id: responseInsertVariantItem['variant_item_id'],
+                      sync_status: 2,
+                      updated_at: dateTime,
+                      variant_item_sqlite_id: item.variant_item_sqlite_id,
+                    ));
+
+                  }
+/*
+                ---------------------------end sync-----------------------------
+*/
                 }
               }
             }
@@ -662,28 +679,50 @@ class _EditProductDialogState extends State<EditProductDialog> {
           for (int n = 0; n < needDelete.length; n++) {
             VariantGroup? variantGroupData = await PosDatabase.instance
                 .readSpecificVariantGroup(
-                    needDelete[n], widget.product!.product_id.toString());
+                    needDelete[n], widget.product!.product_sqlite_id.toString());
+
+              int deleteVariantGroup = await PosDatabase.instance
+                  .deleteVariantGroup(VariantGroup(
+                      child: [],
+                      product_sqlite_id: widget.product!.product_sqlite_id.toString(),
+                      variant_group_sqlite_id: variantGroupData!.variant_group_sqlite_id,
+                      soft_delete: dateTime));
+/*
+              --------------------------sync to cloud---------------------------
+*/
             Map responseDeleteVariantGroup = await Domain().deleteVariantGroup(
                 widget.product!.product_id.toString(),
                 variantGroupData!.variant_group_id.toString());
             if (responseDeleteVariantGroup['status'] == '1') {
-              int deleteVariantGroup = await PosDatabase.instance
-                  .deleteVariantGroup(VariantGroup(
-                      child: [],
-                      product_id: widget.product!.product_id.toString(),
-                      variant_group_id: variantGroupData.variant_group_id,
-                      soft_delete: dateTime));
-              Map responseDeleteVariantItem = await Domain().deleteVariantItem(
-                  variantGroupData.variant_group_id.toString());
-              if (responseDeleteVariantItem['status'] == '1') {
+              int syncData =
+              await PosDatabase.instance.updateSyncVariantGroup(VariantGroup(
+                child: [],
+                variant_group_id: variantGroupData.variant_group_id,
+                sync_status: 2,
+                updated_at: dateTime,
+                variant_group_sqlite_id: variantGroupData.variant_group_sqlite_id,
+              ));
+
+            }
+/*
+            ------------------------------end to cloud--------------------------
+*/
                 int deleteVariantItem =
                     await PosDatabase.instance.deleteVariantItem(VariantItem(
                   soft_delete: dateTime,
-                  variant_group_id:
-                      variantGroupData.variant_group_id.toString(),
+                  variant_group_sqlite_id:
+                      variantGroupData.variant_group_sqlite_id.toString(),
                 ));
-              }
-            }
+
+/*
+              -----------------------sync to cloud-----------------------------
+*/
+            Map responseDeleteVariantItem = await Domain().deleteVariantItem(
+                variantGroupData.variant_group_id.toString());
+            if (responseDeleteVariantItem['status'] == '1') {}  //stop at here
+/*
+              --------------------------end to cloud---------------------------
+*/
           }
         }
         List currentProductVariant = [];

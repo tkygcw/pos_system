@@ -1267,11 +1267,11 @@ class PosDatabase {
   read variant group for update
 */
   Future<VariantGroup?> readSpecificVariantGroup(
-      String name, String product_id) async {
+      String name, String product_sqlite_id) async {
     final db = await instance.database;
     final maps = await db.rawQuery(
-        'SELECT * FROM $tableVariantGroup WHERE soft_delete = ? AND name = ? AND product_id = ?',
-        ['', name, product_id]);
+        'SELECT * FROM $tableVariantGroup WHERE soft_delete = ? AND name = ? AND product_sqlite_id = ?',
+        ['', name, product_sqlite_id]);
     if (maps.isNotEmpty) {
       return VariantGroup.fromJson(maps.first);
     }
@@ -2468,8 +2468,8 @@ class PosDatabase {
   Future<int> deleteVariantGroup(VariantGroup data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableVariantGroup SET soft_delete = ? WHERE product_id = ? AND variant_group_id = ?',
-        [data.soft_delete, data.product_id, data.variant_group_id]);
+        'UPDATE $tableVariantGroup SET soft_delete = ? WHERE product_sqlite_id = ? AND variant_group_sqlite_id = ?',
+        [data.soft_delete, data.product_sqlite_id, data.variant_group_sqlite_id]);
   }
 
   /*
@@ -2563,8 +2563,8 @@ class PosDatabase {
   Future<int> deleteVariantItem(VariantItem data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableVariantItem SET soft_delete = ? WHERE variant_group_id = ?',
-        [data.soft_delete, data.variant_group_id]);
+        'UPDATE $tableVariantItem SET soft_delete = ? WHERE variant_group_sqlite_id = ?',
+        [data.soft_delete, data.variant_group_sqlite_id]);
   }
 
 /*

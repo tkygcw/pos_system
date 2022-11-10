@@ -75,7 +75,6 @@ class _LoadingPageState extends State<LoadingPage> {
     getModifierItem();
     getBranchLinkModifier();
     getBranchLinkProduct();
-    getVariantItem();
     getProductVariant();
     getProductVariantDetail();
     getAllOrder();
@@ -583,13 +582,12 @@ getVariantItem() async {
     List responseJson = data['variant'];
     for (var i = 0; i < responseJson.length; i++) {
       VariantItem variantItemData = VariantItem.fromJson(responseJson[i]);
-      // VariantGroup? productData = await PosDatabase.instance.readVariantGroupSqliteID(variantItemData.variant_group_id!);
-      // print(productData!.variant_group_sqlite_id);
+      VariantGroup? variantGroupData = await PosDatabase.instance.readVariantGroupSqliteID(variantItemData.variant_group_id!);
       VariantItem data = await PosDatabase.instance
           .insertVariantItem( VariantItem(
         variant_item_id: variantItemData.variant_item_id,
         variant_group_id: variantItemData.variant_group_id,
-        variant_group_sqlite_id: variantItemData.variant_group_id,
+        variant_group_sqlite_id: variantGroupData != null ? variantGroupData.variant_group_sqlite_id.toString(): '0',
         name: variantItemData.name,
         sync_status: 2,
         created_at: variantItemData.created_at,
