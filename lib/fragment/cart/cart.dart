@@ -38,6 +38,7 @@ import '../../object/order_modifier_detail.dart';
 import '../../object/printer.dart';
 import '../../object/receipt_layout.dart';
 import '../../object/table.dart';
+import '../../object/tax.dart';
 import '../../translation/AppLocalizations.dart';
 import '../settlement/cash_dialog.dart';
 import '../payment/payment_select_dialog.dart';
@@ -60,15 +61,16 @@ class _CartPageState extends State<CartPage> {
   List<cartProductItem> sameCategoryItemList = [];
   List<Promotion> autoApplyPromotionList = [];
   List<TableUse> tableUseList = [];
+  List<Tax> taxRateList = [];
   int diningOptionID = 0;
   int simpleIntInput = 0;
-  int taxRate = 0;
   double total = 0.0;
   double promo = 0.0;
   double selectedPromo = 0.0;
   double selectedPromoAmount = 0.0;
-  double priceIncSST = 0.0;
-  double priceIncServiceTax = 0.0;
+  double taxAmount = 0.0;
+  double priceIncAllTaxes = 0.0;
+  double priceIncTaxes = 0.0;
   double discountPrice = 0.0;
   double promoAmount = 0.0;
   double totalAmount = 0.0;
@@ -82,6 +84,7 @@ class _CartPageState extends State<CartPage> {
   bool hasPromo = false;
   bool hasSelectedPromo = false;
   bool _isSettlement = false;
+  bool _isSubtotal = false;
   Color font = Colors.black45;
 
   @override
@@ -200,17 +203,20 @@ class _CartPageState extends State<CartPage> {
                           padding: EdgeInsets.fromLTRB(10, 8, 14, 0),
                           child: Column(children: [
                             DropdownButton<String>(
-                              onChanged: (value) {
+                              onChanged: widget.currentPage == 'menu' ?  (value) {
                                 setState(() {
                                   cart.selectedOption = value!;
                                 });
-                              },
+                              } : null,
                               value: cart.selectedOption,
                               // Hide the default underline
                               underline: Container(),
-                              icon: Icon(
-                                Icons.arrow_drop_down,
-                                color: color.backgroundColor,
+                              icon: Visibility(
+                                visible: widget.currentPage == 'menu' ? true : false,
+                                child: Icon(
+                                  Icons.arrow_drop_down,
+                                  color: color.backgroundColor,
+                                ),
                               ),
                               isExpanded: true,
                               // The list of options
@@ -430,6 +436,7 @@ class _CartPageState extends State<CartPage> {
                                 visible: hasPromo == true ? true : false,
                                 child: ListView.builder(
                                     shrinkWrap: true,
+                                    physics: NeverScrollableScrollPhysics(),
                                     itemCount: autoApplyPromotionList.length,
                                     itemBuilder: (context, index) {
                                       return ListTile(
@@ -443,24 +450,37 @@ class _CartPageState extends State<CartPage> {
                                               '-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
                                               style: TextStyle(fontSize: 14)));
                                     })),
-                            ListTile(
-                              title: Text('Sst (6%)',
-                                  style: TextStyle(fontSize: 14)),
-                              trailing: Text(
-                                  '${priceIncSST.toStringAsFixed(2)}',
-                                  style: TextStyle(fontSize: 14)),
-                              visualDensity: VisualDensity(vertical: -4),
-                              dense: true,
+                            ListView.builder(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: taxRateList.length,
+                                itemBuilder: (context, index){
+                                  return ListTile(
+                                    title: Text('${taxRateList[index].name}(${taxRateList[index].tax_rate}%)'),
+                                    trailing: Text('${taxRateList[index].tax_amount?.toStringAsFixed(2)}'), //Text(''),
+                                    visualDensity: VisualDensity(vertical: -4),
+                                    dense: true,
+                                  );
+                                }
                             ),
-                            ListTile(
-                              title: Text('Service Tax (${taxRate}%)',
-                                  style: TextStyle(fontSize: 14)),
-                              trailing: Text(
-                                  '${priceIncServiceTax.toStringAsFixed(2)}',
-                                  style: TextStyle(fontSize: 14)),
-                              visualDensity: VisualDensity(vertical: -4),
-                              dense: true,
-                            ),
+                            // ListTile(
+                            //   title: Text('Sst (6%)',
+                            //       style: TextStyle(fontSize: 14)),
+                            //   trailing: Text(
+                            //       '${priceIncSST.toStringAsFixed(2)}',
+                            //       style: TextStyle(fontSize: 14)),
+                            //   visualDensity: VisualDensity(vertical: -4),
+                            //   dense: true,
+                            // ),
+                            // ListTile(
+                            //   title: Text('Service Tax (${taxRate}%)',
+                            //       style: TextStyle(fontSize: 14)),
+                            //   trailing: Text(
+                            //       '${priceIncServiceTax.toStringAsFixed(2)}',
+                            //       style: TextStyle(fontSize: 14)),
+                            //   visualDensity: VisualDensity(vertical: -4),
+                            //   dense: true,
+                            // ),
                             ListTile(
                               visualDensity: VisualDensity(vertical: -4),
                               title: Text("Total",
@@ -951,8 +971,7 @@ class _CartPageState extends State<CartPage> {
     controller.add('refresh');
   }
 
-  autoApplySpecificCategoryAmount(
-      Promotion promotion, cartProductItem cartItem) {
+  autoApplySpecificCategoryAmount(Promotion promotion, cartProductItem cartItem) {
     try {
       promo = 0.0;
       if (promotion.type == 1) {
@@ -980,6 +999,9 @@ class _CartPageState extends State<CartPage> {
   }
 
   getDiningTax(CartModel cart) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    taxRateList = [];
     try {
       diningOptionID = 0;
       //get dining option data
@@ -987,18 +1009,15 @@ class _CartPageState extends State<CartPage> {
           await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
       diningOptionID = data[0].dining_id!;
       //get dining tax
-      List<TaxLinkDining> TaxLinkDiningData =
-          await PosDatabase.instance.readTaxLinkDining(data[0].dining_id!);
-      if (TaxLinkDiningData.length > 0) {
-        for (int i = 0; i < TaxLinkDiningData.length; i++) {
-          taxRate = int.parse(TaxLinkDiningData[i].tax_rate!);
-        }
-      } else {
-        taxRate = 0;
+      List<Tax> taxData = await PosDatabase.instance.readTax(branch_id.toString(), diningOptionID.toString());
+      if (taxData.length > 0) {
+        taxRateList = List.from(taxData);
+        // for (int i = 0; i < TaxLinkDiningData.length; i++) {
+        //   taxRate = int.parse(TaxLinkDiningData[i].tax_rate!);
+        // }
       }
     } catch (error) {
       print('get dining tax error: $error');
-      taxRate = 0;
     }
 
     controller.add('refresh');
@@ -1022,52 +1041,84 @@ class _CartPageState extends State<CartPage> {
       total = 0.0;
     }
     await getDiningTax(cart);
-    // getCartPromotion(cart);
-    // getAutoApplyPromotion(cart);
     calPromotion(cart);
-    getSalesServiceTax();
-    getServiceTax();
+    // getSalesServiceTax();
+    // getServiceTax();
+    if(taxRateList.length > 0){
+      for(int i = 0; i < taxRateList.length; i++){
+        //print('tax rate length: ${taxRateList.length}');
+        getTaxAmount(taxRateList[i]);
+
+        //priceIncAllTaxes += taxRateList[i].tax_amount!;
+      }
+    }
     getAllTotal();
     controller.add('refresh');
   }
 
-  getSalesServiceTax() {
-    try {
-      priceIncServiceTax = 0.00;
-      discountPrice = 0.00;
-
-      discountPrice = total - promoAmount;
-      priceIncSST = discountPrice * 0.06;
-      priceIncSST = (priceIncSST * 100).truncate() / 100;
-    } catch (error) {
-      print('SST calculation error $error');
-      priceIncSST = 0.0;
-    }
-    controller.add('refresh');
-  }
-
-  getServiceTax() {
-    try {
-      priceIncServiceTax = 0.0;
-      discountPrice = 0.0;
-
-      discountPrice = total - promoAmount;
-      priceIncServiceTax = discountPrice * (taxRate / 100);
-      priceIncServiceTax = (priceIncServiceTax * 100).truncate() / 100;
-    } catch (error) {
-      print('Service Tax error $error');
-      priceIncServiceTax = 0.0;
-    }
+  getTaxAmount(Tax tax) {
+    priceIncTaxes = 0.00;
+    discountPrice = 0.00;
+    taxAmount = 0.0;
+    // print('total: ${total}');
+    //print('promoAmount: ${promoAmount}');
+    discountPrice = total - promoAmount;
+    priceIncTaxes = discountPrice * (double.parse(tax.tax_rate!)/100);
+    tax.tax_amount = priceIncTaxes;
 
     controller.add('refresh');
+    //priceIncAllTaxes += tax.tax_amount!;
+    // return priceIncAllTaxes;
   }
+
+  getAllTaxAmount(){
+    double total = 0.0;
+    for(int i = 0; i < taxRateList.length; i++){
+      total = total + taxRateList[i].tax_amount!;
+    }
+    priceIncAllTaxes = total;
+    return priceIncAllTaxes;
+  }
+
+  // getSalesServiceTax() {
+  //   try {
+  //     priceIncServiceTax = 0.00;
+  //     discountPrice = 0.00;
+  //
+  //     discountPrice = total - promoAmount;
+  //     priceIncSST = discountPrice * 0.06;
+  //     priceIncSST = (priceIncSST * 100).truncate() / 100;
+  //   } catch (error) {
+  //     print('SST calculation error $error');
+  //     priceIncSST = 0.0;
+  //   }
+  //   controller.add('refresh');
+  // }
+  //
+  // getServiceTax() {
+  //   try {
+  //     priceIncServiceTax = 0.0;
+  //     discountPrice = 0.0;
+  //
+  //     discountPrice = total - promoAmount;
+  //     priceIncServiceTax = discountPrice * (taxRate / 100);
+  //     priceIncServiceTax = (priceIncServiceTax * 100).truncate() / 100;
+  //   } catch (error) {
+  //     print('Service Tax error $error');
+  //     priceIncServiceTax = 0.0;
+  //   }
+  //
+  //   controller.add('refresh');
+  // }
 
   getAllTotal() {
+    getAllTaxAmount();
     try {
       totalAmount = 0.0;
+      //priceIncAllTaxes = 0.0;
 
-      totalAmount = discountPrice + priceIncSST + priceIncServiceTax;
-      totalAmount = (totalAmount * 100).truncate() / 100;
+      totalAmount = discountPrice + priceIncAllTaxes ;
+      //totalAmount = (totalAmount * 100).truncate() / 100;
     } catch (error) {
       print('Total calc error: $error');
     }

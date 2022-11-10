@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/categories.dart';
+import 'package:pos_system/object/tax.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/domain.dart';
@@ -21,10 +22,30 @@ class _TestCategorySyncState extends State<TestCategorySync> {
       body: Container(
         alignment: Alignment.center,
         child: ElevatedButton(
-            onPressed: () {checkAllSyncRecord(); },
-            child: Text('sync category')),
+            onPressed: ()async  => print('linked tax: ${await readLinkedTax()}'),
+            child: Text('test linked tax')),
       ),
     );
+  }
+
+/*
+  test linked tax
+*/
+  readLinkedTax() async {
+    List<Tax> taxList = [];
+    List<String> taxName = [];
+    String taxRate = '';
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    List<Tax> data = await PosDatabase.instance.readTax(branch_id.toString(), '3');
+    if(data.length > 0){
+      taxList = List.from(data);
+      for(int i = 0; i < taxList.length; i++){
+        taxName.add(taxList[i].name!);
+      }
+    }
+    return taxName;
   }
 
 /*

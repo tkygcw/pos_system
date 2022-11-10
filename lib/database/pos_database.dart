@@ -15,6 +15,7 @@ import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
+import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/payment_type.dart';
 import 'package:pos_system/object/printer_link_category.dart';
@@ -448,6 +449,23 @@ class PosDatabase {
           ${CashRecordFields.updated_at} $textType,
           ${CashRecordFields.soft_delete} $textType)''');
 
+/*
+    create order tax detail table
+*/
+    await db.execute('''CREATE TABLE $tableOrderTaxDetail(
+          ${OrderTaxDetailFields.order_tax_detail_sqlite_id} $idType,
+          ${OrderTaxDetailFields.order_tax_detail_id} $integerType,
+          ${OrderTaxDetailFields.order_sqlite_id} $textType,
+          ${OrderTaxDetailFields.order_id} $textType,
+          ${OrderTaxDetailFields.tax_name} $textType,
+          ${OrderTaxDetailFields.rate} $textType,
+          ${OrderTaxDetailFields.tax_id} $textType,
+          ${OrderTaxDetailFields.branch_link_tax_id} $textType,
+          ${OrderTaxDetailFields.tax_amount} $textType,
+          ${OrderTaxDetailFields.sync_status} $integerType,
+          ${OrderTaxDetailFields.created_at} $textType,
+          ${OrderTaxDetailFields.updated_at} $textType,
+          ${OrderTaxDetailFields.soft_delete} $textType)''');
 
   }
 
@@ -1098,6 +1116,16 @@ class PosDatabase {
  }
 
 /*
+  add order tax detail
+*/
+  Future<OrderTaxDetail>insertSqliteOrderTaxDetail(OrderTaxDetail data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableOrderTaxDetail!, data.toJson());
+    return data.copy(order_tax_detail_sqlite_id: id);
+  }
+
+
+/*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -1145,9 +1173,6 @@ class PosDatabase {
     }
   }
 
-
-
-
 /*
   read branch name
 */
@@ -1175,7 +1200,7 @@ class PosDatabase {
     }
   }
 
-  /*
+/*
   read variant group
 */
   Future<List<VariantGroup>> readVariantGroup(String product_sqlite_id) async {
@@ -1410,6 +1435,18 @@ class PosDatabase {
   }
 
 /*
+  get tax rate/ name
+*/
+  Future<List<Tax>> readTax(String branch_id, String dining_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT b.* FROM $tableBranchLinkTax AS a JOIN $tableTax as B ON a.tax_id = b.tax_id JOIN $tableTaxLinkDining as c ON a.tax_id = c.tax_id WHERE a.branch_id = ? AND c.dining_id = ? AND a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ?',
+        [branch_id, dining_id, '', '', '']);
+
+    return result.map((json) => Tax.fromJson(json)).toList();
+  }
+
+/*
   read Branch link promotion
 */
   Future<List<BranchLinkPromotion>> readBranchLinkPromotion(
@@ -1615,12 +1652,8 @@ class PosDatabase {
   }
 
 /*
-  read modifier item
-*/
-
-  /*
   read all product modifier group name
-  */
+*/
   Future<List<ModifierGroup>> readAllModifier() async {
     final db = await instance.database;
     final result = await db.rawQuery(
@@ -1628,9 +1661,9 @@ class PosDatabase {
     return result.map((json) => ModifierGroup.fromJson(json)).toList();
   }
 
-  /*
+/*
   read all product modifier group name
-  */
+*/
   Future<List<ModifierLinkProduct>> readProductModifier(
       String productID) async {
     final db = await instance.database;
@@ -1912,7 +1945,7 @@ class PosDatabase {
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
   }
 
-  /*
+/*
   read order mod detail
 */
   Future<OrderModifierDetail?> readOrderModifierDetailOne(

@@ -28,6 +28,7 @@ class Tax{
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  double? tax_amount;
 
   Tax(
       {this.tax_id,
@@ -36,7 +37,8 @@ class Tax{
         this.tax_rate,
         this.created_at,
         this.updated_at,
-        this.soft_delete});
+        this.soft_delete,
+        this.tax_amount});
 
   Tax copy({
     int? tax_id,

@@ -9,6 +9,7 @@ import 'package:pos_system/fragment/payment/number_button.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
+import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,6 +23,7 @@ import '../../object/cart_product.dart';
 import '../../object/dining_option.dart';
 import '../../object/modifier_group.dart';
 import '../../object/promotion.dart';
+import '../../object/tax.dart';
 import '../../object/tax_link_dining.dart';
 import '../../object/variant_group.dart';
 
@@ -44,6 +46,7 @@ class _MakePamentState extends State<MakePayment> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   List<String> branchLinkDiningIdList = [];
   List<Promotion> autoApplyPromotionList = [];
+  List<Tax> taxList = [];
   bool scanning=false;
   bool isopen=false;
   bool hasSelectedPromo = false;
@@ -54,8 +57,9 @@ class _MakePamentState extends State<MakePayment> {
   double promo = 0.0;
   double selectedPromo = 0.0;
   double selectedPromoAmount = 0.0;
-  double priceIncSST = 0.0;
-  double priceIncServiceTax = 0.0;
+  double taxAmount = 0.0;
+  double priceIncAllTaxes = 0.0;
+  double priceIncTaxes = 0.0;
   double discountPrice = 0.0;
   double promoAmount = 0.0;
   double totalAmount = 0.0;
@@ -248,23 +252,19 @@ class _MakePamentState extends State<MakePayment> {
                                                           '-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
                                                           style: TextStyle(fontSize: 14)));
                                                 })),
-                                        ListTile(
-                                          title: Text('Sst (6%)',
-                                              style: TextStyle(fontSize: 14)),
-                                          trailing: Text(
-                                              '${priceIncSST.toStringAsFixed(2)}',
-                                              style: TextStyle(fontSize: 14)),
-                                          visualDensity: VisualDensity(vertical: -4),
-                                          dense: true,
-                                        ),
-                                        ListTile(
-                                          title: Text('Service Tax ($taxRate%)',
-                                              style: TextStyle(fontSize: 14)),
-                                          trailing: Text(
-                                              '${priceIncServiceTax.toStringAsFixed(2)}',
-                                              style: TextStyle(fontSize: 14)),
-                                          visualDensity: VisualDensity(vertical: -4),
-                                          dense: true,
+                                        ListView.builder(
+                                            shrinkWrap: true,
+                                            padding: EdgeInsets.zero,
+                                            physics: NeverScrollableScrollPhysics(),
+                                            itemCount: taxList.length,
+                                            itemBuilder: (context, index){
+                                              return ListTile(
+                                                title: Text('${taxList[index].name}(${taxList[index].tax_rate}%)'),
+                                                trailing: Text('${taxList[index].tax_amount?.toStringAsFixed(2)}'), //Text(''),
+                                                visualDensity: VisualDensity(vertical: -4),
+                                                dense: true,
+                                              );
+                                            }
                                         ),
                                         ListTile(
                                           visualDensity: VisualDensity(vertical: -4),
@@ -525,7 +525,7 @@ class _MakePamentState extends State<MakePayment> {
                                         width: MediaQuery.of(context).size.width/2,
                                       ),
                                     ):Container(
-                                      child: _buildQrView(context) ,
+                                      //child: _buildQrView(context) ,
                                     ),
 
                                   )
@@ -534,7 +534,7 @@ class _MakePamentState extends State<MakePayment> {
                                   flex:1,
                                   child: Container(
                                     alignment: Alignment.center,
-                                    child: Text('RM${totalAmount}',style: TextStyle(fontSize: 40,fontWeight: FontWeight.bold),),
+                                    child: Text('RM${totalAmount.toStringAsFixed(2)}',style: TextStyle(fontSize: 40,fontWeight: FontWeight.bold),),
                                   )
                               ),
                               Expanded(
@@ -832,19 +832,10 @@ class _MakePamentState extends State<MakePayment> {
                 autoApplySpecificCategoryAmount(
                     cart.autoPromotion[j], cart.cartNotifierItem[m]);
               }
-              // //check cart item status
-              // if (cart.cartNotifierItem[m].status == 0) {
-              //
-              // }
             }
           } else {
             //Auto apply non specific category promotion
             if (cart.cartNotifierItem.isNotEmpty) {
-              // for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-              //   if (cart.cartNotifierItem[i].status == 0) {
-              //
-              //   }
-              // }
               hasPromo = true;
               autoApplyPromotionList.add(cart.autoPromotion[j]);
               promoName = cart.autoPromotion[j].name!;
@@ -936,49 +927,39 @@ class _MakePamentState extends State<MakePayment> {
     // getCartPromotion(cart);
     // getAutoApplyPromotion(cart);
     calPromotion(cart);
-    getSalesServiceTax();
-    getServiceTax();
+    if(taxList.length > 0){
+      for(int i = 0; i < taxList.length; i++){
+        getTaxAmount(taxList[i]);
+      }
+    }
     getAllTotal();
     streamController.add('refresh');
   }
 
-  getSalesServiceTax() {
-    try {
-      priceIncServiceTax = 0.00;
-      discountPrice = 0.00;
+  getTaxAmount(Tax tax) {
+    discountPrice = total - promoAmount;
+    priceIncTaxes = discountPrice * (double.parse(tax.tax_rate!)/100);
+    tax.tax_amount = priceIncTaxes;
 
-      discountPrice = total - promoAmount;
-      priceIncSST = discountPrice * 0.06;
-      priceIncSST = (priceIncSST * 100).truncate() / 100;
-    } catch (error) {
-      print('SST calculation error $error');
-      priceIncSST = 0.0;
-    }
     streamController.add('refresh');
   }
 
-  getServiceTax() {
-    try {
-      priceIncServiceTax = 0.0;
-      discountPrice = 0.0;
-
-      discountPrice = total - promoAmount;
-      priceIncServiceTax = discountPrice * (taxRate / 100);
-      priceIncServiceTax = (priceIncServiceTax * 100).truncate() / 100;
-    } catch (error) {
-      print('Service Tax error $error');
-      priceIncServiceTax = 0.0;
+  getAllTaxAmount(){
+    double total = 0.0;
+    for(int i = 0; i < taxList.length; i++){
+      total = total + taxList[i].tax_amount!;
     }
-
-    streamController.add('refresh');
+    priceIncAllTaxes = total;
+    return priceIncAllTaxes;
   }
 
   getAllTotal() {
+    getAllTaxAmount();
     try {
       totalAmount = 0.0;
 
-      totalAmount = discountPrice + priceIncSST + priceIncServiceTax;
-      totalAmount = (totalAmount * 100).truncate() / 100;
+      discountPrice = total - promoAmount;
+      totalAmount = discountPrice + priceIncAllTaxes ;
     } catch (error) {
       print('Total calc error: $error');
     }
@@ -1003,23 +984,24 @@ class _MakePamentState extends State<MakePayment> {
   }
 
   getDiningTax(CartModel cart) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    taxList = [];
     try {
       diningOptionID = 0;
       //get dining option data
       List<DiningOption> data = await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
       diningOptionID = data[0].dining_id!;
       //get dining tax
-      List<TaxLinkDining> TaxLinkDiningData = await PosDatabase.instance.readTaxLinkDining(data[0].dining_id!);
-      if (TaxLinkDiningData.length > 0) {
-        for (int i = 0; i < TaxLinkDiningData.length; i++) {
-          taxRate = int.parse(TaxLinkDiningData[i].tax_rate!);
-        }
-      } else {
-        taxRate = 0;
+      List<Tax> taxData = await PosDatabase.instance.readTax(branch_id.toString(), diningOptionID.toString());
+      if (taxData.length > 0) {
+        taxList = List.from(taxData);
+        // for (int i = 0; i < TaxLinkDiningData.length; i++) {
+        //   taxRate = int.parse(TaxLinkDiningData[i].tax_rate!);
+        // }
       }
     } catch (error) {
       print('get dining tax error: $error');
-      taxRate = 0;
     }
 
     streamController.add('refresh');
@@ -1030,6 +1012,7 @@ class _MakePamentState extends State<MakePayment> {
   callCrateNewOrder(CartModel cartModel) async {
     await createOrder();
     await updateOrderCache(cartModel);
+    await crateOrderTaxDetail();
   }
 
   createOrder() async {
@@ -1066,6 +1049,32 @@ class _MakePamentState extends State<MakePayment> {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Create order cache error: ${e}");
+    }
+  }
+
+  crateOrderTaxDetail() async {
+    print('order tax detail called');
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    // final prefs = await SharedPreferences.getInstance();
+    // final int? branch_id = prefs.getInt('branch_id');
+
+    print('tax list length: ${taxList.length}');
+    for(int i = 0; i < taxList.length; i++){
+      OrderTaxDetail data = await PosDatabase.instance.insertSqliteOrderTaxDetail(OrderTaxDetail(
+          order_tax_detail_id: 0,
+          order_sqlite_id: orderId,
+          order_id: '0',
+          tax_name: taxList[i].name,
+          rate: taxList[i].tax_rate,
+          tax_id: taxList[i].tax_id.toString(),
+          branch_link_tax_id: '',
+          tax_amount: '',
+          sync_status: 0,
+          created_at: dateTime,
+          updated_at: '',
+          soft_delete: ''
+      ));
     }
   }
 
