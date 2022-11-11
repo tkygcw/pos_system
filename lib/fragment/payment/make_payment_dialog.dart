@@ -4,17 +4,20 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/fragment/payment/ipay_api.dart';
 // import 'package:pos_system/fragment/payment/ipay_api.dart';
 import 'package:pos_system/fragment/payment/number_button.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
+import 'package:pos_system/object/payment_link_company.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'dart:developer';
+import 'package:crypto/crypto.dart';
 
 import '../../database/pos_database.dart';
 import '../../notifier/cart_notifier.dart';
@@ -69,8 +72,10 @@ class _MakePamentState extends State<MakePayment> {
   String promoRate = '';
   String localTableUseId = '';
   String orderCacheId = '';
+  String ipay_code = '';
   String? allPromo = '';
   String? orderId;
+  late Map branchObject;
 
   // Array of button
   final List<String> buttons = [
@@ -102,6 +107,8 @@ class _MakePamentState extends State<MakePayment> {
     super.initState();
     streamController = StreamController();
     readAllBranchLinkDiningOption();
+    readBranchPref();
+    readSpecificPaymentMethod();
   }
 
   @override
@@ -115,12 +122,17 @@ class _MakePamentState extends State<MakePayment> {
     super.reassemble();
     if (Platform.isAndroid) {
       controller?.pauseCamera();
+    } else if (Platform.isIOS) {
+      controller?.resumeCamera();
     }
-    //controller!.resumeCamera();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (controller != null && mounted && result == null) {
+      controller!.pauseCamera();
+      controller!.resumeCamera();
+    }
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return  AlertDialog(
         title: Text('Amount'),
@@ -525,7 +537,7 @@ class _MakePamentState extends State<MakePayment> {
                                         width: MediaQuery.of(context).size.width/2,
                                       ),
                                     ):Container(
-                                      //child: _buildQrView(context) ,
+                                      child: _buildQrView(context) ,
                                     ),
 
                                   )
@@ -546,12 +558,12 @@ class _MakePamentState extends State<MakePayment> {
                                       child: ElevatedButton(
                                         style: ButtonStyle(backgroundColor: MaterialStateProperty.all(color.backgroundColor) ),
                                         onPressed: () async {
-                                          await controller?.resumeCamera();
-                                          await controller?.scannedDataStream;
                                           setState(() {
                                             scanning = true;
                                           });
-                                          callCrateNewOrder(cart);
+                                          //await controller?.resumeCamera();
+                                          await controller?.scannedDataStream;
+                                          await callCrateNewOrder(cart);
                                           // await controller?.resumeCamera();
                                           // scanning= true;
 
@@ -572,9 +584,6 @@ class _MakePamentState extends State<MakePayment> {
         ),
       );
     });
-
-
-
   }
 
   Widget _buildQrView(BuildContext context) {
@@ -613,12 +622,12 @@ class _MakePamentState extends State<MakePayment> {
     });
 
     p1.scannedDataStream.listen((scanData) {
-      p1.pauseCamera();
       setState(() {
         result = scanData;
         print('result:${result?.code}');
       });
-
+      p1.pauseCamera();
+      paymentApi();
     });
   }
 
@@ -924,32 +933,37 @@ class _MakePamentState extends State<MakePayment> {
       total = 0.0;
     }
     await getDiningTax(cart);
-    // getCartPromotion(cart);
-    // getAutoApplyPromotion(cart);
     calPromotion(cart);
-    if(taxList.length > 0){
-      for(int i = 0; i < taxList.length; i++){
-        getTaxAmount(taxList[i]);
-      }
-    }
+    getTaxAmount();
     getAllTotal();
     streamController.add('refresh');
   }
 
-  getTaxAmount(Tax tax) {
-    discountPrice = total - promoAmount;
-    priceIncTaxes = discountPrice * (double.parse(tax.tax_rate!)/100);
-    tax.tax_amount = priceIncTaxes;
+  getTaxAmount() {
+    try{
+      discountPrice = total - promoAmount;
+      if(taxList.length > 0){
+        for(int i = 0; i < taxList.length; i++){
+          priceIncTaxes = discountPrice * (double.parse(taxList[i].tax_rate!)/100);
+          taxList[i].tax_amount = priceIncTaxes;
+        }
+      }
+    }catch(e){
+      print('get tax amount error: $e');
+    }
 
     streamController.add('refresh');
   }
 
   getAllTaxAmount(){
     double total = 0.0;
-    for(int i = 0; i < taxList.length; i++){
-      total = total + taxList[i].tax_amount!;
+    if(taxList.length > 0){
+      for(int i = 0; i < taxList.length; i++){
+        total = total + taxList[i].tax_amount!;
+      }
     }
     priceIncAllTaxes = total;
+
     return priceIncAllTaxes;
   }
 
@@ -986,7 +1000,6 @@ class _MakePamentState extends State<MakePayment> {
   getDiningTax(CartModel cart) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    taxList = [];
     try {
       diningOptionID = 0;
       //get dining option data
@@ -996,9 +1009,8 @@ class _MakePamentState extends State<MakePayment> {
       List<Tax> taxData = await PosDatabase.instance.readTax(branch_id.toString(), diningOptionID.toString());
       if (taxData.length > 0) {
         taxList = List.from(taxData);
-        // for (int i = 0; i < TaxLinkDiningData.length; i++) {
-        //   taxRate = int.parse(TaxLinkDiningData[i].tax_rate!);
-        // }
+      } else {
+        taxList = [];
       }
     } catch (error) {
       print('get dining tax error: $error');
@@ -1006,13 +1018,18 @@ class _MakePamentState extends State<MakePayment> {
 
     streamController.add('refresh');
 
-    return diningOptionID;
   }
 
   callCrateNewOrder(CartModel cartModel) async {
     await createOrder();
     await updateOrderCache(cartModel);
     await crateOrderTaxDetail();
+  }
+
+  readBranchPref() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    branchObject = json.decode(branch!);
   }
 
   createOrder() async {
@@ -1069,7 +1086,7 @@ class _MakePamentState extends State<MakePayment> {
           rate: taxList[i].tax_rate,
           tax_id: taxList[i].tax_id.toString(),
           branch_link_tax_id: '',
-          tax_amount: '',
+          tax_amount: taxList[i].tax_amount!.toStringAsFixed(2),
           sync_status: 0,
           created_at: dateTime,
           updated_at: '',
@@ -1101,4 +1118,49 @@ class _MakePamentState extends State<MakePayment> {
 
   }
 
+  readSpecificPaymentMethod() async {
+    List<PaymentLinkCompany> data = await PosDatabase.instance.readPaymentMethodByType(widget.type.toString());
+    if(data.length > 0){
+      ipay_code = data[0].ipay_code!;
+    }
+  }
+
+  paymentApi(){
+    Api().sendPayment(
+        branchObject['ipay_merchant_code'],
+        branchObject['ipay_merchant_key'],
+        336,
+        orderId!,
+        '1',
+        'MYR',
+        '',
+        branchObject['name'],
+        'jacksonleow6@gmail.com',
+        '0127583579',
+        'taylor',
+        result!.code!,
+        '',
+        '',
+        '',
+        '',
+        signature256(
+          branchObject['ipay_merchant_key'],
+          branchObject['ipay_merchant_code'],
+          orderId,
+          '1',
+          'MYR',
+          '',
+          result!.code!,
+          ''
+        )
+    );
+  }
+
+  signature256(var merchant_key, var merchant_code, var refNo, var amount, var currency, var xFields, var barcodeNo, var TerminalId ){
+    var signature = utf8.encode(merchant_key + merchant_code + refNo + amount + currency + xFields + barcodeNo + TerminalId);
+    String value = sha256.convert(signature).toString();
+    return value;
+  }
 }
+
+

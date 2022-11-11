@@ -4,6 +4,8 @@ class BranchFields {
   static List<String> values = [
     branchID,
     name,
+    ipay_merchant_code,
+    ipay_merchant_key
   ];
 
   static String branchID = 'branchID';

@@ -2107,6 +2107,17 @@ class PosDatabase {
     return result.map((json) => PaymentLinkCompany.fromJson(json)).toList();
   }
 
+/*
+  read payment method by type
+*/
+  Future<List<PaymentLinkCompany>> readPaymentMethodByType(String type) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? AND type = ? ',
+        ['', type]);
+    return result.map((json) => PaymentLinkCompany.fromJson(json)).toList();
+  }
+
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

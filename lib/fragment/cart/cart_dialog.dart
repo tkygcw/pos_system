@@ -312,7 +312,7 @@ class _CartDialogState extends State<CartDialog> {
                         : Expanded(child: Text('')),
                     Container(
                       margin: EdgeInsets.fromLTRB(0, 2, 0, 2),
-                      height: MediaQuery.of(context).size.height / 8,
+                      height: MediaQuery.of(context).size.height < 800 ? MediaQuery.of(context).size.height / 9 : MediaQuery.of(context).size.height/8 ,
                       child: Stack(
                         alignment: Alignment.bottomLeft,
                         children: [

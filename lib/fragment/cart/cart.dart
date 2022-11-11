@@ -1001,7 +1001,7 @@ class _CartPageState extends State<CartPage> {
   getDiningTax(CartModel cart) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    taxRateList = [];
+    //taxRateList = [];
     try {
       diningOptionID = 0;
       //get dining option data
@@ -1012,9 +1012,8 @@ class _CartPageState extends State<CartPage> {
       List<Tax> taxData = await PosDatabase.instance.readTax(branch_id.toString(), diningOptionID.toString());
       if (taxData.length > 0) {
         taxRateList = List.from(taxData);
-        // for (int i = 0; i < TaxLinkDiningData.length; i++) {
-        //   taxRate = int.parse(TaxLinkDiningData[i].tax_rate!);
-        // }
+      } else {
+        taxRateList = [];
       }
     } catch (error) {
       print('get dining tax error: $error');
@@ -1042,33 +1041,25 @@ class _CartPageState extends State<CartPage> {
     }
     await getDiningTax(cart);
     calPromotion(cart);
-    // getSalesServiceTax();
-    // getServiceTax();
-    if(taxRateList.length > 0){
-      for(int i = 0; i < taxRateList.length; i++){
-        //print('tax rate length: ${taxRateList.length}');
-        getTaxAmount(taxRateList[i]);
-
-        //priceIncAllTaxes += taxRateList[i].tax_amount!;
-      }
-    }
+    getTaxAmount();
     getAllTotal();
     controller.add('refresh');
   }
 
-  getTaxAmount(Tax tax) {
-    priceIncTaxes = 0.00;
-    discountPrice = 0.00;
-    taxAmount = 0.0;
-    // print('total: ${total}');
-    //print('promoAmount: ${promoAmount}');
-    discountPrice = total - promoAmount;
-    priceIncTaxes = discountPrice * (double.parse(tax.tax_rate!)/100);
-    tax.tax_amount = priceIncTaxes;
+  getTaxAmount() {
+    try{
+      discountPrice = total - promoAmount;
+      if(taxRateList.length > 0){
+        for(int i = 0; i < taxRateList.length; i++){
+          priceIncTaxes = discountPrice * (double.parse(taxRateList[i].tax_rate!)/100);
+          taxRateList[i].tax_amount = priceIncTaxes;
+        }
+      }
+    }catch(e){
+      print('get tax amount error: $e');
+    }
 
     controller.add('refresh');
-    //priceIncAllTaxes += tax.tax_amount!;
-    // return priceIncAllTaxes;
   }
 
   getAllTaxAmount(){
@@ -1116,7 +1107,7 @@ class _CartPageState extends State<CartPage> {
     try {
       totalAmount = 0.0;
       //priceIncAllTaxes = 0.0;
-
+      discountPrice = total - promoAmount;
       totalAmount = discountPrice + priceIncAllTaxes ;
       //totalAmount = (totalAmount * 100).truncate() / 100;
     } catch (error) {

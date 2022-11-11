@@ -213,7 +213,8 @@ class _TableMenuState extends State<TableMenu> {
                                   child: Column(
                                     children: [
                                       tableList[index].group != null
-                                          ? Expanded(
+                                          ?
+                                      Expanded(
                                               child: Text(
                                               "Group: ${tableList[index].group}",
                                               style: TextStyle(fontSize: 18),
@@ -221,11 +222,10 @@ class _TableMenuState extends State<TableMenu> {
                                           : Expanded(child: Text('')),
                                       Container(
                                         margin: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                                        height:
-                                            MediaQuery.of(context).size.height /
-                                                6,
+                                        height: MediaQuery.of(context).size.height < 800
+                                            ? MediaQuery.of(context).size.height / 6.5
+                                            : MediaQuery.of(context).size.height / 6,
                                         child: Stack(
-                                          alignment: Alignment.bottomLeft,
                                           children: [
                                             Ink.image(
                                               image: tableList[index].seats ==

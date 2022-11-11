@@ -22,10 +22,21 @@ class _TestCategorySyncState extends State<TestCategorySync> {
       body: Container(
         alignment: Alignment.center,
         child: ElevatedButton(
-            onPressed: ()async  => print('linked tax: ${await readLinkedTax()}'),
-            child: Text('test linked tax')),
+            onPressed: ()async  => readBranchPref(),
+            child: Text('test branch object pref')),
       ),
     );
+  }
+  
+/*
+  test branch pref  
+*/
+  readBranchPref() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    print('branch name: ${branchObject['name']}');
+    print('ipay merchant key: ${branchObject['ipay_merchant_key']}');
   }
 
 /*

@@ -11,8 +11,8 @@ class Api {
   /*
   * create user
   * */
-  sendPayment(String merchantCode,String merchantKey,String paymentId,String refNo,String amount,String currency,String prodDesc,String username,String userEmail,
-      String userContact,String remark,String barcodeNo,String terminalId,String x_Field1,String x_Field2, String backendUrl) async {
+  sendPayment(String merchantCode, String merchantKey, int paymentId, String refNo, String amount, String currency, String prodDesc, String username, String userEmail,
+      String userContact, String remark, String barcodeNo, String terminalId, String x_Field1, String x_Field2, String backendUrl, String signature) async {
     var MerchantCode = merchantCode;
     var MerchantKey  = merchantKey;
     var PaymentId = paymentId;
@@ -30,7 +30,26 @@ class Api {
     var xField2 = x_Field2;
     var BackendURL = backendUrl;
     var SignatureType = 'SHA256';
-    var Signature = '7dc95d825028af2379d3d2fd04b7707bbe123571a57810e243841302a50b3c24';
+    var Signature = signature;
+    print('MerchantCode api: ${MerchantCode}');
+    print('MerchantKey api: ${MerchantKey}');
+    print('Payment id code : ${PaymentId}');
+    print('RefNo : ${RefNo}');
+    print('Amount : ${Amount}');
+    print('Currency : ${Currency}');
+    print('ProdDesc : ${ProdDesc}');
+    print('UserName : ${UserName}');
+    print('UserEmail : ${UserEmail}');
+    print('UserContact : ${UserContact}');
+    print('Remark : ${Remark}');
+    print('BarcodeNo : ${BarcodeNo}');
+    print('TerminalID: ${TerminalID}');
+    print('xField1: ${xField1}');
+    print('xField2: ${xField2}');
+    print('BackendURL: ${BackendURL}');
+    print('SignatureType: ${SignatureType}');
+    print('Signature: ${Signature}');
+
 
 
     // var xmlstring = '<?xml version="1.0" encoding="utf-8"?><soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:mob="https://www.mobile88.com" xmlns:mhp="http://schemas.datacontract.org/2004/07/MHPHGatewayService.Model"><soapenv:Header/><soapenv:Body><mob:EntryPageFunctionality><mob:requestModelObj><mhp:Amount>1.00</mhp:Amount><mhp:BackendURL></mhp:BackendURL><mhp:BarcodeNo></mhp:BarcodeNo><mhp:Currency>MYR</mhp:Currency><mhp:MerchantCode>M15137</mhp:MerchantCode><mhp:PaymentId>336</mhp:PaymentId><mhp:ProdDesc>cool product</mhp:ProdDesc><mhp:RefNo>abc1</mhp:RefNo><mhp:Remark>testing</mhp:Remark><mhp:Signature>7dc95d825028af2379d3d2fd04b7707bbe123571a57810e243841302a50b3c24</mhp:Signature><mhp:SignatureType>SHA256</mhp:SignatureType><mhp:TerminalID></mhp:TerminalID><mhp:UserContact>01110956891</mhp:UserContact><mhp:UserEmail>yong9746@hotmail.com</mhp:UserEmail><mhp:UserName>yong</mhp:UserName><mhp:xfield1></mhp:xfield1><mhp:xfield2></mhp:xfield2></mob:requestModelObj></mob:EntryPageFunctionality></soapenv:Body></soapenv:Envelope>';

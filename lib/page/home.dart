@@ -198,6 +198,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       branchName = data!.name!;
     });
+    print('branch name : $branchName');
   }
 
 }

@@ -692,7 +692,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
 */
             Map responseDeleteVariantGroup = await Domain().deleteVariantGroup(
                 widget.product!.product_id.toString(),
-                variantGroupData!.variant_group_id.toString());
+                variantGroupData.variant_group_id.toString());
             if (responseDeleteVariantGroup['status'] == '1') {
               int syncData =
               await PosDatabase.instance.updateSyncVariantGroup(VariantGroup(

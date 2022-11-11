@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/choose_branch.dart';
@@ -153,6 +155,7 @@ class _SetupPageState extends State<SetupPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('branch_id', selectedBranch!.branchID!);
     await prefs.setInt('device_id', selectedDevice!.deviceID!);
+    await prefs.setString("branch", json.encode(selectedBranch!));
     await PosDatabase.instance.insertBranch(selectedBranch!);
 
 
