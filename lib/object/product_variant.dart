@@ -4,6 +4,7 @@ class ProductVariantFields {
   static List<String> values = [
     product_variant_sqlite_id,
     product_variant_id,
+    product_sqlite_id,
     product_id,
     variant_name,
     SKU,
@@ -19,6 +20,7 @@ class ProductVariantFields {
   ];
   static String product_variant_sqlite_id = 'product_variant_sqlite_id';
   static String product_variant_id = 'product_variant_id';
+  static String product_sqlite_id = 'product_sqlite_id';
   static String product_id = 'product_id';
   static String variant_name = 'variant_name';
   static String SKU = 'SKU';
@@ -36,6 +38,7 @@ class ProductVariantFields {
 class ProductVariant {
   int? product_variant_sqlite_id;
   int? product_variant_id;
+  String?  product_sqlite_id;
   String? product_id;
   String? variant_name;
   String? SKU;
@@ -52,6 +55,7 @@ class ProductVariant {
   ProductVariant(
       {this.product_variant_sqlite_id,
       this.product_variant_id,
+      this.product_sqlite_id,
       this.product_id,
       this.variant_name,
       this.SKU,
@@ -68,6 +72,7 @@ class ProductVariant {
   ProductVariant copy({
     int? product_variant_sqlite_id,
     int? product_variant_id,
+    String? product_sqlite_id,
     String? product_id,
     String? variant_name,
     String? SKU,
@@ -85,6 +90,7 @@ class ProductVariant {
           product_variant_sqlite_id:
               product_variant_sqlite_id ?? this.product_variant_sqlite_id,
           product_variant_id: product_variant_id ?? this.product_variant_id,
+          product_sqlite_id: product_sqlite_id ?? this.product_sqlite_id,
           product_id: product_id ?? this.product_id,
           variant_name: variant_name ?? this.variant_name,
           SKU: SKU ?? this.SKU,
@@ -103,6 +109,7 @@ class ProductVariant {
             json[ProductVariantFields.product_variant_sqlite_id] as int?,
         product_variant_id:
             json[ProductVariantFields.product_variant_id] as int?,
+    product_sqlite_id: json[ProductVariantFields.product_sqlite_id] as String?,
         product_id: json[ProductVariantFields.product_id] as String?,
         variant_name: json[ProductVariantFields.variant_name] as String?,
         SKU: json[ProductVariantFields.SKU] as String?,
@@ -122,6 +129,7 @@ class ProductVariant {
         ProductVariantFields.product_variant_sqlite_id:
             product_variant_sqlite_id,
         ProductVariantFields.product_variant_id: product_variant_id,
+    ProductVariantFields.product_sqlite_id: product_sqlite_id,
         ProductVariantFields.product_id: product_id,
         ProductVariantFields.variant_name: variant_name,
         ProductVariantFields.SKU: SKU,
