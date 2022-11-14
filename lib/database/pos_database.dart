@@ -131,7 +131,7 @@ class PosDatabase {
     await db.execute(
         '''CREATE TABLE $tableOrder ( ${OrderFields.order_sqlite_id} $idType, ${OrderFields.order_id} $integerType, ${OrderFields.company_id} $textType,
            ${OrderFields.customer_id} $textType, ${OrderFields.branch_link_promotion_id} $textType,${OrderFields.payment_link_company_id} $textType,
-           ${OrderFields.branch_id} $textType, ${OrderFields.branch_link_tax_id} $textType, ${OrderFields.amount} $textType, ${OrderFields.rounding} $textType, ${OrderFields.final_amount} $textType,
+           ${OrderFields.branch_id} $textType, ${OrderFields.branch_link_tax_id} $textType, ${OrderFields} $textType, ${OrderFields.rounding} $textType, ${OrderFields.final_amount} $textType,
            ${OrderFields.close_by} $textType, ${OrderFields.created_at} $textType, ${OrderFields.updated_at} $textType, ${OrderFields.soft_delete} $textType)''');
 /*
     create order cache table
@@ -2206,14 +2206,15 @@ class PosDatabase {
   /*
   update sync product variant for update  // until here
 */
-  Future<int> updateSyncProductVariantForUpdate(VariantItem data) async {
+  Future<int> updateSyncProductVariantForUpdate(ProductVariant data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableProductVariant SET sync_status = ?, updated_at = ? WHERE variant_group_sqlite_id = ?',
+        'UPDATE $tableProductVariant SET sync_status = ?, updated_at = ? WHERE product_variant_sqlite_id = ? AND product_sqlite_id = ? ',
         [
           data.sync_status,
           data.updated_at,
-          data.variant_group_sqlite_id
+          data.product_variant_sqlite_id,
+          data.product_sqlite_id
         ]);
   }
 
@@ -2619,8 +2620,8 @@ class PosDatabase {
   Future<int> deleteProductVariantDetail(ProductVariantDetail data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableProductVariantDetail SET soft_delete = ? WHERE product_variant_id = ?',
-        [data.soft_delete, data.product_variant_id]);
+        'UPDATE $tableProductVariantDetail SET soft_delete = ? WHERE product_variant_sqlite_id = ?',
+        [data.soft_delete, data.product_variant_sqlite_id]);
   }
 
   /*

@@ -4,7 +4,9 @@ class ProductVariantDetailFields {
   static List<String> values = [
     product_variant_detail_sqlite_id,
     product_variant_detail_id,
+    product_variant_sqlite_id,
     product_variant_id,
+    variant_item_sqlite_id,
     variant_item_id,
     created_at,
     updated_at,
@@ -13,7 +15,9 @@ class ProductVariantDetailFields {
 
   static String product_variant_detail_sqlite_id = 'product_variant_detail_sqlite_id';
   static String product_variant_detail_id = 'product_variant_detail_id';
+  static String product_variant_sqlite_id = 'product_variant_sqlite_id';
   static String product_variant_id = 'product_variant_id';
+  static String variant_item_sqlite_id = 'variant_item_sqlite_id';
   static String variant_item_id = 'variant_item_id';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -23,7 +27,9 @@ class ProductVariantDetailFields {
 class ProductVariantDetail {
   int? product_variant_detail_sqlite_id;
   int? product_variant_detail_id;
+  String? product_variant_sqlite_id;
   String? product_variant_id;
+  String? variant_item_sqlite_id;
   String? variant_item_id;
   String? created_at;
   String? updated_at;
@@ -32,7 +38,9 @@ class ProductVariantDetail {
   ProductVariantDetail(
       {this.product_variant_detail_sqlite_id,
       this.product_variant_detail_id,
+      this.product_variant_sqlite_id,
       this.product_variant_id,
+      this.variant_item_sqlite_id,
       this.variant_item_id,
       this.created_at,
       this.updated_at,
@@ -41,7 +49,9 @@ class ProductVariantDetail {
   ProductVariantDetail copy({
     int? product_variant_detail_sqlite_id,
     int? product_variant_detail_id,
+    String? product_variant_sqlite_id,
     String? product_variant_id,
+    String? variant_item_sqlite_id,
     String? variant_item_id,
     String? created_at,
     String? updated_at,
@@ -50,7 +60,9 @@ class ProductVariantDetail {
       ProductVariantDetail(
           product_variant_detail_sqlite_id: product_variant_detail_sqlite_id ?? this.product_variant_detail_sqlite_id,
           product_variant_detail_id: product_variant_detail_id ?? this.product_variant_detail_id,
+          product_variant_sqlite_id: product_variant_sqlite_id ?? this.product_variant_sqlite_id,
           product_variant_id: product_variant_id ?? this.product_variant_id,
+          variant_item_sqlite_id: variant_item_sqlite_id ?? this.variant_item_sqlite_id,
           variant_item_id: variant_item_id ?? this.variant_item_id,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -64,9 +76,13 @@ class ProductVariantDetail {
         product_variant_detail_id:
             json[ProductVariantDetailFields.product_variant_detail_id] as int?,
         product_variant_id:
+        json[ProductVariantDetailFields.product_variant_sqlite_id] as String?,
+        product_variant_sqlite_id:
             json[ProductVariantDetailFields.product_variant_id] as String?,
         variant_item_id:
-            json[ProductVariantDetailFields.variant_item_id] as String?,
+            json[ProductVariantDetailFields.variant_item_sqlite_id] as String?,
+        variant_item_sqlite_id:
+        json[ProductVariantDetailFields.variant_item_id] as String?,
         created_at: json[ProductVariantDetailFields.created_at] as String?,
         updated_at: json[ProductVariantDetailFields.updated_at] as String?,
         soft_delete: json[ProductVariantDetailFields.soft_delete] as String?,

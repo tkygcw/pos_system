@@ -642,7 +642,8 @@ class _EditProductDialogState extends State<EditProductDialog> {
                       .insertVariantItem(VariantItem(
                           variant_item_id: 0,
                           variant_group_id: group.variant_group_id.toString(),
-                          variant_group_sqlite_id: group.variant_group_sqlite_id.toString(),
+                          variant_group_sqlite_id:
+                              group.variant_group_sqlite_id.toString(),
                           name: variantList[l]['modItem'][m],
                           sync_status: 1,
                           created_at: dateTime,
@@ -655,16 +656,16 @@ class _EditProductDialogState extends State<EditProductDialog> {
                       connectivityResult == ConnectivityResult.wifi) {
                     Map responseInsertVariantItem = await Domain()
                         .insertVariantItem(variantList[l]['modItem'][m],
-                        group.variant_group_id.toString());
+                            group.variant_group_id.toString());
                     if (responseInsertVariantItem['status'] == '1') {
-                      int syncData =
-                      await PosDatabase.instance.updateSyncVariantItem(
-                          VariantItem(
-                            variant_item_id: responseInsertVariantItem['variant_item_id'],
-                            sync_status: 2,
-                            updated_at: dateTime,
-                            variant_item_sqlite_id: item.variant_item_sqlite_id,
-                          ));
+                      int syncData = await PosDatabase.instance
+                          .updateSyncVariantItem(VariantItem(
+                        variant_item_id:
+                            responseInsertVariantItem['variant_item_id'],
+                        sync_status: 2,
+                        updated_at: dateTime,
+                        variant_item_sqlite_id: item.variant_item_sqlite_id,
+                      ));
                     }
                   }
 /*
@@ -681,46 +682,47 @@ class _EditProductDialogState extends State<EditProductDialog> {
         if (needDelete.length > 0) {
           for (int n = 0; n < needDelete.length; n++) {
             VariantGroup? variantGroupData = await PosDatabase.instance
-                .readSpecificVariantGroup(
-                    needDelete[n], widget.product!.product_sqlite_id.toString());
+                .readSpecificVariantGroup(needDelete[n],
+                    widget.product!.product_sqlite_id.toString());
 
-              int deleteVariantGroup = await PosDatabase.instance
-                  .deleteVariantGroup(VariantGroup(
-                      child: [],
-                      product_sqlite_id: widget.product!.product_sqlite_id.toString(),
-                      variant_group_sqlite_id: variantGroupData!.variant_group_sqlite_id,
-                      soft_delete: dateTime));
+            int deleteVariantGroup = await PosDatabase.instance
+                .deleteVariantGroup(VariantGroup(
+                    child: [],
+                    product_sqlite_id:
+                        widget.product!.product_sqlite_id.toString(),
+                    variant_group_sqlite_id:
+                        variantGroupData!.variant_group_sqlite_id,
+                    soft_delete: dateTime));
 /*
               --------------------------sync to cloud---------------------------
 */
             if (connectivityResult == ConnectivityResult.mobile ||
                 connectivityResult == ConnectivityResult.wifi) {
               Map responseDeleteVariantGroup = await Domain()
-                  .deleteVariantGroup(
-                  widget.product!.product_id.toString(),
-                  variantGroupData.variant_group_id.toString());
+                  .deleteVariantGroup(widget.product!.product_id.toString(),
+                      variantGroupData.variant_group_id.toString());
               if (responseDeleteVariantGroup['status'] == '1') {
-                int syncData =
-                await PosDatabase.instance.updateSyncVariantGroup(VariantGroup(
+                int syncData = await PosDatabase.instance
+                    .updateSyncVariantGroup(VariantGroup(
                   child: [],
                   variant_group_id: variantGroupData.variant_group_id,
                   sync_status: 2,
                   updated_at: dateTime,
-                  variant_group_sqlite_id: variantGroupData
-                      .variant_group_sqlite_id,
+                  variant_group_sqlite_id:
+                      variantGroupData.variant_group_sqlite_id,
                 ));
               }
             }
 /*
             ------------------------------end to cloud--------------------------
 */
-                int deleteVariantItem =
-                    await PosDatabase.instance.deleteVariantItem(VariantItem(
-                  soft_delete: dateTime,
-                  sync_status: 1,
-                  variant_group_sqlite_id:
-                      variantGroupData.variant_group_sqlite_id.toString(),
-                ));
+            int deleteVariantItem =
+                await PosDatabase.instance.deleteVariantItem(VariantItem(
+              soft_delete: dateTime,
+              sync_status: 1,
+              variant_group_sqlite_id:
+                  variantGroupData.variant_group_sqlite_id.toString(),
+            ));
 
 /*
               -----------------------sync to cloud-----------------------------
@@ -730,14 +732,13 @@ class _EditProductDialogState extends State<EditProductDialog> {
               Map responseDeleteVariantItem = await Domain().deleteVariantItem(
                   variantGroupData.variant_group_id.toString());
               if (responseDeleteVariantItem['status'] == '1') {
-                int syncData =
-                await PosDatabase.instance.updateSyncVariantItemForUpdate(
-                    VariantItem(
-                      sync_status: 2,
-                      updated_at: dateTime,
-                      variant_group_sqlite_id: variantGroupData
-                          .variant_group_sqlite_id.toString(),
-                    ));
+                int syncData = await PosDatabase.instance
+                    .updateSyncVariantItemForUpdate(VariantItem(
+                  sync_status: 2,
+                  updated_at: dateTime,
+                  variant_group_sqlite_id:
+                      variantGroupData.variant_group_sqlite_id.toString(),
+                ));
               }
             }
 /*
@@ -769,47 +770,64 @@ class _EditProductDialogState extends State<EditProductDialog> {
                     widget.product!.product_id.toString());
             int deleteProductVariant = await PosDatabase.instance
                 .deleteProductVariant(ProductVariant(
-                soft_delete: dateTime,
-                sync_status: 1,
-                product_sqlite_id: widget.product!.product_sqlite_id.toString(),
-                product_variant_sqlite_id: getProductVariant!.product_variant_sqlite_id));
+                    soft_delete: dateTime,
+                    sync_status: 1,
+                    product_sqlite_id:
+                        widget.product!.product_sqlite_id.toString(),
+                    product_variant_sqlite_id:
+                        getProductVariant!.product_variant_sqlite_id));
 /*
             -------------------------sync to cloud------------------------------
 */
-            Map responseDeleteProductVariant = await Domain()
-                .deleteProductVariant(widget.product!.product_id.toString(),
-                    getProductVariant!.product_variant_id.toString());
-            if (responseDeleteProductVariant['status'] == '1') {
-
-
+            if (connectivityResult == ConnectivityResult.mobile ||
+                connectivityResult == ConnectivityResult.wifi) {
+              Map responseDeleteProductVariant = await Domain()
+                  .deleteProductVariant(widget.product!.product_id.toString(),
+                      getProductVariant!.product_variant_id.toString());
+              if (responseDeleteProductVariant['status'] == '1') {
+                int syncData = await PosDatabase.instance
+                    .updateSyncProductVariantForUpdate(ProductVariant(
+                        sync_status: 2,
+                        updated_at: dateTime,
+                        product_sqlite_id:
+                            widget.product!.product_sqlite_id.toString(),
+                        product_variant_sqlite_id:
+                            getProductVariant!.product_variant_sqlite_id));
+              }
             }
 /*
             -----------------------------end sync-------------------------------
 */
+              int deleteProductVariantDetail = await PosDatabase.instance
+                  .deleteProductVariantDetail(ProductVariantDetail(
+                      soft_delete: dateTime,
+                      product_variant_sqlite_id:
+                          getProductVariant.product_variant_sqlite_id.toString()));
 
-              Map responseDeleteProductVariantDetail = await Domain()
-                  .deleteProductVariantDetail(
+
+/*
+            ------------------------sync to cloud------------------------------
+*/
+            Map responseDeleteProductVariantDetail = await Domain() // do until here
+                .deleteProductVariantDetail(
+                getProductVariant.product_variant_id.toString());
+            if (responseDeleteProductVariantDetail['status'] == '1') {}
+/*
+            ---------------------------end cloud-------------------------------
+*/
+              Map responseDeleteBranchLinkProduct = await Domain()
+                  .deleteBranchLinkProduct(
+                      branch_id.toString(),
+                      widget.product!.product_id.toString(),
                       getProductVariant.product_variant_id.toString());
-              if (responseDeleteProductVariantDetail['status'] == '1') {
-                int deleteProductVariantDetail = await PosDatabase.instance
-                    .deleteProductVariantDetail(ProductVariantDetail(
+              if (responseDeleteBranchLinkProduct['status'] == '1') {
+                int deleteBranchLinkPorduct = await PosDatabase.instance
+                    .deleteBranchLinkProduct(BranchLinkProduct(
                         soft_delete: dateTime,
+                        branch_id: branch_id.toString(),
+                        product_id: widget.product!.product_id.toString(),
                         product_variant_id:
                             getProductVariant.product_variant_id.toString()));
-                Map responseDeleteBranchLinkProduct = await Domain()
-                    .deleteBranchLinkProduct(
-                        branch_id.toString(),
-                        widget.product!.product_id.toString(),
-                        getProductVariant.product_variant_id.toString());
-                if (responseDeleteBranchLinkProduct['status'] == '1') {
-                  int deleteBranchLinkPorduct = await PosDatabase.instance
-                      .deleteBranchLinkProduct(BranchLinkProduct(
-                          soft_delete: dateTime,
-                          branch_id: branch_id.toString(),
-                          product_id: widget.product!.product_id.toString(),
-                          product_variant_id:
-                              getProductVariant.product_variant_id.toString()));
-                }
               }
 
           }
