@@ -75,6 +75,7 @@ class _CartPageState extends State<CartPage> {
   double promoAmount = 0.0;
   double totalAmount = 0.0;
   double tableOrderPrice = 0.0;
+  double rounding = 0.0;
   String selectedPromoRate = '';
   String promoName = '';
   String promoRate = '';
@@ -84,7 +85,6 @@ class _CartPageState extends State<CartPage> {
   bool hasPromo = false;
   bool hasSelectedPromo = false;
   bool _isSettlement = false;
-  bool _isSubtotal = false;
   Color font = Colors.black45;
 
   @override
@@ -151,7 +151,7 @@ class _CartPageState extends State<CartPage> {
                   ),
                 ),
                 Visibility(
-                  visible: widget.currentPage == 'menu' ? false : true,
+                  visible: widget.currentPage == 'menu' || widget.currentPage == 'qr_order'  ? false : true,
                   child: IconButton(
                     tooltip: 'promotion',
                     icon: Icon(Icons.discount),
@@ -456,42 +456,38 @@ class _CartPageState extends State<CartPage> {
                                 itemCount: taxRateList.length,
                                 itemBuilder: (context, index){
                                   return ListTile(
-                                    title: Text('${taxRateList[index].name}(${taxRateList[index].tax_rate}%)'),
-                                    trailing: Text('${taxRateList[index].tax_amount?.toStringAsFixed(2)}'), //Text(''),
+                                    title: Text('${taxRateList[index].name}(${taxRateList[index].tax_rate}%)', style: TextStyle(fontSize: 14)),
+                                    trailing: Text('${taxRateList[index].tax_amount?.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)), //Text(''),
                                     visualDensity: VisualDensity(vertical: -4),
                                     dense: true,
                                   );
                                 }
                             ),
-                            // ListTile(
-                            //   title: Text('Sst (6%)',
-                            //       style: TextStyle(fontSize: 14)),
-                            //   trailing: Text(
-                            //       '${priceIncSST.toStringAsFixed(2)}',
-                            //       style: TextStyle(fontSize: 14)),
-                            //   visualDensity: VisualDensity(vertical: -4),
-                            //   dense: true,
-                            // ),
-                            // ListTile(
-                            //   title: Text('Service Tax (${taxRate}%)',
-                            //       style: TextStyle(fontSize: 14)),
-                            //   trailing: Text(
-                            //       '${priceIncServiceTax.toStringAsFixed(2)}',
-                            //       style: TextStyle(fontSize: 14)),
-                            //   visualDensity: VisualDensity(vertical: -4),
-                            //   dense: true,
-                            // ),
+                            ListTile(
+                              title: Text("Total",
+                                  style: TextStyle(fontSize: 14)),
+                              trailing: Text('${totalAmount.toStringAsFixed(2)}',
+                                  style: TextStyle(fontSize: 14)),
+                              visualDensity: VisualDensity(vertical: -4),
+                              dense: true,
+                            ),
+                            ListTile(
+                              title: Text("Rounding",
+                                  style: TextStyle(fontSize: 14)),
+                              trailing: Text('${rounding.toStringAsFixed(2)}',
+                                  style: TextStyle(fontSize: 14)),
+                              visualDensity: VisualDensity(vertical: -4),
+                              dense: true,
+                            ),
                             ListTile(
                               visualDensity: VisualDensity(vertical: -4),
-                              title: Text("Total",
+                              title: Text("Final amount",
                                   style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold)),
-                              trailing: Text(
-                                  "${totalAmount.toStringAsFixed(2)}",
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold)),
+                              trailing: rounding != 0.0 ?
+                              Text("${totalAmount.toStringAsFixed(1)}0", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
+                              : Text("${totalAmount.toStringAsFixed(2)}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                               dense: true,
                             ),
                           ],
@@ -526,7 +522,7 @@ class _CartPageState extends State<CartPage> {
                                 });
                                 _isSettlement = false;
                               } else {
-                                if (widget.currentPage == 'menu') {
+                                if (widget.currentPage == 'menu' || widget.currentPage == 'qr_order') {
                                   if (cart.selectedOption == 'Dine in') {
                                     if (cart.selectedTable.isNotEmpty &&
                                         cart.cartNotifierItem.isNotEmpty) {
@@ -580,7 +576,7 @@ class _CartPageState extends State<CartPage> {
                               }
 
                             },
-                            child: widget.currentPage == 'menu'
+                            child: widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
                                 ? Text('Place Order')
                                 : Text('Make payment'),
                           ),
@@ -908,19 +904,10 @@ class _CartPageState extends State<CartPage> {
                 autoApplySpecificCategoryAmount(
                     promotionList[j], cart.cartNotifierItem[m]);
               }
-              // //check cart item status
-              // if (cart.cartNotifierItem[m].status == 0) {
-              //
-              // }
             }
           } else {
             //Auto apply non specific category promotion
             if (cart.cartNotifierItem.isNotEmpty) {
-              // for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-              //   if (cart.cartNotifierItem[i].status == 0) {
-              //
-              //   }
-              // }
               hasPromo = true;
               autoApplyPromotionList.add(promotionList[j]);
               if(widget.currentPage !='menu'){
@@ -957,9 +944,6 @@ class _CartPageState extends State<CartPage> {
           promoRate = promotion.amount! + '%';
           promotion.promoRate = promoRate;
         }
-        // if (cart.cartNotifierItem[i].status == 0) {
-        //
-        // }
       }
       promoAmount += promo;
     } catch (e) {
@@ -986,9 +970,6 @@ class _CartPageState extends State<CartPage> {
         promoRate = promotion.amount! + '%';
         promotion.promoRate = promoRate;
       }
-      // if (cartItem.status == 0) {
-      // }
-      //calculate promo total amount
       promoAmount += promo;
     } catch (e) {
       print("calc auto apply specific category error: $e");
@@ -1029,8 +1010,7 @@ class _CartPageState extends State<CartPage> {
       promo = 0.0;
       promoAmount = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        total += (double.parse((cart.cartNotifierItem[i].price)) *
-            cart.cartNotifierItem[i].quantity);
+        total += (double.parse((cart.cartNotifierItem[i].price)) * cart.cartNotifierItem[i].quantity);
         // if (cart.cartNotifierItem[i].status == 0) {
         //
         // }
@@ -1043,6 +1023,7 @@ class _CartPageState extends State<CartPage> {
     calPromotion(cart);
     getTaxAmount();
     getAllTotal();
+    getRounding();
     controller.add('refresh');
   }
 
@@ -1071,47 +1052,27 @@ class _CartPageState extends State<CartPage> {
     return priceIncAllTaxes;
   }
 
-  // getSalesServiceTax() {
-  //   try {
-  //     priceIncServiceTax = 0.00;
-  //     discountPrice = 0.00;
-  //
-  //     discountPrice = total - promoAmount;
-  //     priceIncSST = discountPrice * 0.06;
-  //     priceIncSST = (priceIncSST * 100).truncate() / 100;
-  //   } catch (error) {
-  //     print('SST calculation error $error');
-  //     priceIncSST = 0.0;
-  //   }
-  //   controller.add('refresh');
-  // }
-  //
-  // getServiceTax() {
-  //   try {
-  //     priceIncServiceTax = 0.0;
-  //     discountPrice = 0.0;
-  //
-  //     discountPrice = total - promoAmount;
-  //     priceIncServiceTax = discountPrice * (taxRate / 100);
-  //     priceIncServiceTax = (priceIncServiceTax * 100).truncate() / 100;
-  //   } catch (error) {
-  //     print('Service Tax error $error');
-  //     priceIncServiceTax = 0.0;
-  //   }
-  //
-  //   controller.add('refresh');
-  // }
-
   getAllTotal() {
     getAllTaxAmount();
     try {
       totalAmount = 0.0;
-      //priceIncAllTaxes = 0.0;
       discountPrice = total - promoAmount;
-      totalAmount = discountPrice + priceIncAllTaxes ;
+      totalAmount = discountPrice + priceIncAllTaxes;
       //totalAmount = (totalAmount * 100).truncate() / 100;
     } catch (error) {
       print('Total calc error: $error');
+    }
+
+    controller.add('refresh');
+  }
+
+  getRounding(){
+    double _round = 0.0;
+    _round = double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
+    if(_round.toStringAsFixed(2) != '0.05'){
+      rounding = _round;
+    } else {
+      rounding = 0.0;
     }
 
     controller.add('refresh');

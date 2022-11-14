@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/pos_database.dart';
+import '../fragment/qr_order/qr_order_page.dart';
 import '../fragment/settlement/cash_dialog.dart';
 import '../object/branch.dart';
 import '../object/user.dart';
@@ -93,9 +94,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Expanded(
                       flex: 3,
-                      child: Consumer<ConnectivityChangeNotifier>(builder:
-                          (context, ConnectivityChangeNotifier connection,
-                              child) {
+                      child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connection, child) {
                         return _body(size, context);
                       }),
                     ),
@@ -137,6 +136,11 @@ class _HomePageState extends State<HomePage> {
         onPressed: () => setState(() => currentPage = 'table'),
       ),
       CollapsibleItem(
+        text: 'Qr Order',
+        icon: Icons.qr_code ,
+        onPressed: () => setState(() => currentPage = 'qr_order'),
+      ),
+      CollapsibleItem(
         text: 'Bill',
         icon: Icons.receipt_long,
         onPressed: () => setState(() => currentPage = 'bill'),
@@ -167,6 +171,8 @@ class _HomePageState extends State<HomePage> {
         return ProductPage();
       case 'table':
         return TablePage();
+      case 'qr_order':
+        return QrOrderPage();
       case 'bill':
         return BillPage();
       case 'order':

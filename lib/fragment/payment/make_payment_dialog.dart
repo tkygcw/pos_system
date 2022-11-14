@@ -8,8 +8,11 @@ import 'package:pos_system/fragment/payment/ipay_api.dart';
 // import 'package:pos_system/fragment/payment/ipay_api.dart';
 import 'package:pos_system/fragment/payment/number_button.dart';
 import 'package:pos_system/notifier/theme_color.dart';
+import 'package:pos_system/object/branch_link_promotion.dart';
+import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
+import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:provider/provider.dart';
@@ -49,6 +52,7 @@ class _MakePamentState extends State<MakePayment> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   List<String> branchLinkDiningIdList = [];
   List<Promotion> autoApplyPromotionList = [];
+  List<Promotion> appliedPromotionList = [];
   List<Tax> taxList = [];
   bool scanning=false;
   bool isopen=false;
@@ -67,6 +71,7 @@ class _MakePamentState extends State<MakePayment> {
   double promoAmount = 0.0;
   double totalAmount = 0.0;
   double tableOrderPrice = 0.0;
+  double rounding = 0.0;
   String selectedPromoRate = '';
   String promoName = '';
   String promoRate = '';
@@ -159,13 +164,13 @@ class _MakePamentState extends State<MakePayment> {
                                 child: Column(
                                   children: [
                                     Container(
-                                      height: 250,
+                                      height: MediaQuery.of(context).size.width / 6,
                                       child: ListView.builder(
                                           itemCount: cart.cartNotifierItem.length,
                                           itemBuilder: (context, index) {
                                             return ListTile(
                                               hoverColor: Colors.transparent,
-                                              onTap: () {},
+                                              onTap: null,
                                               isThreeLine: true,
                                               title: RichText(
                                                 text: TextSpan(
@@ -192,8 +197,7 @@ class _MakePamentState extends State<MakePayment> {
                                                 child: FittedBox(
                                                   child: Row(
                                                     children: [
-                                                      Text(
-                                                        cart.cartNotifierItem[index].quantity.toString(),
+                                                      Text('x${cart.cartNotifierItem[index].quantity.toString()}',
                                                         style: TextStyle(color: color.backgroundColor),
                                                       ),
                                                     ],
@@ -204,7 +208,7 @@ class _MakePamentState extends State<MakePayment> {
                                           }
                                       ),
                                     ),
-                                    SizedBox(height: 20),
+                                    SizedBox(height: 10),
                                     Divider(
                                       color: Colors.grey,
                                       height: 1,
@@ -279,16 +283,30 @@ class _MakePamentState extends State<MakePayment> {
                                             }
                                         ),
                                         ListTile(
-                                          visualDensity: VisualDensity(vertical: -4),
                                           title: Text("Total",
+                                              style: TextStyle(fontSize: 14)),
+                                          trailing: Text('${totalAmount.toStringAsFixed(2)}',
+                                              style: TextStyle(fontSize: 14)),
+                                          visualDensity: VisualDensity(vertical: -4),
+                                          dense: true,
+                                        ),
+                                        ListTile(
+                                          title: Text("Rounding",
+                                              style: TextStyle(fontSize: 14)),
+                                          trailing: Text('${rounding.toStringAsFixed(2)}',
+                                              style: TextStyle(fontSize: 14)),
+                                          visualDensity: VisualDensity(vertical: -4),
+                                          dense: true,
+                                        ),
+                                        ListTile(
+                                          visualDensity: VisualDensity(vertical: -4),
+                                          title: Text("Final amount",
                                               style: TextStyle(
                                                   fontSize: 18,
                                                   fontWeight: FontWeight.bold)),
-                                          trailing: Text(
-                                              "${totalAmount.toStringAsFixed(2)}",
-                                              style: TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold)),
+                                          trailing: rounding != 0.0 ?
+                                          Text("${totalAmount.toStringAsFixed(1)}0", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
+                                              : Text("${totalAmount.toStringAsFixed(2)}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                                           dense: true,
                                         ),
                                       ],
@@ -537,7 +555,7 @@ class _MakePamentState extends State<MakePayment> {
                                         width: MediaQuery.of(context).size.width/2,
                                       ),
                                     ):Container(
-                                      child: _buildQrView(context) ,
+                                      child: _buildQrView(context),
                                     ),
 
                                   )
@@ -546,7 +564,8 @@ class _MakePamentState extends State<MakePayment> {
                                   flex:1,
                                   child: Container(
                                     alignment: Alignment.center,
-                                    child: Text('RM${totalAmount.toStringAsFixed(2)}',style: TextStyle(fontSize: 40,fontWeight: FontWeight.bold),),
+                                    child: rounding != 0.0 ? Text('RM${totalAmount.toStringAsFixed(1)}0',style: TextStyle(fontSize: 40,fontWeight: FontWeight.bold))
+                                    : Text('RM${totalAmount.toStringAsFixed(2)}',style: TextStyle(fontSize: 40,fontWeight: FontWeight.bold)),
                                   )
                               ),
                               Expanded(
@@ -564,8 +583,6 @@ class _MakePamentState extends State<MakePayment> {
                                           //await controller?.resumeCamera();
                                           await controller?.scannedDataStream;
                                           await callCrateNewOrder(cart);
-                                          // await controller?.resumeCamera();
-                                          // scanning= true;
 
                                         }, child: Text(scanning==false?"Start Scan":"Scanning...",style:TextStyle(fontSize: 25)),
 
@@ -643,7 +660,7 @@ class _MakePamentState extends State<MakePayment> {
 //     answer = eval.toString();
 //   }
 /*
-  -----------------------Cart-item-----------------------------------------------------------------------------------------------------------------------------------------------------
+  -----------------------Cart-item--------------------------------------------------------------------------------------------------------------------------------------------------
 */
 /*
   get selected table
@@ -785,6 +802,7 @@ class _MakePamentState extends State<MakePayment> {
         }
       }
       promoAmount += selectedPromo;
+      promotion.promoAmount = selectedPromo;
     } catch (e) {
       print('Specific category offer amount error: $e');
       selectedPromo = 0.0;
@@ -804,12 +822,12 @@ class _MakePamentState extends State<MakePayment> {
         if (cart.cartNotifierItem.isNotEmpty) {
           for (int i = 0; i < cart.cartNotifierItem.length; i++) {
             hasSelectedPromo = true;
-            selectedPromo += double.parse(cart.selectedPromotion!.amount!) *
-                cart.cartNotifierItem[i].quantity;
+            selectedPromo += double.parse(cart.selectedPromotion!.amount!) * cart.cartNotifierItem[i].quantity;
           }
         }
       }
       promoAmount += selectedPromo;
+      cart.selectedPromotion!.promoAmount = selectedPromo;
     } catch (error) {
       print('check promotion type error: $error');
       selectedPromo = 0.0;
@@ -920,6 +938,21 @@ class _MakePamentState extends State<MakePayment> {
     streamController.add('refresh');
   }
 
+  addAllPromotion(CartModel cartModel){
+    if(autoApplyPromotionList.length > 0) {
+      for (int i = 0; i < autoApplyPromotionList.length; i++){
+        if(!appliedPromotionList.contains(autoApplyPromotionList[i])){
+          appliedPromotionList.add(autoApplyPromotionList[i]);
+        }
+      }
+    }
+    if(cartModel.selectedPromotion != null){
+      if(!appliedPromotionList.contains(cartModel.selectedPromotion!)){
+        appliedPromotionList.add(cartModel.selectedPromotion!);
+      }
+    }
+  }
+
   getSubTotal(CartModel cart) async {
     try {
       total = 0.0;
@@ -936,6 +969,8 @@ class _MakePamentState extends State<MakePayment> {
     calPromotion(cart);
     getTaxAmount();
     getAllTotal();
+    getRounding();
+    addAllPromotion(cart);
     streamController.add('refresh');
   }
 
@@ -970,12 +1005,22 @@ class _MakePamentState extends State<MakePayment> {
   getAllTotal() {
     getAllTaxAmount();
     try {
-      totalAmount = 0.0;
-
       discountPrice = total - promoAmount;
-      totalAmount = discountPrice + priceIncAllTaxes ;
+      totalAmount = discountPrice + priceIncAllTaxes;
     } catch (error) {
       print('Total calc error: $error');
+    }
+
+    streamController.add('refresh');
+  }
+
+  getRounding(){
+    double _round = 0.0;
+    _round = double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
+    if(_round.toStringAsFixed(2) != '0.05'){
+      rounding = _round;
+    } else {
+      rounding = 0.0;
     }
 
     streamController.add('refresh');
@@ -1024,6 +1069,7 @@ class _MakePamentState extends State<MakePayment> {
     await createOrder();
     await updateOrderCache(cartModel);
     await crateOrderTaxDetail();
+    await createOrderPromotionDetail();
   }
 
   readBranchPref() async {
@@ -1052,7 +1098,9 @@ class _MakePamentState extends State<MakePayment> {
           branch_link_promotion_id: '',
           payment_link_company_id: widget.type.toString(),
           branch_link_tax_id: '',
-          final_amount: totalAmount.toStringAsFixed(2),
+          amount: totalAmount.toStringAsFixed(2),
+          rounding: rounding.toStringAsFixed(2),
+          final_amount: rounding != 0.0 ? totalAmount.toStringAsFixed(1) + '0' : totalAmount.toStringAsFixed(2),
           close_by: userObject['name'].toString(),
           created_at: dateTime,
           updated_at: '',
@@ -1069,29 +1117,59 @@ class _MakePamentState extends State<MakePayment> {
     }
   }
 
-  crateOrderTaxDetail() async {
-    print('order tax detail called');
+
+  createOrderPromotionDetail() async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
-    // final prefs = await SharedPreferences.getInstance();
-    // final int? branch_id = prefs.getInt('branch_id');
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
 
-    print('tax list length: ${taxList.length}');
-    for(int i = 0; i < taxList.length; i++){
-      OrderTaxDetail data = await PosDatabase.instance.insertSqliteOrderTaxDetail(OrderTaxDetail(
-          order_tax_detail_id: 0,
+    for (int i = 0; i < appliedPromotionList.length; i++) {
+      List<BranchLinkPromotion> branchPromotionData = await PosDatabase.instance.readSpecificBranchLinkPromotion(branch_id.toString(), appliedPromotionList[i].promotion_id.toString());
+      OrderPromotionDetail data = await PosDatabase.instance
+          .insertSqliteOrderPromotionDetail(OrderPromotionDetail(
+          order_promotion_detail_id: 0,
           order_sqlite_id: orderId,
           order_id: '0',
-          tax_name: taxList[i].name,
-          rate: taxList[i].tax_rate,
-          tax_id: taxList[i].tax_id.toString(),
-          branch_link_tax_id: '',
-          tax_amount: taxList[i].tax_amount!.toStringAsFixed(2),
+          promotion_name: appliedPromotionList[i].name,
+          promotion_id: appliedPromotionList[i].promotion_id.toString(),
+          rate: appliedPromotionList[i].amount,
+          promotion_amount: appliedPromotionList[i].promoAmount!.toStringAsFixed(2),
+          promotion_type: appliedPromotionList[i].type,
+          branch_link_promotion_id: branchPromotionData[0].branch_link_promotion_id.toString(),
           sync_status: 0,
           created_at: dateTime,
           updated_at: '',
           soft_delete: ''
       ));
+    }
+  }
+
+  crateOrderTaxDetail() async {
+    print('order tax detail called');
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    for(int i = 0; i < taxList.length; i++){
+      List<BranchLinkTax> branchTaxData = await PosDatabase.instance.readSpecificBranchLinkTax(branch_id.toString(), taxList[i].tax_id.toString());
+      if(branchTaxData.length > 0){
+        OrderTaxDetail data = await PosDatabase.instance.insertSqliteOrderTaxDetail(OrderTaxDetail(
+            order_tax_detail_id: 0,
+            order_sqlite_id: orderId,
+            order_id: '0',
+            tax_name: taxList[i].name,
+            rate: taxList[i].tax_rate,
+            tax_id: taxList[i].tax_id.toString(),
+            branch_link_tax_id: branchTaxData[0].branch_link_tax_id.toString(),
+            tax_amount: taxList[i].tax_amount!.toStringAsFixed(2),
+            sync_status: 0,
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: ''
+        ));
+      }
     }
   }
 
@@ -1124,6 +1202,10 @@ class _MakePamentState extends State<MakePayment> {
       ipay_code = data[0].ipay_code!;
     }
   }
+
+/*
+  -------------------API Call---------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
 
   paymentApi(){
     Api().sendPayment(

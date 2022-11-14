@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:imin/imin.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/cash_record.dart';
@@ -27,6 +28,13 @@ class ReceiptLayout{
   double totalCashOut = 0.0;
   double totalOpeningCash = 0.0;
   bool _isLoad = false;
+
+/*
+  open cash drawer function
+*/
+  void _openDrawer () {
+    Imin.openDrawer();
+  }
 
 /*
   read receipt layout

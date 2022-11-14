@@ -10,6 +10,8 @@ class OrderFields {
     payment_link_company_id,
     branch_id,
     branch_link_tax_id,
+    amount,
+    rounding,
     final_amount,
     close_by,
     created_at,
@@ -25,6 +27,8 @@ class OrderFields {
   static String payment_link_company_id = 'payment_link_company_id';
   static String branch_id = 'branch_id';
   static String branch_link_tax_id = 'branch_link_tax_id';
+  static String amount = 'amount';
+  static String rounding = 'rounding';
   static String final_amount = 'final_amount';
   static String close_by = 'close_by';
   static String created_at = 'created_at';
@@ -41,6 +45,8 @@ class Order{
   String? payment_link_company_id;
   String? branch_id;
   String? branch_link_tax_id;
+  String? amount;
+  String? rounding;
   String? final_amount;
   String? close_by;
   String? created_at;
@@ -56,6 +62,8 @@ class Order{
         this.payment_link_company_id,
         this.branch_id,
         this.branch_link_tax_id,
+        this.amount,
+        this.rounding,
         this.final_amount,
         this.close_by,
         this.created_at,
@@ -71,6 +79,8 @@ class Order{
     String? payment_link_company_id,
     String? branch_id,
     String? branch_link_tax_id,
+    String? amount,
+    String? rounding,
     String? final_amount,
     String? close_by,
     String? created_at,
@@ -86,6 +96,8 @@ class Order{
           payment_link_company_id: payment_link_company_id ?? this.payment_link_company_id,
           branch_id: branch_id ?? this.branch_id,
           branch_link_tax_id: branch_link_tax_id ?? this.branch_link_tax_id,
+          amount: amount ?? this.amount,
+          rounding: rounding ?? this.rounding,
           final_amount: final_amount ?? this.final_amount,
           close_by: close_by ?? this.close_by,
           created_at: created_at ?? this.created_at,
@@ -101,6 +113,8 @@ class Order{
     payment_link_company_id: json[OrderFields.payment_link_company_id] as String?,
     branch_id: json[OrderFields.branch_id] as String?,
     branch_link_tax_id: json[OrderFields.branch_link_tax_id] as String?,
+    amount: json[OrderFields.amount] as String?,
+    rounding: json[OrderFields.rounding] as String?,
     final_amount: json[OrderFields.final_amount] as String?,
     close_by: json[OrderFields.close_by] as String?,
     created_at: json[OrderFields.created_at] as String?,
@@ -117,6 +131,8 @@ class Order{
     OrderFields.payment_link_company_id: payment_link_company_id,
     OrderFields.branch_id: branch_id,
     OrderFields.branch_link_tax_id: branch_link_tax_id,
+    OrderFields.amount: amount,
+    OrderFields.rounding: rounding,
     OrderFields.final_amount: final_amount,
     OrderFields.close_by: close_by,
     OrderFields.created_at: created_at,

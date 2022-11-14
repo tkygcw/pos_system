@@ -43,6 +43,7 @@ import '../object/branch_link_product.dart';
 import '../object/branch_link_promotion.dart';
 import '../object/branch_link_tax.dart';
 import '../object/color.dart';
+import '../object/order_promotion_detail.dart';
 import '../object/printer.dart';
 
 class PosDatabase {
@@ -130,7 +131,7 @@ class PosDatabase {
     await db.execute(
         '''CREATE TABLE $tableOrder ( ${OrderFields.order_sqlite_id} $idType, ${OrderFields.order_id} $integerType, ${OrderFields.company_id} $textType,
            ${OrderFields.customer_id} $textType, ${OrderFields.branch_link_promotion_id} $textType,${OrderFields.payment_link_company_id} $textType,
-           ${OrderFields.branch_id} $textType, ${OrderFields.branch_link_tax_id} $textType, ${OrderFields.final_amount} $textType,
+           ${OrderFields.branch_id} $textType, ${OrderFields.branch_link_tax_id} $textType, ${OrderFields.amount} $textType, ${OrderFields.rounding} $textType, ${OrderFields.final_amount} $textType,
            ${OrderFields.close_by} $textType, ${OrderFields.created_at} $textType, ${OrderFields.updated_at} $textType, ${OrderFields.soft_delete} $textType)''');
 /*
     create order cache table
@@ -466,6 +467,25 @@ class PosDatabase {
           ${OrderTaxDetailFields.created_at} $textType,
           ${OrderTaxDetailFields.updated_at} $textType,
           ${OrderTaxDetailFields.soft_delete} $textType)''');
+
+/*
+    create order promotion detail table
+*/
+    await db.execute('''CREATE TABLE $tableOrderPromotionDetail(
+          ${OrderPromotionDetailFields.order_promotion_detail_sqlite_id} $idType,
+          ${OrderPromotionDetailFields.order_promotion_detail_id} $integerType,
+          ${OrderPromotionDetailFields.order_sqlite_id} $textType,
+          ${OrderPromotionDetailFields.order_id} $textType,
+          ${OrderPromotionDetailFields.promotion_name} $textType,
+          ${OrderPromotionDetailFields.rate} $textType,
+          ${OrderPromotionDetailFields.promotion_id} $textType,
+          ${OrderPromotionDetailFields.branch_link_promotion_id} $textType,
+          ${OrderPromotionDetailFields.promotion_amount} $textType,
+          ${OrderPromotionDetailFields.promotion_type} $integerType,
+          ${OrderPromotionDetailFields.sync_status} $integerType,
+          ${OrderPromotionDetailFields.created_at} $textType,
+          ${OrderPromotionDetailFields.updated_at} $textType,
+          ${OrderPromotionDetailFields.soft_delete} $textType)''');
 
   }
 
@@ -1122,6 +1142,15 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableOrderTaxDetail!, data.toJson());
     return data.copy(order_tax_detail_sqlite_id: id);
+  }
+
+/*
+  add order promotion detail
+*/
+  Future<OrderPromotionDetail>insertSqliteOrderPromotionDetail(OrderPromotionDetail data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableOrderPromotionDetail!, data.toJson());
+    return data.copy(order_promotion_detail_sqlite_id: id);
   }
 
 
@@ -2116,6 +2145,28 @@ class PosDatabase {
         'SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? AND type = ? ',
         ['', type]);
     return result.map((json) => PaymentLinkCompany.fromJson(json)).toList();
+  }
+
+/*
+  read specific branch link tax
+*/
+  Future<List<BranchLinkTax>> readSpecificBranchLinkTax(String branch_id, String tax_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableBranchLinkTax WHERE soft_delete = ? AND branch_id = ? AND tax_id = ?',
+        ['', branch_id, tax_id]);
+    return result.map((json) => BranchLinkTax.fromJson(json)).toList();
+  }
+
+/*
+  read specific branch link promotion
+*/
+  Future<List<BranchLinkPromotion>> readSpecificBranchLinkPromotion(String branch_id, String promotion_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableBranchLinkPromotion WHERE soft_delete = ? AND branch_id = ? AND promotion_id = ?',
+        ['', branch_id, promotion_id]);
+    return result.map((json) => BranchLinkPromotion.fromJson(json)).toList();
   }
 
 

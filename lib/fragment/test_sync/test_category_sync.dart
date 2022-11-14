@@ -7,6 +7,8 @@ import 'package:pos_system/object/tax.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/domain.dart';
+import 'package:imin/imin.dart';
+
 
 class TestCategorySync extends StatefulWidget {
   const TestCategorySync({Key? key}) : super(key: key);
@@ -16,14 +18,24 @@ class TestCategorySync extends StatefulWidget {
 }
 
 class _TestCategorySyncState extends State<TestCategorySync> {
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _openDrawer () {
+    Imin.openDrawer();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         alignment: Alignment.center,
         child: ElevatedButton(
-            onPressed: ()async  => readBranchPref(),
-            child: Text('test branch object pref')),
+            onPressed: ()async  => _openDrawer(),
+            child: Text('open cash drawer')),
       ),
     );
   }
