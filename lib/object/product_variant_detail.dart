@@ -8,6 +8,7 @@ class ProductVariantDetailFields {
     product_variant_id,
     variant_item_sqlite_id,
     variant_item_id,
+    sync_status,
     created_at,
     updated_at,
     soft_delete
@@ -19,6 +20,7 @@ class ProductVariantDetailFields {
   static String product_variant_id = 'product_variant_id';
   static String variant_item_sqlite_id = 'variant_item_sqlite_id';
   static String variant_item_id = 'variant_item_id';
+  static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -31,6 +33,7 @@ class ProductVariantDetail {
   String? product_variant_id;
   String? variant_item_sqlite_id;
   String? variant_item_id;
+  int? sync_status;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -42,6 +45,7 @@ class ProductVariantDetail {
       this.product_variant_id,
       this.variant_item_sqlite_id,
       this.variant_item_id,
+        this.sync_status,
       this.created_at,
       this.updated_at,
       this.soft_delete});
@@ -53,6 +57,7 @@ class ProductVariantDetail {
     String? product_variant_id,
     String? variant_item_sqlite_id,
     String? variant_item_id,
+    int? sync_status,
     String? created_at,
     String? updated_at,
     String? soft_delete,
@@ -64,6 +69,7 @@ class ProductVariantDetail {
           product_variant_id: product_variant_id ?? this.product_variant_id,
           variant_item_sqlite_id: variant_item_sqlite_id ?? this.variant_item_sqlite_id,
           variant_item_id: variant_item_id ?? this.variant_item_id,
+          sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
@@ -83,6 +89,7 @@ class ProductVariantDetail {
             json[ProductVariantDetailFields.variant_item_sqlite_id] as String?,
         variant_item_sqlite_id:
         json[ProductVariantDetailFields.variant_item_id] as String?,
+        sync_status: json[ProductVariantDetailFields.sync_status] as int?,
         created_at: json[ProductVariantDetailFields.created_at] as String?,
         updated_at: json[ProductVariantDetailFields.updated_at] as String?,
         soft_delete: json[ProductVariantDetailFields.soft_delete] as String?,
@@ -95,6 +102,7 @@ class ProductVariantDetail {
             product_variant_detail_id,
         ProductVariantDetailFields.product_variant_id: product_variant_id,
         ProductVariantDetailFields.variant_item_id: variant_item_id,
+    ProductVariantDetailFields.sync_status: sync_status,
         ProductVariantDetailFields.created_at: created_at,
         ProductVariantDetailFields.updated_at: updated_at,
         ProductVariantDetailFields.soft_delete: soft_delete,

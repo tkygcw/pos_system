@@ -798,37 +798,66 @@ class _EditProductDialogState extends State<EditProductDialog> {
 /*
             -----------------------------end sync-------------------------------
 */
-              int deleteProductVariantDetail = await PosDatabase.instance
-                  .deleteProductVariantDetail(ProductVariantDetail(
-                      soft_delete: dateTime,
-                      product_variant_sqlite_id:
-                          getProductVariant.product_variant_sqlite_id.toString()));
-
+            int deleteProductVariantDetail = await PosDatabase.instance
+                .deleteProductVariantDetail(ProductVariantDetail(
+                    sync_status: 1,
+                    soft_delete: dateTime,
+                    product_variant_sqlite_id: getProductVariant
+                        .product_variant_sqlite_id
+                        .toString()));
 
 /*
             ------------------------sync to cloud------------------------------
 */
-            Map responseDeleteProductVariantDetail = await Domain() // do until here
-                .deleteProductVariantDetail(
-                getProductVariant.product_variant_id.toString());
-            if (responseDeleteProductVariantDetail['status'] == '1') {}
-/*
-            ---------------------------end cloud-------------------------------
-*/
-              Map responseDeleteBranchLinkProduct = await Domain()
-                  .deleteBranchLinkProduct(
-                      branch_id.toString(),
-                      widget.product!.product_id.toString(),
-                      getProductVariant.product_variant_id.toString());
-              if (responseDeleteBranchLinkProduct['status'] == '1') {
-                int deleteBranchLinkPorduct = await PosDatabase.instance
-                    .deleteBranchLinkProduct(BranchLinkProduct(
-                        soft_delete: dateTime,
-                        branch_id: branch_id.toString(),
-                        product_id: widget.product!.product_id.toString(),
-                        product_variant_id:
-                            getProductVariant.product_variant_id.toString()));
+            if (connectivityResult == ConnectivityResult.mobile ||
+                connectivityResult == ConnectivityResult.wifi) {
+              Map responseDeleteProductVariantDetail =
+                  await Domain() // do until here
+                      .deleteProductVariantDetail(
+                          getProductVariant.product_variant_id.toString());
+              if (responseDeleteProductVariantDetail['status'] == '1') {
+                int syncData = await PosDatabase.instance
+                    .updateSyncProductVariantDetailForUpdate(
+                        ProductVariantDetail(
+                            sync_status: 2,
+                            updated_at: dateTime,
+                            product_variant_sqlite_id: getProductVariant!
+                                .product_variant_sqlite_id
+                                .toString()));
               }
+            }
+/*
+            ---------------------------end sync-------------------------------
+*/
+            int deleteBranchLinkPorduct = await PosDatabase.instance
+                .deleteBranchLinkProduct(BranchLinkProduct(
+                soft_delete: dateTime,
+                sync_status: 1,
+                product_sqlite_id: widget.product!.product_sqlite_id.toString(),
+                product_variant_sqlite_id:
+                getProductVariant.product_variant_sqlite_id.toString()));
+/*
+            -----------------------sync to cloud-------------------------------
+*/
+            Map responseDeleteBranchLinkProduct = await Domain()
+                .deleteBranchLinkProduct(
+                    branch_id.toString(),
+                    widget.product!.product_id.toString(),
+                    getProductVariant.product_variant_id.toString());
+            if (responseDeleteBranchLinkProduct['status'] == '1') {
+              int syncData = await PosDatabase.instance
+                  .updateSyncBranchLinkProductForUpdate(
+                  BranchLinkProduct(
+                      sync_status: 2,
+                      updated_at: dateTime,
+                      product_sqlite_id: widget.product!.product_sqlite_id.toString(),
+                      product_variant_sqlite_id: getProductVariant!
+                          .product_variant_sqlite_id
+                          .toString()));
+            }
+/*
+            -------------------------end sync-----------------------------------
+*/
 
           }
         }
@@ -837,19 +866,10 @@ class _EditProductDialogState extends State<EditProductDialog> {
             for (int s = 0; s < productVariantList.length; s++) {
               if (needInsertProductVariant[r] ==
                   productVariantList[s]['variant_name']) {
-                Map responseInsertProductVariant = await Domain()
-                    .insertProductVariant(
-                        widget.product!.product_id.toString(),
-                        productVariantList[s]['variant_name'],
-                        productVariantList[s]['SKU'],
-                        productVariantList[s]['price'],
-                        selectStock == 'Daily Limit' ? '1' : '2',
-                        productVariantList[s]['quantity']);
-                if (responseInsertProductVariant['status'] == '1') {
                   ProductVariant variant = await PosDatabase.instance
                       .insertProductVariant(ProductVariant(
-                          product_variant_id: responseInsertProductVariant[
-                              'product_variant_id'],
+                          product_variant_id: 0,
+                          product_sqlite_id: widget.product!.product_id.toString(),
                           product_id: widget.product!.product_id.toString(),
                           variant_name: productVariantList[s]['variant_name'],
                           SKU: productVariantList[s]['SKU'],
@@ -864,10 +884,28 @@ class _EditProductDialogState extends State<EditProductDialog> {
                           stock_quantity: selectStock != 'Daily Limit'
                               ? productVariantList[s]['quantity']
                               : '',
+                          sync_status: 0,
                           created_at: dateTime,
                           updated_at: '',
                           soft_delete: ''));
+/*
+                -------------------------sync to cloud-------------------------- // until here
+*/
+                Map responseInsertProductVariant = await Domain()
+                    .insertProductVariant(
+                    widget.product!.product_id.toString(),
+                    productVariantList[s]['variant_name'],
+                    productVariantList[s]['SKU'],
+                    productVariantList[s]['price'],
+                    selectStock == 'Daily Limit' ? '1' : '2',
+                    productVariantList[s]['quantity']);
+                if (responseInsertProductVariant['status'] == '1') {
 
+
+                }
+/*
+                ---------------------------end sync-----------------------------
+*/
                   Map responseInsertBranchLinkProduct = await Domain()
                       .insertBranchLinkProduct(
                           branch_id.toString(),
@@ -935,7 +973,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                       }
                     }
                   }
-                }
+
               }
             }
           }

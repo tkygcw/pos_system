@@ -97,8 +97,10 @@ class Order {
           order_id: order_id ?? this.order_id,
           company_id: company_id ?? this.company_id,
           customer_id: customer_id ?? this.customer_id,
-          branch_link_promotion_id: branch_link_promotion_id ?? this.branch_link_promotion_id,
-          payment_link_company_id: payment_link_company_id ?? this.payment_link_company_id,
+          branch_link_promotion_id:
+              branch_link_promotion_id ?? this.branch_link_promotion_id,
+          payment_link_company_id:
+              payment_link_company_id ?? this.payment_link_company_id,
           branch_id: branch_id ?? this.branch_id,
           branch_link_tax_id: branch_link_tax_id ?? this.branch_link_tax_id,
           amount: amount ?? this.amount,
@@ -115,8 +117,10 @@ class Order {
         order_id: json[OrderFields.order_id] as int?,
         company_id: json[OrderFields.company_id] as String?,
         customer_id: json[OrderFields.customer_id] as String?,
-        branch_link_promotion_id: json[OrderFields.branch_link_promotion_id] as String?,
-        payment_link_company_id: json[OrderFields.payment_link_company_id] as String?,
+        branch_link_promotion_id:
+            json[OrderFields.branch_link_promotion_id] as String?,
+        payment_link_company_id:
+            json[OrderFields.payment_link_company_id] as String?,
         branch_id: json[OrderFields.branch_id] as String?,
         branch_link_tax_id: json[OrderFields.branch_link_tax_id] as String?,
         amount: json[OrderFields.amount] as String?,
@@ -146,5 +150,5 @@ class Order {
         OrderFields.created_at: created_at,
         OrderFields.updated_at: updated_at,
         OrderFields.soft_delete: soft_delete,
-  };
+      };
 }
