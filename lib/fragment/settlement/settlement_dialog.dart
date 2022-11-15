@@ -49,7 +49,6 @@ class _SettlementDialogState extends State<SettlementDialog> {
 
   String? get errorPassword {
     final text = adminPosPinController.value.text;
-    readAdminData(text);
     if (text.isEmpty) {
       return 'password_required';
     }
@@ -58,7 +57,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
 
   void _submit(BuildContext context) async {
     setState(() => _submitted = true);
-    if (errorPassword == '') {
+    if (errorPassword == null) {
       await readAdminData(adminPosPinController.text);
       return;
     }

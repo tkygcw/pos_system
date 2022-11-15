@@ -1,10 +1,14 @@
 import 'dart:convert';
+
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
+import 'package:xml2json/xml2json.dart';
 
 
 class Api {
+  final myTransformer = Xml2Json();
+
   static var domain = 'https://payment.ipay88.com.my/';
   static Uri gateway = Uri.parse(domain + 'ePayment/WebService/MHGatewayService/GatewayService.svc?WSDL');
 
@@ -96,14 +100,22 @@ class Api {
         body: xmlstring);
 
     var rawXmlResponse = response.body;
+    myTransformer.parse(rawXmlResponse);
+    var jsonXml = myTransformer.toBadgerfish(useLocalNameForNodes: true);
+    Map xmlObject = jsonDecode(jsonXml);
+    var errorDesc = xmlObject['Envelope']['Body']['EntryPageFunctionalityResponse']['EntryPageFunctionalityResult']['ErrDesc']['\$'];
+
+
+
 
 // Use the xml package's 'parse' method to parse the response.
 //     xml.XmlDocument parsedXml = xml.parse(rawXmlResponse);
-    Fluttertoast.showToast(msg: 'result');
-    print("DATAResult=" + response.body);
+//     Fluttertoast.showToast(msg: 'result');
+    print("DATAResult: " + response.body);
+    print('json format xml: ${jsonXml}');
+    print('json in body: ${xmlObject['Envelope']['Body']['EntryPageFunctionalityResponse']['EntryPageFunctionalityResult']['ErrDesc']['\$']}');
 
+    return errorDesc;
   }
-
-
 
 }

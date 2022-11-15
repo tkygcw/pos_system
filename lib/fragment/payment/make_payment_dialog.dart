@@ -582,7 +582,7 @@ class _MakePamentState extends State<MakePayment> {
                                           });
                                           //await controller?.resumeCamera();
                                           await controller?.scannedDataStream;
-                                          await callCrateNewOrder(cart);
+                                          await createOrder();
 
                                         }, child: Text(scanning==false?"Start Scan":"Scanning...",style:TextStyle(fontSize: 25)),
 
@@ -638,13 +638,20 @@ class _MakePamentState extends State<MakePayment> {
       this.controller = p1;
     });
 
-    p1.scannedDataStream.listen((scanData) {
+    p1.scannedDataStream.listen((scanData) async {
       setState(() {
         result = scanData;
         print('result:${result?.code}');
       });
       p1.pauseCamera();
-      paymentApi();
+      var api = await paymentApi();
+      if(api != 0){
+        await updateOrder();
+      } else {
+        Navigator.of(context).pop();
+        Fluttertoast.showToast(
+            backgroundColor: Color(0xFFFF0000), msg: "${api}");
+      }
     });
   }
 
@@ -1065,12 +1072,12 @@ class _MakePamentState extends State<MakePayment> {
 
   }
 
-  callCrateNewOrder(CartModel cartModel) async {
-    await createOrder();
-    await updateOrderCache(cartModel);
-    await crateOrderTaxDetail();
-    await createOrderPromotionDetail();
-  }
+  // callUpdateOrder(CartModel cartModel) async {
+  //   await updateOrder();
+  //   await updateOrderCache(cartModel);
+  //   await crateOrderTaxDetail();
+  //   await createOrderPromotionDetail();
+  // }
 
   readBranchPref() async {
     final prefs = await SharedPreferences.getInstance();
@@ -1102,6 +1109,7 @@ class _MakePamentState extends State<MakePayment> {
           rounding: rounding.toStringAsFixed(2),
           final_amount: rounding != 0.0 ? totalAmount.toStringAsFixed(1) + '0' : totalAmount.toStringAsFixed(2),
           close_by: userObject['name'].toString(),
+          payment_status: 0,
           created_at: dateTime,
           updated_at: '',
           soft_delete: ''
@@ -1110,7 +1118,7 @@ class _MakePamentState extends State<MakePayment> {
       Order data = await PosDatabase.instance.insertSqliteOrder(orderObject);
       this.orderId = data.order_sqlite_id.toString();
     }catch(e){
-      print(e);
+      print('create order error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Create order cache error: ${e}");
@@ -1173,6 +1181,17 @@ class _MakePamentState extends State<MakePayment> {
     }
   }
 
+  updateOrder() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    Order orderObject = Order(
+        updated_at: dateTime,
+        order_sqlite_id: int.parse(orderId!)
+    );
+
+    int data = await PosDatabase.instance.updateOrderPaymentStatus(orderObject);
+  }
+
   updateOrderCache(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -1207,15 +1226,15 @@ class _MakePamentState extends State<MakePayment> {
   -------------------API Call---------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
-  paymentApi(){
-    Api().sendPayment(
+  paymentApi() async {
+    var response = await Api().sendPayment(
         branchObject['ipay_merchant_code'],
         branchObject['ipay_merchant_key'],
         336,
         orderId!,
-        '1',
+        '1.00',
         'MYR',
-        '',
+        'ipay',
         branchObject['name'],
         'jacksonleow6@gmail.com',
         '0127583579',
@@ -1228,14 +1247,20 @@ class _MakePamentState extends State<MakePayment> {
         signature256(
           branchObject['ipay_merchant_key'],
           branchObject['ipay_merchant_code'],
-          orderId,
-          '1',
+          orderId!,
+          '100',
           'MYR',
           '',
           result!.code!,
           ''
         )
     );
+    if(response != null){
+      print('res: ${response}');
+      return response;
+    } else {
+      return 0;
+    }
   }
 
   signature256(var merchant_key, var merchant_code, var refNo, var amount, var currency, var xFields, var barcodeNo, var TerminalId ){

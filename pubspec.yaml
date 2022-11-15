@@ -75,6 +75,7 @@ dependencies:
   percent_indicator: ^4.2.2
   qr_code_scanner: ^1.0.0
   imin: ^0.0.1
+  xml2json: ^5.3.5
 
 dependency_overrides:
 #  esc_pos_utils:

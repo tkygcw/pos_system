@@ -131,8 +131,8 @@ class PosDatabase {
     await db.execute(
         '''CREATE TABLE $tableOrder ( ${OrderFields.order_sqlite_id} $idType, ${OrderFields.order_id} $integerType, ${OrderFields.company_id} $textType,
            ${OrderFields.customer_id} $textType, ${OrderFields.branch_link_promotion_id} $textType,${OrderFields.payment_link_company_id} $textType,
-           ${OrderFields.branch_id} $textType, ${OrderFields.branch_link_tax_id} $textType, ${OrderFields} $textType, ${OrderFields.rounding} $textType, ${OrderFields.final_amount} $textType,
-           ${OrderFields.close_by} $textType, ${OrderFields.created_at} $textType, ${OrderFields.updated_at} $textType, ${OrderFields.soft_delete} $textType)''');
+           ${OrderFields.branch_id} $textType, ${OrderFields.branch_link_tax_id} $textType, ${OrderFields.amount} $textType, ${OrderFields.rounding} $textType, ${OrderFields.final_amount} $textType,
+           ${OrderFields.close_by} $textType, ${OrderFields.payment_status} $integerType, ${OrderFields.created_at} $textType, ${OrderFields.updated_at} $textType, ${OrderFields.soft_delete} $textType)''');
 /*
     create order cache table
 */
@@ -2461,6 +2461,17 @@ class PosDatabase {
           data.updated_at,
           data.cash_record_sqlite_id
         ]);
+  }
+
+/*
+  update order payment status
+*/
+  Future<int> updateOrderPaymentStatus(Order data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrder SET payment_status = ?, updated_at = ? WHERE order_sqlite_id = ?',
+        [1, data.updated_at, data.order_sqlite_id]
+    );
   }
 
 /*

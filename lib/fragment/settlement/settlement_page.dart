@@ -6,6 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/fragment/settlement/cash_box_dialog.dart';
 import 'package:pos_system/fragment/settlement/cash_dialog.dart';
 import 'package:pos_system/fragment/settlement/history_dialog.dart';
 import 'package:pos_system/fragment/settlement/settlement_dialog.dart';
@@ -128,7 +129,13 @@ class _SettlementPageState extends State<SettlementPage> {
                               ElevatedButton(
                                 child: Text('Cash-out'),
                                 onPressed: () {
-                                  openCashDialog(false, true);
+                                  if(cashRecordList.length > 0){
+                                    openCashDialog(false, true);
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Color(0xFFFF0000),
+                                        msg: "No record");
+                                  }
                                 },
                                 style: ElevatedButton.styleFrom(
                                     primary: color.buttonColor),
@@ -192,7 +199,20 @@ class _SettlementPageState extends State<SettlementPage> {
                                 },
                                 style: ElevatedButton.styleFrom(
                                     primary: color.backgroundColor),
-                              )
+                              ),
+                              Container(
+                                height: 30,
+                                child: VerticalDivider(
+                                    color: Colors.grey, thickness: 1),
+                              ),
+                              ElevatedButton(
+                                child: Text('Open cash drawer'),
+                                onPressed: () {
+                                  openCashBoxDialog();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    primary: color.buttonColor),
+                              ),
                             ],
                           ),
                         ),
@@ -359,6 +379,28 @@ class _SettlementPageState extends State<SettlementPage> {
             child: Opacity(
               opacity: a1.value,
               child: HistoryDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
+  Future<Future<Object?>> openCashBoxDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: CashBoxDialog(),
             ),
           );
         },

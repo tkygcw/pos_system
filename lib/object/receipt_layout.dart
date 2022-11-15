@@ -32,7 +32,7 @@ class ReceiptLayout{
 /*
   open cash drawer function
 */
-  void _openDrawer () {
+  void openCashDrawer () {
     Imin.openDrawer();
   }
 
