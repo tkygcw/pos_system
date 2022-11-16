@@ -74,9 +74,6 @@ class _LoadingPageState extends State<LoadingPage> {
     getModifierGroup();
     getModifierItem();
     getBranchLinkModifier();
-    getBranchLinkProduct();
-    getProductVariant();
-    getProductVariantDetail();
     getAllOrder();
     getAllOrderCache();
     getAllOrderDetail();
@@ -84,6 +81,8 @@ class _LoadingPageState extends State<LoadingPage> {
     getSale();
     getAllTableUse();
     getAllTableUseDetail();
+    getProductVariantDetail();
+    getBranchLinkProduct();
 
     // Go to Page2 after 5s.
     Timer(Duration(seconds: 4), () {
@@ -488,6 +487,7 @@ getAllProduct() async {
     }
     getModifierLinkProduct();
     getVariantGroup();
+    getProductVariant();
   }
 }
 
@@ -501,8 +501,31 @@ getBranchLinkProduct() async {
   if (data['status'] == '1') {
     List responseJson = data['product'];
     for (var i = 0; i < responseJson.length; i++) {
+      BranchLinkProduct branchLinkProductData = BranchLinkProduct.fromJson(responseJson[i]);
+      // Product? productData = await PosDatabase.instance.readProductSqliteID(branchLinkProductData.product_id!);
+      // ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(branchLinkProductData.product_variant_id!);
+      // print(productVariantData!.product_variant_sqlite_id);
       BranchLinkProduct data = await PosDatabase.instance
-          .insertBranchLinkProduct(BranchLinkProduct.fromJson(responseJson[i]));
+          .insertBranchLinkProduct(BranchLinkProduct(
+        branch_link_product_id: branchLinkProductData.branch_link_product_id,
+        branch_id: branchLinkProductData.branch_id,
+        product_sqlite_id: branchLinkProductData.product_id,
+        product_id: branchLinkProductData.product_id,
+        has_variant: branchLinkProductData.has_variant,
+        product_variant_sqlite_id: '0',
+        product_variant_id: branchLinkProductData.product_variant_id,
+        b_SKU: branchLinkProductData.b_SKU,
+        price: branchLinkProductData.price,
+        stock_type: branchLinkProductData.stock_type,
+        daily_limit: branchLinkProductData.daily_limit,
+        daily_limit_amount: branchLinkProductData.daily_limit_amount,
+        stock_quantity: branchLinkProductData.stock_quantity,
+        sync_status: 2,
+        created_at: branchLinkProductData.created_at,
+        updated_at: branchLinkProductData.updated_at,
+        soft_delete: branchLinkProductData.soft_delete
+      )
+      );
     }
   }
 }
@@ -566,6 +589,7 @@ getVariantGroup() async {
       );
     }
     getVariantItem();
+
   }
 
 }
@@ -609,8 +633,25 @@ getProductVariant() async {
   if (data['status'] == '1') {
     List responseJson = data['variant'];
     for (var i = 0; i < responseJson.length; i++) {
+      ProductVariant productVariantItem = ProductVariant.fromJson(responseJson[i]);
+      Product? productData = await PosDatabase.instance.readProductSqliteID(productVariantItem.product_id!);
       ProductVariant data = await PosDatabase.instance
-          .insertProductVariant(ProductVariant.fromJson(responseJson[i]));
+          .insertProductVariant(ProductVariant(
+           product_variant_id: productVariantItem.product_variant_id,
+           product_sqlite_id: productData!.product_sqlite_id.toString(),
+           product_id: productVariantItem.product_id,
+           variant_name: productVariantItem.variant_name,
+           SKU: productVariantItem.SKU,
+           price: productVariantItem.price,
+           stock_type: productVariantItem.stock_type,
+           daily_limit: productVariantItem.daily_limit,
+           daily_limit_amount: productVariantItem.daily_limit_amount,
+           stock_quantity: productVariantItem.stock_quantity,
+           sync_status: 2,
+           created_at: productVariantItem.created_at,
+           updated_at: productVariantItem.updated_at,
+           soft_delete: productVariantItem.soft_delete
+      ));
     }
   }
 }
@@ -626,9 +667,22 @@ getProductVariantDetail() async {
   if (data['status'] == '1') {
     List responseJson = data['variant'];
     for (var i = 0; i < responseJson.length; i++) {
+      ProductVariantDetail productVariantDetailItem = ProductVariantDetail.fromJson(responseJson[i]);
+      // ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(productVariantDetailItem.product_variant_id!);
+      // print(productVariantData!.product_variant_sqlite_id);
+      // VariantItem? variantItemData = await PosDatabase.instance.readVariantItemSqliteID(productVariantDetailItem.variant_item_id!);
       ProductVariantDetail data = await PosDatabase.instance
-          .insertProductVariantDetail(
-              ProductVariantDetail.fromJson(responseJson[i]));
+          .insertProductVariantDetail(ProductVariantDetail(
+          product_variant_detail_id: productVariantDetailItem.product_variant_detail_id,
+          product_variant_id: '0',
+          product_variant_sqlite_id: '0',
+          variant_item_id: '0',
+          variant_item_sqlite_id: '0',
+          sync_status: 2,
+          created_at: productVariantDetailItem.created_at,
+          updated_at: productVariantDetailItem.updated_at,
+          soft_delete: productVariantDetailItem.soft_delete
+      ));
     }
   }
 }

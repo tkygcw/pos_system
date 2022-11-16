@@ -796,8 +796,28 @@ class PosDatabase {
   Future<BranchLinkProduct> insertBranchLinkProduct(
       BranchLinkProduct data) async {
     final db = await instance.database;
-    final id = await db.insert(tableBranchLinkProduct!, data.toJson());
-    return data.copy(branch_link_product_id: id);
+    final id = db.rawInsert(
+        'INSERT INTO $tableBranchLinkProduct(branch_link_product_id, branch_id, product_sqlite_id, product_id, has_variant, product_variant_sqlite_id, product_variant_id, b_SKU, price, stock_type, daily_limit, daily_limit_amount, stock_quantity, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          data.branch_link_product_id,
+          data.branch_id,
+          data.product_sqlite_id,
+          data.product_id,
+          data.has_variant,
+          data.product_variant_sqlite_id,
+          data.product_variant_id,
+          data.b_SKU,
+          data.price,
+          data.stock_type,
+          data.daily_limit,
+          data.daily_limit_amount,
+          data.stock_quantity,
+          data.sync_status,
+          data.created_at,
+          data.updated_at,
+          data.soft_delete
+        ]);
+    return data.copy(branch_link_product_id: await id);
   }
 
   /*
@@ -978,8 +998,20 @@ class PosDatabase {
   Future<ProductVariantDetail> insertProductVariantDetail(
       ProductVariantDetail data) async {
     final db = await instance.database;
-    final id = await db.insert(tableProductVariantDetail!, data.toJson());
-    return data.copy(product_variant_detail_id: id);
+    final id = db.rawInsert(
+        'INSERT INTO $tableProductVariantDetail(product_variant_detail_id, product_variant_id, product_variant_sqlite_id, variant_item_sqlite_id, variant_item_id, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          data.product_variant_detail_id,
+          data.product_variant_id,
+          data.product_variant_sqlite_id,
+          data.variant_item_sqlite_id,
+          data.variant_item_id,
+          data.sync_status,
+          data.created_at,
+          data.updated_at,
+          data.soft_delete
+        ]);
+    return data.copy(product_variant_detail_sqlite_id: await id);
   }
 
 /*
@@ -1193,6 +1225,28 @@ class PosDatabase {
         ['', variant_group_id]);
     if (maps.isNotEmpty) {
       return VariantGroup.fromJson(maps.first);
+    }
+  }
+
+  Future<ProductVariant?> readProductVariantSqliteID(
+      String product_variant_id) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery(
+        'SELECT * FROM $tableProductVariant WHERE soft_delete = ? AND product_variant_id = ?',
+        ['', product_variant_id]);
+    if (maps.isNotEmpty) {
+      return ProductVariant.fromJson(maps.first);
+    }
+  }
+
+  Future<VariantItem?> readVariantItemSqliteID(
+      String variant_item_id) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery(
+        'SELECT * FROM $tableVariantItem WHERE soft_delete = ? AND variant_item_id = ?',
+        ['', variant_item_id]);
+    if (maps.isNotEmpty) {
+      return VariantItem.fromJson(maps.first);
     }
   }
 

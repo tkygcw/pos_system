@@ -851,9 +851,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                       sync_status: 2,
                       updated_at: dateTime,
                       product_sqlite_id: widget.product!.product_sqlite_id.toString(),
-                      product_variant_sqlite_id: getProductVariant!
-                          .product_variant_sqlite_id
-                          .toString()));
+                      product_variant_sqlite_id: getProductVariant!.product_variant_sqlite_id.toString()));
             }
 /*
             -------------------------end sync-----------------------------------
