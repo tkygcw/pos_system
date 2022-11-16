@@ -146,7 +146,7 @@ class _CartPageState extends State<CartPage> {
                     color: color.backgroundColor,
                     onPressed: () {
                       //tableDialog(context);
-                      openChooseTableDialog();
+                      openChooseTableDialog(cart);
                     },
                   ),
                 ),
@@ -1069,7 +1069,7 @@ class _CartPageState extends State<CartPage> {
   getRounding(){
     double _round = 0.0;
     _round = double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
-    if(_round.toStringAsFixed(2) != '0.05'){
+    if(_round.toStringAsFixed(2) != '-0.05'){
       rounding = _round;
     } else {
       rounding = 0.0;
@@ -1082,7 +1082,7 @@ class _CartPageState extends State<CartPage> {
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
-  Future<Future<Object?>> openChooseTableDialog() async {
+  Future<Future<Object?>> openChooseTableDialog(CartModel cartModel) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -1091,7 +1091,7 @@ class _CartPageState extends State<CartPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: CartDialog(),
+              child: CartDialog(selectedTableList: cartModel.selectedTable),
             ),
           );
         },

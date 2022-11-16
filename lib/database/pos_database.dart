@@ -68,6 +68,7 @@ class PosDatabase {
   Future _createDB(Database db, int version) async {
     final idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     final textType = 'TEXT NOT NULL';
+    final textType2 = 'TEXT';
     final integerType = 'INTEGER NOT NULL';
 
 /*
@@ -482,6 +483,7 @@ class PosDatabase {
           ${OrderPromotionDetailFields.branch_link_promotion_id} $textType,
           ${OrderPromotionDetailFields.promotion_amount} $textType,
           ${OrderPromotionDetailFields.promotion_type} $integerType,
+          ${OrderPromotionDetailFields.auto_apply} $textType,
           ${OrderPromotionDetailFields.sync_status} $integerType,
           ${OrderPromotionDetailFields.created_at} $textType,
           ${OrderPromotionDetailFields.updated_at} $textType,
@@ -2180,6 +2182,17 @@ class PosDatabase {
   }
 
 /*
+  read specific paid order
+*/
+  Future<List<Order>> readSpecificPaidOrder(String order_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrder WHERE payment_status = ? AND soft_delete = ? AND order_sqlite_id = ?',
+        [1, '', order_sqlite_id]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
   /*
@@ -2731,6 +2744,19 @@ class PosDatabase {
           data.soft_delete,
           data.cancel_by,
           data.cancel_by_user_id,
+          data.order_cache_sqlite_id
+        ]);
+  }
+
+/*
+  Soft-delete Order cache(when payment success)
+*/
+  Future<int> deletePaidOrderCache(OrderCache data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderCache SET soft_delete = ? WHERE order_cache_sqlite_id = ?',
+        [
+          data.soft_delete,
           data.order_cache_sqlite_id
         ]);
   }

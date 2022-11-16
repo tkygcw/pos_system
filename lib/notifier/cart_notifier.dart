@@ -16,6 +16,9 @@ class CartModel extends ChangeNotifier {
 
 
   void initialLoad() async {
+    removeAllTable();
+    removeAllCartItem();
+    removePromotion();
     notifyListeners();
   }
 

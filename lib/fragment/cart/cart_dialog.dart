@@ -31,7 +31,8 @@ import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 import '../table/table_change_dialog.dart';
 
 class CartDialog extends StatefulWidget {
-  const CartDialog({Key? key}) : super(key: key);
+  final List<PosTable> selectedTableList;
+  const CartDialog({Key? key, required this.selectedTableList}) : super(key: key);
 
   @override
   State<CartDialog> createState() => _CartDialogState();
@@ -392,6 +393,15 @@ class _CartDialogState extends State<CartDialog> {
 
     tableList = List.from(data);
     await readAllTableAmount();
+    if(widget.selectedTableList.length > 0){
+      for(int i = 0; i < widget.selectedTableList.length; i++){
+        for(int j = 0; j < tableList.length; j++){
+          if(tableList[j].table_sqlite_id == widget.selectedTableList[i].table_sqlite_id){
+            tableList[j].isSelected = true;
+          }
+        }
+      }
+    }
     setState(() {
       isLoad = true;
     });

@@ -238,7 +238,7 @@ class ReceiptLayout{
 /*
   Receipt layout 80mm
 */
-  printReceipt80mm(int paperSize, bool isUSB, {value}) async {
+  printReceipt80mm(bool isUSB, value) async {
     String dateTime = dateFormat.format(DateTime.now());
     await readReceiptLayout();
 

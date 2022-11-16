@@ -254,7 +254,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                                 style: TextStyle(
                                                     color: Colors.green)),
                                         onLongPress: () async {
-                                          if(cashRecordList[index].type != 0){
+                                          if(cashRecordList[index].type != 0 && cashRecordList[index].type != 3){
                                             if (await confirm(
                                               context,
                                               title: Text(
@@ -443,19 +443,25 @@ class _SettlementPageState extends State<SettlementPage> {
       }
     } else if (selectedPayment == 'Cash') {
       for (int i = 0; i < data.length; i++) {
-        if (data[i].payment_type_id == '1') {
+        if (data[i].payment_type_id == '0') {
           cashRecordList.add(data[i]);
         }
       }
     } else if (selectedPayment == 'Card') {
       for (int i = 0; i < data.length; i++) {
-        if (data[i].payment_type_id == '2') {
+        if (data[i].payment_type_id == '1') {
           cashRecordList.add(data[i]);
         }
       }
     } else if (selectedPayment == 'Grab') {
       for (int i = 0; i < data.length; i++) {
-        if (data[i].payment_type_id == '3') {
+        if (data[i].payment_type_id == '0') {
+          cashRecordList.add(data[i]);
+        }
+      }
+    } else if (selectedPayment == 'ipay tng scanner') {
+      for (int i = 0; i < data.length; i++) {
+        if (data[i].payment_type_id == '2') {
           cashRecordList.add(data[i]);
         }
       }
@@ -505,15 +511,19 @@ class _SettlementPageState extends State<SettlementPage> {
       }
       break;
       case 'Cash': {
-        total = 'Cash: ' + calcTotalAmount('1');
+        total = 'Cash: ' + calcTotalAmount('0');
       }
       break;
       case 'Card': {
-        total = 'Card: ' + calcTotalAmount('2');
+        total = 'Card: ' + calcTotalAmount('1');
       }
       break;
       case 'Grab': {
-        total = 'GrabPay: ' + calcTotalAmount('3');
+        total = 'GrabPay: ' + calcTotalAmount('0');
+      }
+      break;
+      case 'ipay tng scanner': {
+        total = 'ipay tng scanner: ' + calcTotalAmount('2');
       }
       break;
       default: {

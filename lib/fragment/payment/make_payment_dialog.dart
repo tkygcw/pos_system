@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/payment/ipay_api.dart';
 // import 'package:pos_system/fragment/payment/ipay_api.dart';
 import 'package:pos_system/fragment/payment/number_button.dart';
+import 'package:pos_system/fragment/payment/payment_success_dialog.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
@@ -29,6 +30,7 @@ import '../../object/cart_product.dart';
 import '../../object/dining_option.dart';
 import '../../object/modifier_group.dart';
 import '../../object/promotion.dart';
+import '../../object/table.dart';
 import '../../object/tax.dart';
 import '../../object/tax_link_dining.dart';
 import '../../object/variant_group.dart';
@@ -45,7 +47,7 @@ class MakePayment extends StatefulWidget {
 class _MakePamentState extends State<MakePayment> {
   late StreamController streamController;
   // var type ="0";
-  var userInput = '';
+  var userInput = '0.00';
   var answer = '';
   Barcode? result;
   QRViewController? controller;
@@ -53,6 +55,8 @@ class _MakePamentState extends State<MakePayment> {
   List<String> branchLinkDiningIdList = [];
   List<Promotion> autoApplyPromotionList = [];
   List<Promotion> appliedPromotionList = [];
+  List<String> orderCacheIdList = [];
+  List<PosTable> selectedTableList = [];
   List<Tax> taxList = [];
   bool scanning=false;
   bool isopen=false;
@@ -84,26 +88,26 @@ class _MakePamentState extends State<MakePayment> {
 
   // Array of button
   final List<String> buttons = [
-    '7',
-    '8',
-    '9',
-    'C',
-    '4',
-    '5',
-    '6',
-    'DEL',
-    '1',
-    '2',
-    '3',
-    '',
-    '00',
-    '0',
-    '.',
-    '',
-    '20.00',
-    '50.00',
-    '100.00',
-    'GO',
+    '7', //0
+    '8', //1
+    '9', //2
+    'C', //3
+    '4', //4
+    '5', //5
+    '6', //6
+    'DEL', //7
+    '1', //8
+    '2', //9
+    '3', //10
+    '', //11
+    '00', //12
+    '0', //13
+    '.', //14
+    '', //15
+    '20.00', //16
+    '50.00', //17
+    '100.00', //18
+    'GO', //19
 
   ];
 
@@ -132,6 +136,10 @@ class _MakePamentState extends State<MakePayment> {
     }
   }
 
+  closeDialog(BuildContext context) {
+    return Navigator.of(context).pop(true);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (controller != null && mounted && result == null) {
@@ -148,6 +156,7 @@ class _MakePamentState extends State<MakePayment> {
               stream: streamController.stream, builder: (context, snapshot) {
                 return Consumer<CartModel>(builder: (context, CartModel cart, child) {
                   getSubTotal(cart);
+                  getCartItemList(cart);
                   return Row(
                     children: [
                       Expanded(
@@ -370,12 +379,11 @@ class _MakePamentState extends State<MakePayment> {
                                   color: Colors.grey[200],
                                   child: Container(
                                     alignment: AlignmentDirectional.bottomEnd,
-                                    child: Text(userInput,
-                                      style: TextStyle(
+                                    child: Text(userInput, style: TextStyle(
                                         color: Colors.black87,
                                         fontSize: 70,
                                         fontWeight: FontWeight.w400,
-                                      ),),
+                                      )),
                                   ),
                                 ),
                               ),
@@ -458,12 +466,22 @@ class _MakePamentState extends State<MakePayment> {
                                           textColor: Colors.white,
                                         );
                                       }
+                                      //GO button
                                       else if (index == 19) {
                                         return NumberButton(
-                                          buttontapped: () {
-                                            setState(() {
-                                              // equalPressed();
-                                            });
+                                          buttontapped: () async  {
+                                            if(double.parse(userInput) >= totalAmount){
+                                              await createOrder();
+                                              openPaymentSuccessDialog();
+                                            } else {
+                                              Fluttertoast.showToast(
+                                                  backgroundColor: Color(0xFFFF0000),
+                                                  msg: "Insufficient balance");
+                                              setState(() {
+                                                userInput = '0.00';
+                                              });
+
+                                            }
                                           },
                                           buttonText: buttons[index],
                                           color: Colors.orange[700],
@@ -582,7 +600,7 @@ class _MakePamentState extends State<MakePayment> {
                                           });
                                           //await controller?.resumeCamera();
                                           await controller?.scannedDataStream;
-                                          await createOrder();
+                                          await callCreateOrder();
 
                                         }, child: Text(scanning==false?"Start Scan":"Scanning...",style:TextStyle(fontSize: 25)),
 
@@ -633,7 +651,7 @@ class _MakePamentState extends State<MakePayment> {
     }
   }
 
-  void _onQRViewCreated(QRViewController p1) {
+  void _onQRViewCreated(QRViewController p1){
     setState(() {
       this.controller = p1;
     });
@@ -644,9 +662,11 @@ class _MakePamentState extends State<MakePayment> {
         print('result:${result?.code}');
       });
       p1.pauseCamera();
+
       var api = await paymentApi();
       if(api != 0){
-        await updateOrder();
+        // await updateOrder();
+        openPaymentSuccessDialog();
       } else {
         Navigator.of(context).pop();
         Fluttertoast.showToast(
@@ -666,6 +686,32 @@ class _MakePamentState extends State<MakePayment> {
 //     double eval = exp.evaluate(EvaluationType.REAL, cm);
 //     answer = eval.toString();
 //   }
+  Future<Future<Object?>> openPaymentSuccessDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: PaymentSuccessDialog(
+                orderCacheIdList: orderCacheIdList,
+                selectedTableList: selectedTableList,
+                callback: () => Navigator.of(context).pop(),
+                  orderId: orderId!
+              ),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
 /*
   -----------------------Cart-item--------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -960,6 +1006,21 @@ class _MakePamentState extends State<MakePayment> {
     }
   }
 
+  getCartItemList(CartModel cart){
+    orderCacheIdList = [];
+    selectedTableList = [];
+    for(int i = 0; i < cart.cartNotifierItem.length; i++){
+      if(!orderCacheIdList.contains(cart.cartNotifierItem[i].orderCacheId!)){
+        orderCacheIdList.add(cart.cartNotifierItem[i].orderCacheId!);
+      }
+    }
+    for(int j = 0; j < cart.selectedTable.length; j++){
+      if(!selectedTableList.contains(cart.selectedTable[j].table_sqlite_id)){
+        selectedTableList.add(cart.selectedTable[j]);
+      }
+    }
+  }
+
   getSubTotal(CartModel cart) async {
     try {
       total = 0.0;
@@ -1024,7 +1085,7 @@ class _MakePamentState extends State<MakePayment> {
   getRounding(){
     double _round = 0.0;
     _round = double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
-    if(_round.toStringAsFixed(2) != '0.05'){
+    if(_round.toStringAsFixed(2) != '-0.05'){
       rounding = _round;
     } else {
       rounding = 0.0;
@@ -1078,6 +1139,11 @@ class _MakePamentState extends State<MakePayment> {
   //   await crateOrderTaxDetail();
   //   await createOrderPromotionDetail();
   // }
+  callCreateOrder() async {
+    await createOrder();
+    await crateOrderTaxDetail();
+    await createOrderPromotionDetail();
+  }
 
   readBranchPref() async {
     final prefs = await SharedPreferences.getInstance();
@@ -1145,6 +1211,7 @@ class _MakePamentState extends State<MakePayment> {
           promotion_amount: appliedPromotionList[i].promoAmount!.toStringAsFixed(2),
           promotion_type: appliedPromotionList[i].type,
           branch_link_promotion_id: branchPromotionData[0].branch_link_promotion_id.toString(),
+          auto_apply: appliedPromotionList[i].auto_apply!,
           sync_status: 0,
           created_at: dateTime,
           updated_at: '',
@@ -1179,40 +1246,6 @@ class _MakePamentState extends State<MakePayment> {
         ));
       }
     }
-  }
-
-  updateOrder() async {
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    Order orderObject = Order(
-        updated_at: dateTime,
-        order_sqlite_id: int.parse(orderId!)
-    );
-
-    int data = await PosDatabase.instance.updateOrderPaymentStatus(orderObject);
-  }
-
-  updateOrderCache(CartModel cart) async {
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-    List<String> orderCacheIdList = [];
-
-    for(int i = 0; i < cart.cartNotifierItem.length; i++){
-      if(!orderCacheIdList.contains(cart.cartNotifierItem[i].orderCacheId!)){
-        orderCacheIdList.add(cart.cartNotifierItem[i].orderCacheId!);
-      }
-    }
-    for(int j = 0; j < orderCacheIdList.length; j++){
-      OrderCache cacheObject = OrderCache(
-          order_id: orderId,
-          sync_status: 0,
-          updated_at: dateTime,
-          order_cache_sqlite_id: int.parse(orderCacheIdList[j])
-      );
-
-      int data = await PosDatabase.instance.updateOrderCacheOrderId(cacheObject);
-    }
-
   }
 
   readSpecificPaymentMethod() async {
