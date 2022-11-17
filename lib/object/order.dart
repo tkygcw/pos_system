@@ -15,6 +15,8 @@ class OrderFields {
     final_amount,
     close_by,
     payment_status,
+    payment_received,
+    payment_change,
     created_at,
     updated_at,
     soft_delete
@@ -33,6 +35,8 @@ class OrderFields {
   static String final_amount = 'final_amount';
   static String close_by = 'close_by';
   static String payment_status = 'payment_status';
+  static String payment_received = 'payment_received';
+  static String payment_change = 'payment_change';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -52,9 +56,12 @@ class Order {
   String? final_amount;
   String? close_by;
   int? payment_status;
+  String? payment_received;
+  String? payment_change;
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  bool isSelected = false;
 
   Order(
       {this.order_sqlite_id,
@@ -70,6 +77,8 @@ class Order {
       this.final_amount,
       this.close_by,
       this.payment_status,
+      this.payment_received,
+      this.payment_change,
       this.created_at,
       this.updated_at,
       this.soft_delete});
@@ -88,6 +97,8 @@ class Order {
     String? final_amount,
     String? close_by,
     int? payment_status,
+    String? payment_received,
+    String? payment_change,
     String? created_at,
     String? updated_at,
     String? soft_delete,
@@ -97,10 +108,8 @@ class Order {
           order_id: order_id ?? this.order_id,
           company_id: company_id ?? this.company_id,
           customer_id: customer_id ?? this.customer_id,
-          branch_link_promotion_id:
-              branch_link_promotion_id ?? this.branch_link_promotion_id,
-          payment_link_company_id:
-              payment_link_company_id ?? this.payment_link_company_id,
+          branch_link_promotion_id: branch_link_promotion_id ?? this.branch_link_promotion_id,
+          payment_link_company_id: payment_link_company_id ?? this.payment_link_company_id,
           branch_id: branch_id ?? this.branch_id,
           branch_link_tax_id: branch_link_tax_id ?? this.branch_link_tax_id,
           amount: amount ?? this.amount,
@@ -108,6 +117,8 @@ class Order {
           final_amount: final_amount ?? this.final_amount,
           close_by: close_by ?? this.close_by,
           payment_status: payment_status ?? this.payment_status,
+          payment_received: payment_received ?? this.payment_received,
+          payment_change: payment_change ?? this.payment_change,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
@@ -117,10 +128,8 @@ class Order {
         order_id: json[OrderFields.order_id] as int?,
         company_id: json[OrderFields.company_id] as String?,
         customer_id: json[OrderFields.customer_id] as String?,
-        branch_link_promotion_id:
-            json[OrderFields.branch_link_promotion_id] as String?,
-        payment_link_company_id:
-            json[OrderFields.payment_link_company_id] as String?,
+        branch_link_promotion_id: json[OrderFields.branch_link_promotion_id] as String?,
+        payment_link_company_id: json[OrderFields.payment_link_company_id] as String?,
         branch_id: json[OrderFields.branch_id] as String?,
         branch_link_tax_id: json[OrderFields.branch_link_tax_id] as String?,
         amount: json[OrderFields.amount] as String?,
@@ -128,6 +137,8 @@ class Order {
         final_amount: json[OrderFields.final_amount] as String?,
         close_by: json[OrderFields.close_by] as String?,
         payment_status: json[OrderFields.payment_status] as int?,
+        payment_received: json[OrderFields.payment_received] as String?,
+        payment_change: json[OrderFields.payment_change] as String?,
         created_at: json[OrderFields.created_at] as String?,
         updated_at: json[OrderFields.updated_at] as String?,
         soft_delete: json[OrderFields.soft_delete] as String?,
@@ -147,6 +158,8 @@ class Order {
         OrderFields.final_amount: final_amount,
         OrderFields.close_by: close_by,
         OrderFields.payment_status: payment_status,
+        OrderFields.payment_received: payment_received,
+        OrderFields.payment_change: payment_change,
         OrderFields.created_at: created_at,
         OrderFields.updated_at: updated_at,
         OrderFields.soft_delete: soft_delete,

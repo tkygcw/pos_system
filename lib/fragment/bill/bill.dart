@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/bill/bill_menu.dart';
+import 'package:pos_system/fragment/bill/receipt_menu.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
 
 class BillPage extends StatefulWidget {
@@ -15,7 +16,7 @@ class _BillPageState extends State<BillPage> {
     return Scaffold(
       body: Row(
         children: [
-          Expanded(flex: 12,child: BillMenu())
+          Expanded(flex: 12,child: ReceiptMenu())
         ],
       ),
     );

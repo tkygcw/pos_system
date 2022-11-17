@@ -146,7 +146,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     if(widget.orderCacheIdList.length > 0){
       for(int j = 0; j < widget.orderCacheIdList.length; j++){
         OrderCache cacheObject = OrderCache(
-            order_id: widget.orderId,
+            order_sqlite_id: widget.orderId,
             sync_status: 0,
             updated_at: dateTime,
             order_cache_sqlite_id: int.parse(widget.orderCacheIdList[j])

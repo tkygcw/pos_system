@@ -129,11 +129,25 @@ class PosDatabase {
 /*
     create order table
 */
-    await db.execute(
-        '''CREATE TABLE $tableOrder ( ${OrderFields.order_sqlite_id} $idType, ${OrderFields.order_id} $integerType, ${OrderFields.company_id} $textType,
-           ${OrderFields.customer_id} $textType, ${OrderFields.branch_link_promotion_id} $textType,${OrderFields.payment_link_company_id} $textType,
-           ${OrderFields.branch_id} $textType, ${OrderFields.branch_link_tax_id} $textType, ${OrderFields.amount} $textType, ${OrderFields.rounding} $textType, ${OrderFields.final_amount} $textType,
-           ${OrderFields.close_by} $textType, ${OrderFields.payment_status} $integerType, ${OrderFields.created_at} $textType, ${OrderFields.updated_at} $textType, ${OrderFields.soft_delete} $textType)''');
+    await db.execute('''CREATE TABLE $tableOrder ( 
+           ${OrderFields.order_sqlite_id} $idType, 
+           ${OrderFields.order_id} $integerType, 
+           ${OrderFields.company_id} $textType,
+           ${OrderFields.customer_id} $textType, 
+           ${OrderFields.branch_link_promotion_id} $textType,
+           ${OrderFields.payment_link_company_id} $textType,
+           ${OrderFields.branch_id} $textType, 
+           ${OrderFields.branch_link_tax_id} $textType, 
+           ${OrderFields.amount} $textType, 
+           ${OrderFields.rounding} $textType, 
+           ${OrderFields.final_amount} $textType,
+           ${OrderFields.close_by} $textType, 
+           ${OrderFields.payment_status} $integerType, 
+           ${OrderFields.payment_received} $textType,
+           ${OrderFields.payment_change} $textType,
+           ${OrderFields.created_at} $textType, 
+           ${OrderFields.updated_at} $textType, 
+           ${OrderFields.soft_delete} $textType)''');
 /*
     create order cache table
 */
@@ -146,7 +160,7 @@ class PosDatabase {
           ${OrderCacheFields.table_use_sqlite_id} $textType, 
           ${OrderCacheFields.batch_id} $textType, 
           ${OrderCacheFields.dining_id} $textType, 
-          ${OrderCacheFields.order_id} $textType, 
+          ${OrderCacheFields.order_sqlite_id} $textType, 
           ${OrderCacheFields.order_by} $textType,
           ${OrderCacheFields.order_by_user_id} $textType, 
           ${OrderCacheFields.cancel_by} $textType,
@@ -2247,6 +2261,56 @@ class PosDatabase {
   }
 
 /*
+  read all paid order
+*/
+  Future<List<Order>> readAllPaidOrder() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrder WHERE payment_status = ? AND soft_delete = ?',
+        [1, '']);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read order cache by orderID
+*/
+  Future<List<OrderCache>> readSpecificOrderCacheByOrderID(String order_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderCache WHERE soft_delete != ? AND order_sqlite_id = ?',
+        ['', order_sqlite_id]);
+    return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
+/*
+  read order detail by paid order cache
+*/
+  Future<List<OrderDetail>> readSpecificOrderDetail(
+      String order_cache_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderDetail WHERE soft_delete = ? AND order_cache_sqlite_id = ?',
+        ['', order_cache_sqlite_id]);
+
+    return result.map((json) => OrderDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all deleted table use detail
+*/
+  Future<List<TableUseDetail>> readDeleteOnlyTableUseDetail(
+      String table_use_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableTableUseDetail WHERE soft_delete != ? AND  table_use_sqlite_id = ?',
+        ['', table_use_sqlite_id]);
+
+    return result.map((json) => TableUseDetail.fromJson(json)).toList();
+  }
+
+
+
+/*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
   /*
@@ -2576,9 +2640,9 @@ class PosDatabase {
   Future<int> updateOrderCacheOrderId(OrderCache data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableOrderCache SET order_id = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+        'UPDATE $tableOrderCache SET order_sqlite_id = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
         [
-          data.order_id,
+          data.order_sqlite_id,
           data.sync_status,
           data.updated_at,
           data.order_cache_sqlite_id

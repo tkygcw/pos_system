@@ -82,6 +82,7 @@ class _CartPageState extends State<CartPage> {
   String localTableUseId = '';
   String orderCacheId = '';
   String? allPromo = '';
+  String finalAmount = '';
   bool hasPromo = false;
   bool hasSelectedPromo = false;
   bool _isSettlement = false;
@@ -485,9 +486,7 @@ class _CartPageState extends State<CartPage> {
                                   style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold)),
-                              trailing: rounding != 0.0 ?
-                              Text("${totalAmount.toStringAsFixed(1)}0", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
-                              : Text("${totalAmount.toStringAsFixed(2)}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                               dense: true,
                             ),
                           ],
@@ -1022,8 +1021,8 @@ class _CartPageState extends State<CartPage> {
     await getDiningTax(cart);
     calPromotion(cart);
     getTaxAmount();
-    getAllTotal();
     getRounding();
+    getAllTotal();
     controller.add('refresh');
   }
 
@@ -1052,20 +1051,6 @@ class _CartPageState extends State<CartPage> {
     return priceIncAllTaxes;
   }
 
-  getAllTotal() {
-    getAllTaxAmount();
-    try {
-      totalAmount = 0.0;
-      discountPrice = total - promoAmount;
-      totalAmount = discountPrice + priceIncAllTaxes;
-      //totalAmount = (totalAmount * 100).truncate() / 100;
-    } catch (error) {
-      print('Total calc error: $error');
-    }
-
-    controller.add('refresh');
-  }
-
   getRounding(){
     double _round = 0.0;
     _round = double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
@@ -1073,6 +1058,26 @@ class _CartPageState extends State<CartPage> {
       rounding = _round;
     } else {
       rounding = 0.0;
+    }
+
+    controller.add('refresh');
+  }
+
+  getAllTotal() {
+    getAllTaxAmount();
+    try {
+      totalAmount = 0.0;
+      discountPrice = total - promoAmount;
+      totalAmount = discountPrice + priceIncAllTaxes;
+
+      if(rounding == 0.0){
+        finalAmount = totalAmount.toStringAsFixed(2);
+      } else {
+        finalAmount = totalAmount.toStringAsFixed(1) + '0';
+      }
+      //totalAmount = (totalAmount * 100).truncate() / 100;
+    } catch (error) {
+      print('Total calc error: $error');
     }
 
     controller.add('refresh');
@@ -1697,7 +1702,7 @@ class _CartPageState extends State<CartPage> {
                 table_use_sqlite_id: _tableUseId,
                 batch_id: batch.toString().padLeft(6, '0'),
                 dining_id: diningOptionID.toString(),
-                order_id: '',
+                order_sqlite_id: '',
                 order_by: userObject['name'].toString(),
                 order_by_user_id: userObject['user_id'].toString(),
                 cancel_by: '',

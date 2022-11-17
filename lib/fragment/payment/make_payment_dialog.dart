@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/payment/ipay_api.dart';
@@ -16,6 +17,7 @@ import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
+import 'package:pos_system/object/receipt_layout.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,10 +43,11 @@ class MakePayment extends StatefulWidget {
   const MakePayment({Key? key, required this.type}) : super(key: key);
 
   @override
-  State<MakePayment> createState() => _MakePamentState();
+  State<MakePayment> createState() => _MakePaymentState();
 }
 
-class _MakePamentState extends State<MakePayment> {
+class _MakePaymentState extends State<MakePayment> {
+  final inputController = TextEditingController();
   late StreamController streamController;
   // var type ="0";
   var userInput = '0.00';
@@ -84,6 +87,8 @@ class _MakePamentState extends State<MakePayment> {
   String ipay_code = '';
   String? allPromo = '';
   String? orderId;
+  String finalAmount = '';
+  String change = '0.00';
   late Map branchObject;
 
   // Array of button
@@ -122,7 +127,7 @@ class _MakePamentState extends State<MakePayment> {
 
   @override
   void dispose() {
-    controller?.dispose();
+    inputController.dispose();
     super.dispose();
   }
 
@@ -313,9 +318,7 @@ class _MakePamentState extends State<MakePayment> {
                                               style: TextStyle(
                                                   fontSize: 18,
                                                   fontWeight: FontWeight.bold)),
-                                          trailing: rounding != 0.0 ?
-                                          Text("${totalAmount.toStringAsFixed(1)}0", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
-                                              : Text("${totalAmount.toStringAsFixed(2)}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                          trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                                           dense: true,
                                         ),
                                       ],
@@ -336,60 +339,54 @@ class _MakePamentState extends State<MakePayment> {
                             ],
                           )
                       ),
-                      widget.type == 0 ?
-                      Expanded(
-                        flex: 5,
-                        child: Container(
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: <Widget>[
-                                Container(
-                                  padding: EdgeInsets.all(20),
-                                  alignment: Alignment.centerRight,
-                                  child: Text(
-                                    userInput,
-                                    style: TextStyle(fontSize: 18, color: Colors.white),
-                                  ),
-                                ),
-                                Container(
-                                  padding: EdgeInsets.all(15),
-                                  alignment: Alignment.centerRight,
-                                  child: Text(
-                                    answer,
-                                    style: TextStyle(
-                                        fontSize: 30,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                )
-                              ]),
-                        ),
-                      ) : Spacer(),
+
                       Expanded(
                         flex: 5,
                         child: widget.type == 0 ?
                         Container(
-                          height:MediaQuery.of(context).size.height / 1.5 ,
+                          margin: EdgeInsets.fromLTRB(30, 0, 25, 0),
+                          height:MediaQuery.of(context).size.height / 1 ,
                           child: Column(
                             children: [
+                              Container(
+                                alignment: Alignment.centerLeft,
+                                child: Text('Change: ${change}'),
+                              ),
                               Expanded(
                                 flex: 2,
                                 child: Container(
                                   width: double.infinity,
-                                  color: Colors.grey[200],
                                   child: Container(
                                     alignment: AlignmentDirectional.bottomEnd,
-                                    child: Text(userInput, style: TextStyle(
-                                        color: Colors.black87,
-                                        fontSize: 70,
-                                        fontWeight: FontWeight.w400,
-                                      )),
+                                    child: ValueListenableBuilder(
+                                        valueListenable: inputController,
+                                        builder: (context, TextEditingValue value, __) {
+                                          return Container(
+                                            child: TextField(
+                                              textAlign: TextAlign.right,
+                                              readOnly: true,
+                                              enabled: false,
+                                              maxLines: 1,
+                                              controller: inputController,
+                                              decoration: InputDecoration(
+                                                border: OutlineInputBorder(
+                                                    borderSide: BorderSide(color: color.backgroundColor)),
+                                                focusedBorder: OutlineInputBorder(
+                                                    borderSide: BorderSide(color: color.backgroundColor),
+                                                  ),
+                                                ),
+                                              style:  TextStyle(fontSize: 40),
+                                              ),
+                                          );
+                                        }),
+                                    //Text(userInput, style: TextStyle(color: Colors.black87, fontSize: 70, fontWeight: FontWeight.w400,)),
                                   ),
                                 ),
                               ),
                               Expanded(
-                                flex: 8,
+                                flex: 7,
                                 child: GridView.builder(
+                                  physics: NeverScrollableScrollPhysics(),
                                     itemCount: buttons.length,
                                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                       crossAxisCount: 4,
@@ -400,69 +397,96 @@ class _MakePamentState extends State<MakePayment> {
                                       if (index == 3) {
                                         return NumberButton(
                                           buttontapped: () {
-                                            setState(() {
-                                              userInput = userInput.substring(0, userInput.length - 1);
-                                            });
+                                            if(inputController.text.length > 0){
+                                              double value = double.parse(inputController.text) - double.parse(finalAmount);
+                                              if(value > 0.0){
+                                                setState(() {
+                                                  change = value.toStringAsFixed(2);
+                                                });
+                                              }
+                                              setState(() {
+                                                inputController.text = inputController.text.substring(0, inputController.text.length - 1);
+                                              });
+
+                                            }else {
+                                              setState(() {
+                                                change = '0.00';
+                                              });
+                                            }
                                           },
                                           buttonText: buttons[index],
-                                          color: Colors.blue[50],
-                                          textColor: Colors.black,
+                                          color: color.backgroundColor,
+                                          textColor: Colors.white,
                                         );
                                       }
-
-                                      // +/- button
+                                      // DEL button
                                       else if (index == 7) {
                                         return NumberButton(
                                           buttontapped: () {
                                             setState(() {
-                                              userInput = '';
-
+                                              change = '0.00';
+                                              inputController.text = '';
                                             });
                                           },
                                           buttonText: buttons[index],
-                                          color: Colors.blue[50],
-                                          textColor: Colors.black,
+                                          color: color.buttonColor,
+                                          textColor: Colors.white,
                                         );
                                       }
-
-                                      // Delete Button
-
-                                      // Equal_to Button
+                                      // RM 20.00 btn
                                       else if (index == 16) {
                                         return NumberButton(
                                           buttontapped: () {
                                             setState(() {
-                                              userInput = buttons[index];
-
+                                              inputController.text = buttons[index];
                                             });
+                                            double value = double.parse(inputController.text) - double.parse(finalAmount);
+                                            if(value > 0.0){
+                                              setState(() {
+                                                change = value.toStringAsFixed(2);
+                                              });
+                                            }
                                           },
                                           buttonText: buttons[index],
-                                          color: Colors.orange[300],
+                                          color: color.backgroundColor,
                                           textColor: Colors.white,
                                         );
                                       }
+                                      //RM 50 btn
                                       else if (index == 17) {
                                         return NumberButton(
                                           buttontapped: () {
                                             setState(() {
-                                              userInput = buttons[index];
-
+                                              inputController.text = buttons[index];
                                             });
+                                            double value = double.parse(inputController.text) - double.parse(finalAmount);
+                                            if(value > 0.0){
+                                              setState(() {
+                                                change = value.toStringAsFixed(2);
+                                              });
+                                            }
                                           },
                                           buttonText: buttons[index],
-                                          color: Colors.orange[300],
+                                          color: color.buttonColor,
                                           textColor: Colors.white,
                                         );
                                       }
+                                      //RM 100 btn
                                       else if (index == 18) {
                                         return NumberButton(
                                           buttontapped: () {
                                             setState(() {
-                                              userInput = buttons[index];
+                                              inputController.text = buttons[index];
                                             });
+                                            double value = double.parse(inputController.text) - double.parse(finalAmount);
+                                            if(value > 0.0){
+                                              setState(() {
+                                                change = value.toStringAsFixed(2);
+                                              });
+                                            }
                                           },
                                           buttonText: buttons[index],
-                                          color: Colors.orange[300],
+                                          color: color.backgroundColor,
                                           textColor: Colors.white,
                                         );
                                       }
@@ -470,21 +494,21 @@ class _MakePamentState extends State<MakePayment> {
                                       else if (index == 19) {
                                         return NumberButton(
                                           buttontapped: () async  {
-                                            if(double.parse(userInput) >= totalAmount){
-                                              await createOrder();
+                                            if(double.parse(inputController.text) >= double.parse(finalAmount)){
+                                              await createOrder(inputController.text, change);
                                               openPaymentSuccessDialog();
+                                              //ReceiptLayout().openCashDrawer();
                                             } else {
                                               Fluttertoast.showToast(
                                                   backgroundColor: Color(0xFFFF0000),
                                                   msg: "Insufficient balance");
                                               setState(() {
-                                                userInput = '0.00';
+                                                inputController.text = '0.00';
                                               });
-
                                             }
                                           },
                                           buttonText: buttons[index],
-                                          color: Colors.orange[700],
+                                          color: color.buttonColor,
                                           textColor: Colors.white,
                                         );
                                       }
@@ -492,9 +516,26 @@ class _MakePamentState extends State<MakePayment> {
                                       else {
                                         return NumberButton(
                                           buttontapped: () {
-                                            setState(() {
-                                              userInput += buttons[index];
-                                            });
+                                            if(inputController.text.length < 6){
+                                              if(inputController.text.contains('.')){
+                                                var decimal = inputController.text.split(".")[1].length;
+                                                if(decimal < 2){
+                                                  setState(() {
+                                                    inputController.text += buttons[index];
+                                                  });
+                                                }
+                                              } else {
+                                                setState(() {
+                                                  inputController.text += buttons[index];
+                                                });
+                                              }
+                                            }
+                                            double value = double.parse(inputController.text) - double.parse(finalAmount);
+                                            if(value > 0.0){
+                                              setState(() {
+                                                change = value.toStringAsFixed(2);
+                                              });
+                                            }
                                           },
                                           buttonText: buttons[index],
                                           color: Colors.white,
@@ -573,6 +614,7 @@ class _MakePamentState extends State<MakePayment> {
                                         width: MediaQuery.of(context).size.width/2,
                                       ),
                                     ):Container(
+                                      margin: EdgeInsets.all(25),
                                       child: _buildQrView(context),
                                     ),
 
@@ -600,7 +642,7 @@ class _MakePamentState extends State<MakePayment> {
                                           });
                                           //await controller?.resumeCamera();
                                           await controller?.scannedDataStream;
-                                          await callCreateOrder();
+                                          await callCreateOrder(null, null);
 
                                         }, child: Text(scanning==false?"Start Scan":"Scanning...",style:TextStyle(fontSize: 25)),
 
@@ -611,7 +653,7 @@ class _MakePamentState extends State<MakePayment> {
                             ],
                           ) ,
                         ):Container(),
-                      ),
+                      )
                     ],
                   );
                 });
@@ -1036,9 +1078,10 @@ class _MakePamentState extends State<MakePayment> {
     await getDiningTax(cart);
     calPromotion(cart);
     getTaxAmount();
-    getAllTotal();
     getRounding();
+    getAllTotal();
     addAllPromotion(cart);
+
     streamController.add('refresh');
   }
 
@@ -1070,18 +1113,6 @@ class _MakePamentState extends State<MakePayment> {
     return priceIncAllTaxes;
   }
 
-  getAllTotal() {
-    getAllTaxAmount();
-    try {
-      discountPrice = total - promoAmount;
-      totalAmount = discountPrice + priceIncAllTaxes;
-    } catch (error) {
-      print('Total calc error: $error');
-    }
-
-    streamController.add('refresh');
-  }
-
   getRounding(){
     double _round = 0.0;
     _round = double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
@@ -1093,6 +1124,26 @@ class _MakePamentState extends State<MakePayment> {
 
     streamController.add('refresh');
   }
+
+  getAllTotal() {
+    getAllTaxAmount();
+    try {
+      discountPrice = total - promoAmount;
+      totalAmount = discountPrice + priceIncAllTaxes;
+
+      if(rounding == 0.0){
+        finalAmount = totalAmount.toStringAsFixed(2);
+      } else {
+        finalAmount = totalAmount.toStringAsFixed(1) + '0';
+      }
+    } catch (error) {
+      print('Total calc error: $error');
+    }
+
+    streamController.add('refresh');
+  }
+
+
 
 
 /*
@@ -1139,8 +1190,8 @@ class _MakePamentState extends State<MakePayment> {
   //   await crateOrderTaxDetail();
   //   await createOrderPromotionDetail();
   // }
-  callCreateOrder() async {
-    await createOrder();
+  callCreateOrder(String? paymentReceived, String? orderChange) async {
+    await createOrder(paymentReceived, orderChange);
     await crateOrderTaxDetail();
     await createOrderPromotionDetail();
   }
@@ -1151,7 +1202,7 @@ class _MakePamentState extends State<MakePayment> {
     branchObject = json.decode(branch!);
   }
 
-  createOrder() async {
+  createOrder(String? paymentReceived, String? orderChange) async {
     print('create order called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -1173,8 +1224,10 @@ class _MakePamentState extends State<MakePayment> {
           branch_link_tax_id: '',
           amount: totalAmount.toStringAsFixed(2),
           rounding: rounding.toStringAsFixed(2),
-          final_amount: rounding != 0.0 ? totalAmount.toStringAsFixed(1) + '0' : totalAmount.toStringAsFixed(2),
+          final_amount: finalAmount,
           close_by: userObject['name'].toString(),
+          payment_received: paymentReceived == null ? '' : paymentReceived,
+          payment_change: orderChange == null ? '' : orderChange,
           payment_status: 0,
           created_at: dateTime,
           updated_at: '',
