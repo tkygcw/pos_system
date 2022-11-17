@@ -81,8 +81,8 @@ class _LoadingPageState extends State<LoadingPage> {
     getSale();
     getAllTableUse();
     getAllTableUseDetail();
-    getProductVariantDetail();
-    getBranchLinkProduct();
+
+
 
     // Go to Page2 after 5s.
     Timer(Duration(seconds: 4), () {
@@ -488,6 +488,9 @@ getAllProduct() async {
     getModifierLinkProduct();
     getVariantGroup();
     getProductVariant();
+    getBranchLinkProduct();
+
+
   }
 }
 
@@ -502,7 +505,7 @@ getBranchLinkProduct() async {
     List responseJson = data['product'];
     for (var i = 0; i < responseJson.length; i++) {
       BranchLinkProduct branchLinkProductData = BranchLinkProduct.fromJson(responseJson[i]);
-      // Product? productData = await PosDatabase.instance.readProductSqliteID(branchLinkProductData.product_id!);
+      Product? productData = await PosDatabase.instance.readProductSqliteID(branchLinkProductData.product_id!);
       // ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(branchLinkProductData.product_variant_id!);
       // print(productVariantData!.product_variant_sqlite_id);
       BranchLinkProduct data = await PosDatabase.instance
@@ -510,7 +513,7 @@ getBranchLinkProduct() async {
         branch_link_product_id: branchLinkProductData.branch_link_product_id,
         branch_id: branchLinkProductData.branch_id,
         product_sqlite_id: branchLinkProductData.product_id,
-        product_id: branchLinkProductData.product_id,
+        product_id: productData!.product_sqlite_id.toString(),
         has_variant: branchLinkProductData.has_variant,
         product_variant_sqlite_id: '0',
         product_variant_id: branchLinkProductData.product_variant_id,
@@ -653,6 +656,8 @@ getProductVariant() async {
            soft_delete: productVariantItem.soft_delete
       ));
     }
+    getProductVariantDetail();
+
   }
 }
 
@@ -668,16 +673,15 @@ getProductVariantDetail() async {
     List responseJson = data['variant'];
     for (var i = 0; i < responseJson.length; i++) {
       ProductVariantDetail productVariantDetailItem = ProductVariantDetail.fromJson(responseJson[i]);
-      // ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(productVariantDetailItem.product_variant_id!);
-      // print(productVariantData!.product_variant_sqlite_id);
-      // VariantItem? variantItemData = await PosDatabase.instance.readVariantItemSqliteID(productVariantDetailItem.variant_item_id!);
+      ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(productVariantDetailItem.product_variant_id!);
+      VariantItem? variantItemData = await PosDatabase.instance.readVariantItemSqliteID(productVariantDetailItem.variant_item_id!);
       ProductVariantDetail data = await PosDatabase.instance
           .insertProductVariantDetail(ProductVariantDetail(
           product_variant_detail_id: productVariantDetailItem.product_variant_detail_id,
-          product_variant_id: '0',
-          product_variant_sqlite_id: '0',
-          variant_item_id: '0',
-          variant_item_sqlite_id: '0',
+          product_variant_id: productVariantDetailItem.product_variant_id,
+          product_variant_sqlite_id: productVariantData!.product_variant_sqlite_id.toString(),
+          variant_item_id: productVariantDetailItem.variant_item_id,
+          variant_item_sqlite_id: variantItemData!.variant_item_sqlite_id.toString(),
           sync_status: 2,
           created_at: productVariantDetailItem.created_at,
           updated_at: productVariantDetailItem.updated_at,
