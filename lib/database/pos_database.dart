@@ -1635,7 +1635,7 @@ class PosDatabase {
   Future<List<Categories>> readAllCategories() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT DISTINCT a.* , (SELECT COUNT(b.product_id) from $tableProduct AS b where b.category_id= a.category_id AND b.soft_delete = ?) item_sum FROM $tableCategories AS a JOIN $tableProduct AS b ON a.category_id = b.category_id JOIN $tableBranchLinkProduct AS c ON b.product_id = c.product_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND b.available = ? ',
+        'SELECT DISTINCT a.* , (SELECT COUNT(b.product_sqlite_id) from $tableProduct AS b where b.category_sqlite_id = a.category_sqlite_id AND b.soft_delete = ?) item_sum FROM $tableCategories AS a JOIN $tableProduct AS b ON a.category_sqlite_id = b.category_sqlite_id JOIN $tableBranchLinkProduct AS c ON b.product_sqlite_id = c.product_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND b.available = ? ',
         ['', '', '', '', 1]);
     return result.map((json) => Categories.fromJson(json)).toList();
   }
