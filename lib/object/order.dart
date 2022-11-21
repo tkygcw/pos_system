@@ -10,6 +10,7 @@ class OrderFields {
     payment_link_company_id,
     branch_id,
     branch_link_tax_id,
+    subtotal,
     amount,
     rounding,
     final_amount,
@@ -30,6 +31,7 @@ class OrderFields {
   static String payment_link_company_id = 'payment_link_company_id';
   static String branch_id = 'branch_id';
   static String branch_link_tax_id = 'branch_link_tax_id';
+  static String subtotal = 'subtotal';
   static String amount = 'amount';
   static String rounding = 'rounding';
   static String final_amount = 'final_amount';
@@ -51,6 +53,7 @@ class Order {
   String? payment_link_company_id;
   String? branch_id;
   String? branch_link_tax_id;
+  String? subtotal;
   String? amount;
   String? rounding;
   String? final_amount;
@@ -72,6 +75,7 @@ class Order {
       this.payment_link_company_id,
       this.branch_id,
       this.branch_link_tax_id,
+      this.subtotal,
       this.amount,
       this.rounding,
       this.final_amount,
@@ -92,6 +96,7 @@ class Order {
     String? payment_link_company_id,
     String? branch_id,
     String? branch_link_tax_id,
+    String? subtotal,
     String? amount,
     String? rounding,
     String? final_amount,
@@ -112,6 +117,7 @@ class Order {
           payment_link_company_id: payment_link_company_id ?? this.payment_link_company_id,
           branch_id: branch_id ?? this.branch_id,
           branch_link_tax_id: branch_link_tax_id ?? this.branch_link_tax_id,
+          subtotal: subtotal ?? this.subtotal,
           amount: amount ?? this.amount,
           rounding: rounding ?? this.rounding,
           final_amount: final_amount ?? this.final_amount,
@@ -132,6 +138,7 @@ class Order {
         payment_link_company_id: json[OrderFields.payment_link_company_id] as String?,
         branch_id: json[OrderFields.branch_id] as String?,
         branch_link_tax_id: json[OrderFields.branch_link_tax_id] as String?,
+        subtotal: json[OrderFields.subtotal] as String?,
         amount: json[OrderFields.amount] as String?,
         rounding: json[OrderFields.rounding] as String?,
         final_amount: json[OrderFields.final_amount] as String?,
@@ -153,6 +160,7 @@ class Order {
         OrderFields.payment_link_company_id: payment_link_company_id,
         OrderFields.branch_id: branch_id,
         OrderFields.branch_link_tax_id: branch_link_tax_id,
+        OrderFields.subtotal: subtotal,
         OrderFields.amount: amount,
         OrderFields.rounding: rounding,
         OrderFields.final_amount: final_amount,

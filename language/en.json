@@ -23,6 +23,8 @@
   "incorrect_password": "incorrect password",
   "confirm_delete": "will be remove from cart. Click yes to proceed",
   "confirm_pos_pin": "Confirm transfer ownership?",
+  "confirm_merge_bill": "Confirm Merge bill payment?",
+  "to_merge_bill": "This is a merge bill payment. Click 'YES' to proceed",
   "to_pos_pin": "You will be redirected to pos pin page, Click yes to proceed",
   "offer_ended": "Offer ended",
   "empty_cart": "No item in cart",

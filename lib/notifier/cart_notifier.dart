@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:pos_system/object/cart_payment.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/promotion.dart';
 
@@ -9,16 +10,28 @@ import '../object/table.dart';
 
 class CartModel extends ChangeNotifier {
   List<cartProductItem> cartNotifierItem = [];
+  List<cartPaymentDetail> cartNotifierPayment  = [];
   List<Promotion> autoPromotion = [];
   Promotion? selectedPromotion ;
   List<PosTable> selectedTable = [];
   String selectedOption = 'Dine in';
 
 
-  void initialLoad() async {
+  void initialLoad() {
     removeAllTable();
     removeAllCartItem();
     removePromotion();
+    removePaymentDetail();
+    notifyListeners();
+  }
+
+  void removePaymentDetail(){
+    cartNotifierPayment.clear();
+    notifyListeners();
+  }
+
+  void addPaymentDetail(cartPaymentDetail object){
+    cartNotifierPayment.add(object);
     notifyListeners();
   }
 

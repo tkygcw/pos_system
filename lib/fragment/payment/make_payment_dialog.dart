@@ -495,7 +495,7 @@ class _MakePaymentState extends State<MakePayment> {
                                         return NumberButton(
                                           buttontapped: () async  {
                                             if(double.parse(inputController.text) >= double.parse(finalAmount)){
-                                              await createOrder(inputController.text, change);
+                                              await callCreateOrder(inputController.text, change);
                                               openPaymentSuccessDialog();
                                               //ReceiptLayout().openCashDrawer();
                                             } else {
@@ -586,8 +586,9 @@ class _MakePaymentState extends State<MakePayment> {
                                       child: ElevatedButton(
 
                                         style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.green)),
-                                        onPressed: () {
-
+                                        onPressed: () async {
+                                          await callCreateOrder(finalAmount, null);
+                                          openPaymentSuccessDialog();
                                         }, child: Text("Confirm",style:TextStyle(fontSize: 25)),
 
                                       ),
@@ -642,7 +643,7 @@ class _MakePaymentState extends State<MakePayment> {
                                           });
                                           //await controller?.resumeCamera();
                                           await controller?.scannedDataStream;
-                                          await callCreateOrder(null, null);
+                                          await callCreateOrder(finalAmount, null);
 
                                         }, child: Text(scanning==false?"Start Scan":"Scanning...",style:TextStyle(fontSize: 25)),
 
@@ -1116,7 +1117,7 @@ class _MakePaymentState extends State<MakePayment> {
   getRounding(){
     double _round = 0.0;
     _round = double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
-    if(_round.toStringAsFixed(2) != '-0.05'){
+    if(_round.toStringAsFixed(2) != '0.05' && _round.toStringAsFixed(2) != '-0.05'){
       rounding = _round;
     } else {
       rounding = 0.0;
@@ -1222,12 +1223,13 @@ class _MakePaymentState extends State<MakePayment> {
           branch_link_promotion_id: '',
           payment_link_company_id: widget.type.toString(),
           branch_link_tax_id: '',
+          subtotal: total.toStringAsFixed(2),
           amount: totalAmount.toStringAsFixed(2),
           rounding: rounding.toStringAsFixed(2),
           final_amount: finalAmount,
           close_by: userObject['name'].toString(),
           payment_received: paymentReceived == null ? '' : paymentReceived,
-          payment_change: orderChange == null ? '' : orderChange,
+          payment_change: orderChange == null ? '0.00' : orderChange,
           payment_status: 0,
           created_at: dateTime,
           updated_at: '',

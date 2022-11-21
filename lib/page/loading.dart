@@ -512,9 +512,9 @@ getBranchLinkProduct() async {
           .insertBranchLinkProduct(BranchLinkProduct(
         branch_link_product_id: branchLinkProductData.branch_link_product_id,
         branch_id: branchLinkProductData.branch_id,
-        product_sqlite_id: branchLinkProductData.product_id,
-        product_id: productData!.product_sqlite_id.toString(),
-        has_variant: branchLinkProductData.has_variant,
+        product_sqlite_id: productData!.product_sqlite_id.toString(),
+        product_id: branchLinkProductData.product_id,
+          has_variant: branchLinkProductData.has_variant,
         product_variant_sqlite_id: '0',
         product_variant_id: branchLinkProductData.product_variant_id,
         b_SKU: branchLinkProductData.b_SKU,

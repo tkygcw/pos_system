@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,8 @@ import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/order_promotion_detail.dart';
+import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table_use.dart';
@@ -62,6 +65,8 @@ class _CartPageState extends State<CartPage> {
   List<Promotion> autoApplyPromotionList = [];
   List<TableUse> tableUseList = [];
   List<Tax> taxRateList = [];
+  List<OrderTaxDetail> orderTaxList = [];
+  List<OrderPromotionDetail> orderPromotionList = [];
   int diningOptionID = 0;
   int simpleIntInput = 0;
   double total = 0.0;
@@ -76,6 +81,8 @@ class _CartPageState extends State<CartPage> {
   double totalAmount = 0.0;
   double tableOrderPrice = 0.0;
   double rounding = 0.0;
+  double paymentReceived = 0.0;
+  double paymentChange = 0.0;
   String selectedPromoRate = '';
   String promoName = '';
   String promoRate = '';
@@ -115,7 +122,9 @@ class _CartPageState extends State<CartPage> {
       return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Consumer<CartModel>(builder: (context, CartModel cart, child) {
-          getSubTotal(cart);
+          widget.currentPage == 'menu' ||
+          widget.currentPage == 'table' ?
+          getSubTotal(cart) : getReceiptPaymentDetail(cart);
           return Scaffold(
             resizeToAvoidBottomInset: false,
             appBar: AppBar(
@@ -152,7 +161,10 @@ class _CartPageState extends State<CartPage> {
                   ),
                 ),
                 Visibility(
-                  visible: widget.currentPage == 'menu' || widget.currentPage == 'qr_order'  ? false : true,
+                  visible: widget.currentPage == 'menu' ||
+                           widget.currentPage == 'qr_order' ||
+                           widget.currentPage == 'bill' ?
+                           false : true,
                   child: IconButton(
                     tooltip: 'promotion',
                     icon: Icon(Icons.discount),
@@ -195,8 +207,7 @@ class _CartPageState extends State<CartPage> {
                   return Container(
                     decoration: BoxDecoration(
                       color: color.iconColor,
-                      border:
-                          Border.all(color: Colors.grey.shade100, width: 3.0),
+                      border: Border.all(color: Colors.grey.shade100, width: 3.0),
                     ),
                     child: Column(
                       children: [
@@ -225,9 +236,7 @@ class _CartPageState extends State<CartPage> {
                                   .map((e) => DropdownMenuItem(
                                         child: Container(
                                           alignment: Alignment.centerLeft,
-                                          child: Text(
-                                            e,
-                                            style: TextStyle(fontSize: 18),
+                                          child: Text(e, style: TextStyle(fontSize: 18),
                                           ),
                                         ),
                                         value: e,
@@ -259,14 +268,13 @@ class _CartPageState extends State<CartPage> {
                                         ],
                                       ),
                                     ),
-                                    key: ValueKey(
-                                        cart.cartNotifierItem[index].name),
-                                    direction: DismissDirection.startToEnd,
+                                    key: ValueKey(cart.cartNotifierItem[index].name),
+                                    direction: widget.currentPage == 'menu' ||
+                                               widget.currentPage == 'table' ?
+                                               DismissDirection.startToEnd : DismissDirection.none,
                                     confirmDismiss: (direction) async {
-                                      if (direction ==
-                                          DismissDirection.startToEnd) {
-                                        await openRemoveCartItemDialog(
-                                            cart.cartNotifierItem[index], widget.currentPage);
+                                      if (direction == DismissDirection.startToEnd) {
+                                        await openRemoveCartItemDialog(cart.cartNotifierItem[index], widget.currentPage);
                                       }
                                       return null;
                                     },
@@ -293,67 +301,37 @@ class _CartPageState extends State<CartPage> {
                                                         .price,
                                                 style: TextStyle(
                                                   fontSize: 13,
-                                                  color: cart
-                                                              .cartNotifierItem[
-                                                                  index]
-                                                              .status ==
-                                                          1
-                                                      ? font
-                                                      : cart
-                                                          .cartNotifierItem[
-                                                              index]
-                                                          .refColor,
+                                                  color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
                                                 )),
                                           ],
                                         ),
                                       ),
                                       subtitle: Text(
-                                          getVariant(cart
-                                                  .cartNotifierItem[index]) +
-                                              getModifier(cart
-                                                  .cartNotifierItem[index]) +
-                                              getRemark(
-                                                  cart.cartNotifierItem[index]),
+                                          getVariant(cart.cartNotifierItem[index]) +
+                                              getModifier(cart.cartNotifierItem[index]) +
+                                              getRemark(cart.cartNotifierItem[index]),
                                           style: TextStyle(fontSize: 10)),
                                       trailing: Container(
                                         child: FittedBox(
                                           child: Row(
                                             children: [
                                               Visibility(
-                                                visible:
-                                                    widget.currentPage == 'menu'
-                                                        ? true
-                                                        : false,
+                                                visible: widget.currentPage == 'menu' ? true : false,
                                                 child: IconButton(
-                                                    hoverColor:
-                                                        Colors.transparent,
+                                                    hoverColor: Colors.transparent,
                                                     icon: Icon(Icons.remove),
                                                     onPressed: () {
-                                                      cart
-                                                                  .cartNotifierItem[
-                                                                      index]
-                                                                  .quantity !=
-                                                              1
-                                                          ? setState(() => cart
-                                                              .cartNotifierItem[
-                                                                  index]
-                                                              .quantity--)
+                                                      cart.cartNotifierItem[index].quantity != 1 ?
+                                                      setState(() => cart.cartNotifierItem[index].quantity--)
                                                           : null;
                                                     }),
                                               ),
-                                              Text(
-                                                cart.cartNotifierItem[index]
-                                                    .quantity
-                                                    .toString(),
-                                                style: TextStyle(
-                                                    color: cart
-                                                        .cartNotifierItem[index]
-                                                        .refColor),
+                                              Text(cart.cartNotifierItem[index].quantity.toString(),
+                                                style: TextStyle(color: cart.cartNotifierItem[index].refColor),
                                               ),
                                               widget.currentPage == 'menu' ?
                                               IconButton(
-                                                  hoverColor:
-                                                      Colors.transparent,
+                                                  hoverColor: Colors.transparent,
                                                   icon: Icon(Icons.add),
                                                   onPressed: () {
                                                     if (cart.cartNotifierItem[index].status == 0) {
@@ -367,7 +345,6 @@ class _CartPageState extends State<CartPage> {
                                                           msg:
                                                               "order already placed!");
                                                     }
-
                                                     controller.add('refresh');
                                                   })
                                                   :
@@ -390,107 +367,171 @@ class _CartPageState extends State<CartPage> {
                           endIndent: 20,
                         ),
                         SizedBox(height: 10),
-                        ListView(
-                          physics: NeverScrollableScrollPhysics(),
-                          children: [
-                            ListTile(
-                              title: Text("Subtotal",
-                                  style: TextStyle(fontSize: 14)),
-                              trailing: Text('${total.toStringAsFixed(2)}',
-                                  style: TextStyle(fontSize: 14)),
-                              visualDensity: VisualDensity(vertical: -4),
-                              dense: true,
-                            ),
-                            Visibility(
-                              visible:
-                                  cart.selectedPromotion != null ? true : false,
-                              child: ListTile(
-                                title: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    children: [
-                                      Text('${allPromo} (${selectedPromoRate})',
-                                          style: TextStyle(fontSize: 14)),
-                                      IconButton(
-                                        padding: EdgeInsets.only(left: 10),
-                                        constraints: BoxConstraints(),
-                                        icon: Icon(Icons.close),
-                                        iconSize: 20.0,
-                                        color: Colors.red,
-                                        onPressed: () {
-                                          cart.removePromotion();
-                                          selectedPromo = 0.0;
-                                          hasSelectedPromo = false;
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                trailing: Text(
-                                    '-${selectedPromo.toStringAsFixed(2)}',
+                        Container(
+                          height: cart.selectedOption == 'Dine in' ? 190 : null,
+                          child: ListView(
+                            physics: ClampingScrollPhysics(),
+                            children: [
+                              ListTile(
+                                title: Text("Subtotal",
+                                    style: TextStyle(fontSize: 14)),
+                                trailing: Text('${total.toStringAsFixed(2)}',
                                     style: TextStyle(fontSize: 14)),
                                 visualDensity: VisualDensity(vertical: -4),
                                 dense: true,
                               ),
-                            ),
-                            Visibility(
-                                visible: hasPromo == true ? true : false,
+                              Visibility(
+                                visible: cart.selectedPromotion != null ? true : false,
+                                child: ListTile(
+                                  title: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      children: [
+                                        Text('${allPromo} (${selectedPromoRate})',
+                                            style: TextStyle(fontSize: 14)),
+                                        IconButton(
+                                          padding: EdgeInsets.only(left: 10),
+                                          constraints: BoxConstraints(),
+                                          icon: Icon(Icons.close),
+                                          iconSize: 20.0,
+                                          color: Colors.red,
+                                          onPressed: () {
+                                            cart.removePromotion();
+                                            selectedPromo = 0.0;
+                                            hasSelectedPromo = false;
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  trailing: Text(
+                                      '-${selectedPromo.toStringAsFixed(2)}',
+                                      style: TextStyle(fontSize: 14)),
+                                  visualDensity: VisualDensity(vertical: -4),
+                                  dense: true,
+                                ),
+                              ),
+                              Visibility(
+                                  visible: hasPromo == true ? true : false,
+                                  child: ListView.builder(
+                                      shrinkWrap: true,
+                                      physics: NeverScrollableScrollPhysics(),
+                                      itemCount: autoApplyPromotionList.length,
+                                      itemBuilder: (context, index) {
+                                        return ListTile(
+                                            title: Text(
+                                                '${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
+                                                style: TextStyle(fontSize: 14)),
+                                            visualDensity:
+                                                VisualDensity(vertical: -4),
+                                            dense: true,
+                                            trailing: Text(
+                                                '-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
+                                                style: TextStyle(fontSize: 14)));
+                                      })),
+                              Visibility(
+                                visible: widget.currentPage == 'bill' ? true : false,
                                 child: ListView.builder(
                                     shrinkWrap: true,
                                     physics: NeverScrollableScrollPhysics(),
-                                    itemCount: autoApplyPromotionList.length,
+                                    itemCount: orderPromotionList.length,
                                     itemBuilder: (context, index) {
                                       return ListTile(
                                           title: Text(
-                                              '${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
+                                              '${orderPromotionList[index].promotion_name} (${orderPromotionList[index].rate})',
                                               style: TextStyle(fontSize: 14)),
                                           visualDensity:
-                                              VisualDensity(vertical: -4),
+                                          VisualDensity(vertical: -4),
                                           dense: true,
                                           trailing: Text(
-                                              '-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
+                                              '-${orderPromotionList[index].promotion_amount}',
                                               style: TextStyle(fontSize: 14)));
-                                    })),
-                            ListView.builder(
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                itemCount: taxRateList.length,
-                                itemBuilder: (context, index){
-                                  return ListTile(
-                                    title: Text('${taxRateList[index].name}(${taxRateList[index].tax_rate}%)', style: TextStyle(fontSize: 14)),
-                                    trailing: Text('${taxRateList[index].tax_amount?.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)), //Text(''),
-                                    visualDensity: VisualDensity(vertical: -4),
-                                    dense: true,
-                                  );
-                                }
-                            ),
-                            ListTile(
-                              title: Text("Total",
-                                  style: TextStyle(fontSize: 14)),
-                              trailing: Text('${totalAmount.toStringAsFixed(2)}',
-                                  style: TextStyle(fontSize: 14)),
-                              visualDensity: VisualDensity(vertical: -4),
-                              dense: true,
-                            ),
-                            ListTile(
-                              title: Text("Rounding",
-                                  style: TextStyle(fontSize: 14)),
-                              trailing: Text('${rounding.toStringAsFixed(2)}',
-                                  style: TextStyle(fontSize: 14)),
-                              visualDensity: VisualDensity(vertical: -4),
-                              dense: true,
-                            ),
-                            ListTile(
-                              visualDensity: VisualDensity(vertical: -4),
-                              title: Text("Final amount",
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold)),
-                              trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                              dense: true,
-                            ),
-                          ],
-                          shrinkWrap: true,
+                                    }),
+                              ),
+                              Visibility(
+                                visible: widget.currentPage == 'menu' || widget.currentPage == 'table' ? true : false,
+                                child: ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: NeverScrollableScrollPhysics(),
+                                    itemCount: taxRateList.length,
+                                    itemBuilder: (context, index){
+                                      return ListTile(
+                                        title: Text('${taxRateList[index].name}(${taxRateList[index].tax_rate}%)', style: TextStyle(fontSize: 14)),
+                                        trailing: Text('${taxRateList[index].tax_amount?.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)), //Text(''),
+                                        visualDensity: VisualDensity(vertical: -4),
+                                        dense: true,
+                                      );
+                                    }
+                                ),
+                              ),
+                              Visibility(
+                                visible: widget.currentPage == 'bill' ? true : false,
+                                child: ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: NeverScrollableScrollPhysics(),
+                                    itemCount: orderTaxList.length,
+                                    itemBuilder: (context, index){
+                                      return ListTile(
+                                        title: Text('${orderTaxList[index].tax_name}(${orderTaxList[index].rate}%)', style: TextStyle(fontSize: 14)),
+                                        trailing: Text('${orderTaxList[index].tax_amount}', style: TextStyle(fontSize: 14)), //Text(''),
+                                        visualDensity: VisualDensity(vertical: -4),
+                                        dense: true,
+                                      );
+                                    }
+                                ),
+                              ),
+                              ListTile(
+                                title: Text("Amount",
+                                    style: TextStyle(fontSize: 14)),
+                                trailing: Text('${totalAmount.toStringAsFixed(2)}',
+                                    style: TextStyle(fontSize: 14)),
+                                visualDensity: VisualDensity(vertical: -4),
+                                dense: true,
+                              ),
+                              ListTile(
+                                title: Text("Rounding",
+                                    style: TextStyle(fontSize: 14)),
+                                trailing: Text('${rounding.toStringAsFixed(2)}',
+                                    style: TextStyle(fontSize: 14)),
+                                visualDensity: VisualDensity(vertical: -4),
+                                dense: true,
+                              ),
+                              ListTile(
+                                visualDensity: VisualDensity(vertical: -4),
+                                title: Text("Final Amount",
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold)),
+                                trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                dense: true,
+                              ),
+                              Visibility(
+                                visible: widget.currentPage == 'bill' ? true : false,
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        child: ListTile(
+                                          visualDensity: VisualDensity(vertical: -4),
+                                          title: Text("Payment received", style: TextStyle(fontSize: 14)),
+                                          trailing: Text("${paymentReceived.toStringAsFixed(2)}", style: TextStyle(fontSize: 14)),
+                                          dense: true,
+                                        ),
+                                      ),
+                                      Container(
+                                        child: ListTile(
+                                          visualDensity: VisualDensity(vertical: -4),
+                                          title: Text("Change",
+                                              style: TextStyle(fontSize: 14)),
+                                          trailing: Text("${paymentChange.toStringAsFixed(2)}", style: TextStyle(fontSize: 14)),
+                                          dense: true,
+                                        ),
+                                      )
+                                    ],
+                                  )
+                              )
+                            ],
+                            shrinkWrap: true,
+                          ),
                         ),
                         SizedBox(height: 10),
                         Divider(
@@ -510,7 +551,6 @@ class _CartPageState extends State<CartPage> {
                             ),
                             onPressed: () async {
                               await checkCashRecord();
-                              print(_isSettlement);
                               if(_isSettlement == true){
                                 showDialog(
                                     barrierDismissible: false, context: context, builder: (BuildContext context) {
@@ -546,8 +586,7 @@ class _CartPageState extends State<CartPage> {
                                     } else {
                                       Fluttertoast.showToast(
                                           backgroundColor: Colors.red,
-                                          msg:
-                                          "make sure cart is not empty and table is selected");
+                                          msg: "make sure cart is not empty and table is selected");
                                     }
                                   } else {
                                     cart.removeAllTable();
@@ -562,22 +601,40 @@ class _CartPageState extends State<CartPage> {
                                           msg: "cart empty");
                                     }
                                   }
-                                } else {
+                                } else if(widget.currentPage == 'table') {
                                   if(cart.selectedTable.isNotEmpty){
-                                    openPaymentSelect();
+                                    if(cart.selectedTable.length > 1){
+                                      if (await confirm(
+                                        context,
+                                        title: Text(
+                                            '${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
+                                        content: Text(
+                                            '${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
+                                        textOK: Text(
+                                            '${AppLocalizations.of(context)?.translate('yes')}'),
+                                        textCancel: Text(
+                                            '${AppLocalizations.of(context)?.translate('no')}'),
+                                      )) {
+                                        return openPaymentSelect();
+                                      }
+                                    } else {
+                                      openPaymentSelect();
+                                    }
                                   } else {
                                     Fluttertoast.showToast(
                                         backgroundColor: Colors.red,
                                         msg: "cart empty");
                                   }
-
+                                } else {
+                                  print('Refund function');
                                 }
                               }
 
                             },
                             child: widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
                                 ? Text('Place Order')
-                                : Text('Make payment'),
+                                : widget.currentPage == 'table' ? Text('Make payment')
+                                : Text('Refund'),
                           ),
                         ),
                       ],
@@ -671,10 +728,8 @@ class _CartPageState extends State<CartPage> {
          } else {
            print('print 58mm');
          }
-
        }
      }
-
     }
   }
 
@@ -981,12 +1036,11 @@ class _CartPageState extends State<CartPage> {
   getDiningTax(CartModel cart) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    //taxRateList = [];
+    taxRateList = [];
     try {
       diningOptionID = 0;
       //get dining option data
-      List<DiningOption> data =
-          await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
+      List<DiningOption> data = await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
       diningOptionID = data[0].dining_id!;
       //get dining tax
       List<Tax> taxData = await PosDatabase.instance.readTax(branch_id.toString(), diningOptionID.toString());
@@ -1003,6 +1057,30 @@ class _CartPageState extends State<CartPage> {
     return diningOptionID;
   }
 
+  getReceiptPaymentDetail(CartModel cart){
+    this.total = 0.0;
+    this.totalAmount = 0.0;
+    this.rounding = 0.0;
+    this.finalAmount = '0.00';
+    this.paymentReceived = 0.0;
+    this.paymentChange = 0.0;
+    this.orderTaxList = [];
+    this.orderPromotionList = [];
+
+    for(int i = 0; i < cart.cartNotifierPayment.length; i++){
+      this.total = cart.cartNotifierPayment[i].subtotal;
+      this.totalAmount = cart.cartNotifierPayment[i].amount;
+      this.rounding = cart.cartNotifierPayment[i].rounding;
+      this.finalAmount = cart.cartNotifierPayment[i].finalAmount;
+      this.paymentReceived = cart.cartNotifierPayment[i].paymentReceived;
+      this.paymentChange = cart.cartNotifierPayment[i].paymentChange;
+      this.orderTaxList = cart.cartNotifierPayment[i].orderTaxList;
+      this.orderPromotionList = cart.cartNotifierPayment[i].orderPromotionDetail;
+
+    }
+    controller.add('refresh');
+  }
+
   getSubTotal(CartModel cart) async {
     try {
       total = 0.0;
@@ -1010,9 +1088,7 @@ class _CartPageState extends State<CartPage> {
       promoAmount = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
         total += (double.parse((cart.cartNotifierItem[i].price)) * cart.cartNotifierItem[i].quantity);
-        // if (cart.cartNotifierItem[i].status == 0) {
-        //
-        // }
+
       }
     } catch (e) {
       print('Sub Total Error: $e');
@@ -1054,7 +1130,7 @@ class _CartPageState extends State<CartPage> {
   getRounding(){
     double _round = 0.0;
     _round = double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
-    if(_round.toStringAsFixed(2) != '-0.05'){
+    if(_round.toStringAsFixed(2) != '0.05' && _round.toStringAsFixed(2) != '-0.05'){
       rounding = _round;
     } else {
       rounding = 0.0;
@@ -1153,7 +1229,7 @@ class _CartPageState extends State<CartPage> {
         });
   }
 
-  Future<Future<Object?>> openPaymentSelect() async {
+  openPaymentSelect() async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -1174,6 +1250,7 @@ class _CartPageState extends State<CartPage> {
           return null!;
         });
   }
+
 
   checkCashRecord() async {
     final prefs = await SharedPreferences.getInstance();
