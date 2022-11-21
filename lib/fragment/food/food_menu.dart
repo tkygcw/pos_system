@@ -143,7 +143,6 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   readAllCategories() async {
     await readCompanyID();
     List<Categories> data = await PosDatabase.instance.readAllCategories();
-    print(data);
     categoryTab.add(Tab(
       text: 'All Category',
     ));

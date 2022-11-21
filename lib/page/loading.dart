@@ -506,8 +506,7 @@ getBranchLinkProduct() async {
     for (var i = 0; i < responseJson.length; i++) {
       BranchLinkProduct branchLinkProductData = BranchLinkProduct.fromJson(responseJson[i]);
       Product? productData = await PosDatabase.instance.readProductSqliteID(branchLinkProductData.product_id!);
-      // ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(branchLinkProductData.product_variant_id!);
-      // print(productVariantData!.product_variant_sqlite_id);
+      ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(branchLinkProductData.product_variant_id!);
       BranchLinkProduct data = await PosDatabase.instance
           .insertBranchLinkProduct(BranchLinkProduct(
         branch_link_product_id: branchLinkProductData.branch_link_product_id,
@@ -515,7 +514,7 @@ getBranchLinkProduct() async {
         product_sqlite_id: productData!.product_sqlite_id.toString(),
         product_id: branchLinkProductData.product_id,
           has_variant: branchLinkProductData.has_variant,
-        product_variant_sqlite_id: '0',
+        product_variant_sqlite_id: productVariantData != null ? productVariantData.product_variant_sqlite_id.toString(): '0',
         product_variant_id: branchLinkProductData.product_variant_id,
         b_SKU: branchLinkProductData.b_SKU,
         price: branchLinkProductData.price,
