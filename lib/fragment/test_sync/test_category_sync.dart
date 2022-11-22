@@ -9,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/domain.dart';
 import 'package:imin/imin.dart';
 
+import '../../object/order.dart';
+
 
 class TestCategorySync extends StatefulWidget {
   const TestCategorySync({Key? key}) : super(key: key);
@@ -34,10 +36,26 @@ class _TestCategorySyncState extends State<TestCategorySync> {
       body: Container(
         alignment: Alignment.center,
         child: ElevatedButton(
-            onPressed: ()async  => _openDrawer(),
-            child: Text('open cash drawer')),
+            onPressed: ()  => getPaidOrder('2'),
+            child: Text('current screen width/height: ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
       ),
     );
+  }
+
+  getPaidOrder(String localOrderId) async {
+    List<Order> orderData = await PosDatabase.instance.readSpecificPaidOrder(localOrderId);
+    print('paid order length : ${orderData.length}');
+  }  
+
+/*
+  test order number generator
+*/
+  generateOrderNumber(){
+    int orderNum = 0;
+    String dbNum = '0012';
+    orderNum = int.parse(dbNum) + 1;
+    print('order number: ${orderNum}');
+    return orderNum;
   }
   
 /*

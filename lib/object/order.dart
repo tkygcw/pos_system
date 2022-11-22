@@ -4,6 +4,7 @@ class OrderFields {
   static List<String> values = [
     order_sqlite_id,
     order_id,
+    order_number,
     company_id,
     customer_id,
     branch_link_promotion_id,
@@ -25,6 +26,7 @@ class OrderFields {
 
   static String order_sqlite_id = 'order_sqlite_id';
   static String order_id = 'order_id';
+  static String order_number = 'order_number';
   static String company_id = 'company_id';
   static String customer_id = 'customer_id';
   static String branch_link_promotion_id = 'branch_link_promotion_id';
@@ -47,6 +49,7 @@ class OrderFields {
 class Order {
   int? order_sqlite_id;
   int? order_id;
+  String? order_number;
   String? company_id;
   String? customer_id;
   String? branch_link_promotion_id;
@@ -65,10 +68,18 @@ class Order {
   String? updated_at;
   String? soft_delete;
   bool isSelected = false;
+  String? payment_name;
+
+  generateOrderNumber(){
+    String orderNum = '';
+    orderNum = '#${order_number}-${branch_id?.padLeft(3,'0')}';
+    return orderNum;
+  }
 
   Order(
       {this.order_sqlite_id,
       this.order_id,
+      this.order_number,
       this.company_id,
       this.customer_id,
       this.branch_link_promotion_id,
@@ -85,11 +96,13 @@ class Order {
       this.payment_change,
       this.created_at,
       this.updated_at,
-      this.soft_delete});
+      this.soft_delete,
+      this.payment_name});
 
   Order copy({
     int? order_sqlite_id,
     int? order_id,
+    String? order_number,
     String? company_id,
     String? customer_id,
     String? branch_link_promotion_id,
@@ -111,6 +124,7 @@ class Order {
       Order(
           order_sqlite_id: order_sqlite_id ?? this.order_sqlite_id,
           order_id: order_id ?? this.order_id,
+          order_number: order_number ?? this.order_number,
           company_id: company_id ?? this.company_id,
           customer_id: customer_id ?? this.customer_id,
           branch_link_promotion_id: branch_link_promotion_id ?? this.branch_link_promotion_id,
@@ -127,11 +141,13 @@ class Order {
           payment_change: payment_change ?? this.payment_change,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
-          soft_delete: soft_delete ?? this.soft_delete);
+          soft_delete: soft_delete ?? this.soft_delete,
+          payment_name: payment_name ?? this.payment_name);
 
   static Order fromJson(Map<String, Object?> json) => Order(
         order_sqlite_id: json[OrderFields.order_sqlite_id] as int?,
         order_id: json[OrderFields.order_id] as int?,
+        order_number: json[OrderFields.order_number] as String?,
         company_id: json[OrderFields.company_id] as String?,
         customer_id: json[OrderFields.customer_id] as String?,
         branch_link_promotion_id: json[OrderFields.branch_link_promotion_id] as String?,
@@ -149,11 +165,13 @@ class Order {
         created_at: json[OrderFields.created_at] as String?,
         updated_at: json[OrderFields.updated_at] as String?,
         soft_delete: json[OrderFields.soft_delete] as String?,
+        payment_name: json['name'] as String?
       );
 
   Map<String, Object?> toJson() => {
         OrderFields.order_sqlite_id: order_sqlite_id,
         OrderFields.order_id: order_id,
+        OrderFields.order_number: order_number,
         OrderFields.company_id: company_id,
         OrderFields.customer_id: customer_id,
         OrderFields.branch_link_promotion_id: branch_link_promotion_id,

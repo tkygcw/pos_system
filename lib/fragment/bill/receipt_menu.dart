@@ -40,6 +40,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
   List<ModifierGroup> modifierGroup = [];
   List<OrderTaxDetail> orderTaxList = [];
   List<OrderPromotionDetail> orderPromotionList = [];
+  String orderNumber = '';
   bool _isLoaded = false;
   bool _readComplete = false;
   @override
@@ -83,7 +84,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                   ),
                 ),
                 Expanded(
-                    child: ListView.builder(
+                    child: paidOrderList.length > 0 ? ListView.builder(
                     itemCount: paidOrderList.length,
                     itemBuilder: (BuildContext context,int index){
                       return Card(
@@ -102,7 +103,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                           title: Text('RM${paidOrderList[index].final_amount}'),
                           leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.receipt, color: Colors.grey,)),
                           subtitle: Text('close by: ${paidOrderList[index].close_by}'),
-                          trailing: Text('Invoice ${paidOrderList[index].order_sqlite_id}'),
+                          trailing: Text('Order: ${paidOrderList[index].generateOrderNumber()}'),
                           onTap: () async {
                             if(paidOrderList[index].isSelected == false){
                               //reset other selected order
@@ -125,15 +126,24 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                               cart.initialLoad();
                             }
 
-                            // if(paidOrderList[index].isSelected = true){
-                            //
-                            // } else{
-                            //   paidOrderList[index].isSelected = false;
-                            // }
+                          },
+                          onLongPress: (){
+                            print('refund bill');
                           },
                         ),
                       );
-                    })
+                    }): Container(
+                      alignment: Alignment.center,
+                      height:
+                      MediaQuery.of(context).size.height / 1.7,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.receipt_long),
+                          Text('NO RECORD'),
+                        ],
+                      ),
+                    ),
                 )
               ],
             ),
@@ -145,6 +155,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
 
   paymentAddToCart(Order order, CartModel cart){
     var value = cartPaymentDetail(
+        order.order_sqlite_id.toString(),
         double.parse(order.subtotal!),
         double.parse(order.amount!),
         double.parse(order.rounding!),

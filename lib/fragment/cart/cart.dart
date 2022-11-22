@@ -90,6 +90,7 @@ class _CartPageState extends State<CartPage> {
   String orderCacheId = '';
   String? allPromo = '';
   String finalAmount = '';
+  String localOrderId = '';
   bool hasPromo = false;
   bool hasSelectedPromo = false;
   bool _isSettlement = false;
@@ -626,15 +627,15 @@ class _CartPageState extends State<CartPage> {
                                         msg: "cart empty");
                                   }
                                 } else {
-                                  print('Refund function');
+                                  print('Print receipt');
+                                  _printReceiptList();
                                 }
                               }
-
                             },
                             child: widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
                                 ? Text('Place Order')
                                 : widget.currentPage == 'table' ? Text('Make payment')
-                                : Text('Refund'),
+                                : Text('Print Receipt'),
                           ),
                         ),
                       ],
@@ -645,6 +646,38 @@ class _CartPageState extends State<CartPage> {
         }),
       );
     });
+  }
+
+  _printReceiptList() async {
+    try {
+      for (int i = 0; i < printerList.length; i++) {
+        List<PrinterLinkCategory> data = await PosDatabase.instance
+            .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+        for(int j = 0; j < data.length; j++){
+          if (data[j].category_sqlite_id == '3') {
+            if(printerList[i].type == 0){
+              var printerDetail = jsonDecode(printerList[i].value!);
+              var data = Uint8List.fromList(await ReceiptLayout()
+                  .printReceipt80mm(true, null, this.localOrderId));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']),
+                  int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              } else {
+                print('not connected');
+              }
+            } else {
+              print("print lan");
+            }
+          }
+        }
+
+      }
+    } catch (e) {
+      print('Printer Connection Error cart: ${e}');
+      //response = 'Failed to get platform version.';
+    }
   }
 
   _printCheckList() async {
@@ -1066,6 +1099,7 @@ class _CartPageState extends State<CartPage> {
     this.paymentChange = 0.0;
     this.orderTaxList = [];
     this.orderPromotionList = [];
+    this.localOrderId = '';
 
     for(int i = 0; i < cart.cartNotifierPayment.length; i++){
       this.total = cart.cartNotifierPayment[i].subtotal;
@@ -1076,6 +1110,7 @@ class _CartPageState extends State<CartPage> {
       this.paymentChange = cart.cartNotifierPayment[i].paymentChange;
       this.orderTaxList = cart.cartNotifierPayment[i].orderTaxList;
       this.orderPromotionList = cart.cartNotifierPayment[i].orderPromotionDetail;
+      this.localOrderId = cart.cartNotifierPayment[i].localOrderId;
 
     }
     controller.add('refresh');

@@ -2,6 +2,7 @@ import 'order_promotion_detail.dart';
 import 'order_tax_detail.dart';
 
 class cartPaymentDetail {
+  String localOrderId = '';
   double subtotal = 0.0;
   double amount = 0.00;
   double rounding = 0.0;
@@ -12,6 +13,7 @@ class cartPaymentDetail {
   List<OrderPromotionDetail> orderPromotionDetail = [];
 
   cartPaymentDetail(
+      String localOrderId,
       double subtotal,
       double amount,
       double rounding,
@@ -21,6 +23,7 @@ class cartPaymentDetail {
       List<OrderTaxDetail> orderTaxList,
       List<OrderPromotionDetail> orderPromotionDetail)
   {
+    this.localOrderId = localOrderId;
     this.subtotal = subtotal;
     this.amount = amount;
     this.rounding = rounding;

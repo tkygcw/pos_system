@@ -9,15 +9,28 @@ import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
+import 'package:pos_system/object/product.dart';
+import 'package:pos_system/object/product_variant.dart';
+import 'package:pos_system/object/product_variant_detail.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use_detail.dart';
+import 'package:pos_system/object/variant_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'branch_link_product.dart';
+import 'order.dart';
+import 'order_promotion_detail.dart';
+import 'order_tax_detail.dart';
 
 class ReceiptLayout{
   PaperSize? size;
   Receipt? receipt;
   OrderCache? orderCache;
+  Order? paidOrder;
+  List<OrderCache> paidOrderCacheList = [];
+  List<OrderTaxDetail> orderTaxList = [];
+  List<OrderPromotionDetail> orderPromotionList = [];
   List<OrderDetail> orderDetailList = [];
   List<PosTable> tableList = [];
   List<PaymentLinkCompany> paymentList = [];
@@ -36,136 +49,7 @@ class ReceiptLayout{
     Imin.openDrawer();
   }
 
-/*
-  read receipt layout
-*/
-  readReceiptLayout() async {
-    List<Receipt> data = await PosDatabase.instance.readAllReceipt();
-    for(int i = 0; i < data.length; i++){
-      if(data[i].status == 1){
-        receipt = data[i];
-      }
-    }
-  }
 
-/*
-  read branch latest order cache (auto print when place order click)
-*/
-  readOrderCache() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    List<OrderCache> data = await PosDatabase.instance.readBranchLatestOrderCache(branch_id!);
-    orderCache = data[0];
-    List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCache!.order_cache_sqlite_id.toString());
-    if(!detailData.contains(detailData)){
-      orderDetailList = List.from(detailData);
-    }
-    List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllTableUseDetail(orderCache!.table_use_sqlite_id!);
-    for(int i = 0; i < detailData2.length; i++){
-      List<PosTable> tableData = await PosDatabase.instance
-          .readSpecificTable(branch_id, detailData2[i].table_sqlite_id!);
-      if(!tableList.contains(tableData)){
-        tableList.add(tableData[0]);
-      }
-    }
-  }
-
-/*
-  read specific order cache/table
-*/
-  readSpecificOrderCache(String orderCacheId, String dateTime) async {
-
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
-    List<OrderCache> cacheData  = await PosDatabase.instance.readSpecificDeletedOrderCache(int.parse(orderCacheId));
-    orderCache = cacheData[0];
-    print('order cache: ${orderCache!.order_cache_sqlite_id}');
-    List<OrderDetail> detailData = await PosDatabase.instance.readDeletedOrderDetail(orderCache!.order_cache_sqlite_id.toString(), dateTime);
-    orderDetailList = List.from(detailData);
-    print('order detail list: ${orderDetailList.length}');
-
-
-    List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllDeletedTableUseDetail(orderCache!.table_use_sqlite_id!);
-    for(int i = 0; i < detailData2.length; i++){
-      List<PosTable> tableData = await PosDatabase.instance
-          .readSpecificTable(branch_id!, detailData2[i].table_sqlite_id!);
-      if(!tableList.contains(tableData)){
-        tableList.add(tableData[0]);
-      }
-    }
-  }
-
-/*
-  read all payment link company
-*/
-  readPaymentLinkCompany(String dateTime) async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? user = prefs.getString('user');
-    Map userObject = json.decode(user!);
-
-    settlement_By = userObject['name'];
-    List<PaymentLinkCompany> data = await PosDatabase.instance.readAllPaymentLinkCompany(userObject['company_id']);
-    for (int i = 0; i < data.length; i++) {
-      paymentList = List.from(data);
-      await calculateTotalAmount(dateTime);
-      _isLoad = true;
-    }
-  }
-
-/*
-  calculate each payment link company total amount
-*/
-  calculateTotalAmount(String dateTime) async {
-    double total = 0.0;
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
-    try{
-      for(int j = 0; j < paymentList.length; j++){
-        total = 0.0;
-        List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime);
-        for(int i = 0; i < data.length; i++){
-          if(data[i].type == 3 && data[i].payment_type_id == paymentList[j].payment_type_id){
-            total += double.parse(data[i].amount!);
-            paymentList[j].totalAmount = total;
-          } else {
-            total = 0.0;
-          }
-        }
-      }
-    }catch(e){
-      print('Layout calculate total amount error: $e');
-    }
-  }
-
-/*
-  calculate cash drawer
-*/
-  calculateCashDrawerAmount(String dateTime) async {
-    _isLoad = false;
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    // double totalCashIn = 0.0;
-    // double totalCashOut = 0.0;
-    try{
-      List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime);
-      for (int i = 0; i < data.length; i++) {
-        if (data[i].type == 1 || data[i].payment_type_id == '1') {
-          totalCashIn += double.parse(data[i].amount!);
-        } else if (data[i].type == 2 && data[i].payment_type_id == '') {
-          totalCashOut += double.parse(data[i].amount!);
-        } else if(data[i].type == 0 && data[i].payment_type_id == ''){
-          totalOpeningCash = double.parse(data[i].amount!);
-        }
-      }
-      totalCashBalance = (totalOpeningCash + totalCashIn) - totalCashOut;
-      _isLoad = true;
-    }catch(e){
-      print(e);
-      totalCashBalance = 0.0;
-    }
-  }
 /*
   ----------------Receipt layout part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -238,168 +122,217 @@ class ReceiptLayout{
 /*
   Receipt layout 80mm
 */
-  printReceipt80mm(bool isUSB, value) async {
+  printReceipt80mm(bool isUSB, value, String orderId) async {
     String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
     await readReceiptLayout();
+    await getPaidOrder(orderId);
+    await callOrderTaxPromoDetail();
+    await callPaidOrderDetail(orderId);
 
-    var generator;
-    if (isUSB) {
-      final profile = await CapabilityProfile.load();
-      generator = Generator(PaperSize.mm80, profile);
-    } else {
-      generator = value;
-    }
+    if(_isLoad = true){
+      var generator;
+      if (isUSB) {
+        final profile = await CapabilityProfile.load();
+        generator = Generator(PaperSize.mm80, profile);
+      } else {
+        generator = value;
+      }
 
-    List<int> bytes = [];
-    try {
-      bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
-      bytes += generator.emptyLines(1);
-      bytes += generator.reset();
-      //Address
-      bytes += generator.text(
-          '22-2, Jalan Permas 11/1A, Bandar Permas Baru, 81750, Masai',
-          styles: PosStyles(align: PosAlign.center));
-      //telephone
-      bytes += generator.text('Tel: 07-3504533',
-          styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
-      bytes += generator.text('Lucky8@hotmail.com',
-          styles: PosStyles(align: PosAlign.center));
-      bytes += generator.hr();
-      bytes += generator.reset();
-      //receipt no
-      bytes += generator.text('Receipt No.: 17-200-000056',
-          styles: PosStyles(
-              align: PosAlign.left,
-              width: PosTextSize.size1,
-              height: PosTextSize.size1,
-              bold: true));
-      bytes += generator.reset();
-      //other order detail
-      bytes += generator.text('${dateTime}');
-      bytes += generator.text('Table No: 5');
-      bytes += generator.text('Dine in');
-      bytes += generator.text('Close by: Taylor');
-      bytes += generator.reset();
-      /*
+      List<int> bytes = [];
+      try {
+        bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+        bytes += generator.emptyLines(1);
+        bytes += generator.reset();
+        //Address
+        bytes += generator.text('${branchObject['address']}', styles: PosStyles(align: PosAlign.center));
+        //telephone
+        bytes += generator.text('Tel: ${branchObject['phone']}',
+            styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
+        bytes += generator.text('Lucky8@hotmail.com',
+            styles: PosStyles(align: PosAlign.center));
+        bytes += generator.hr();
+        bytes += generator.reset();
+        //receipt no
+        bytes += generator.text('Receipt No.: ${this.paidOrder!.generateOrderNumber()}',
+            styles: PosStyles(
+                align: PosAlign.left,
+                width: PosTextSize.size1,
+                height: PosTextSize.size1,
+                bold: true));
+        bytes += generator.reset();
+        //other order detail
+        bytes += generator.text('Printed at: ${dateTime}');
+        bytes += generator.text('Table No: 5');
+        bytes += generator.text('Dine in');
+        bytes += generator.text('Close by: ${this.paidOrder!.close_by}');
+        bytes += generator.reset();
+        /*
     *
     * body
     *
     * */
-      bytes += generator.hr();
-      bytes += generator.row([
-        PosColumn(text: 'ITEM', width: 6, styles: PosStyles(bold: true)),
-        PosColumn(text: 'QTY ', width: 2, styles: PosStyles(bold: true, align: PosAlign.right)),
-        PosColumn(text: 'AMOUNT', width: 4, styles: PosStyles(bold: true, align: PosAlign.right)),
-      ]);
-      bytes += generator.hr();
-      //order product
-      bytes += generator.row([
-        PosColumn(
-            text: 'Nasi kandar',
-            width: 6,
-            containsChinese: true,
-            styles: PosStyles(align: PosAlign.left, bold: true)),
-        PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.right)),
-        PosColumn(
-            text: '11.00',
-            width: 4,
-            styles: PosStyles(align: PosAlign.right)),
-      ]);
-      bytes += generator.row([
-        PosColumn(text: '(big,white)', width: 6, containsChinese: true),
-        PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-        PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
-      ]);
-      bytes += generator.emptyLines(1);
-      bytes += generator.row([
-        PosColumn(
-            text: 'Nasi Ayam',
-            width: 6,
-            containsChinese: true,
-            styles: PosStyles(align: PosAlign.left, bold: true)),
-        PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.right)),
-        PosColumn(
-            text: '9.90',
-            width: 4,
-            styles: PosStyles(align: PosAlign.right)),
-      ]);
-      bytes += generator.row([
-        PosColumn(text: '-Modifier(2.00)', width: 6, containsChinese: true),
-        PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-        PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
-      ]);
-      bytes += generator.emptyLines(1);
-      /*
-        * product with remark
-        * */
-      bytes += generator.row([
-        PosColumn(
-            text: 'Nasi Lemak' + '',
-            width: 6,
-            containsChinese: true,
-            styles: PosStyles(align: PosAlign.left, bold: true)),
-        PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.right)),
-        PosColumn(
-            text: '11.00',
-            width: 4,
-            styles: PosStyles(align: PosAlign.right)),
-      ]);
-      bytes += generator.row([
-        PosColumn(text: '(big,white)', width: 6, containsChinese: true),
-        PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-        PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
-      ]);
-      bytes += generator.reset();
-      bytes += generator.row([
-        PosColumn(text: '**remark here', width: 6, containsChinese: true),
-        PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-        PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
-      ]);
-      bytes += generator.hr();
-      bytes += generator.reset();
-      //item count
-      bytes += generator.text('Items count: 3', styles: PosStyles(bold: true));
-      bytes += generator.hr();
-      bytes += generator.reset();
-      //total calc
-      bytes += generator.row([
-        PosColumn(text: 'SubTotal', width: 8, styles: PosStyles(align: PosAlign.right)),
-        PosColumn(text: '33.70', width: 4, styles: PosStyles(align: PosAlign.right)),
-      ]);
-      //discount
-      bytes += generator.row([
-        PosColumn(text: 'discount(-)', width: 8, styles: PosStyles(align: PosAlign.right)),
-        PosColumn(text: '-0.00', width: 4, styles: PosStyles(align: PosAlign.right)),
-      ]);
-      //tax
-      bytes += generator.row([
-        PosColumn(text: 'Service Tax(-)', width: 8, styles: PosStyles(align: PosAlign.right)),
-        PosColumn(text: '0.00', width: 4, styles: PosStyles(align: PosAlign.right)),
-      ]);
-      //payment method
-      bytes += generator.row([
-        PosColumn(text: 'Payment method', width: 8, styles: PosStyles(align: PosAlign.right)),
-        PosColumn(text: 'Cash', width: 4, styles: PosStyles(align: PosAlign.right)),
-      ]);
-      //total
-      bytes += generator.hr();
-      bytes += generator.row([
-        PosColumn(text: 'Total', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2, bold: true)),
-        PosColumn(
-            text: '33.70',
-            width: 4,
-            styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2, bold: true)),
-      ]);
-      bytes += generator.hr();
-      bytes += generator.emptyLines(1);
-      //footer
-      bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+        bytes += generator.hr();
+        bytes += generator.row([
+          PosColumn(text: 'ITEM', width: 6, styles: PosStyles(bold: true)),
+          PosColumn(text: 'QTY ', width: 2, styles: PosStyles(bold: true, align: PosAlign.right)),
+          PosColumn(text: 'AMOUNT', width: 4, styles: PosStyles(bold: true, align: PosAlign.right)),
+        ]);
+        bytes += generator.hr();
+        //order product
+        for(int i = 0; i < orderDetailList.length; i++){
+          bytes += generator.row([
+            PosColumn(
+                text: '${orderDetailList[i].productName}',
+                width: 6,
+                containsChinese: true,
+                styles: PosStyles(align: PosAlign.left, bold: true)),
+            PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.right)),
+            PosColumn(
+                text: '${orderDetailList[i].price}',
+                width: 4,
+                styles: PosStyles(align: PosAlign.right)),
+          ]);
+          //variant
+          // bytes += generator.row([
+          //   PosColumn(text: '(big,white)', width: 6, containsChinese: true),
+          //   PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+          //   PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
+          // ]);
+          //modifier
+          // bytes += generator.row([
+          //   PosColumn(text: '-Modifier(2.00)', width: 6, containsChinese: true),
+          //   PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+          //   PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
+          // ]);
+          //product remark
+          bytes += generator.reset();
+          // if (orderDetailList[i].remark != '') {
+          //   bytes += generator.row([
+          //     PosColumn(text: '', width: 2),
+          //     PosColumn(text: '**${orderDetailList[i].remark}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+          //     PosColumn(text: '', width: 2),
+          //   ]);
+          // }
+          bytes += generator.feed(1);
+          bytes += generator.emptyLines(1);
+        }
 
-      bytes += generator.feed(1);
-      bytes += generator.cut(mode: PosCutMode.partial);
-      return bytes;
-    } catch ($e) {
-      return null;
+        // bytes += generator.row([
+        //   PosColumn(
+        //       text: 'Nasi Ayam',
+        //       width: 6,
+        //       containsChinese: true,
+        //       styles: PosStyles(align: PosAlign.left, bold: true)),
+        //   PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.right)),
+        //   PosColumn(
+        //       text: '9.90',
+        //       width: 4,
+        //       styles: PosStyles(align: PosAlign.right)),
+        // ]);
+
+        // bytes += generator.emptyLines(1);
+        // /*
+        // * product with remark
+        // * */
+        // bytes += generator.row([
+        //   PosColumn(
+        //       text: 'Nasi Lemak' + '',
+        //       width: 6,
+        //       containsChinese: true,
+        //       styles: PosStyles(align: PosAlign.left, bold: true)),
+        //   PosColumn(text: '1', width: 2, styles: PosStyles(align: PosAlign.right)),
+        //   PosColumn(
+        //       text: '11.00',
+        //       width: 4,
+        //       styles: PosStyles(align: PosAlign.right)),
+        // ]);
+        // bytes += generator.row([
+        //   PosColumn(text: '(big,white)', width: 6, containsChinese: true),
+        //   PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+        //   PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
+        // ]);
+        // bytes += generator.reset();
+        // bytes += generator.row([
+        //   PosColumn(text: '**remark here', width: 6, containsChinese: true),
+        //   PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+        //   PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
+        // ]);
+        bytes += generator.hr();
+        bytes += generator.reset();
+        //item count
+        bytes += generator.text('Items count: ${orderDetailList.length}', styles: PosStyles(bold: true));
+        bytes += generator.hr();
+        bytes += generator.reset();
+        //total calc
+        bytes += generator.row([
+          PosColumn(text: 'SubTotal', width: 8, styles: PosStyles(align: PosAlign.right)),
+          PosColumn(text: '${this.paidOrder!.subtotal}', width: 4, styles: PosStyles(align: PosAlign.right)),
+        ]);
+        //discount
+        for(int p = 0; p < orderPromotionList.length; p++){
+          bytes += generator.row([
+            PosColumn(text: '${orderPromotionList[p].promotion_name}(${orderPromotionList[p].rate})', width: 8, styles: PosStyles(align: PosAlign.right)),
+            PosColumn(text: '-${orderPromotionList[p].promotion_amount}', width: 4, styles: PosStyles(align: PosAlign.right)),
+          ]);
+        }
+        //tax
+        for(int t = 0; t < orderTaxList.length; t++){
+          bytes += generator.row([
+            PosColumn(text: '${orderTaxList[t].tax_name}(${orderTaxList[t].rate}%)', width: 8, styles: PosStyles(align: PosAlign.right)),
+            PosColumn(text: '${orderTaxList[t].tax_amount}', width: 4, styles: PosStyles(align: PosAlign.right)),
+          ]);
+        }
+
+        //Amount
+        bytes += generator.row([
+          PosColumn(text: 'Amount', width: 8, styles: PosStyles(align: PosAlign.right)),
+          PosColumn(text: '${this.paidOrder!.amount}', width: 4, styles: PosStyles(align: PosAlign.right)),
+        ]);
+        //rounding
+        bytes += generator.row([
+          PosColumn(text: 'Rounding', width: 8, styles: PosStyles(align: PosAlign.right)),
+          PosColumn(text: '${this.paidOrder!.rounding}', width: 4, styles: PosStyles(align: PosAlign.right)),
+        ]);
+        //total
+        bytes += generator.hr();
+        bytes += generator.row([
+          PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2, bold: true)),
+          PosColumn(
+              text: '${this.paidOrder!.final_amount}',
+              width: 4,
+              styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2, bold: true)),
+        ]);
+        bytes += generator.hr();
+        //payment method
+        bytes += generator.row([
+          PosColumn(text: 'Payment method', width: 8, styles: PosStyles(align: PosAlign.right)),
+          PosColumn(text: '${this.paidOrder!.payment_name}', width: 4, styles: PosStyles(align: PosAlign.right)),
+        ]);
+        //payment received
+        bytes += generator.row([
+          PosColumn(text: 'Payment received', width: 8, styles: PosStyles(align: PosAlign.right)),
+          PosColumn(text: '${this.paidOrder!.payment_received}', width: 4, styles: PosStyles(align: PosAlign.right)),
+        ]);
+        //payment change
+        bytes += generator.row([
+          PosColumn(text: 'Change', width: 8, styles: PosStyles(align: PosAlign.right)),
+          PosColumn(text: '${this.paidOrder!.payment_change}', width: 4, styles: PosStyles(align: PosAlign.right)),
+        ]);
+        bytes += generator.emptyLines(1);
+        //footer
+        bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+        //copyright
+        bytes += generator.text('POWERED BY CHANNEL POS', styles: PosStyles(bold: true, align: PosAlign.center));
+        bytes += generator.feed(1);
+        bytes += generator.cut(mode: PosCutMode.partial);
+        return bytes;
+      } catch (e) {
+        print(e);
+        return null;
+      }
     }
   }
 
@@ -904,4 +837,234 @@ class ReceiptLayout{
       }
     }
   }
+
+/*
+  ----------------DB Query part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+  read receipt layout
+*/
+  readReceiptLayout() async {
+    List<Receipt> data = await PosDatabase.instance.readAllReceipt();
+    for(int i = 0; i < data.length; i++){
+      if(data[i].status == 1){
+        receipt = data[i];
+      }
+    }
+  }
+
+/*
+  read branch latest order cache (auto print when place order click)
+*/
+  readOrderCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    List<OrderCache> data = await PosDatabase.instance.readBranchLatestOrderCache(branch_id!);
+    orderCache = data[0];
+    List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCache!.order_cache_sqlite_id.toString());
+    if(!detailData.contains(detailData)){
+      orderDetailList = List.from(detailData);
+    }
+    List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllTableUseDetail(orderCache!.table_use_sqlite_id!);
+    for(int i = 0; i < detailData2.length; i++){
+      List<PosTable> tableData = await PosDatabase.instance
+          .readSpecificTable(branch_id, detailData2[i].table_sqlite_id!);
+      if(!tableList.contains(tableData)){
+        tableList.add(tableData[0]);
+      }
+    }
+  }
+
+/*
+  read specific order cache/table
+*/
+  readSpecificOrderCache(String orderCacheId, String dateTime) async {
+
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    List<OrderCache> cacheData  = await PosDatabase.instance.readSpecificDeletedOrderCache(int.parse(orderCacheId));
+    orderCache = cacheData[0];
+    print('order cache: ${orderCache!.order_cache_sqlite_id}');
+    List<OrderDetail> detailData = await PosDatabase.instance.readDeletedOrderDetail(orderCache!.order_cache_sqlite_id.toString(), dateTime);
+    orderDetailList = List.from(detailData);
+    print('order detail list: ${orderDetailList.length}');
+
+
+    List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllDeletedTableUseDetail(orderCache!.table_use_sqlite_id!);
+    for(int i = 0; i < detailData2.length; i++){
+      List<PosTable> tableData = await PosDatabase.instance
+          .readSpecificTable(branch_id!, detailData2[i].table_sqlite_id!);
+      if(!tableList.contains(tableData)){
+        tableList.add(tableData[0]);
+      }
+    }
+  }
+
+/*
+  read all payment link company
+*/
+  readPaymentLinkCompany(String dateTime) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+
+    settlement_By = userObject['name'];
+    List<PaymentLinkCompany> data = await PosDatabase.instance.readAllPaymentLinkCompany(userObject['company_id']);
+    for (int i = 0; i < data.length; i++) {
+      paymentList = List.from(data);
+      await calculateTotalAmount(dateTime);
+      _isLoad = true;
+    }
+  }
+
+/*
+  calculate each payment link company total amount
+*/
+  calculateTotalAmount(String dateTime) async {
+    double total = 0.0;
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    try{
+      for(int j = 0; j < paymentList.length; j++){
+        total = 0.0;
+        List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime);
+        for(int i = 0; i < data.length; i++){
+          if(data[i].type == 3 && data[i].payment_type_id == paymentList[j].payment_type_id){
+            total += double.parse(data[i].amount!);
+            paymentList[j].totalAmount = total;
+          } else {
+            total = 0.0;
+          }
+        }
+      }
+    }catch(e){
+      print('Layout calculate total amount error: $e');
+    }
+  }
+
+/*
+  calculate cash drawer
+*/
+  calculateCashDrawerAmount(String dateTime) async {
+    _isLoad = false;
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    // double totalCashIn = 0.0;
+    // double totalCashOut = 0.0;
+    try{
+      List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime);
+      for (int i = 0; i < data.length; i++) {
+        if (data[i].type == 1 || data[i].payment_type_id == '1') {
+          totalCashIn += double.parse(data[i].amount!);
+        } else if (data[i].type == 2 && data[i].payment_type_id == '') {
+          totalCashOut += double.parse(data[i].amount!);
+        } else if(data[i].type == 0 && data[i].payment_type_id == ''){
+          totalOpeningCash = double.parse(data[i].amount!);
+        }
+      }
+      totalCashBalance = (totalOpeningCash + totalCashIn) - totalCashOut;
+      _isLoad = true;
+    }catch(e){
+      print(e);
+      totalCashBalance = 0.0;
+    }
+  }
+
+/*
+  call order item
+*/
+  callOrderTaxPromoDetail() async {
+    await getPaidOrderTaxDetail();
+    await getPaidOrderPromotionDetail();
+    _isLoad = false;
+  }
+
+/*
+  read specific paid order tax detail
+*/
+  getPaidOrderTaxDetail() async {
+    List<OrderTaxDetail> data = await PosDatabase.instance.readSpecificOrderTaxDetail(this.paidOrder!.order_sqlite_id.toString());
+    orderTaxList = List.from(data);
+  }
+
+  getPaidOrderPromotionDetail() async {
+    List<OrderPromotionDetail> detailData = await PosDatabase.instance.readSpecificOrderPromotionDetail(this.paidOrder!.order_sqlite_id.toString());
+    orderPromotionList = List.from(detailData);
+  }
+
+/*
+  read specific paid order
+*/
+  getPaidOrder(String localOrderId) async {
+    List<Order> orderData = await PosDatabase.instance.readSpecificPaidOrder(localOrderId);
+    paidOrder = orderData[0];
+    _isLoad = false;
+  }
+
+  callPaidOrderDetail(String localOrderId) async {
+    await getPaidOrderCache(localOrderId);
+    for(int i = 0; i < paidOrderCacheList.length; i++){
+      await getOrderDetail(paidOrderCacheList[i]);
+    }
+    _isLoad = true;
+  }
+
+/*
+  read paid order cache
+*/
+  getPaidOrderCache(String localOrderId) async {
+    List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCacheByOrderID(localOrderId);
+    if(cacheData.length > 0){
+      paidOrderCacheList = List.from(cacheData);
+    }
+  }
+
+/*
+  read paid order cache detail
+*/
+  getOrderDetail(OrderCache orderCache) async {
+
+    List<OrderDetail> detailData = await PosDatabase.instance.readSpecificOrderDetail(orderCache.order_cache_sqlite_id.toString());
+    if(detailData.length > 0){
+      orderDetailList = List.from(detailData);
+    }
+    // for (int k = 0; k < orderDetailList.length; k++) {
+    //   List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
+    //   //Get product category
+    //   List<Product> productResult = await PosDatabase.instance.readSpecificProductCategory(result[0].product_id!);
+    //   orderDetailList[k].category_id = productResult[0].category_id;
+    //   if(orderDetailList[k].has_variant == '1'){
+    //     List<BranchLinkProduct> variant = await PosDatabase.instance
+    //         .readBranchLinkProductVariant(
+    //         orderDetailList[k].branch_link_product_sqlite_id!);
+    //     orderDetailList[k].productVariant = ProductVariant(
+    //         product_variant_id: int.parse(variant[0].product_variant_id!),
+    //         variant_name: variant[0].variant_name);
+    //
+    //     //Get product variant detail
+    //     List<ProductVariantDetail> productVariantDetail = await PosDatabase
+    //         .instance
+    //         .readProductVariantDetail(variant[0].product_variant_id!);
+    //     orderDetailList[k].variantItem.clear();
+    //     for (int v = 0; v < productVariantDetail.length; v++) {
+    //       //Get product variant item
+    //       List<VariantItem> variantItemDetail = await PosDatabase.instance
+    //           .readProductVariantItemByVariantID(
+    //           productVariantDetail[v].variant_item_id!);
+    //       orderDetailList[k].variantItem.add(VariantItem(
+    //           variant_item_id:
+    //           int.parse(productVariantDetail[v].variant_item_id!),
+    //           variant_group_id: variantItemDetail[0].variant_group_id,
+    //           name: variant[0].variant_name,
+    //           isSelected: true));
+    //       productVariantDetail.clear();
+    //     }
+    //   }
+    // }
+  }
+
+
 }

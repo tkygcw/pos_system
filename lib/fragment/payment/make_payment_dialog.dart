@@ -40,7 +40,8 @@ import '../../object/variant_group.dart';
 
 class MakePayment extends StatefulWidget {
   final int type;
-  const MakePayment({Key? key, required this.type}) : super(key: key);
+  final int payment_link_company_id;
+  const MakePayment({Key? key, required this.type, required this.payment_link_company_id}) : super(key: key);
 
   @override
   State<MakePayment> createState() => _MakePaymentState();
@@ -60,6 +61,7 @@ class _MakePaymentState extends State<MakePayment> {
   List<Promotion> appliedPromotionList = [];
   List<String> orderCacheIdList = [];
   List<PosTable> selectedTableList = [];
+  List<Order> orderList = [];
   List<Tax> taxList = [];
   bool scanning=false;
   bool isopen=false;
@@ -123,6 +125,7 @@ class _MakePaymentState extends State<MakePayment> {
     readAllBranchLinkDiningOption();
     readBranchPref();
     readSpecificPaymentMethod();
+    readAllOrder();
   }
 
   @override
@@ -165,11 +168,11 @@ class _MakePaymentState extends State<MakePayment> {
                   return Row(
                     children: [
                       Expanded(
-                          flex: 5,
+                          flex: MediaQuery.of(context).size.width < 1300 ? 5 : 4,
                           child: Column(
                             children: [
                               Container(
-                                margin: EdgeInsets.all(20),
+                                margin: EdgeInsets.fromLTRB(0, 15, 0, 15),
                                 alignment: Alignment.centerLeft,
                                 child: Text('Table No: ${getSelectedTable(cart)}'),
                               ),
@@ -178,7 +181,7 @@ class _MakePaymentState extends State<MakePayment> {
                                 child: Column(
                                   children: [
                                     Container(
-                                      height: MediaQuery.of(context).size.width / 6,
+                                      height: MediaQuery.of(context).size.width < 1300 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 5,
                                       child: ListView.builder(
                                           itemCount: cart.cartNotifierItem.length,
                                           itemBuilder: (context, index) {
@@ -231,98 +234,101 @@ class _MakePaymentState extends State<MakePayment> {
                                       endIndent: 20,
                                     ),
                                     SizedBox(height: 10),
-                                    ListView(
-                                      padding: EdgeInsets.only(left: 5, right: 5),
-                                      physics: NeverScrollableScrollPhysics(),
-                                      children: [
-                                        ListTile(
-                                          title: Text("Subtotal",
-                                              style: TextStyle(fontSize: 14)),
-                                          trailing: Text('${total.toStringAsFixed(2)}',
-                                              style: TextStyle(fontSize: 14)),
-                                          visualDensity: VisualDensity(vertical: -4),
-                                          dense: true,
-                                        ),
-                                        Visibility(
-                                          visible:
-                                          hasSelectedPromo ? true : false,
-                                          child: ListTile(
-                                            title: SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: Row(
-                                                children: [
-                                                  Text('${allPromo} (${selectedPromoRate})',
-                                                      style: TextStyle(fontSize: 14)),
-                                                ],
-                                              ),
-                                            ),
-                                            trailing: Text(
-                                                '-${selectedPromo.toStringAsFixed(2)}',
+                                    Container(
+                                      height: MediaQuery.of(context).size.height < 700 ? 190 : 200,
+                                      child: ListView(
+                                        padding: EdgeInsets.only(left: 5, right: 5),
+                                        physics: ClampingScrollPhysics(),
+                                        children: [
+                                          ListTile(
+                                            title: Text("Subtotal",
+                                                style: TextStyle(fontSize: 14)),
+                                            trailing: Text('${total.toStringAsFixed(2)}',
                                                 style: TextStyle(fontSize: 14)),
                                             visualDensity: VisualDensity(vertical: -4),
                                             dense: true,
                                           ),
-                                        ),
-                                        Visibility(
-                                            visible: hasPromo == true ? true : false,
-                                            child: ListView.builder(
-                                              physics: NeverScrollableScrollPhysics(),
+                                          Visibility(
+                                            visible:
+                                            hasSelectedPromo ? true : false,
+                                            child: ListTile(
+                                              title: SingleChildScrollView(
+                                                scrollDirection: Axis.horizontal,
+                                                child: Row(
+                                                  children: [
+                                                    Text('${allPromo} (${selectedPromoRate})',
+                                                        style: TextStyle(fontSize: 14)),
+                                                  ],
+                                                ),
+                                              ),
+                                              trailing: Text(
+                                                  '-${selectedPromo.toStringAsFixed(2)}',
+                                                  style: TextStyle(fontSize: 14)),
+                                              visualDensity: VisualDensity(vertical: -4),
+                                              dense: true,
+                                            ),
+                                          ),
+                                          Visibility(
+                                              visible: hasPromo == true ? true : false,
+                                              child: ListView.builder(
+                                                physics: NeverScrollableScrollPhysics(),
+                                                padding: EdgeInsets.zero,
+                                                  shrinkWrap: true,
+                                                  itemCount: autoApplyPromotionList.length,
+                                                  itemBuilder: (context, index) {
+                                                    return ListTile(
+                                                        title: Text(
+                                                            '${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
+                                                            style: TextStyle(fontSize: 14)),
+                                                        visualDensity:
+                                                        VisualDensity(vertical: -4),
+                                                        dense: true,
+                                                        trailing: Text(
+                                                            '-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
+                                                            style: TextStyle(fontSize: 14)));
+                                                  })),
+                                          ListView.builder(
+                                              shrinkWrap: true,
                                               padding: EdgeInsets.zero,
-                                                shrinkWrap: true,
-                                                itemCount: autoApplyPromotionList.length,
-                                                itemBuilder: (context, index) {
-                                                  return ListTile(
-                                                      title: Text(
-                                                          '${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
-                                                          style: TextStyle(fontSize: 14)),
-                                                      visualDensity:
-                                                      VisualDensity(vertical: -4),
-                                                      dense: true,
-                                                      trailing: Text(
-                                                          '-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
-                                                          style: TextStyle(fontSize: 14)));
-                                                })),
-                                        ListView.builder(
-                                            shrinkWrap: true,
-                                            padding: EdgeInsets.zero,
-                                            physics: NeverScrollableScrollPhysics(),
-                                            itemCount: taxList.length,
-                                            itemBuilder: (context, index){
-                                              return ListTile(
-                                                title: Text('${taxList[index].name}(${taxList[index].tax_rate}%)'),
-                                                trailing: Text('${taxList[index].tax_amount?.toStringAsFixed(2)}'), //Text(''),
-                                                visualDensity: VisualDensity(vertical: -4),
-                                                dense: true,
-                                              );
-                                            }
-                                        ),
-                                        ListTile(
-                                          title: Text("Total",
-                                              style: TextStyle(fontSize: 14)),
-                                          trailing: Text('${totalAmount.toStringAsFixed(2)}',
-                                              style: TextStyle(fontSize: 14)),
-                                          visualDensity: VisualDensity(vertical: -4),
-                                          dense: true,
-                                        ),
-                                        ListTile(
-                                          title: Text("Rounding",
-                                              style: TextStyle(fontSize: 14)),
-                                          trailing: Text('${rounding.toStringAsFixed(2)}',
-                                              style: TextStyle(fontSize: 14)),
-                                          visualDensity: VisualDensity(vertical: -4),
-                                          dense: true,
-                                        ),
-                                        ListTile(
-                                          visualDensity: VisualDensity(vertical: -4),
-                                          title: Text("Final amount",
-                                              style: TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold)),
-                                          trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                          dense: true,
-                                        ),
-                                      ],
-                                      shrinkWrap: true,
+                                              physics: NeverScrollableScrollPhysics(),
+                                              itemCount: taxList.length,
+                                              itemBuilder: (context, index){
+                                                return ListTile(
+                                                  title: Text('${taxList[index].name}(${taxList[index].tax_rate}%)'),
+                                                  trailing: Text('${taxList[index].tax_amount?.toStringAsFixed(2)}'), //Text(''),
+                                                  visualDensity: VisualDensity(vertical: -4),
+                                                  dense: true,
+                                                );
+                                              }
+                                          ),
+                                          ListTile(
+                                            title: Text("Total",
+                                                style: TextStyle(fontSize: 14)),
+                                            trailing: Text('${totalAmount.toStringAsFixed(2)}',
+                                                style: TextStyle(fontSize: 14)),
+                                            visualDensity: VisualDensity(vertical: -4),
+                                            dense: true,
+                                          ),
+                                          ListTile(
+                                            title: Text("Rounding",
+                                                style: TextStyle(fontSize: 14)),
+                                            trailing: Text('${rounding.toStringAsFixed(2)}',
+                                                style: TextStyle(fontSize: 14)),
+                                            visualDensity: VisualDensity(vertical: -4),
+                                            dense: true,
+                                          ),
+                                          ListTile(
+                                            visualDensity: VisualDensity(vertical: -4),
+                                            title: Text("Final amount",
+                                                style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold)),
+                                            trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                            dense: true,
+                                          ),
+                                        ],
+                                        shrinkWrap: true,
+                                      ),
                                     ),
                                     SizedBox(height: 10),
                                     Divider(
@@ -339,13 +345,20 @@ class _MakePaymentState extends State<MakePayment> {
                             ],
                           )
                       ),
-
+                      Expanded(
+                        flex: 2,
+                          child: Container(
+                            height: MediaQuery.of(context).size.height,
+                            child: VerticalDivider(
+                                color: Colors.grey, thickness: 1),
+                          ),
+                      ),
                       Expanded(
                         flex: 5,
                         child: widget.type == 0 ?
                         Container(
                           margin: EdgeInsets.fromLTRB(30, 0, 25, 0),
-                          height:MediaQuery.of(context).size.height / 1 ,
+                          height: MediaQuery.of(context).size.height / 1 ,
                           child: Column(
                             children: [
                               Container(
@@ -1144,9 +1157,6 @@ class _MakePaymentState extends State<MakePayment> {
     streamController.add('refresh');
   }
 
-
-
-
 /*
   -------------------DB Query---------------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -1192,7 +1202,7 @@ class _MakePaymentState extends State<MakePayment> {
   //   await createOrderPromotionDetail();
   // }
   callCreateOrder(String? paymentReceived, String? orderChange) async {
-    await createOrder(paymentReceived, orderChange);
+    await createOrder(double.parse(paymentReceived!), orderChange);
     await crateOrderTaxDetail();
     await createOrderPromotionDetail();
   }
@@ -1203,7 +1213,17 @@ class _MakePaymentState extends State<MakePayment> {
     branchObject = json.decode(branch!);
   }
 
-  createOrder(String? paymentReceived, String? orderChange) async {
+  generateOrderNumber(){
+    int orderNum = 0;
+    if(orderList.isNotEmpty){
+      orderNum = int.parse(orderList[0].order_number!) + 1;
+    } else {
+      orderNum = 1;
+    }
+    return orderNum;
+  }
+
+  createOrder(double? paymentReceived, String? orderChange) async {
     print('create order called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -1213,31 +1233,34 @@ class _MakePaymentState extends State<MakePayment> {
     final String? pos_user = prefs.getString('pos_pin_user');
     Map logInUser = json.decode(login_user!);
     Map userObject = json.decode(pos_user!);
-
+    int orderNum = generateOrderNumber();
     try{
-      Order orderObject = Order(
-          order_id: 0,
-          company_id: logInUser['company_id'].toString(),
-          branch_id:  branch_id.toString(),
-          customer_id: '',
-          branch_link_promotion_id: '',
-          payment_link_company_id: widget.type.toString(),
-          branch_link_tax_id: '',
-          subtotal: total.toStringAsFixed(2),
-          amount: totalAmount.toStringAsFixed(2),
-          rounding: rounding.toStringAsFixed(2),
-          final_amount: finalAmount,
-          close_by: userObject['name'].toString(),
-          payment_received: paymentReceived == null ? '' : paymentReceived,
-          payment_change: orderChange == null ? '0.00' : orderChange,
-          payment_status: 0,
-          created_at: dateTime,
-          updated_at: '',
-          soft_delete: ''
-      );
-
-      Order data = await PosDatabase.instance.insertSqliteOrder(orderObject);
-      this.orderId = data.order_sqlite_id.toString();
+      if(orderNum != 0){
+        Order orderObject = Order(
+            order_id: 0,
+            order_number: orderNum.toString().padLeft(5 ,'0'),
+            company_id: logInUser['company_id'].toString(),
+            branch_id:  branch_id.toString(),
+            customer_id: '',
+            branch_link_promotion_id: '',
+            payment_link_company_id: widget.payment_link_company_id.toString(),
+            branch_link_tax_id: '',
+            subtotal: total.toStringAsFixed(2),
+            amount: totalAmount.toStringAsFixed(2),
+            rounding: rounding.toStringAsFixed(2),
+            final_amount: finalAmount,
+            close_by: userObject['name'].toString(),
+            payment_received: paymentReceived == null ? '' : paymentReceived.toStringAsFixed(2),
+            payment_change: orderChange == null ? '0.00' : orderChange,
+            payment_status: 0,
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: ''
+        );
+        Order data = await PosDatabase.instance.insertSqliteOrder(orderObject);
+        this.orderId = data.order_sqlite_id.toString();
+      }
+      
     }catch(e){
       print('create order error: ${e}');
       Fluttertoast.showToast(
@@ -1308,6 +1331,11 @@ class _MakePaymentState extends State<MakePayment> {
     if(data.length > 0){
       ipay_code = data[0].ipay_code!;
     }
+  }
+
+  readAllOrder() async {
+    List<Order> data = await PosDatabase.instance.readLatestOrder();
+    orderList = List.from(data);
   }
 
 /*

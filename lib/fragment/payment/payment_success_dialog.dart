@@ -1,11 +1,14 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/table/table.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
+import 'package:pos_system/object/printer.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,6 +17,7 @@ import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
 import '../../object/order.dart';
 import '../../object/order_cache.dart';
+import '../../object/printer_link_category.dart';
 import '../../object/receipt_layout.dart';
 import '../../object/table.dart';
 import '../../object/table_use.dart';
@@ -33,6 +37,8 @@ class PaymentSuccessDialog extends StatefulWidget {
 
 class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+  List<Printer> printerList = [];
+  FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
 
 
   closeDialog(BuildContext context) {
@@ -45,7 +51,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     super.initState();
     callUpdateOrder();
     createCashRecord();
-    _printReceipt();
   }
 
   @override
@@ -58,18 +63,44 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                 onWillPop: () async => false,
                 child: AlertDialog(
                   title: Text('Payment success'),
-                  actions: [
-                    TextButton(
-                      child:
-                          Text('${AppLocalizations.of(context)?.translate('close')}'),
-                      onPressed: () async {
-                        closeDialog(context);
-                        tableModel.changeContent(true);
-                        cartModel.initialLoad();
-                        widget.callback();
-                      },
+                  content: Container(
+                    width: MediaQuery.of(context).size.width / 3,
+                    height: MediaQuery.of(context).size.height / 3,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: MediaQuery.of(context).size.height / 6,
+                          child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  primary: color.backgroundColor,
+                                  padding: EdgeInsets.fromLTRB(0, 30, 0, 30)
+                              ),
+                              onPressed: () async {
+                                await _printReceiptList();
+                              },
+                              child: Text('Print receipt', style: TextStyle(fontSize: 18),)
+                          ),
+                        ),
+                        SizedBox(height: 25),
+                        Container(
+                          width: MediaQuery.of(context).size.height / 6,
+                          child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  primary: color.buttonColor,
+                              ),
+                              onPressed: (){
+                                closeDialog(context);
+                                tableModel.changeContent(true);
+                                cartModel.initialLoad();
+                                widget.callback();
+                              },
+                              child: Text('${AppLocalizations.of(context)?.translate('close')}')
+                          ),
+                        )
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               );
             }
@@ -171,7 +202,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     }
   }
 
-
   updatePosTableStatus(int status) async {
     String dateTime = dateFormat.format(DateTime.now());
     if(widget.selectedTableList.length > 0){
@@ -221,41 +251,52 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       }
 
     }catch(e){
+      print(e);
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Create cash record error: ${e}");
     }
   }
 
-  _printReceipt() async {
+  _printReceiptList() async {
+    print('called');
     try {
-      print('print receipt');
-      // for (int i = 0; i < printerList.length; i++) {
-      //   List<PrinterLinkCategory> data = await PosDatabase.instance
-      //       .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-      //   print('printer link category length: ${data.length}');
-      //   for(int j = 0; j < data.length; j++){
-      //     if (data[j].category_sqlite_id == '3') {
-      //       if(printerList[i].type == 0){
-      //         var printerDetail = jsonDecode(printerList[i].value!);
-      //         var data = Uint8List.fromList(await ReceiptLayout().printReceipt80mm(true, null));
-      //         bool? isConnected = await flutterUsbPrinter.connect(
-      //             int.parse(printerDetail['vendorId']),
-      //             int.parse(printerDetail['productId']));
-      //         if (isConnected == true) {
-      //           await flutterUsbPrinter.write(data);
-      //         } else {
-      //           print('not connected');
-      //         }
-      //       } else {
-      //         print("print lan");
-      //       }
-      //     }
-      //   }
-      // }
+      for (int i = 0; i < printerList.length; i++) {
+        List<PrinterLinkCategory> data = await PosDatabase.instance
+            .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+        for(int j = 0; j < data.length; j++){
+          if (data[j].category_sqlite_id == '3') {
+            if(printerList[i].type == 0){
+              var printerDetail = jsonDecode(printerList[i].value!);
+              var data = Uint8List.fromList(await ReceiptLayout()
+                  .printReceipt80mm(true, null, widget.orderId));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']),
+                  int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              } else {
+                print('not connected');
+              }
+            } else {
+              print("print lan");
+            }
+          }
+        }
+
+      }
     } catch (e) {
-      print('Printer Connection Error: ${e}');
+      print('Printer Connection Error cart: ${e}');
       //response = 'Failed to get platform version.';
     }
+  }
+
+  readAllPrinters() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    List<Printer> data =
+    await PosDatabase.instance.readAllBranchPrinter(branch_id!);
+    printerList = List.from(data);
   }
 }

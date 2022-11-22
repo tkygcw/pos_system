@@ -132,6 +132,7 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableOrder ( 
            ${OrderFields.order_sqlite_id} $idType, 
            ${OrderFields.order_id} $integerType, 
+           ${OrderFields.order_number} $textType,
            ${OrderFields.company_id} $textType,
            ${OrderFields.customer_id} $textType, 
            ${OrderFields.branch_link_promotion_id} $textType,
@@ -341,6 +342,8 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableBranch (
            ${BranchFields.branchID} $idType,
            ${BranchFields.name} $textType,
+           ${BranchFields.address} $textType,
+           ${BranchFields.phone} $textType,
            ${BranchFields.ipay_merchant_code} $textType,
            ${BranchFields.ipay_merchant_key} $textType)''');
 
@@ -2195,9 +2198,6 @@ class PosDatabase {
       return CashRecord.fromJson(maps.first);
     }
   }
-/*
-  -----------------------Order part-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-*/
 
 /*
   read latest specific cash record
@@ -2209,6 +2209,21 @@ class PosDatabase {
         'SELECT * FROM $tableCashRecord WHERE soft_delete = ? AND branch_id = ? AND type = ? ORDER BY settlement_date DESC LIMIT 1',
         ['', branch_id, 0]);
     return result.map((json) => CashRecord.fromJson(json)).toList();
+  }
+
+/*
+  -----------------------Order part-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+  read all order created order(for generate order number use)
+*/
+  Future<List<Order>> readLatestOrder() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrder WHERE created_at != ? ORDER BY order_sqlite_id DESC LIMIT 1',
+        ['']);
+    return result.map((json) => Order.fromJson(json)).toList();
   }
 
 /*
@@ -2256,16 +2271,6 @@ class PosDatabase {
     return result.map((json) => BranchLinkPromotion.fromJson(json)).toList();
   }
 
-/*
-  read specific tax
-*/
-  Future<List<Tax>> readSpecificTax(String tax_id) async {
-    final db = await instance.database;
-    final result = await db.rawQuery(
-        'SELECT * FROM $tableTax WHERE soft_delete = ? AND tax_id = ?',
-        ['', tax_id]);
-    return result.map((json) => Tax.fromJson(json)).toList();
-  }
 
 /*
   --------------------Paid order part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2277,8 +2282,8 @@ class PosDatabase {
   Future<List<Order>> readSpecificPaidOrder(String order_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableOrder WHERE payment_status = ? AND soft_delete = ? AND order_sqlite_id = ?',
-        [1, '', order_sqlite_id]);
+        'SELECT a.*, b.name FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id WHERE a.payment_status = ? AND a.soft_delete = ? AND b.soft_delete = ? AND a.order_sqlite_id = ?',
+        [1, '', '', order_sqlite_id]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 

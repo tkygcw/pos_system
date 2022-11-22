@@ -222,7 +222,7 @@ class _TableMenuState extends State<TableMenu> {
                                           : Expanded(child: Text('')),
                                       Container(
                                         margin: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                                        height: MediaQuery.of(context).size.height < 800
+                                        height: MediaQuery.of(context).size.height < 700
                                             ? MediaQuery.of(context).size.height / 6.5
                                             : MediaQuery.of(context).size.height / 6,
                                         child: Stack(

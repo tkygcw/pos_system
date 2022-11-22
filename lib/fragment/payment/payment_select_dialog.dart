@@ -46,7 +46,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                           children: List.generate(PaymentLists.length, (index) {
                             return GestureDetector(
                               onTap: () {
-                                openMakePayment(PaymentLists[index].type!);
+                                openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!);
                               },
                               child: Card(
                                 elevation: 5,
@@ -189,7 +189,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
     });
   }
 
-  Future<Future<Object?>> openMakePayment(int type_id) async {
+  Future<Future<Object?>> openMakePayment(int type_id, int payment_link_id) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -198,7 +198,10 @@ class _PaymentSelectState extends State<PaymentSelect> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: MakePayment(type: type_id),
+              child: MakePayment(
+                  type: type_id,
+                  payment_link_company_id: payment_link_id,
+              ),
             ),
           );
         },
