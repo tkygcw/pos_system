@@ -2407,6 +2407,20 @@ class PosDatabase {
   }
 
   /*
+  update sync product variant for delete
+*/
+  Future<int> updateSyncProductVariantForDelete(ProductVariant data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableProductVariant SET sync_status = ?, updated_at = ? WHERE product_sqlite_id = ? ',
+        [
+          data.sync_status,
+          data.updated_at,
+          data.product_sqlite_id
+        ]);
+  }
+
+  /*
   update sync product variant for update
 */
   Future<int> updateSyncProductVariantForUpdate(ProductVariant data) async {
@@ -2452,6 +2466,20 @@ class PosDatabase {
   }
 
   /*
+  update sync branch link product for delete all
+*/
+  Future<int> updateSyncBranchLinkProductForDeleteAll(BranchLinkProduct data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableBranchLinkProduct SET sync_status = ?, updated_at = ? WHERE product_sqlite_id = ?',
+        [
+          data.sync_status,
+          data.updated_at,
+          data.product_sqlite_id,
+        ]);
+  }
+
+  /*
   update sync branch link product for insert
 */
   Future<int> updateSyncBranchLinkProduct(BranchLinkProduct data) async {
@@ -2479,6 +2507,20 @@ class PosDatabase {
           data.updated_at,
           data.product_sqlite_id,
           data.product_variant_sqlite_id,
+        ]);
+  }
+
+  /*
+  update sync variant group for delete
+*/
+  Future<int> updateSyncVariantGroupForDelete(VariantGroup data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableVariantGroup SET sync_status = ?, updated_at = ? WHERE product_sqlite_id = ?',
+        [
+          data.sync_status,
+          data.updated_at,
+          data.product_sqlite_id
         ]);
   }
 

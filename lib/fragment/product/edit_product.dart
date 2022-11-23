@@ -1464,80 +1464,35 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
   deleteProduct(BuildContext context) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
       var connectivityResult = await (Connectivity().checkConnectivity());
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-      deleteFile();
+      // deleteFile();
       int deleteProduct = await PosDatabase.instance.deleteProduct(Product(
           soft_delete: dateTime,
           sync_status: 1,
           product_id: widget.product!.product_sqlite_id));
-/*
-        -------------------------sync to cloud---------------------------------
-*/
-      if (connectivityResult == ConnectivityResult.mobile ||
-          connectivityResult == ConnectivityResult.wifi) {
-        Map response = await Domain().deleteProduct(widget.product!.product_id.toString());
-        if (response['status'] == '1') {
-          int syncData = await PosDatabase.instance.updateSyncProduct(Product(
-            product_id: widget.product!.product_id,
-            sync_status: 2,
-            updated_at: dateTime,
-            product_sqlite_id: widget.product!.product_sqlite_id,
-          ));
-        }
-      }
-/*
-      ---------------------------end sync--------------------------------------
-*/
 
       int deleteProductBranch = await PosDatabase.instance
           .deleteAllProductBranch(BranchLinkProduct(
-              sync_status: 1,
-              soft_delete: dateTime,
+          sync_status: 1,
+          soft_delete: dateTime,
           product_sqlite_id: widget.product!.product_sqlite_id.toString()));
-/*
-      --------------------------sync to cloud----------------------------------
-*/
-      if (connectivityResult == ConnectivityResult.mobile ||
-          connectivityResult == ConnectivityResult.wifi) {
-        //need to fill in
-      }
 
-/*
-      ---------------------------end sync---------------------------------------
-*/
       int deleteModifierLinkProduct = await PosDatabase.instance
           .deleteModifierLinkProduct(ModifierLinkProduct(
-              soft_delete: dateTime,
-              sync_status: 1,
+          soft_delete: dateTime,
+          sync_status: 1,
           product_sqlite_id: widget.product!.product_sqlite_id.toString()));
-/*
-      --------------------------sync to cloud-----------------------------------
-*/
-      if (connectivityResult == ConnectivityResult.mobile ||
-          connectivityResult == ConnectivityResult.wifi) {
-        //need to fill in
-      }
-/*
-      ----------------------------end sync--------------------------------------
-*/
+
       int deleteAllVariantGroup = await PosDatabase.instance
           .deleteAllVariantGroup(VariantGroup(
-              child: [],
-              sync_status: 1,
-              soft_delete: dateTime,
+          child: [],
+          sync_status: 1,
+          soft_delete: dateTime,
           product_sqlite_id: widget.product!.product_sqlite_id.toString()));
-/*
-      ----------------------sync to cloud--------------------------------------
-*/
-      if (connectivityResult == ConnectivityResult.mobile ||
-          connectivityResult == ConnectivityResult.wifi) {
-        //need to fill in
-      }
-/*
-      ---------------------------end sync--------------------------------------
-*/
 
       List<VariantGroup> variantGroupData = await PosDatabase.instance
           .readProductVariantGroup(widget.product!.product_id!);
@@ -1545,65 +1500,92 @@ class _EditProductDialogState extends State<EditProductDialog> {
       for (int i = 0; i < variantGroupData.length; i++) {
         int deleteAllVariantItem = await PosDatabase.instance
             .deleteAllVariantitem(VariantItem(
-          sync_status: 1,
-                soft_delete: dateTime,
+            sync_status: 1,
+            soft_delete: dateTime,
             variant_group_sqlite_id:
-                    variantGroupData[i].variant_group_sqlite_id.toString()));
-/*
-        ----------------------sync to cloud-------------------------------------
-*/
-        if (connectivityResult == ConnectivityResult.mobile ||
-            connectivityResult == ConnectivityResult.wifi) {
-          //need to fill in
-        }
-/*
-      ----------------------------end sync--------------------------------------
-*/
+            variantGroupData[i].variant_group_sqlite_id.toString()));
+
       }
 
       int deleteAllProductVariant = await PosDatabase.instance
           .deleteAllProductVariant(ProductVariant(
-        sync_status: 1,
-              soft_delete: dateTime,
+          sync_status: 1,
+          soft_delete: dateTime,
           product_sqlite_id: widget.product!.product_sqlite_id.toString()));
-
-/*
-      ------------------------sync to cloud-------------------------------------
-*/
-      if (connectivityResult == ConnectivityResult.mobile ||
-          connectivityResult == ConnectivityResult.wifi) {
-        //need to fill in
-      }
-/*
-      ---------------------------end sync---------------------------------------
-*/
 
       List<ProductVariant> productVariantData = await PosDatabase.instance
           .readProductVariant(widget.product!.product_id.toString());
-
       for (int j = 0; j < productVariantData.length; j++) {
         int deleteAllProductVariantDetail = await PosDatabase.instance
             .deleteAllProductVariantDetail(ProductVariantDetail(
-          sync_status: 1,
-                soft_delete: dateTime,
+            sync_status: 1,
+            soft_delete: dateTime,
             product_variant_sqlite_id:
-                    productVariantData[j].product_variant_sqlite_id.toString()));
-/*
-        ----------------------------sync to cloud-------------------------------
-*/
-        if (connectivityResult == ConnectivityResult.mobile ||
-            connectivityResult == ConnectivityResult.wifi) {
-          //need to fill in
-        }
-/*
-      ------------------------------end sync------------------------------------
-*/
+            productVariantData[j].product_variant_sqlite_id.toString()));
       }
+/*
+        -------------------------sync to cloud---------------------------------
+*/
+      if (connectivityResult == ConnectivityResult.mobile ||
+          connectivityResult == ConnectivityResult.wifi) {
+        Map response = await Domain().deleteProduct(widget.product!.product_id.toString());
+        if (response['status'] == '1') {
+          int syncProduct = await PosDatabase.instance.updateSyncProduct(Product(
+            product_id: widget.product!.product_id,
+            sync_status: 2,
+            updated_at: dateTime,
+            product_sqlite_id: widget.product!.product_sqlite_id,
+          ));
 
-      Fluttertoast.showToast(
-          backgroundColor: Color(0xff0c1f32), msg: "delete Product Success");
+          int syncBranchLinkProduct = await PosDatabase.instance.updateSyncBranchLinkProductForDeleteAll(BranchLinkProduct(
+            sync_status: 2,
+            updated_at: dateTime,
+            product_sqlite_id: widget.product!.product_sqlite_id.toString(),
+          ));
+          int syncModifierLinkProduct = await PosDatabase.instance.updateSyncModifierLinkProductForUpdate(ModifierLinkProduct(
+            sync_status: 2,
+            updated_at: dateTime,
+            product_sqlite_id: widget.product!.product_sqlite_id.toString(),
+          ));
+
+          int syncVariantGroup = await PosDatabase.instance.updateSyncVariantGroupForDelete(VariantGroup(
+            child: [],
+            sync_status: 2,
+            updated_at: dateTime,
+            product_sqlite_id: widget.product!.product_sqlite_id.toString(),
+          ));
+
+          for (int i = 0; i < variantGroupData.length; i++) {
+            int syncVariantItem = await PosDatabase.instance.updateSyncVariantItemForUpdate(VariantItem(
+              sync_status: 2,
+              updated_at: dateTime,
+              variant_group_sqlite_id: variantGroupData[i].variant_group_sqlite_id.toString(),
+            ));
+          }
+
+          int syncProductVariant = await PosDatabase.instance.updateSyncProductVariantForDelete(ProductVariant(
+            sync_status: 2,
+            updated_at: dateTime,
+            product_sqlite_id: widget.product!.product_sqlite_id.toString(),
+          ));
+
+          for (int j = 0; j < productVariantData.length; j++) {
+            int syncProductVariantDetail = await PosDatabase.instance.updateSyncProductVariantDetailForUpdate(ProductVariantDetail(
+              sync_status: 2,
+              updated_at: dateTime,
+              product_variant_sqlite_id:
+              productVariantData[j].product_variant_sqlite_id.toString(),
+            ));
+          }
+        }
+      }
+/*
+      ---------------------------end sync--------------------------------------
+*/
       widget.callBack();
       closeDialog(context);
+      Fluttertoast.showToast(msg: "delete Product Success");
+
     } catch (error) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFFC107), msg: error.toString());
