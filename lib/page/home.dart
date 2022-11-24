@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/bill/bill.dart';
@@ -74,8 +76,7 @@ class _HomePageState extends State<HomePage> {
                 // maxWidth: 80,
                 isCollapsed: true,
                 items: _items,
-                avatarImg: NetworkImage(
-                    'https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg'),
+                avatarImg: FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
                 title: widget.user!.name! +
                     "\n" +
                     (branchName ?? '') +

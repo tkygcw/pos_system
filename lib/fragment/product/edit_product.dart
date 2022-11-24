@@ -1469,7 +1469,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
       var connectivityResult = await (Connectivity().checkConnectivity());
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-      // deleteFile();
+      deleteFile();
       int deleteProduct = await PosDatabase.instance.deleteProduct(Product(
           soft_delete: dateTime,
           sync_status: 1,

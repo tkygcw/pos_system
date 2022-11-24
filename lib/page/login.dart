@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -19,13 +20,12 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-
+  bool network = true;
   @override
   void initState()  {
     // TODO: implement initState
     super.initState();
     loginCheck();
-    _createDir();
 
   }
 
@@ -57,6 +57,7 @@ class _LoginPageState extends State<LoginPage> {
         return 'Please try again later';
       }
       // Obtain shared preferences.
+      _createDir();
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString("user", json.encode(data['user']));
       return null;
@@ -87,8 +88,8 @@ class _LoginPageState extends State<LoginPage> {
                   recoverPasswordSuccess: 'Password reset successfully',
                 ),
                 scrollable: false,
-                logo: NetworkImage(
-                    "https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg"),
+                logo: network == true ? NetworkImage(
+                    "https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg") : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
                 onLogin: _authUser,
                 onSubmitAnimationCompleted: () {
                   Navigator.of(context).pushReplacement(MaterialPageRoute(
@@ -117,6 +118,7 @@ class _LoginPageState extends State<LoginPage> {
     final int? branch_id = prefs.getInt('branch_id');
     final int? device_id = prefs.getInt('device_id');
     if(user != '' && user !=null && branch_id != '' && branch_id !=null && device_id != '' && device_id !=null ){
+      network = false;
       Navigator.of(context).pushReplacement(MaterialPageRoute(
         builder: (context) => PosPinPage(),
       ));
@@ -145,12 +147,19 @@ class _LoginPageState extends State<LoginPage> {
     final pathImg = Directory('$path/assets/$folderName');
     pathImg.create();
     downloadOtherImage(pathImg.path);
-
+    downloadLogo(pathImg.path);
   }
   downloadOtherImage(String path) async{
     final String url = 'https://pos.lkmng.com/asset/output-onlinegiftools.gif';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/output-onlinegiftools.gif';
+    final imageFile = File(localPath);
+    await imageFile.writeAsBytes(response.bodyBytes);
+  }
+  downloadLogo(String path) async{
+    final String url = 'https://pos.lkmng.com/asset/logo1.jpg';
+    final response = await http.get(Uri.parse(url));
+    var localPath = path + '/logo1.jpg';
     final imageFile = File(localPath);
     await imageFile.writeAsBytes(response.bodyBytes);
   }

@@ -1,8 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 class CustomProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(child: Image.network("https://pos.lkmng.com/asset/output-onlinegiftools.gif"));
+    return Center(child: Image.file(File('data/user/0/com.example.pos_system/files/assets/img/output-onlinegiftools.gif')));
   }
 }
