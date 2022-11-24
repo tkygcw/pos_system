@@ -40,7 +40,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   final quantityController = TextEditingController();
 
   bool checkboxValueA = false;
-  bool isLoading = true;
+  bool isLoaded = false;
   bool hasPromo = false;
 
   @override
@@ -102,9 +102,9 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return isLoading != true
-          ? Consumer<CartModel>(builder: (context, CartModel cart, child) {
-              return AlertDialog(
+      return Consumer<CartModel>(builder: (context, CartModel cart, child) {
+              return this.isLoaded ?
+              AlertDialog(
                 title: Row(
                   children: [
                     Text(widget.productDetail!.name!,
@@ -213,9 +213,8 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                     },
                   ),
                 ],
-              );
-            })
-          : CustomProgressBar();
+              ) : CustomProgressBar();
+            });
     });
   }
 
@@ -291,7 +290,9 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   productChecking() async {
     await readProductVariant(widget.productDetail!.product_id!);
     await readProductModifier(widget.productDetail!.product_id!);
-    this.isLoading = false;
+    setState(() {
+      this.isLoaded = true;
+    });
   }
 
   getProductPrice(int? productId) async {

@@ -1,6 +1,9 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
@@ -13,7 +16,30 @@ import 'notifier/printer_notifier.dart';
 import 'notifier/theme_color.dart';
 import 'page/loading.dart';
 
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you're going to use other Firebase services in the background, such as Firestore,
+  // make sure you call `initializeApp` before using other Firebase services.
+  await Firebase.initializeApp();
+  print('Handling a background message ${message.messageId}');
+}
+
 Future<void> main() async {
+  //firebase method
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+      AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  //other method
   statusBarColor();
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -24,6 +50,15 @@ Future<void> main() async {
     appLanguage: appLanguage,
   ));
 }
+//firebase part
+const AndroidNotificationChannel channel = AndroidNotificationChannel(
+  'high_importance_channel', // id
+  'High Importance Notifications', // title
+  description: 'This channel is used for important notifications.', // description
+  importance: Importance.high,
+);
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+FlutterLocalNotificationsPlugin();
 
 class MyApp extends StatelessWidget {
   final AppLanguage appLanguage;
@@ -115,10 +150,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
+
 statusBarColor() {
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarColor: Colors.white, // status bar color
-    statusBarBrightness: Brightness.dark, //status bar brigtness
+    statusBarBrightness: Brightness.dark, //status bar brightness
     statusBarIconBrightness: Brightness.dark,
   ));
 }

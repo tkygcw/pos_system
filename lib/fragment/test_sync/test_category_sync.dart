@@ -44,7 +44,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
 
   getPaidOrder(String localOrderId) async {
     List<Order> orderData = await PosDatabase.instance.readSpecificPaidOrder(localOrderId);
-    print('paid order length : ${orderData.length}');
+    print('payment type id : ${orderData[0].payment_type}');
   }  
 
 /*

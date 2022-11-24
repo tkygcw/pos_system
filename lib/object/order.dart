@@ -69,6 +69,7 @@ class Order {
   String? soft_delete;
   bool isSelected = false;
   String? payment_name;
+  String? payment_type;
 
   generateOrderNumber(){
     String orderNum = '';
@@ -97,7 +98,8 @@ class Order {
       this.created_at,
       this.updated_at,
       this.soft_delete,
-      this.payment_name});
+      this.payment_name,
+      this.payment_type});
 
   Order copy({
     int? order_sqlite_id,
@@ -142,7 +144,8 @@ class Order {
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete,
-          payment_name: payment_name ?? this.payment_name);
+          payment_name: payment_name ?? this.payment_name,
+          payment_type: payment_type ?? this.payment_type);
 
   static Order fromJson(Map<String, Object?> json) => Order(
         order_sqlite_id: json[OrderFields.order_sqlite_id] as int?,
@@ -165,7 +168,8 @@ class Order {
         created_at: json[OrderFields.created_at] as String?,
         updated_at: json[OrderFields.updated_at] as String?,
         soft_delete: json[OrderFields.soft_delete] as String?,
-        payment_name: json['name'] as String?
+        payment_name: json['name'] as String?,
+        payment_type: json['payment_type_id'] as String?
       );
 
   Map<String, Object?> toJson() => {

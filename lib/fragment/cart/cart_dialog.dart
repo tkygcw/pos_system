@@ -209,7 +209,6 @@ class _CartDialogState extends State<CartDialog> {
                       backgroundColor: Color(0xFFFF0000),
                       msg: "table not in use");
                 }
-
               },
               onTap: () async {
                 //check selected table is in use or not
@@ -225,7 +224,6 @@ class _CartDialogState extends State<CartDialog> {
                       }
                     } else {
                       tableList[i].isSelected = false;
-
                     }
                     cart.removeAllTable();
                     cart.removeAllCartItem();
@@ -462,7 +460,6 @@ class _CartDialogState extends State<CartDialog> {
       List<BranchLinkProduct> result = await PosDatabase.instance
           .readSpecificBranchLinkProduct(
               orderDetailList[k].branch_link_product_sqlite_id!);
-      orderDetailList[k].product_name = result[0].product_name!;
 
       //Get product category
       List<Product> productResult = await PosDatabase.instance
@@ -593,7 +590,7 @@ class _CartDialogState extends State<CartDialog> {
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
           orderDetailList[i].branch_link_product_sqlite_id!,
-          orderDetailList[i].product_name,
+          orderDetailList[i].productName!,
           orderDetailList[i].category_id!,
           orderDetailList[i].price!,
           int.parse(orderDetailList[i].quantity!),

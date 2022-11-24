@@ -95,7 +95,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
                                       ),
                                     ),
                                     key: ValueKey(
-                                        orderDetailList[index].product_name),
+                                        orderDetailList[index].productName),
                                     direction: DismissDirection.startToEnd,
                                     confirmDismiss: (direction) async {
                                       if (direction ==
@@ -120,7 +120,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
                                                     children: <TextSpan>[
                                                       TextSpan(
                                                           text:
-                                                              "${orderDetailList[index].product_name}" +
+                                                              "${orderDetailList[index].productName}" +
                                                                   "\n",
                                                           style: TextStyle(
                                                             fontSize: 18,
@@ -252,7 +252,6 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
         List<BranchLinkProduct> result = await PosDatabase.instance
             .readSpecificBranchLinkProduct(
                 orderDetailList[k].branch_link_product_sqlite_id!);
-        orderDetailList[k].product_name = result[0].product_name!;
 
 
         //Get product category
@@ -454,7 +453,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
         orderDetailList[i].branch_link_product_sqlite_id!,
-        orderDetailList[i].product_name,
+        orderDetailList[i].productName!,
         orderDetailList[i].category_id!,
         orderDetailList[i].price!,
         int.parse(orderDetailList[i].quantity!),

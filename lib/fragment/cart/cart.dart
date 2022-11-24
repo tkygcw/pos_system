@@ -124,7 +124,8 @@ class _CartPageState extends State<CartPage> {
         padding: const EdgeInsets.all(8.0),
         child: Consumer<CartModel>(builder: (context, CartModel cart, child) {
           widget.currentPage == 'menu' ||
-          widget.currentPage == 'table' ?
+          widget.currentPage == 'table' ||
+          widget.currentPage == 'other_order' ?
           getSubTotal(cart) : getReceiptPaymentDetail(cart);
           return Scaffold(
             resizeToAvoidBottomInset: false,
@@ -145,8 +146,7 @@ class _CartPageState extends State<CartPage> {
               backgroundColor: Colors.white,
               actions: [
                 Visibility(
-                  visible: cart.selectedOption == 'Dine in' &&
-                          widget.currentPage == 'menu'
+                  visible: cart.selectedOption == 'Dine in' && widget.currentPage == 'menu'
                       ? true
                       : false,
                   child: IconButton(
@@ -164,7 +164,8 @@ class _CartPageState extends State<CartPage> {
                 Visibility(
                   visible: widget.currentPage == 'menu' ||
                            widget.currentPage == 'qr_order' ||
-                           widget.currentPage == 'bill' ?
+                           widget.currentPage == 'bill' ||
+                           widget.currentPage == 'other_order'?
                            false : true,
                   child: IconButton(
                     tooltip: 'promotion',
@@ -214,42 +215,38 @@ class _CartPageState extends State<CartPage> {
                       children: [
                         Padding(
                           padding: EdgeInsets.fromLTRB(10, 8, 14, 0),
-                          child: Column(children: [
-                            DropdownButton<String>(
-                              onChanged: widget.currentPage == 'menu' ?  (value) {
-                                setState(() {
-                                  cart.selectedOption = value!;
-                                });
-                              } : null,
-                              value: cart.selectedOption,
-                              // Hide the default underline
-                              underline: Container(),
-                              icon: Visibility(
-                                visible: widget.currentPage == 'menu' ? true : false,
-                                child: Icon(
-                                  Icons.arrow_drop_down,
-                                  color: color.backgroundColor,
+                          child: Column(
+                              children: [
+                                DropdownButton<String>(
+                                  onChanged: widget.currentPage == 'menu' ? (value) {
+                                    setState(() {
+                                      cart.selectedOption = value!;
+                                    });
+                                  } : null,
+                                  value: cart.selectedOption,
+                                  // Hide the default underline
+                                  underline: Container(),
+                                  icon: Visibility(
+                                    visible: widget.currentPage == 'menu' ? true : false,
+                                    child: Icon(
+                                      Icons.arrow_drop_down,
+                                      color: color.backgroundColor,
+                                    ),
+                                  ),
+                                  isExpanded: true,
+                                  // The list of options
+                                  items: diningList.map((e) => DropdownMenuItem(
+                                    child: Container(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(e, style: TextStyle(fontSize: 18)),
+                                    ),
+                                    value: e,
+                                  )).toList(),
+                                  // Customize the selected item
+                                  selectedItemBuilder: (BuildContext context) =>
+                                      diningList.map((e) => Center(child: Text(e))).toList(),
                                 ),
-                              ),
-                              isExpanded: true,
-                              // The list of options
-                              items: diningList
-                                  .map((e) => DropdownMenuItem(
-                                        child: Container(
-                                          alignment: Alignment.centerLeft,
-                                          child: Text(e, style: TextStyle(fontSize: 18),
-                                          ),
-                                        ),
-                                        value: e,
-                                      ))
-                                  .toList(),
-                              // Customize the selected item
-                              selectedItemBuilder: (BuildContext context) =>
-                                  diningList
-                                      .map((e) => Center(child: Text(e)))
-                                      .toList(),
-                            ),
-                          ]),
+                              ]),
                         ),
                         Expanded(
                           child: Container(
@@ -270,7 +267,8 @@ class _CartPageState extends State<CartPage> {
                                       ),
                                     ),
                                     key: ValueKey(cart.cartNotifierItem[index].name),
-                                    direction: widget.currentPage == 'menu' ||
+                                    direction: widget.currentPage == 'menu' &&
+                                               cart.cartNotifierItem[index].status == 0 ||
                                                widget.currentPage == 'table' ?
                                                DismissDirection.startToEnd : DismissDirection.none,
                                     confirmDismiss: (direction) async {
@@ -343,8 +341,7 @@ class _CartPageState extends State<CartPage> {
                                                       Fluttertoast.showToast(
                                                           backgroundColor:
                                                               Colors.red,
-                                                          msg:
-                                                              "order already placed!");
+                                                          msg: "order already placed!");
                                                     }
                                                     controller.add('refresh');
                                                   })
@@ -450,7 +447,10 @@ class _CartPageState extends State<CartPage> {
                                     }),
                               ),
                               Visibility(
-                                visible: widget.currentPage == 'menu' || widget.currentPage == 'table' ? true : false,
+                                visible: widget.currentPage == 'menu' ||
+                                         widget.currentPage == 'table' ||
+                                         widget.currentPage == 'other_order' ?
+                                         true : false,
                                 child: ListView.builder(
                                     shrinkWrap: true,
                                     physics: NeverScrollableScrollPhysics(),
@@ -558,7 +558,6 @@ class _CartPageState extends State<CartPage> {
                                   return WillPopScope(
                                       child: CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true),
                                       onWillPop: () async => false);
-                                  //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
                                 });
                                 _isSettlement = false;
                               } else {
@@ -590,8 +589,10 @@ class _CartPageState extends State<CartPage> {
                                           msg: "make sure cart is not empty and table is selected");
                                     }
                                   } else {
+                                    // not dine in call
                                     cart.removeAllTable();
                                     if (cart.cartNotifierItem.isNotEmpty) {
+                                      await callCreateNewNotDineOrder(cart);
                                       //await createOrderCache(cart);
                                       // await updatePosTable(cart);
                                       cart.removeAllCartItem();
@@ -626,6 +627,8 @@ class _CartPageState extends State<CartPage> {
                                         backgroundColor: Colors.red,
                                         msg: "cart empty");
                                   }
+                                } else if(widget.currentPage == 'other_order'){
+                                  openPaymentSelect();
                                 } else {
                                   print('Print receipt');
                                   _printReceiptList();
@@ -634,7 +637,7 @@ class _CartPageState extends State<CartPage> {
                             },
                             child: widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
                                 ? Text('Place Order')
-                                : widget.currentPage == 'table' ? Text('Make payment')
+                                : widget.currentPage == 'table' || widget.currentPage == 'other_order' ? Text('Make payment')
                                 : Text('Print Receipt'),
                           ),
                         ),
@@ -860,7 +863,7 @@ class _CartPageState extends State<CartPage> {
     if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
       result.add('No table');
     } else if (cart.selectedOption != 'Dine in') {
-      result.add('');
+      result.add('N/A');
     } else {
       if (cart.selectedTable.length > 1) {
         for (int i = 0; i < cart.selectedTable.length; i++) {
@@ -1071,7 +1074,6 @@ class _CartPageState extends State<CartPage> {
     final int? branch_id = prefs.getInt('branch_id');
     taxRateList = [];
     try {
-      diningOptionID = 0;
       //get dining option data
       List<DiningOption> data = await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
       diningOptionID = data[0].dining_id!;
@@ -1087,9 +1089,11 @@ class _CartPageState extends State<CartPage> {
     }
 
     controller.add('refresh');
-    return diningOptionID;
   }
 
+/*
+  receipt menu initial call
+*/
   getReceiptPaymentDetail(CartModel cart){
     this.total = 0.0;
     this.totalAmount = 0.0;
@@ -1116,8 +1120,12 @@ class _CartPageState extends State<CartPage> {
     controller.add('refresh');
   }
 
+/*
+  Cart Ordering initial called
+*/
   getSubTotal(CartModel cart) async {
     try {
+      widget.currentPage == 'table' ? cart.selectedOption = 'Dine in' : null;
       total = 0.0;
       promo = 0.0;
       promoAmount = 0.0;
@@ -1273,7 +1281,7 @@ class _CartPageState extends State<CartPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: PaymentSelect(),
+              child: PaymentSelect(dining_id: diningOptionID.toString()),
             ),
           );
         },
@@ -1551,6 +1559,18 @@ class _CartPageState extends State<CartPage> {
 /*
  leow part
 */
+
+/*
+  Not dine in call
+*/
+  callCreateNewNotDineOrder(CartModel cart) async {
+    await createOrderCache(cart);
+    await createOrderDetail(cart);
+    //await _printCheckList();
+  }
+/*
+  dine in call
+*/
   callCreateNewOrder(CartModel cart) async {
     await createTableUseID();
     await createTableUseDetail(cart);
@@ -1782,7 +1802,6 @@ class _CartPageState extends State<CartPage> {
   }
 
   createOrderCache(CartModel cart) async {
-    print('create order cache local called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
@@ -1804,6 +1823,7 @@ class _CartPageState extends State<CartPage> {
         }
       }
       if (batch != 0) {
+        print('dining id : ${diningOptionID}');
         //create order cache
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
             OrderCache(
@@ -1811,16 +1831,16 @@ class _CartPageState extends State<CartPage> {
                 company_id: userObject['company_id'].toString(),
                 branch_id: branch_id.toString(),
                 order_detail_id: '',
-                table_use_sqlite_id: _tableUseId,
+                table_use_sqlite_id: cart.selectedOption == 'Dine in' ? _tableUseId : '',
                 batch_id: batch.toString().padLeft(6, '0'),
-                dining_id: diningOptionID.toString(),
+                dining_id: this.diningOptionID.toString(),
                 order_sqlite_id: '',
                 order_by: userObject['name'].toString(),
                 order_by_user_id: userObject['user_id'].toString(),
                 cancel_by: '',
                 cancel_by_user_id: '',
                 customer_id: '0',
-                total_amount: '',//totalAmount.toStringAsFixed(1),
+                total_amount: cart.selectedOption == "Dine in" ? '' :  totalAmount.toStringAsFixed(2),//totalAmount.toStringAsFixed(1),
                 sync_status: 0,
                 created_at: dateTime,
                 updated_at: '',
@@ -1832,7 +1852,6 @@ class _CartPageState extends State<CartPage> {
           backgroundColor: Color(0xFFFF0000),
           msg: "Create order cache error: ${e}");
     }
-    return orderCacheId;
   }
 
   /**

@@ -7,7 +7,8 @@ class BranchFields {
     address,
     phone,
     ipay_merchant_code,
-    ipay_merchant_key
+    ipay_merchant_key,
+    notification_token
   ];
 
   static String branchID = 'branchID';
@@ -16,6 +17,7 @@ class BranchFields {
   static String phone = 'phone';
   static String ipay_merchant_code = 'ipay_merchant_code';
   static String ipay_merchant_key = 'ipay_merchant_key';
+  static String notification_token = 'notification_token';
 }
 
 class Branch {
@@ -25,6 +27,7 @@ class Branch {
   String? phone;
   String? ipay_merchant_code;
   String? ipay_merchant_key;
+  String? notification_token;
 
   Branch(
       {this.branchID,
@@ -32,7 +35,8 @@ class Branch {
       this.address,
       this.phone,
       this.ipay_merchant_code,
-      this.ipay_merchant_key});
+      this.ipay_merchant_key,
+      this.notification_token});
 
   Branch copy({int? branchID, String? name}) => Branch(
       branchID: branchID ?? this.branchID,
@@ -40,7 +44,8 @@ class Branch {
       address: address ?? this.address,
       phone: phone ?? this.phone,
       ipay_merchant_code: ipay_merchant_code ?? this.ipay_merchant_code,
-      ipay_merchant_key: ipay_merchant_key ?? this.ipay_merchant_key);
+      ipay_merchant_key: ipay_merchant_key ?? this.ipay_merchant_key,
+      notification_token: notification_token ?? this.notification_token);
 
   factory Branch.fromJson(Map<String, dynamic> json) {
     return Branch(
@@ -50,6 +55,7 @@ class Branch {
       phone: json['phone'] as String,
       ipay_merchant_code: json['ipay_merchant_code'] as String,
       ipay_merchant_key: json['ipay_merchant_key'] as String,
+      notification_token: json['notification_token'] as String,
     );
   }
 
@@ -60,5 +66,6 @@ class Branch {
         BranchFields.phone: phone,
         BranchFields.ipay_merchant_code: ipay_merchant_code,
         BranchFields.ipay_merchant_key: ipay_merchant_key,
+        BranchFields.notification_token : notification_token
       };
 }

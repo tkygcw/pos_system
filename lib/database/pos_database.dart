@@ -345,7 +345,8 @@ class PosDatabase {
            ${BranchFields.address} $textType,
            ${BranchFields.phone} $textType,
            ${BranchFields.ipay_merchant_code} $textType,
-           ${BranchFields.ipay_merchant_key} $textType)''');
+           ${BranchFields.ipay_merchant_key} $textType,
+           ${BranchFields.notification_token} $textType)''');
 
 /*
     create app color table
@@ -1973,7 +1974,7 @@ class PosDatabase {
     try {
       final db = await instance.database;
       final result = await db.rawQuery(
-          'SELECT a.order_cache_id ,a.order_detail_id, a.dining_id, a.table_id, a.order_id, a.order_by, a.total_amount, a.customer_id, a.created_at, a.updated_at, a.soft_delete FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id WHERE a.soft_delete=? AND b.soft_delete=? AND a.branch_id = ? AND a.company_id = ? AND b.company_id = ? AND b.name != ?',
+          'SELECT a.order_cache_sqlite_id ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.batch_id, a.order_sqlite_id, a.order_by, a.total_amount, a.customer_id, a.created_at, a.updated_at, a.soft_delete FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id WHERE a.soft_delete=? AND b.soft_delete=? AND a.branch_id = ? AND a.company_id = ? AND b.company_id = ? AND b.name != ?',
           ['', '', branch_id, company_id, company_id, 'Dine in']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
@@ -1991,7 +1992,7 @@ class PosDatabase {
     try {
       final db = await instance.database;
       final result = await db.rawQuery(
-          'SELECT a.order_cache_id ,a.order_detail_id, a.dining_id, a.table_id, a.order_id, a.order_by, a.total_amount, a.customer_id, a.created_at, a.updated_at, a.soft_delete FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id WHERE a.soft_delete=? AND b.soft_delete=? AND a.branch_id = ? AND a.company_id = ? AND b.company_id = ? AND b.name = ?',
+          'SELECT a.order_cache_sqlite_id ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.order_sqlite_id, a.order_by, a.total_amount, a.customer_id, a.created_at, a.updated_at, a.soft_delete FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id WHERE a.soft_delete=? AND b.soft_delete=? AND a.branch_id = ? AND a.company_id = ? AND b.company_id = ? AND b.name = ?',
           ['', '', branch_id, company_id, company_id, name]);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
@@ -2282,7 +2283,7 @@ class PosDatabase {
   Future<List<Order>> readSpecificPaidOrder(String order_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id WHERE a.payment_status = ? AND a.soft_delete = ? AND b.soft_delete = ? AND a.order_sqlite_id = ?',
+        'SELECT a.*, b.name, b.payment_type_id FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id WHERE a.payment_status = ? AND a.soft_delete = ? AND b.soft_delete = ? AND a.order_sqlite_id = ?',
         [1, '', '', order_sqlite_id]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -2365,7 +2366,8 @@ class PosDatabase {
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
-  /*
+
+/*
   update sync variant item for insert
 */
   Future<int> updateSyncVariantItem(VariantItem data) async {
@@ -2390,7 +2392,7 @@ class PosDatabase {
         [data.sync_status, data.updated_at, data.variant_group_sqlite_id]);
   }
 
-  /*
+/*
   update sync product variant for insert
 */
   Future<int> updateSyncProductVariant(ProductVariant data) async {
@@ -2406,7 +2408,7 @@ class PosDatabase {
         ]);
   }
 
-  /*
+/*
   update sync product variant for delete
 */
   Future<int> updateSyncProductVariantForDelete(ProductVariant data) async {
@@ -2420,7 +2422,7 @@ class PosDatabase {
         ]);
   }
 
-  /*
+/*
   update sync product variant for update
 */
   Future<int> updateSyncProductVariantForUpdate(ProductVariant data) async {
@@ -2435,7 +2437,7 @@ class PosDatabase {
         ]);
   }
 
-  /*
+/*
   update sync product variant detail for insert
 */
   Future<int> updateSyncProductVariantDetail(ProductVariantDetail data) async {
@@ -2451,7 +2453,7 @@ class PosDatabase {
         ]);
   }
 
-  /*
+/*
   update sync product variant detail for update
 */
   Future<int> updateSyncProductVariantDetailForUpdate(ProductVariantDetail data) async {
@@ -2465,7 +2467,7 @@ class PosDatabase {
         ]);
   }
 
-  /*
+/*
   update sync branch link product for delete all
 */
   Future<int> updateSyncBranchLinkProductForDeleteAll(BranchLinkProduct data) async {
@@ -2479,7 +2481,7 @@ class PosDatabase {
         ]);
   }
 
-  /*
+/*
   update sync branch link product for insert
 */
   Future<int> updateSyncBranchLinkProduct(BranchLinkProduct data) async {
@@ -2792,7 +2794,19 @@ class PosDatabase {
   }
 
 /*
-  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  update branch notification token
+*/
+  Future<int> updateBranchNotificationToken(Branch data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+      'UPDATE $tableBranch SET notification_token = ? WHERE branch_id = ?',
+      [data.notification_token, data.branchID]
+    );
+
+  }
+
+/*
+  ------------------Soft delete part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
   /*

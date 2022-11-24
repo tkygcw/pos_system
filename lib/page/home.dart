@@ -8,6 +8,7 @@ import 'package:pos_system/fragment/product/product.dart';
 import 'package:pos_system/fragment/setting/setting.dart';
 import 'package:pos_system/fragment/settlement/settlement_page.dart';
 import 'package:pos_system/fragment/table/table.dart';
+import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:provider/provider.dart';
@@ -63,6 +64,7 @@ class _HomePageState extends State<HomePage> {
       return Scaffold(
           resizeToAvoidBottomInset: false,
           body: SafeArea(
+            //side nav bar
             child: CollapsibleSidebar(
                 sidebarBoxShadow: [
                   BoxShadow(
@@ -98,11 +100,11 @@ class _HomePageState extends State<HomePage> {
                         return _body(size, context);
                       }),
                     ),
+                    //cart page
                     Visibility(
                       visible: currentPage != 'product' &&
                                currentPage != 'setting' &&
-                               currentPage != 'order' &&
-                               currentPage != 'settlement' 
+                               currentPage != 'settlement'
                           ? true
                           : false,
                       child: Expanded(
@@ -146,9 +148,9 @@ class _HomePageState extends State<HomePage> {
         onPressed: () => setState(() => currentPage = 'bill'),
       ),
       CollapsibleItem(
-        text: 'order',
+        text: 'Other Order',
         icon: Icons.receipt,
-        onPressed: () => setState(() => currentPage = 'order'),
+        onPressed: () => setState(() => currentPage = 'other_order'),
       ),
       CollapsibleItem(
         text: 'settlement',
@@ -175,7 +177,7 @@ class _HomePageState extends State<HomePage> {
         return QrOrderPage();
       case 'bill':
         return BillPage();
-      case 'order':
+      case 'other_order':
         return DisplayOrderPage();
       case 'settlement':
         return SettlementPage();

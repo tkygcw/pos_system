@@ -162,6 +162,23 @@ class Domain {
   }
 
   /*
+  * update branch notification token to cloud
+  * */
+  updateBranchNotificationToken(token, branch_id) async {
+    try {
+      var response = await http.post(Domain.sync_record, body: {
+        'updateToken': '1',
+        'token': token,
+        'branch_id': branch_id.toString(),
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain call error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all table_use
   * */
   insertTableUseDetail(table_use_id,table_id,original_table_id) async {

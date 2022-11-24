@@ -29,7 +29,7 @@ class _DetailRemoveDialogState extends State<DetailRemoveDialog> {
             child: Row(
               children: [
                 Text(
-                    '${widget.object.product_name} ${AppLocalizations.of(context)?.translate('confirm_delete')}')
+                    '${widget.object.productName} ${AppLocalizations.of(context)?.translate('confirm_delete')}')
               ],
             ),
           ),

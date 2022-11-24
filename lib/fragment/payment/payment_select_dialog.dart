@@ -9,7 +9,8 @@ import '../../object/payment_link_company.dart';
 import 'make_payment_dialog.dart';
 
 class PaymentSelect extends StatefulWidget {
-  const PaymentSelect({Key? key}) : super(key: key);
+  final String? dining_id;
+  const PaymentSelect({Key? key, required this.dining_id}) : super(key: key);
 
   @override
   State<PaymentSelect> createState() => _PaymentSelectState();
@@ -46,7 +47,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                           children: List.generate(PaymentLists.length, (index) {
                             return GestureDetector(
                               onTap: () {
-                                openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!);
+                                openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!);
                               },
                               child: Card(
                                 elevation: 5,
@@ -189,7 +190,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
     });
   }
 
-  Future<Future<Object?>> openMakePayment(int type_id, int payment_link_id) async {
+  Future<Future<Object?>> openMakePayment(int type_id, int payment_link_id, String dining) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -199,8 +200,9 @@ class _PaymentSelectState extends State<PaymentSelect> {
             child: Opacity(
               opacity: a1.value,
               child: MakePayment(
-                  type: type_id,
-                  payment_link_company_id: payment_link_id,
+                dining_id: dining,
+                type: type_id,
+                payment_link_company_id: payment_link_id,
               ),
             ),
           );

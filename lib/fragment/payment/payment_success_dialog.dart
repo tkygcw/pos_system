@@ -29,7 +29,8 @@ class PaymentSuccessDialog extends StatefulWidget {
   final List<PosTable> selectedTableList;
   final Function() callback;
   final String orderId;
-  const PaymentSuccessDialog({Key? key, required this.orderId, required this.callback, required this.orderCacheIdList, required this.selectedTableList}) : super(key: key);
+  final String dining_id;
+  const PaymentSuccessDialog({Key? key, required this.orderId, required this.callback, required this.orderCacheIdList, required this.selectedTableList, required this.dining_id}) : super(key: key);
 
   @override
   State<PaymentSuccessDialog> createState() => _PaymentSuccessDialogState();
@@ -51,14 +52,14 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     super.initState();
     callUpdateOrder();
     createCashRecord();
+    readAllPrinters();
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cartModel, child) {
-          return Consumer<TableModel>(
-            builder: (context, TableModel tableModel, child) {
+          return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
               return WillPopScope(
                 onWillPop: () async => false,
                 child: AlertDialog(
@@ -112,11 +113,14 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
 
   callUpdateOrder() async {
     await updateOrder();
-    await deleteCurrentTableUseDetail();
-    await deleteCurrentTableUseId();
+    if(widget.dining_id == '1'){
+      await deleteCurrentTableUseDetail();
+      await deleteCurrentTableUseId();
+      await updatePosTableStatus(0);
+    }
     await updateOrderCache();
     await deleteOrderCache();
-    await updatePosTableStatus(0);
+
   }
 
   updateOrder() async {
@@ -234,10 +238,10 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
             cash_record_id: 0,
             company_id: logInUser['company_id'].toString(),
             branch_id: branch_id.toString(),
-            remark: 'invoice001',
+            remark: orderData[0].generateOrderNumber(),
             amount: orderData[0].final_amount,
             payment_name: '',
-            payment_type_id: orderData[0].payment_link_company_id,
+            payment_type_id: orderData[0].payment_type,
             type: 3,
             user_id: userObject['user_id'].toString(),
             settlement_date: '',

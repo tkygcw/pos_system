@@ -188,6 +188,13 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
           Colors.black
       );
       cart.addItem(value);
+      if(orderCache.dining_id == '2'){
+        cart.selectedOption = 'Take Away';
+      } else if(orderCache.dining_id == '3'){
+        cart.selectedOption = 'Delivery';
+      } else {
+        cart.selectedOption = 'Dine in';
+      }
     }
     //Get specific table use detail
     List<TableUseDetail> tableUseDetailData = await PosDatabase.instance

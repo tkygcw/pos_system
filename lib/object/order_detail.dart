@@ -56,7 +56,7 @@ class OrderDetail{
   String? order_cache_sqlite_id;
   String? branch_link_product_sqlite_id;
   String? category_sqlite_id;
-  String? productName = '';
+  String? productName;
   String? has_variant = '';
   String? product_variant_name = '';
   String? price = '';
@@ -72,7 +72,6 @@ class OrderDetail{
   String? total_amount;
   String base_price = '0.0';
   String? category_id;
-  String product_name = '';
   String? mod_item_id;
   ProductVariant? productVariant ;
   List<VariantItem> variantItem = [];

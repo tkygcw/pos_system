@@ -15,13 +15,24 @@ class CartModel extends ChangeNotifier {
   Promotion? selectedPromotion ;
   List<PosTable> selectedTable = [];
   String selectedOption = 'Dine in';
-
+  bool isInit = true;
+  int count = 0;
 
   void initialLoad() {
+    print('cart called!');
     removeAllTable();
     removeAllCartItem();
     removePromotion();
     removePaymentDetail();
+    notifyListeners();
+  }
+
+  void changInit(bool action) {
+    isInit = action;
+  }
+
+  void setSelectedOption(String option){
+    selectedOption = option;
     notifyListeners();
   }
 
@@ -99,6 +110,5 @@ class CartModel extends ChangeNotifier {
     autoPromotion.clear();
     notifyListeners();
   }
-
 
 }

@@ -21,6 +21,7 @@
   "yes": "Yes",
   "no": "No",
   "incorrect_password": "incorrect password",
+  "fail_get_token": "Fail to acquire notification token ",
   "confirm_delete": "will be remove from cart. Click yes to proceed",
   "confirm_pos_pin": "Confirm transfer ownership?",
   "confirm_merge_bill": "Confirm Merge bill payment?",

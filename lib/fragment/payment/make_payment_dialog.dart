@@ -41,7 +41,8 @@ import '../../object/variant_group.dart';
 class MakePayment extends StatefulWidget {
   final int type;
   final int payment_link_company_id;
-  const MakePayment({Key? key, required this.type, required this.payment_link_company_id}) : super(key: key);
+  final String dining_id;
+  const MakePayment({Key? key, required this.type, required this.payment_link_company_id, required this.dining_id}) : super(key: key);
 
   @override
   State<MakePayment> createState() => _MakePaymentState();
@@ -509,7 +510,7 @@ class _MakePaymentState extends State<MakePayment> {
                                           buttontapped: () async  {
                                             if(double.parse(inputController.text) >= double.parse(finalAmount)){
                                               await callCreateOrder(inputController.text, change);
-                                              openPaymentSuccessDialog();
+                                              openPaymentSuccessDialog(widget.dining_id);
                                               //ReceiptLayout().openCashDrawer();
                                             } else {
                                               Fluttertoast.showToast(
@@ -601,7 +602,7 @@ class _MakePaymentState extends State<MakePayment> {
                                         style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.green)),
                                         onPressed: () async {
                                           await callCreateOrder(finalAmount, null);
-                                          openPaymentSuccessDialog();
+                                          openPaymentSuccessDialog(widget.dining_id);
                                         }, child: Text("Confirm",style:TextStyle(fontSize: 25)),
 
                                       ),
@@ -722,7 +723,7 @@ class _MakePaymentState extends State<MakePayment> {
       var api = await paymentApi();
       if(api != 0){
         // await updateOrder();
-        openPaymentSuccessDialog();
+        openPaymentSuccessDialog(widget.dining_id);
       } else {
         Navigator.of(context).pop();
         Fluttertoast.showToast(
@@ -742,7 +743,7 @@ class _MakePaymentState extends State<MakePayment> {
 //     double eval = exp.evaluate(EvaluationType.REAL, cm);
 //     answer = eval.toString();
 //   }
-  Future<Future<Object?>> openPaymentSuccessDialog() async {
+  Future<Future<Object?>> openPaymentSuccessDialog(String dining_id) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -752,6 +753,7 @@ class _MakePaymentState extends State<MakePayment> {
             child: Opacity(
               opacity: a1.value,
               child: PaymentSuccessDialog(
+                dining_id: dining_id,
                 orderCacheIdList: orderCacheIdList,
                 selectedTableList: selectedTableList,
                 callback: () => Navigator.of(context).pop(),
@@ -776,21 +778,26 @@ class _MakePaymentState extends State<MakePayment> {
 */
   getSelectedTable(CartModel cart) {
     List<String> result = [];
-    if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
-      result.add('No table');
-    } else if (cart.selectedOption != 'Dine in') {
-      result.add('');
-    } else {
-      if (cart.selectedTable.length > 1) {
-        for (int i = 0; i < cart.selectedTable.length; i++) {
-          result.add('${cart.selectedTable[i].number}');
-        }
+    if(cart.selectedOption == 'Dine in'){
+      if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
+        result.add('No table');
+      } else if (cart.selectedOption != 'Dine in') {
+        result.add('');
       } else {
-        result.add('${cart.selectedTable[0].number}');
+        if (cart.selectedTable.length > 1) {
+          for (int i = 0; i < cart.selectedTable.length; i++) {
+            result.add('${cart.selectedTable[i].number}');
+          }
+        } else {
+          result.add('${cart.selectedTable[0].number}');
+        }
       }
+
+      return result.toString().replaceAll('[', '').replaceAll(']', '');
+    } else {
+      return 'N/A';
     }
 
-    return result.toString().replaceAll('[', '').replaceAll(']', '');
   }  
 
 /*

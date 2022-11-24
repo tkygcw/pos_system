@@ -6,6 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/cash_record.dart';
+import 'package:pos_system/object/receipt_layout.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -247,6 +248,7 @@ class _CashDialogState extends State<CashDialog> {
       CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
       widget.callBack();
       closeDialog(context);
+      ReceiptLayout().openCashDrawer();
     }catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),

@@ -65,6 +65,7 @@ class OrderCache{
   String? updated_at;
   String? soft_delete;
   String? cardColor;
+  bool is_selected = false;
 
   OrderCache(
       {this.order_cache_sqlite_id,

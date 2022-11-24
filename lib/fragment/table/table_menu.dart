@@ -48,6 +48,7 @@ class _TableMenuState extends State<TableMenu> {
   double priceSST = 0.0;
   double priceServeTax = 0.0;
   bool isLoaded = false;
+  bool productDetailLoaded = false;
 
   @override
   void initState() {
@@ -76,10 +77,8 @@ class _TableMenuState extends State<TableMenu> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
-        return Consumer<TableModel>(
-            builder: (context, TableModel tableModel, child) {
+        return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
           if (tableModel.isChange) {
-            print('content change detected');
             readAllTable(model: tableModel);
           }
           return Scaffold(
@@ -352,7 +351,6 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   readAllTable({model}) async {
-    print('calling');
     isLoaded = false;
     if (model != null) {
       model.changeContent2(false);
@@ -364,14 +362,14 @@ class _TableMenuState extends State<TableMenu> {
         await PosDatabase.instance.readAllTable(branch_id!.toInt());
 
     tableList = List.from(data);
-    await readAllTableAmount();
+    await readAllTableGroup();
     setState(() {
       isLoaded = true;
     });
 
   }
 
-  readAllTableAmount() async {
+  readAllTableGroup() async {
     priceSST = 0.0;
     priceServeTax = 0.0;
     final prefs = await SharedPreferences.getInstance();
@@ -385,7 +383,6 @@ class _TableMenuState extends State<TableMenu> {
             branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
         tableList[i].group = data[0].table_use_sqlite_id;
         tableList[i].cardColor = data[0].cardColor;
-        print('table use data length: ${data.length}');
 
         // for(int j = 0; j < data.length; j++){
         //   tableList[i].total_Amount += double.parse(data[j].total_amount!);
@@ -423,10 +420,7 @@ class _TableMenuState extends State<TableMenu> {
     //loop all order detail
     for (int k = 0; k < orderDetailList.length; k++) {
       //Get data from branch link product
-      List<BranchLinkProduct> result = await PosDatabase.instance
-          .readSpecificBranchLinkProduct(
-              orderDetailList[k].branch_link_product_sqlite_id!);
-      orderDetailList[k].product_name = result[0].product_name!;
+      List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
 
       //Get product category
       List<Product> productResult = await PosDatabase.instance
@@ -492,6 +486,9 @@ class _TableMenuState extends State<TableMenu> {
         }
       }
     }
+    setState(() {
+      productDetailLoaded = true;
+    });
   }
 
   getModifierGroupItem(OrderDetail orderDetail) {
@@ -556,7 +553,7 @@ class _TableMenuState extends State<TableMenu> {
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
           orderDetailList[i].branch_link_product_sqlite_id!,
-          orderDetailList[i].product_name,
+          orderDetailList[i].productName!,
           orderDetailList[i].category_id!,
           orderDetailList[i].price!,
           int.parse(orderDetailList[i].quantity!),
@@ -583,24 +580,26 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   removeFromCart(CartModel cart, PosTable posTable) async {
-    print('remove from cart called');
     var value;
     await readSpecificTableDetail(posTable);
-    for (int i = 0; i < orderDetailList.length; i++) {
-      value = cartProductItem(
-          orderDetailList[i].branch_link_product_sqlite_id!,
-          orderDetailList[i].product_name,
-          orderDetailList[i].category_id!,
-          orderDetailList[i].price!,
-          int.parse(orderDetailList[i].quantity!),
-          getModifierGroupItem(orderDetailList[i]),
-          getVariantGroupItem(orderDetailList[i]),
-          orderDetailList[i].remark!,
-          0,
-          orderDetailList[i].order_cache_sqlite_id,
-          toColor(posTable.cardColor!));
-      cart.removeSpecificItem(value);
-      cart.removePromotion();
+    if(this.productDetailLoaded){
+      for (int i = 0; i < orderDetailList.length; i++) {
+        value = cartProductItem(
+            orderDetailList[i].branch_link_product_sqlite_id!,
+            orderDetailList[i].productName!,
+            orderDetailList[i].category_id!,
+            orderDetailList[i].price!,
+            int.parse(orderDetailList[i].quantity!),
+            getModifierGroupItem(orderDetailList[i]),
+            getVariantGroupItem(orderDetailList[i]),
+            orderDetailList[i].remark!,
+            0,
+            orderDetailList[i].order_cache_sqlite_id,
+            toColor(posTable.cardColor!));
+        cart.removeSpecificItem(value);
+        cart.removePromotion();
+      }
     }
+
   }
 }

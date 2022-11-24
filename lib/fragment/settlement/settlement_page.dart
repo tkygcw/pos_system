@@ -9,6 +9,7 @@ import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/settlement/cash_box_dialog.dart';
 import 'package:pos_system/fragment/settlement/cash_dialog.dart';
 import 'package:pos_system/fragment/settlement/history_dialog.dart';
+import 'package:pos_system/fragment/settlement/pos_pin_dialog.dart';
 import 'package:pos_system/fragment/settlement/settlement_dialog.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/page/pos_pin.dart';
@@ -130,7 +131,8 @@ class _SettlementPageState extends State<SettlementPage> {
                                 child: Text('Cash-out'),
                                 onPressed: () {
                                   if(cashRecordList.length > 0){
-                                    openCashDialog(false, true);
+                                    openCashOutDialog();
+                                    // openCashDialog(false, true);
                                   } else {
                                     Fluttertoast.showToast(
                                         backgroundColor: Color(0xFFFF0000),
@@ -316,6 +318,30 @@ class _SettlementPageState extends State<SettlementPage> {
 /*
   -------------------Dialog part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+  Future<Future<Object?>> openCashOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: PosPinDialog(
+                callBack: () => openCashDialog(false, true),
+              )
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
 
   Future<Future<Object?>> openCashDialog(bool cashIn, bool cashOut) async {
     return showGeneralDialog(
@@ -443,25 +469,25 @@ class _SettlementPageState extends State<SettlementPage> {
       }
     } else if (selectedPayment == 'Cash') {
       for (int i = 0; i < data.length; i++) {
-        if (data[i].payment_type_id == '0') {
+        if (data[i].payment_type_id == '1') {
           cashRecordList.add(data[i]);
         }
       }
     } else if (selectedPayment == 'Card') {
       for (int i = 0; i < data.length; i++) {
-        if (data[i].payment_type_id == '1') {
+        if (data[i].payment_type_id == '2') {
           cashRecordList.add(data[i]);
         }
       }
     } else if (selectedPayment == 'Grab') {
       for (int i = 0; i < data.length; i++) {
-        if (data[i].payment_type_id == '0') {
+        if (data[i].payment_type_id == '5') {
           cashRecordList.add(data[i]);
         }
       }
     } else if (selectedPayment == 'ipay tng scanner') {
       for (int i = 0; i < data.length; i++) {
-        if (data[i].payment_type_id == '2') {
+        if (data[i].payment_type_id == '6') {
           cashRecordList.add(data[i]);
         }
       }
@@ -511,19 +537,19 @@ class _SettlementPageState extends State<SettlementPage> {
       }
       break;
       case 'Cash': {
-        total = 'Cash: ' + calcTotalAmount('0');
+        total = 'Cash: ' + calcTotalAmount('1');
       }
       break;
       case 'Card': {
-        total = 'Card: ' + calcTotalAmount('1');
+        total = 'Card: ' + calcTotalAmount('2');
       }
       break;
       case 'Grab': {
-        total = 'GrabPay: ' + calcTotalAmount('0');
+        total = 'GrabPay: ' + calcTotalAmount('5');
       }
       break;
       case 'ipay tng scanner': {
-        total = 'ipay tng scanner: ' + calcTotalAmount('2');
+        total = 'ipay tng scanner: ' + calcTotalAmount('6');
       }
       break;
       default: {
