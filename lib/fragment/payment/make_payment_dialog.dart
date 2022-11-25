@@ -50,6 +50,7 @@ class MakePayment extends StatefulWidget {
 
 class _MakePaymentState extends State<MakePayment> {
   final inputController = TextEditingController();
+  final ScrollController _controller = ScrollController();
   late StreamController streamController;
   // var type ="0";
   var userInput = '0.00';
@@ -70,6 +71,7 @@ class _MakePaymentState extends State<MakePayment> {
   bool hasPromo = false;
   int taxRate = 0;
   int diningOptionID = 0;
+  int count = 0;
   double total = 0.0;
   double promo = 0.0;
   double selectedPromo = 0.0;
@@ -82,6 +84,7 @@ class _MakePaymentState extends State<MakePayment> {
   double totalAmount = 0.0;
   double tableOrderPrice = 0.0;
   double rounding = 0.0;
+  String diningName = '';
   String selectedPromoRate = '';
   String promoName = '';
   String promoRate = '';
@@ -92,6 +95,7 @@ class _MakePaymentState extends State<MakePayment> {
   String? orderId;
   String finalAmount = '';
   String change = '0.00';
+  int myCount = 0;
   late Map branchObject;
 
   // Array of button
@@ -119,6 +123,10 @@ class _MakePaymentState extends State<MakePayment> {
 
   ];
 
+  void _scrollDown() {
+    _controller.jumpTo(_controller.position.maxScrollExtent);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -127,11 +135,13 @@ class _MakePaymentState extends State<MakePayment> {
     readBranchPref();
     readSpecificPaymentMethod();
     readAllOrder();
+
   }
 
   @override
   void dispose() {
     inputController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -155,6 +165,7 @@ class _MakePaymentState extends State<MakePayment> {
       controller!.pauseCamera();
       controller!.resumeCamera();
     }
+
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return  AlertDialog(
         title: Text('Amount'),
@@ -166,6 +177,7 @@ class _MakePaymentState extends State<MakePayment> {
                 return Consumer<CartModel>(builder: (context, CartModel cart, child) {
                   getSubTotal(cart);
                   getCartItemList(cart);
+
                   return Row(
                     children: [
                       Expanded(
@@ -236,8 +248,14 @@ class _MakePaymentState extends State<MakePayment> {
                                     ),
                                     SizedBox(height: 10),
                                     Container(
-                                      height: MediaQuery.of(context).size.height < 700 ? 190 : 200,
+                                      constraints: new BoxConstraints(
+                                        maxHeight: MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Dine in' ? 190 : 200
+                                      ),
+                                      // height: MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Dine in' ? 190
+                                      //         : MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Take Away' ? 180
+                                      //         : 200,
                                       child: ListView(
+                                        controller: _controller,
                                         padding: EdgeInsets.only(left: 5, right: 5),
                                         physics: ClampingScrollPhysics(),
                                         children: [
@@ -1082,6 +1100,7 @@ class _MakePaymentState extends State<MakePayment> {
         selectedTableList.add(cart.selectedTable[j]);
       }
     }
+
   }
 
   getSubTotal(CartModel cart) async {
@@ -1102,7 +1121,14 @@ class _MakePaymentState extends State<MakePayment> {
     getRounding();
     getAllTotal();
     addAllPromotion(cart);
-
+    if(myCount == 0){
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _scrollDown();
+        });
+      });
+      myCount++;
+    }
     streamController.add('refresh');
   }
 
@@ -1184,6 +1210,7 @@ class _MakePaymentState extends State<MakePayment> {
     final int? branch_id = prefs.getInt('branch_id');
     try {
       diningOptionID = 0;
+      this.diningName = cart.selectedOption;
       //get dining option data
       List<DiningOption> data = await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
       diningOptionID = data[0].dining_id!;
@@ -1249,6 +1276,8 @@ class _MakePaymentState extends State<MakePayment> {
             company_id: logInUser['company_id'].toString(),
             branch_id:  branch_id.toString(),
             customer_id: '',
+            dining_id: widget.dining_id,
+            dining_name: this.diningName,
             branch_link_promotion_id: '',
             payment_link_company_id: widget.payment_link_company_id.toString(),
             branch_link_tax_id: '',
@@ -1292,7 +1321,7 @@ class _MakePaymentState extends State<MakePayment> {
           order_id: '0',
           promotion_name: appliedPromotionList[i].name,
           promotion_id: appliedPromotionList[i].promotion_id.toString(),
-          rate: appliedPromotionList[i].amount,
+          rate: appliedPromotionList[i].promoRate,
           promotion_amount: appliedPromotionList[i].promoAmount!.toStringAsFixed(2),
           promotion_type: appliedPromotionList[i].type,
           branch_link_promotion_id: branchPromotionData[0].branch_link_promotion_id.toString(),
@@ -1343,6 +1372,8 @@ class _MakePaymentState extends State<MakePayment> {
   readAllOrder() async {
     List<Order> data = await PosDatabase.instance.readLatestOrder();
     orderList = List.from(data);
+
+
   }
 
 /*

@@ -156,56 +156,58 @@ class _TableMenuState extends State<TableMenu> {
                                   }
                                 },
                                 onTap: () async {
-                                  if (tableList[index].status == 1) {
-                                    // table in use (colored)
-                                    for (int i = 0; i < tableList.length; i++) {
-                                      if (tableList[index].group ==
-                                          tableList[i].group) {
-                                        if (tableList[i].isSelected == false) {
-                                          tableList[i].isSelected = true;
-                                        } else if (tableList[i].isSelected ==
-                                            true) {
-                                          if (tableList[index].group ==
-                                              tableList[i].group) {
-                                            setState(() {
-                                              removeFromCart(
-                                                  cart, tableList[index]);
-                                              tableList[i].isSelected = false;
-                                              cart.removeSpecificTable(
-                                                  tableList[i]);
-                                            });
-                                          } else {
-                                            setState(() {
-                                              removeFromCart(
-                                                  cart, tableList[index]);
-                                              tableList[i].isSelected = false;
-                                              cart.removeSpecificTable(
-                                                  tableList[index]);
-                                            });
+                                  await readSpecificTableDetail(tableList[index]);
+                                  if(this.productDetailLoaded){
+                                    if (tableList[index].status == 1) {
+                                      // table in use (colored)
+                                      for (int i = 0; i < tableList.length; i++) {
+                                        if (tableList[index].group ==
+                                            tableList[i].group) {
+                                          if (tableList[i].isSelected == false) {
+                                            tableList[i].isSelected = true;
+                                          } else if (tableList[i].isSelected ==
+                                              true) {
+                                            if (tableList[index].group ==
+                                                tableList[i].group) {
+                                              setState(() {
+                                                removeFromCart(
+                                                    cart, tableList[index]);
+                                                tableList[i].isSelected = false;
+                                                cart.removeSpecificTable(
+                                                    tableList[i]);
+                                              });
+                                            } else {
+                                              setState(() {
+                                                removeFromCart(
+                                                    cart, tableList[index]);
+                                                tableList[i].isSelected = false;
+                                                cart.removeSpecificTable(
+                                                    tableList[index]);
+                                              });
+                                            }
                                           }
                                         }
                                       }
-                                    }
-                                  } else {
-                                    for (int j = 0; j < tableList.length; j++) {
-                                      //reset all using table to un-select (table status == 1)
-                                      if (tableList[j].status == 1) {
-                                        tableList[j].isSelected = false;
-                                        cart.removeAllCartItem();
-                                        cart.removePromotion();
-                                        cart.removeSpecificTable(tableList[j]);
+                                    } else {
+                                      for (int j = 0; j < tableList.length; j++) {
+                                        //reset all using table to un-select (table status == 1)
+                                        if (tableList[j].status == 1) {
+                                          tableList[j].isSelected = false;
+                                          cart.removeAllCartItem();
+                                          cart.removePromotion();
+                                          cart.removeSpecificTable(tableList[j]);
+                                        }
                                       }
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Color(0xFF07F107),
+                                          msg: "Table not in use");
                                     }
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Color(0xFF07F107),
-                                        msg: "Table not in use");
+                                    if (tableList[index].status == 1 && tableList[index].isSelected == true) {
+                                      //await readSpecificTableDetail(tableList[index]);
+                                      addToCart(cart, tableList[index]);
+                                    }
                                   }
-                                  if (tableList[index].status == 1 &&
-                                      tableList[index].isSelected == true) {
-                                    await readSpecificTableDetail(
-                                        tableList[index]);
-                                    addToCart(cart, tableList[index]);
-                                  }
+
                                 },
                                 child: Container(
                                   margin: EdgeInsets.all(2),
@@ -581,7 +583,7 @@ class _TableMenuState extends State<TableMenu> {
 
   removeFromCart(CartModel cart, PosTable posTable) async {
     var value;
-    await readSpecificTableDetail(posTable);
+    //await readSpecificTableDetail(posTable);
     if(this.productDetailLoaded){
       for (int i = 0; i < orderDetailList.length; i++) {
         value = cartProductItem(

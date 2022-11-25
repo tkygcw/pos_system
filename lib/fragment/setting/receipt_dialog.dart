@@ -27,17 +27,25 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   final headerTextController = TextEditingController();
   final footerTextController = TextEditingController();
   File? headerImage;
-  File? footerImage;
+  File? footerImg;
   String? headerDir;
   String? footerDir;
   bool isLoad = false;
   bool _isUpdate = false;
+  bool logoImage = true;
+  bool footerImage = true;
+  bool logoText = false;
+  bool footerText = false;
 
   @override
   void initState() {
     // TODO: implement initState
     if (widget.receiptObject != null) {
       _isUpdate = true;
+      widget.receiptObject!.header_image_status == 1 ? this.logoImage = true  : this.logoImage = false;
+      widget.receiptObject!.footer_image_status == 1 ? this.footerImage = true  : this.footerImage = false;
+      widget.receiptObject!.header_text_status == 1 ? this.logoText = true : this.logoText = false;
+      widget.receiptObject!.footer_text_status == 1 ? this.footerText = true : this.footerText = false;
       headerTextController.text = widget.receiptObject!.header_text!;
       footerTextController.text = widget.receiptObject!.footer_text!;
       isLoad = true;
@@ -57,8 +65,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   }
 
   void _submit(BuildContext context) {
-    !_isUpdate ?
-    createReceiptLayout() : setLayoutInUse(widget.receiptObject!);
+    !_isUpdate ? createReceiptLayout() : setLayoutInUse(widget.receiptObject!);
   }
 
   closeDialog(BuildContext context) {
@@ -77,171 +84,144 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                Container(
-                  alignment: Alignment.topLeft,
-                  child: Text('Logo Text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                Row(
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                    ),
+                    Spacer(),
+                    Container(
+                      child: Switch(
+                          value: logoImage,
+                          activeColor: color.backgroundColor,
+                          onChanged: !_isUpdate ?  (bool value){
+                            setState(() {
+                              logoImage = value;
+                            });
+                          }: null ),
+                    )
+                  ],
                 ),
-                SizedBox(height: 10,),
-                Container(
-                  child: ValueListenableBuilder(
-                    // Note: pass _controller to the animation argument
-                      valueListenable: headerTextController,
-                      builder: (context, TextEditingValue value, __) {
-                        return SizedBox(
-                          height: MediaQuery.of(context).size.height / 8,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextField(
-                              readOnly: !_isUpdate ? false : true,
-                              controller: headerTextController,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: color.backgroundColor),
+                Row(
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                    ),
+                    Spacer(),
+                    Container(
+                      child: Switch(
+                          value: footerImage,
+                          activeColor: color.backgroundColor,
+                          onChanged: !_isUpdate ? (bool value){
+                            setState(() {
+                              footerImage = value;
+                            });
+                          }: null),
+                    )
+                  ],
+                ),
+                Row(
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                    ),
+                    Spacer(),
+                    Container(
+                      child: Switch(
+                          value: logoText,
+                          activeColor: color.backgroundColor,
+                          onChanged: !_isUpdate ? (bool value){
+                            setState(() {
+                              logoText = value;
+                            });
+                          } : null),
+                    )
+                  ],
+                ),
+                Visibility(
+                  visible: logoText ? true : false,
+                  child: Container(
+                    child: ValueListenableBuilder(
+                      // Note: pass _controller to the animation argument
+                        valueListenable: headerTextController,
+                        builder: (context, TextEditingValue value, __) {
+                          return SizedBox(
+                            height: MediaQuery.of(context).size.height / 8,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextField(
+                                enabled: _isUpdate ? false : true,
+                                controller: headerTextController,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
+                                  ),
+                                  labelText: 'Logo text here',
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: color.backgroundColor),
-                                ),
-                                labelText: 'Logo text here',
                               ),
                             ),
-                          ),
-                        );
-                      }),
+                          );
+                        }),
+                  ),
                 ),
-                Container(
-                  alignment: Alignment.topLeft,
-                  child: Text('Footer Text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                Row(
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                    ),
+                    Spacer(),
+                    Container(
+                      child: Switch(
+                          value: footerText,
+                          activeColor: color.backgroundColor,
+                          onChanged: !_isUpdate ? (bool value){
+                            setState(() {
+                              footerText = value;
+                            });
+                          } : null),
+                    )
+                  ],
                 ),
-                SizedBox(height: 10,),
-                Container(
-                  child: ValueListenableBuilder(
-                    // Note: pass _controller to the animation argument
-                      valueListenable: footerTextController,
-                      builder: (context, TextEditingValue value, __) {
-                        return SizedBox(
-                          height: MediaQuery.of(context).size.height / 8,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextField(
-                              readOnly: !_isUpdate ? false : true,
-                              controller: footerTextController,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: color.backgroundColor),
+                Visibility(
+                  visible: footerText ? true : false,
+                  child: Container(
+                    child: ValueListenableBuilder(
+                      // Note: pass _controller to the animation argument
+                        valueListenable: footerTextController,
+                        builder: (context, TextEditingValue value, __) {
+                          return SizedBox(
+                            height: MediaQuery.of(context).size.height / 8,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextField(
+                                enabled: _isUpdate ? false : true,
+                                controller: footerTextController,
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: color.backgroundColor),
+                                  ),
+                                  labelText: 'footer text here',
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: color.backgroundColor),
-                                ),
-                                labelText: 'footer text here',
                               ),
                             ),
-                          ),
-                        );
-                      }),
-                ),
-                Container(
-                  alignment: Alignment.topLeft,
-                  child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                ),
-                Center(
-                  child: Column(
-                    children: [
-                      headerImage != null ?
-                      Image.file(
-                        headerImage!,
-                        width: 250,
-                        height: 250,
-                        fit: BoxFit.cover,
-                      ):
-                          Container(
-                            alignment: Alignment.center,
-                            child: Column(
-                              children: [
-                                Icon(Icons.image),
-                                Text('No image')
-                              ],
-                            ),
-                          ),
-                      SizedBox(
-                        height: 10,
-                      ), !_isUpdate ?
-                      ElevatedButton(
-                        child: Row(
-                          children: [
-                            Icon(Icons.image_outlined),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text("Pick Image from Gallery"),
-                          ],
-                        ),
-                        onPressed: () {
-                          getHeaderImage(ImageSource.gallery);
-                        },
-                        style: ElevatedButton.styleFrom(
-                            primary: color.backgroundColor,
-                            textStyle: TextStyle(
-                                color: Colors.white70,
-                                fontWeight: FontWeight.bold)),
-                      ) :
-                      Container(),
-                    ],
+                          );
+                        }),
                   ),
                 ),
-                SizedBox(height: 10,),
-                Container(
-                  alignment: Alignment.topLeft,
-                  child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                ),
-                Center(
-                  child: Column(
-                    children: [
-                      footerImage != null ?
-                      Image.file(
-                        footerImage!,
-                        width: 250,
-                        height: 250,
-                        fit: BoxFit.cover,
-                      ):
-                      Container(
-                        alignment: Alignment.center,
-                        child: Column(
-                          children: [
-                            Icon(Icons.image),
-                            Text('No image')
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ), !_isUpdate ?
-                      ElevatedButton(
-                        child: Row(
-                          children: [
-                            Icon(Icons.image_outlined),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text("Pick Image from Gallery"),
-                          ],
-                        ),
-                        onPressed: () {
-                          getFooterImage(ImageSource.gallery);
-                        },
-                        style: ElevatedButton.styleFrom(
-                            primary: color.backgroundColor,
-                            textStyle: TextStyle(
-                                color: Colors.white70,
-                                fontWeight: FontWeight.bold)),
-                      ) :
-                      Container(),
-                    ],
-                  ),
-                )
               ],
             ),
           ),
@@ -275,15 +255,15 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         receipt_id: 0,
         branch_id: branch_id.toString(),
         company_id: '6',
-        header_text: headerTextController.text,
-        footer_text: footerTextController.text,
-        header_image: headerDir != null
-            ? headerImage.toString()
-            : '',
-        footer_image: footerDir != null
-            ? footerImage.toString()
-            : '',
-        status: 0,
+        header_text: logoText == true ? headerTextController.text : '',
+        footer_text: footerText == true ? footerTextController.text : '',
+        header_image: logoImage == true ? 'branchLogo.jpg' : '',
+        footer_image: footerImage == true ? 'branchFooter.jpg' : '',
+        header_text_status: logoText == true ? 1 : 0,
+        footer_text_status: footerText == true ? 1 : 0,
+        header_image_status: logoImage == true ? 1 : 0,
+        footer_image_status: footerImage == true ? 1 : 0,
+        status: widget.allReceiptList.length == 0 ? 1 : 0,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -342,33 +322,4 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     }
   }
 
-  Future getHeaderImage(ImageSource source) async {
-    try {
-      final ImagePicker _picker = ImagePicker();
-      final XFile? image = await _picker.pickImage(source: source);
-      if (image == null) return;
-      final imageTemporary = File(image.path);
-      setState(() {
-        this.headerImage = imageTemporary;
-        this.headerDir = image.path;
-      });
-    } on PlatformException catch (e) {
-      print('failed to pick image: $e');
-    }
-  }
-
-  Future getFooterImage(ImageSource source) async {
-    try {
-      final ImagePicker _picker = ImagePicker();
-      final XFile? image = await _picker.pickImage(source: source);
-      if (image == null) return;
-      final imageTemporary = File(image.path);
-      setState(() {
-        this.footerImage = imageTemporary;
-        this.footerDir = image.path;
-      });
-    } on PlatformException catch (e) {
-      print('failed to pick image: $e');
-    }
-  }
 }

@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/printer/test_print.dart';
 // import 'package:pos_system/fragment/printer/test_scanner.dart';
 import 'package:pos_system/fragment/setting/features_setting.dart';
@@ -8,11 +11,14 @@ import 'package:pos_system/fragment/setting/receipt_setting.dart';
 import 'package:pos_system/fragment/test_sync/test_category_sync.dart';
 import 'package:pos_system/object/user.dart';
 import 'package:pos_system/page/login.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:side_navigation/side_navigation.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/cash_record.dart';
+import '../../translation/AppLocalizations.dart';
 
 class SettingMenu extends StatefulWidget {
   const SettingMenu({Key? key}) : super(key: key);
@@ -22,6 +28,11 @@ class SettingMenu extends StatefulWidget {
 }
 
 class _SettingMenuState extends State<SettingMenu> {
+  List<CashRecord> cashRecordList = [];
+  String userEmail = '';
+  int count = 0;
+  bool isLoaded = false;
+
   List<Widget> views = [
     Container(
       child: PrinterSetting(),
@@ -40,11 +51,18 @@ class _SettingMenuState extends State<SettingMenu> {
   int selectedIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+    getLoginUserInfo();
+    checkCashRecord();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Padding(
         padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
-        child: Scaffold(
+        child: this.isLoaded ? Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: false,
             title: Text('Setting',
@@ -60,13 +78,23 @@ class _SettingMenuState extends State<SettingMenu> {
                 footer: SideNavigationBarFooter(
                     label: Column(
                   children: [
-                    Text("yongwei0512@hotmail.com"),
+                    Text("${userEmail}"),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         primary: color.backgroundColor,
                       ),
                       onPressed: () {
-                        openLogoutDialog();
+                        if(this.cashRecordList.length == 0){
+                          openLogoutDialog();
+                        } else {
+                          if(this.count == 0){
+                            Fluttertoast.showToast(
+                                backgroundColor: Colors.red,
+                                msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}");
+                            this.count++;
+                          }
+                        }
+
                       },
                       child: Text('Logout'),
                     ),
@@ -112,7 +140,7 @@ class _SettingMenuState extends State<SettingMenu> {
               )
             ],
           ),
-        ),
+        ) : CustomProgressBar(),
       );
     });
   }
@@ -144,6 +172,24 @@ class _SettingMenuState extends State<SettingMenu> {
           return null!;
         });
   }
-  
+
+  getLoginUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? login_user = prefs.getString('user');
+    Map logInUser = json.decode(login_user!);
+    this.userEmail = logInUser['email'];
+    this.isLoaded = false;
+
+  }
+
+  checkCashRecord() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord(branch_id.toString());
+    cashRecordList = List.from(data);
+    setState(() {
+      this.isLoaded = true;
+    });
+  }
 
 }

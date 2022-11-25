@@ -147,7 +147,7 @@ class ReceiptLayout{
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         //Address
-        bytes += generator.text('${branchObject['address']}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', styles: PosStyles(align: PosAlign.center));
         //telephone
         bytes += generator.text('Tel: ${branchObject['phone']}',
             styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
@@ -165,8 +165,12 @@ class ReceiptLayout{
         bytes += generator.reset();
         //other order detail
         bytes += generator.text('Printed at: ${dateTime}');
-        bytes += generator.text('Table No: 5');
-        bytes += generator.text('Dine in');
+        if(paidOrder!.dining_id == '1'){
+          for(int i = 0; i < tableList.length; i++){
+            bytes += generator.text('Table No: ${tableList[i].number}');
+          }
+        }
+        bytes += generator.text('${paidOrder!.dining_name}');
         bytes += generator.text('Close by: ${this.paidOrder!.close_by}');
         bytes += generator.reset();
         /*
@@ -1008,6 +1012,7 @@ class ReceiptLayout{
     await getPaidOrderCache(localOrderId);
     for(int i = 0; i < paidOrderCacheList.length; i++){
       await getOrderDetail(paidOrderCacheList[i]);
+      await getTableList(paidOrderCacheList[i]);
     }
     _isLoad = true;
   }
@@ -1019,6 +1024,22 @@ class ReceiptLayout{
     List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCacheByOrderID(localOrderId);
     if(cacheData.length > 0){
       paidOrderCacheList = List.from(cacheData);
+    }
+  }
+
+/*
+  read table use detail
+*/
+  getTableList(OrderCache paidCache) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllDeletedTableUseDetail(paidCache.table_use_sqlite_id!);
+    for(int i = 0; i < detailData2.length; i++){
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(branch_id!, detailData2[i].table_sqlite_id!);
+      if(!tableList.contains(tableData)){
+        tableList.add(tableData[0]);
+      }
     }
   }
 

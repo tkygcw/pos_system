@@ -7,6 +7,8 @@ class OrderFields {
     order_number,
     company_id,
     customer_id,
+    dining_id,
+    dining_name,
     branch_link_promotion_id,
     payment_link_company_id,
     branch_id,
@@ -29,6 +31,8 @@ class OrderFields {
   static String order_number = 'order_number';
   static String company_id = 'company_id';
   static String customer_id = 'customer_id';
+  static String dining_id = 'dining_id';
+  static String dining_name = 'dining_name';
   static String branch_link_promotion_id = 'branch_link_promotion_id';
   static String payment_link_company_id = 'payment_link_company_id';
   static String branch_id = 'branch_id';
@@ -52,6 +56,8 @@ class Order {
   String? order_number;
   String? company_id;
   String? customer_id;
+  String? dining_id;
+  String? dining_name;
   String? branch_link_promotion_id;
   String? payment_link_company_id;
   String? branch_id;
@@ -83,6 +89,8 @@ class Order {
       this.order_number,
       this.company_id,
       this.customer_id,
+      this.dining_id,
+      this.dining_name,
       this.branch_link_promotion_id,
       this.payment_link_company_id,
       this.branch_id,
@@ -107,6 +115,8 @@ class Order {
     String? order_number,
     String? company_id,
     String? customer_id,
+    String? dining_id,
+    String? dining_name,
     String? branch_link_promotion_id,
     String? payment_link_company_id,
     String? branch_id,
@@ -129,6 +139,8 @@ class Order {
           order_number: order_number ?? this.order_number,
           company_id: company_id ?? this.company_id,
           customer_id: customer_id ?? this.customer_id,
+          dining_id: dining_id ?? this.dining_id,
+          dining_name: dining_name ?? this.dining_name,
           branch_link_promotion_id: branch_link_promotion_id ?? this.branch_link_promotion_id,
           payment_link_company_id: payment_link_company_id ?? this.payment_link_company_id,
           branch_id: branch_id ?? this.branch_id,
@@ -153,6 +165,8 @@ class Order {
         order_number: json[OrderFields.order_number] as String?,
         company_id: json[OrderFields.company_id] as String?,
         customer_id: json[OrderFields.customer_id] as String?,
+        dining_id: json[OrderFields.dining_id] as String?,
+        dining_name: json[OrderFields.dining_name] as String?,
         branch_link_promotion_id: json[OrderFields.branch_link_promotion_id] as String?,
         payment_link_company_id: json[OrderFields.payment_link_company_id] as String?,
         branch_id: json[OrderFields.branch_id] as String?,
@@ -169,7 +183,7 @@ class Order {
         updated_at: json[OrderFields.updated_at] as String?,
         soft_delete: json[OrderFields.soft_delete] as String?,
         payment_name: json['name'] as String?,
-        payment_type: json['payment_type_id'] as String?
+        payment_type: json['payment_type_id'] as String?,
       );
 
   Map<String, Object?> toJson() => {
@@ -178,6 +192,8 @@ class Order {
         OrderFields.order_number: order_number,
         OrderFields.company_id: company_id,
         OrderFields.customer_id: customer_id,
+        OrderFields.dining_id: dining_id,
+        OrderFields.dining_name: dining_name,
         OrderFields.branch_link_promotion_id: branch_link_promotion_id,
         OrderFields.payment_link_company_id: payment_link_company_id,
         OrderFields.branch_id: branch_id,

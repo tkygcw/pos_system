@@ -36,7 +36,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
       body: Container(
         alignment: Alignment.center,
         child: ElevatedButton(
-            onPressed: ()  => getPaidOrder('2'),
+            onPressed: ()  => getPaidOrder('1'),
             child: Text('current screen width/height: ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
       ),
     );
@@ -44,7 +44,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
 
   getPaidOrder(String localOrderId) async {
     List<Order> orderData = await PosDatabase.instance.readSpecificPaidOrder(localOrderId);
-    print('payment type id : ${orderData[0].payment_type}');
+    print('order dining name : ${orderData[0].dining_name}');
   }  
 
 /*

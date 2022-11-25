@@ -3,6 +3,7 @@
   "create_table": "Create Table",
   "edit_table": "Edit Table",
   "close": "Close",
+  "log_out_settlement": "Settlement not yet done",
   "confirm_logout" : "log out",
   "add": "Add",
   "submit": "Submit",

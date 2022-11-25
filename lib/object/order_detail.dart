@@ -73,7 +73,7 @@ class OrderDetail{
   String base_price = '0.0';
   String? category_id;
   String? mod_item_id;
-  ProductVariant? productVariant ;
+  ProductVariant? productVariant;
   List<VariantItem> variantItem = [];
   List<ModifierItem> modifierItem = [];
   List<String> mod_group_id = [];

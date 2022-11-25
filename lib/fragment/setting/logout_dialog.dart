@@ -180,6 +180,8 @@ class _logout_dialogState extends State<logout_dialog> {
 
   deleteAllRecord() async {
     PosDatabase.instance.clearAllPosTable();
+    PosDatabase.instance.clearAllTableUse();
+    PosDatabase.instance.clearAllTableUseDetail();
     PosDatabase.instance.clearAllProduct();
     //clear variant item
     PosDatabase.instance.clearAllVariantItem();
@@ -215,6 +217,9 @@ class _logout_dialogState extends State<logout_dialog> {
     PosDatabase.instance.clearAllOrderCache();
     PosDatabase.instance.clearAllOrderDetail();
     PosDatabase.instance.clearAllOrderModifierDetail();
+    PosDatabase.instance.clearAllOrder();
+    PosDatabase.instance.clearAllOrderTax();
+    PosDatabase.instance.clearAllOrderPromotion();
   }
 
   Future<String> get _localPath async {

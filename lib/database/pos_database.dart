@@ -135,6 +135,8 @@ class PosDatabase {
            ${OrderFields.order_number} $textType,
            ${OrderFields.company_id} $textType,
            ${OrderFields.customer_id} $textType, 
+           ${OrderFields.dining_id} $textType,
+           ${OrderFields.dining_name} $textType,
            ${OrderFields.branch_link_promotion_id} $textType,
            ${OrderFields.payment_link_company_id} $textType,
            ${OrderFields.branch_id} $textType, 
@@ -441,9 +443,13 @@ class PosDatabase {
           ${ReceiptFields.branch_id} $textType,
           ${ReceiptFields.company_id} $textType,
           ${ReceiptFields.header_image} $textType,
+          ${ReceiptFields.header_image_status} $integerType,
           ${ReceiptFields.header_text} $textType,
+          ${ReceiptFields.header_text_status} $integerType,
           ${ReceiptFields.footer_image} $textType,
+          ${ReceiptFields.footer_image_status} $integerType,
           ${ReceiptFields.footer_text} $textType,
+          ${ReceiptFields.footer_text_status} $integerType,
           ${ReceiptFields.status} $integerType,
           ${ReceiptFields.sync_status} $integerType,
           ${ReceiptFields.created_at} $textType,
@@ -2141,7 +2147,7 @@ class PosDatabase {
 */
 
 /*
-  read branch cash record
+  read branch cash record(haven't settlement)
 */
   Future<List<CashRecord>> readBranchCashRecord(String branch_id) async {
     final db = await instance.database;
@@ -2799,7 +2805,7 @@ class PosDatabase {
   Future<int> updateBranchNotificationToken(Branch data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-      'UPDATE $tableBranch SET notification_token = ? WHERE branch_id = ?',
+      'UPDATE $tableBranch SET notification_token = ? WHERE branchID = ?',
       [data.notification_token, data.branchID]
     );
 
@@ -3253,6 +3259,22 @@ class PosDatabase {
   }
 
 /*
+  Delete local table use
+*/
+  Future clearAllTableUse() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableTableUse');
+  }
+
+/*
+  Delete local table use detail
+*/
+  Future clearAllTableUseDetail() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableTableUseDetail');
+  }
+
+/*
   Delete All Product
 */
   Future clearAllProduct() async {
@@ -3354,6 +3376,30 @@ class PosDatabase {
   Future clearAllOrderModifierDetail() async {
     final db = await instance.database;
     return await db.rawDelete('DELETE FROM $tableOrderModifierDetail');
+  }
+
+/*
+  Delete All local Order
+*/
+  Future clearAllOrder() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableOrder');
+  }
+
+/*
+  Delete All local Order tax detail
+*/
+  Future clearAllOrderTax() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableOrderTaxDetail');
+  }
+
+/*
+  Delete All local Order promotion detail
+*/
+  Future clearAllOrderPromotion() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableOrderPromotionDetail');
   }
 
 /*
