@@ -1473,7 +1473,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
       int deleteProduct = await PosDatabase.instance.deleteProduct(Product(
           soft_delete: dateTime,
           sync_status: 1,
-          product_id: widget.product!.product_sqlite_id));
+          product_sqlite_id: widget.product!.product_sqlite_id));
 
       int deleteProductBranch = await PosDatabase.instance
           .deleteAllProductBranch(BranchLinkProduct(
@@ -1495,7 +1495,9 @@ class _EditProductDialogState extends State<EditProductDialog> {
           product_sqlite_id: widget.product!.product_sqlite_id.toString()));
 
       List<VariantGroup> variantGroupData = await PosDatabase.instance
-          .readProductVariantGroup(widget.product!.product_id!);
+          .readAllVariantGroup(widget.product!.product_sqlite_id.toString());
+
+      print(variantGroupData);
 
       for (int i = 0; i < variantGroupData.length; i++) {
         int deleteAllVariantItem = await PosDatabase.instance
@@ -1515,6 +1517,8 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
       List<ProductVariant> productVariantData = await PosDatabase.instance
           .readProductVariant(widget.product!.product_id.toString());
+      print(productVariantData);
+
       for (int j = 0; j < productVariantData.length; j++) {
         int deleteAllProductVariantDetail = await PosDatabase.instance
             .deleteAllProductVariantDetail(ProductVariantDetail(

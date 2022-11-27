@@ -1741,6 +1741,17 @@ class PosDatabase {
   }
 
 /*
+  read product variant group name
+*/
+  Future<List<VariantGroup>> readAllVariantGroup(String productID) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableVariantGroup WHERE soft_delete = ? AND product_sqlite_id = ?',
+        ['', productID]);
+    return result.map((json) => VariantGroup.fromJson(json)).toList();
+  }
+
+/*
   read product variant group item
 */
   Future<List<VariantItem>> readProductVariantItem(int variantGroupID) async {
