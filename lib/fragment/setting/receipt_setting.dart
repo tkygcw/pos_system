@@ -39,13 +39,13 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
           child: Column(
             children: [
               Expanded(
-                  child: ListView.builder(
+                  child: receiptList.length > 0 ?  ListView.builder(
                       itemCount: receiptList.length,
                       itemBuilder: (BuildContext context,int index){
                         return Card(
                           shape: receiptList[index].status == 1
                               ? new RoundedRectangleBorder(
-                              side: new BorderSide(color: Colors.blue, width: 3.0),
+                              side: new BorderSide(color: color.backgroundColor, width: 3.0),
                               borderRadius: BorderRadius.circular(4.0))
                               : new RoundedRectangleBorder(
                               side: new BorderSide(color: Colors.white, width: 3.0),
@@ -75,7 +75,18 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                           ),
                         );
                       }
-                  )
+                  ) : Container(
+                    alignment: Alignment.center,
+                    height:
+                    MediaQuery.of(context).size.height / 1.7,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.receipt, size: 36.0),
+                        Text('NO LAYOUT', style: TextStyle(fontSize: 24)),
+                      ],
+                    ),
+                  ),
               ),
               Container(
                 alignment: Alignment.bottomRight,

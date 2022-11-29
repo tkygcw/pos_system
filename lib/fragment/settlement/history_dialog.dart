@@ -105,7 +105,7 @@ class _HistoryDialogState extends State<HistoryDialog> {
                 //     // );
                 //   },
                 // ),
-                ListView.builder(
+                cashRecordList.length > 0 ? ListView.builder(
                     shrinkWrap: true,
                     itemCount: cashRecordList.length,
                     itemBuilder: (context, index) {
@@ -135,7 +135,18 @@ class _HistoryDialogState extends State<HistoryDialog> {
                             style: TextStyle(
                                 color: Colors.green)),
                       );
-                    }),
+                    }) : Container(
+                  alignment: Alignment.center,
+                  height:
+                  MediaQuery.of(context).size.height / 1.7,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.list, size: 28),
+                      Text('NO RECORD', style: TextStyle(fontSize: 16)),
+                    ],
+                  ),
+                ),
               )
             ],
           ),

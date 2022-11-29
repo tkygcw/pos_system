@@ -45,6 +45,7 @@ class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
                     for (int i = 0; i < categoryList.length; i++)
                       CheckboxListTile(
                           title: Text('${categoryList[i].name}'),
+                          activeColor: color.backgroundColor,
                           value: categoryList[i].isChecked,
                           onChanged: (isChecked) {
                             setState(() {
@@ -56,15 +57,15 @@ class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
             : CustomProgressBar(),
         actions: <Widget>[
           TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+            child: Text('${AppLocalizations.of(context)?.translate('close')}', style: TextStyle(color: color.buttonColor)),
             onPressed: () {
-              widget.callBack(categoryList);
               Navigator.of(context).pop();
             },
           ),
           TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+            child: Text('${AppLocalizations.of(context)?.translate('add')}', style: TextStyle(color: color.backgroundColor)),
             onPressed: () {
+              widget.callBack(categoryList);
               Navigator.of(context).pop();
             },
           ),

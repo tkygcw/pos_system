@@ -152,6 +152,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                         children: [
                           Expanded(
                             child: RadioListTile<int>(
+                              activeColor: color.backgroundColor,
                               title: const Text(
                                 'USB',
                                 style: TextStyle(fontSize: 15),
@@ -169,6 +170,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                           ),
                           Expanded(
                             child: RadioListTile<int>(
+                              activeColor: color.backgroundColor,
                               title: const Text('LAN',
                                   style: TextStyle(fontSize: 15)),
                               value: 1,
@@ -189,6 +191,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
                         child: Container(
                           alignment: Alignment.center,
                           child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  primary: color.backgroundColor),
                               onPressed: () {
                                 setState(() {
                                   openAddDeviceDialog(_typeStatus!);
@@ -231,6 +235,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                         children: [
                           Expanded(
                             child: RadioListTile<int>(
+                              activeColor: color.backgroundColor,
                               title: const Text('88mm'),
                               value: 0,
                               groupValue: _paperSize,
@@ -243,6 +248,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                           ),
                           Expanded(
                             child: RadioListTile<int>(
+                              activeColor: color.backgroundColor,
                               title: const Text('58mm'),
                               value: 1,
                               groupValue: _paperSize,
@@ -291,6 +297,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
                       Container(
                         alignment: Alignment.center,
                         child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                primary: color.backgroundColor),
                             onPressed: () {
                               setState(() {
                                 openCategoriesDialog();
@@ -319,7 +327,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
             ),
           ),
           TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+            child: Text('${AppLocalizations.of(context)?.translate('close')}', style: TextStyle(color: color.buttonColor)),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -327,7 +335,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
           TextButton(
             child: _isUpdate
                 ? Text('update')
-                : Text('${AppLocalizations.of(context)?.translate('add')}'),
+                : Text('${AppLocalizations.of(context)?.translate('add')}', style: TextStyle(color: color.backgroundColor)),
             onPressed: () {
               _submit(context);
             },
@@ -581,7 +589,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
 
       if(_paperSize == 0){
         var data = Uint8List.fromList(
-            await ReceiptLayout().testTicket80mm(true, null));
+            await ReceiptLayout().testTicket80mm(true));
         bool? isConnected = await flutterUsbPrinter.connect(
             int.parse(printerDetail['vendorId']),
             int.parse(printerDetail['productId']));
@@ -620,7 +628,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
       if (res == PosPrintResult.success) {
-        await ReceiptLayout().testTicket80mm(false, printer);
+        await ReceiptLayout().testTicket80mm(false, value: printer);
         printer.disconnect();
       } else {
         print('not connected');

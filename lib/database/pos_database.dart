@@ -149,6 +149,7 @@ class PosDatabase {
            ${OrderFields.payment_status} $integerType, 
            ${OrderFields.payment_received} $textType,
            ${OrderFields.payment_change} $textType,
+           ${OrderFields.sync_status} $integerType,
            ${OrderFields.created_at} $textType, 
            ${OrderFields.updated_at} $textType, 
            ${OrderFields.soft_delete} $textType)''');
@@ -1727,6 +1728,17 @@ class PosDatabase {
         'SELECT DISTINCT a.* FROM $tableProduct AS a JOIN $tableBranchLinkProduct AS b ON a.product_id = b.product_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND (a.name LIKE ? OR a.SKU LIKE ?)',
         ['', '', '%' + text + '%', '%' + text + '%']);
     return result.map((json) => Product.fromJson(json)).toList();
+  }
+
+/*
+  search receipt
+*/
+  Future<List<Order>> searchPaidReceipt(String text) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrder WHERE payment_status = ? AND soft_delete = ? AND (order_number LIKE ? OR close_by LIKE ?) ORDER BY created_at DESC ',
+        [1, '', '%' + text + '%', '%' + text + '%']);
+    return result.map((json) => Order.fromJson(json)).toList();
   }
 
 /*

@@ -41,7 +41,8 @@ class _PrinterSettingState extends State<PrinterSetting> {
           child: Column(
             children: [
               Expanded(
-                child: ListView.builder(
+                child: printerList.length > 0 ?
+                ListView.builder(
                     itemCount: printerList.length,
                     itemBuilder: (BuildContext context,int index){
                       return Card(
@@ -76,6 +77,17 @@ class _PrinterSettingState extends State<PrinterSetting> {
                         ),
                       );
                     }
+                ) : Container(
+                  alignment: Alignment.center,
+                  height:
+                  MediaQuery.of(context).size.height / 1.7,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.print_disabled, size: 36.0),
+                      Text('NO PRINTER', style: TextStyle(fontSize: 24)),
+                    ],
+                  ),
                 ),
               ),
               Container(

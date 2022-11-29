@@ -273,7 +273,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
             if(printerList[i].type == 0){
               var printerDetail = jsonDecode(printerList[i].value!);
               var data = Uint8List.fromList(await ReceiptLayout()
-                  .printReceipt80mm(true, null, widget.orderId));
+                  .printReceipt80mm(true, widget.orderId));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']),
                   int.parse(printerDetail['productId']));

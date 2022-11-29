@@ -40,6 +40,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
   List<ModifierGroup> modifierGroup = [];
   List<OrderTaxDetail> orderTaxList = [];
   List<OrderPromotionDetail> orderPromotionList = [];
+  List<Order> allPaidOrder = [];
   String orderNumber = '';
   bool _isLoaded = false;
   bool _readComplete = false;
@@ -68,6 +69,9 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                       SizedBox(width: 500),
                       Expanded(
                         child: TextField(
+                          onChanged: (value) {
+                            searchPaidOrders(value);
+                          },
                           decoration: InputDecoration(
                             isDense: true,
                             border: InputBorder.none,
@@ -139,8 +143,8 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.receipt_long),
-                          Text('NO RECORD'),
+                          Icon(Icons.receipt_long, size: 36.0),
+                          Text('NO RECORD', style: TextStyle(fontSize: 24)),
                         ],
                       ),
                     ),
@@ -340,6 +344,13 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
   readPaidOrderPromotionDetail(Order order) async {
     List<OrderPromotionDetail> detailData = await PosDatabase.instance.readSpecificOrderPromotionDetail(order.order_sqlite_id.toString());
     orderPromotionList = List.from(detailData);
+  }
+
+  searchPaidOrders(String text) async {
+    List<Order> data = await PosDatabase.instance.searchPaidReceipt(text);
+    setState(() {
+      paidOrderList = data;
+    });
   }
 
 

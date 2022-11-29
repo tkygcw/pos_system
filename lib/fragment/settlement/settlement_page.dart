@@ -532,7 +532,6 @@ class _SettlementPageState extends State<SettlementPage> {
     String total = '';
     switch(selectedPayment) {
       case 'All/Cash Drawer': {
-        print('get total amount call calc cash drawer');
         total = 'Cash drawer: ' + calcCashDrawer();
       }
       break;

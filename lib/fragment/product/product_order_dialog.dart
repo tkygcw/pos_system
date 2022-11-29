@@ -413,7 +413,8 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       remarkController.text,
       0,
       null,
-      Colors.black
+      Colors.black,
+      category_sqlite_id: widget.productDetail!.category_sqlite_id
     );
     cart.addItem(value);
 

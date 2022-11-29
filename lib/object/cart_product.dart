@@ -7,6 +7,7 @@ class cartProductItem{
    String branchProduct_id = '';
    String name ='';
    String category_id = '';
+   String category_sqlite_id = '';
    String price ='';
    int quantity = 1;
    late List<ModifierGroup> modifier ;
@@ -27,10 +28,12 @@ class cartProductItem{
        String remark,
        int status,
        String? orderCacheId,
-       Color refColor){
+       Color refColor,
+       {category_sqlite_id}){
        this.branchProduct_id = branchProduct_id;
        this.name = name;
        this.category_id = category_id;
+       //this.category_sqlite_id = category_sqlite_id;
        this.price = price;
        this.quantity = quantity;
        this.modifier = modifier;

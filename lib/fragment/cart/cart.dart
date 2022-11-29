@@ -125,6 +125,7 @@ class _CartPageState extends State<CartPage> {
         child: Consumer<CartModel>(builder: (context, CartModel cart, child) {
           widget.currentPage == 'menu' ||
           widget.currentPage == 'table' ||
+          widget.currentPage == 'qr_order'||
           widget.currentPage == 'other_order' ?
           getSubTotal(cart) : getReceiptPaymentDetail(cart);
           return Scaffold(
@@ -208,7 +209,7 @@ class _CartPageState extends State<CartPage> {
                 builder: (context, snapshot) {
                   return Container(
                     decoration: BoxDecoration(
-                      color: color.iconColor,
+                      color: Colors.white,
                       border: Border.all(color: Colors.grey.shade100, width: 3.0),
                     ),
                     child: Column(
@@ -449,6 +450,7 @@ class _CartPageState extends State<CartPage> {
                               Visibility(
                                 visible: widget.currentPage == 'menu' ||
                                          widget.currentPage == 'table' ||
+                                         widget.currentPage == 'qr_order' ||
                                          widget.currentPage == 'other_order' ?
                                          true : false,
                                 child: ListView.builder(
@@ -574,7 +576,7 @@ class _CartPageState extends State<CartPage> {
                                         print('add order cache');
                                         // if (printerList.length >= 0) {
                                           await callCreateNewOrder(cart);
-                                          //await _printKitchenList();
+                                          //await _printKitchenList(cart);
                                           cart.removeAllCartItem();
                                           cart.removeAllTable();
                                         // } else {
@@ -600,7 +602,7 @@ class _CartPageState extends State<CartPage> {
                                     } else {
                                       Fluttertoast.showToast(
                                           backgroundColor: Colors.red,
-                                          msg: "cart empty");
+                                          msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                     }
                                   }
                                 } else if(widget.currentPage == 'table') {
@@ -625,13 +627,24 @@ class _CartPageState extends State<CartPage> {
                                   } else {
                                     Fluttertoast.showToast(
                                         backgroundColor: Colors.red,
-                                        msg: "cart empty");
+                                        msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                   }
                                 } else if(widget.currentPage == 'other_order'){
-                                  openPaymentSelect();
+                                  if(cart.cartNotifierItem.isNotEmpty){
+                                    openPaymentSelect();
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Colors.red,
+                                        msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                  }
                                 } else {
-                                  print('Print receipt');
-                                  _printReceiptList();
+                                  if(cart.cartNotifierItem.isNotEmpty){
+                                    _printReceiptList();
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Colors.red,
+                                        msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                  }
                                 }
                               }
                             },
@@ -660,8 +673,7 @@ class _CartPageState extends State<CartPage> {
           if (data[j].category_sqlite_id == '3') {
             if(printerList[i].type == 0){
               var printerDetail = jsonDecode(printerList[i].value!);
-              var data = Uint8List.fromList(await ReceiptLayout()
-                  .printReceipt80mm(true, null, this.localOrderId));
+              var data = Uint8List.fromList(await ReceiptLayout().printReceipt80mm(true, this.localOrderId));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']),
                   int.parse(printerDetail['productId']));
@@ -717,55 +729,52 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  _printKitchenList() async {
-    bool _found = false;
+  _printKitchenList(CartModel cart) async {
     for (int i = 0; i < printerList.length; i++) {
-      List<PrinterLinkCategory> data = await PosDatabase.instance
-          .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+      List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
       for(int j = 0; j < data.length; j++){
-        //check printer category
-        if (data[j].category_sqlite_id != '3') {
-          _found = true;
+        for(int k = 0; k < cart.cartNotifierItem.length; k++){
+          //check printer category
+          if (cart.cartNotifierItem[k].category_id == data[j].category_sqlite_id) {
+            //check printer type
+            if(printerList[i].type == 1){
+              var printerDetail = jsonDecode(printerList[i].value!);
+              //check paper size
+              if(printerList[i].paper_size == 0){
+                //print LAN
+                final profile = await CapabilityProfile.load();
+                final printer = NetworkPrinter(PaperSize.mm80, profile);
+                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+
+                if (res == PosPrintResult.success) {
+                  await ReceiptLayout().printKitchenList80mm(false, cart.cartNotifierItem[k], value: printer);
+                  printer.disconnect();
+                } else {
+                  print('not connected');
+                }
+              } else {
+                print('print 58mm');
+              }
+            } else {
+              if(printerList[i].paper_size == 0) {
+                var printerDetail = jsonDecode(printerList[i].value!);
+                var data = Uint8List.fromList(await ReceiptLayout()
+                    .printKitchenList80mm(true, cart.cartNotifierItem[k]));
+                bool? isConnected = await flutterUsbPrinter.connect(
+                    int.parse(printerDetail['vendorId']),
+                    int.parse(printerDetail['productId']));
+                if (isConnected == true) {
+                  await flutterUsbPrinter.write(data);
+                } else {
+                  print('not connected');
+                }
+              } else {
+                print('print 58mm');
+              }
+            }
+          }
         }
       }
-     if(_found == true){
-       //check printer type
-       if(printerList[i].type == 1){
-         var printerDetail = jsonDecode(printerList[i].value!);
-         //check paper size
-         if(printerList[i].paper_size == 0){
-           //print LAN
-           final profile = await CapabilityProfile.load();
-           final printer = NetworkPrinter(PaperSize.mm80, profile);
-           final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-
-           if (res == PosPrintResult.success) {
-             await ReceiptLayout().printKitchenList80mm(false, printer);
-             printer.disconnect();
-           } else {
-             print('not connected');
-           }
-         } else {
-           print('print 58mm');
-         }
-       } else {
-         if(printerList[i].paper_size == 0) {
-           var printerDetail = jsonDecode(printerList[i].value!);
-           var data = Uint8List.fromList(await ReceiptLayout()
-               .printKitchenList80mm(true, null));
-           bool? isConnected = await flutterUsbPrinter.connect(
-               int.parse(printerDetail['vendorId']),
-               int.parse(printerDetail['productId']));
-           if (isConnected == true) {
-             await flutterUsbPrinter.write(data);
-           } else {
-             print('not connected');
-           }
-         } else {
-           print('print 58mm');
-         }
-       }
-     }
     }
   }
 
@@ -1125,7 +1134,7 @@ class _CartPageState extends State<CartPage> {
 */
   getSubTotal(CartModel cart) async {
     try {
-      widget.currentPage == 'table' ? cart.selectedOption = 'Dine in' : null;
+      widget.currentPage == 'table' || widget.currentPage == 'qr_order' ? cart.selectedOption = 'Dine in' : null;
       total = 0.0;
       promo = 0.0;
       promoAmount = 0.0;
@@ -1723,7 +1732,7 @@ class _CartPageState extends State<CartPage> {
       if (data.length > 0) {
         for (int i = 0; i < data.length; i++) {
           if (tempBatch == int.parse(data[i].batch_id!)) {
-            print('batch no same!');
+            print('batch same!');
             founded = false;
             break;
           } else {
@@ -1823,7 +1832,6 @@ class _CartPageState extends State<CartPage> {
         }
       }
       if (batch != 0) {
-        print('dining id : ${diningOptionID}');
         //create order cache
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
             OrderCache(
@@ -1832,7 +1840,7 @@ class _CartPageState extends State<CartPage> {
                 branch_id: branch_id.toString(),
                 order_detail_id: '',
                 table_use_sqlite_id: cart.selectedOption == 'Dine in' ? _tableUseId : '',
-                batch_id: batch.toString().padLeft(6, '0'),
+                batch_id: batch.toString().padLeft(5, '0'),
                 dining_id: this.diningOptionID.toString(),
                 order_sqlite_id: '',
                 order_by: userObject['name'].toString(),

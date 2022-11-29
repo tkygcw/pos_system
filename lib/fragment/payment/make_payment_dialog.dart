@@ -1258,7 +1258,6 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   createOrder(double? paymentReceived, String? orderChange) async {
-    print('create order called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
@@ -1289,6 +1288,7 @@ class _MakePaymentState extends State<MakePayment> {
             payment_received: paymentReceived == null ? '' : paymentReceived.toStringAsFixed(2),
             payment_change: orderChange == null ? '0.00' : orderChange,
             payment_status: 0,
+            sync_status: 0,
             created_at: dateTime,
             updated_at: '',
             soft_delete: ''

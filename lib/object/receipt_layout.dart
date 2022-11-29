@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:imin/imin.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
@@ -15,10 +16,12 @@ import 'package:pos_system/object/product_variant_detail.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use_detail.dart';
+import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'branch_link_product.dart';
+import 'modifier_group.dart';
 import 'order.dart';
 import 'order_promotion_detail.dart';
 import 'order_tax_detail.dart';
@@ -57,7 +60,7 @@ class ReceiptLayout{
 /*
   test print layout 80mm
 */
-  testTicket80mm(bool isUSB, value) async {
+  testTicket80mm(bool isUSB, {value}) async {
     // Using default profile
     var generator;
     if (isUSB) {
@@ -122,7 +125,7 @@ class ReceiptLayout{
 /*
   Receipt layout 80mm
 */
-  printReceipt80mm(bool isUSB, value, String orderId) async {
+  printReceipt80mm(bool isUSB, String orderId, {value}) async {
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
@@ -143,7 +146,9 @@ class ReceiptLayout{
 
       List<int> bytes = [];
       try {
-        bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+        if(receipt!.header_text_status == 1){
+          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+        }
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         //Address
@@ -327,7 +332,9 @@ class ReceiptLayout{
         ]);
         bytes += generator.emptyLines(1);
         //footer
-        bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+        if(receipt!.footer_text_status == 1){
+          bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+        }
         //copyright
         bytes += generator.text('POWERED BY CHANNEL POS', styles: PosStyles(bold: true, align: PosAlign.center));
         bytes += generator.feed(1);
@@ -468,42 +475,44 @@ class ReceiptLayout{
 /*
   kitchen layout 80mm
 */
-  printKitchenList80mm(bool isUSB, value) async {
+  printKitchenList80mm(bool isUSB, cartProductItem cartItem, {value}) async {
     String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
     await readOrderCache();
 
-    var generator;
-    if (isUSB) {
-      final profile = await CapabilityProfile.load();
-      generator = Generator(PaperSize.mm80, profile);
-    } else {
-      generator = value;
-    }
-
-    List<int> bytes = [];
-    try {
-      bytes += generator.text('** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
-      bytes += generator.emptyLines(1);
-      bytes += generator.reset();
-      //other order detail
-      for(int i = 0; i < tableList.length; i++){
-        bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+    if(_isLoad == true){
+      var generator;
+      if (isUSB) {
+        final profile = await CapabilityProfile.load();
+        generator = Generator(PaperSize.mm80, profile);
+      } else {
+        generator = value;
       }
-      bytes += generator.text('order No: #${orderCache!.batch_id}', styles: PosStyles(align: PosAlign.center));
-      bytes += generator.text('order time: ${dateTime}', styles: PosStyles(align: PosAlign.center));
-      bytes += generator.hr();
-      bytes += generator.reset();
-      /*
+
+      List<int> bytes = [];
+      try {
+        bytes += generator.text('** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+        bytes += generator.emptyLines(1);
+        bytes += generator.reset();
+        //other order detail
+        for(int i = 0; i < tableList.length; i++){
+          bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+        }
+        bytes += generator.text('order No: #${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('order time: ${dateTime}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.hr();
+        bytes += generator.reset();
+        /*
     *
     * body
     *
     * */
-      //order product
-      for(int i = 0; i < orderDetailList.length; i++){
+        //order product
         bytes += generator.row([
-          PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
+          PosColumn(text: '${cartItem.quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: '${orderDetailList[i].productName}',
+              text: '${cartItem.name}',
               width: 8,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
@@ -513,42 +522,61 @@ class ReceiptLayout{
               styles: PosStyles(align: PosAlign.right)),
         ]);
         bytes += generator.reset();
-        if(orderDetailList[i].has_variant == '1'){
-          bytes += generator.row([
-            PosColumn(text: '', width: 2),
-            PosColumn(text: '(${orderDetailList[i].product_variant_name})', width: 8, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-          ]);
-        } else {
-          bytes += generator.row([
-            PosColumn(text: '', width: 2),
-            PosColumn(text: '+Modifier', width: 8, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-          ]);
+        //product variant
+        if(cartItem.variant.isNotEmpty){
+          for (int i = 0; i < cartItem.variant.length; i++) {
+            VariantGroup group = cartItem.variant[i];
+            for (int j = 0; j < group.child.length; j++) {
+              if (group.child[j].isSelected!) {
+                bytes += generator.row([
+                  PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.left)),
+                  PosColumn(text: '-${group.child[j].name!}', width: 8, styles: PosStyles(align: PosAlign.left)),
+                  PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+                ]);
+              }
+            }
+          }
+        }
+        bytes += generator.reset();
+        //product modifier
+        if(cartItem.modifier.isNotEmpty){
+          for (int i = 0; i < cartItem.modifier.length; i++) {
+            ModifierGroup group = cartItem.modifier[i];
+            for (int j = 0; j < group.modifierChild.length; j++) {
+              if (group.modifierChild[j].isChecked!) {
+                bytes += generator.row([
+                  PosColumn(text: '', width: 2),
+                  PosColumn(text: '+${group.modifierChild[j].name!}', width: 8, styles: PosStyles(align: PosAlign.left)),
+                  PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+                ]);
+              }
+            }
+          }
         }
         /*
         * product remark
         * */
         bytes += generator.reset();
-        if (orderDetailList[i].remark != '') {
+        if (cartItem.remark != '') {
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '**${orderDetailList[i].remark}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+            PosColumn(text: '**${cartItem.remark}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
             PosColumn(text: '', width: 2),
           ]);
+          bytes += generator.feed(1);
+          bytes += generator.emptyLines(1);
         }
-        bytes += generator.feed(1);
-        bytes += generator.emptyLines(1);
-      }
 
-      bytes += generator.feed(1);
-      bytes += generator.beep(n: 3, duration: PosBeepDuration.beep400ms);
-      bytes += generator.cut(mode: PosCutMode.partial);
-      return bytes;
-    } catch (e) {
-      print('layout error: $e');
-      return null;
+        bytes += generator.feed(1);
+        bytes += generator.beep(n: 3, duration: PosBeepDuration.beep400ms);
+        bytes += generator.cut(mode: PosCutMode.partial);
+        return bytes;
+      } catch (e) {
+        print('layout error: $e');
+        return null;
+      }
     }
+
   }
 
 /*
@@ -878,6 +906,7 @@ class ReceiptLayout{
         tableList.add(tableData[0]);
       }
     }
+    _isLoad = true;
   }
 
 /*

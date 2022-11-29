@@ -54,8 +54,9 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
 
   void _openMainColorPicker() async {
     _openDialog(
-      "Main Color picker",
+      "Background Color picker",
       MaterialColorPicker(
+        colors: fullMaterialColors,
         selectedColor: color.backgroundColor,
         allowShades: false,
         onMainColorChange: (color) =>
@@ -66,8 +67,9 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
 
   void _openButtonColorPicker() async {
     _openDialog(
-      "Main Color picker",
+      "Button Color picker",
       MaterialColorPicker(
+        colors: fullMaterialColors,
         selectedColor: color.buttonColor,
         allowShades: false,
         onMainColorChange: (color) => setState(() => this.color.buttonColor = color as Color),
@@ -77,8 +79,9 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
 
   void _openIconColorPicker() async {
     _openDialog(
-      "Main Color picker",
+      "Icon Color picker",
       MaterialColorPicker(
+        colors: fullMaterialColors,
         selectedColor: color.iconColor,
         allowShades: false,
         onMainColorChange: (color) => setState(() => this.color.iconColor = color as Color),

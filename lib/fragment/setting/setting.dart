@@ -119,8 +119,8 @@ class _SettingMenuState extends State<SettingMenu> {
                     label: 'Receipt Layout',
                   ),
                   SideNavigationBarItem(
-                    icon: Icons.list,
-                    label: 'Features',
+                    icon: Icons.color_lens,
+                    label: 'Appearance',
                   ),
                   SideNavigationBarItem(
                     icon: Icons.list,

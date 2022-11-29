@@ -21,6 +21,7 @@ class OrderFields {
     payment_status,
     payment_received,
     payment_change,
+    sync_status,
     created_at,
     updated_at,
     soft_delete
@@ -45,6 +46,7 @@ class OrderFields {
   static String payment_status = 'payment_status';
   static String payment_received = 'payment_received';
   static String payment_change = 'payment_change';
+  static String  sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -70,6 +72,7 @@ class Order {
   int? payment_status;
   String? payment_received;
   String? payment_change;
+  int? sync_status;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -103,6 +106,7 @@ class Order {
       this.payment_status,
       this.payment_received,
       this.payment_change,
+      this.sync_status,
       this.created_at,
       this.updated_at,
       this.soft_delete,
@@ -129,6 +133,7 @@ class Order {
     int? payment_status,
     String? payment_received,
     String? payment_change,
+    int? sync_status,
     String? created_at,
     String? updated_at,
     String? soft_delete,
@@ -153,6 +158,7 @@ class Order {
           payment_status: payment_status ?? this.payment_status,
           payment_received: payment_received ?? this.payment_received,
           payment_change: payment_change ?? this.payment_change,
+          sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete,
@@ -179,6 +185,7 @@ class Order {
         payment_status: json[OrderFields.payment_status] as int?,
         payment_received: json[OrderFields.payment_received] as String?,
         payment_change: json[OrderFields.payment_change] as String?,
+        sync_status: json[OrderFields.sync_status] as int?,
         created_at: json[OrderFields.created_at] as String?,
         updated_at: json[OrderFields.updated_at] as String?,
         soft_delete: json[OrderFields.soft_delete] as String?,
@@ -206,6 +213,7 @@ class Order {
         OrderFields.payment_status: payment_status,
         OrderFields.payment_received: payment_received,
         OrderFields.payment_change: payment_change,
+        OrderFields.sync_status: sync_status,
         OrderFields.created_at: created_at,
         OrderFields.updated_at: updated_at,
         OrderFields.soft_delete: soft_delete,

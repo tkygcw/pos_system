@@ -402,23 +402,26 @@ class _TableMenuState extends State<TableMenu> {
     //Get specific table use detail
     List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
         .readSpecificTableUseDetail(posTable.table_sqlite_id!);
+    if(tableUseDetailData.length > 0){
+      //Get all order table cache
+      List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
+          branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
 
-    //Get all order table cache
-    List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
-        branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
-    //loop all table order cache
-    for (int i = 0; i < data.length; i++) {
-      if (!orderCacheList.contains(data)) {
-        orderCacheList = List.from(data);
-      }
-      //Get all order detail based on order cache id
-      List<OrderDetail> detailData = await PosDatabase.instance
-          .readTableOrderDetail(data[i].order_cache_sqlite_id.toString());
-      //add all order detail from db
-      if (!orderDetailList.contains(detailData)) {
-        orderDetailList..addAll(detailData);
+      //loop all table order cache
+      for (int i = 0; i < data.length; i++) {
+        if (!orderCacheList.contains(data)) {
+          orderCacheList = List.from(data);
+        }
+        //Get all order detail based on order cache id
+        List<OrderDetail> detailData = await PosDatabase.instance
+            .readTableOrderDetail(data[i].order_cache_sqlite_id.toString());
+        //add all order detail from db
+        if (!orderDetailList.contains(detailData)) {
+          orderDetailList..addAll(detailData);
+        }
       }
     }
+
     //loop all order detail
     for (int k = 0; k < orderDetailList.length; k++) {
       //Get data from branch link product

@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/receipt.dart';
@@ -36,6 +34,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   bool footerImage = true;
   bool logoText = false;
   bool footerText = false;
+  bool _submitted = false;
 
   @override
   void initState() {
@@ -64,8 +63,40 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     footerTextController.dispose();
   }
 
+  String? get errorHeaderText {
+    final text = headerTextController.value.text;
+    if (logoText == true && text.isEmpty) {
+      return 'header_text_required';
+    }
+    return null;
+  }
+
+  String? get errorFooterText {
+    final text = footerTextController.value.text;
+    if (footerText == true && text.isEmpty) {
+      return 'footer_text_required';
+    }
+    return null;
+  }
+
   void _submit(BuildContext context) {
-    !_isUpdate ? createReceiptLayout() : setLayoutInUse(widget.receiptObject!);
+    setState(() => _submitted = true);
+    if(!_isUpdate){
+      if(logoImage == false && footerImage == false && logoText == false && footerText == false){
+        Fluttertoast.showToast(
+            backgroundColor: Color(0xFFFF0000),
+            msg: "${AppLocalizations.of(context)?.translate('submit_fail2')}");
+      } else if(errorHeaderText == null && errorFooterText == null) {
+        createReceiptLayout();
+      } else {
+        Fluttertoast.showToast(
+            backgroundColor: Color(0xFFFF0000),
+            msg: "${AppLocalizations.of(context)?.translate('submit_fail')}");
+      }
+
+    } else {
+      setLayoutInUse(widget.receiptObject!);
+    }
   }
 
   closeDialog(BuildContext context) {
@@ -156,6 +187,12 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                                 enabled: _isUpdate ? false : true,
                                 controller: headerTextController,
                                 decoration: InputDecoration(
+                                  errorText: _submitted
+                                      ? errorHeaderText == null
+                                      ? errorHeaderText
+                                      : AppLocalizations.of(context)
+                                      ?.translate(errorHeaderText!)
+                                      : null,
                                   border: OutlineInputBorder(
                                     borderSide: BorderSide(
                                         color: color.backgroundColor),
@@ -206,6 +243,12 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                                 enabled: _isUpdate ? false : true,
                                 controller: footerTextController,
                                 decoration: InputDecoration(
+                                  errorText: _submitted
+                                      ? errorFooterText == null
+                                      ? errorFooterText
+                                      : AppLocalizations.of(context)
+                                      ?.translate(errorFooterText!)
+                                      : null,
                                   border: OutlineInputBorder(
                                     borderSide: BorderSide(
                                         color: color.backgroundColor),
