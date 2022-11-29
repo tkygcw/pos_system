@@ -275,7 +275,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
     final int? branch_id = prefs.getInt('branch_id');
     List<BranchLinkProduct> data = await PosDatabase.instance
         .readBranchLinkProduct(
-            branch_id.toString(), widget.product!.product_id.toString());
+            branch_id.toString(), widget.product!.product_sqlite_id.toString());
     for (int i = 0; i < data.length; i++) {
       productVariantList.add({
         'variant_name': data[i].variant_name,
@@ -317,7 +317,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
       }
     } else {
       List<Product> data = await PosDatabase.instance.checkProductSKUForEdit(
-          skuController.value.text, widget.product!.product_id!);
+          skuController.value.text, widget.product!.product_sqlite_id!);
       if (data.length > 0) {
         skuInUsed = true;
       } else {
@@ -332,11 +332,11 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
   readVariantGroupAndItem() async {
     List<VariantGroup> group = await PosDatabase.instance
-        .readVariantGroup(widget.product!.product_id.toString());
+        .readVariantGroup(widget.product!.product_sqlite_id.toString());
     for (int i = 0; i < group.length; i++) {
       List<String> itemName = [];
       List<VariantItem> item = await PosDatabase.instance
-          .readVariantItemForGroup(group[i].variant_group_id.toString());
+          .readVariantItemForGroup(group[i].variant_group_sqlite_id.toString());
       for (int j = 0; j < item.length; j++) {
         itemName.add(item[j].name.toString());
       }
@@ -348,7 +348,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
     List<ModifierGroup> data = await PosDatabase.instance.readAllModifier();
     if (isAdd == false) {
       List<ModifierLinkProduct> productModifier = await PosDatabase.instance
-          .readProductModifier(widget.product!.product_id.toString());
+          .readProductModifier(widget.product!.product_sqlite_id.toString());
       if (productModifier.length > 0) {
         for (int j = 0; j < productModifier.length; j++) {
           initModifier.add(int.parse(productModifier[j].mod_group_id!));
@@ -373,7 +373,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
     List<BranchLinkProduct> data = [];
     if (widget.product!.has_variant != 1) {
       data = await PosDatabase.instance.readBranchLinkProduct(
-          branch_id.toString(), widget.product!.product_id.toString());
+          branch_id.toString(), widget.product!.product_sqlite_id.toString());
     }
     nameController.text = widget.product!.name!;
     descriptionController.text = widget.product!.description!;
@@ -438,7 +438,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
               connectivityResult == ConnectivityResult.wifi) {
             deleteImage(widget.product!.image!);
           }
-          deleteFile();
+           deleteFile();
         }
         saveFilePermanently(imageDir!);
         if (connectivityResult == ConnectivityResult.mobile ||
@@ -502,18 +502,12 @@ class _EditProductDialogState extends State<EditProductDialog> {
 /*
       -----------------------------end sync------------------------------------
 */
-      if (productUpdated == 1) {}
-      /*
-      --------------------modifier----------------------
-*/
       if (switchController.selectedItem.length == 0) {
         int deleteModifierLinkProduct = await PosDatabase.instance
             .deleteModifierLinkProduct(ModifierLinkProduct(
                 product_sqlite_id: widget.product!.product_sqlite_id.toString(),
                 sync_status: 1,
                 soft_delete: dateTime));
-
-        if (deleteModifierLinkProduct == 1) {}
 /*
     -------------------------sync to cloud-------------------------------------
 */
@@ -577,9 +571,6 @@ class _EditProductDialogState extends State<EditProductDialog> {
           }
         }
       }
-/*
-      -------------------------variant---------------------------
-*/
       if (widget.product!.has_variant == 1) {
         List currentGroupName = [];
         List editGroupName = [];
@@ -749,7 +740,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
         List currentProductVariant = [];
         List editProductVariant = [];
         List<ProductVariant> productVariantData = await PosDatabase.instance
-            .readProductVariant(widget.product!.product_id.toString());
+            .readProductVariant(widget.product!.product_sqlite_id.toString());
         for (int o = 0; o < productVariantData.length; o++) {
           currentProductVariant.add(productVariantData[o].variant_name);
         }
@@ -767,7 +758,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
           for (int q = 0; q < needDeleteProductVariant.length; q++) {
             ProductVariant? getProductVariant = await PosDatabase.instance
                 .readProductVariantForUpdate(needDeleteProductVariant[q],
-                    widget.product!.product_id.toString());
+                    widget.product!.product_sqlite_id.toString());
             int deleteProductVariant = await PosDatabase.instance
                 .deleteProductVariant(ProductVariant(
                     soft_delete: dateTime,
@@ -1058,7 +1049,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                       branch_id: branch_id.toString(),
                       product_variant_sqlite_id:
                           getProductVariant!.product_variant_sqlite_id.toString(),
-                      product_id: widget.product!.product_sqlite_id.toString()));
+                  product_sqlite_id: widget.product!.product_sqlite_id.toString()));
 
 /*
              ----------------------sync to cloud-------------------------------
@@ -1105,7 +1096,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                   stock_quantity: stockQuantityController.text,
                   price: priceController.text,
                   branch_id: branch_id.toString(),
-                  product_id: widget.product!.product_sqlite_id.toString()));
+                  product_sqlite_id: widget.product!.product_sqlite_id.toString()));
 
 /*
           ------------------------sync to cloud--------------------------------
@@ -1470,6 +1461,32 @@ class _EditProductDialogState extends State<EditProductDialog> {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       deleteFile();
+
+      List<VariantGroup> variantGroupData = await PosDatabase.instance
+          .readAllVariantGroup(widget.product!.product_sqlite_id.toString());
+
+      for (int i = 0; i < variantGroupData.length; i++) {
+        int deleteAllVariantItem = await PosDatabase.instance
+            .deleteAllVariantitem(VariantItem(
+            sync_status: 1,
+            soft_delete: dateTime,
+            variant_group_sqlite_id:
+            variantGroupData[i].variant_group_sqlite_id.toString()));
+
+      }
+
+      List<ProductVariant> productVariantData = await PosDatabase.instance
+          .readProductVariant(widget.product!.product_sqlite_id.toString());
+
+      for (int j = 0; j < productVariantData.length; j++) {
+        int deleteAllProductVariantDetail = await PosDatabase.instance
+            .deleteAllProductVariantDetail(ProductVariantDetail(
+            sync_status: 1,
+            soft_delete: dateTime,
+            product_variant_sqlite_id:
+            productVariantData[j].product_variant_sqlite_id.toString()));
+      }
+
       int deleteProduct = await PosDatabase.instance.deleteProduct(Product(
           soft_delete: dateTime,
           sync_status: 1,
@@ -1494,45 +1511,19 @@ class _EditProductDialogState extends State<EditProductDialog> {
           soft_delete: dateTime,
           product_sqlite_id: widget.product!.product_sqlite_id.toString()));
 
-      List<VariantGroup> variantGroupData = await PosDatabase.instance
-          .readAllVariantGroup(widget.product!.product_sqlite_id.toString());
-
-      print(variantGroupData);
-
-      for (int i = 0; i < variantGroupData.length; i++) {
-        int deleteAllVariantItem = await PosDatabase.instance
-            .deleteAllVariantitem(VariantItem(
-            sync_status: 1,
-            soft_delete: dateTime,
-            variant_group_sqlite_id:
-            variantGroupData[i].variant_group_sqlite_id.toString()));
-
-      }
-
       int deleteAllProductVariant = await PosDatabase.instance
           .deleteAllProductVariant(ProductVariant(
           sync_status: 1,
           soft_delete: dateTime,
           product_sqlite_id: widget.product!.product_sqlite_id.toString()));
 
-      List<ProductVariant> productVariantData = await PosDatabase.instance
-          .readProductVariant(widget.product!.product_id.toString());
-      print(productVariantData);
 
-      for (int j = 0; j < productVariantData.length; j++) {
-        int deleteAllProductVariantDetail = await PosDatabase.instance
-            .deleteAllProductVariantDetail(ProductVariantDetail(
-            sync_status: 1,
-            soft_delete: dateTime,
-            product_variant_sqlite_id:
-            productVariantData[j].product_variant_sqlite_id.toString()));
-      }
 /*
         -------------------------sync to cloud---------------------------------
 */
       if (connectivityResult == ConnectivityResult.mobile ||
           connectivityResult == ConnectivityResult.wifi) {
-        Map response = await Domain().deleteProduct(widget.product!.product_id.toString());
+        Map response = await Domain().deleteProduct(widget.product!.product_id.toString(), branch_id.toString());
         if (response['status'] == '1') {
           int syncProduct = await PosDatabase.instance.updateSyncProduct(Product(
             product_id: widget.product!.product_id,

@@ -1328,11 +1328,11 @@ class PosDatabase {
   /*
   read product variant
 */
-  Future<List<ProductVariant>> readProductVariant(String product_id) async {
+  Future<List<ProductVariant>> readProductVariant(String product_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableProductVariant WHERE soft_delete = ? AND product_id = ?',
-        ['', product_id]);
+        'SELECT * FROM $tableProductVariant WHERE soft_delete = ? AND product_sqlite_id = ?',
+        ['', product_sqlite_id]);
 
     return result.map((json) => ProductVariant.fromJson(json)).toList();
   }
@@ -1394,11 +1394,11 @@ class PosDatabase {
   read variant item for group
 */
   Future<List<VariantItem>> readVariantItemForGroup(
-      String variant_group_id) async {
+      String variant_group_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableVariantItem WHERE soft_delete = ? AND variant_group_id = ?',
-        ['', variant_group_id]);
+        'SELECT * FROM $tableVariantItem WHERE soft_delete = ? AND variant_group_sqlite_id = ?',
+        ['', variant_group_sqlite_id]);
 
     return result.map((json) => VariantItem.fromJson(json)).toList();
   }
@@ -1407,11 +1407,11 @@ class PosDatabase {
   read branch link product
 */
   Future<List<BranchLinkProduct>> readBranchLinkProduct(
-      String branch_id, String product_id) async {
+      String branch_id, String product_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, (SELECT variant_name FROM $tableProductVariant WHERE soft_delete = ? AND product_variant_id = a.product_variant_id) as variant_name FROM $tableBranchLinkProduct AS a WHERE a.soft_delete = ? AND a.branch_id = ? AND a.product_id = ?',
-        ['', '', branch_id, product_id]);
+        'SELECT a.*, (SELECT variant_name FROM $tableProductVariant WHERE soft_delete = ? AND product_variant_sqlite_id = a.product_variant_sqlite_id) as variant_name FROM $tableBranchLinkProduct AS a WHERE a.soft_delete = ? AND a.branch_id = ? AND a.product_sqlite_id = ?',
+        ['', '', branch_id, product_sqlite_id]);
 
     return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
   }
@@ -1711,11 +1711,11 @@ class PosDatabase {
   check sku for edit product
 */
   Future<List<Product>> checkProductSKUForEdit(
-      String sku, int product_id) async {
+      String sku, int product_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableProduct WHERE soft_delete = ? AND SKU = ? AND product_id != ?',
-        ['', sku, product_id]);
+        'SELECT * FROM $tableProduct WHERE soft_delete = ? AND SKU = ? AND product_sqlite_id != ?',
+        ['', sku, product_sqlite_id]);
     return result.map((json) => Product.fromJson(json)).toList();
   }
 
@@ -1800,11 +1800,11 @@ class PosDatabase {
   read all product modifier group name
 */
   Future<List<ModifierLinkProduct>> readProductModifier(
-      String productID) async {
+      String product_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableModifierLinkProduct WHERE soft_delete = ? AND product_id = ?',
-        ['', productID]);
+        'SELECT * FROM $tableModifierLinkProduct WHERE soft_delete = ? AND product_sqlite_id = ?',
+        ['',product_sqlite_id]);
     return result.map((json) => ModifierLinkProduct.fromJson(json)).toList();
   }
 

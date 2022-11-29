@@ -97,7 +97,7 @@ class VariantGroup {
         VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
         VariantGroupFields.variant_group_id: variant_group_id,
         VariantGroupFields.product_id: product_id,
-    VariantGroupFields.product_sqlite_id: product_sqlite_id,
+        VariantGroupFields.product_sqlite_id: product_sqlite_id,
         VariantGroupFields.name: name,
         VariantGroupFields.sync_status: sync_status,
         VariantGroupFields.created_at: created_at,
