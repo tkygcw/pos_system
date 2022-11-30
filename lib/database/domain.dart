@@ -659,11 +659,12 @@ class Domain {
   /*
   * delete product
   * */
-  deleteProduct(product_id) async {
+  deleteProduct(product_id, branch_id) async {
     try {
       var response = await http.post(Domain.product, body: {
         'deleteProduct': '1',
-        'product_id': product_id
+        'product_id': product_id,
+        'branch_id' : branch_id
       });
       return jsonDecode(response.body);
     } catch (error) {
