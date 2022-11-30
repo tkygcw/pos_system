@@ -70,83 +70,83 @@ class _SettlementDialogState extends State<SettlementDialog> {
     return showDialog(
       barrierDismissible: false,
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text('Enter Admin PIN'),
-        content: SizedBox(
-          height: 100.0,
-          width: 350.0,
-          child: Column(
-            children: [
-              ValueListenableBuilder(
-                  valueListenable: adminPosPinController,
-                  builder: (context, TextEditingValue value, __) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        controller: adminPosPinController,
-                        decoration: InputDecoration(
-                          errorText: _submitted
-                              ? errorPassword == null
-                              ? errorPassword
-                              : AppLocalizations.of(context)
-                              ?.translate(errorPassword!)
-                              : null,
-                          border: OutlineInputBorder(
-                            borderSide:
-                            BorderSide(color: color.backgroundColor),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide:
-                            BorderSide(color: color.backgroundColor),
-                          ),
-                          labelText: "PIN",
+      builder: (BuildContext context) => SingleChildScrollView(
+        child: AlertDialog(
+          title: Text('Enter Admin PIN'),
+          content: SizedBox(
+            height: 100.0,
+            width: 350.0,
+            child: ValueListenableBuilder(
+                valueListenable: adminPosPinController,
+                builder: (context, TextEditingValue value, __) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      controller: adminPosPinController,
+                      decoration: InputDecoration(
+                        errorText: _submitted
+                            ? errorPassword == null
+                            ? errorPassword
+                            : AppLocalizations.of(context)
+                            ?.translate(errorPassword!)
+                            : null,
+                        border: OutlineInputBorder(
+                          borderSide:
+                          BorderSide(color: color.backgroundColor),
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide:
+                          BorderSide(color: color.backgroundColor),
+                        ),
+                        labelText: "PIN",
                       ),
-                    );
-                  }),
-            ],
+                    ),
+                  );
+                }),
           ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+              onPressed: () async {
+                _submit(context);
+              },
+            ),
+          ],
         ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-            onPressed: () async {
-              _submit(context);
-            },
-          ),
-        ],
       ),
     );
   }
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return AlertDialog(
-        title: Text('Confirm do settlement'),
-        content: Container(
-          child: Text('${AppLocalizations.of(context)?.translate('settlement_desc')}'),
-        ),
-        actions: [
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-            onPressed: (){
-              closeDialog(context);
-            },
+      return SingleChildScrollView(
+        child: AlertDialog(
+          title: Text('Confirm do settlement'),
+          content: Container(
+            child: Text('${AppLocalizations.of(context)?.translate('settlement_desc')}'),
           ),
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-            onPressed: () async {
-              await showSecondDialog(context, color);
-              closeDialog(context);
-            },
-          )
-        ],
+          actions: [
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+              onPressed: (){
+                closeDialog(context);
+              },
+            ),
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+              onPressed: () async {
+                await showSecondDialog(context, color);
+                closeDialog(context);
+              },
+            )
+          ],
+        ),
       );
     });
   }

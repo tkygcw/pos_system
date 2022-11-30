@@ -41,7 +41,8 @@ class _ProductPageState extends State<ProductPage> {
             children: [
               /// Pretty similar to the BottomNavigationBar!
               SideNavigationBar(
-                expandable: false,
+                initiallyExpanded: MediaQuery.of(context).size.height > 500 ? true :false,
+                expandable: MediaQuery.of(context).size.height > 500 ? false : true,
                 theme: SideNavigationBarTheme(
                   backgroundColor: Colors.white,
                   togglerTheme: SideNavigationBarTogglerTheme.standard(),

@@ -200,127 +200,129 @@ class _TableDialogState extends State<TableDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return AlertDialog(
-        title: Row(
-          children: [
-            Text(
+      return SingleChildScrollView(
+        child: AlertDialog(
+          title: Row(
+            children: [
+              Text(
+                widget.object.table_id == null
+                    ? '${AppLocalizations.of(context)?.translate('create_table')}'
+                    : '${AppLocalizations.of(context)?.translate('edit_table')}',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Spacer(),
               widget.object.table_id == null
-                  ? '${AppLocalizations.of(context)?.translate('create_table')}'
-                  : '${AppLocalizations.of(context)?.translate('edit_table')}',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+                  ? Container()
+                  : IconButton(
+                      icon: const Icon(Icons.delete_outlined),
+                      color: Colors.red,
+                      onPressed: () async {
+                        if (await confirm(
+                          context,
+                          title: Text(
+                              '${AppLocalizations.of(context)?.translate('confirm')}'),
+                          content: Text(
+                              '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                          textOK: Text(
+                              '${AppLocalizations.of(context)?.translate('yes')}'),
+                          textCancel: Text(
+                              '${AppLocalizations.of(context)?.translate('no')}'),
+                        )) {
+                          return deletePosTable();
+                        }
+                      },
+                    ),
+            ],
+          ),
+          content: Container(
+            height: 200.0, // Change as per your requirement
+            width: 350.0,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ValueListenableBuilder(
+                      // Note: pass _controller to the animation argument
+                      valueListenable: tableNoController,
+                      builder: (context, TextEditingValue value, __) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextField(
+                            controller: tableNoController,
+                            decoration: InputDecoration(
+                              errorText: _submitted
+                                  ? errorTableNo == null
+                                      ? errorTableNo
+                                      : AppLocalizations.of(context)
+                                          ?.translate(errorTableNo!)
+                                  : null,
+                              border: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: color.backgroundColor),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: color.backgroundColor),
+                              ),
+                              labelText: 'Table No.',
+                            ),
+                          ),
+                        );
+                      }),
+                  ValueListenableBuilder(
+                      // Note: pass _controller to the animation argument
+                      valueListenable: seatController,
+                      builder: (context, TextEditingValue value, __) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextField(
+                            controller: seatController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              errorText: _submitted
+                                  ? errorSeat == null
+                                      ? errorSeat
+                                      : AppLocalizations.of(context)
+                                          ?.translate(errorSeat!)
+                                  : null,
+                              border: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: color.backgroundColor),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: color.backgroundColor),
+                              ),
+                              labelText: 'Seat',
+                            ),
+                          ),
+                        );
+                      }),
+                ],
               ),
             ),
-            Spacer(),
-            widget.object.table_id == null
-                ? Container()
-                : IconButton(
-                    icon: const Icon(Icons.delete_outlined),
-                    color: Colors.red,
-                    onPressed: () async {
-                      if (await confirm(
-                        context,
-                        title: Text(
-                            '${AppLocalizations.of(context)?.translate('confirm')}'),
-                        content: Text(
-                            '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
-                        textOK: Text(
-                            '${AppLocalizations.of(context)?.translate('yes')}'),
-                        textCancel: Text(
-                            '${AppLocalizations.of(context)?.translate('no')}'),
-                      )) {
-                        return deletePosTable();
-                      }
-                    },
-                  ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: widget.object.table_id == null
+                  ? Text('${AppLocalizations.of(context)?.translate('add')}')
+                  : Text("Submit"),
+              onPressed: () async {
+                _submit(context);
+              },
+            ),
           ],
         ),
-        content: Container(
-          height: 200.0, // Change as per your requirement
-          width: 350.0,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ValueListenableBuilder(
-                    // Note: pass _controller to the animation argument
-                    valueListenable: tableNoController,
-                    builder: (context, TextEditingValue value, __) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextField(
-                          controller: tableNoController,
-                          decoration: InputDecoration(
-                            errorText: _submitted
-                                ? errorTableNo == null
-                                    ? errorTableNo
-                                    : AppLocalizations.of(context)
-                                        ?.translate(errorTableNo!)
-                                : null,
-                            border: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: color.backgroundColor),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: color.backgroundColor),
-                            ),
-                            labelText: 'Table No.',
-                          ),
-                        ),
-                      );
-                    }),
-                ValueListenableBuilder(
-                    // Note: pass _controller to the animation argument
-                    valueListenable: seatController,
-                    builder: (context, TextEditingValue value, __) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextField(
-                          controller: seatController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            errorText: _submitted
-                                ? errorSeat == null
-                                    ? errorSeat
-                                    : AppLocalizations.of(context)
-                                        ?.translate(errorSeat!)
-                                : null,
-                            border: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: color.backgroundColor),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: color.backgroundColor),
-                            ),
-                            labelText: 'Seat',
-                          ),
-                        ),
-                      );
-                    }),
-              ],
-            ),
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: widget.object.table_id == null
-                ? Text('${AppLocalizations.of(context)?.translate('add')}')
-                : Text("Submit"),
-            onPressed: () async {
-              _submit(context);
-            },
-          ),
-        ],
       );
     });
   }

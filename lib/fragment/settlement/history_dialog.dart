@@ -44,7 +44,7 @@ class _HistoryDialogState extends State<HistoryDialog> {
           child: Column(
             children: [
               Container(
-                height: MediaQuery.of(context).size.height / 2,
+                height: MediaQuery.of(context).size.height / 2.5,
                 child: //GroupedListView<dynamic, String>(
                 //   shrinkWrap: true,
                 //     elements: cashRecordList,
@@ -137,8 +137,7 @@ class _HistoryDialogState extends State<HistoryDialog> {
                       );
                     }) : Container(
                   alignment: Alignment.center,
-                  height:
-                  MediaQuery.of(context).size.height / 1.7,
+                  height: MediaQuery.of(context).size.height / 1.7,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

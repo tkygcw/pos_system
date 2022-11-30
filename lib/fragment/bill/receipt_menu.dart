@@ -66,7 +66,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                         "Receipt",
                         style: TextStyle(fontSize: 25),
                       ),
-                      SizedBox(width: 500),
+                      SizedBox(width: MediaQuery.of(context).size.height > 500 ? 500 : 80),
                       Expanded(
                         child: TextField(
                           onChanged: (value) {

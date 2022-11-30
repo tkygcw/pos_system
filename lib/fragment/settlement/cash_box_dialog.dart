@@ -49,56 +49,54 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return AlertDialog(
-        title: Text('Enter Admin PIN'),
-        content: SizedBox(
-          height: 100.0,
-          width: 350.0,
-          child: Column(
-            children: [
-              ValueListenableBuilder(
-                // Note: pass _controller to the animation argument
-                  valueListenable: adminPosPinController,
-                  builder: (context, TextEditingValue value, __) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        controller: adminPosPinController,
-                        decoration: InputDecoration(
-                          errorText: _submitted
-                              ? errorPassword == null ? errorPassword : AppLocalizations.of(context)?.translate(errorPassword!)
-                              : null,
-                          border: OutlineInputBorder(
-                            borderSide:
-                            BorderSide(color: color.backgroundColor),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide:
-                            BorderSide(color: color.backgroundColor),
-                          ),
-                          labelText: 'PIN',
+      return SingleChildScrollView(
+        child: AlertDialog(
+          title: Text('Enter Admin PIN'),
+          content: SizedBox(
+            height: 100.0,
+            width: 350.0,
+            child:  ValueListenableBuilder(
+              // Note: pass _controller to the animation argument
+                valueListenable: adminPosPinController,
+                builder: (context, TextEditingValue value, __) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      keyboardType: TextInputType.number,
+                      controller: adminPosPinController,
+                      decoration: InputDecoration(
+                        errorText: _submitted
+                            ? errorPassword == null ? errorPassword : AppLocalizations.of(context)?.translate(errorPassword!)
+                            : null,
+                        border: OutlineInputBorder(
+                          borderSide:
+                          BorderSide(color: color.backgroundColor),
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide:
+                          BorderSide(color: color.backgroundColor),
+                        ),
+                        labelText: 'PIN',
                       ),
-                    );
-                  }),
-            ],
+                    ),
+                  );
+                }),
           ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+              onPressed: () {
+                closeDialog(context);
+              },
+            ),
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+              onPressed: () async {
+                await _submit(context);
+              },
+            ),
+          ],
         ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-            onPressed: () {
-              closeDialog(context);
-            },
-          ),
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-            onPressed: () async {
-              await _submit(context);
-            },
-          ),
-        ],
       );
     });
   }

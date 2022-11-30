@@ -7,6 +7,7 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:pos_system/page/home.dart';
+import 'package:pos_system/page/mobile_home.dart';
 import 'package:provider/provider.dart';
 import 'package:custom_pin_screen/custom_pin_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';

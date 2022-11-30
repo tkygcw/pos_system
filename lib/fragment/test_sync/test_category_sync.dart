@@ -37,7 +37,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
         alignment: Alignment.center,
         child: ElevatedButton(
             onPressed: ()  => getPaidOrder('1'),
-            child: Text('current screen width/height: ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
+            child: Text('current screen height/width: ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
       ),
     );
   }

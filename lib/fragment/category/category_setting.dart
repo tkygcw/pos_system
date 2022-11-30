@@ -49,7 +49,7 @@ class _CategorySettingState extends State<CategorySetting> {
                                 icon: Icon(Icons.add),
                                 label: Text("Category")),
                           ),
-                          SizedBox(width: 544),
+                          SizedBox(width: MediaQuery.of(context).size.height > 500 ? 544 : 150),
                           Expanded(
                             child: TextField(
                               onChanged: (value) {

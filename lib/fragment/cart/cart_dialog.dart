@@ -140,7 +140,7 @@ class _CartDialogState extends State<CartDialog> {
                               child: ReorderableGridView.count(
                                 crossAxisSpacing: 10,
                                 mainAxisSpacing: 10,
-                                crossAxisCount: 4,
+                                crossAxisCount: MediaQuery.of(context).size.height > 500 ? 4 :3,
                                 children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, index))).values.toList(),
                                 onReorder: (int oldIndex, int newIndex) {
                                   if(oldIndex != newIndex){
@@ -261,10 +261,10 @@ class _CartDialogState extends State<CartDialog> {
                 }
               },
               child: Container(
-                margin: EdgeInsets.all(10),
+                margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.all(10) : null,
                 child: Column(
                   children: [
-                    tableList[index].group != null
+                    tableList[index].group != null && MediaQuery.of(context).size.height > 500
                         ? Expanded(
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -310,8 +310,12 @@ class _CartDialogState extends State<CartDialog> {
                           )
                         : Expanded(child: Text('')),
                     Container(
-                      margin: EdgeInsets.fromLTRB(0, 2, 0, 2),
-                      height: MediaQuery.of(context).size.height < 700 ? MediaQuery.of(context).size.height / 9 : MediaQuery.of(context).size.height / 8,
+                      margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(0, 2, 0, 2) : null,
+                      height: MediaQuery.of(context).size.height < 500 ?
+                              80:
+                              MediaQuery.of(context).size.height < 700 ?
+                              MediaQuery.of(context).size.height / 9  :
+                              MediaQuery.of(context).size.height / 8,
                       child: Stack(
                         alignment: Alignment.bottomLeft,
                         children: [

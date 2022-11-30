@@ -33,7 +33,8 @@ class _FoodSettingState extends State<FoodSetting> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    readAllCategories();  }
+    readAllCategories();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +102,7 @@ class _FoodSettingState extends State<FoodSetting> {
                               ),
                             ),
                           ),
-                          SizedBox(width: 300),
+                          SizedBox(width: MediaQuery.of(context).size.height > 500 ? 300 : 0),
                           Expanded(
                             child: TextField(
                               onChanged: (value) {

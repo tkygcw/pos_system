@@ -102,9 +102,12 @@ class _SetupPageState extends State<SetupPage> {
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               buildCards(),
-              buildButtons(),
+              Container(
+                child: buildButtons(),
+              ),
               backToLoginButton(),
             ],
           ),
@@ -152,12 +155,15 @@ class _SetupPageState extends State<SetupPage> {
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Center(
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: isFirstPage && MediaQuery.of(context).size.width < 500 ? MainAxisAlignment.center : MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                TextButton(
-                  style: TextButton.styleFrom(primary: Colors.white),
-                  onPressed: isFirstPage ? null : togglePage,
-                  child: Text('BACK'),
+                Visibility(
+                  visible: isFirstPage ? false : true,
+                  child: TextButton(
+                    style: TextButton.styleFrom(primary: Colors.white),
+                    onPressed: isFirstPage ? null : togglePage,
+                    child: Text('BACK'),
+                  ),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(primary: color.buttonColor),

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pos_system/fragment/bill/bill.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/display_order/display_order.dart';
@@ -41,6 +42,10 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     _items = _generateItems;
     currentPage = 'menu';
     getRoleName();
@@ -109,7 +114,7 @@ class _HomePageState extends State<HomePage> {
                           ? true
                           : false,
                       child: Expanded(
-                          flex: 1,
+                          flex: MediaQuery.of(context).size.height > 500 ? 1 : 2,
                           child: CartPage(
                             currentPage: currentPage,
                           )),
@@ -155,7 +160,7 @@ class _HomePageState extends State<HomePage> {
       ),
       CollapsibleItem(
         text: 'settlement',
-        icon: Icons.report,
+        icon: Icons.monetization_on,
         onPressed: () => setState(() => currentPage = 'settlement'),
       ),
       CollapsibleItem(

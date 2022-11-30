@@ -104,7 +104,7 @@ class _TableMenuState extends State<TableMenu> {
                             icon: Icon(Icons.add),
                             label: Text("Table")),
                       ),
-                      SizedBox(width: 500),
+                      SizedBox(width: MediaQuery.of(context).size.height > 500 ? 500: 50),
                       Expanded(
                         child: TextField(
                           decoration: InputDecoration(
@@ -127,7 +127,7 @@ class _TableMenuState extends State<TableMenu> {
                     ? Expanded(
                         child: GridView.count(
                           shrinkWrap: true,
-                          crossAxisCount: 5,
+                          crossAxisCount: MediaQuery.of(context).size.height > 500 ? 5 : 3,
                           children: List.generate(
                               //this is the total number of cards
                               tableList.length, (index) {
@@ -210,22 +210,23 @@ class _TableMenuState extends State<TableMenu> {
 
                                 },
                                 child: Container(
-                                  margin: EdgeInsets.all(2),
+                                  margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.all(2) : EdgeInsets.all(0),
                                   child: Column(
                                     children: [
-                                      tableList[index].group != null
-                                          ?
+                                      tableList[index].group != null && MediaQuery.of(context).size.height > 500 ?
                                       Expanded(
                                               child: Text(
                                               "Group: ${tableList[index].group}",
                                               style: TextStyle(fontSize: 18),
                                             ))
-                                          : Expanded(child: Text('')),
+                                          : MediaQuery.of(context).size.height > 500 ? Expanded(child: Text('')) :Container(height: 10),
                                       Container(
-                                        margin: EdgeInsets.fromLTRB(0, 5, 0, 5),
-                                        height: MediaQuery.of(context).size.height < 700
-                                            ? MediaQuery.of(context).size.height / 6.5
-                                            : MediaQuery.of(context).size.height / 6,
+                                        margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(0, 5, 0, 5) : null,
+                                        height: MediaQuery.of(context).size.height < 500 ?
+                                                100:
+                                                MediaQuery.of(context).size.height < 700 ?
+                                                MediaQuery.of(context).size.height / 6.5 :
+                                                MediaQuery.of(context).size.height / 6,
                                         child: Stack(
                                           children: [
                                             Ink.image(
@@ -253,9 +254,7 @@ class _TableMenuState extends State<TableMenu> {
                                           ],
                                         ),
                                       ),
-                                      Container(
-                                        height: 20,
-                                      )
+                                      MediaQuery.of(context).size.height > 500 ? Container(height: 20) : Container()
                                       // tableList[index].status == 1 ?
                                       // Expanded(
                                       //     child: Text(

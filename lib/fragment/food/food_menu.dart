@@ -64,7 +64,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                         style: TextStyle(
                             fontSize: 25, color: color.backgroundColor),
                       )),
-                  SizedBox(width: 400),
+                  SizedBox(width: MediaQuery.of(context).size.height > 500 ? 400 : 0),
                   Expanded(
                     child: TextField(
                       onChanged: (value) {

@@ -104,115 +104,117 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
               return this.isLoaded ?
-              AlertDialog(
-                title: Row(
-                  children: [
-                    Text(widget.productDetail!.name!,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        )),
-                    Spacer(),
-                    Text("RM ${widget.productDetail!.price!}",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        )),
-                  ],
-                ),
-                content: Container(
-                  height: 500.0, // Change as per your requirement
-                  width: 350.0,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        for (int i = 0; i < variantGroup.length; i++)
-                          variantGroupLayout(variantGroup[i]),
-                        for (int j = 0; j < modifierGroup.length; j++)
-                          modifierGroupLayout(modifierGroup[j],cart),
-                        Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Quantity",
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ],
+              SingleChildScrollView(
+                child: AlertDialog(
+                  title: Row(
+                    children: [
+                      Text(widget.productDetail!.name!,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          )),
+                      Spacer(),
+                      Text("RM ${widget.productDetail!.price!}",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          )),
+                    ],
+                  ),
+                  content: Container(
+                    height: MediaQuery.of(context).size.height > 500 ? 500.0 : MediaQuery.of(context).size.height / 2.5, // Change as per your requirement
+                    width: 350.0,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (int i = 0; i < variantGroup.length; i++)
+                            variantGroupLayout(variantGroup[i]),
+                          for (int j = 0; j < modifierGroup.length; j++)
+                            modifierGroupLayout(modifierGroup[j],cart),
+                          Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Quantity",
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            QuantityInput(
-                                inputWidth: 273,
+                              QuantityInput(
+                                  inputWidth: 273,
+                                  decoration: InputDecoration(
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: color.backgroundColor),
+                                    ),
+                                  ),
+                                  buttonColor: color.backgroundColor,
+                                  value: simpleIntInput,
+                                  onChanged: (value) => setState(() =>
+                                      simpleIntInput =
+                                          int.parse(value.replaceAll(',', ''))))
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Remark",
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              TextField(
+                                controller: remarkController,
                                 decoration: InputDecoration(
                                   focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: color.backgroundColor),
+                                    borderSide:
+                                        BorderSide(color: color.backgroundColor),
                                   ),
                                 ),
-                                buttonColor: color.backgroundColor,
-                                value: simpleIntInput,
-                                onChanged: (value) => setState(() =>
-                                    simpleIntInput =
-                                        int.parse(value.replaceAll(',', ''))))
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Remark",
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            TextField(
-                              controller: remarkController,
-                              decoration: InputDecoration(
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: color.backgroundColor),
-                                ),
-                              ),
-                              keyboardType: TextInputType.multiline,
-                              maxLines: null,
-                            )
-                          ],
-                        )
-                      ],
+                                keyboardType: TextInputType.multiline,
+                                maxLines: null,
+                              )
+                            ],
+                          )
+                        ],
+                      ),
                     ),
                   ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text(
+                          '${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: Text(
+                          '${AppLocalizations.of(context)?.translate('add')}'),
+                      onPressed: () async {
+                        await addToCart(cart);
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
                 ),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text(
-                        '${AppLocalizations.of(context)?.translate('close')}'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  TextButton(
-                    child: Text(
-                        '${AppLocalizations.of(context)?.translate('add')}'),
-                    onPressed: () async {
-                      await addToCart(cart);
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
               ) : CustomProgressBar();
             });
     });

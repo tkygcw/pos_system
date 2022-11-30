@@ -39,6 +39,20 @@ Future<void> main() async {
     sound: true,
   );
 
+  //device detect
+  final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
+  if (screenWidth < 500) {
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown
+    ]);
+  } else {
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
+
   //other method
   statusBarColor();
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,10 +85,7 @@ class MyApp extends StatelessWidget {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
     ));
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+
 
     return MultiProvider(
       providers: [

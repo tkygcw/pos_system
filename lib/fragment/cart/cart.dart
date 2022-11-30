@@ -134,8 +134,7 @@ class _CartPageState extends State<CartPage> {
               automaticallyImplyLeading: false,
               title: Row(
                 children: [
-                  Text('Bill',
-                      style: TextStyle(fontSize: 20, color: Colors.black)),
+                  MediaQuery.of(context).size.height > 500 ? Text('Bill', style: TextStyle(fontSize: 20, color: Colors.black)): SizedBox.shrink(),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -357,7 +356,7 @@ class _CartPageState extends State<CartPage> {
                                 }),
                           ),
                         ),
-                        SizedBox(height: 20),
+                        SizedBox(height: MediaQuery.of(context).size.height > 500  ? 20 : 5),
                         Divider(
                           color: Colors.grey,
                           height: 1,
@@ -365,9 +364,9 @@ class _CartPageState extends State<CartPage> {
                           indent: 20,
                           endIndent: 20,
                         ),
-                        SizedBox(height: 10),
+                        SizedBox(height: MediaQuery.of(context).size.height > 500 ? 10 : 5),
                         Container(
-                          height: cart.selectedOption == 'Dine in' ? 190 : null,
+                          height: cart.selectedOption == 'Dine in' && MediaQuery.of(context).size.height > 500  ? 190 : 25,
                           child: ListView(
                             physics: ClampingScrollPhysics(),
                             children: [
@@ -870,7 +869,7 @@ class _CartPageState extends State<CartPage> {
   getSelectedTable(CartModel cart) {
     List<String> result = [];
     if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
-      result.add('No table');
+      result.add('-');
     } else if (cart.selectedOption != 'Dine in') {
       result.add('N/A');
     } else {

@@ -112,110 +112,113 @@ class _SettlementPageState extends State<SettlementPage> {
                           height: 10,
                           color: Colors.grey,
                         ),
-                        Container(
-                          child: Row(
-                            children: [
-                              ElevatedButton(
-                                  child: Text('Cash-in'),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Container(
+                            child: Row(
+                              children: [
+                                ElevatedButton(
+                                    child: Text('Cash-in'),
+                                    onPressed: () {
+                                      openCashDialog(true, false);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                        primary: color.backgroundColor)),
+                                Container(
+                                  height: 30,
+                                  child: VerticalDivider(
+                                      color: Colors.grey, thickness: 1),
+                                ),
+                                ElevatedButton(
+                                  child: Text('Cash-out'),
                                   onPressed: () {
-                                    openCashDialog(true, false);
+                                    if(cashRecordList.length > 0){
+                                      openCashOutDialog();
+                                      // openCashDialog(false, true);
+                                    } else {
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Color(0xFFFF0000),
+                                          msg: "No record");
+                                    }
                                   },
                                   style: ElevatedButton.styleFrom(
-                                      primary: color.backgroundColor)),
-                              Container(
-                                height: 30,
-                                child: VerticalDivider(
-                                    color: Colors.grey, thickness: 1),
-                              ),
-                              ElevatedButton(
-                                child: Text('Cash-out'),
-                                onPressed: () {
-                                  if(cashRecordList.length > 0){
-                                    openCashOutDialog();
-                                    // openCashDialog(false, true);
-                                  } else {
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Color(0xFFFF0000),
-                                        msg: "No record");
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    primary: color.buttonColor),
-                              ),
-                              Container(
-                                height: 30,
-                                child: VerticalDivider(
-                                    color: Colors.grey, thickness: 1),
-                              ),
-                              ElevatedButton(
-                                child: Text('Settlement'),
-                                onPressed: () {
-                                  if(cashRecordList.length > 0){
-                                    openSettlementDialog(cashRecordList);
-                                  } else {
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Color(0xFFFF0000),
-                                        msg: "No record");
-                                  }
+                                      primary: color.buttonColor),
+                                ),
+                                Container(
+                                  height: 30,
+                                  child: VerticalDivider(
+                                      color: Colors.grey, thickness: 1),
+                                ),
+                                ElevatedButton(
+                                  child: Text('Settlement'),
+                                  onPressed: () {
+                                    if(cashRecordList.length > 0){
+                                      openSettlementDialog(cashRecordList);
+                                    } else {
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Color(0xFFFF0000),
+                                          msg: "No record");
+                                    }
 
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    primary: color.backgroundColor),
-                              ),
-                              Container(
-                                height: 30,
-                                child: VerticalDivider(
-                                    color: Colors.grey, thickness: 1),
-                              ),
-                              ElevatedButton(
-                                child: Text('Settlement history'),
-                                onPressed: () {
-                                  openSettlementHistoryDialog();
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    primary: color.buttonColor),
-                              ),
-                              Container(
-                                height: 30,
-                                child: VerticalDivider(
-                                    color: Colors.grey, thickness: 1),
-                              ),
-                              ElevatedButton(
-                                child: Text('Transfer ownership'),
-                                onPressed: () async {
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      primary: color.backgroundColor),
+                                ),
+                                Container(
+                                  height: 30,
+                                  child: VerticalDivider(
+                                      color: Colors.grey, thickness: 1),
+                                ),
+                                ElevatedButton(
+                                  child: Text('Settlement history'),
+                                  onPressed: () {
+                                    openSettlementHistoryDialog();
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      primary: color.buttonColor),
+                                ),
+                                Container(
+                                  height: 30,
+                                  child: VerticalDivider(
+                                      color: Colors.grey, thickness: 1),
+                                ),
+                                ElevatedButton(
+                                  child: Text('Transfer ownership'),
+                                  onPressed: () async {
 
-                                  if (await confirm(
-                                    context,
-                                    title: Text(
-                                        '${AppLocalizations.of(context)?.translate('confirm_pos_pin')}'),
-                                    content: Text(
-                                        '${AppLocalizations.of(context)?.translate('to_pos_pin')}'),
-                                    textOK: Text(
-                                        '${AppLocalizations.of(context)?.translate('yes')}'),
-                                    textCancel: Text(
-                                        '${AppLocalizations.of(context)?.translate('no')}'),
-                                  )) {
-                                    return toPosPinPage();
-                                  }
+                                    if (await confirm(
+                                      context,
+                                      title: Text(
+                                          '${AppLocalizations.of(context)?.translate('confirm_pos_pin')}'),
+                                      content: Text(
+                                          '${AppLocalizations.of(context)?.translate('to_pos_pin')}'),
+                                      textOK: Text(
+                                          '${AppLocalizations.of(context)?.translate('yes')}'),
+                                      textCancel: Text(
+                                          '${AppLocalizations.of(context)?.translate('no')}'),
+                                    )) {
+                                      return toPosPinPage();
+                                    }
 
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    primary: color.backgroundColor),
-                              ),
-                              Container(
-                                height: 30,
-                                child: VerticalDivider(
-                                    color: Colors.grey, thickness: 1),
-                              ),
-                              ElevatedButton(
-                                child: Text('Open cash drawer'),
-                                onPressed: () {
-                                  openCashBoxDialog();
-                                },
-                                style: ElevatedButton.styleFrom(
-                                    primary: color.buttonColor),
-                              ),
-                            ],
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      primary: color.backgroundColor),
+                                ),
+                                Container(
+                                  height: 30,
+                                  child: VerticalDivider(
+                                      color: Colors.grey, thickness: 1),
+                                ),
+                                ElevatedButton(
+                                  child: Text('Open cash drawer'),
+                                  onPressed: () {
+                                    openCashBoxDialog();
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      primary: color.buttonColor),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         Divider(
