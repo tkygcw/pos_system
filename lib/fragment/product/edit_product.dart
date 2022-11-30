@@ -428,17 +428,16 @@ class _EditProductDialogState extends State<EditProductDialog> {
       var connectivityResult = await (Connectivity().checkConnectivity());
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      final String? user = prefs.getString('user');
-      Map userObject = json.decode(user!);
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       if (imageDir != null) {
         if (widget.product!.image != '' || widget.product!.image != null) {
+          deleteFile();
           if (connectivityResult == ConnectivityResult.mobile ||
               connectivityResult == ConnectivityResult.wifi) {
             deleteImage(widget.product!.image!);
           }
-           deleteFile();
+
         }
         saveFilePermanently(imageDir!);
         if (connectivityResult == ConnectivityResult.mobile ||
@@ -599,7 +598,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                     product_sqlite_id:
                         widget.product!.product_sqlite_id.toString(),
                     name: needInsert[k],
-                    sync_status: 1,
+                    sync_status: 0,
                     created_at: dateTime,
                     updated_at: '',
                     soft_delete: ''));
@@ -636,7 +635,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                           variant_group_sqlite_id:
                               group.variant_group_sqlite_id.toString(),
                           name: variantList[l]['modItem'][m],
-                          sync_status: 1,
+                          sync_status: 0,
                           created_at: dateTime,
                           updated_at: '',
                           soft_delete: ''));
@@ -1689,7 +1688,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                           onChanged: (Categories? value) {
                             setState(() {
                               selectCategory = value!;
-                              print(selectCategory);
+                              print(selectCategory!.category_sqlite_id);
                             });
                           },
                           menuMaxHeight: 300,
