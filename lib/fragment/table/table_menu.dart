@@ -77,204 +77,211 @@ class _TableMenuState extends State<TableMenu> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
-        return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
+        return Consumer<TableModel>(
+            builder: (context, TableModel tableModel, child) {
           if (tableModel.isChange) {
             readAllTable(model: tableModel);
           }
           return Scaffold(
-              body: Container(
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(11, 15, 11, 4),
-                  child: Row(
-                    children: [
-                      Text(
-                        "Table",
-                        style: TextStyle(fontSize: 25),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(18, 0, 0, 0),
-                        child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                                primary: color.backgroundColor),
-                            onPressed: () {
-                              openAddTableDialog(PosTable());
-                            },
-                            icon: Icon(Icons.add),
-                            label: Text("Table")),
-                      ),
-                      SizedBox(width: MediaQuery.of(context).size.height > 500 ? 500: 50),
-                      Expanded(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            isDense: true,
-                            border: InputBorder.none,
-                            labelText: 'Search',
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                  color: Colors.grey, width: 2.0),
-                              borderRadius: BorderRadius.circular(25.0),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 20),
-                isLoaded
-                    ? Expanded(
-                        child: GridView.count(
-                          shrinkWrap: true,
-                          crossAxisCount: MediaQuery.of(context).size.height > 500 ? 5 : 3,
-                          children: List.generate(
-                              //this is the total number of cards
-                              tableList.length, (index) {
-                            // tableList[index].seats == 2;
-                            return Card(
-                              color: tableList[index].status != 0
-                                  ? toColor(tableList[index].cardColor!)
-                                  : Colors.white,
-                              shape: tableList[index].isSelected
-                                  ? new RoundedRectangleBorder(
-                                      side: new BorderSide(
-                                          color: Colors.blue, width: 3.0),
-                                      borderRadius: BorderRadius.circular(4.0))
-                                  : new RoundedRectangleBorder(
-                                      side: new BorderSide(
-                                          color: Colors.white, width: 3.0),
-                                      borderRadius: BorderRadius.circular(4.0)),
-                              elevation: 5,
-                              child: InkWell(
-                                splashColor: Colors.blue.withAlpha(30),
-                                onLongPress: () {
-                                  if (tableList[index].status != 1) {
-                                    openAddTableDialog(tableList[index]);
-                                  } else {
-                                    openChangeTableDialog(tableList[index]);
-                                  }
-                                },
-                                onTap: () async {
-                                  await readSpecificTableDetail(tableList[index]);
-                                  if(this.productDetailLoaded){
-                                    if (tableList[index].status == 1) {
-                                      // table in use (colored)
-                                      for (int i = 0; i < tableList.length; i++) {
-                                        if (tableList[index].group ==
-                                            tableList[i].group) {
-                                          if (tableList[i].isSelected == false) {
-                                            tableList[i].isSelected = true;
-                                          } else if (tableList[i].isSelected ==
-                                              true) {
-                                            if (tableList[index].group ==
-                                                tableList[i].group) {
-                                              setState(() {
-                                                removeFromCart(
-                                                    cart, tableList[index]);
-                                                tableList[i].isSelected = false;
-                                                cart.removeSpecificTable(
-                                                    tableList[i]);
-                                              });
-                                            } else {
-                                              setState(() {
-                                                removeFromCart(
-                                                    cart, tableList[index]);
-                                                tableList[i].isSelected = false;
-                                                cart.removeSpecificTable(
-                                                    tableList[index]);
-                                              });
-                                            }
-                                          }
-                                        }
-                                      }
-                                    } else {
-                                      for (int j = 0; j < tableList.length; j++) {
-                                        //reset all using table to un-select (table status == 1)
-                                        if (tableList[j].status == 1) {
-                                          tableList[j].isSelected = false;
-                                          cart.removeAllCartItem();
-                                          cart.removePromotion();
-                                          cart.removeSpecificTable(tableList[j]);
-                                        }
-                                      }
-                                      Fluttertoast.showToast(
-                                          backgroundColor: Color(0xFF07F107),
-                                          msg: "Table not in use");
-                                    }
-                                    if (tableList[index].status == 1 && tableList[index].isSelected == true) {
-                                      //await readSpecificTableDetail(tableList[index]);
-                                      addToCart(cart, tableList[index]);
-                                    }
-                                  }
-
-                                },
-                                child: Container(
-                                  margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.all(2) : EdgeInsets.all(0),
-                                  child: Column(
-                                    children: [
-                                      tableList[index].group != null && MediaQuery.of(context).size.height > 500 ?
-                                      Expanded(
-                                              child: Text(
-                                              "Group: ${tableList[index].group}",
-                                              style: TextStyle(fontSize: 18),
-                                            ))
-                                          : MediaQuery.of(context).size.height > 500 ? Expanded(child: Text('')) :Container(height: 10),
-                                      Container(
-                                        margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(0, 5, 0, 5) : null,
-                                        height: MediaQuery.of(context).size.height < 500 ?
-                                                100:
-                                                MediaQuery.of(context).size.height < 700 ?
-                                                MediaQuery.of(context).size.height / 6.5 :
-                                                MediaQuery.of(context).size.height / 6,
-                                        child: Stack(
-                                          children: [
-                                            Ink.image(
-                                              image: tableList[index].seats ==
-                                                      '2'
-                                                  ? NetworkImage(
-                                                      "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
-                                                  : tableList[index].seats ==
-                                                          '4'
-                                                      ? NetworkImage(
-                                                          "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
-                                                      : tableList[index]
-                                                                  .seats ==
-                                                              '6'
-                                                          ? NetworkImage(
-                                                              "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
-                                                          : NetworkImage(
-                                                              "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
-                                              fit: BoxFit.cover,
-                                            ),
-                                            Container(
-                                                alignment: Alignment.center,
-                                                child: Text("#" +
-                                                    tableList[index].number!)),
-                                          ],
-                                        ),
+              body: isLoaded
+                  ? Container(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(11, 15, 11, 4),
+                            child: Row(
+                              children: [
+                                Text(
+                                  "Table",
+                                  style: TextStyle(fontSize: 25),
+                                ),
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.fromLTRB(18, 0, 0, 0),
+                                  child: ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                          primary: color.backgroundColor),
+                                      onPressed: () {
+                                        openAddTableDialog(PosTable());
+                                      },
+                                      icon: Icon(Icons.add),
+                                      label: Text("Table")),
+                                ),
+                                SizedBox(
+                                    width:
+                                        MediaQuery.of(context).size.height > 500
+                                            ? 500
+                                            : 50),
+                                Expanded(
+                                  child: TextField(
+                                    decoration: InputDecoration(
+                                      isDense: true,
+                                      border: InputBorder.none,
+                                      labelText: 'Search',
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: const BorderSide(
+                                            color: Colors.grey, width: 2.0),
+                                        borderRadius:
+                                            BorderRadius.circular(25.0),
                                       ),
-                                      MediaQuery.of(context).size.height > 500 ? Container(height: 20) : Container()
-                                      // tableList[index].status == 1 ?
-                                      // Expanded(
-                                      //     child: Text(
-                                      //       "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
-                                      //       style: TextStyle(fontSize: 18)),
-                                      // ) :
-                                      //     Expanded
-                                      //       (child: Text(''))
-                                    ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          }),
-                        ),
-                      )
-                    : CustomProgressBar()
-              ],
-            ),
-          ));
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 20),
+                          Expanded(
+                            child: GridView.count(
+                              shrinkWrap: true,
+                              crossAxisCount: MediaQuery.of(context).size.height > 500 ? 5 : 3,
+                              children: List.generate(
+                                  //this is the total number of cards
+                                  tableList.length, (index) {
+                                // tableList[index].seats == 2;
+                                return Card(
+                                  color: tableList[index].status != 0
+                                      ? toColor(tableList[index].cardColor!)
+                                      : Colors.white,
+                                  shape: tableList[index].isSelected
+                                      ? new RoundedRectangleBorder(
+                                          side: new BorderSide(
+                                              color: Colors.blue, width: 3.0),
+                                          borderRadius:
+                                              BorderRadius.circular(4.0))
+                                      : new RoundedRectangleBorder(
+                                          side: new BorderSide(
+                                              color: Colors.white, width: 3.0),
+                                          borderRadius:
+                                              BorderRadius.circular(4.0)),
+                                  elevation: 5,
+                                  child: InkWell(
+                                    splashColor: Colors.blue.withAlpha(30),
+                                    onLongPress: () {
+                                      if (tableList[index].status != 1) {
+                                        openAddTableDialog(tableList[index]);
+                                      } else {
+                                        openChangeTableDialog(tableList[index]);
+                                      }
+                                    },
+                                    onTap: () async {
+                                      await readSpecificTableDetail(
+                                          tableList[index]);
+                                      if (this.productDetailLoaded) {
+                                        if (tableList[index].status == 1) {
+                                          // table in use (colored)
+                                          for (int i = 0; i < tableList.length; i++) {
+                                            if (tableList[index].group == tableList[i].group) {
+                                              if (tableList[i].isSelected == false) {
+                                                tableList[i].isSelected = true;
+                                              } else if (tableList[i].isSelected == true) {
+                                                if (tableList[index].group == tableList[i].group) {
+                                                  setState(() {
+                                                    removeFromCart(cart, tableList[index]);
+                                                    tableList[i].isSelected = false;
+                                                    cart.removeSpecificTable(tableList[i]);
+                                                  });
+                                                } else {
+                                                  setState(() {
+                                                    removeFromCart(cart, tableList[index]);
+                                                    tableList[i].isSelected = false;
+                                                    cart.removeSpecificTable(tableList[index]);
+                                                  });
+                                                }
+                                              }
+                                            }
+                                          }
+                                        } else {
+                                          for (int j = 0; j < tableList.length; j++) {
+                                            //reset all using table to un-select (table status == 1)
+                                            if (tableList[j].status == 1) {
+                                              tableList[j].isSelected = false;
+                                              cart.removeAllCartItem();
+                                              cart.removePromotion();
+                                              cart.removeSpecificTable(
+                                                  tableList[j]);
+                                            }
+                                          }
+                                          Fluttertoast.showToast(
+                                              backgroundColor:
+                                                  Color(0xFF07F107),
+                                              msg: "Table not in use");
+                                        }
+                                        if (tableList[index].status == 1 &&
+                                            tableList[index].isSelected ==
+                                                true) {
+                                          //await readSpecificTableDetail(tableList[index]);
+                                          addToCart(cart, tableList[index]);
+                                        }
+                                      }
+                                    },
+                                    child: Container(
+                                      margin:
+                                          MediaQuery.of(context).size.height > 500 ? EdgeInsets.all(2) : EdgeInsets.all(0),
+                                      child: Column(
+                                        children: [
+                                          tableList[index].group != null && MediaQuery.of(context).size.height > 500
+                                              ? Expanded(
+                                                  child: Text(
+                                                  "Group: ${tableList[index].group}",
+                                                  style:
+                                                      TextStyle(fontSize: 18),
+                                                ))
+                                              : MediaQuery.of(context).size.height > 500
+                                                  ? Expanded(child: Text(''))
+                                                  : Container(height: 10),
+                                          Container(
+                                            margin: MediaQuery.of(context).size.height > 500
+                                                ? EdgeInsets.fromLTRB(0, 5, 0, 5)
+                                                : null,
+                                            height: MediaQuery.of(context).size.height < 500
+                                                ? 100
+                                                : MediaQuery.of(context).size.height < 700
+                                                    ? MediaQuery.of(context).size.height / 6.5
+                                                    : MediaQuery.of(context).size.height / 6,
+                                            child: Stack(
+                                              children: [
+                                                Ink.image(
+                                                  image: tableList[index].seats == '2'
+                                                      ? NetworkImage(
+                                                          "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
+                                                      : tableList[index].seats == '4'
+                                                          ? NetworkImage(
+                                                              "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
+                                                          : tableList[index].seats == '6'
+                                                              ? NetworkImage(
+                                                                  "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
+                                                              : NetworkImage(
+                                                                  "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                                                  fit: BoxFit.cover,
+                                                ),
+                                                Container(
+                                                    alignment: Alignment.center,
+                                                    child: Text("#" + tableList[index].number!)),
+                                              ],
+                                            ),
+                                          ),
+                                          MediaQuery.of(context).size.height > 500 ? Container(height: 10) : Container()
+                                          // tableList[index].status == 1 ?
+                                          // Expanded(
+                                          //     child: Text(
+                                          //       "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
+                                          //       style: TextStyle(fontSize: 18)),
+                                          // ) :
+                                          //     Expanded
+                                          //       (child: Text(''))
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+                          )
+                        ],
+                      ),
+                    )
+                  : CustomProgressBar());
         });
       });
     });
@@ -367,7 +374,6 @@ class _TableMenuState extends State<TableMenu> {
     setState(() {
       isLoaded = true;
     });
-
   }
 
   readAllTableGroup() async {
@@ -401,7 +407,7 @@ class _TableMenuState extends State<TableMenu> {
     //Get specific table use detail
     List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
         .readSpecificTableUseDetail(posTable.table_sqlite_id!);
-    if(tableUseDetailData.length > 0){
+    if (tableUseDetailData.length > 0) {
       //Get all order table cache
       List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
           branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
@@ -424,7 +430,9 @@ class _TableMenuState extends State<TableMenu> {
     //loop all order detail
     for (int k = 0; k < orderDetailList.length; k++) {
       //Get data from branch link product
-      List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
+      List<BranchLinkProduct> result = await PosDatabase.instance
+          .readSpecificBranchLinkProduct(
+              orderDetailList[k].branch_link_product_sqlite_id!);
 
       //Get product category
       List<Product> productResult = await PosDatabase.instance
@@ -586,7 +594,7 @@ class _TableMenuState extends State<TableMenu> {
   removeFromCart(CartModel cart, PosTable posTable) async {
     var value;
     //await readSpecificTableDetail(posTable);
-    if(this.productDetailLoaded){
+    if (this.productDetailLoaded) {
       for (int i = 0; i < orderDetailList.length; i++) {
         value = cartProductItem(
             orderDetailList[i].branch_link_product_sqlite_id!,
@@ -604,6 +612,5 @@ class _TableMenuState extends State<TableMenu> {
         cart.removePromotion();
       }
     }
-
   }
 }

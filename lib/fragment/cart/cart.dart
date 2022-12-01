@@ -366,7 +366,10 @@ class _CartPageState extends State<CartPage> {
                         ),
                         SizedBox(height: MediaQuery.of(context).size.height > 500 ? 10 : 5),
                         Container(
-                          height: cart.selectedOption == 'Dine in' && MediaQuery.of(context).size.height > 500  ? 190 : 25,
+                          height: cart.selectedOption == 'Dine in' && MediaQuery.of(context).size.height > 500  ?
+                                  190 :
+                                  MediaQuery.of(context).size.height > 500 ?
+                                  null : 25,
                           child: ListView(
                             physics: ClampingScrollPhysics(),
                             children: [

@@ -83,132 +83,265 @@ class _CashDialogState extends State<CashDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return SingleChildScrollView(
-        child: AlertDialog(
-          title: widget.isNewDay ? Text('Opening Balance') : widget.isCashIn ? Text('Cash-in') :  Text('Cash-out'),
-          content: Container(
-            height: widget.isNewDay ? MediaQuery.of(context).size.height / 6 : MediaQuery.of(context).size.height / 3,
-            width: widget.isNewDay ? MediaQuery.of(context).size.height / 2 : MediaQuery.of(context).size.width / 3,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    child: Visibility(
-                      visible: widget.isNewDay ? false : true,
-                      child: ValueListenableBuilder(
-                        // Note: pass _controller to the animation argument
-                          valueListenable: remarkController,
-                          builder: (context, TextEditingValue value, __) {
-                            return SizedBox(
-                              height: 100,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: TextField(
-                                  controller: remarkController,
-                                  decoration: InputDecoration(
-                                    errorText: _submitted
-                                        ? errorRemark == null
-                                        ? errorRemark
-                                        : AppLocalizations.of(context)
-                                        ?.translate(errorRemark!)
-                                        : null,
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: color.backgroundColor),
+      return Center(
+        child: SingleChildScrollView(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if(constraints.maxWidth > 800){
+                return AlertDialog(
+                  title: widget.isNewDay ? Text('Opening Balance') : widget.isCashIn ? Text('Cash-in') :  Text('Cash-out'),
+                  content: Container(
+                    height: widget.isNewDay ? MediaQuery.of(context).size.height / 6 : MediaQuery.of(context).size.height / 4,
+                    width: widget.isNewDay ? MediaQuery.of(context).size.height / 2 : MediaQuery.of(context).size.width / 4,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            child: Visibility(
+                              visible: widget.isNewDay ? false : true,
+                              child: ValueListenableBuilder(
+                                // Note: pass _controller to the animation argument
+                                  valueListenable: remarkController,
+                                  builder: (context, TextEditingValue value, __) {
+                                    return SizedBox(
+                                      height: 100,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextField(
+                                          controller: remarkController,
+                                          decoration: InputDecoration(
+                                            errorText: _submitted
+                                                ? errorRemark == null
+                                                ? errorRemark
+                                                : AppLocalizations.of(context)
+                                                ?.translate(errorRemark!)
+                                                : null,
+                                            border: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: color.backgroundColor),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: color.backgroundColor),
+                                            ),
+                                            labelText: 'Remark',
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                            ),
+                          ),
+                          Container(
+                            child: ValueListenableBuilder(
+                              // Note: pass _controller to the animation argument
+                                valueListenable: amountController,
+                                builder: (context, TextEditingValue value, __) {
+                                  return SizedBox(
+                                    height: 85,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: TextField(
+                                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+                                        keyboardType: TextInputType.number,
+                                        controller: amountController,
+                                        decoration: InputDecoration(
+                                          errorText: _submitted
+                                              ? errorAmount == null
+                                              ? errorAmount
+                                              : AppLocalizations.of(context)
+                                              ?.translate(errorAmount!)
+                                              : null,
+                                          border: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: color.backgroundColor),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: color.backgroundColor),
+                                          ),
+                                          labelText: 'Amount',
+                                        ),
+                                      ),
                                     ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: color.backgroundColor),
-                                    ),
-                                    labelText: 'Remark',
+                                  );
+                                }),
+                          ),
+                          widget.isNewDay && _isLoad && this.amount != '' ?
+                          Container(
+                              margin: EdgeInsets.only(left: 10),
+                              alignment: Alignment.topLeft,
+                              height: MediaQuery.of(context).size.height / 18,
+                              child: Row(
+                                children: [
+                                  Container(
+                                      child: Text('Last settlement opening balance: ${amount}')
                                   ),
-                                ),
-                              ),
-                            );
-                          }),
+                                  Spacer(),
+                                  Container(
+                                      child: ElevatedButton(
+                                        child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                                        onPressed: (){
+                                          amountController.text = amount;
+                                        },
+                                        style: ElevatedButton.styleFrom(primary: color.backgroundColor),
+                                      )
+                                  )
+                                ],
+                              )
+                          ) :
+                          Container()
+                        ],
+                      ),
                     ),
                   ),
-                  Container(
-                    child: ValueListenableBuilder(
-                      // Note: pass _controller to the animation argument
-                        valueListenable: amountController,
-                        builder: (context, TextEditingValue value, __) {
-                          return SizedBox(
-                            height: 100,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: TextField(
-                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
-                                keyboardType: TextInputType.number,
-                                controller: amountController,
-                                decoration: InputDecoration(
-                                  errorText: _submitted
-                                      ? errorAmount == null
-                                      ? errorAmount
-                                      : AppLocalizations.of(context)
-                                      ?.translate(errorAmount!)
-                                      : null,
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: color.backgroundColor),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: color.backgroundColor),
-                                  ),
-                                  labelText: 'Amount',
+                  actions: [
+                    widget.isNewDay ? Container() :
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: (){
+                        closeDialog(context);
+                      },
+                    ),
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                      onPressed: (){
+                        _submit(context);
+                      },
+                    )
+                  ],
+                );
+              } else {
+                //mobile layout
+                return Center(
+                  child: SingleChildScrollView(
+                    child: AlertDialog(
+                      title: widget.isNewDay ? Text('Opening Balance') : widget.isCashIn ? Text('Cash-in') :  Text('Cash-out'),
+                      content: Container(
+                        height: widget.isNewDay ? MediaQuery.of(context).size.height / 3 : 150,
+                        width: widget.isNewDay ? MediaQuery.of(context).size.height / 1 : MediaQuery.of(context).size.width / 2,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                child: Visibility(
+                                  visible: widget.isNewDay ? false : true,
+                                  child: ValueListenableBuilder(
+                                    // Note: pass _controller to the animation argument
+                                      valueListenable: remarkController,
+                                      builder: (context, TextEditingValue value, __) {
+                                        return Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextField(
+                                            autofocus: true,
+                                            controller: remarkController,
+                                            decoration: InputDecoration(
+                                              errorText: _submitted
+                                                  ? errorRemark == null
+                                                  ? errorRemark
+                                                  : AppLocalizations.of(context)
+                                                  ?.translate(errorRemark!)
+                                                  : null,
+                                              border: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: color.backgroundColor),
+                                              ),
+                                              focusedBorder: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: color.backgroundColor),
+                                              ),
+                                              labelText: 'Remark',
+                                            ),
+                                          ),
+                                        );
+                                      }),
                                 ),
                               ),
-                            ),
-                          );
-                        }),
-                  ),
-                  widget.isNewDay && _isLoad && this.amount != '' ?
-                  Container(
-                    margin: EdgeInsets.only(left: 10),
-                    alignment: Alignment.topLeft,
-                    height: MediaQuery.of(context).size.height / 18,
-                    child: Row(
-                      children: [
-                        Container(
-                            child: Text('Last settlement opening balance: ${amount}')
+                              Container(
+                                child: ValueListenableBuilder(
+                                  // Note: pass _controller to the animation argument
+                                    valueListenable: amountController,
+                                    builder: (context, TextEditingValue value, __) {
+                                      return Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextField(
+                                          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+                                          keyboardType: TextInputType.number,
+                                          controller: amountController,
+                                          decoration: InputDecoration(
+                                            errorText: _submitted
+                                                ? errorAmount == null
+                                                ? errorAmount
+                                                : AppLocalizations.of(context)
+                                                ?.translate(errorAmount!)
+                                                : null,
+                                            border: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: color.backgroundColor),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: color.backgroundColor),
+                                            ),
+                                            labelText: 'Amount',
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                              ),
+                              Visibility(
+                                visible: widget.isNewDay && _isLoad && this.amount != '' ? true : false,
+                                child: Container(
+                                    margin: EdgeInsets.only(left: 10),
+                                    alignment: Alignment.topLeft,
+                                    height: MediaQuery.of(context).size.height / 9,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                            child: Text('Last settlement opening balance: ${amount}')
+                                        ),
+                                        Spacer(),
+                                        Container(
+                                            child: ElevatedButton(
+                                              child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                                              onPressed: (){
+                                                amountController.text = amount;
+                                              },
+                                              style: ElevatedButton.styleFrom(primary: color.backgroundColor),
+                                            )
+                                        )
+                                      ],
+                                    )
+                                ),
+                              )
+                            ],
+                          ),
                         ),
-                        Spacer(),
-                        Container(
-                          margin: EdgeInsets.zero,
-                            child:
-                            ElevatedButton(
-                              child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                              onPressed: (){
-                                amountController.text = amount;
-                            },
-                              style: ElevatedButton.styleFrom(primary: color.backgroundColor),
-                            )
+                      ),
+                      actions: [
+                        widget.isNewDay ? Container() :
+                        TextButton(
+                          child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                          onPressed: (){
+                            closeDialog(context);
+                          },
+                        ),
+                        TextButton(
+                          child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                          onPressed: (){
+                            _submit(context);
+                          },
                         )
                       ],
-                    )
-                  ) :
-                      Container()
-                ],
-              ),
-            ),
+                    ),
+                  ),
+                );
+              }
+            }
           ),
-          actions: [
-            widget.isNewDay ? Container() :
-            TextButton(
-              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-              onPressed: (){
-                closeDialog(context);
-              },
-            ),
-            TextButton(
-              child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-              onPressed: (){
-                _submit(context);
-              },
-            )
-          ],
         ),
       );
     });

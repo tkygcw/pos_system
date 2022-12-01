@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:page_transition/page_transition.dart';
@@ -34,54 +35,112 @@ class _PosPinPageState extends State<PosPinPage> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     readAllPrinters();
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Scaffold(
-        backgroundColor: color.backgroundColor,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Container(
-                  child: Theme(
-                    data: Theme.of(context).copyWith(
-                        textTheme:  TextTheme(
-                          bodyText2: TextStyle(color: Colors.white),
-                        )
-                    ),
-                    child: PinAuthentication(
-                      pinTheme: PinTheme(
-                        shape: PinCodeFieldShape.box,
-                        selectedFillColor:
-                            const Color(0xFFF7F8FF).withOpacity(0.13),
-                        inactiveFillColor:
-                            const Color(0xFFF7F8FF).withOpacity(0.13),
-                        borderRadius: BorderRadius.circular(5),
-                        backgroundColor: color.backgroundColor,
-                        keysColor: Colors.white,
-                        activeFillColor:
-                            const Color(0xFFF7F8FF).withOpacity(0.13),
-                      ),
-                      onChanged: (v) {},
-                      onCompleted: (v) {
-                          if(v.length==6){
-                            userCheck(v);
-                          }
-                      },
-                      maxLength: 6,
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          if(constraints.maxWidth > 800){
+            return Scaffold(
+              backgroundColor: color.backgroundColor,
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Container(
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                              textTheme:  TextTheme(
+                                bodyText2: TextStyle(color: Colors.white),
+                              )
+                          ),
+                          child: PinAuthentication(
+                            pinTheme: PinTheme(
+                              shape: PinCodeFieldShape.box,
+                              selectedFillColor:
+                              const Color(0xFFF7F8FF).withOpacity(0.13),
+                              inactiveFillColor:
+                              const Color(0xFFF7F8FF).withOpacity(0.13),
+                              borderRadius: BorderRadius.circular(5),
+                              backgroundColor: color.backgroundColor,
+                              keysColor: Colors.white,
+                              activeFillColor:
+                              const Color(0xFFF7F8FF).withOpacity(0.13),
+                            ),
+                            onChanged: (v) {},
+                            onCompleted: (v) {
+                              if(v.length==6){
+                                userCheck(v);
+                              }
+                            },
+                            maxLength: 6,
 
-                    ),
-                  ),
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
                 ),
-              )
-            ],
-          ),
-        ),
+              ),
+            );
+          } else {
+            return Scaffold(
+              backgroundColor: color.backgroundColor,
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Theme(
+                        data: Theme.of(context).copyWith(
+                            textTheme:  TextTheme(
+                              bodyText2: TextStyle(color: Colors.white),
+                            )
+                        ),
+                        child: SingleChildScrollView(
+                            child: Container(
+                              height: 600,
+                              child: PinAuthentication(
+                                pinTheme: PinTheme(
+                                  shape: PinCodeFieldShape.box,
+                                  selectedFillColor:
+                                  const Color(0xFFF7F8FF).withOpacity(0.13),
+                                  inactiveFillColor:
+                                  const Color(0xFFF7F8FF).withOpacity(0.13),
+                                  borderRadius: BorderRadius.circular(5),
+                                  backgroundColor: color.backgroundColor,
+                                  keysColor: Colors.white,
+                                  activeFillColor:
+                                  const Color(0xFFF7F8FF).withOpacity(0.13),
+                                ),
+                                onChanged: (v) {},
+                                onCompleted: (v) {
+                                  if(v.length==6){
+                                    userCheck(v);
+                                  }
+                                },
+                                maxLength: 6,
+
+                              ),
+                            )
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+        }
       );
     });
   }

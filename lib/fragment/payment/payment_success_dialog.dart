@@ -62,46 +62,92 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
               return WillPopScope(
                 onWillPop: () async => false,
-                child: AlertDialog(
-                  title: Text('Payment success'),
-                  content: Container(
-                    width: MediaQuery.of(context).size.width / 3,
-                    height: MediaQuery.of(context).size.height / 3,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: MediaQuery.of(context).size.height / 6,
-                          child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  primary: color.backgroundColor,
-                                  padding: EdgeInsets.fromLTRB(0, 30, 0, 30)
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    if(constraints.maxWidth > 800) {
+                      return AlertDialog(
+                        title: Text('Payment success'),
+                        content: Container(
+                          width: MediaQuery.of(context).size.width / 3,
+                          height: MediaQuery.of(context).size.height / 3,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: MediaQuery.of(context).size.height / 6,
+                                child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                        primary: color.backgroundColor,
+                                        padding: EdgeInsets.fromLTRB(0, 30, 0, 30)
+                                    ),
+                                    onPressed: () async {
+                                      await _printReceiptList();
+                                    },
+                                    child: Text('Print receipt', style: TextStyle(fontSize: 18),)
+                                ),
                               ),
-                              onPressed: () async {
-                                await _printReceiptList();
-                              },
-                              child: Text('Print receipt', style: TextStyle(fontSize: 18),)
+                              SizedBox(height: 25),
+                              Container(
+                                width: MediaQuery.of(context).size.height / 6,
+                                child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      primary: color.buttonColor,
+                                    ),
+                                    onPressed: (){
+                                      closeDialog(context);
+                                      tableModel.changeContent(true);
+                                      cartModel.initialLoad();
+                                      widget.callback();
+                                    },
+                                    child: Text('${AppLocalizations.of(context)?.translate('close')}')
+                                ),
+                              )
+                            ],
                           ),
                         ),
-                        SizedBox(height: 25),
-                        Container(
-                          width: MediaQuery.of(context).size.height / 6,
-                          child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  primary: color.buttonColor,
+                      );
+                    } else {
+                      //Mobile layout
+                      return AlertDialog(
+                        title: Text('Payment success'),
+                        content: Container(
+                          width: MediaQuery.of(context).size.width / 2,
+                          height: 150,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                        primary: color.backgroundColor,
+                                    ),
+                                    onPressed: () async {
+                                      await _printReceiptList();
+                                    },
+                                    child: Text('Print receipt', style: TextStyle(fontSize: 15),)
+                                ),
                               ),
-                              onPressed: (){
-                                closeDialog(context);
-                                tableModel.changeContent(true);
-                                cartModel.initialLoad();
-                                widget.callback();
-                              },
-                              child: Text('${AppLocalizations.of(context)?.translate('close')}')
+                              //SizedBox(height: 25),
+                              Container(
+                                child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      primary: color.buttonColor,
+                                    ),
+                                    onPressed: (){
+                                      closeDialog(context);
+                                      tableModel.changeContent(true);
+                                      cartModel.initialLoad();
+                                      widget.callback();
+                                    },
+                                    child: Text('${AppLocalizations.of(context)?.translate('close')}')
+                                ),
+                              )
+                            ],
                           ),
-                        )
-                      ],
-                    ),
-                  ),
+                        ),
+                      );
+                    }
+                  }
                 ),
               );
             }

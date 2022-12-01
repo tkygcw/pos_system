@@ -140,6 +140,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                   Expanded(
                     child: Container(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
 

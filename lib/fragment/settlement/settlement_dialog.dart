@@ -70,54 +70,57 @@ class _SettlementDialogState extends State<SettlementDialog> {
     return showDialog(
       barrierDismissible: false,
       context: context,
-      builder: (BuildContext context) => SingleChildScrollView(
-        child: AlertDialog(
-          title: Text('Enter Admin PIN'),
-          content: SizedBox(
-            height: 100.0,
-            width: 350.0,
-            child: ValueListenableBuilder(
-                valueListenable: adminPosPinController,
-                builder: (context, TextEditingValue value, __) {
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      controller: adminPosPinController,
-                      decoration: InputDecoration(
-                        errorText: _submitted
-                            ? errorPassword == null
-                            ? errorPassword
-                            : AppLocalizations.of(context)
-                            ?.translate(errorPassword!)
-                            : null,
-                        border: OutlineInputBorder(
-                          borderSide:
-                          BorderSide(color: color.backgroundColor),
+      builder: (BuildContext context) => Center(
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
+          child: AlertDialog(
+            title: Text('Enter Admin PIN'),
+            content: SizedBox(
+              height: 100.0,
+              width: 350.0,
+              child: ValueListenableBuilder(
+                  valueListenable: adminPosPinController,
+                  builder: (context, TextEditingValue value, __) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextField(
+                        controller: adminPosPinController,
+                        decoration: InputDecoration(
+                          errorText: _submitted
+                              ? errorPassword == null
+                              ? errorPassword
+                              : AppLocalizations.of(context)
+                              ?.translate(errorPassword!)
+                              : null,
+                          border: OutlineInputBorder(
+                            borderSide:
+                            BorderSide(color: color.backgroundColor),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide:
+                            BorderSide(color: color.backgroundColor),
+                          ),
+                          labelText: "PIN",
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide:
-                          BorderSide(color: color.backgroundColor),
-                        ),
-                        labelText: "PIN",
                       ),
-                    ),
-                  );
-                }),
+                    );
+                  }),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                onPressed: () async {
+                  _submit(context);
+                },
+              ),
+            ],
           ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-              onPressed: () async {
-                _submit(context);
-              },
-            ),
-          ],
         ),
       ),
     );
@@ -125,28 +128,26 @@ class _SettlementDialogState extends State<SettlementDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return SingleChildScrollView(
-        child: AlertDialog(
-          title: Text('Confirm do settlement'),
-          content: Container(
-            child: Text('${AppLocalizations.of(context)?.translate('settlement_desc')}'),
-          ),
-          actions: [
-            TextButton(
-              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-              onPressed: (){
-                closeDialog(context);
-              },
-            ),
-            TextButton(
-              child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-              onPressed: () async {
-                await showSecondDialog(context, color);
-                closeDialog(context);
-              },
-            )
-          ],
+      return AlertDialog(
+        title: Text('Confirm do settlement'),
+        content: Container(
+          child: Text('${AppLocalizations.of(context)?.translate('settlement_desc')}'),
         ),
+        actions: [
+          TextButton(
+            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+            onPressed: (){
+              closeDialog(context);
+            },
+          ),
+          TextButton(
+            child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+            onPressed: () async {
+              await showSecondDialog(context, color);
+              closeDialog(context);
+            },
+          )
+        ],
       );
     });
   }
@@ -167,7 +168,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
         await updateAllCashRecordSettlement(dateTime);
         //print settlement list
         print('print settlement list');
-        //await _printSettlementList(dateTime);
+        await _printSettlementList(dateTime);
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
@@ -212,14 +213,26 @@ class _SettlementDialogState extends State<SettlementDialog> {
           if (data[j].category_sqlite_id == '3') {
             if (printerList[i].type == 0) {
               var printerDetail = jsonDecode(printerList[i].value!);
-              var data = Uint8List.fromList(await ReceiptLayout().printSettlementList80mm(true, null, dateTime));
-              bool? isConnected = await flutterUsbPrinter.connect(
-                  int.parse(printerDetail['vendorId']),
-                  int.parse(printerDetail['productId']));
-              if (isConnected == true) {
-                await flutterUsbPrinter.write(data);
+              if(printerList[i].paper_size == 0){
+                var data = Uint8List.fromList(await ReceiptLayout().printSettlementList80mm(true, dateTime));
+                bool? isConnected = await flutterUsbPrinter.connect(
+                    int.parse(printerDetail['vendorId']),
+                    int.parse(printerDetail['productId']));
+                if (isConnected == true) {
+                  await flutterUsbPrinter.write(data);
+                } else {
+                  print('not connected');
+                }
               } else {
-                print('not connected');
+                var data = Uint8List.fromList(await ReceiptLayout().printSettlementList58mm(true, dateTime));
+                bool? isConnected = await flutterUsbPrinter.connect(
+                    int.parse(printerDetail['vendorId']),
+                    int.parse(printerDetail['productId']));
+                if (isConnected == true) {
+                  await flutterUsbPrinter.write(data);
+                } else {
+                  print('not connected');
+                }
               }
             } else {
               print("print lan");

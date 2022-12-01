@@ -735,7 +735,7 @@ class ReceiptLayout{
 /*
   Settlement layout 80mm
 */
-  printSettlementList80mm(bool isUSB, value, String settlementDateTime) async {
+  printSettlementList80mm(bool isUSB, String settlementDateTime, {value}) async {
     await readPaymentLinkCompany(settlementDateTime);
     await calculateCashDrawerAmount(settlementDateTime);
     if(_isLoad == true){
@@ -857,6 +857,120 @@ class ReceiptLayout{
               text: '',
               width: 1,
               styles: PosStyles(align: PosAlign.right)),
+        ]);
+        bytes += generator.hr();
+        //final part
+        bytes += generator.feed(1);
+        bytes += generator.cut(mode: PosCutMode.partial);
+        return bytes;
+      } catch (e) {
+        print('layout error: $e');
+        return null;
+      }
+    }
+  }
+
+/*
+  Settlement layout 58mm
+*/
+  printSettlementList58mm(bool isUSB, String settlementDateTime, {value}) async {
+    print('58mm called');
+    await readPaymentLinkCompany(settlementDateTime);
+    await calculateCashDrawerAmount(settlementDateTime);
+    if(_isLoad == true){
+      var generator;
+      if (isUSB) {
+        final profile = await CapabilityProfile.load();
+        generator = Generator(PaperSize.mm58, profile);
+      } else {
+        generator = value;
+      }
+
+      List<int> bytes = [];
+      try {
+        bytes += generator.text('** SETTLEMENT LIST 58mm **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+        bytes += generator.emptyLines(1);
+        bytes += generator.reset();
+
+        bytes += generator.text('Settlement By: ${settlement_By}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Settlement Time: ${settlementDateTime}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.reset();
+        /*
+    *
+    * body
+    *
+    * */
+        bytes += generator.hr();
+        bytes += generator.row([
+          PosColumn(text: 'Payment Type', width: 10, styles: PosStyles(bold: true, align: PosAlign.left)),
+          PosColumn(text: 'AMOUNT', width: 2, styles: PosStyles(bold: true, align: PosAlign.right)),
+        ]);
+        bytes += generator.hr();
+        //Payment link company
+        for(int i = 0; i < paymentList.length; i++){
+          bytes += generator.reset();
+          bytes += generator.row([
+            PosColumn(
+                text: '${paymentList[i].name}',
+                width: 8,
+                containsChinese: true,
+                styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+            PosColumn(
+                text: '${paymentList[i].totalAmount.toStringAsFixed(2)}',
+                width: 4,
+                styles: PosStyles(align: PosAlign.right)),
+          ]);
+
+        }
+        bytes += generator.hr();
+        bytes += generator.reset();
+        //Opening balance
+        bytes += generator.row([
+          PosColumn(
+              text: 'Total Opening Balance',
+              width: 8,
+              containsChinese: true,
+              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+          PosColumn(
+              text: '${totalOpeningCash.toStringAsFixed(2)}',
+              width: 4,
+              styles: PosStyles(align: PosAlign.right)),
+        ]);
+        //cash in
+        bytes += generator.row([
+          PosColumn(
+              text: 'Total Cash In',
+              width: 8,
+              containsChinese: true,
+              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+          PosColumn(
+              text: '${totalCashIn.toStringAsFixed(2)}',
+              width: 4,
+              styles: PosStyles(align: PosAlign.right)),
+        ]);
+        //cash out
+        bytes += generator.row([
+          PosColumn(
+              text: 'Total Cash Out',
+              width: 8,
+              containsChinese: true,
+              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+          PosColumn(
+              text: '-${totalCashOut.toStringAsFixed(2)}',
+              width: 4,
+              styles: PosStyles(align: PosAlign.right))
+        ]);
+        //total cash drawer
+        bytes += generator.row([
+          PosColumn(
+              text: 'Total Cash Drawer',
+              width: 8,
+              containsChinese: true,
+              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+          PosColumn(
+              text: '${totalCashBalance.toStringAsFixed(2)}',
+              width: 4,
+              styles: PosStyles(align: PosAlign.right))
         ]);
         bytes += generator.hr();
         //final part

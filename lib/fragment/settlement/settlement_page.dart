@@ -64,7 +64,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                 Spacer(),
                                 Container(
                                   margin: EdgeInsets.only(right: 10),
-                                  width: MediaQuery.of(context).size.height / 3,
+                                  width: MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 3 : MediaQuery.of(context).size.width/4 ,
                                   child: DropdownButton<String>(
                                     onChanged: (String? value) {
                                       setState(() {
@@ -113,7 +113,7 @@ class _SettlementPageState extends State<SettlementPage> {
                           color: Colors.grey,
                         ),
                         SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
+                          scrollDirection: MediaQuery.of(context).size.height > 500 ? Axis.vertical : Axis.horizontal,
                           child: Container(
                             child: Row(
                               children: [
