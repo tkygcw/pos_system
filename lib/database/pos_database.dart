@@ -864,7 +864,7 @@ class PosDatabase {
           data.updated_at,
           data.soft_delete
         ]);
-    return data.copy(modifier_link_product_id: await id);
+    return data.copy(modifier_link_product_sqlite_id: await id);
   }
 
 /*
@@ -1671,6 +1671,17 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT DISTINCT a.* FROM $tableProduct AS a JOIN $tableBranchLinkProduct AS b ON a.product_id = b.product_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.available = ?',
         ['', '', 1]);
+    return result.map((json) => Product.fromJson(json)).toList();
+  }
+
+  /*
+  read all product
+*/
+  Future<List<Product>> readAllProductForProductSetting() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT DISTINCT a.* FROM $tableProduct AS a JOIN $tableBranchLinkProduct AS b ON a.product_id = b.product_id WHERE a.soft_delete = ? AND b.soft_delete = ?',
+        ['', '']);
     return result.map((json) => Product.fromJson(json)).toList();
   }
 

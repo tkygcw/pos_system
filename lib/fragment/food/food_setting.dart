@@ -234,7 +234,7 @@ class _FoodSettingState extends State<FoodSetting> {
   }
 
   readAllProduct() async {
-    List<Product> data = await PosDatabase.instance.readAllProduct();
+    List<Product> data = await PosDatabase.instance.readAllProductForProductSetting();
     setState(() {
       allProduct = data;
       isLoading = false;

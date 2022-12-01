@@ -20,7 +20,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  bool network = true;
   @override
   void initState()  {
     // TODO: implement initState
@@ -88,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
                   recoverPasswordSuccess: 'Password reset successfully',
                 ),
                 scrollable: false,
-                logo: network == true ? NetworkImage(
+                logo: File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg').existsSync() == false ? NetworkImage(
                     "https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg") : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
                 onLogin: _authUser,
                 onSubmitAnimationCompleted: () {
@@ -118,7 +117,6 @@ class _LoginPageState extends State<LoginPage> {
     final int? branch_id = prefs.getInt('branch_id');
     final int? device_id = prefs.getInt('device_id');
     if(user != '' && user !=null && branch_id != '' && branch_id !=null && device_id != '' && device_id !=null ){
-      network = false;
       Navigator.of(context).pushReplacement(MaterialPageRoute(
         builder: (context) => PosPinPage(),
       ));
