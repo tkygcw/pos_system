@@ -119,8 +119,8 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                               await getOrderCache(paidOrderList[index].order_sqlite_id.toString());
                               for(int i = 0 ; i < orderCacheList.length; i++){
                                 await getOrderDetail(orderCacheList[i]);
-                                await addToCart(cart, orderCacheList[i]);
                               }
+                              await addToCart(cart, orderCacheList);
                               await callReadOrderTaxPromoDetail(paidOrderList[index]);
                               if(_readComplete == true){
                                 await paymentAddToCart(paidOrderList[index], cart);
@@ -172,7 +172,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     cart.addPaymentDetail(value);
   }
 
-  addToCart(CartModel cart, OrderCache orderCache) async {
+  addToCart(CartModel cart, List<OrderCache> orderCacheList) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     var value;
@@ -192,25 +192,29 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
           Colors.black
       );
       cart.addItem(value);
-      if(orderCache.dining_id == '2'){
+
+    }
+    for (int j = 0; j < orderCacheList.length; j++) {
+      //Get specific table use detail
+      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readDeleteOnlyTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
+      tableUseDetailList = List.from(tableUseDetailData);
+      //add selected dining option
+      if(orderCacheList[j].dining_id == '2'){
         cart.selectedOption = 'Take Away';
-      } else if(orderCache.dining_id == '3'){
+      } else if(orderCacheList[j].dining_id == '3'){
         cart.selectedOption = 'Delivery';
       } else {
         cart.selectedOption = 'Dine in';
       }
     }
-    //Get specific table use detail
-    List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
-        .readDeleteOnlyTableUseDetail(orderCache.table_use_sqlite_id!);
-    tableUseDetailList = List.from(tableUseDetailData);
 
     for (int k = 0; k < tableUseDetailList.length; k++) {
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(branch_id!, tableUseDetailList[k].table_sqlite_id!);
       if(cart.selectedTable.length > 0) {
-        if(cart.selectedTable[0].table_sqlite_id != tableData[0].table_sqlite_id){
+        if(!cart.selectedTable.contains(tableData)){
           cart.addTable(tableData[0]);
         }
+
       } else {
         cart.addTable(tableData[0]);
       }

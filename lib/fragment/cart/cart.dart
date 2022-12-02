@@ -113,8 +113,8 @@ class _CartPageState extends State<CartPage> {
   @override
   void deactivate() {
     // TODO: implement deactivate
-    controller.close();
     super.deactivate();
+    controller.close();
   }
 
   @override
@@ -651,8 +651,9 @@ class _CartPageState extends State<CartPage> {
                               }
                             },
                             child: widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
-                                ? Text('Place Order')
-                                : widget.currentPage == 'table' || widget.currentPage == 'other_order' ? Text('Make payment')
+                                ? Text('Place order (RM ${this.finalAmount})')
+                                : widget.currentPage == 'table' || widget.currentPage == 'other_order' ? 
+                                  Text('Make payment (RM ${this.finalAmount})')
                                 : Text('Print Receipt'),
                           ),
                         ),
@@ -895,7 +896,10 @@ class _CartPageState extends State<CartPage> {
     promoAmount = 0.0;
     getAutoApplyPromotion(cart);
     getManualApplyPromotion(cart);
-    controller.add('refresh');
+    if (!controller.isClosed){
+      controller.sink.add('refresh');
+    }
+
   }
 
   getManualApplyPromotion(CartModel cart) {
@@ -926,7 +930,9 @@ class _CartPageState extends State<CartPage> {
     } catch (error) {
       print('Get manual promotion error: $error');
     }
-    controller.add('refresh');
+    if (!controller.isClosed){
+      controller.sink.add('refresh');
+    }
   }
 
   specificCategoryAmount(Promotion promotion, List<cartProductItem> cartItem) {
@@ -1024,7 +1030,10 @@ class _CartPageState extends State<CartPage> {
       print('Promotion error $error');
       promo = 0.0;
     }
-    controller.add('refresh');
+    if(!controller.isClosed){
+      controller.sink.add('refresh');
+    }
+
   }
 
   autoApplyNonSpecificCategoryAmount(Promotion promotion, CartModel cart) {
@@ -1098,8 +1107,10 @@ class _CartPageState extends State<CartPage> {
     } catch (error) {
       print('get dining tax error: $error');
     }
+    if (!controller.isClosed){
+      controller.sink.add('refresh');
+    }
 
-    controller.add('refresh');
   }
 
 /*
@@ -1168,8 +1179,9 @@ class _CartPageState extends State<CartPage> {
     }catch(e){
       print('get tax amount error: $e');
     }
-
-    controller.add('refresh');
+    if (!controller.isClosed){
+      controller.sink.add('refresh');
+    }
   }
 
   getAllTaxAmount(){
@@ -1190,7 +1202,9 @@ class _CartPageState extends State<CartPage> {
       rounding = 0.0;
     }
 
-    controller.add('refresh');
+    if (!controller.isClosed){
+      controller.sink.add('refresh');
+    }
   }
 
   getAllTotal() {
@@ -1210,7 +1224,9 @@ class _CartPageState extends State<CartPage> {
       print('Total calc error: $error');
     }
 
-    controller.add('refresh');
+    if (!controller.isClosed){
+      controller.sink.add('refresh');
+    }
   }
 
 /*

@@ -44,9 +44,12 @@ class _SettlementPageState extends State<SettlementPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Scaffold(
-        body: isLoad
-            ? Container(
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          if(constraints.maxWidth > 800){
+            return Scaffold(
+              body: isLoad
+                  ? Container(
                 child: Padding(
                   padding: EdgeInsets.all(20),
                   child: SingleChildScrollView(
@@ -64,7 +67,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                 Spacer(),
                                 Container(
                                   margin: EdgeInsets.only(right: 10),
-                                  width: MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 3 : MediaQuery.of(context).size.width/4 ,
+                                  width: MediaQuery.of(context).size.height / 3 ,
                                   child: DropdownButton<String>(
                                     onChanged: (String? value) {
                                       setState(() {
@@ -85,25 +88,292 @@ class _SettlementPageState extends State<SettlementPage> {
                                     // The list of options
                                     items: paymentNameList
                                         .map((e) => DropdownMenuItem(
-                                              value: e,
-                                              child: Container(
-                                                alignment: Alignment.centerLeft,
-                                                child: Text(
-                                                  e,
-                                                  style:
-                                                      TextStyle(fontSize: 18),
-                                                ),
-                                              ),
-                                            ))
+                                      value: e,
+                                      child: Container(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          e,
+                                          style:
+                                          TextStyle(fontSize: 18),
+                                        ),
+                                      ),
+                                    ))
                                         .toList(),
                                     // Customize the selected item
                                     selectedItemBuilder:
                                         (BuildContext context) =>
-                                            paymentNameList
-                                                .map((e) => Center(
-                                                      child: Text(e),
-                                                    ))
-                                                .toList(),
+                                        paymentNameList
+                                            .map((e) => Center(
+                                          child: Text(e),
+                                        ))
+                                            .toList(),
+                                  ),
+                                ),
+                              ],
+                            )),
+                        Divider(
+                          height: 10,
+                          color: Colors.grey,
+                        ),
+                        Container(
+                          child: Row(
+                            children: [
+                              ElevatedButton(
+                                  child: Text('Cash-in'),
+                                  onPressed: () {
+                                    openCashDialog(true, false);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                      primary: color.backgroundColor)),
+                              Container(
+                                height: 30,
+                                child: VerticalDivider(
+                                    color: Colors.grey, thickness: 1),
+                              ),
+                              ElevatedButton(
+                                child: Text('Cash-out'),
+                                onPressed: () {
+                                  if(cashRecordList.length > 0){
+                                    openCashOutDialog();
+                                    // openCashDialog(false, true);
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Color(0xFFFF0000),
+                                        msg: "No record");
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    primary: color.buttonColor),
+                              ),
+                              Container(
+                                height: 30,
+                                child: VerticalDivider(
+                                    color: Colors.grey, thickness: 1),
+                              ),
+                              ElevatedButton(
+                                child: Text('Settlement'),
+                                onPressed: () {
+                                  if(cashRecordList.length > 0){
+                                    openSettlementDialog(cashRecordList);
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Color(0xFFFF0000),
+                                        msg: "No record");
+                                  }
+
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    primary: color.backgroundColor),
+                              ),
+                              Container(
+                                height: 30,
+                                child: VerticalDivider(
+                                    color: Colors.grey, thickness: 1),
+                              ),
+                              ElevatedButton(
+                                child: Text('Settlement history'),
+                                onPressed: () {
+                                  openSettlementHistoryDialog();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    primary: color.buttonColor),
+                              ),
+                              Container(
+                                height: 30,
+                                child: VerticalDivider(
+                                    color: Colors.grey, thickness: 1),
+                              ),
+                              ElevatedButton(
+                                child: Text('Transfer ownership'),
+                                onPressed: () async {
+
+                                  if (await confirm(
+                                    context,
+                                    title: Text(
+                                        '${AppLocalizations.of(context)?.translate('confirm_pos_pin')}'),
+                                    content: Text(
+                                        '${AppLocalizations.of(context)?.translate('to_pos_pin')}'),
+                                    textOK: Text(
+                                        '${AppLocalizations.of(context)?.translate('yes')}'),
+                                    textCancel: Text(
+                                        '${AppLocalizations.of(context)?.translate('no')}'),
+                                  )) {
+                                    return toPosPinPage();
+                                  }
+
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    primary: color.backgroundColor),
+                              ),
+                              Container(
+                                height: 30,
+                                child: VerticalDivider(
+                                    color: Colors.grey, thickness: 1),
+                              ),
+                              ElevatedButton(
+                                child: Text('Open cash drawer'),
+                                onPressed: () {
+                                  openCashBoxDialog();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    primary: color.buttonColor),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Divider(
+                          height: 10,
+                          color: Colors.grey,
+                        ),
+                        cashRecordList.length > 0 ?
+                        Container(
+                          height: MediaQuery.of(context).size.height / 1.7,
+                          child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: cashRecordList.length,
+                              itemBuilder: (context, index) {
+                                return ListTile(
+                                  leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
+                                      ? Icon(Icons.payments_sharp)
+                                      : cashRecordList[index].payment_type_id == '2'
+                                      ? Icon(Icons.credit_card_rounded)
+                                      : Icon(Icons.wifi),
+                                  title: Text(
+                                      '${cashRecordList[index].remark}'),
+                                  subtitle: cashRecordList[index].type == 1 || cashRecordList[index].type == 0
+                                      ? Text(
+                                      'Cash in by: ${cashRecordList[index].userName}')
+                                      : cashRecordList[index].type == 2
+                                      ? Text(
+                                      'Cash-out by: ${cashRecordList[index].userName}')
+                                      : Text(
+                                      'Close by: ${cashRecordList[index].userName}'),
+                                  trailing: cashRecordList[index].type == 2
+                                      ? Text(
+                                      '-${cashRecordList[index].amount}',
+                                      style: TextStyle(
+                                          color: Colors.red))
+                                      : Text(
+                                      '+${cashRecordList[index].amount}',
+                                      style: TextStyle(
+                                          color: Colors.green)),
+                                  onLongPress: () async {
+                                    if(cashRecordList[index].type != 0 && cashRecordList[index].type != 3){
+                                      if (await confirm(
+                                        context,
+                                        title: Text(
+                                            '${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
+                                        content: Text(
+                                            '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                                        textOK: Text(
+                                            '${AppLocalizations.of(context)?.translate('yes')}'),
+                                        textCancel: Text(
+                                            '${AppLocalizations.of(context)?.translate('no')}'),
+                                      )) {
+                                        return removeCashRecord(
+                                            cashRecordList[index]);
+                                      }
+                                    }
+                                  },
+                                );
+                              }),
+                        ) : Container(
+                          alignment: Alignment.center,
+                          height: MediaQuery.of(context).size.height / 1.7,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.menu),
+                              Text('NO RECORD'),
+                            ],
+                          ),
+                        ),
+                        Divider(
+                          height: 10,
+                          color: Colors.grey,
+                        ),
+                        Container(
+                            margin: EdgeInsets.all(15),
+                            padding: EdgeInsets.only(right: 10),
+                            alignment: Alignment.bottomRight,
+                            child: Text(
+                              '${getTotalAmount()}',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 30),
+                            )),
+                        Divider(
+                          height: 10,
+                          color: Colors.grey,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+                  : CustomProgressBar(),
+            );
+          } else {
+            //mobile view
+            return Scaffold(
+              body: isLoad
+                  ? Container(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Container(
+                            margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                            alignment: Alignment.topLeft,
+                            child: Row(
+                              children: [
+                                Text(
+                                  "Settlement",
+                                  style: TextStyle(fontSize: 25),
+                                ),
+                                Spacer(),
+                                Container(
+                                  margin: EdgeInsets.only(right: 10),
+                                  width: MediaQuery.of(context).size.width/4 ,
+                                  child: DropdownButton<String>(
+                                    onChanged: (String? value) {
+                                      setState(() {
+                                        selectedPayment = value!;
+                                        readCashRecord();
+                                      });
+                                      //getCashRecord();
+                                    },
+                                    menuMaxHeight: 300,
+                                    value: selectedPayment,
+                                    // Hide the default underline
+                                    underline: Container(),
+                                    icon: Icon(
+                                      Icons.arrow_drop_down,
+                                      color: color.backgroundColor,
+                                    ),
+                                    isExpanded: true,
+                                    // The list of options
+                                    items: paymentNameList
+                                        .map((e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Container(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          e,
+                                          style:
+                                          TextStyle(fontSize: 18),
+                                        ),
+                                      ),
+                                    ))
+                                        .toList(),
+                                    // Customize the selected item
+                                    selectedItemBuilder:
+                                        (BuildContext context) =>
+                                        paymentNameList
+                                            .map((e) => Center(
+                                          child: Text(e),
+                                        ))
+                                            .toList(),
                                   ),
                                 ),
                               ],
@@ -113,7 +383,7 @@ class _SettlementPageState extends State<SettlementPage> {
                           color: Colors.grey,
                         ),
                         SingleChildScrollView(
-                          scrollDirection: MediaQuery.of(context).size.height > 500 ? Axis.vertical : Axis.horizontal,
+                          scrollDirection: Axis.horizontal,
                           child: Container(
                             child: Row(
                               children: [
@@ -225,95 +495,106 @@ class _SettlementPageState extends State<SettlementPage> {
                           height: 10,
                           color: Colors.grey,
                         ),
-                        cashRecordList.length > 0
-                            ? Container(
-                                height:
-                                MediaQuery.of(context).size.height / 1.7,
-                                child: ListView.builder(
-                                    shrinkWrap: true,
-                                    itemCount: cashRecordList.length,
-                                    itemBuilder: (context, index) {
-                                      return ListTile(
-                                        leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
-                                            ? Icon(Icons.payments_sharp)
-                                            : cashRecordList[index].payment_type_id == '2'
-                                            ? Icon(Icons.credit_card_rounded)
-                                            : Icon(Icons.wifi),
-                                        title: Text(
-                                            '${cashRecordList[index].remark}'),
-                                        subtitle: cashRecordList[index].type == 1 || cashRecordList[index].type == 0
-                                            ? Text(
-                                                'Cash in by: ${cashRecordList[index].userName}')
-                                            : cashRecordList[index].type == 2
-                                                ? Text(
-                                                    'Cash-out by: ${cashRecordList[index].userName}')
-                                                : Text(
-                                                    'Close by: ${cashRecordList[index].userName}'),
-                                        trailing: cashRecordList[index].type == 2
-                                            ? Text(
-                                                '-${cashRecordList[index].amount}',
-                                                style: TextStyle(
-                                                    color: Colors.red))
-                                            : Text(
-                                                '+${cashRecordList[index].amount}',
-                                                style: TextStyle(
-                                                    color: Colors.green)),
-                                        onLongPress: () async {
-                                          if(cashRecordList[index].type != 0 && cashRecordList[index].type != 3){
-                                            if (await confirm(
-                                              context,
-                                              title: Text(
-                                                  '${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
-                                              content: Text(
-                                                  '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
-                                              textOK: Text(
-                                                  '${AppLocalizations.of(context)?.translate('yes')}'),
-                                              textCancel: Text(
-                                                  '${AppLocalizations.of(context)?.translate('no')}'),
-                                            )) {
-                                              return removeCashRecord(
-                                                  cashRecordList[index]);
-                                            }
-                                          }
-                                        },
-                                      );
-                                    }),
-                              )
-                            : Container(
-                                alignment: Alignment.center,
-                                height:
-                                    MediaQuery.of(context).size.height / 1.7,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.menu),
-                                    Text('NO RECORD'),
-                                  ],
-                                ),
-                              ),
-                        Divider(
-                          height: 10,
-                          color: Colors.grey,
-                        ),
+                        cashRecordList.length > 0 ?
                         Container(
-                            margin: EdgeInsets.all(15),
-                            padding: EdgeInsets.only(right: 10),
-                            alignment: Alignment.bottomRight,
-                            child: Text(
-                              '${getTotalAmount()}',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 30),
-                            )),
-                        Divider(
-                          height: 10,
-                          color: Colors.grey,
+                          margin: EdgeInsets.fromLTRB(25, 0, 25, 0),
+                          height: MediaQuery.of(context).size.height / 1.7,
+                          child: Scrollbar(
+                            child: ListView.builder(
+                                shrinkWrap: true,
+                                primary: false,
+                                itemCount: cashRecordList.length,
+                                itemBuilder: (context, index) {
+                                  return ListTile(
+                                    leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
+                                        ? Icon(Icons.payments_sharp)
+                                        : cashRecordList[index].payment_type_id == '2'
+                                        ? Icon(Icons.credit_card_rounded)
+                                        : Icon(Icons.wifi),
+                                    title: Text(
+                                        '${cashRecordList[index].remark}'),
+                                    subtitle: cashRecordList[index].type == 1 || cashRecordList[index].type == 0
+                                        ? Text(
+                                        'Cash in by: ${cashRecordList[index].userName}')
+                                        : cashRecordList[index].type == 2
+                                        ? Text(
+                                        'Cash-out by: ${cashRecordList[index].userName}')
+                                        : Text(
+                                        'Close by: ${cashRecordList[index].userName}'),
+                                    trailing: cashRecordList[index].type == 2
+                                        ? Text(
+                                        '-${cashRecordList[index].amount}',
+                                        style: TextStyle(
+                                            color: Colors.red))
+                                        : Text(
+                                        '+${cashRecordList[index].amount}',
+                                        style: TextStyle(
+                                            color: Colors.green)),
+                                    onLongPress: () async {
+                                      if(cashRecordList[index].type != 0 && cashRecordList[index].type != 3){
+                                        if (await confirm(
+                                          context,
+                                          title: Text(
+                                              '${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
+                                          content: Text(
+                                              '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                                          textOK: Text(
+                                              '${AppLocalizations.of(context)?.translate('yes')}'),
+                                          textCancel: Text(
+                                              '${AppLocalizations.of(context)?.translate('no')}'),
+                                        )) {
+                                          return removeCashRecord(
+                                              cashRecordList[index]);
+                                        }
+                                      }
+                                    },
+                                  );
+                                }),
+                          ),
+                        ) : Container(
+                          alignment: Alignment.center,
+                          height: MediaQuery.of(context).size.height / 1.7,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.menu),
+                              Text('NO RECORD'),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
               )
-            : CustomProgressBar(),
+                  : CustomProgressBar(),
+              bottomNavigationBar: Container(
+                height: MediaQuery.of(context).size.height / 4,
+                child: Column(
+                  children: [
+                    Divider(
+                      height: 10,
+                      color: Colors.grey,
+                    ),
+                    Container(
+                        margin: EdgeInsets.all(15),
+                        padding: EdgeInsets.only(right: 10),
+                        alignment: Alignment.bottomRight,
+                        child: Text(
+                          '${getTotalAmount()}',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 30),
+                        )),
+                    Divider(
+                      height: 10,
+                      color: Colors.grey,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+        }
       );
     });
   }

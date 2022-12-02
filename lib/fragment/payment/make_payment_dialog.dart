@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/payment/ipay_api.dart';
-// import 'package:pos_system/fragment/payment/ipay_api.dart';
 import 'package:pos_system/fragment/payment/number_button.dart';
 import 'package:pos_system/fragment/payment/payment_success_dialog.dart';
 import 'package:pos_system/notifier/theme_color.dart';
@@ -174,7 +173,7 @@ class _MakePaymentState extends State<MakePayment> {
               title: Text('Amount'),
               content: Container(
                   width: MediaQuery.of(context).size.width / 1,
-                  height: MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 1 : MediaQuery.of(context).size.height / 1.5,
+                  height: MediaQuery.of(context).size.height / 1,
                   child: StreamBuilder(
                       stream: streamController.stream, builder: (context, snapshot) {
                     return Consumer<CartModel>(builder: (context, CartModel cart, child) {
@@ -183,20 +182,19 @@ class _MakePaymentState extends State<MakePayment> {
                       return Row(
                         children: [
                           Expanded(
-                              flex: MediaQuery.of(context).size.width < 1300 ? 5 : 4,
                               child: Column(
                                 children: [
                                   Container(
-                                    margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(0, 15, 0, 15) : null,
+                                    margin: EdgeInsets.only(bottom: 20),
                                     alignment: Alignment.centerLeft,
-                                    child: Text('Table No: ${getSelectedTable(cart)}'),
+                                    child: Text('Table No: ${getSelectedTable(cart)}', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20)),
                                   ),
                                   Card(
                                     elevation: 5,
                                     child: Column(
                                       children: [
                                         Container(
-                                          height: MediaQuery.of(context).size.width < 1300 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 5,
+                                          height: MediaQuery.of(context).size.width < 1300 ? MediaQuery.of(context).size.width / 4.5 : MediaQuery.of(context).size.width / 5,
                                           child: ListView.builder(
                                               itemCount: cart.cartNotifierItem.length,
                                               itemBuilder: (context, index) {
@@ -367,58 +365,52 @@ class _MakePaymentState extends State<MakePayment> {
                                 ],
                               )
                           ),
-                          Expanded(
-                            flex: 2,
-                            child: Container(
-                              height: MediaQuery.of(context).size.height,
-                              child: VerticalDivider(
-                                  color: Colors.grey, thickness: 1),
-                            ),
+                          Container(
+                            padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                            height: MediaQuery.of(context).size.height,
+                            child: VerticalDivider(
+                                color: Colors.grey, thickness: 1),
                           ),
                           Expanded(
-                            flex: 5,
                             child: widget.type == 0 ?
                             Container(
-                              margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(30, 0, 25, 0) : null,
-                              height: MediaQuery.of(context).size.height / 1 ,
+                              margin: EdgeInsets.fromLTRB(30, 0, 25, 0),
+                              height: MediaQuery.of(context).size.height / 1,
                               child: Column(
                                 children: [
                                   Container(
+                                    margin: EdgeInsets.only(bottom: 10),
                                     alignment: Alignment.centerLeft,
-                                    child: Text('Change: ${change}'),
+                                    child: Text('Change: ${change}', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
                                   ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: Container(
-                                      width: double.infinity,
-                                      alignment: MediaQuery.of(context).size.height > 500 ? AlignmentDirectional.bottomEnd : AlignmentDirectional.topCenter ,
-                                      child: ValueListenableBuilder(
-                                          valueListenable: inputController,
-                                          builder: (context, TextEditingValue value, __) {
-                                            return Container(
-                                              child: TextField(
-                                                onChanged: (value){
-                                                  calcChange(value);
-                                                },
-                                                keyboardType: TextInputType.number,
-                                                textAlign: TextAlign.right,
-                                                enabled: MediaQuery.of(context).size.height > 500 ? false : true,
-                                                maxLines: 1,
-                                                controller: inputController,
-                                                decoration: InputDecoration(
-                                                  border: OutlineInputBorder(
-                                                      borderSide: BorderSide(color: color.backgroundColor)),
-                                                  focusedBorder: OutlineInputBorder(
-                                                    borderSide: BorderSide(color: color.backgroundColor),
-                                                  ),
+                                  Container(
+                                    width: double.infinity,
+                                    alignment: AlignmentDirectional.bottomEnd,
+                                    child: ValueListenableBuilder(
+                                        valueListenable: inputController,
+                                        builder: (context, TextEditingValue value, __) {
+                                          return Container(
+                                            child: TextField(
+                                              onChanged: (value){
+                                                calcChange(value);
+                                              },
+                                              keyboardType: TextInputType.number,
+                                              textAlign: TextAlign.right,
+                                              enabled: false,
+                                              maxLines: 1,
+                                              controller: inputController,
+                                              decoration: InputDecoration(
+                                                border: OutlineInputBorder(
+                                                    borderSide: BorderSide(color: color.backgroundColor)),
+                                                focusedBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(color: color.backgroundColor),
                                                 ),
-                                                style:  TextStyle(fontSize: 40),
                                               ),
-                                            );
-                                          }),
-                                    ),
+                                              style:  TextStyle(fontSize: 40),
+                                            ),
+                                          );
+                                        }),
                                   ),
-                                  MediaQuery.of(context).size.height > 500 ?
                                   Expanded(
                                     flex: 7,
                                     child: GridView.builder(
@@ -531,7 +523,7 @@ class _MakePaymentState extends State<MakePayment> {
                                             return NumberButton(
                                               buttontapped: () async  {
                                                 if(double.parse(inputController.text) >= double.parse(finalAmount)){
-                                                  await callCreateOrder(inputController.text, change);
+                                                  await callCreateOrder(inputController.text, orderChange: change);
                                                   openPaymentSuccessDialog(widget.dining_id);
                                                   //ReceiptLayout().openCashDrawer();
                                                 } else {
@@ -579,77 +571,43 @@ class _MakePaymentState extends State<MakePayment> {
                                             );
                                           }
                                         }),
-                                  ): SizedBox(
-                                    height: 50,
-                                    child: ElevatedButton(
-                                        onPressed: () async {
-                                          if(double.parse(inputController.text) >= double.parse(finalAmount)){
-                                            await callCreateOrder(inputController.text, change);
-                                            openPaymentSuccessDialog(widget.dining_id);
-                                            //ReceiptLayout().openCashDrawer();
-                                          } else {
-                                            Fluttertoast.showToast(
-                                                backgroundColor: Color(0xFFFF0000),
-                                                msg: "Insufficient balance");
-                                            setState(() {
-                                              inputController.text = '0.00';
-                                            });
-                                          }
-                                        },
-                                        child: Text('Pay')),
                                   ),
                                 ],
                               ), // GridView.builder
                             ): widget.type == 1  ?
                             Container(
                               child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Expanded(
-                                      flex: 6,
-                                      child: Container(
-                                        child: ClipRRect(
-                                          borderRadius:
-                                          BorderRadius.circular(16.0),
-                                          child:
-
-                                          ///***If you have exported images you must have to copy those images in assets/images directory.
-                                          Image(
-                                            image: NetworkImage(
-                                                "https://v.icbc.com.cn/userfiles/Resources/ICBC/haiwai/Malaysia/photo/2021/mobil202108034.jpg"),
-                                            height: MediaQuery.of(context).size.height/2,
-                                            width: MediaQuery.of(context).size.width/2,
-                                          ),
-                                        ),
-
-                                      )
+                                  Container(
+                                    child: ClipRRect(
+                                      borderRadius:
+                                      BorderRadius.circular(16.0),
+                                      child:
+                                      ///***If you have exported images you must have to copy those images in assets/images directory.
+                                      Image(
+                                        image: NetworkImage(
+                                            "https://v.icbc.com.cn/userfiles/Resources/ICBC/haiwai/Malaysia/photo/2021/mobil202108034.jpg"),
+                                      ),
+                                    ),
                                   ),
-                                  Expanded(
-                                      flex:1,
-                                      child: Container(
-                                        alignment: Alignment.center,
-                                        child: Text('RM50.00',style: TextStyle(fontSize: 40,fontWeight: FontWeight.bold),),
-                                      )
+                                  Container(
+                                    margin: EdgeInsets.all(20),
+                                    child: Text('RM${finalAmount}',style: TextStyle(fontSize: 40,fontWeight: FontWeight.bold),),
                                   ),
-                                  Expanded(
-                                      flex:2,
-                                      child: Container(
-                                        alignment: Alignment.center,
-                                        child: SizedBox(
-                                          width: double.maxFinite,
-                                          height: 60,
-                                          child: ElevatedButton(
+                                  Container(
+                                    child: ElevatedButton(
+                                      style: ButtonStyle(
+                                          backgroundColor: MaterialStateProperty.all(Colors.green),
+                                        padding: MaterialStateProperty.all(EdgeInsets.all(20))
+                                      ),
+                                      onPressed: () async {
+                                        await callCreateOrder(finalAmount);
+                                        openPaymentSuccessDialog(widget.dining_id);
+                                      }, child: Text("Received payment",style:TextStyle(fontSize: 25)),
 
-                                            style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.green)),
-                                            onPressed: () async {
-                                              await callCreateOrder(finalAmount, null);
-                                              openPaymentSuccessDialog(widget.dining_id);
-                                            }, child: Text("Confirm",style:TextStyle(fontSize: 25)),
-
-                                          ),
-                                        ),
-                                      )
+                                    ),
                                   ),
-                                  Expanded(flex: 1,child: Container())
                                 ],
                               ) ,
                             ): widget.type == 2 ?
@@ -679,8 +637,7 @@ class _MakePaymentState extends State<MakePayment> {
                                       flex:1,
                                       child: Container(
                                         alignment: Alignment.center,
-                                        child: rounding != 0.0 ? Text('RM${totalAmount.toStringAsFixed(1)}0',style: TextStyle(fontSize: 40,fontWeight: FontWeight.bold))
-                                            : Text('RM${totalAmount.toStringAsFixed(2)}',style: TextStyle(fontSize: 40,fontWeight: FontWeight.bold)),
+                                        child: Text('RM${finalAmount}',style: TextStyle(fontSize: 40,fontWeight: FontWeight.bold)),
                                       )
                                   ),
                                   Expanded(
@@ -697,7 +654,7 @@ class _MakePaymentState extends State<MakePayment> {
                                               });
                                               //await controller?.resumeCamera();
                                               await controller?.scannedDataStream;
-                                              await callCreateOrder(finalAmount, null);
+                                              await callCreateOrder(finalAmount);
 
                                             }, child: Text(scanning==false?"Start Scan":"Scanning...",style:TextStyle(fontSize: 25)),
 
@@ -716,550 +673,381 @@ class _MakePaymentState extends State<MakePayment> {
               ),
             );
           } else {
-            return SingleChildScrollView(
-              child: AlertDialog(
-                title: Text('Amount'),
-                content: Container(
-                    width: MediaQuery.of(context).size.width / 1,
-                    height: MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 1 : MediaQuery.of(context).size.height / 1.5,
-                    child: StreamBuilder(
-                        stream: streamController.stream, builder: (context, snapshot) {
-                      return Consumer<CartModel>(builder: (context, CartModel cart, child) {
-                        getSubTotal(cart);
-                        getCartItemList(cart);
-                        return Row(
-                          children: [
-                            Expanded(
-                                flex: MediaQuery.of(context).size.width < 1300 ? 5 : 4,
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(0, 15, 0, 15) : null,
-                                      alignment: Alignment.centerLeft,
-                                      child: Text('Table No: ${getSelectedTable(cart)}'),
-                                    ),
-                                    Card(
-                                      elevation: 5,
-                                      child: Column(
-                                        children: [
-                                          Container(
-                                            height: MediaQuery.of(context).size.width < 1300 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 5,
-                                            child: ListView.builder(
-                                                itemCount: cart.cartNotifierItem.length,
-                                                itemBuilder: (context, index) {
-                                                  return ListTile(
-                                                    hoverColor: Colors.transparent,
-                                                    onTap: null,
-                                                    isThreeLine: true,
-                                                    title: RichText(
-                                                      text: TextSpan(
-                                                        children: <TextSpan>[
-                                                          TextSpan(
-                                                            text: cart.cartNotifierItem[index].name +'\n',
-                                                            style: TextStyle(
-                                                                fontSize: MediaQuery.of(context).size.height > 500 ? 20 : 15 ,
-                                                                color: color.backgroundColor,
-                                                                fontWeight: FontWeight.bold),
-                                                          ),
-                                                          TextSpan(
-                                                              text: "RM" + cart.cartNotifierItem[index].price,
-                                                              style: TextStyle(fontSize: 15, color: color.backgroundColor,
-                                                              )),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                    subtitle: Text(getVariant(cart.cartNotifierItem[index]) +
-                                                        getModifier(cart.cartNotifierItem[index]) +
-                                                        getRemark(cart.cartNotifierItem[index]),
-                                                        style: TextStyle(fontSize: 12)),
-                                                    trailing: Container(
-                                                      child: FittedBox(
-                                                        child: Row(
-                                                          children: [
-                                                            Text('x${cart.cartNotifierItem[index].quantity.toString()}',
-                                                              style: TextStyle(color: color.backgroundColor),
+            //mobile view
+            return Center(
+              child: SingleChildScrollView(
+                child: AlertDialog(
+                  title: Text('Amount'),
+                  content: Container(
+                      width: MediaQuery.of(context).size.width / 1,
+                      height: MediaQuery.of(context).size.height/ 1.8,
+                      child: StreamBuilder(stream: streamController.stream, builder: (context, snapshot) {
+                        return Consumer<CartModel>(builder: (context, CartModel cart, child) {
+                          getSubTotal(cart);
+                          getCartItemList(cart);
+                          return Row(
+                            children: [
+                              Expanded(
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.only(bottom: 5),
+                                        alignment: Alignment.centerLeft,
+                                        child: Text('Table No: ${getSelectedTable(cart)}'),
+                                      ),
+                                      Card(
+                                        elevation: 5,
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              height: MediaQuery.of(context).size.height / 4,
+                                              child: ListView.builder(
+                                                  itemCount: cart.cartNotifierItem.length,
+                                                  padding: EdgeInsets.only(top: 10),
+                                                  itemBuilder: (context, index) {
+                                                    return ListTile(
+                                                      onTap: null,
+                                                      isThreeLine: true,
+                                                      title: RichText(
+                                                        text: TextSpan(
+                                                          children: <TextSpan>[
+                                                            TextSpan(
+                                                              text: cart.cartNotifierItem[index].name +'\n',
+                                                              style: TextStyle(
+                                                                  fontSize: 15 ,
+                                                                  color: color.backgroundColor,
+                                                                  fontWeight: FontWeight.bold),
                                                             ),
+                                                            TextSpan(
+                                                                text: "RM" + cart.cartNotifierItem[index].price,
+                                                                style: TextStyle(fontSize: 15, color: color.backgroundColor,
+                                                                )),
                                                           ],
                                                         ),
                                                       ),
-                                                    ),
-                                                  );
-                                                }
-                                            ),
-                                          ),
-                                          SizedBox(height: 10),
-                                          Divider(
-                                            color: Colors.grey,
-                                            height: 1,
-                                            thickness: 1,
-                                            indent: 20,
-                                            endIndent: 20,
-                                          ),
-                                          SizedBox(height: 10),
-                                          Container(
-                                            constraints: new BoxConstraints(
-                                                maxHeight: MediaQuery.of(context).size.height < 500 && cart.selectedOption == 'Dine in' ? 31 :
-                                                MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Dine in' ? 190 : 200
-                                            ),
-                                            // height: MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Dine in' ? 190
-                                            //         : MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Take Away' ? 180
-                                            //         : 200,
-                                            child: ListView(
-                                              controller: _controller,
-                                              padding: EdgeInsets.only(left: 5, right: 5),
-                                              physics: ClampingScrollPhysics(),
-                                              children: [
-                                                ListTile(
-                                                  title: Text("Subtotal",
-                                                      style: TextStyle(fontSize: 14)),
-                                                  trailing: Text('${total.toStringAsFixed(2)}',
-                                                      style: TextStyle(fontSize: 14)),
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  dense: true,
-                                                ),
-                                                Visibility(
-                                                  visible:
-                                                  hasSelectedPromo ? true : false,
-                                                  child: ListTile(
-                                                    title: SingleChildScrollView(
-                                                      scrollDirection: Axis.horizontal,
-                                                      child: Row(
-                                                        children: [
-                                                          Text('${allPromo} (${selectedPromoRate})',
-                                                              style: TextStyle(fontSize: 14)),
-                                                        ],
+                                                      subtitle: Text(getVariant(cart.cartNotifierItem[index]) +
+                                                          getModifier(cart.cartNotifierItem[index]) +
+                                                          getRemark(cart.cartNotifierItem[index]),
+                                                          style: TextStyle(fontSize: 12)),
+                                                      trailing: Container(
+                                                        child: FittedBox(
+                                                          child: Row(
+                                                            children: [
+                                                              Text('x${cart.cartNotifierItem[index].quantity.toString()}',
+                                                                style: TextStyle(color: color.backgroundColor),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
                                                       ),
-                                                    ),
-                                                    trailing: Text(
-                                                        '-${selectedPromo.toStringAsFixed(2)}',
+                                                    );
+                                                  }
+                                              ),
+                                            ),
+                                            SizedBox(height: 5),
+                                            Divider(
+                                              color: Colors.grey,
+                                              height: 1,
+                                              thickness: 1,
+                                              indent: 20,
+                                              endIndent: 20,
+                                            ),
+                                            SizedBox(height: 5),
+                                            Container(
+                                              constraints: new BoxConstraints(
+                                                  maxHeight: MediaQuery.of(context).size.height < 500 && cart.selectedOption == 'Dine in' ? 31 :
+                                                  MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Dine in' ? 190 : 200
+                                              ),
+                                              // height: MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Dine in' ? 190
+                                              //         : MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Take Away' ? 180
+                                              //         : 200,
+                                              child: ListView(
+                                                controller: _controller,
+                                                padding: EdgeInsets.only(left: 5, right: 5),
+                                                physics: ClampingScrollPhysics(),
+                                                children: [
+                                                  ListTile(
+                                                    title: Text("Subtotal",
+                                                        style: TextStyle(fontSize: 14)),
+                                                    trailing: Text('${total.toStringAsFixed(2)}',
                                                         style: TextStyle(fontSize: 14)),
                                                     visualDensity: VisualDensity(vertical: -4),
                                                     dense: true,
                                                   ),
-                                                ),
-                                                Visibility(
-                                                    visible: hasPromo == true ? true : false,
-                                                    child: ListView.builder(
-                                                        physics: NeverScrollableScrollPhysics(),
-                                                        padding: EdgeInsets.zero,
-                                                        shrinkWrap: true,
-                                                        itemCount: autoApplyPromotionList.length,
-                                                        itemBuilder: (context, index) {
-                                                          return ListTile(
-                                                              title: Text(
-                                                                  '${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
-                                                                  style: TextStyle(fontSize: 14)),
-                                                              visualDensity:
-                                                              VisualDensity(vertical: -4),
-                                                              dense: true,
-                                                              trailing: Text(
-                                                                  '-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
-                                                                  style: TextStyle(fontSize: 14)));
-                                                        })),
-                                                ListView.builder(
-                                                    shrinkWrap: true,
-                                                    padding: EdgeInsets.zero,
-                                                    physics: NeverScrollableScrollPhysics(),
-                                                    itemCount: taxList.length,
-                                                    itemBuilder: (context, index){
-                                                      return ListTile(
-                                                        title: Text('${taxList[index].name}(${taxList[index].tax_rate}%)'),
-                                                        trailing: Text('${taxList[index].tax_amount?.toStringAsFixed(2)}'), //Text(''),
-                                                        visualDensity: VisualDensity(vertical: -4),
-                                                        dense: true,
-                                                      );
-                                                    }
-                                                ),
-                                                ListTile(
-                                                  title: Text("Total",
-                                                      style: TextStyle(fontSize: 14)),
-                                                  trailing: Text('${totalAmount.toStringAsFixed(2)}',
-                                                      style: TextStyle(fontSize: 14)),
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  dense: true,
-                                                ),
-                                                ListTile(
-                                                  title: Text("Rounding",
-                                                      style: TextStyle(fontSize: 14)),
-                                                  trailing: Text('${rounding.toStringAsFixed(2)}',
-                                                      style: TextStyle(fontSize: 14)),
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  dense: true,
-                                                ),
-                                                ListTile(
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  title: Text("Final amount",
-                                                      style: TextStyle(
-                                                          fontSize: 18,
-                                                          fontWeight: FontWeight.bold)),
-                                                  trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                                  dense: true,
-                                                ),
-                                              ],
-                                              shrinkWrap: true,
+                                                  Visibility(
+                                                    visible:
+                                                    hasSelectedPromo ? true : false,
+                                                    child: ListTile(
+                                                      title: SingleChildScrollView(
+                                                        scrollDirection: Axis.horizontal,
+                                                        child: Row(
+                                                          children: [
+                                                            Text('${allPromo} (${selectedPromoRate})',
+                                                                style: TextStyle(fontSize: 14)),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      trailing: Text(
+                                                          '-${selectedPromo.toStringAsFixed(2)}',
+                                                          style: TextStyle(fontSize: 14)),
+                                                      visualDensity: VisualDensity(vertical: -4),
+                                                      dense: true,
+                                                    ),
+                                                  ),
+                                                  Visibility(
+                                                      visible: hasPromo == true ? true : false,
+                                                      child: ListView.builder(
+                                                          physics: NeverScrollableScrollPhysics(),
+                                                          padding: EdgeInsets.zero,
+                                                          shrinkWrap: true,
+                                                          itemCount: autoApplyPromotionList.length,
+                                                          itemBuilder: (context, index) {
+                                                            return ListTile(
+                                                                title: Text(
+                                                                    '${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
+                                                                    style: TextStyle(fontSize: 14)),
+                                                                visualDensity:
+                                                                VisualDensity(vertical: -4),
+                                                                dense: true,
+                                                                trailing: Text(
+                                                                    '-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
+                                                                    style: TextStyle(fontSize: 14)));
+                                                          })),
+                                                  ListView.builder(
+                                                      shrinkWrap: true,
+                                                      padding: EdgeInsets.zero,
+                                                      physics: NeverScrollableScrollPhysics(),
+                                                      itemCount: taxList.length,
+                                                      itemBuilder: (context, index){
+                                                        return ListTile(
+                                                          title: Text('${taxList[index].name}(${taxList[index].tax_rate}%)'),
+                                                          trailing: Text('${taxList[index].tax_amount?.toStringAsFixed(2)}'), //Text(''),
+                                                          visualDensity: VisualDensity(vertical: -4),
+                                                          dense: true,
+                                                        );
+                                                      }
+                                                  ),
+                                                  ListTile(
+                                                    title: Text("Total",
+                                                        style: TextStyle(fontSize: 14)),
+                                                    trailing: Text('${totalAmount.toStringAsFixed(2)}',
+                                                        style: TextStyle(fontSize: 14)),
+                                                    visualDensity: VisualDensity(vertical: -4),
+                                                    dense: true,
+                                                  ),
+                                                  ListTile(
+                                                    title: Text("Rounding",
+                                                        style: TextStyle(fontSize: 14)),
+                                                    trailing: Text('${rounding.toStringAsFixed(2)}',
+                                                        style: TextStyle(fontSize: 14)),
+                                                    visualDensity: VisualDensity(vertical: -4),
+                                                    dense: true,
+                                                  ),
+                                                  ListTile(
+                                                    visualDensity: VisualDensity(vertical: -4),
+                                                    title: Text("Final amount",
+                                                        style: TextStyle(
+                                                            fontSize: 18,
+                                                            fontWeight: FontWeight.bold)),
+                                                    trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                                    dense: true,
+                                                  ),
+                                                ],
+                                                shrinkWrap: true,
+                                              ),
                                             ),
-                                          ),
-                                          SizedBox(height: 10),
-                                          Divider(
-                                            color: Colors.grey,
-                                            height: 1,
-                                            thickness: 1,
-                                            indent: 20,
-                                            endIndent: 20,
-                                          ),
-                                          SizedBox(height: 10),
-                                        ],
+                                            SizedBox(height: 10),
+                                            Divider(
+                                              color: Colors.grey,
+                                              height: 1,
+                                              thickness: 1,
+                                              indent: 20,
+                                              endIndent: 20,
+                                            ),
+                                            SizedBox(height: 10),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                )
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Container(
-                                height: MediaQuery.of(context).size.height,
+                                    ],
+                                  )
+                              ),
+                              Container(
+                                padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+                                height: MediaQuery.of(context).size.height/2,
                                 child: VerticalDivider(
                                     color: Colors.grey, thickness: 1),
                               ),
-                            ),
-                            Expanded(
-                              flex: 5,
-                              child: widget.type == 0 ?
-                              Container(
-                                margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(30, 0, 25, 0) : null,
-                                height: MediaQuery.of(context).size.height / 1 ,
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text('Change: ${change}'),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Container(
-                                        width: double.infinity,
-                                        alignment: MediaQuery.of(context).size.height > 500 ? AlignmentDirectional.bottomEnd : AlignmentDirectional.topCenter ,
-                                        child: ValueListenableBuilder(
-                                            valueListenable: inputController,
-                                            builder: (context, TextEditingValue value, __) {
-                                              return Container(
-                                                child: TextField(
-                                                  onChanged: (value){
-                                                    calcChange(value);
-                                                  },
-                                                  keyboardType: TextInputType.number,
-                                                  textAlign: TextAlign.right,
-                                                  enabled: MediaQuery.of(context).size.height > 500 ? false : true,
-                                                  maxLines: 1,
-                                                  controller: inputController,
-                                                  decoration: InputDecoration(
-                                                    border: OutlineInputBorder(
-                                                        borderSide: BorderSide(color: color.backgroundColor)),
-                                                    focusedBorder: OutlineInputBorder(
-                                                      borderSide: BorderSide(color: color.backgroundColor),
-                                                    ),
-                                                  ),
-                                                  style:  TextStyle(fontSize: 40),
-                                                ),
-                                              );
-                                            }),
+                              Expanded(
+                                child: widget.type == 0 ?
+                                Container(
+                                  height: MediaQuery.of(context).size.height / 1 ,
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        margin: EdgeInsets.only(bottom: 10),
+                                        alignment: Alignment.centerLeft,
+                                        child: Text('Change: ${change}'),
                                       ),
-                                    ),
-                                    MediaQuery.of(context).size.height > 500 ?
-                                    Expanded(
-                                      flex: 7,
-                                      child: GridView.builder(
-                                          physics: NeverScrollableScrollPhysics(),
-                                          itemCount: buttons.length,
-                                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                            crossAxisCount: 4,
-                                            childAspectRatio: MediaQuery.of(context).size.width /
-                                                (MediaQuery.of(context).size.height / 0.9),),
-                                          itemBuilder: (BuildContext context, int index) {
-                                            // Clear Button
-                                            if (index == 3) {
-                                              return NumberButton(
-                                                buttontapped: () {
-                                                  if(inputController.text.length > 0){
-                                                    double value = double.parse(inputController.text) - double.parse(finalAmount);
-                                                    if(value > 0.0){
-                                                      setState(() {
-                                                        change = value.toStringAsFixed(2);
-                                                      });
-                                                    }
-                                                    setState(() {
-                                                      inputController.text = inputController.text.substring(0, inputController.text.length - 1);
-                                                    });
+                                      Expanded(
+                                        flex: 2,
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              margin: EdgeInsets.only(bottom: 10),
+                                              child: ValueListenableBuilder(
+                                                  valueListenable: inputController,
+                                                  builder: (context, TextEditingValue value, __) {
+                                                    return Container(
+                                                      child: TextField(
+                                                        onChanged: (value){
+                                                          calcChange(value);
+                                                        },
+                                                        keyboardType: TextInputType.number,
+                                                        textAlign: TextAlign.right,
+                                                        enabled: MediaQuery.of(context).size.height > 500 ? false : true,
+                                                        maxLines: 1,
+                                                        controller: inputController,
+                                                        decoration: InputDecoration(
+                                                          border: OutlineInputBorder(
+                                                              borderSide: BorderSide(color: color.backgroundColor)),
+                                                          focusedBorder: OutlineInputBorder(
+                                                            borderSide: BorderSide(color: color.backgroundColor),
+                                                          ),
+                                                        ),
+                                                        style:  TextStyle(fontSize: 40),
+                                                      ),
+                                                    );
+                                                  }),
+                                            ),
+                                            Expanded(
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Container(
+                                                    child: ElevatedButton(
+                                                        onPressed: () async {
+                                                          if(double.parse(inputController.text) >= double.parse(finalAmount)){
+                                                            await callCreateOrder(inputController.text, orderChange: change);
+                                                            openPaymentSuccessDialog(widget.dining_id);
+                                                            ReceiptLayout().openCashDrawer();
+                                                          } else {
+                                                            Fluttertoast.showToast(
+                                                                backgroundColor: Color(0xFFFF0000),
+                                                                msg: "Insufficient balance");
+                                                            setState(() {
+                                                              inputController.text = '0.00';
+                                                            });
+                                                          }
+                                                        },
+                                                        child: Text('Pay')),
+                                                  ),
+                                                  SizedBox(width: 10,),
+                                                  Container(
+                                                    child: ElevatedButton(
+                                                        onPressed: () async {
+                                                          inputController.clear();
+                                                          change = '0.00';
+                                                        },
+                                                        child: Text('Clear')),
+                                                  ),
+                                                ],
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ), // GridView.builder
+                                ): widget.type == 1  ?
+                                Container(
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        height: MediaQuery.of(context).size.height / 3,
+                                        child: ClipRRect(
+                                          borderRadius:
+                                          BorderRadius.circular(16.0),
+                                          child:
+                                          ///***If you have exported images you must have to copy those images in assets/images directory.
+                                          Image(
+                                            image: NetworkImage(
+                                                "https://v.icbc.com.cn/userfiles/Resources/ICBC/haiwai/Malaysia/photo/2021/mobil202108034.jpg"),
+                                            height: MediaQuery.of(context).size.height/2,
+                                            width: MediaQuery.of(context).size.width/2,
+                                          ),
+                                        ),
 
-                                                  }else {
-                                                    setState(() {
-                                                      change = '0.00';
-                                                    });
-                                                  }
-                                                },
-                                                buttonText: buttons[index],
-                                                color: color.backgroundColor,
-                                                textColor: Colors.white,
-                                              );
-                                            }
-                                            // DEL button
-                                            else if (index == 7) {
-                                              return NumberButton(
-                                                buttontapped: () {
-                                                  setState(() {
-                                                    change = '0.00';
-                                                    inputController.text = '';
-                                                  });
-                                                },
-                                                buttonText: buttons[index],
-                                                color: color.buttonColor,
-                                                textColor: Colors.white,
-                                              );
-                                            }
-                                            // RM 20.00 btn
-                                            else if (index == 16) {
-                                              return NumberButton(
-                                                buttontapped: () {
-                                                  setState(() {
-                                                    inputController.text = buttons[index];
-                                                  });
-                                                  double value = double.parse(inputController.text) - double.parse(finalAmount);
-                                                  if(value > 0.0){
-                                                    setState(() {
-                                                      change = value.toStringAsFixed(2);
-                                                    });
-                                                  }
-                                                },
-                                                buttonText: buttons[index],
-                                                color: color.backgroundColor,
-                                                textColor: Colors.white,
-                                              );
-                                            }
-                                            //RM 50 btn
-                                            else if (index == 17) {
-                                              return NumberButton(
-                                                buttontapped: () {
-                                                  setState(() {
-                                                    inputController.text = buttons[index];
-                                                  });
-                                                  double value = double.parse(inputController.text) - double.parse(finalAmount);
-                                                  if(value > 0.0){
-                                                    setState(() {
-                                                      change = value.toStringAsFixed(2);
-                                                    });
-                                                  }
-                                                },
-                                                buttonText: buttons[index],
-                                                color: color.buttonColor,
-                                                textColor: Colors.white,
-                                              );
-                                            }
-                                            //RM 100 btn
-                                            else if (index == 18) {
-                                              return NumberButton(
-                                                buttontapped: () {
-                                                  setState(() {
-                                                    inputController.text = buttons[index];
-                                                  });
-                                                  double value = double.parse(inputController.text) - double.parse(finalAmount);
-                                                  if(value > 0.0){
-                                                    setState(() {
-                                                      change = value.toStringAsFixed(2);
-                                                    });
-                                                  }
-                                                },
-                                                buttonText: buttons[index],
-                                                color: color.backgroundColor,
-                                                textColor: Colors.white,
-                                              );
-                                            }
-                                            //GO button
-                                            else if (index == 19) {
-                                              return NumberButton(
-                                                buttontapped: () async  {
-                                                  if(double.parse(inputController.text) >= double.parse(finalAmount)){
-                                                    await callCreateOrder(inputController.text, change);
-                                                    openPaymentSuccessDialog(widget.dining_id);
-                                                    //ReceiptLayout().openCashDrawer();
-                                                  } else {
-                                                    Fluttertoast.showToast(
-                                                        backgroundColor: Color(0xFFFF0000),
-                                                        msg: "Insufficient balance");
-                                                    setState(() {
-                                                      inputController.text = '0.00';
-                                                    });
-                                                  }
-                                                },
-                                                buttonText: buttons[index],
-                                                color: color.buttonColor,
-                                                textColor: Colors.white,
-                                              );
-                                            }
-                                            //  other buttons
-                                            else {
-                                              return NumberButton(
-                                                buttontapped: () {
-                                                  if(inputController.text.length < 6){
-                                                    if(inputController.text.contains('.')){
-                                                      var decimal = inputController.text.split(".")[1].length;
-                                                      if(decimal < 2){
-                                                        setState(() {
-                                                          inputController.text += buttons[index];
-                                                        });
-                                                      }
-                                                    } else {
-                                                      setState(() {
-                                                        inputController.text += buttons[index];
-                                                      });
-                                                    }
-                                                  }
-                                                  double value = double.parse(inputController.text) - double.parse(finalAmount);
-                                                  if(value > 0.0){
-                                                    setState(() {
-                                                      change = value.toStringAsFixed(2);
-                                                    });
-                                                  }
-                                                },
-                                                buttonText: buttons[index],
-                                                color: Colors.white,
-                                                textColor:  Colors.black,
-                                              );
-                                            }
-                                          }),
-                                    ): SizedBox(
-                                      height: 50,
-                                      child: ElevatedButton(
+                                      ),
+                                      Container(
+                                        alignment: Alignment.center,
+                                        child: Text('RM${finalAmount}',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                                      ),
+                                      Container(
+                                        alignment: Alignment.center,
+                                        child: ElevatedButton(
+                                          style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.green)),
                                           onPressed: () async {
-                                            if(double.parse(inputController.text) >= double.parse(finalAmount)){
-                                              await callCreateOrder(inputController.text, change);
-                                              openPaymentSuccessDialog(widget.dining_id);
-                                              //ReceiptLayout().openCashDrawer();
-                                            } else {
-                                              Fluttertoast.showToast(
-                                                  backgroundColor: Color(0xFFFF0000),
-                                                  msg: "Insufficient balance");
+                                            await callCreateOrder(finalAmount);
+                                            openPaymentSuccessDialog(widget.dining_id);
+                                          }, child: Text("Received payment",style:TextStyle(fontSize: 20)),
+                                        ),
+                                      ),
+                                    ],
+                                  ) ,
+                                ): widget.type == 2 ?
+                                Container(
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        height: scanning ? MediaQuery.of(context).size.height / 2 : MediaQuery.of(context).size.height / 3,
+                                        child: scanning == false ?
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(16.0),
+                                          child: Image(
+                                            image: NetworkImage(
+                                                "https://upload.wikimedia.org/wikipedia/commons/a/ac/Touch_%27n_Go_%282%29.png"),
+                                            height: MediaQuery.of(context).size.height/2,
+                                            width: MediaQuery.of(context).size.width/2,
+                                          ),
+                                        ):Container(
+                                          child: _buildQrViewMobile(context),
+                                        ),
+                                      ),
+                                      Visibility(
+                                        visible: scanning ? false: true,
+                                        child: Container(
+                                          alignment: Alignment.center,
+                                          child: Text('RM${finalAmount}',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold))
+                                        ),
+                                      ),
+                                      Visibility(
+                                        visible: scanning ? false : true,
+                                        child: Container(
+                                          alignment: Alignment.center,
+                                          child: ElevatedButton(
+                                            style: ButtonStyle(backgroundColor: MaterialStateProperty.all(color.backgroundColor) ),
+                                            onPressed: () async {
                                               setState(() {
-                                                inputController.text = '0.00';
+                                                scanning = true;
                                               });
-                                            }
-                                          },
-                                          child: Text('Pay')),
-                                    ),
-                                  ],
-                                ), // GridView.builder
-                              ): widget.type == 1  ?
-                              Container(
-                                child: Column(
-                                  children: [
-                                    Expanded(
-                                        flex: 6,
-                                        child: Container(
-                                          child: ClipRRect(
-                                            borderRadius:
-                                            BorderRadius.circular(16.0),
-                                            child:
+                                              //await controller?.resumeCamera();
+                                              await controller?.scannedDataStream;
+                                              await callCreateOrder(finalAmount);
 
-                                            ///***If you have exported images you must have to copy those images in assets/images directory.
-                                            Image(
-                                              image: NetworkImage(
-                                                  "https://v.icbc.com.cn/userfiles/Resources/ICBC/haiwai/Malaysia/photo/2021/mobil202108034.jpg"),
-                                              height: MediaQuery.of(context).size.height/2,
-                                              width: MediaQuery.of(context).size.width/2,
-                                            ),
+                                            }, child: Text("Start Scan",style:TextStyle(fontSize: 20)),
+
                                           ),
-
-                                        )
-                                    ),
-                                    Expanded(
-                                        flex:1,
-                                        child: Container(
-                                          alignment: Alignment.center,
-                                          child: Text('RM50.00',style: TextStyle(fontSize: 40,fontWeight: FontWeight.bold),),
-                                        )
-                                    ),
-                                    Expanded(
-                                        flex:2,
-                                        child: Container(
-                                          alignment: Alignment.center,
-                                          child: SizedBox(
-                                            width: double.maxFinite,
-                                            height: 60,
-                                            child: ElevatedButton(
-
-                                              style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.green)),
-                                              onPressed: () async {
-                                                await callCreateOrder(finalAmount, null);
-                                                openPaymentSuccessDialog(widget.dining_id);
-                                              }, child: Text("Confirm",style:TextStyle(fontSize: 25)),
-
-                                            ),
-                                          ),
-                                        )
-                                    ),
-                                    Expanded(flex: 1,child: Container())
-                                  ],
-                                ) ,
-                              ): widget.type == 2 ?
-                              Container(
-                                child: Column(
-                                  children: [
-                                    Expanded(
-                                        flex: 6,
-                                        child: Container(
-                                          child: scanning == false ?
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(16.0),
-                                            child: Image(
-                                              image: NetworkImage(
-                                                  "https://upload.wikimedia.org/wikipedia/commons/a/ac/Touch_%27n_Go_%282%29.png"),
-                                              height: MediaQuery.of(context).size.height/2,
-                                              width: MediaQuery.of(context).size.width/2,
-                                            ),
-                                          ):Container(
-                                            margin: EdgeInsets.all(25),
-                                            child: _buildQrView(context),
-                                          ),
-
-                                        )
-                                    ),
-                                    Expanded(
-                                        flex:1,
-                                        child: Container(
-                                          alignment: Alignment.center,
-                                          child: rounding != 0.0 ? Text('RM${totalAmount.toStringAsFixed(1)}0',style: TextStyle(fontSize: 40,fontWeight: FontWeight.bold))
-                                              : Text('RM${totalAmount.toStringAsFixed(2)}',style: TextStyle(fontSize: 40,fontWeight: FontWeight.bold)),
-                                        )
-                                    ),
-                                    Expanded(
-                                        flex:2,
-                                        child: Container(
-                                          alignment: Alignment.center,
-                                          child: SizedBox(
-                                            height: 60,
-                                            child: ElevatedButton(
-                                              style: ButtonStyle(backgroundColor: MaterialStateProperty.all(color.backgroundColor) ),
-                                              onPressed: () async {
-                                                setState(() {
-                                                  scanning = true;
-                                                });
-                                                //await controller?.resumeCamera();
-                                                await controller?.scannedDataStream;
-                                                await callCreateOrder(finalAmount, null);
-
-                                              }, child: Text(scanning==false?"Start Scan":"Scanning...",style:TextStyle(fontSize: 25)),
-
-                                            ),
-                                          ),
-                                        )
-                                    ),
-                                  ],
-                                ) ,
-                              ):Container(),
-                            )
-                          ],
-                        );
-                      });
-                    })
+                                        ),
+                                      )
+                                    ],
+                                  ) ,
+                                ):Container(),
+                              )
+                            ],
+                          );
+                        });
+                      })
+                  ),
                 ),
               ),
             );
@@ -1290,6 +1078,24 @@ class _MakePaymentState extends State<MakePayment> {
       onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
     );
   }
+  Widget _buildQrViewMobile(BuildContext context) {
+    // For this example we check how width or tall the device is and change the scanArea and overlay accordingly.
+    var scanArea = 200.00;
+    // To ensure the Scanner view is properly sizes after rotation
+    // we need to listen for Flutter SizeChanged notification and update controller
+    return QRView(
+      key: qrKey,
+      onQRViewCreated: _onQRViewCreated,
+      overlay: QrScannerOverlayShape(
+          borderColor: Colors.redAccent,
+          borderRadius: 5,
+          borderLength: 20,
+          borderWidth: 10,
+          cutOutSize: scanArea),
+      onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
+    );
+  }
+
   void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
     log('${DateTime.now().toIso8601String()}_onPermissionSet $p');
     if (!p) {
@@ -1808,7 +1614,7 @@ class _MakePaymentState extends State<MakePayment> {
   //   await crateOrderTaxDetail();
   //   await createOrderPromotionDetail();
   // }
-  callCreateOrder(String? paymentReceived, String? orderChange) async {
+  callCreateOrder(String? paymentReceived, {orderChange}) async {
     await createOrder(double.parse(paymentReceived!), orderChange);
     await crateOrderTaxDetail();
     await createOrderPromotionDetail();
