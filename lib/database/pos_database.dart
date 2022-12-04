@@ -1254,12 +1254,34 @@ class PosDatabase {
     }
   }
 
+  Future<VariantGroup?> readVariantGroupID(
+      String variant_group_sqlite_id) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery(
+        'SELECT * FROM $tableVariantGroup WHERE soft_delete = ? AND variant_group_sqlite_id = ?',
+        ['', variant_group_sqlite_id]);
+    if (maps.isNotEmpty) {
+      return VariantGroup.fromJson(maps.first);
+    }
+  }
+
   Future<ProductVariant?> readProductVariantSqliteID(
       String product_variant_id) async {
     final db = await instance.database;
     final maps = await db.rawQuery(
         'SELECT * FROM $tableProductVariant WHERE soft_delete = ? AND product_variant_id = ?',
         ['', product_variant_id]);
+    if (maps.isNotEmpty) {
+      return ProductVariant.fromJson(maps.first);
+    }
+  }
+
+  Future<ProductVariant?> readProductVariantID(
+      String product_variant_sqlite_id) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery(
+        'SELECT * FROM $tableProductVariant WHERE soft_delete = ? AND product_variant_sqlite_id = ?',
+        ['', product_variant_sqlite_id]);
     if (maps.isNotEmpty) {
       return ProductVariant.fromJson(maps.first);
     }

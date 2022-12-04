@@ -626,15 +626,17 @@ class _EditProductDialogState extends State<EditProductDialog> {
 /*
             ----------------------------end sync--------------------------------
 */
+
             for (int l = 0; l < variantList.length; l++) {
               if (needInsert[k] == variantList[l]['modGroup']) {
                 for (int m = 0; m < variantList[l]['modItem'].length; m++) {
+                  VariantGroup? variantGroup = await PosDatabase.instance.readVariantGroupID(variantGroupData.variant_group_sqlite_id.toString());
                   VariantItem item = await PosDatabase.instance
                       .insertVariantItem(VariantItem(
                           variant_item_id: 0,
-                          variant_group_id: variantGroupData.variant_group_id.toString(),
+                          variant_group_id: variantGroup?.variant_group_id.toString(),
                           variant_group_sqlite_id:
-                          variantGroupData.variant_group_sqlite_id.toString(),
+                          variantGroup?.variant_group_sqlite_id.toString(),
                           name: variantList[l]['modItem'][m],
                           sync_status: 0,
                           created_at: dateTime,
@@ -647,7 +649,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                       connectivityResult == ConnectivityResult.wifi) {
                     Map responseInsertVariantItem = await Domain()
                         .insertVariantItem(variantList[l]['modItem'][m],
-                        variantGroupData.variant_group_id.toString());
+                        variantGroup?.variant_group_id.toString());
                     if (responseInsertVariantItem['status'] == '1') {
                       int syncData = await PosDatabase.instance
                           .updateSyncVariantItem(VariantItem(
@@ -866,7 +868,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                     .insertProductVariant(ProductVariant(
                         product_variant_id: 0,
                         product_sqlite_id:
-                            widget.product!.product_id.toString(),
+                            widget.product!.product_sqlite_id.toString(),
                         product_id: widget.product!.product_id.toString(),
                         variant_name: productVariantList[s]['variant_name'],
                         SKU: productVariantList[s]['SKU'],
@@ -902,8 +904,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                   if (responseInsertProductVariant['status'] == '1') {
                     int syncData = await PosDatabase.instance
                         .updateSyncProductVariant(ProductVariant(
-                            product_variant_id: responseInsertProductVariant[
-                                'product_variant_id'],
+                            product_variant_id: responseInsertProductVariant['product_variant_id'],
                             sync_status: 2,
                             updated_at: dateTime,
                             product_sqlite_id:
@@ -915,6 +916,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
 /*
                 ---------------------------end sync-----------------------------
 */
+                ProductVariant? productVariant = await PosDatabase.instance.readProductVariantID(variant.product_variant_sqlite_id.toString());
                 BranchLinkProduct variantBranchProduct = await PosDatabase
                     .instance
                     .insertBranchLinkProduct(BranchLinkProduct(
@@ -927,7 +929,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                         product_variant_sqlite_id:
                             variant.product_variant_sqlite_id.toString(),
                         product_variant_id:
-                            variant.product_variant_id.toString(),
+                        productVariant!.product_variant_id.toString(),
                         b_SKU: branch_id.toString() + variant.SKU.toString(),
                         price: variant.price,
                         stock_type: selectStock == 'Daily Limit' ? '1' : '2',
@@ -954,7 +956,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                           branch_id.toString(),
                           widget.product!.product_id.toString(),
                           '1',
-                          variant.product_variant_id.toString(),
+                          productVariant.product_variant_id.toString(),
                           branch_id.toString() + variant.SKU.toString(),
                           variant.price,
                           selectStock == 'Daily Limit' ? '1' : '2',
@@ -978,6 +980,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
 /*
                 ----------------------end sync----------------------------------
 */
+
                 final splitted =
                     productVariantList[s]['variant_name'].split(' | ');
                 for (int l = 0; l < splitted.length; l++) {
@@ -988,7 +991,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                       .insertProductVariantDetail(ProductVariantDetail(
                           product_variant_detail_id: 0,
                           product_variant_id:
-                              variant.product_variant_id.toString(),
+                          productVariant!.product_variant_id.toString(),
                           product_variant_sqlite_id:
                               variant.product_variant_sqlite_id.toString(),
                           variant_item_sqlite_id:
@@ -1005,7 +1008,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                       connectivityResult == ConnectivityResult.wifi) {
                     Map responseInsertProductVariantDetail = await Domain()
                         .insertProductVariantDetail(
-                            variant.product_variant_id.toString(),
+                        productVariant.product_variant_id.toString(),
                             item!.variant_item_id.toString());
                     if (responseInsertProductVariantDetail['status'] == '1') {
                       int syncData = await PosDatabase.instance
