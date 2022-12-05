@@ -33,6 +33,7 @@ class VariantGroup {
   int? variant_group_sqlite_id;
   int? variant_group_id;
   int? variant_item_id;
+  int? variant_item_sqlite_id;
   late List<VariantItem> child;
   String? product_id;
   String? product_sqlite_id;
@@ -46,9 +47,10 @@ class VariantGroup {
       {this.variant_group_sqlite_id,
       this.variant_group_id,
       this.variant_item_id,
+      this.variant_item_sqlite_id,
       required this.child,
       this.product_id,
-        this.product_sqlite_id,
+      this.product_sqlite_id,
       this.name,
       this.sync_status,
       this.created_at,

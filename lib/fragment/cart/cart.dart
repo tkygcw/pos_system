@@ -578,7 +578,8 @@ class _CartPageState extends State<CartPage> {
                                         print('add order cache');
                                         // if (printerList.length >= 0) {
                                           await callCreateNewOrder(cart);
-                                          //await _printKitchenList(cart);
+                                          //await _printCheckList();
+                                          await _printKitchenList(cart);
                                           cart.removeAllCartItem();
                                           cart.removeAllTable();
                                         // } else {
@@ -676,15 +677,28 @@ class _CartPageState extends State<CartPage> {
           if (data[j].category_sqlite_id == '3') {
             if(printerList[i].type == 0){
               var printerDetail = jsonDecode(printerList[i].value!);
-              var data = Uint8List.fromList(await ReceiptLayout().printReceipt80mm(true, this.localOrderId));
-              bool? isConnected = await flutterUsbPrinter.connect(
-                  int.parse(printerDetail['vendorId']),
-                  int.parse(printerDetail['productId']));
-              if (isConnected == true) {
-                await flutterUsbPrinter.write(data);
+              if(printerList[i].paper_size == 0){
+                var data = Uint8List.fromList(await ReceiptLayout().printReceipt80mm(true, this.localOrderId));
+                bool? isConnected = await flutterUsbPrinter.connect(
+                    int.parse(printerDetail['vendorId']),
+                    int.parse(printerDetail['productId']));
+                if (isConnected == true) {
+                  await flutterUsbPrinter.write(data);
+                } else {
+                  print('not connected');
+                }
               } else {
-                print('not connected');
+                var data = Uint8List.fromList(await ReceiptLayout().printReceipt58mm(true, this.localOrderId));
+                bool? isConnected = await flutterUsbPrinter.connect(
+                    int.parse(printerDetail['vendorId']),
+                    int.parse(printerDetail['productId']));
+                if (isConnected == true) {
+                  await flutterUsbPrinter.write(data);
+                } else {
+                  print('not connected');
+                }
               }
+
             } else {
               print("print lan");
             }
@@ -709,16 +723,28 @@ class _CartPageState extends State<CartPage> {
           if (data[j].category_sqlite_id == '3') {
             if(printerList[i].type == 0){
               var printerDetail = jsonDecode(printerList[i].value!);
-              var data = Uint8List.fromList(await ReceiptLayout()
-                  .printCheckList80mm(true, null));
-              bool? isConnected = await flutterUsbPrinter.connect(
-                  int.parse(printerDetail['vendorId']),
-                  int.parse(printerDetail['productId']));
-              if (isConnected == true) {
-                await flutterUsbPrinter.write(data);
+              if(printerList[i].paper_size == 0){
+                var data = Uint8List.fromList(await ReceiptLayout().printCheckList80mm(true));
+                bool? isConnected = await flutterUsbPrinter.connect(
+                    int.parse(printerDetail['vendorId']),
+                    int.parse(printerDetail['productId']));
+                if (isConnected == true) {
+                  await flutterUsbPrinter.write(data);
+                } else {
+                  print('not connected');
+                }
               } else {
-                print('not connected');
+                var data = Uint8List.fromList(await ReceiptLayout().printCheckList58mm(true));
+                bool? isConnected = await flutterUsbPrinter.connect(
+                    int.parse(printerDetail['vendorId']),
+                    int.parse(printerDetail['productId']));
+                if (isConnected == true) {
+                  await flutterUsbPrinter.write(data);
+                } else {
+                  print('not connected');
+                }
               }
+
             } else {
               print("print lan");
             }
@@ -1915,17 +1941,16 @@ class _CartPageState extends State<CartPage> {
           ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
           for (int m = 0; m < group.modifierChild.length; m++) {
             if (group.modifierChild[m].isChecked!) {
-              // OrderModifierDetail modifierData = await PosDatabase.instance
-              //     .insertSqliteOrderModifierDetail(OrderModifierDetail(
-              //     order_modifier_detail_id: 0,
-              //     order_detail_id:
-              //     await detailData.order_detail_id.toString(),
-              //     mod_item_id:
-              //     group.modifierChild[m].mod_item_id.toString(),
-              //     mod_group_id: group.mod_group_id.toString(),
-              //     created_at: dateTime,
-              //     updated_at: '',
-              //     soft_delete: ''));
+              OrderModifierDetail modifierData = await PosDatabase.instance
+                  .insertSqliteOrderModifierDetail(OrderModifierDetail(
+                  order_modifier_detail_id: 0,
+                  order_detail_sqlite_id: await detailData.order_detail_sqlite_id.toString(),
+                  order_detail_id: '0',
+                  mod_item_id: group.modifierChild[m].mod_item_id.toString(),
+                  mod_group_id: group.mod_group_id.toString(),
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
             }
           }
         }

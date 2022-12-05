@@ -4,6 +4,7 @@ class OrderModifierDetailFields {
   static List<String> values = [
     order_modifier_detail_sqlite_id,
     order_modifier_detail_id,
+    order_detail_sqlite_id,
     order_detail_id,
     mod_item_id,
     mod_group_id,
@@ -14,6 +15,7 @@ class OrderModifierDetailFields {
 
   static String order_modifier_detail_sqlite_id = 'order_modifier_detail_sqlite_id';
   static String order_modifier_detail_id = 'order_modifier_detail_id';
+  static String order_detail_sqlite_id = 'order_detail_sqlite_id';
   static String order_detail_id = 'order_detail_id';
   static String mod_item_id = 'mod_item_id';
   static String mod_group_id = 'mod_group_id';
@@ -25,6 +27,7 @@ class OrderModifierDetailFields {
 class OrderModifierDetail{
   int? order_modifier_detail_sqlite_id;
   int? order_modifier_detail_id;
+  String? order_detail_sqlite_id;
   String? order_detail_id;
   String? mod_item_id;
   String? mod_group_id;
@@ -36,6 +39,7 @@ class OrderModifierDetail{
   OrderModifierDetail(
       {this.order_modifier_detail_sqlite_id,
         this.order_modifier_detail_id,
+        this.order_detail_sqlite_id,
         this.order_detail_id,
         this.mod_item_id,
         this.mod_group_id,
@@ -47,6 +51,7 @@ class OrderModifierDetail{
   OrderModifierDetail copy({
      int? order_modifier_detail_sqlite_id,
      int? order_modifier_detail_id,
+     String? order_detail_sqlite_id,
      String? order_detail_id,
      String? mod_item_id,
      String? mod_group_id,
@@ -57,6 +62,7 @@ class OrderModifierDetail{
       OrderModifierDetail(
         order_modifier_detail_sqlite_id: order_modifier_detail_sqlite_id ?? this.order_modifier_detail_sqlite_id,
         order_modifier_detail_id: order_modifier_detail_id ?? this.order_modifier_detail_id,
+        order_detail_sqlite_id: order_detail_sqlite_id ?? this.order_detail_sqlite_id,
         order_detail_id: order_detail_id ?? this.order_detail_id,
         mod_item_id: mod_item_id ?? this.mod_item_id,
         mod_group_id: mod_group_id ?? this.mod_group_id,
@@ -67,6 +73,7 @@ class OrderModifierDetail{
   static OrderModifierDetail fromJson(Map<String, Object?> json) => OrderModifierDetail(
     order_modifier_detail_sqlite_id: json[OrderModifierDetailFields.order_modifier_detail_sqlite_id] as int?,
     order_modifier_detail_id: json[OrderModifierDetailFields.order_modifier_detail_id] as int?,
+    order_detail_sqlite_id: json[OrderModifierDetailFields.order_detail_sqlite_id] as String?,
     order_detail_id: json[OrderModifierDetailFields.order_detail_id] as String?,
     mod_item_id: json[OrderModifierDetailFields.mod_item_id] as String?,
     mod_group_id: json[OrderModifierDetailFields.mod_group_id] as String?,
@@ -79,6 +86,7 @@ class OrderModifierDetail{
   Map<String, Object?> toJson() => {
     OrderModifierDetailFields.order_modifier_detail_sqlite_id: order_modifier_detail_sqlite_id,
     OrderModifierDetailFields.order_modifier_detail_id: order_modifier_detail_id,
+    OrderModifierDetailFields.order_detail_sqlite_id: order_detail_sqlite_id,
     OrderModifierDetailFields.order_detail_id: order_detail_id,
     OrderModifierDetailFields.mod_item_id: mod_item_id,
     OrderModifierDetailFields.mod_group_id: mod_group_id,

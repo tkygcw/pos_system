@@ -58,10 +58,10 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
         Text(variantGroup.name!, style: TextStyle(fontWeight: FontWeight.bold)),
         for (int i = 0; i < variantGroup.child.length; i++)
           RadioListTile<int?>(
-            value: variantGroup.child[i].variant_item_id,
-            groupValue: variantGroup.variant_item_id,
+            value: variantGroup.child[i].variant_item_sqlite_id,
+            groupValue: variantGroup.variant_item_sqlite_id,
             onChanged: (ind) => setState(() {
-              variantGroup.variant_item_id = ind;
+              variantGroup.variant_item_sqlite_id = ind;
             }),
             title: Text(variantGroup.child[i].name!),
             controlAffinity: ListTileControlAffinity.trailing,
@@ -224,8 +224,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
 
   readProductVariant(int productID) async {
     //loop variant group first
-    List<VariantGroup> data =
-        await PosDatabase.instance.readProductVariantGroup(productID);
+    List<VariantGroup> data = await PosDatabase.instance.readProductVariantGroup(productID);
     for (int i = 0; i < data.length; i++) {
       variantGroup.add(VariantGroup(
           variant_group_sqlite_id:  data[i].variant_group_sqlite_id,
@@ -234,19 +233,19 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
           name: data[i].name));
 
       //loop variant child based on variant group id
-      List<VariantItem> itemData = await PosDatabase.instance
-          .readProductVariantItem(data[i].variant_group_id!);
+      List<VariantItem> itemData = await PosDatabase.instance.readProductVariantItem(data[i].variant_group_sqlite_id!);
       List<VariantItem> itemChild = [];
       for (int j = 0; j < itemData.length; j++) {
         //pre-check radio button
         if (j == 0) {
-          variantGroup[i].variant_item_id = itemData[j].variant_item_id;
+          variantGroup[i].variant_item_sqlite_id = itemData[j].variant_item_sqlite_id;
         }
         //store all child into one list
         itemChild.add(VariantItem(
-            variant_item_sqlite_id: data[i].variant_group_sqlite_id,
-            variant_group_id: data[i].variant_group_id.toString(),
+            variant_group_sqlite_id: itemData[j].variant_group_sqlite_id,
+            variant_group_id: itemData[j].variant_group_id.toString(),
             name: itemData[j].name,
+            variant_item_sqlite_id: itemData[j].variant_item_sqlite_id,
             variant_item_id: itemData[j].variant_item_id));
       }
       //assign list into group child
@@ -292,8 +291,8 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   productChecking() async {
-    await readProductVariant(widget.productDetail!.product_id!);
-    await readProductModifier(widget.productDetail!.product_id!);
+    await readProductVariant(widget.productDetail!.product_sqlite_id!);
+    await readProductModifier(widget.productDetail!.product_sqlite_id!);
     setState(() {
       this.isLoaded = true;
     });
@@ -306,9 +305,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
 
-      List<BranchLinkProduct> data = await PosDatabase.instance
-          .readBranchLinkSpecificProduct(
-              branch_id.toString(), productId.toString());
+      List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), productId.toString());
       if (data[0].has_variant == '0') {
         basePrice = data[0].price!;
         //check product mod group
@@ -317,9 +314,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
           //loop mod group child
           for (int k = 0; k < group.modifierChild.length; k++) {
             if (group.modifierChild[k].isChecked == true) {
-              List<BranchLinkModifier> modPrice = await PosDatabase.instance
-                  .readBranchLinkModifier(branch_id!.toString(),
-                      group.modifierChild[k].mod_item_id.toString());
+              List<BranchLinkModifier> modPrice = await PosDatabase.instance.readBranchLinkModifier(branch_id!.toString(), group.modifierChild[k].mod_item_id.toString());
               totalModPrice += double.parse(modPrice[0].price!);
               totalBasePrice = double.parse(data[0].price!) + totalModPrice;
               basePrice = totalBasePrice.toStringAsFixed(2);
@@ -327,9 +322,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
           }
         }
       } else {
-        List<BranchLinkProduct> productVariant = await PosDatabase.instance
-            .checkProductVariant(await getHasVariantProductPrice(productId),
-                productId.toString());
+        List<BranchLinkProduct> productVariant = await PosDatabase.instance.checkProductVariant(await getHasVariantProductPrice(productId), productId.toString());
         basePrice = productVariant[0].price!;
 
         //loop has variant product modifier group
@@ -338,12 +331,9 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
           //loop mod group child
           for (int k = 0; k < group.modifierChild.length; k++) {
             if (group.modifierChild[k].isChecked == true) {
-              List<BranchLinkModifier> modPrice = await PosDatabase.instance
-                  .readBranchLinkModifier(branch_id!.toString(),
-                      group.modifierChild[k].mod_item_id.toString());
+              List<BranchLinkModifier> modPrice = await PosDatabase.instance.readBranchLinkModifier(branch_id!.toString(), group.modifierChild[k].mod_item_id.toString());
               totalModPrice += double.parse(modPrice[0].price!);
-              totalBasePrice =
-                  double.parse(productVariant[0].price!) + totalModPrice;
+              totalBasePrice = double.parse(productVariant[0].price!) + totalModPrice;
               basePrice = totalBasePrice.toStringAsFixed(2);
             }
           }
@@ -355,12 +345,19 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     return basePrice;
   }
 
-  getBranchLinkProductItem(int? productId) async {
+  getBranchLinkProductItem(Product product) async {
     branchLinkProduct_id = '';
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    if(product.has_variant == 0){
+      List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
+      branchLinkProduct_id = data1[0].branch_link_product_sqlite_id.toString();
+    } else {
+      List<BranchLinkProduct> data =
+      await PosDatabase.instance.checkProductVariant(await getHasVariantProductPrice(product.product_sqlite_id), product.product_sqlite_id.toString());
+      branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
+    }
 
-    List<BranchLinkProduct> data = await PosDatabase.instance.checkProductVariant(
-        await getHasVariantProductPrice(productId), productId.toString());
-    branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
 
     return branchLinkProduct_id;
   }
@@ -373,15 +370,14 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       for (int j = 0; j < variantGroup.length; j++) {
         VariantGroup group = variantGroup[j];
         for (int i = 0; i < group.child.length; i++) {
-          if (group.variant_item_id == group.child[i].variant_item_id) {
+          if (group.variant_item_sqlite_id == group.child[i].variant_item_sqlite_id) {
             group.child[i].isSelected = true;
             if (variant == '') {
               variant = group.child[i].name!;
             } else {
               variant2 = variant + " | " + group.child[i].name!;
-              List<ProductVariant> data = await PosDatabase.instance
-                  .readSpecificProductVariant(product_id.toString(), variant2);
-              productVariant = data[0].product_variant_id.toString();
+              List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant2);
+              productVariant = data[0].product_variant_sqlite_id.toString();
             }
           }
         }
@@ -397,7 +393,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     for (int j = 0; j < variantGroup.length; j++) {
       VariantGroup group = variantGroup[j];
       for (int i = 0; i < group.child.length; i++) {
-        if (group.variant_item_id == group.child[i].variant_item_id) {
+        if (group.variant_item_sqlite_id == group.child[i].variant_item_sqlite_id) {
           group.child[i].isSelected = true;
         } else {
           group.child[i].isSelected = false;
@@ -407,10 +403,10 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
 
     //print(jsonEncode(modifierGroup.map((e) => e.addToCartJSon()).toList()));
     var value = cartProductItem(
-      await getBranchLinkProductItem(widget.productDetail?.product_id),
+      await getBranchLinkProductItem(widget.productDetail!),
       widget.productDetail!.name!,
       widget.productDetail!.category_id!,
-      await getProductPrice(widget.productDetail?.product_id),
+      await getProductPrice(widget.productDetail?.product_sqlite_id),
       simpleIntInput,
       modifierGroup,
       variantGroup,

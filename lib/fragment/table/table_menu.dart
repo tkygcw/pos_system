@@ -469,24 +469,19 @@ class _TableMenuState extends State<TableMenu> {
       }
 
       //check product modifier
-      List<ModifierLinkProduct> productMod =
-          await PosDatabase.instance.readProductModifier(result[0].product_id!);
+      List<ModifierLinkProduct> productMod = await PosDatabase.instance.readProductModifier(result[0].product_sqlite_id!);
       if (productMod.length > 0) {
         orderDetailList[k].hasModifier = true;
       }
 
       if (orderDetailList[k].hasModifier == true) {
         //Get order modifier detail
-        List<OrderModifierDetail> modDetail = await PosDatabase.instance
-            .readOrderModifierDetail(
-                orderDetailList[k].order_detail_id.toString());
+        List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[k].order_detail_sqlite_id.toString());
         if (modDetail.length > 0) {
           orderDetailList[k].modifierItem.clear();
           for (int m = 0; m < modDetail.length; m++) {
             // print('mod detail length: ${modDetail.length}');
-            if (!orderDetailList[k]
-                .modifierItem
-                .contains(modDetail[m].mod_group_id!)) {
+            if (!orderDetailList[k].modifierItem.contains(modDetail[m].mod_group_id!)) {
               orderDetailList[k].modifierItem.add(ModifierItem(
                   mod_group_id: modDetail[m].mod_group_id!,
                   mod_item_id: int.parse(modDetail[m].mod_item_id!),

@@ -16,7 +16,9 @@ import '../../object/branch_link_product.dart';
 import '../../object/cart_product.dart';
 import '../../object/modifier_group.dart';
 import '../../object/modifier_item.dart';
+import '../../object/modifier_link_product.dart';
 import '../../object/order.dart';
+import '../../object/order_modifier_detail.dart';
 import '../../object/product.dart';
 import '../../object/product_variant.dart';
 import '../../object/product_variant_detail.dart';
@@ -310,6 +312,30 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
               name: variant[0].variant_name,
               isSelected: true));
           productVariantDetail.clear();
+        }
+      }
+      //check product modifier
+      List<ModifierLinkProduct> productMod = await PosDatabase.instance.readProductModifier(result[0].product_sqlite_id!);
+      if (productMod.length > 0) {
+        orderDetailList[k].hasModifier = true;
+      }
+
+      if (orderDetailList[k].hasModifier == true) {
+        //Get order modifier detail
+        List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[k].order_detail_sqlite_id.toString());
+        if (modDetail.length > 0) {
+          orderDetailList[k].modifierItem.clear();
+          for (int m = 0; m < modDetail.length; m++) {
+            // print('mod detail length: ${modDetail.length}');
+            if (!orderDetailList[k].modifierItem.contains(modDetail[m].mod_group_id!)) {
+              orderDetailList[k].modifierItem.add(ModifierItem(
+                  mod_group_id: modDetail[m].mod_group_id!,
+                  mod_item_id: int.parse(modDetail[m].mod_item_id!),
+                  name: modDetail[m].modifier_name!));
+              orderDetailList[k].mod_group_id.add(modDetail[m].mod_group_id!);
+              orderDetailList[k].mod_item_id = modDetail[m].mod_item_id;
+            }
+          }
         }
       }
     }

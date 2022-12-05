@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:esc_pos_printer/esc_pos_printer.dart';
+import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -235,6 +237,19 @@ class _SettlementDialogState extends State<SettlementDialog> {
                 }
               }
             } else {
+              if(printerList[i].paper_size == 1){
+                var printerDetail = jsonDecode(printerList[i].value!);
+                //print LAN
+                final profile = await CapabilityProfile.load();
+                final printer = NetworkPrinter(PaperSize.mm58, profile);
+                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+                if (res == PosPrintResult.success) {
+                  await ReceiptLayout().printSettlementList58mm(false, dateTime, value: printer);
+                  printer.disconnect();
+                } else {
+                  print('not connected');
+                }
+              }
               print("print lan");
             }
           }
