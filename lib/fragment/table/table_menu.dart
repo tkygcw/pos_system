@@ -165,8 +165,7 @@ class _TableMenuState extends State<TableMenu> {
                                       }
                                     },
                                     onTap: () async {
-                                      await readSpecificTableDetail(
-                                          tableList[index]);
+                                      await readSpecificTableDetail(tableList[index]);
                                       if (this.productDetailLoaded) {
                                         if (tableList[index].status == 1) {
                                           // table in use (colored)

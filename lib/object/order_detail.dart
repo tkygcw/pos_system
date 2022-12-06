@@ -12,7 +12,9 @@ class OrderDetailFields {
   static List<String> values = [
     order_detail_sqlite_id,
     order_detail_id,
+    order_detail_key,
     order_cache_sqlite_id,
+    order_cache_key,
     branch_link_product_sqlite_id,
     category_sqlite_id,
     productName,
@@ -32,7 +34,9 @@ class OrderDetailFields {
 
   static String order_detail_sqlite_id = 'order_detail_sqlite_id';
   static String order_detail_id = 'order_detail_id';
+  static String order_detail_key = 'order_detail_key';
   static String order_cache_sqlite_id = 'order_cache_sqlite_id';
+  static String order_cache_key = 'order_cache_key';
   static String branch_link_product_sqlite_id = 'branch_link_product_sqlite_id';
   static String category_sqlite_id = 'category_sqlite_id';
   static String productName = 'product_name';
@@ -53,7 +57,9 @@ class OrderDetailFields {
 class OrderDetail{
   int? order_detail_sqlite_id;
   int? order_detail_id;
+  String? order_detail_key;
   String? order_cache_sqlite_id;
+  String? order_cache_key;
   String? branch_link_product_sqlite_id;
   String? category_sqlite_id;
   String? productName;
@@ -82,7 +88,9 @@ class OrderDetail{
   OrderDetail(
       {this.order_detail_sqlite_id,
         this.order_detail_id,
+        this.order_detail_key,
         this.order_cache_sqlite_id,
+        this.order_cache_key,
         this.branch_link_product_sqlite_id,
         this.category_sqlite_id,
         this.productName,
@@ -103,7 +111,9 @@ class OrderDetail{
   OrderDetail copy({
     int? order_detail_sqlite_id,
     int? order_detail_id,
+    String? order_detail_key,
     String? order_cache_sqlite_id,
+    String? order_cache_key,
     String? branch_link_product_sqlite_id,
     String? category_sqlite_id,
     String? productName,
@@ -123,7 +133,9 @@ class OrderDetail{
       OrderDetail(
           order_detail_sqlite_id: order_detail_sqlite_id ?? this.order_detail_sqlite_id,
           order_detail_id: order_detail_id ?? this.order_detail_id,
+          order_detail_key: order_detail_key ?? this.order_detail_key,
           order_cache_sqlite_id: order_cache_sqlite_id ?? this.order_cache_sqlite_id,
+          order_cache_key: order_cache_key ?? this.order_cache_key,
           branch_link_product_sqlite_id: branch_link_product_sqlite_id ?? this.branch_link_product_sqlite_id,
           category_sqlite_id: category_sqlite_id ?? this.category_sqlite_id,
           productName: productName ?? this.productName,
@@ -144,7 +156,9 @@ class OrderDetail{
   static OrderDetail fromJson(Map<String, Object?> json) => OrderDetail(
     order_detail_sqlite_id: json[OrderDetailFields.order_detail_sqlite_id] as int?,
     order_detail_id: json[OrderDetailFields.order_detail_id] as int?,
+    order_detail_key: json[OrderDetailFields.order_detail_key] as String?,
     order_cache_sqlite_id: json[OrderDetailFields.order_cache_sqlite_id] as String?,
+    order_cache_key: json[OrderDetailFields.order_cache_key] as String?,
     branch_link_product_sqlite_id: json[OrderDetailFields.branch_link_product_sqlite_id] as String?,
     category_sqlite_id: json[OrderDetailFields.category_sqlite_id] as String?,
     productName: json[OrderDetailFields.productName] as String?,
@@ -166,7 +180,9 @@ class OrderDetail{
   Map<String, Object?> toJson() => {
     OrderDetailFields.order_detail_sqlite_id: order_detail_sqlite_id,
     OrderDetailFields.order_detail_id: order_detail_id,
+    OrderDetailFields.order_detail_key: order_detail_key,
     OrderDetailFields.order_cache_sqlite_id: order_cache_sqlite_id,
+    OrderDetailFields.order_cache_key: order_cache_key,
     OrderDetailFields.branch_link_product_sqlite_id: branch_link_product_sqlite_id,
     OrderDetailFields.category_sqlite_id: category_sqlite_id,
     OrderDetailFields.productName: productName,

@@ -20,7 +20,6 @@ import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/dining_option.dart';
 import 'package:pos_system/object/modifier_group.dart';
-import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
@@ -29,12 +28,11 @@ import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
-import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crypto/crypto.dart';
 
-import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../object/cash_record.dart';
 import '../../object/order_modifier_detail.dart';
@@ -88,6 +86,10 @@ class _CartPageState extends State<CartPage> {
   String promoRate = '';
   String localTableUseId = '';
   String orderCacheId = '';
+  String? orderCacheKey;
+  String? orderDetailKey;
+  String? tableUseKey;
+  String? tableUseDetailKey;
   String? allPromo = '';
   String finalAmount = '';
   String localOrderId = '';
@@ -653,7 +655,7 @@ class _CartPageState extends State<CartPage> {
                             },
                             child: widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
                                 ? Text('Place order (RM ${this.finalAmount})')
-                                : widget.currentPage == 'table' || widget.currentPage == 'other_order' ? 
+                                : widget.currentPage == 'table' || widget.currentPage == 'other_order' ?
                                   Text('Make payment (RM ${this.finalAmount})')
                                 : Text('Print Receipt'),
                           ),
@@ -1190,7 +1192,9 @@ class _CartPageState extends State<CartPage> {
     getTaxAmount();
     getRounding();
     getAllTotal();
-    controller.add('refresh');
+    if (!controller.isClosed){
+      controller.sink.add('refresh');
+    }
   }
 
   getTaxAmount() {
@@ -1618,6 +1622,7 @@ class _CartPageState extends State<CartPage> {
 */
   callCreateNewNotDineOrder(CartModel cart) async {
     await createOrderCache(cart);
+    await insertOrderCacheKey();
     await createOrderDetail(cart);
     //await _printCheckList();
   }
@@ -1626,8 +1631,10 @@ class _CartPageState extends State<CartPage> {
 */
   callCreateNewOrder(CartModel cart) async {
     await createTableUseID();
+    await insertTableUseKey();
     await createTableUseDetail(cart);
     await createOrderCache(cart);
+    await insertOrderCacheKey();
     await createOrderDetail(cart);
     await updatePosTable(cart);
     //await _printCheckList();
@@ -1679,6 +1686,7 @@ class _CartPageState extends State<CartPage> {
         if (result[0].status == 0) {
           PosTable posTableData = PosTable(
               table_sqlite_id: cart.selectedTable[i].table_sqlite_id,
+              table_use_detail_key: tableUseDetailKey,
               status: 1,
               updated_at: dateTime);
           int data =
@@ -1813,6 +1821,8 @@ class _CartPageState extends State<CartPage> {
             TableUse(
                 table_use_id: 0,
                 branch_id: branch_id,
+                table_use_key: '',
+                order_cache_key: '',
                 cardColor: hexCode.toString(),
                 sync_status: 0,
                 created_at: dateTime,
@@ -1821,11 +1831,35 @@ class _CartPageState extends State<CartPage> {
         localTableUseId = tableUseData.table_use_sqlite_id.toString();
       }
     } catch (e) {
+      print(e);
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Create table id error: ${e}");
     }
-    return localTableUseId;
+  }
+
+  generateTableUseKey(TableUse tableUse) async  {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes  = tableUse.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + tableUse.table_use_sqlite_id.toString() + device_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
+  insertTableUseKey() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(localTableUseId));
+
+    tableUseKey = await generateTableUseKey(tableUseData[0]);
+    if(tableUseKey != null){
+      TableUse tableUseObject = TableUse(
+          table_use_key: tableUseKey,
+          sync_status: 0,
+          updated_at: dateTime,
+          table_use_sqlite_id: int.parse(localTableUseId)
+      );
+      int tableUseData = await PosDatabase.instance.updateTableUseUniqueKey(tableUseObject);
+    }
   }
 
   createTableUseDetail(CartModel cart) async {
@@ -1837,22 +1871,43 @@ class _CartPageState extends State<CartPage> {
         TableUseDetail tableUseDetailData = await PosDatabase.instance
             .insertSqliteTableUseDetail(TableUseDetail(
                 table_use_detail_id: 0,
+                table_use_detail_key: '',
                 table_use_sqlite_id: localTableUseId,
-                table_sqlite_id:
-                    cart.selectedTable[i].table_sqlite_id.toString(),
-                original_table_sqlite_id:
-                    cart.selectedTable[i].table_sqlite_id.toString(),
+                table_use_key: tableUseKey,
+                table_sqlite_id: cart.selectedTable[i].table_sqlite_id.toString(),
+                original_table_sqlite_id: cart.selectedTable[i].table_sqlite_id.toString(),
                 sync_status: 0,
                 created_at: dateTime,
                 updated_at: '',
                 soft_delete: ''));
+
+        tableUseDetailKey = await generateTableUseDetailKey(tableUseDetailData);
+        if(tableUseDetailKey != null){
+          TableUseDetail tableUseDetailObject = TableUseDetail(
+              table_use_detail_key: tableUseDetailKey,
+              sync_status: 0,
+              updated_at: dateTime,
+              table_use_detail_sqlite_id: tableUseDetailData.table_use_detail_sqlite_id
+          );
+          int tableUseData = await PosDatabase.instance.updateTableUseDetailUniqueKey(tableUseDetailObject);
+        }
       }
     } catch (e) {
+      print(e);
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Create table detail error: ${e}");
     }
   }
+
+  generateTableUseDetailKey(TableUseDetail tableUseDetail) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes  = tableUseDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + tableUseDetail.table_use_detail_sqlite_id.toString() + device_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
+
 
   createOrderCache(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -1867,8 +1922,7 @@ class _CartPageState extends State<CartPage> {
       batch = await batchChecking();
       //check selected table is in use or not
       for (int i = 0; i < cart.selectedTable.length; i++) {
-        List<TableUseDetail> useDetail = await PosDatabase.instance
-            .readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
+        List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
         if (useDetail.length > 0) {
           _tableUseId = useDetail[0].table_use_sqlite_id!;
         } else {
@@ -1880,6 +1934,7 @@ class _CartPageState extends State<CartPage> {
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
             OrderCache(
                 order_cache_id: 0,
+                order_cache_key: '',
                 company_id: userObject['company_id'].toString(),
                 branch_id: branch_id.toString(),
                 order_detail_id: '',
@@ -1887,6 +1942,7 @@ class _CartPageState extends State<CartPage> {
                 batch_id: batch.toString().padLeft(5, '0'),
                 dining_id: this.diningOptionID.toString(),
                 order_sqlite_id: '',
+                order_key: '',
                 order_by: userObject['name'].toString(),
                 order_by_user_id: userObject['user_id'].toString(),
                 cancel_by: '',
@@ -1906,9 +1962,45 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  /**
-   * concurrent here (done)
-   */
+  generateOrderCacheKey(OrderCache orderCache) async  {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes  = orderCache.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + orderCache.order_cache_sqlite_id.toString() + device_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
+  insertOrderCacheKey() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCache(orderCacheId);
+
+    orderCacheKey = await generateOrderCacheKey(cacheData[0]);
+    if(orderCacheKey != null){
+      OrderCache orderCacheObject = OrderCache(
+          order_cache_key: orderCacheKey,
+          sync_status: 0,
+          updated_at: dateTime,
+          order_cache_sqlite_id: cacheData[0].order_cache_sqlite_id
+      );
+      int data = await PosDatabase.instance.updateOrderCacheUniqueKey(orderCacheObject);
+
+      TableUse tableUseObject = TableUse(
+        order_cache_key: orderCacheKey,
+        sync_status: 0,
+        updated_at: dateTime,
+        table_use_sqlite_id: int.parse(cacheData[0].table_use_sqlite_id!)
+      );
+      int tableUseData = await PosDatabase.instance.updateTableUseOrderCacheUniqueKey(tableUseObject);
+    }
+  }
+
+  generateOrderDetailKey(OrderDetail orderDetail) async  {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes  = orderDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + orderDetail.order_detail_sqlite_id.toString() + device_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
   createOrderDetail(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -1918,13 +2010,13 @@ class _CartPageState extends State<CartPage> {
         OrderDetail detailData = await PosDatabase.instance
             .insertSqliteOrderDetail(OrderDetail(
                 order_detail_id: 0,
+                order_detail_key: '',
                 order_cache_sqlite_id: orderCacheId,
-                branch_link_product_sqlite_id:
-                    cart.cartNotifierItem[j].branchProduct_id,
+                order_cache_key: orderCacheKey,
+                branch_link_product_sqlite_id: cart.cartNotifierItem[j].branchProduct_id,
                 category_sqlite_id: '',
                 productName: cart.cartNotifierItem[j].name,
-                has_variant:
-                    cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
+                has_variant: cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
                 product_variant_name: getVariant2(cart.cartNotifierItem[j]),
                 price: cart.cartNotifierItem[j].price,
                 quantity: cart.cartNotifierItem[j].quantity.toString(),
@@ -1937,6 +2029,17 @@ class _CartPageState extends State<CartPage> {
                 updated_at: '',
                 soft_delete: ''));
 
+        orderDetailKey = await generateOrderDetailKey(await detailData);
+        if(orderDetailKey != null){
+          OrderDetail orderDetailObject = OrderDetail(
+              order_detail_key: orderDetailKey,
+              sync_status: 0,
+              updated_at: dateTime,
+              order_detail_sqlite_id: await detailData.order_detail_sqlite_id
+          );
+          int data = await PosDatabase.instance.updateOrderDetailUniqueKey(orderDetailObject);
+        }
+
         for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
           ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
           for (int m = 0; m < group.modifierChild.length; m++) {
@@ -1946,6 +2049,7 @@ class _CartPageState extends State<CartPage> {
                   order_modifier_detail_id: 0,
                   order_detail_sqlite_id: await detailData.order_detail_sqlite_id.toString(),
                   order_detail_id: '0',
+                  order_detail_key: await orderDetailKey,
                   mod_item_id: group.modifierChild[m].mod_item_id.toString(),
                   mod_group_id: group.mod_group_id.toString(),
                   created_at: dateTime,

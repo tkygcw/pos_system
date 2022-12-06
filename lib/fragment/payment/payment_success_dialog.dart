@@ -29,8 +29,9 @@ class PaymentSuccessDialog extends StatefulWidget {
   final List<PosTable> selectedTableList;
   final Function() callback;
   final String orderId;
+  final String orderKey;
   final String dining_id;
-  const PaymentSuccessDialog({Key? key, required this.orderId, required this.callback, required this.orderCacheIdList, required this.selectedTableList, required this.dining_id}) : super(key: key);
+  const PaymentSuccessDialog({Key? key, required this.orderId, required this.callback, required this.orderCacheIdList, required this.selectedTableList, required this.dining_id, required this.orderKey}) : super(key: key);
 
   @override
   State<PaymentSuccessDialog> createState() => _PaymentSuccessDialogState();
@@ -228,6 +229,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       for(int j = 0; j < widget.orderCacheIdList.length; j++){
         OrderCache cacheObject = OrderCache(
             order_sqlite_id: widget.orderId,
+            order_key: widget.orderKey,
             sync_status: 0,
             updated_at: dateTime,
             order_cache_sqlite_id: int.parse(widget.orderCacheIdList[j])

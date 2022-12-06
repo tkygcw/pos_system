@@ -4,6 +4,7 @@ class OrderCacheFields {
   static List<String> values = [
     order_cache_sqlite_id,
     order_cache_id,
+    order_cache_key,
     company_id,
     branch_id,
     order_detail_id,
@@ -11,6 +12,7 @@ class OrderCacheFields {
     batch_id,
     dining_id,
     order_sqlite_id,
+    order_key,
     order_by,
     order_by_user_id,
     cancel_by,
@@ -25,6 +27,7 @@ class OrderCacheFields {
 
   static String order_cache_sqlite_id = 'order_cache_sqlite_id';
   static String order_cache_id = 'order_cache_id';
+  static String order_cache_key = 'order_cache_key';
   static String company_id = 'company_id';
   static String branch_id = 'branch_id';
   static String order_detail_id = 'order_detail_id';
@@ -32,6 +35,7 @@ class OrderCacheFields {
   static String batch_id = 'batch_id';
   static String dining_id = 'dining_id';
   static String order_sqlite_id = 'order_sqlite_id';
+  static String order_key = 'order_key';
   static String order_by = 'order_by';
   static String order_by_user_id = 'order_by_user_id';
   static String cancel_by = 'cancel_by';
@@ -47,6 +51,7 @@ class OrderCacheFields {
 class OrderCache{
   int? order_cache_sqlite_id;
   int? order_cache_id;
+  String? order_cache_key;
   String? company_id;
   String? branch_id;
   String? order_detail_id;
@@ -54,6 +59,7 @@ class OrderCache{
   String? batch_id;
   String? dining_id;
   String? order_sqlite_id;
+  String? order_key;
   String? order_by;
   String? order_by_user_id;
   String? cancel_by;
@@ -70,6 +76,7 @@ class OrderCache{
   OrderCache(
       {this.order_cache_sqlite_id,
         this.order_cache_id,
+        this.order_cache_key,
         this.company_id,
         this.branch_id,
         this.order_detail_id,
@@ -77,6 +84,7 @@ class OrderCache{
         this.batch_id,
         this.dining_id,
         this.order_sqlite_id,
+        this.order_key,
         this.order_by,
         this.order_by_user_id,
         this.cancel_by,
@@ -92,6 +100,7 @@ class OrderCache{
   OrderCache copy({
     int? order_cache_sqlite_id,
     int? order_cache_id,
+    String? order_cache_key,
     String? company_id,
     String? branch_id,
     String? order_detail_id,
@@ -99,6 +108,7 @@ class OrderCache{
     String? batch_id,
     String? dining_id,
     String? order_sqlite_id,
+    String? order_key,
     String? order_by,
     String? order_by_user_id,
     String? cancel_by,
@@ -113,6 +123,7 @@ class OrderCache{
       OrderCache(
           order_cache_sqlite_id: order_cache_sqlite_id ?? this.order_cache_sqlite_id,
           order_cache_id: order_cache_id ?? this.order_cache_id,
+          order_cache_key: order_cache_key ?? this.order_cache_key,
           company_id: company_id ?? this.company_id,
           branch_id: branch_id ?? this.branch_id,
           order_detail_id: order_detail_id ?? this.order_detail_id,
@@ -120,6 +131,7 @@ class OrderCache{
           batch_id: batch_id ?? this.batch_id,
           dining_id: dining_id ?? this.dining_id,
           order_sqlite_id: order_sqlite_id ?? this.order_sqlite_id,
+          order_key: order_key ?? this.order_key,
           order_by: order_by ?? this.order_by,
           order_by_user_id: order_by_user_id ?? this.order_by_user_id,
           cancel_by: cancel_by ?? this.cancel_by,
@@ -134,6 +146,7 @@ class OrderCache{
   static OrderCache fromJson(Map<String, Object?> json) => OrderCache(
     order_cache_sqlite_id: json[OrderCacheFields.order_cache_sqlite_id] as int?,
     order_cache_id: json[OrderCacheFields.order_cache_id] as int?,
+    order_cache_key: json[OrderCacheFields.order_cache_key] as String?,
     company_id: json[OrderCacheFields.company_id] as String?,
     branch_id: json[OrderCacheFields.branch_id] as String?,
     order_detail_id: json[OrderCacheFields.order_detail_id] as String?,
@@ -141,6 +154,7 @@ class OrderCache{
     batch_id: json[OrderCacheFields.batch_id] as String?,
     dining_id: json[OrderCacheFields.dining_id] as String?,
     order_sqlite_id: json[OrderCacheFields.order_sqlite_id] as String?,
+    order_key: json[OrderCacheFields.order_key] as String?,
     order_by: json[OrderCacheFields.order_by] as String?,
     order_by_user_id: json[OrderCacheFields.order_by_user_id] as String?,
     cancel_by: json[OrderCacheFields.cancel_by] as String?,
@@ -157,6 +171,7 @@ class OrderCache{
   Map<String, Object?> toJson() => {
     OrderCacheFields.order_cache_sqlite_id: order_cache_sqlite_id,
     OrderCacheFields.order_cache_id: order_cache_id,
+    OrderCacheFields.order_cache_key: order_cache_key,
     OrderCacheFields.company_id: company_id,
     OrderCacheFields.branch_id: branch_id,
     OrderCacheFields.order_detail_id: order_detail_id,
@@ -164,6 +179,7 @@ class OrderCache{
     OrderCacheFields.batch_id: batch_id,
     OrderCacheFields.dining_id: dining_id,
     OrderCacheFields.order_sqlite_id: order_sqlite_id,
+    OrderCacheFields.order_key: order_key,
     OrderCacheFields.order_by: order_by,
     OrderCacheFields.order_by_user_id: order_by_user_id,
     OrderCacheFields.cancel_by: cancel_by,

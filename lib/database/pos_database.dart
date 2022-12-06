@@ -149,6 +149,7 @@ class PosDatabase {
            ${OrderFields.payment_status} $integerType, 
            ${OrderFields.payment_received} $textType,
            ${OrderFields.payment_change} $textType,
+           ${OrderFields.order_key} $textType,
            ${OrderFields.sync_status} $integerType,
            ${OrderFields.created_at} $textType, 
            ${OrderFields.updated_at} $textType, 
@@ -158,7 +159,8 @@ class PosDatabase {
 */
     await db.execute('''CREATE TABLE $tableOrderCache ( 
           ${OrderCacheFields.order_cache_sqlite_id} $idType, 
-          ${OrderCacheFields.order_cache_id} $integerType, 
+          ${OrderCacheFields.order_cache_id} $integerType,
+          ${OrderCacheFields.order_cache_key} $textType, 
           ${OrderCacheFields.company_id} $textType, 
           ${OrderCacheFields.branch_id} $textType, 
           ${OrderCacheFields.order_detail_id} $textType, 
@@ -166,6 +168,7 @@ class PosDatabase {
           ${OrderCacheFields.batch_id} $textType, 
           ${OrderCacheFields.dining_id} $textType, 
           ${OrderCacheFields.order_sqlite_id} $textType, 
+          ${OrderCacheFields.order_key} $textType,
           ${OrderCacheFields.order_by} $textType,
           ${OrderCacheFields.order_by_user_id} $textType, 
           ${OrderCacheFields.cancel_by} $textType,
@@ -182,7 +185,9 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableOrderDetail ( 
         ${OrderDetailFields.order_detail_sqlite_id} $idType, 
         ${OrderDetailFields.order_detail_id} $integerType, 
+        ${OrderDetailFields.order_detail_key} $textType,
         ${OrderDetailFields.order_cache_sqlite_id} $textType, 
+        ${OrderDetailFields.order_cache_key} $textType,
         ${OrderDetailFields.branch_link_product_sqlite_id} $textType, 
         ${OrderDetailFields.category_sqlite_id} $textType,
         ${OrderDetailFields.productName} $textType,
@@ -260,7 +265,7 @@ class PosDatabase {
 */
     await db.execute(
         '''CREATE TABLE $tablePosTable ( ${PosTableFields.table_sqlite_id} $idType, ${PosTableFields.table_id} $integerType, ${PosTableFields.branch_id} $textType,${PosTableFields.number} $textType,
-           ${PosTableFields.seats} $textType, ${PosTableFields.status} $integerType, ${PosTableFields.sync_status} $integerType,
+           ${PosTableFields.seats} $textType, ${PosTableFields.table_use_detail_key} $textType, ${PosTableFields.status} $integerType, ${PosTableFields.sync_status} $integerType,
            ${PosTableFields.created_at} $textType,${PosTableFields.updated_at} $textType, ${PosTableFields.soft_delete} $textType)''');
 /*
     create tax table
@@ -372,6 +377,7 @@ class PosDatabase {
           ${OrderModifierDetailFields.order_modifier_detail_id} $integerType,
           ${OrderModifierDetailFields.order_detail_sqlite_id} $textType,
           ${OrderModifierDetailFields.order_detail_id} $textType,
+          ${OrderModifierDetailFields.order_detail_key} $textType,
           ${OrderModifierDetailFields.mod_item_id} $textType,
           ${OrderModifierDetailFields.mod_group_id} $textType,
           ${OrderModifierDetailFields.created_at} $textType,
@@ -384,7 +390,9 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableTableUse(
           ${TableUseFields.table_use_sqlite_id} $idType,
           ${TableUseFields.table_use_id} $integerType,
+          ${TableUseFields.table_use_key} $textType,
           ${TableUseFields.branch_id} $integerType,
+          ${TableUseFields.order_cache_key} $textType,
           ${TableUseFields.cardColor} $textType,
           ${TableUseFields.sync_status} $integerType,
           ${TableUseFields.created_at} $textType,
@@ -397,7 +405,9 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableTableUseDetail(
           ${TableUseDetailFields.table_use_detail_sqlite_id} $idType,
           ${TableUseDetailFields.table_use_detail_id} $integerType,
+          ${TableUseDetailFields.table_use_detail_key} $textType,
           ${TableUseDetailFields.table_use_sqlite_id} $textType,
+          ${TableUseDetailFields.table_use_key} $textType,
           ${TableUseDetailFields.table_sqlite_id} $textType,
           ${TableUseDetailFields.original_table_sqlite_id} $textType,
           ${TableUseDetailFields.sync_status} $integerType,
@@ -486,6 +496,7 @@ class PosDatabase {
           ${OrderTaxDetailFields.order_tax_detail_id} $integerType,
           ${OrderTaxDetailFields.order_sqlite_id} $textType,
           ${OrderTaxDetailFields.order_id} $textType,
+          ${OrderTaxDetailFields.order_key} $textType,
           ${OrderTaxDetailFields.tax_name} $textType,
           ${OrderTaxDetailFields.rate} $textType,
           ${OrderTaxDetailFields.tax_id} $textType,
@@ -504,6 +515,7 @@ class PosDatabase {
           ${OrderPromotionDetailFields.order_promotion_detail_id} $integerType,
           ${OrderPromotionDetailFields.order_sqlite_id} $textType,
           ${OrderPromotionDetailFields.order_id} $textType,
+          ${OrderPromotionDetailFields.order_key} $textType,
           ${OrderPromotionDetailFields.promotion_name} $textType,
           ${OrderPromotionDetailFields.rate} $textType,
           ${OrderPromotionDetailFields.promotion_id} $textType,
@@ -1926,6 +1938,18 @@ class PosDatabase {
   }
 
 /*
+  read Specific table use
+*/
+  Future<List<TableUse>> readSpecificTableUseId(int table_use_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableTableUse WHERE soft_delete = ? AND table_use_sqlite_id = ? ',
+        ['', table_use_sqlite_id]);
+
+    return result.map((json) => TableUse.fromJson(json)).toList();
+  }
+
+/*
   read specific use table detail based on table id
 */
   Future<List<TableUseDetail>> readSpecificTableUseDetail(
@@ -2755,8 +2779,8 @@ class PosDatabase {
   Future<int> updatePosTableStatus(PosTable data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tablePosTable SET status = ?, updated_at = ? WHERE table_sqlite_id = ?',
-        [data.status, data.updated_at, data.table_sqlite_id]);
+        'UPDATE $tablePosTable SET table_use_detail_key = ?, status = ?, updated_at = ? WHERE table_sqlite_id = ?',
+        [data.table_use_detail_key ,data.status, data.updated_at, data.table_sqlite_id]);
   }
 
 /*
@@ -2844,9 +2868,10 @@ class PosDatabase {
   Future<int> updateOrderCacheOrderId(OrderCache data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableOrderCache SET order_sqlite_id = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+        'UPDATE $tableOrderCache SET order_sqlite_id = ?, order_key = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
         [
           data.order_sqlite_id,
+          data.order_key,
           data.sync_status,
           data.updated_at,
           data.order_cache_sqlite_id
@@ -2863,6 +2888,100 @@ class PosDatabase {
       [data.notification_token, data.branchID]
     );
 
+  }
+
+/*
+  ------------------unique key part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+  update order unique key
+*/
+  Future<int> updateOrderUniqueKey(Order data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrder SET order_key = ?, sync_status = ?, updated_at = ? WHERE order_sqlite_id = ?',
+        [
+          data.order_key,
+          data.sync_status,
+          data.updated_at,
+          data.order_sqlite_id,
+        ]);
+  }
+
+/*
+  update order cache unique key
+*/
+  Future<int> updateOrderCacheUniqueKey(OrderCache data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderCache SET order_cache_key = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+        [
+          data.order_cache_key,
+          data.sync_status,
+          data.updated_at,
+          data.order_cache_sqlite_id,
+        ]);
+  }
+
+/*
+  update order detail unique key
+*/
+  Future<int> updateOrderDetailUniqueKey(OrderDetail data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderDetail SET order_detail_key = ?, sync_status = ?, updated_at = ? WHERE order_detail_sqlite_id = ?',
+        [
+          data.order_detail_key,
+          data.sync_status,
+          data.updated_at,
+          data.order_detail_sqlite_id,
+        ]);
+  }
+
+/*
+  update table use unique key
+*/
+  Future<int> updateTableUseOrderCacheUniqueKey(TableUse data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableTableUse SET order_cache_key = ?, sync_status = ?, updated_at = ? WHERE table_use_sqlite_id = ?',
+        [
+          data.order_cache_key,
+          data.sync_status,
+          data.updated_at,
+          data.table_use_sqlite_id,
+        ]);
+  }
+
+/*
+  update table use unique key
+*/
+  Future<int> updateTableUseUniqueKey(TableUse data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableTableUse SET table_use_key = ?, sync_status = ?, updated_at = ? WHERE table_use_sqlite_id = ?',
+        [
+          data.table_use_key,
+          data.sync_status,
+          data.updated_at,
+          data.table_use_sqlite_id,
+        ]);
+  }
+
+/*
+  update table use detail unique key
+*/
+  Future<int> updateTableUseDetailUniqueKey(TableUseDetail data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableTableUseDetail SET table_use_detail_key = ?, sync_status = ?, updated_at = ? WHERE table_use_detail_sqlite_id = ?',
+        [
+          data.table_use_detail_key,
+          data.sync_status,
+          data.updated_at,
+          data.table_use_detail_sqlite_id,
+        ]);
   }
 
 /*

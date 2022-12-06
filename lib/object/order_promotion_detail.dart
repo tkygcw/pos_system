@@ -6,6 +6,7 @@ class OrderPromotionDetailFields {
     order_promotion_detail_id,
     order_sqlite_id,
     order_id,
+    order_key,
     promotion_name,
     promotion_type,
     rate,
@@ -19,11 +20,11 @@ class OrderPromotionDetailFields {
     soft_delete
   ];
 
-  static String order_promotion_detail_sqlite_id =
-      'order_promotion_detail_sqlite_id';
+  static String order_promotion_detail_sqlite_id = 'order_promotion_detail_sqlite_id';
   static String order_promotion_detail_id = 'order_promotion_detail_id';
   static String order_sqlite_id = 'order_sqlite_id';
   static String order_id = 'order_id';
+  static String order_key = 'order_key';
   static String promotion_name = 'promotion_name';
   static String promotion_type = 'promotion_type';
   static String rate = 'rate';
@@ -42,6 +43,7 @@ class OrderPromotionDetail {
   int? order_promotion_detail_id;
   String? order_sqlite_id;
   String? order_id;
+  String? order_key;
   String? promotion_name;
   String? rate;
   String? promotion_id;
@@ -59,6 +61,7 @@ class OrderPromotionDetail {
       this.order_promotion_detail_id,
       this.order_sqlite_id,
       this.order_id,
+      this.order_key,
       this.promotion_name,
       this.rate,
       this.promotion_id,
@@ -76,6 +79,7 @@ class OrderPromotionDetail {
     int? order_promotion_detail_id,
     String? order_sqlite_id,
     String? order_id,
+    String? order_key,
     String? promotion_name,
     String? rate,
     String? promotion_id,
@@ -89,17 +93,15 @@ class OrderPromotionDetail {
     String? soft_delete,
   }) =>
       OrderPromotionDetail(
-          order_promotion_detail_sqlite_id: order_promotion_detail_sqlite_id ??
-              this.order_promotion_detail_sqlite_id,
-          order_promotion_detail_id:
-              order_promotion_detail_id ?? this.order_promotion_detail_id,
+          order_promotion_detail_sqlite_id: order_promotion_detail_sqlite_id ?? this.order_promotion_detail_sqlite_id,
+          order_promotion_detail_id: order_promotion_detail_id ?? this.order_promotion_detail_id,
           order_sqlite_id: order_sqlite_id ?? this.order_sqlite_id,
           order_id: order_id ?? this.order_id,
+          order_key: order_key ?? this.order_key,
           promotion_name: promotion_name ?? this.promotion_name,
           rate: rate ?? this.rate,
           promotion_id: promotion_id ?? this.promotion_id,
-          branch_link_promotion_id:
-              branch_link_promotion_id ?? this.branch_link_promotion_id,
+          branch_link_promotion_id: branch_link_promotion_id ?? this.branch_link_promotion_id,
           promotion_amount: promotion_amount ?? this.promotion_amount,
           promotion_type: promotion_type ?? this.promotion_type,
           auto_apply: auto_apply ?? this.auto_apply,
@@ -110,23 +112,16 @@ class OrderPromotionDetail {
 
   static OrderPromotionDetail fromJson(Map<String, Object?> json) =>
       OrderPromotionDetail(
-        order_promotion_detail_sqlite_id:
-            json[OrderPromotionDetailFields.order_promotion_detail_sqlite_id]
-                as int?,
-        order_promotion_detail_id:
-            json[OrderPromotionDetailFields.order_promotion_detail_id] as int?,
-        order_sqlite_id:
-            json[OrderPromotionDetailFields.order_sqlite_id] as String?,
+        order_promotion_detail_sqlite_id: json[OrderPromotionDetailFields.order_promotion_detail_sqlite_id] as int?,
+        order_promotion_detail_id: json[OrderPromotionDetailFields.order_promotion_detail_id] as int?,
+        order_sqlite_id: json[OrderPromotionDetailFields.order_sqlite_id] as String?,
         order_id: json[OrderPromotionDetailFields.order_id] as String?,
-        promotion_name:
-            json[OrderPromotionDetailFields.promotion_name] as String?,
+        order_key: json[OrderPromotionDetailFields.order_key] as String?,
+        promotion_name: json[OrderPromotionDetailFields.promotion_name] as String?,
         rate: json[OrderPromotionDetailFields.rate] as String?,
         promotion_id: json[OrderPromotionDetailFields.promotion_id] as String?,
-        branch_link_promotion_id:
-            json[OrderPromotionDetailFields.branch_link_promotion_id]
-                as String?,
-        promotion_amount:
-            json[OrderPromotionDetailFields.promotion_amount] as String?,
+        branch_link_promotion_id: json[OrderPromotionDetailFields.branch_link_promotion_id] as String?,
+        promotion_amount: json[OrderPromotionDetailFields.promotion_amount] as String?,
         promotion_type: json[OrderPromotionDetailFields.promotion_type] as int?,
         auto_apply: json[OrderPromotionDetailFields.auto_apply] as String?,
         sync_status: json[OrderPromotionDetailFields.sync_status] as int?,
@@ -136,17 +131,15 @@ class OrderPromotionDetail {
       );
 
   Map<String, Object?> toJson() => {
-        OrderPromotionDetailFields.order_promotion_detail_sqlite_id:
-            order_promotion_detail_sqlite_id,
-        OrderPromotionDetailFields.order_promotion_detail_id:
-            order_promotion_detail_id,
+        OrderPromotionDetailFields.order_promotion_detail_sqlite_id: order_promotion_detail_sqlite_id,
+        OrderPromotionDetailFields.order_promotion_detail_id: order_promotion_detail_id,
         OrderPromotionDetailFields.order_sqlite_id: order_sqlite_id,
         OrderPromotionDetailFields.order_id: order_id,
+        OrderPromotionDetailFields.order_key: order_key,
         OrderPromotionDetailFields.promotion_name: promotion_name,
         OrderPromotionDetailFields.rate: rate,
         OrderPromotionDetailFields.promotion_id: promotion_id,
-        OrderPromotionDetailFields.branch_link_promotion_id:
-            branch_link_promotion_id,
+        OrderPromotionDetailFields.branch_link_promotion_id: branch_link_promotion_id,
         OrderPromotionDetailFields.promotion_amount: promotion_amount,
         OrderPromotionDetailFields.promotion_type: promotion_type,
         OrderPromotionDetailFields.auto_apply: auto_apply,

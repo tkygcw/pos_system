@@ -6,6 +6,7 @@ class OrderTaxDetailFields {
     order_tax_detail_id,
     order_sqlite_id,
     order_id,
+    order_key,
     tax_name,
     rate,
     tax_id,
@@ -21,6 +22,7 @@ class OrderTaxDetailFields {
   static String order_tax_detail_id = 'order_tax_detail_id';
   static String order_sqlite_id = 'order_sqlite_id';
   static String order_id = 'order_id';
+  static String order_key = 'order_key';
   static String tax_name = 'tax_name';
   static String rate = 'rate';
   static String tax_id = 'tax_id';
@@ -37,6 +39,7 @@ class OrderTaxDetail {
   int? order_tax_detail_id;
   String? order_sqlite_id;
   String? order_id;
+  String? order_key;
   String? tax_name;
   String? rate;
   String? tax_id;
@@ -52,6 +55,7 @@ class OrderTaxDetail {
         this.order_tax_detail_id,
         this.order_sqlite_id,
         this.order_id,
+        this.order_key,
         this.tax_name,
         this.rate,
         this.tax_id,
@@ -67,6 +71,7 @@ class OrderTaxDetail {
     int? order_tax_detail_id,
     String? order_sqlite_id,
     String? order_id,
+    String? order_key,
     String? tax_name,
     String? rate,
     String? tax_id,
@@ -82,6 +87,7 @@ class OrderTaxDetail {
           order_tax_detail_id: order_tax_detail_id ?? this.order_tax_detail_id,
           order_sqlite_id: order_sqlite_id ?? this.order_sqlite_id,
           order_id: order_id ?? this.order_id,
+          order_key: order_key ?? this.order_key,
           tax_name: tax_name ?? this.tax_name,
           rate: rate ?? this.rate,
           tax_id: tax_id ?? this.tax_id,
@@ -97,6 +103,7 @@ class OrderTaxDetail {
       order_tax_detail_id: json[OrderTaxDetailFields.order_tax_detail_id] as int?,
       order_sqlite_id: json[OrderTaxDetailFields.order_sqlite_id] as String?,
       order_id: json[OrderTaxDetailFields.order_id] as String?,
+      order_key: json[OrderTaxDetailFields.order_key] as String?,
       tax_name: json[OrderTaxDetailFields.tax_name] as String?,
       rate: json[OrderTaxDetailFields.rate] as String?,
       tax_id: json[OrderTaxDetailFields.tax_id] as String?,
@@ -113,6 +120,7 @@ class OrderTaxDetail {
     OrderTaxDetailFields.order_tax_detail_id: order_tax_detail_id,
     OrderTaxDetailFields.order_sqlite_id: order_sqlite_id,
     OrderTaxDetailFields.order_id: order_id,
+    OrderTaxDetailFields.order_key: order_key,
     OrderTaxDetailFields.tax_name: tax_name,
     OrderTaxDetailFields.rate: rate,
     OrderTaxDetailFields.tax_id: tax_id,

@@ -12,7 +12,6 @@ import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
-import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
@@ -92,6 +91,7 @@ class _MakePaymentState extends State<MakePayment> {
   String ipay_code = '';
   String? allPromo = '';
   String? orderId;
+  String? orderKey;
   String finalAmount = '';
   String change = '0.00';
   int myCount = 0;
@@ -1154,7 +1154,8 @@ class _MakePaymentState extends State<MakePayment> {
                 orderCacheIdList: orderCacheIdList,
                 selectedTableList: selectedTableList,
                 callback: () => Navigator.of(context).pop(),
-                  orderId: orderId!
+                orderId: orderId!,
+                orderKey: orderKey!,
               ),
             ),
           );
@@ -1605,17 +1606,11 @@ class _MakePaymentState extends State<MakePayment> {
     }
 
     streamController.add('refresh');
-
   }
 
-  // callUpdateOrder(CartModel cartModel) async {
-  //   await updateOrder();
-  //   await updateOrderCache(cartModel);
-  //   await crateOrderTaxDetail();
-  //   await createOrderPromotionDetail();
-  // }
   callCreateOrder(String? paymentReceived, {orderChange}) async {
     await createOrder(double.parse(paymentReceived!), orderChange);
+    await insertOrderKey();
     await crateOrderTaxDetail();
     await createOrderPromotionDetail();
   }
@@ -1624,6 +1619,14 @@ class _MakePaymentState extends State<MakePayment> {
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     branchObject = json.decode(branch!);
+  }
+
+  generateOrderKey(Order order) async  {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes  = order.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + order.order_sqlite_id.toString() + device_id.toString();
+    print('bytes: ${bytes}');
+    return md5.convert(utf8.encode(bytes)).toString();
   }
 
   generateOrderNumber(){
@@ -1646,6 +1649,7 @@ class _MakePaymentState extends State<MakePayment> {
     Map logInUser = json.decode(login_user!);
     Map userObject = json.decode(pos_user!);
     int orderNum = generateOrderNumber();
+
     try{
       if(orderNum != 0){
         Order orderObject = Order(
@@ -1667,6 +1671,7 @@ class _MakePaymentState extends State<MakePayment> {
             payment_received: paymentReceived == null ? '' : paymentReceived.toStringAsFixed(2),
             payment_change: orderChange == null ? '0.00' : orderChange,
             payment_status: 0,
+            order_key: '',
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',
@@ -1684,6 +1689,21 @@ class _MakePaymentState extends State<MakePayment> {
     }
   }
 
+  insertOrderKey() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    await readAllOrder();
+    orderKey = await generateOrderKey(orderList[0]);
+    if(orderKey != null){
+      Order orderObject = Order(
+        order_key: orderKey,
+        sync_status: 0,
+        updated_at: dateTime,
+        order_sqlite_id: orderList[0].order_sqlite_id
+      );
+      int data = await PosDatabase.instance.updateOrderUniqueKey(orderObject);
+    }
+  }
 
   createOrderPromotionDetail() async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -1698,6 +1718,7 @@ class _MakePaymentState extends State<MakePayment> {
           order_promotion_detail_id: 0,
           order_sqlite_id: orderId,
           order_id: '0',
+          order_key: orderKey,
           promotion_name: appliedPromotionList[i].name,
           promotion_id: appliedPromotionList[i].promotion_id.toString(),
           rate: appliedPromotionList[i].promoRate,
@@ -1727,6 +1748,7 @@ class _MakePaymentState extends State<MakePayment> {
             order_tax_detail_id: 0,
             order_sqlite_id: orderId,
             order_id: '0',
+            order_key: orderKey,
             tax_name: taxList[i].name,
             rate: taxList[i].tax_rate,
             tax_id: taxList[i].tax_id.toString(),
@@ -1751,7 +1773,6 @@ class _MakePaymentState extends State<MakePayment> {
   readAllOrder() async {
     List<Order> data = await PosDatabase.instance.readLatestOrder();
     orderList = List.from(data);
-
 
   }
 

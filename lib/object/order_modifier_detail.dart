@@ -6,6 +6,7 @@ class OrderModifierDetailFields {
     order_modifier_detail_id,
     order_detail_sqlite_id,
     order_detail_id,
+    order_detail_key,
     mod_item_id,
     mod_group_id,
     created_at,
@@ -17,6 +18,7 @@ class OrderModifierDetailFields {
   static String order_modifier_detail_id = 'order_modifier_detail_id';
   static String order_detail_sqlite_id = 'order_detail_sqlite_id';
   static String order_detail_id = 'order_detail_id';
+  static String order_detail_key = 'order_detail_key';
   static String mod_item_id = 'mod_item_id';
   static String mod_group_id = 'mod_group_id';
   static String created_at = 'created_at';
@@ -29,6 +31,7 @@ class OrderModifierDetail{
   int? order_modifier_detail_id;
   String? order_detail_sqlite_id;
   String? order_detail_id;
+  String? order_detail_key;
   String? mod_item_id;
   String? mod_group_id;
   String? created_at;
@@ -41,6 +44,7 @@ class OrderModifierDetail{
         this.order_modifier_detail_id,
         this.order_detail_sqlite_id,
         this.order_detail_id,
+        this.order_detail_key,
         this.mod_item_id,
         this.mod_group_id,
         this.created_at,
@@ -53,6 +57,7 @@ class OrderModifierDetail{
      int? order_modifier_detail_id,
      String? order_detail_sqlite_id,
      String? order_detail_id,
+     String? order_detail_key,
      String? mod_item_id,
      String? mod_group_id,
      String? created_at,
@@ -64,6 +69,7 @@ class OrderModifierDetail{
         order_modifier_detail_id: order_modifier_detail_id ?? this.order_modifier_detail_id,
         order_detail_sqlite_id: order_detail_sqlite_id ?? this.order_detail_sqlite_id,
         order_detail_id: order_detail_id ?? this.order_detail_id,
+        order_detail_key: order_detail_key ?? this.order_detail_key,
         mod_item_id: mod_item_id ?? this.mod_item_id,
         mod_group_id: mod_group_id ?? this.mod_group_id,
         created_at: created_at ?? this.created_at,
@@ -75,6 +81,7 @@ class OrderModifierDetail{
     order_modifier_detail_id: json[OrderModifierDetailFields.order_modifier_detail_id] as int?,
     order_detail_sqlite_id: json[OrderModifierDetailFields.order_detail_sqlite_id] as String?,
     order_detail_id: json[OrderModifierDetailFields.order_detail_id] as String?,
+    order_detail_key: json[OrderModifierDetailFields.order_detail_key] as String?,
     mod_item_id: json[OrderModifierDetailFields.mod_item_id] as String?,
     mod_group_id: json[OrderModifierDetailFields.mod_group_id] as String?,
     created_at: json[OrderModifierDetailFields.created_at] as String?,
@@ -88,6 +95,7 @@ class OrderModifierDetail{
     OrderModifierDetailFields.order_modifier_detail_id: order_modifier_detail_id,
     OrderModifierDetailFields.order_detail_sqlite_id: order_detail_sqlite_id,
     OrderModifierDetailFields.order_detail_id: order_detail_id,
+    OrderModifierDetailFields.order_detail_key: order_detail_key,
     OrderModifierDetailFields.mod_item_id: mod_item_id,
     OrderModifierDetailFields.mod_group_id: mod_group_id,
     OrderModifierDetailFields.created_at: created_at,

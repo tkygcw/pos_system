@@ -19,7 +19,6 @@ class CartModel extends ChangeNotifier {
   int count = 0;
 
   void initialLoad() {
-    print('cart init called!');
     removeAllTable();
     removeAllCartItem();
     removePromotion();

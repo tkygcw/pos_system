@@ -86,6 +86,7 @@ class _TableDialogState extends State<TableDialog> {
           branch_id: branch_id.toString(),
           number: tableNoController.text,
           seats: seatController.text,
+          table_use_detail_key: '',
           status: 0,
           sync_status: 0,
           created_at: dateTime,

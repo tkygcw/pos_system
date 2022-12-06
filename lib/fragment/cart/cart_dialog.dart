@@ -155,18 +155,6 @@ class _CartDialogState extends State<CartDialog> {
                     : CustomProgressBar(),
                 actions: <Widget>[
                   TextButton(
-                    child: Text('Clear'),
-                    onPressed: () {
-                      for (int i = 0; i < tableList.length; i++) {
-                        setState(() {
-                          tableList[i].isSelected = false;
-                          cart.removeAllCartItem();
-                          cart.removeAllTable();
-                        });
-                      }
-                    },
-                  ),
-                  TextButton(
                     child: Text(
                         '${AppLocalizations.of(context)?.translate('close')}'),
                     onPressed: () {

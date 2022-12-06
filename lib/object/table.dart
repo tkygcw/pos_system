@@ -1,7 +1,3 @@
-import 'dart:ui';
-
-import 'package:pos_system/object/table_use.dart';
-
 String? tablePosTable = 'tb_table ';
 
 class PosTableFields {
@@ -11,6 +7,7 @@ class PosTableFields {
     branch_id,
     number,
     seats,
+    table_use_detail_key,
     status,
     sync_status,
     created_at,
@@ -23,6 +20,7 @@ class PosTableFields {
   static String branch_id = 'branch_id';
   static String number = 'number';
   static String seats = 'seats';
+  static String table_use_detail_key = 'table_use_detail_key';
   static String status = 'status';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
@@ -36,6 +34,7 @@ class PosTable{
   String? branch_id;
   String? number;
   String? seats;
+  String? table_use_detail_key;
   int? status;
   int? sync_status;
   String? created_at;
@@ -52,6 +51,7 @@ class PosTable{
         this.branch_id,
         this.number,
         this.seats,
+        this.table_use_detail_key,
         this.status,
         this.sync_status,
         this.created_at,
@@ -64,6 +64,7 @@ class PosTable{
     String? branch_id,
     String? number,
     String? seats,
+    String? table_use_detail_key,
     int? status,
     int? sync_status,
     String? created_at,
@@ -77,6 +78,7 @@ class PosTable{
           number: number ?? this.number,
           seats: seats ?? this.seats,
           status: status ?? this.status,
+          table_use_detail_key: table_use_detail_key ?? this.table_use_detail_key,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -88,6 +90,7 @@ class PosTable{
     branch_id: json[PosTableFields.branch_id] as String?,
     number: json[PosTableFields.number] as String?,
     seats: json[PosTableFields.seats] as String?,
+    table_use_detail_key: json[PosTableFields.table_use_detail_key] as String?,
     status: json[PosTableFields.status] as int?,
     sync_status: json[PosTableFields.sync_status] as int?,
     created_at: json[PosTableFields.created_at] as String?,
@@ -101,6 +104,7 @@ class PosTable{
     PosTableFields.branch_id: branch_id,
     PosTableFields.number: number,
     PosTableFields.seats: seats,
+    PosTableFields.table_use_detail_key: table_use_detail_key,
     PosTableFields.status: status,
     PosTableFields.sync_status: sync_status,
     PosTableFields.created_at: created_at,
