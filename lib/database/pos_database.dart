@@ -548,13 +548,14 @@ class PosDatabase {
   Future<PosTable> insertPosTable(PosTable data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tablePosTable(table_id, branch_id, number, seats, status, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO $tablePosTable(table_id, branch_id, number, seats, status, table_use_detail_key, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.table_id,
           data.branch_id,
           data.number,
           data.seats,
           data.status,
+          data.table_use_detail_key,
           2,
           data.created_at,
           data.updated_at,
@@ -1460,6 +1461,18 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT * FROM $tableModifierLinkProduct WHERE soft_delete = ? AND mod_group_id = ? AND product_sqlite_id = ?',
         ['', mod_group_id, product_sqlite_id]);
+
+    return result.map((json) => ModifierLinkProduct.fromJson(json)).toList();
+  }
+
+  /*
+  read modifier link product
+*/
+  Future<List<ModifierLinkProduct>> readModifierLinkProductList(String product_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableModifierLinkProduct WHERE soft_delete = ? AND product_sqlite_id = ?',
+        ['', product_sqlite_id]);
 
     return result.map((json) => ModifierLinkProduct.fromJson(json)).toList();
   }
@@ -2647,8 +2660,8 @@ class PosDatabase {
       ModifierLinkProduct data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableModifierLinkProduct SET sync_status = ?, updated_at = ? WHERE product_sqlite_id = ?',
-        [data.sync_status, data.updated_at, data.product_sqlite_id]);
+        'UPDATE $tableModifierLinkProduct SET sync_status = ?, updated_at = ? WHERE product_sqlite_id = ? AND mod_group_id = ?',
+        [data.sync_status, data.updated_at, data.product_sqlite_id, data.mod_group_id]);
   }
 
   /*
@@ -3060,8 +3073,8 @@ class PosDatabase {
   Future<int> deleteModifierLinkProduct(ModifierLinkProduct data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableModifierLinkProduct SET soft_delete = ?, sync_status = ? WHERE soft_delete = ? AND product_sqlite_id = ?',
-        [data.soft_delete, data.sync_status, '', data.product_sqlite_id]);
+        'UPDATE $tableModifierLinkProduct SET soft_delete = ?, sync_status = ? WHERE soft_delete = ? AND product_sqlite_id = ? AND mod_group_id = ?',
+        [data.soft_delete, data.sync_status, '', data.product_sqlite_id, data.mod_group_id]);
   }
 
   /*

@@ -500,77 +500,94 @@ class _EditProductDialogState extends State<EditProductDialog> {
 /*
       -----------------------------end sync------------------------------------
 */
-      if (switchController.selectedItem.length == 0) {
-        int deleteModifierLinkProduct = await PosDatabase.instance
-            .deleteModifierLinkProduct(ModifierLinkProduct(
-                product_sqlite_id: widget.product!.product_sqlite_id.toString(),
-                sync_status: 1,
-                soft_delete: dateTime));
+      List modGroupIdList = [];
+      List<ModifierLinkProduct> getModifierLinkProductList =
+          await PosDatabase.instance.readModifierLinkProductList(
+              widget.product!.product_sqlite_id.toString());
+      for (int z = 0; z < getModifierLinkProductList.length; z++) {
+        modGroupIdList
+            .add(int.parse(getModifierLinkProductList[z].mod_group_id!));
+      }
 
-        if (deleteModifierLinkProduct != 0) {
- /*
-    -------------------------sync to cloud-------------------------------------
-*/
-          if (connectivityResult == ConnectivityResult.mobile ||
-              connectivityResult == ConnectivityResult.wifi) {
-            Map responseDeleteMod = await Domain().deleteModifierLinkProduct(
-                widget.product!.product_id.toString());
-            if (responseDeleteMod['status'] == '1') {
-              int syncData = await PosDatabase.instance
-                  .updateSyncModifierLinkProductForUpdate(ModifierLinkProduct(
-                      sync_status: 2,
-                      updated_at: dateTime,
-                      product_sqlite_id:
-                          widget.product!.product_sqlite_id.toString()));
-            }
-          }
-/*
-        -----------------------------end sync----------------------------------
-*/
+      List needInsert = switchController.selectedItem
+          .where((i) => !modGroupIdList.contains(i))
+          .toList();
+      List needDelete = modGroupIdList
+          .where((e) => !switchController.selectedItem.contains(e))
+          .toList();
 
-        }
-      } else {
-        for (int i = 0; i < switchController.selectedItem.length; i++) {
-          List<ModifierLinkProduct> readModifierLinkProduct =
-              await PosDatabase.instance.readModifierLinkProduct(
-                  switchController.selectedItem[i].toString(),
-                  widget.product!.product_sqlite_id.toString());
-          if (readModifierLinkProduct.length == 0) {
-            ModifierLinkProduct data = await PosDatabase.instance
-                .insertModifierLinkProduct(ModifierLinkProduct(
-                    modifier_link_product_id: 0,
-                    mod_group_id: switchController.selectedItem[i].toString(),
-                    product_id: widget.product!.product_id.toString(),
-                    product_sqlite_id:
-                        widget.product!.product_sqlite_id.toString(),
-                    sync_status: 0,
-                    created_at: dateTime,
-                    updated_at: '',
-                    soft_delete: ''));
+      if (needInsert.length > 0) {
+        for (int i = 0; i < needInsert.length; i++) {
+          ModifierLinkProduct data = await PosDatabase.instance
+              .insertModifierLinkProduct(ModifierLinkProduct(
+                  modifier_link_product_id: 0,
+                  mod_group_id: needInsert[i].toString(),
+                  product_id: widget.product!.product_id.toString(),
+                  product_sqlite_id:
+                      widget.product!.product_sqlite_id.toString(),
+                  sync_status: 0,
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
 /*
             -----------------------sync to cloud--------------------------------
 */
-            if (connectivityResult == ConnectivityResult.mobile ||
-                connectivityResult == ConnectivityResult.wifi) {
-              Map responseInsertMod = await Domain().insertModifierLinkProduct(
-                  switchController.selectedItem[i].toString(),
-                  widget.product!.product_id.toString());
-              if (responseInsertMod['status'] == '1') {
-                int syncData = await PosDatabase.instance
-                    .updateSyncModifierLinkProduct(ModifierLinkProduct(
-                  modifier_link_product_id: responseInsertMod['modifier_link_product_id'],
-                  sync_status: 2,
-                  updated_at: dateTime,
-                  modifier_link_product_sqlite_id: data.modifier_link_product_sqlite_id,
-                ));
-              }
+          if (connectivityResult == ConnectivityResult.mobile ||
+              connectivityResult == ConnectivityResult.wifi) {
+            Map responseInsertMod = await Domain().insertModifierLinkProduct(
+                needInsert[i].toString(),
+                widget.product!.product_id.toString());
+            if (responseInsertMod['status'] == '1') {
+              int syncData = await PosDatabase.instance
+                  .updateSyncModifierLinkProduct(ModifierLinkProduct(
+                modifier_link_product_id:
+                    responseInsertMod['modifier_link_product_id'],
+                sync_status: 2,
+                updated_at: dateTime,
+                modifier_link_product_sqlite_id:
+                    data.modifier_link_product_sqlite_id,
+              ));
             }
+          }
 /*
               ---------------------------end sync-------------------------------
 */
-          }
+
         }
       }
+      if (needDelete.length > 0) {
+        for (int j = 0; j < needDelete.length; j++) {
+          int deleteModifierLinkProduct = await PosDatabase.instance
+              .deleteModifierLinkProduct(ModifierLinkProduct(
+                  mod_group_id: needDelete[j].toString(),
+                  product_sqlite_id:
+                      widget.product!.product_sqlite_id.toString(),
+                  sync_status: 1,
+                  soft_delete: dateTime));
+
+/*
+    -------------------------sync to cloud-------------------------------------
+*/
+            if (connectivityResult == ConnectivityResult.mobile ||
+                connectivityResult == ConnectivityResult.wifi) {
+              Map responseDeleteMod = await Domain().deleteModifierLinkProduct(
+                  widget.product!.product_id.toString(), needDelete[j].toString());
+              if (responseDeleteMod['status'] == '1') {
+                int syncData = await PosDatabase.instance
+                    .updateSyncModifierLinkProductForUpdate(ModifierLinkProduct(
+                        sync_status: 2,
+                        updated_at: dateTime,
+                        mod_group_id: needDelete[j].toString(),
+                        product_sqlite_id:
+                            widget.product!.product_sqlite_id.toString()));
+              }
+            }
+/*
+        -----------------------------end sync----------------------------------
+*/
+        }
+      }
+
       if (widget.product!.has_variant == 1) {
         List currentGroupName = [];
         List editGroupName = [];
@@ -591,8 +608,8 @@ class _EditProductDialogState extends State<EditProductDialog> {
 */
         if (needInsert.length > 0) {
           for (int k = 0; k < needInsert.length; k++) {
-            VariantGroup variantGroupData = await PosDatabase.instance.insertVariantGroup(
-                VariantGroup(
+            VariantGroup variantGroupData = await PosDatabase.instance
+                .insertVariantGroup(VariantGroup(
                     child: [],
                     variant_group_id: 0,
                     product_id: widget.product!.product_id.toString(),
@@ -619,7 +636,8 @@ class _EditProductDialogState extends State<EditProductDialog> {
                       responseInsertVariantGroup['variant_group_id'],
                   sync_status: 2,
                   updated_at: dateTime,
-                  variant_group_sqlite_id: variantGroupData.variant_group_sqlite_id,
+                  variant_group_sqlite_id:
+                      variantGroupData.variant_group_sqlite_id,
                 ));
               }
             }
@@ -630,13 +648,16 @@ class _EditProductDialogState extends State<EditProductDialog> {
             for (int l = 0; l < variantList.length; l++) {
               if (needInsert[k] == variantList[l]['modGroup']) {
                 for (int m = 0; m < variantList[l]['modItem'].length; m++) {
-                  VariantGroup? variantGroup = await PosDatabase.instance.readVariantGroupID(variantGroupData.variant_group_sqlite_id.toString());
+                  VariantGroup? variantGroup = await PosDatabase.instance
+                      .readVariantGroupID(
+                          variantGroupData.variant_group_sqlite_id.toString());
                   VariantItem item = await PosDatabase.instance
                       .insertVariantItem(VariantItem(
                           variant_item_id: 0,
-                          variant_group_id: variantGroup?.variant_group_id.toString(),
+                          variant_group_id:
+                              variantGroup?.variant_group_id.toString(),
                           variant_group_sqlite_id:
-                          variantGroup?.variant_group_sqlite_id.toString(),
+                              variantGroup?.variant_group_sqlite_id.toString(),
                           name: variantList[l]['modItem'][m],
                           sync_status: 0,
                           created_at: dateTime,
@@ -649,7 +670,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                       connectivityResult == ConnectivityResult.wifi) {
                     Map responseInsertVariantItem = await Domain()
                         .insertVariantItem(variantList[l]['modItem'][m],
-                        variantGroup?.variant_group_id.toString());
+                            variantGroup?.variant_group_id.toString());
                     if (responseInsertVariantItem['status'] == '1') {
                       int syncData = await PosDatabase.instance
                           .updateSyncVariantItem(VariantItem(
@@ -904,7 +925,8 @@ class _EditProductDialogState extends State<EditProductDialog> {
                   if (responseInsertProductVariant['status'] == '1') {
                     int syncData = await PosDatabase.instance
                         .updateSyncProductVariant(ProductVariant(
-                            product_variant_id: responseInsertProductVariant['product_variant_id'],
+                            product_variant_id: responseInsertProductVariant[
+                                'product_variant_id'],
                             sync_status: 2,
                             updated_at: dateTime,
                             product_sqlite_id:
@@ -916,7 +938,9 @@ class _EditProductDialogState extends State<EditProductDialog> {
 /*
                 ---------------------------end sync-----------------------------
 */
-                ProductVariant? productVariant = await PosDatabase.instance.readProductVariantID(variant.product_variant_sqlite_id.toString());
+                ProductVariant? productVariant = await PosDatabase.instance
+                    .readProductVariantID(
+                        variant.product_variant_sqlite_id.toString());
                 BranchLinkProduct variantBranchProduct = await PosDatabase
                     .instance
                     .insertBranchLinkProduct(BranchLinkProduct(
@@ -929,7 +953,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                         product_variant_sqlite_id:
                             variant.product_variant_sqlite_id.toString(),
                         product_variant_id:
-                        productVariant!.product_variant_id.toString(),
+                            productVariant!.product_variant_id.toString(),
                         b_SKU: branch_id.toString() + variant.SKU.toString(),
                         price: variant.price,
                         stock_type: selectStock == 'Daily Limit' ? '1' : '2',
@@ -991,7 +1015,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                       .insertProductVariantDetail(ProductVariantDetail(
                           product_variant_detail_id: 0,
                           product_variant_id:
-                          productVariant!.product_variant_id.toString(),
+                              productVariant!.product_variant_id.toString(),
                           product_variant_sqlite_id:
                               variant.product_variant_sqlite_id.toString(),
                           variant_item_sqlite_id:
@@ -1008,7 +1032,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                       connectivityResult == ConnectivityResult.wifi) {
                     Map responseInsertProductVariantDetail = await Domain()
                         .insertProductVariantDetail(
-                        productVariant.product_variant_id.toString(),
+                            productVariant.product_variant_id.toString(),
                             item!.variant_item_id.toString());
                     if (responseInsertProductVariantDetail['status'] == '1') {
                       int syncData = await PosDatabase.instance

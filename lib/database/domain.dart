@@ -804,11 +804,12 @@ class Domain {
   /*
   * delete product modifier
   * */
-  deleteModifierLinkProduct(product_id) async {
+  deleteModifierLinkProduct(product_id, mod_group_id) async {
     try {
       var response = await http.post(Domain.product, body: {
         'deleteModLinkProduct': '1',
         'product_id': product_id,
+        'mod_group_id' : mod_group_id
       });
       return jsonDecode(response.body);
     } catch (error) {
