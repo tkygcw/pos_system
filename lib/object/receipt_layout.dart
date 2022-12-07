@@ -41,6 +41,7 @@ class ReceiptLayout{
   List<OrderModifierDetail> orderModifierDetailList = [];
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   String settlement_By = '';
+  double totalPromotion = 0.0;
   double totalCashBalance = 0.0;
   double totalCashIn = 0.0;
   double totalCashOut = 0.0;
@@ -291,10 +292,17 @@ class ReceiptLayout{
           PosColumn(text: '${this.paidOrder!.subtotal}', width: 4, styles: PosStyles(align: PosAlign.right)),
         ]);
         //discount
-        for(int p = 0; p < orderPromotionList.length; p++){
+        if(receipt!.promotion_detail_status == 1){
+          for(int p = 0; p < orderPromotionList.length; p++){
+            bytes += generator.row([
+              PosColumn(text: '${orderPromotionList[p].promotion_name}(${orderPromotionList[p].rate})', width: 8, styles: PosStyles(align: PosAlign.right)),
+              PosColumn(text: '-${orderPromotionList[p].promotion_amount}', width: 4, styles: PosStyles(align: PosAlign.right)),
+            ]);
+          }
+        } else {
           bytes += generator.row([
-            PosColumn(text: '${orderPromotionList[p].promotion_name}(${orderPromotionList[p].rate})', width: 8, styles: PosStyles(align: PosAlign.right)),
-            PosColumn(text: '-${orderPromotionList[p].promotion_amount}', width: 4, styles: PosStyles(align: PosAlign.right)),
+            PosColumn(text: 'Total discount', width: 8, styles: PosStyles(align: PosAlign.right)),
+            PosColumn(text: '-${this.totalPromotion.toStringAsFixed(2)}', width: 4, styles: PosStyles(align: PosAlign.right)),
           ]);
         }
         //tax
@@ -304,7 +312,6 @@ class ReceiptLayout{
             PosColumn(text: '${orderTaxList[t].tax_amount}', width: 4, styles: PosStyles(align: PosAlign.right)),
           ]);
         }
-
         //Amount
         bytes += generator.row([
           PosColumn(text: 'Amount', width: 8, styles: PosStyles(align: PosAlign.right)),
@@ -351,7 +358,7 @@ class ReceiptLayout{
         bytes += generator.cut(mode: PosCutMode.partial);
         return bytes;
       } catch (e) {
-        print(e);
+        print('layout error: ${e}');
         return null;
       }
     }
@@ -397,7 +404,7 @@ class ReceiptLayout{
         bytes += generator.hr();
         bytes += generator.reset();
         //receipt no
-        bytes += generator.text('Receipt No.: ${this.paidOrder!.generateOrderNumber()}',
+        bytes += generator.text('Receipt No: ${this.paidOrder!.generateOrderNumber()}',
             styles: PosStyles(
                 align: PosAlign.left,
                 width: PosTextSize.size1,
@@ -481,12 +488,10 @@ class ReceiptLayout{
           PosColumn(text: '${this.paidOrder!.subtotal}', width: 4),
         ]);
         //discount
-        for(int p = 0; p < orderPromotionList.length; p++){
-          bytes += generator.row([
-            PosColumn(text: '${orderPromotionList[p].promotion_name}(${orderPromotionList[p].rate})', width: 8),
-            PosColumn(text: '-${orderPromotionList[p].promotion_amount}', width: 4),
-          ]);
-        }
+        bytes += generator.row([
+          PosColumn(text: 'Total discount', width: 8),
+          PosColumn(text: '-${this.totalPromotion}', width: 4),
+        ]);
         //tax
         for(int t = 0; t < orderTaxList.length; t++){
           bytes += generator.row([
@@ -536,7 +541,7 @@ class ReceiptLayout{
           bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, height: PosTextSize.size3, width: PosTextSize.size3));
         }
         //copyright
-        bytes += generator.text('POWERED BY CHANNEL POS', styles: PosStyles(bold: true));
+        bytes += generator.text('POWERED BY CHANNEL POS', styles: PosStyles(bold: true, align: PosAlign.center));
         bytes += generator.feed(1);
         bytes += generator.cut(mode: PosCutMode.partial);
         return bytes;
@@ -1385,6 +1390,11 @@ class ReceiptLayout{
   getPaidOrderPromotionDetail() async {
     List<OrderPromotionDetail> detailData = await PosDatabase.instance.readSpecificOrderPromotionDetail(this.paidOrder!.order_sqlite_id.toString());
     orderPromotionList = List.from(detailData);
+
+    for(int p = 0; p < orderPromotionList.length; p++){
+      this.totalPromotion += double.parse(orderPromotionList[p].promotion_amount!);
+    }
+    print('total promotion: ${this.totalPromotion}');
   }
 
 /*

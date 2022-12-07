@@ -34,6 +34,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   bool footerImage = true;
   bool logoText = false;
   bool footerText = false;
+  bool promoDetail = true;
   bool _submitted = false;
 
   @override
@@ -45,6 +46,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       widget.receiptObject!.footer_image_status == 1 ? this.footerImage = true  : this.footerImage = false;
       widget.receiptObject!.header_text_status == 1 ? this.logoText = true : this.logoText = false;
       widget.receiptObject!.footer_text_status == 1 ? this.footerText = true : this.footerText = false;
+      widget.receiptObject!.promotion_detail_status == 1 ? this.promoDetail = true : this.promoDetail = false;
       headerTextController.text = widget.receiptObject!.header_text!;
       footerTextController.text = widget.receiptObject!.footer_text!;
       isLoad = true;
@@ -110,163 +112,584 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         title: !_isUpdate ? Text('Add receipt layout') : Text("Receipt Layout"),
         content: isLoad ?
         Container(
-          height: MediaQuery.of(context).size.height / 1.75,
-          width: MediaQuery.of(context).size.width / 4,
+          height: MediaQuery.of(context).size.height / 1,
+          width: MediaQuery.of(context).size.width / 1,
           child: SingleChildScrollView(
-            child: Column(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      alignment: Alignment.topLeft,
-                      child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                    ),
-                    Spacer(),
-                    Container(
-                      child: Switch(
-                          value: logoImage,
-                          activeColor: color.backgroundColor,
-                          onChanged: !_isUpdate ?  (bool value){
-                            setState(() {
-                              logoImage = value;
-                            });
-                          }: null ),
-                    )
-                  ],
-                ),
-                Row(
-                  children: [
-                    Container(
-                      alignment: Alignment.topLeft,
-                      child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                    ),
-                    Spacer(),
-                    Container(
-                      child: Switch(
-                          value: footerImage,
-                          activeColor: color.backgroundColor,
-                          onChanged: !_isUpdate ? (bool value){
-                            setState(() {
-                              footerImage = value;
-                            });
-                          }: null),
-                    )
-                  ],
-                ),
-                Row(
-                  children: [
-                    Container(
-                      alignment: Alignment.topLeft,
-                      child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                    ),
-                    Spacer(),
-                    Container(
-                      child: Switch(
-                          value: logoText,
-                          activeColor: color.backgroundColor,
-                          onChanged: !_isUpdate ? (bool value){
-                            setState(() {
-                              logoText = value;
-                            });
-                          } : null),
-                    )
-                  ],
-                ),
-                Visibility(
-                  visible: logoText ? true : false,
-                  child: Container(
-                    child: ValueListenableBuilder(
-                      // Note: pass _controller to the animation argument
-                        valueListenable: headerTextController,
-                        builder: (context, TextEditingValue value, __) {
-                          return SizedBox(
-                            height: MediaQuery.of(context).size.height / 8,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: TextField(
-                                enabled: _isUpdate ? false : true,
-                                controller: headerTextController,
-                                decoration: InputDecoration(
-                                  errorText: _submitted
-                                      ? errorHeaderText == null
-                                      ? errorHeaderText
-                                      : AppLocalizations.of(context)
-                                      ?.translate(errorHeaderText!)
-                                      : null,
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: color.backgroundColor),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: color.backgroundColor),
-                                  ),
-                                  labelText: 'Logo text here',
+                Expanded(
+                  flex: 1,
+                    child: Container(
+                      padding: EdgeInsets.fromLTRB(50, 20, 50, 20),
+                      color: Colors.grey,
+                      height: MediaQuery.of(context).size.height,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Visibility(
+                              visible: logoImage ? true : false,
+                              child: Center(
+                                child: CircleAvatar(
+                                  radius: 30,
+                                  backgroundColor: Colors.black,
+                                  child: Text('Logo'),
                                 ),
+                              )
+                          ),
+                          Visibility(
+                              visible: logoText ? true : false,
+                              child: Center(
+                                child: Text('Logo text here', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                              )
+                          ),
+                          Container(
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  Text('Jalan permas baru'),
+                                  Text('Tel: 0123456789'),
+                                  Text('xxx@gmail.com')
+                                ],
                               ),
                             ),
-                          );
-                        }),
-                  ),
-                ),
-                Row(
-                  children: [
-                    Container(
-                      alignment: Alignment.topLeft,
-                      child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                    ),
-                    Spacer(),
-                    Container(
-                      child: Switch(
-                          value: footerText,
-                          activeColor: color.backgroundColor,
-                          onChanged: !_isUpdate ? (bool value){
-                            setState(() {
-                              footerText = value;
-                            });
-                          } : null),
-                    )
-                  ],
-                ),
-                Visibility(
-                  visible: footerText ? true : false,
-                  child: Container(
-                    child: ValueListenableBuilder(
-                      // Note: pass _controller to the animation argument
-                        valueListenable: footerTextController,
-                        builder: (context, TextEditingValue value, __) {
-                          return SizedBox(
-                            height: MediaQuery.of(context).size.height / 8,
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: TextField(
-                                enabled: _isUpdate ? false : true,
-                                controller: footerTextController,
-                                decoration: InputDecoration(
-                                  errorText: _submitted
-                                      ? errorFooterText == null
-                                      ? errorFooterText
-                                      : AppLocalizations.of(context)
-                                      ?.translate(errorFooterText!)
-                                      : null,
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: color.backgroundColor),
+                          ),
+                          Divider(
+                            color: Colors.black,
+                            height: 1,
+                            thickness: 1,
+                          ),
+                          Container(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Receipt NO: #xxxx-xxxx'),
+                                Text('Table No: x'),
+                                Text('Dine in'),
+                                Text('Close by: xxx')
+                              ],
+                            ),
+                          ),
+                          Divider(
+                            color: Colors.black,
+                            height: 1,
+                            thickness: 1,
+                          ),
+                          Container(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                    child: Text('ITEM'),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                    child: Text('Qty'),
+                                ),
+                                Expanded(
+                                  flex: 0,
+                                    child: Text('Amount'),
+                                )
+                              ],
+                            ),
+                          ),
+                          Divider(
+                            color: Colors.black,
+                            height: 1,
+                            thickness: 1,
+                          ),
+                          Container(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: Text('product1'),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Text('2'),
+                                ),
+                                Expanded(
+                                  flex: 0,
+                                  child: Text('2.00'),
+                                )
+                              ],
+                            ),
+                          ),
+                          Container(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: Text('product2'),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Text('1'),
+                                ),
+                                Expanded(
+                                  flex: 0,
+                                  child: Text('2.00'),
+                                )
+                              ],
+                            ),
+                          ),
+                          Divider(
+                            color: Colors.black,
+                            height: 1,
+                            thickness: 1,
+                          ),
+                          Container(
+                            child: Text('Item count: 2'),
+                          ),
+                          Divider(
+                            color: Colors.black,
+                            height: 1,
+                            thickness: 1,
+                          ),
+                          Container(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: Text(''),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Text('Subtotal'),
+                                ),
+                                Expanded(
+                                  flex: 0,
+                                  child: Text('4.00'),
+                                )
+                              ],
+                            ),
+                          ),
+                          Visibility(
+                            visible: promoDetail ? true : false,
+                              child: Column(
+                                children: [
+                                  Container(
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: Text(''),
+                                        ),
+                                        Expanded(
+                                          flex: 1,
+                                          child: Text('Discount 1'),
+                                        ),
+                                        Expanded(
+                                          flex: 0,
+                                          child: Text('-1.00'),
+                                        )
+                                      ],
+                                    ),
                                   ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: color.backgroundColor),
+                                  Container(
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: Text(''),
+                                        ),
+                                        Expanded(
+                                          flex: 1,
+                                          child: Text('Discount 2'),
+                                        ),
+                                        Expanded(
+                                          flex: 0,
+                                          child: Text('-1.00'),
+                                        )
+                                      ],
+                                    ),
                                   ),
-                                  labelText: 'footer text here',
+                                ],
+                              )
+                          ),
+                          Visibility(
+                            visible: !promoDetail ? true : false,
+                              child: Container(
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 1,
+                                      child: Text(''),
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: Text('Total discount'),
+                                    ),
+                                    Expanded(
+                                      flex: 0,
+                                      child: Text('-2.00'),
+                                    )
+                                  ],
                                 ),
                               ),
+                          ),
+                          Container(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: Text(''),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Text('Tax1(10%)'),
+                                ),
+                                Expanded(
+                                  flex: 0,
+                                  child: Text('0.20'),
+                                )
+                              ],
                             ),
-                          );
-                        }),
-                  ),
+                          ),
+                          Container(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: Text(''),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Text('Tax2(6%)'),
+                                ),
+                                Expanded(
+                                  flex: 0,
+                                  child: Text('0.12'),
+                                )
+                              ],
+                            ),
+                          ),
+                          Container(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: Text(''),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Text('Amount'),
+                                ),
+                                Expanded(
+                                  flex: 0,
+                                  child: Text('2.32'),
+                                )
+                              ],
+                            ),
+                          ),
+                          Container(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: Text(''),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Text('Rounding'),
+                                ),
+                                Expanded(
+                                  flex: 0,
+                                  child: Text('-0.02'),
+                                )
+                              ],
+                            ),
+                          ),
+                          Divider(
+                            color: Colors.black,
+                            height: 1,
+                            thickness: 1,
+                          ),
+                          Container(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: Text(''),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Text('Final Amount', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                ),
+                                Expanded(
+                                  flex: 0,
+                                  child: Text('2.30'),
+                                )
+                              ],
+                            ),
+                          ),
+                          Divider(
+                            color: Colors.black,
+                            height: 1,
+                            thickness: 1,
+                          ),
+                          Container(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: Text(''),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Text('Payment method'),
+                                ),
+                                Expanded(
+                                  flex: 0,
+                                  child: Text('Cash'),
+                                )
+                              ],
+                            ),
+                          ),
+                          Container(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: Text(''),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Text('Payment received'),
+                                ),
+                                Expanded(
+                                  flex: 0,
+                                  child: Text('14.00'),
+                                )
+                              ],
+                            ),
+                          ),
+                          Container(
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: Text(''),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: Text('Change'),
+                                ),
+                                Expanded(
+                                  flex: 0,
+                                  child: Text('0.00'),
+                                )
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 20),
+                          Visibility(
+                              visible: footerImage ? true : false,
+                              child: Center(
+                                child: CircleAvatar(
+                                  radius: 30,
+                                  backgroundColor: Colors.black,
+                                  child: Text('footer'),
+                                ),
+                              )
+                          ),
+                          SizedBox(height: 10),
+                          Visibility(
+                              visible: footerText ? true : false,
+                              child: Center(
+                                child: Text('footer text here', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                              )
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                            child: Center(
+                              child: Text('POWERED BY CHANNEL POS'),
+                            ),
+                          )
+                        ],
+                      ),
+                    )
                 ),
+                SizedBox(width: 25),
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          alignment: Alignment.topLeft,
+                          child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                        ),
+                        Spacer(),
+                        Container(
+                          child: Switch(
+                              value: logoImage,
+                              activeColor: color.backgroundColor,
+                              onChanged: !_isUpdate ?  (bool value){
+                                setState(() {
+                                  logoImage = value;
+                                });
+                              }: null ),
+                        )
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          alignment: Alignment.topLeft,
+                          child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                        ),
+                        Spacer(),
+                        Container(
+                          child: Switch(
+                              value: footerImage,
+                              activeColor: color.backgroundColor,
+                              onChanged: !_isUpdate ? (bool value){
+                                setState(() {
+                                  footerImage = value;
+                                });
+                              }: null),
+                        )
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          alignment: Alignment.topLeft,
+                          child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                        ),
+                        Spacer(),
+                        Container(
+                          child: Switch(
+                              value: logoText,
+                              activeColor: color.backgroundColor,
+                              onChanged: !_isUpdate ? (bool value){
+                                setState(() {
+                                  logoText = value;
+                                });
+                              } : null),
+                        )
+                      ],
+                    ),
+                    Visibility(
+                      visible: logoText ? true : false,
+                      child: Container(
+                        child: ValueListenableBuilder(
+                          // Note: pass _controller to the animation argument
+                            valueListenable: headerTextController,
+                            builder: (context, TextEditingValue value, __) {
+                              return SizedBox(
+                                height: MediaQuery.of(context).size.height / 8,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: TextField(
+                                    enabled: _isUpdate ? false : true,
+                                    controller: headerTextController,
+                                    decoration: InputDecoration(
+                                      errorText: _submitted
+                                          ? errorHeaderText == null
+                                          ? errorHeaderText
+                                          : AppLocalizations.of(context)
+                                          ?.translate(errorHeaderText!)
+                                          : null,
+                                      border: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: color.backgroundColor),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: color.backgroundColor),
+                                      ),
+                                      labelText: 'Logo text here',
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          alignment: Alignment.topLeft,
+                          child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                        ),
+                        Spacer(),
+                        Container(
+                          child: Switch(
+                              value: footerText,
+                              activeColor: color.backgroundColor,
+                              onChanged: !_isUpdate ? (bool value){
+                                setState(() {
+                                  footerText = value;
+                                });
+                              } : null),
+                        )
+                      ],
+                    ),
+                    Visibility(
+                      visible: footerText ? true : false,
+                      child: Container(
+                        child: ValueListenableBuilder(
+                          // Note: pass _controller to the animation argument
+                            valueListenable: footerTextController,
+                            builder: (context, TextEditingValue value, __) {
+                              return SizedBox(
+                                height: MediaQuery.of(context).size.height / 8,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: TextField(
+                                    enabled: _isUpdate ? false : true,
+                                    controller: footerTextController,
+                                    decoration: InputDecoration(
+                                      errorText: _submitted
+                                          ? errorFooterText == null
+                                          ? errorFooterText
+                                          : AppLocalizations.of(context)
+                                          ?.translate(errorFooterText!)
+                                          : null,
+                                      border: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: color.backgroundColor),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: color.backgroundColor),
+                                      ),
+                                      labelText: 'footer text here',
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          alignment: Alignment.topLeft,
+                          child: Text('Show promotion detail (80mm)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                        ),
+                        Spacer(),
+                        Container(
+                          child: Switch(
+                              value: promoDetail,
+                              activeColor: color.backgroundColor,
+                              onChanged: !_isUpdate ?  (bool value){
+                                setState(() {
+                                  promoDetail = value;
+                                });
+                              }: null ),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+                )
               ],
-            ),
+            )
           ),
         ) : CustomProgressBar(),
         actions: <Widget>[
@@ -306,6 +729,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         footer_text_status: footerText == true ? 1 : 0,
         header_image_status: logoImage == true ? 1 : 0,
         footer_image_status: footerImage == true ? 1 : 0,
+        promotion_detail_status: promoDetail == true ? 1 : 0,
         status: widget.allReceiptList.length == 0 ? 1 : 0,
         sync_status: 0,
         created_at: dateTime,

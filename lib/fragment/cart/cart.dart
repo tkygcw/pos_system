@@ -581,7 +581,7 @@ class _CartPageState extends State<CartPage> {
                                         // if (printerList.length >= 0) {
                                           await callCreateNewOrder(cart);
                                           //await _printCheckList();
-                                          await _printKitchenList(cart);
+                                          //await _printKitchenList(cart);
                                           cart.removeAllCartItem();
                                           cart.removeAllTable();
                                         // } else {
@@ -1690,7 +1690,7 @@ class _CartPageState extends State<CartPage> {
               status: 1,
               updated_at: dateTime);
           int data =
-              await PosDatabase.instance.updatePosTableStatus(posTableData);
+              await PosDatabase.instance.updateCartPosTableStatus(posTableData);
         }
       }
     } catch (e) {
@@ -1862,6 +1862,13 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
+  generateTableUseDetailKey(TableUseDetail tableUseDetail) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes  = tableUseDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + tableUseDetail.table_use_detail_sqlite_id.toString() + device_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
   createTableUseDetail(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -1899,15 +1906,6 @@ class _CartPageState extends State<CartPage> {
           msg: "Create table detail error: ${e}");
     }
   }
-
-  generateTableUseDetailKey(TableUseDetail tableUseDetail) async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    var bytes  = tableUseDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + tableUseDetail.table_use_detail_sqlite_id.toString() + device_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
-  }
-
-
 
   createOrderCache(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -2028,7 +2026,7 @@ class _CartPageState extends State<CartPage> {
                 created_at: dateTime,
                 updated_at: '',
                 soft_delete: ''));
-
+        //insert order detail key
         orderDetailKey = await generateOrderDetailKey(await detailData);
         if(orderDetailKey != null){
           OrderDetail orderDetailObject = OrderDetail(
@@ -2039,7 +2037,7 @@ class _CartPageState extends State<CartPage> {
           );
           int data = await PosDatabase.instance.updateOrderDetailUniqueKey(orderDetailObject);
         }
-
+        //insert order modifier detail
         for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
           ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
           for (int m = 0; m < group.modifierChild.length; m++) {

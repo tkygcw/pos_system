@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../notifier/theme_color.dart';
+import '../../object/app_setting.dart';
 import '../../translation/AppLocalizations.dart';
 
 class CashDialog extends StatefulWidget {
@@ -27,6 +28,7 @@ class CashDialog extends StatefulWidget {
 class _CashDialogState extends State<CashDialog> {
   final remarkController = TextEditingController();
   final amountController = TextEditingController();
+  List<AppSetting> appSettingList = [];
   String amount = '';
   bool _isLoad = false;
   bool _submitted = false;
@@ -35,6 +37,7 @@ class _CashDialogState extends State<CashDialog> {
   void initState() {
     super.initState();
     readLastSettlement();
+    getAllAppSetting();
   }
 
   @override
@@ -382,13 +385,28 @@ class _CashDialogState extends State<CashDialog> {
       CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
       widget.callBack();
       closeDialog(context);
-      ReceiptLayout().openCashDrawer();
+      if(widget.isNewDay){
+        if(appSettingList.length > 0 && appSettingList[0].open_cash_drawer == 1){
+          ReceiptLayout().openCashDrawer();
+        }
+      } else {
+        ReceiptLayout().openCashDrawer();
+      }
+
     }catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Create cash record error: ${e}");
     }
   }
+
+  getAllAppSetting() async {
+    List<AppSetting> data = await PosDatabase.instance.readAllAppSetting();
+    if(data.length > 0){
+      appSettingList = List.from(data);
+    }
+  }
+
   readLastSettlement() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:pos_system/database/domain.dart';
+import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/bill.dart';
 import 'package:pos_system/object/branch.dart';
 import 'package:pos_system/object/branch_link_user.dart';
@@ -462,6 +463,7 @@ class PosDatabase {
           ${ReceiptFields.footer_image_status} $integerType,
           ${ReceiptFields.footer_text} $textType,
           ${ReceiptFields.footer_text_status} $integerType,
+          ${ReceiptFields.promotion_detail_status} $integerType,
           ${ReceiptFields.status} $integerType,
           ${ReceiptFields.sync_status} $integerType,
           ${ReceiptFields.created_at} $textType,
@@ -527,6 +529,13 @@ class PosDatabase {
           ${OrderPromotionDetailFields.created_at} $textType,
           ${OrderPromotionDetailFields.updated_at} $textType,
           ${OrderPromotionDetailFields.soft_delete} $textType)''');
+
+/*
+    create app setting table
+*/
+    await db.execute('''CREATE TABLE $tableAppSetting(
+          ${AppSettingFields.app_setting_sqlite_id} $idType,
+          ${AppSettingFields.open_cash_drawer} $integerType)''');
   }
 
 /*
@@ -1156,12 +1165,21 @@ class PosDatabase {
   }
 
 /*
-  add branch to sqlite
+  add color setting
 */
   Future<AppColors> insertColor(AppColors data) async {
     final db = await instance.database;
     final id = await db.insert(tableAppColors!, data.toJson());
     return data.copy(app_color_id: id);
+  }
+
+/*
+  add app setting
+*/
+  Future<AppSetting> insertSetting(AppSetting data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableAppSetting!, data.toJson());
+    return data.copy(app_setting_sqlite_id: id);
   }
 
 /*
@@ -2233,6 +2251,7 @@ class PosDatabase {
     return result.map((json) => Receipt.fromJson(json)).toList();
   }
 
+
 /*
   ----------------------------Cash record part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -2457,6 +2476,19 @@ class PosDatabase {
         ['', order_sqlite_id]);
 
     return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
+  }
+
+/*
+  --------------------App setting part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+  read latest app setting
+*/
+  Future<List<AppSetting>> readAllAppSetting() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableAppSetting');
+    return result.map((json) => AppSetting.fromJson(json)).toList();
   }
 
 
@@ -2755,6 +2787,19 @@ class PosDatabase {
         ]);
   }
 
+/*
+  update App Setting
+*/
+  Future<int> updateAppSettings(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableAppSetting SET open_cash_drawer = ? WHERE app_setting_sqlite_id = ?',
+        [
+          data.open_cash_drawer,
+          data.app_setting_sqlite_id
+        ]);
+  }
+
   /*
   update sync pos table
 */
@@ -2790,6 +2835,16 @@ class PosDatabase {
   update Pos Table status
 */
   Future<int> updatePosTableStatus(PosTable data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tablePosTable SET status = ?, updated_at = ? WHERE table_sqlite_id = ?',
+        [data.status, data.updated_at, data.table_sqlite_id]);
+  }
+
+/*
+  update Pos Table status
+*/
+  Future<int> updateCartPosTableStatus(PosTable data) async {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tablePosTable SET table_use_detail_key = ?, status = ?, updated_at = ? WHERE table_sqlite_id = ?',

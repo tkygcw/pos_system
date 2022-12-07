@@ -14,6 +14,7 @@ class ReceiptFields {
     footer_image_status,
     footer_text,
     footer_text_status,
+    promotion_detail_status,
     status,
     sync_status,
     created_at,
@@ -33,6 +34,7 @@ class ReceiptFields {
   static String footer_image_status = 'footer_image_status';
   static String footer_text = 'footer_text';
   static String footer_text_status = 'footer_text_status';
+  static String promotion_detail_status = 'promotion_detail_status';
   static String status = 'status';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
@@ -54,6 +56,7 @@ class Receipt {
   int? footer_image_status;
   String? footer_text;
   int? footer_text_status;
+  int? promotion_detail_status;
   int? status;
   int? sync_status;
   String? created_at;
@@ -73,6 +76,7 @@ class Receipt {
         this.footer_image_status,
         this.footer_text,
         this.footer_text_status,
+        this.promotion_detail_status,
         this.status,
         this.sync_status,
         this.created_at,
@@ -92,6 +96,7 @@ class Receipt {
     int? footer_image_status,
     String? footer_text,
     int? footer_text_status,
+    int? promotion_detail_status,
     int? status,
     int? sync_status,
     String? created_at,
@@ -111,6 +116,7 @@ class Receipt {
           footer_image_status: footer_image_status ?? this.footer_image_status,
           footer_text: footer_text ?? this.footer_text,
           footer_text_status: footer_text_status ?? this.footer_text_status,
+          promotion_detail_status: promotion_detail_status ?? this.promotion_detail_status,
           status: status ?? this.status,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
@@ -130,6 +136,7 @@ class Receipt {
     footer_image_status: json[ReceiptFields.footer_image_status] as int?,
     footer_text: json[ReceiptFields.footer_text] as String?,
     footer_text_status: json[ReceiptFields.footer_text_status] as int?,
+    promotion_detail_status: json[ReceiptFields.promotion_detail_status] as int?,
     status: json[ReceiptFields.status] as int?,
     sync_status: json[ReceiptFields.sync_status] as int?,
     created_at: json[ReceiptFields.created_at] as String?,
@@ -150,6 +157,7 @@ class Receipt {
     ReceiptFields.footer_image_status: footer_image_status,
     ReceiptFields.footer_text: footer_text,
     ReceiptFields.footer_text_status: footer_text_status,
+    ReceiptFields.promotion_detail_status: promotion_detail_status,
     ReceiptFields.status: status,
     ReceiptFields.sync_status: sync_status,
     ReceiptFields.created_at: created_at,

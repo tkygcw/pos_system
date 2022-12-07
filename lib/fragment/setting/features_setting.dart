@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/object/app_setting.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import '../../notifier/theme_color.dart';
@@ -12,12 +15,19 @@ class FeaturesSetting extends StatefulWidget {
 
 class _FeaturesSettingState extends State<FeaturesSetting> {
   late ThemeColor color;
-
   late Color _mainColor;
-
   late Color _buttonColor;
-
   late Color _iconColor;
+  List<AppSetting> appSettingList = [];
+  bool cashDrawer = false;
+  bool _isLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    getAllAppSetting();
+  }
+
 
   void _openDialog(String title, Widget content) {
     showDialog(
@@ -95,7 +105,8 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
       this.color = color;
       //print(color.backgroundColor);
       return Scaffold(
-        body: Column(
+        body: _isLoaded ?
+        Column(
           children: [
             Expanded(
               child: Column(
@@ -103,45 +114,130 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                   ListTile(
                     title: Text("Change Background Color"),
                     subtitle: Text("Main Color for the appearance of app"),
-                    trailing: CircleAvatar(
-                      backgroundColor: color.backgroundColor,
-                      child: InkWell(
-                        onTap: () {
-                          _openMainColorPicker();
-                        },
+                    trailing: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.black,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        backgroundColor: color.backgroundColor,
+                        child: InkWell(
+                          onTap: () {
+                            _openMainColorPicker();
+                          },
+                        ),
                       ),
                     ),
                   ),
                   ListTile(
                     title: Text("Change Button Color"),
                     subtitle: Text("Button Color for the appearance of app"),
-                    trailing: CircleAvatar(
-                      backgroundColor: color.buttonColor,
-                      child: InkWell(
-                        onTap: () {
-                          _openButtonColorPicker();
-                        },
+                    trailing: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.black,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        backgroundColor: color.buttonColor,
+                        child: InkWell(
+                          onTap: () {
+                            _openButtonColorPicker();
+                          },
+                        ),
                       ),
                     ),
                   ),
                   ListTile(
                     title: Text("Change Icon Color"),
                     subtitle: Text("Icon Color for the appearance of app"),
-                    trailing: CircleAvatar(
-                      backgroundColor: color.iconColor,
-                      child: InkWell(
-                        onTap: () {
-                          _openIconColorPicker();
-                        },
+                    trailing: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.black,
+                          width: 1.0,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        backgroundColor: color.iconColor,
+                        child: InkWell(
+                          onTap: () {
+                            _openIconColorPicker();
+                          },
+                        ),
                       ),
                     ),
                   ),
+                  Divider(
+                    color: Colors.grey,
+                    height: 1,
+                    thickness: 1,
+                    indent: 20,
+                    endIndent: 20,
+                  ),
+                  ListTile(
+                    title: Text('Auto open cash drawer'),
+                    subtitle: Text('Auto open cash drawer after insert opening balance'),
+                    trailing: Switch(
+                        value: this.cashDrawer,
+                        activeColor: color.backgroundColor,
+                        onChanged: (value) async {
+                          setState(() {
+                            this.cashDrawer = value;
+                          });
+                          await getAllAppSetting();
+                          if(appSettingList.length == 0){
+                            await createAppSetting();
+                          } else {
+                            await updateAppSetting();
+                          }
+                        },
+                    ),
+                  )
                 ],
               ),
             ),
           ],
-        ),
+        ) : CustomProgressBar(),
       );
+    });
+  }
+
+  updateAppSetting() async {
+    AppSetting appSetting = AppSetting(
+      open_cash_drawer: this.cashDrawer == true ? 1 : 0,
+      app_setting_sqlite_id: appSettingList[0].app_setting_sqlite_id
+
+    );
+
+    int data = await PosDatabase.instance.updateAppSettings(appSetting);
+  }
+
+  createAppSetting() async {
+    AppSetting appSetting = AppSetting(
+      open_cash_drawer: this.cashDrawer ? 1 : 0
+    );
+    AppSetting data = await PosDatabase.instance.insertSetting(appSetting);
+  }
+
+  getAllAppSetting() async {
+    List<AppSetting> data = await PosDatabase.instance.readAllAppSetting();
+    if(data.length > 0){
+      appSettingList = List.from(data);
+      if(appSettingList[0].open_cash_drawer == 1){
+        this.cashDrawer = true;
+      } else {
+        this.cashDrawer = false;
+      }
+    }
+    setState(() {
+      _isLoaded = true;
     });
   }
 }
