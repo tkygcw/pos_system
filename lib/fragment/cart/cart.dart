@@ -56,46 +56,23 @@ class _CartPageState extends State<CartPage> {
   late StreamController controller;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   List<Printer> printerList = [];
-  List<Promotion> promotionList = [];
-  List<String> diningList = [];
-  List<String> branchLinkDiningIdList = [];
+  List<Promotion> promotionList = [], autoApplyPromotionList = [];
+  List<String> diningList = [], branchLinkDiningIdList = [];
   List<cartProductItem> sameCategoryItemList = [];
-  List<Promotion> autoApplyPromotionList = [];
   List<TableUse> tableUseList = [];
   List<Tax> taxRateList = [];
   List<OrderTaxDetail> orderTaxList = [];
   List<OrderPromotionDetail> orderPromotionList = [];
-  int diningOptionID = 0;
-  int simpleIntInput = 0;
-  double total = 0.0;
-  double promo = 0.0;
-  double selectedPromo = 0.0;
-  double selectedPromoAmount = 0.0;
-  double taxAmount = 0.0;
-  double priceIncAllTaxes = 0.0;
-  double priceIncTaxes = 0.0;
-  double discountPrice = 0.0;
-  double promoAmount = 0.0;
-  double totalAmount = 0.0;
-  double tableOrderPrice = 0.0;
-  double rounding = 0.0;
-  double paymentReceived = 0.0;
-  double paymentChange = 0.0;
-  String selectedPromoRate = '';
-  String promoName = '';
-  String promoRate = '';
-  String localTableUseId = '';
-  String orderCacheId = '';
+  int diningOptionID = 0, simpleIntInput = 0;
+  double total = 0.0, promo = 0.0, selectedPromo = 0.0, selectedPromoAmount = 0.0,
+         taxAmount = 0.0, priceIncAllTaxes = 0.0, priceIncTaxes = 0.0, discountPrice = 0.0,
+         promoAmount = 0.0, totalAmount = 0.0, tableOrderPrice = 0.0, rounding = 0.0, paymentReceived = 0.0, paymentChange = 0.0;
+  String selectedPromoRate = '', promoName = '', promoRate = '', localTableUseId = '', orderCacheId = '', allPromo = '', finalAmount = '', localOrderId = '';
   String? orderCacheKey;
   String? orderDetailKey;
   String? tableUseKey;
   String? tableUseDetailKey;
-  String? allPromo = '';
-  String finalAmount = '';
-  String localOrderId = '';
-  bool hasPromo = false;
-  bool hasSelectedPromo = false;
-  bool _isSettlement = false;
+  bool hasPromo = false, hasSelectedPromo = false, _isSettlement = false;
   Color font = Colors.black45;
 
   @override
@@ -936,7 +913,7 @@ class _CartPageState extends State<CartPage> {
     selectedPromoRate = '';
     try {
       if (cart.selectedPromotion != null) {
-        allPromo = cart.selectedPromotion!.name;
+        allPromo = cart.selectedPromotion!.name!;
         if (cart.selectedPromotion!.type == 0) {
           selectedPromoRate = cart.selectedPromotion!.amount.toString() + '%';
         } else {

@@ -18,7 +18,6 @@ import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
-import 'package:pos_system/object/payment_type.dart';
 import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/product_variant.dart';
@@ -69,7 +68,6 @@ class PosDatabase {
   Future _createDB(Database db, int version) async {
     final idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     final textType = 'TEXT NOT NULL';
-    final textType2 = 'TEXT';
     final integerType = 'INTEGER NOT NULL';
 
 /*
@@ -3661,6 +3659,22 @@ class PosDatabase {
           data.soft_delete,
           data.category_id
         ]);
+  }
+
+/*
+  ----------------------Sync to cloud--------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+  read all not yet sync to cloud orders
+*/
+  Future<List<Order>> readAllNotSyncOrder() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrder WHERE soft_delete = ? AND sync_status = ? ',
+        ['', 0]);
+
+    return result.map((json) => Order.fromJson(json)).toList();
   }
 
   // Future<List<Categories>> readAllNotes() async {

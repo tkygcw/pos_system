@@ -1354,7 +1354,7 @@ class ReceiptLayout{
     try{
       List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime);
       for (int i = 0; i < data.length; i++) {
-        if (data[i].type == 1 || data[i].payment_type_id == '1') {
+        if (data[i].type == 1 && data[i].payment_type_id == '') {
           totalCashIn += double.parse(data[i].amount!);
         } else if (data[i].type == 2 && data[i].payment_type_id == '') {
           totalCashOut += double.parse(data[i].amount!);

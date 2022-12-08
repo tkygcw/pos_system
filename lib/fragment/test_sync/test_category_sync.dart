@@ -20,6 +20,7 @@ class TestCategorySync extends StatefulWidget {
 }
 
 class _TestCategorySyncState extends State<TestCategorySync> {
+  List<Order> notSyncOrderList = [];
 
   @override
   void initState() {
@@ -36,16 +37,24 @@ class _TestCategorySyncState extends State<TestCategorySync> {
       body: Container(
         alignment: Alignment.center,
         child: ElevatedButton(
-            onPressed: ()  => getPaidOrder('1'),
+            onPressed: () async   => await SyncToCloud(),
             child: Text('current screen height/width: ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
       ),
     );
   }
 
-  getPaidOrder(String localOrderId) async {
-    List<Order> orderData = await PosDatabase.instance.readSpecificPaidOrder(localOrderId);
-    print('order dining name : ${orderData[0].dining_name}');
-  }  
+/*
+  test sync query  (tb_order)
+*/
+  SyncToCloud() async {
+    await getNotSyncOrder();
+    print('${notSyncOrderList.length} orders call to sync api');
+  }
+
+  getNotSyncOrder() async {
+    List<Order> data = await PosDatabase.instance.readAllNotSyncOrder();
+    notSyncOrderList = data;
+  }
 
 /*
   test order number generator

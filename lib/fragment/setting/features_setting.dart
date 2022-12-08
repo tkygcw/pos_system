@@ -188,10 +188,10 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                         value: this.cashDrawer,
                         activeColor: color.backgroundColor,
                         onChanged: (value) async {
+                          await getAllAppSetting();
                           setState(() {
                             this.cashDrawer = value;
                           });
-                          await getAllAppSetting();
                           if(appSettingList.length == 0){
                             await createAppSetting();
                           } else {

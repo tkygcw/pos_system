@@ -113,7 +113,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         content: isLoad ?
         Container(
           height: MediaQuery.of(context).size.height / 1,
-          width: MediaQuery.of(context).size.width / 1,
+          width: MediaQuery.of(context).size.width / 1.5,
           child: SingleChildScrollView(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,8 +121,8 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Expanded(
                   flex: 1,
                     child: Container(
-                      padding: EdgeInsets.fromLTRB(50, 20, 50, 20),
-                      color: Colors.grey,
+                      padding: MediaQuery.of(context).size.width > 1300 ? EdgeInsets.fromLTRB(50, 20, 50, 20) : EdgeInsets.fromLTRB(20, 20, 20, 20) ,
+                      color: Colors.black12,
                       height: MediaQuery.of(context).size.height,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,11 +184,11 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                                 ),
                                 Expanded(
                                   flex: 1,
-                                    child: Text('Qty'),
+                                    child: Text('QTY'),
                                 ),
                                 Expanded(
                                   flex: 0,
-                                    child: Text('Amount'),
+                                    child: Text('AMOUNT'),
                                 )
                               ],
                             ),
@@ -513,7 +513,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 ),
                 SizedBox(width: 25),
                 Expanded(
-                  flex: 2,
+                  flex: 1,
                   child: Column(
                   children: [
                     Row(
