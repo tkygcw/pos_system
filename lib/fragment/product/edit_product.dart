@@ -430,20 +430,23 @@ class _EditProductDialogState extends State<EditProductDialog> {
       final int? branch_id = prefs.getInt('branch_id');
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-      if (imageDir != null) {
-        if (widget.product!.image != '' || widget.product!.image != null) {
-          deleteFile();
-          if (connectivityResult == ConnectivityResult.mobile ||
-              connectivityResult == ConnectivityResult.wifi) {
-            deleteImage(widget.product!.image!);
-          }
-        }
+      if(imageDir != null){
         saveFilePermanently(imageDir!);
         if (connectivityResult == ConnectivityResult.mobile ||
             connectivityResult == ConnectivityResult.wifi) {
           storeImage(basename(imageDir!).replaceAll('image_picker', ''));
         }
       }
+      else{
+        if (widget.product!.image != '' || widget.product!.image != null) {
+          deleteFile(widget.product!.image);
+          if (connectivityResult == ConnectivityResult.mobile ||
+              connectivityResult == ConnectivityResult.wifi) {
+            deleteImage(widget.product!.image!);
+          }
+        }
+      }
+
       int productUpdated = await PosDatabase.instance.updateProduct(Product(
         category_sqlite_id: selectCategory!.category_sqlite_id.toString(),
         category_id: selectCategory!.category_id.toString(),
@@ -1496,7 +1499,10 @@ class _EditProductDialogState extends State<EditProductDialog> {
       var connectivityResult = await (Connectivity().checkConnectivity());
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-      deleteFile();
+
+      if(widget.product!.image != '' || widget.product!.image != null ){
+        deleteFile(widget.product!.image);
+      }
 
       List<VariantGroup> variantGroupData = await PosDatabase.instance
           .readAllVariantGroup(widget.product!.product_sqlite_id.toString());
@@ -2342,7 +2348,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
     }
   }
 
-  Future<String> get _localPath async {
+  Future<String> get  _localPath async {
     final directory = await getApplicationSupportDirectory();
     return directory.path;
   }
@@ -2358,9 +2364,15 @@ class _EditProductDialogState extends State<EditProductDialog> {
         widget.product!.image!);
   }
 
-  Future<int> deleteFile() async {
+  Future<int> deleteFile(image) async {
     try {
-      final file = await _localDirectory;
+      final prefs = await SharedPreferences.getInstance();
+      final String? user = prefs.getString('user');
+      Map userObject = json.decode(user!);
+      final path = await _localPath;
+      final file = Directory('$path/assets/' +
+          userObject['company_id'] +
+          '/' +image);
       await file.delete(recursive: true);
       return 1;
     } catch (e) {
