@@ -77,23 +77,17 @@ class _CartPageState extends State<CartPage> {
 
   @override
   void initState() {
-    super.initState();
     controller = StreamController();
     readAllBranchLinkDiningOption();
     getPromotionData();
     readAllPrinters();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
+    super.initState();
   }
 
   @override
   void deactivate() {
-    // TODO: implement deactivate
+    controller.sink.close();
     super.deactivate();
-    controller.close();
   }
 
   @override
@@ -1144,7 +1138,9 @@ class _CartPageState extends State<CartPage> {
       this.localOrderId = cart.cartNotifierPayment[i].localOrderId;
 
     }
-    controller.add('refresh');
+    if (!controller.isClosed){
+      controller.sink.add('refresh');
+    }
   }
 
 /*
@@ -1599,7 +1595,7 @@ class _CartPageState extends State<CartPage> {
 */
   callCreateNewNotDineOrder(CartModel cart) async {
     await createOrderCache(cart);
-    await insertOrderCacheKey();
+    await insertOrderCacheKey(cart);
     await createOrderDetail(cart);
     //await _printCheckList();
   }
@@ -1611,7 +1607,7 @@ class _CartPageState extends State<CartPage> {
     await insertTableUseKey();
     await createTableUseDetail(cart);
     await createOrderCache(cart);
-    await insertOrderCacheKey();
+    await insertOrderCacheKey(cart);
     await createOrderDetail(cart);
     await updatePosTable(cart);
     //await _printCheckList();
@@ -1914,6 +1910,7 @@ class _CartPageState extends State<CartPage> {
                 branch_id: branch_id.toString(),
                 order_detail_id: '',
                 table_use_sqlite_id: cart.selectedOption == 'Dine in' ? _tableUseId : '',
+                table_use_key: cart.selectedOption == 'Dine in' ? tableUseKey : '',
                 batch_id: batch.toString().padLeft(5, '0'),
                 dining_id: this.diningOptionID.toString(),
                 order_sqlite_id: '',
@@ -1944,7 +1941,7 @@ class _CartPageState extends State<CartPage> {
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
-  insertOrderCacheKey() async {
+  insertOrderCacheKey(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCache(orderCacheId);
@@ -1958,14 +1955,15 @@ class _CartPageState extends State<CartPage> {
           order_cache_sqlite_id: cacheData[0].order_cache_sqlite_id
       );
       int data = await PosDatabase.instance.updateOrderCacheUniqueKey(orderCacheObject);
-
-      TableUse tableUseObject = TableUse(
-        order_cache_key: orderCacheKey,
-        sync_status: 0,
-        updated_at: dateTime,
-        table_use_sqlite_id: int.parse(cacheData[0].table_use_sqlite_id!)
-      );
-      int tableUseData = await PosDatabase.instance.updateTableUseOrderCacheUniqueKey(tableUseObject);
+      if(cart.selectedOption == "Dine in"){
+        TableUse tableUseObject = TableUse(
+            order_cache_key: orderCacheKey,
+            sync_status: 0,
+            updated_at: dateTime,
+            table_use_sqlite_id: int.parse(cacheData[0].table_use_sqlite_id!)
+        );
+        int tableUseData = await PosDatabase.instance.updateTableUseOrderCacheUniqueKey(tableUseObject);
+      }
     }
   }
 

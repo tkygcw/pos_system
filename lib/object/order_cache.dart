@@ -9,6 +9,7 @@ class OrderCacheFields {
     branch_id,
     order_detail_id,
     table_use_sqlite_id,
+    table_use_key,
     batch_id,
     dining_id,
     order_sqlite_id,
@@ -32,6 +33,7 @@ class OrderCacheFields {
   static String branch_id = 'branch_id';
   static String order_detail_id = 'order_detail_id';
   static String table_use_sqlite_id = 'table_use_sqlite_id';
+  static String table_use_key = 'table_use_key';
   static String batch_id = 'batch_id';
   static String dining_id = 'dining_id';
   static String order_sqlite_id = 'order_sqlite_id';
@@ -56,6 +58,7 @@ class OrderCache{
   String? branch_id;
   String? order_detail_id;
   String? table_use_sqlite_id;
+  String? table_use_key;
   String? batch_id;
   String? dining_id;
   String? order_sqlite_id;
@@ -81,6 +84,7 @@ class OrderCache{
         this.branch_id,
         this.order_detail_id,
         this.table_use_sqlite_id,
+        this.table_use_key,
         this.batch_id,
         this.dining_id,
         this.order_sqlite_id,
@@ -105,6 +109,7 @@ class OrderCache{
     String? branch_id,
     String? order_detail_id,
     String? table_use_sqlite_id,
+    String? table_use_key,
     String? batch_id,
     String? dining_id,
     String? order_sqlite_id,
@@ -128,6 +133,7 @@ class OrderCache{
           branch_id: branch_id ?? this.branch_id,
           order_detail_id: order_detail_id ?? this.order_detail_id,
           table_use_sqlite_id: table_use_sqlite_id ?? this.table_use_sqlite_id,
+          table_use_key: table_use_key ?? this.table_use_key,
           batch_id: batch_id ?? this.batch_id,
           dining_id: dining_id ?? this.dining_id,
           order_sqlite_id: order_sqlite_id ?? this.order_sqlite_id,
@@ -151,6 +157,7 @@ class OrderCache{
     branch_id: json[OrderCacheFields.branch_id] as String?,
     order_detail_id: json[OrderCacheFields.order_detail_id] as String?,
     table_use_sqlite_id: json[OrderCacheFields.table_use_sqlite_id] as String?,
+    table_use_key: json[OrderCacheFields.table_use_key] as String?,
     batch_id: json[OrderCacheFields.batch_id] as String?,
     dining_id: json[OrderCacheFields.dining_id] as String?,
     order_sqlite_id: json[OrderCacheFields.order_sqlite_id] as String?,
@@ -176,6 +183,7 @@ class OrderCache{
     OrderCacheFields.branch_id: branch_id,
     OrderCacheFields.order_detail_id: order_detail_id,
     OrderCacheFields.table_use_sqlite_id: table_use_sqlite_id,
+    OrderCacheFields.table_use_key: table_use_key,
     OrderCacheFields.batch_id: batch_id,
     OrderCacheFields.dining_id: dining_id,
     OrderCacheFields.order_sqlite_id: order_sqlite_id,

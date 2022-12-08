@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -7,7 +8,6 @@ import 'package:pos_system/object/tax.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/domain.dart';
-import 'package:imin/imin.dart';
 
 import '../../object/order.dart';
 
@@ -21,14 +21,13 @@ class TestCategorySync extends StatefulWidget {
 
 class _TestCategorySyncState extends State<TestCategorySync> {
   List<Order> notSyncOrderList = [];
+  Timer? timer;
+
 
   @override
   void initState() {
     super.initState();
-  }
-
-  void _openDrawer () {
-    Imin.openDrawer();
+    //timer = Timer.periodic(Duration(seconds: 15), (Timer t) => SyncToCloud());
   }
 
   @override
@@ -47,8 +46,24 @@ class _TestCategorySyncState extends State<TestCategorySync> {
   test sync query  (tb_order)
 */
   SyncToCloud() async {
+    List<String> value = [];
     await getNotSyncOrder();
     print('${notSyncOrderList.length} orders call to sync api');
+    for(int i = 0; i <  notSyncOrderList.length; i++){
+      value.add(jsonEncode(notSyncOrderList[i]));
+    }
+    print('Value: ${value}');
+    Map data = await Domain().getAllSyncToCloudRecord(value.toString());
+    print('response: ${data}');
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        //print('response order key: ${responseJson[i]['order_key']}');
+        int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+      }
+    }
+
+
   }
 
   getNotSyncOrder() async {

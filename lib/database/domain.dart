@@ -24,6 +24,7 @@ class Domain {
   static Uri sale = Uri.parse(domain + 'mobile-api/sale/index.php');
   static Uri table_use = Uri.parse(domain + 'mobile-api/table_use/index.php');
   static Uri sync_record = Uri.parse(domain + 'mobile-api/sync/index.php');
+  static Uri sync_to_cloud = Uri.parse(domain + 'mobile-api/sync_to_cloud/index.php');
   /*
   * login
   * */
@@ -155,6 +156,22 @@ class Domain {
         'branch_id': branch_id,
       });
       print('domain call:${response}');
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get all sync_to_cloud
+  * */
+  getAllSyncToCloudRecord(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_order_create': '1',
+        'details': detail,
+      });
+      print('domain call: ${response.body}');
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
