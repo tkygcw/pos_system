@@ -404,12 +404,10 @@ class _TableMenuState extends State<TableMenu> {
     final int? branch_id = prefs.getInt('branch_id');
 
     //Get specific table use detail
-    List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
-        .readSpecificTableUseDetail(posTable.table_sqlite_id!);
+    List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(posTable.table_sqlite_id!);
     if (tableUseDetailData.length > 0) {
       //Get all order table cache
-      List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
-          branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
+      List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
 
       //loop all table order cache
       for (int i = 0; i < data.length; i++) {
@@ -568,7 +566,9 @@ class _TableMenuState extends State<TableMenu> {
           orderDetailList[i].remark!,
           0,
           orderDetailList[i].order_cache_sqlite_id,
-          toColor(posTable.cardColor!));
+          toColor(posTable.cardColor!),
+          category_sqlite_id: orderDetailList[i].category_sqlite_id,
+          order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString());
       cart.addItem(value);
     }
     for (int j = 0; j < orderCacheList.length; j++) {
@@ -601,7 +601,9 @@ class _TableMenuState extends State<TableMenu> {
             orderDetailList[i].remark!,
             0,
             orderDetailList[i].order_cache_sqlite_id,
-            toColor(posTable.cardColor!));
+            toColor(posTable.cardColor!),
+            category_sqlite_id: orderDetailList[i].category_sqlite_id,
+            order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString());
         cart.removeSpecificItem(value);
         cart.removePromotion();
       }

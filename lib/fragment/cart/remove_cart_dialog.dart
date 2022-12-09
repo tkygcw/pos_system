@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:esc_pos_printer/esc_pos_printer.dart';
+import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -8,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/cart/cancel_order_dialog.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/order_cache.dart';
+import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -42,6 +45,12 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   bool _submitted = false;
   List<User> adminData = [];
   List<Printer> printerList = [];
+  List<OrderCache> cartCacheList = [], cartTableCacheList = [];
+  List<OrderDetail> cartOrderDetailList = [];
+  List<OrderModifierDetail> cartOrderModDetailList = [];
+  List<TableUseDetail> cartTableUseDetail = [];
+  bool _isLoaded = false;
+
 
   late TableModel tableModel;
 
@@ -49,6 +58,10 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   void initState() {
     super.initState();
     readAllPrinters();
+    if(widget.currentPage != 'menu'){
+      readCartItemInfo();
+    }
+
   }
 
   @override
@@ -60,17 +73,17 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
 
   String? get errorPassword {
     final text = adminPosPinController.value.text;
-    readAdminData(text);
+    //readAdminData(text);
     if (text.isEmpty) {
       return 'password_required';
     }
     return null;
   }
 
-  void _submit(BuildContext context) async {
+  void _submit(BuildContext context, CartModel cart) async {
     setState(() => _submitted = true);
-    if (errorPassword == '') {
-      await readAdminData(adminPosPinController.text);
+    if (errorPassword == null && _isLoaded == true) {
+      await readAdminData(adminPosPinController.text, cart);
       return;
     }
   }
@@ -131,9 +144,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           TextButton(
             child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
             onPressed: () async {
-              _submit(context);
-              cart.removeAllTable();
-              cart.removeAllCartItem();
+              _submit(context, cart);
             },
           ),
         ],
@@ -148,14 +159,12 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
         return Consumer<TableModel>(
             builder: (context, TableModel tableModel, child) {
           this.tableModel = tableModel;
-          print(this.tableModel.isChange);
           return AlertDialog(
             title: Text('Confirm remove item ?'),
             content: Container(
               child: Row(
                 children: [
-                  Text(
-                      '${widget.cartItem!.name} ${AppLocalizations.of(context)?.translate('confirm_delete')}')
+                  Text('${widget.cartItem!.name} ${AppLocalizations.of(context)?.translate('confirm_delete')}')
                 ],
               ),
             ),
@@ -178,7 +187,6 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                       Navigator.of(context).pop();
                     } else {
                       await showSecondDialog(context, color, cart);
-                      closeDialog(context);
                       //openCancelOrderDialog(widget.cartItem!);
                       //Navigator.of(context).pop();
                     }
@@ -215,39 +223,73 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
         });
   }
 
-  readAdminData(String pin) async {
+  readCartItemInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    //get cart item order cache
+    List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCache(widget.cartItem!.orderCacheId!);
+    cartCacheList = List.from(cacheData);
+    print('cartCacheList: ${cartCacheList.length}');
+    //get table use order cache
+    List<OrderCache> tableCacheData = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), cacheData[0].table_use_sqlite_id!);
+    cartTableCacheList = List.from(tableCacheData);
+    print('cartTableCacheList: ${cartTableCacheList.length}');
+    //get table use detail
+    List<TableUseDetail> tableDetailData = await PosDatabase.instance.readAllTableUseDetail(cacheData[0].table_use_sqlite_id!);
+    cartTableUseDetail = List.from(tableDetailData);
+    //get cart item order cache order detail
+    List<OrderDetail> orderDetailData = await PosDatabase.instance.readTableOrderDetail(widget.cartItem!.orderCacheId!);
+    cartOrderDetailList = List.from(orderDetailData);
+    print('cartOrderDetailList: ${cartOrderDetailList.length}');
+    //get modifier detail length
+    List<OrderModifierDetail> orderModData = await PosDatabase.instance.readOrderModifierDetail(widget.cartItem!.order_detail_sqlite_id!);
+    cartOrderModDetailList = List.from(orderModData);
+
+    _isLoaded = true;
+  }
+
+  readAdminData(String pin, CartModel cart) async {
     try {
-      // print('cart cache id: ${widget.cartItem!.orderCacheId!}');
-      // print('product id: ${ widget.cartItem!.branchProduct_id}');
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
 
-      List<User> userData =
-          await PosDatabase.instance.readSpecificUserWithRole(pin);
+      List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
       if (userData.length > 0) {
         closeDialog(context);
-        List<OrderDetail> data = await PosDatabase.instance
-            .readTableOrderDetail(widget.cartItem!.orderCacheId!);
-        if (data.length > 1) {
-          callDeleteOrderDetail(userData[0], dateTime);
-        } else {
-          List<OrderCache> cacheData = await PosDatabase.instance
-              .readSpecificOrderCache(widget.cartItem!.orderCacheId!);
-          List<TableUseDetail> detailData = await PosDatabase.instance
-              .readAllTableUseDetail(cacheData[0].table_use_sqlite_id!);
-          for (int i = 0; i < detailData.length; i++) {
-            //update all table to unused
-            await updatePosTableStatus(
-                int.parse(detailData[i].table_sqlite_id!), 0, dateTime);
+        if(cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1){
+          if(cartOrderModDetailList.length > 0){
+            for(int i = 0; i < cartOrderModDetailList.length; i++){
+              deleteAllOrderModDetail(dateTime);
+            }
           }
-          //delete all order inc order cache
-          await callDeleteAllOrder(
-              userData[0], cacheData[0].table_use_sqlite_id!, dateTime);
+          callDeleteOrderDetail(userData[0], dateTime);
+        } else if(cartTableCacheList.length > 1 && cartOrderDetailList.length <= 1 ){
+          if(cartOrderModDetailList.length > 0){
+            for(int i = 0; i < cartOrderModDetailList.length; i++){
+              deleteAllOrderModDetail(dateTime);
+            }
+          }
+          callDeletePartialOrder(userData[0], dateTime);
+        }
+        else {
+          if(cartOrderModDetailList.length > 0){
+            for(int i = 0; i < cartOrderModDetailList.length; i++){
+              deleteAllOrderModDetail(dateTime);
+            }
+          }
+          callDeleteAllOrder(userData[0], cartCacheList[0].table_use_sqlite_id!, dateTime);
+          for (int i = 0; i < cartTableUseDetail.length; i++) {
+            //update all table to unused
+            await updatePosTableStatus(int.parse(cartTableUseDetail[i].table_sqlite_id!), 0, dateTime);
+          }
         }
         //print cancel receipt
-        await _printDeleteList(widget.cartItem!.orderCacheId!, dateTime);
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xFF24EF10), msg: "delete successful");
+        await _printDeleteList(widget.cartItem!.orderCacheId!, dateTime, cart);
+        await _printKitchenDeleteList(widget.cartItem!.orderCacheId!, dateTime, cart);
+        cart.removeAllTable();
+        cart.removeAllCartItem();
+        Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: "delete successful");
+
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
@@ -258,18 +300,16 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     tableModel.changeContent(true);
   }
 
-  _printDeleteList(String orderCacheId, String dateTime) async {
+  _printDeleteList(String orderCacheId, String dateTime, CartModel cart) async {
     print('printer called');
     try {
       for (int i = 0; i < printerList.length; i++) {
-        List<PrinterLinkCategory> data = await PosDatabase.instance
-            .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+        List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
         for (int j = 0; j < data.length; j++) {
           if (data[j].category_sqlite_id == '3') {
+            var printerDetail = jsonDecode(printerList[i].value!);
             if (printerList[i].type == 0) {
-              var printerDetail = jsonDecode(printerList[i].value!);
-              var data = Uint8List.fromList(await ReceiptLayout()
-                  .printDeleteItemList80mm(true, null, orderCacheId, dateTime));
+              var data = Uint8List.fromList(await ReceiptLayout().printDeleteItemList80mm(true, orderCacheId, dateTime));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']),
                   int.parse(printerDetail['productId']));
@@ -279,9 +319,71 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                 print('not connected');
               }
             } else {
-              print("print lan");
+              //check paper size
+              if(printerList[i].paper_size == 0){
+                //print LAN
+                final profile = await CapabilityProfile.load();
+                final printer = NetworkPrinter(PaperSize.mm80, profile);
+                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+
+                if (res == PosPrintResult.success) {
+                  await ReceiptLayout().printDeleteItemList80mm(false, orderCacheId, dateTime, value: printer);
+                  printer.disconnect();
+                } else {
+                  print('not connected');
+                }
+              } else {
+                print('print 58mm');
+              }
             }
           }
+
+        }
+      }
+    } catch (e) {
+      print('Printer Connection Error');
+      //response = 'Failed to get platform version.';
+    }
+  }
+
+  _printKitchenDeleteList(String orderCacheId, String dateTime, CartModel cart) async {
+    print('printer called');
+    try {
+      for (int i = 0; i < printerList.length; i++) {
+        List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+        for (int j = 0; j < data.length; j++) {
+          if (widget.cartItem?.category_sqlite_id == data[j].category_sqlite_id) {
+            var printerDetail = jsonDecode(printerList[i].value!);
+            if (printerList[i].type == 0) {
+              var data = Uint8List.fromList(await ReceiptLayout().printDeleteItemList80mm(true, orderCacheId, dateTime));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']),
+                  int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              } else {
+                print('not connected');
+              }
+            } else {
+              //check paper size
+              if(printerList[i].paper_size == 0){
+                //print LAN
+                final profile = await CapabilityProfile.load();
+                final printer = NetworkPrinter(PaperSize.mm80, profile);
+                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+
+                if (res == PosPrintResult.success) {
+                  await ReceiptLayout().printDeleteItemList80mm(false, orderCacheId, dateTime, value: printer);
+                  printer.disconnect();
+                } else {
+                  print('not connected');
+                }
+              } else {
+                print('print 58mm');
+              }
+            }
+          }
+
         }
       }
     } catch (e) {
@@ -299,20 +401,32 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     printerList = List.from(data);
   }
 
+  deleteAllOrderModDetail(String dateTime) async {
+    OrderModifierDetail modifierDetail = OrderModifierDetail(
+      soft_delete: dateTime,
+      order_detail_sqlite_id: widget.cartItem!.order_detail_sqlite_id
+    );
+    int deleteMod = await PosDatabase.instance.deleteOrderModifierDetail(modifierDetail);
+  }
+
   callDeleteOrderDetail(User user, String dateTime) async {
     int orderDetailData = await PosDatabase.instance.deleteSpecificOrderDetail(
         OrderDetail(
             soft_delete: dateTime,
             cancel_by: user.name,
             cancel_by_user_id: user.user_id.toString(),
-            order_cache_sqlite_id: widget.cartItem!.orderCacheId!,
+            order_detail_sqlite_id: int.parse(widget.cartItem!.order_detail_sqlite_id!),
             branch_link_product_sqlite_id: widget.cartItem!.branchProduct_id));
   }
 
-  callDeleteAllOrder(
-      User user, String currentTableUseId, String dateTime) async {
+  callDeleteAllOrder(User user, String currentTableUseId, String dateTime) async {
     await deleteCurrentTableUseDetail(currentTableUseId, dateTime);
     await deleteCurrentTableUseId(int.parse(currentTableUseId), dateTime);
+    await callDeleteOrderDetail(user, dateTime);
+    await deleteCurrentOrderCache(user, dateTime);
+  }
+
+  callDeletePartialOrder(User user, String dateTime) async {
     await callDeleteOrderDetail(user, dateTime);
     await deleteCurrentOrderCache(user, dateTime);
   }
@@ -330,8 +444,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
               soft_delete: dateTime,
               cancel_by: user.name,
               cancel_by_user_id: user.user_id.toString(),
-              order_cache_sqlite_id:
-                  int.parse(widget.cartItem!.orderCacheId!)));
+              order_cache_sqlite_id: int.parse(widget.cartItem!.orderCacheId!)));
     } catch (e) {
       print('delete order cache error: ${e}');
     }

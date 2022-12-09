@@ -842,89 +842,99 @@ class ReceiptLayout{
 /*
   Cancellation layout 80mm
 */
-  printDeleteItemList80mm(bool isUSB, value, String orderCacheId, String deleteDateTime) async {
+  printDeleteItemList80mm(bool isUSB, String orderCacheId, String deleteDateTime, {value}) async {
     String dateTime = dateFormat.format(DateTime.now());
     await readSpecificOrderCache(orderCacheId, deleteDateTime);
 
-    var generator;
-    if (isUSB) {
-      final profile = await CapabilityProfile.load();
-      generator = Generator(PaperSize.mm80, profile);
-    } else {
-      generator = value;
-    }
-
-    List<int> bytes = [];
-    try {
-      bytes += generator.text('CANCELLATION',
-          styles: PosStyles(align: PosAlign.center, bold: true, fontType:PosFontType.fontA, underline: true, height: PosTextSize.size2, width: PosTextSize.size2));
-      bytes += generator.emptyLines(1);
-      bytes += generator.reset();
-      //other order detail
-      for(int i = 0; i < tableList.length; i++){
-        bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+    if(_isLoad = true){
+      var generator;
+      if (isUSB) {
+        final profile = await CapabilityProfile.load();
+        generator = Generator(PaperSize.mm80, profile);
+      } else {
+        generator = value;
       }
-      bytes += generator.text('order No: #${orderCache!.batch_id}', styles: PosStyles(align: PosAlign.center));
-      bytes += generator.text('cancel time: ${dateTime}', styles: PosStyles(align: PosAlign.center));
-      bytes += generator.hr();
-      bytes += generator.reset();
-      /*
+
+      List<int> bytes = [];
+      try {
+        bytes += generator.text('CANCELLATION',
+            styles: PosStyles(align: PosAlign.center, bold: true, fontType:PosFontType.fontA, underline: true, height: PosTextSize.size2, width: PosTextSize.size2));
+        bytes += generator.emptyLines(1);
+        bytes += generator.reset();
+        //other order detail
+        for(int i = 0; i < tableList.length; i++){
+          bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+        }
+        bytes += generator.text('order No: #${orderCache!.batch_id}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('cancel time: ${dateTime}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.hr();
+        bytes += generator.reset();
+        /*
     *
     * body
     *
     * */
-      //order product
-      for(int i = 0; i < orderDetailList.length; i++){
-        bytes += generator.row([
-          PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
-          PosColumn(
-              text: '${orderDetailList[i].productName}',
-              width: 8,
-              containsChinese: true,
-              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
-          PosColumn(
-              text: '',
-              width: 2,
-              styles: PosStyles(align: PosAlign.right)),
-        ]);
-        bytes += generator.reset();
-        if(orderDetailList[i].has_variant == '1'){
+        //order product
+        for(int i = 0; i < orderDetailList.length; i++){
           bytes += generator.row([
-            PosColumn(text: '', width: 2),
-            PosColumn(text: '(${orderDetailList[i].product_variant_name})', width: 8, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+            PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
+            PosColumn(
+                text: '${orderDetailList[i].productName}',
+                width: 8,
+                containsChinese: true,
+                styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+            PosColumn(
+                text: '',
+                width: 2,
+                styles: PosStyles(align: PosAlign.right)),
           ]);
-        } else {
-          bytes += generator.row([
-            PosColumn(text: '', width: 2),
-            PosColumn(text: '+Modifier', width: 8, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-          ]);
-        }
-        /*
+          bytes += generator.reset();
+          if(orderDetailList[i].has_variant == '1'){
+            bytes += generator.row([
+              PosColumn(text: '', width: 2),
+              PosColumn(text: '(${orderDetailList[i].product_variant_name})', width: 8, styles: PosStyles(align: PosAlign.left)),
+              PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+            ]);
+          }
+          bytes += generator.reset();
+          await getDeletedOrderModifierDetail(orderDetailList[i], deleteDateTime);
+          if(orderModifierDetailList.length > 0){
+            for(int j = 0; j < orderModifierDetailList.length; j++){
+              //modifier
+              bytes += generator.row([
+                PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.left)),
+                PosColumn(text: '-${orderModifierDetailList[j].modifier_name}', width: 8, styles: PosStyles(align: PosAlign.left)),
+                PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+              ]);
+            }
+          }
+          /*
         * product remark
         * */
-        bytes += generator.reset();
-        if (orderDetailList[i].remark != '') {
-          bytes += generator.row([
-            PosColumn(text: '', width: 2),
-            PosColumn(text: '**${orderDetailList[i].remark}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '', width: 2),
-          ]);
+          bytes += generator.reset();
+          if (orderDetailList[i].remark != '') {
+            bytes += generator.row([
+              PosColumn(text: '', width: 2),
+              PosColumn(text: '**${orderDetailList[i].remark}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+              PosColumn(text: '', width: 2),
+            ]);
+          }
+          bytes += generator.feed(1);
+          bytes += generator.hr();
+          bytes += generator.text('cancel by: ${orderDetailList[i].cancel_by}', styles: PosStyles(align: PosAlign.center));
         }
-        bytes += generator.feed(1);
-        bytes += generator.hr();
-        bytes += generator.text('cancel by: ${orderDetailList[i].cancel_by}', styles: PosStyles(align: PosAlign.center));
-      }
 
-      bytes += generator.feed(1);
-      bytes += generator.beep(n: 3, duration: PosBeepDuration.beep400ms);
-      bytes += generator.cut(mode: PosCutMode.partial);
-      return bytes;
-    } catch (e) {
-      print('layout error: $e');
-      return null;
+        bytes += generator.feed(1);
+        bytes += generator.beep(n: 3, duration: PosBeepDuration.beep400ms);
+        bytes += generator.cut(mode: PosCutMode.partial);
+        return bytes;
+      } catch (e) {
+        print('layout error: $e');
+        return null;
+      }
     }
+
+
   }
 
 /*
@@ -1288,7 +1298,6 @@ class ReceiptLayout{
     orderDetailList = List.from(detailData);
     print('order detail list: ${orderDetailList.length}');
 
-
     List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllDeletedTableUseDetail(orderCache!.table_use_sqlite_id!);
     for(int i = 0; i < detailData2.length; i++){
       List<PosTable> tableData = await PosDatabase.instance
@@ -1297,6 +1306,15 @@ class ReceiptLayout{
         tableList.add(tableData[0]);
       }
     }
+    _isLoad = true;
+  }
+
+  /*
+  get paid order modifier detail
+  */
+  getDeletedOrderModifierDetail(OrderDetail orderDetail, String dateTime) async {
+    List<OrderModifierDetail> modDetailData = await PosDatabase.instance.readDeletedOrderModifierDetail(orderDetail.order_detail_sqlite_id.toString(), dateTime);
+    orderModifierDetailList = List.from(modDetailData);
   }
 
 /*

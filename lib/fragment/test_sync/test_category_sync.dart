@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/domain.dart';
 
 import '../../object/order.dart';
+import '../../object/order_cache.dart';
 
 
 class TestCategorySync extends StatefulWidget {
@@ -21,6 +22,7 @@ class TestCategorySync extends StatefulWidget {
 
 class _TestCategorySyncState extends State<TestCategorySync> {
   List<Order> notSyncOrderList = [];
+  List<OrderCache> notSyncOrderCacheList = [];
   Timer? timer;
 
 
@@ -36,7 +38,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
       body: Container(
         alignment: Alignment.center,
         child: ElevatedButton(
-            onPressed: () async   => await SyncToCloud(),
+            onPressed: () async   => await orderCacheSyncToCloud(),
             child: Text('current screen height/width: ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
       ),
     );
@@ -45,7 +47,24 @@ class _TestCategorySyncState extends State<TestCategorySync> {
 /*
   test sync query  (tb_order)
 */
-  SyncToCloud() async {
+  orderCacheSyncToCloud() async {
+    List<String> value = [];
+    await getNotSyncOrderCache();
+    for(int i = 0; i <  notSyncOrderCacheList.length; i++){
+      value.add(jsonEncode(notSyncOrderCacheList[i]));
+    }
+
+    Map data = await Domain().SyncOrderCacheToCloud(value.toString());
+    if(data['status'] == '1'){
+      List responseJson = data['data'];
+      for(int i = 0 ; i <responseJson.length; i++){
+        int orderCacheData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+      }
+    }
+  }
+
+
+  orderSyncToCloud() async {
     List<String> value = [];
     await getNotSyncOrder();
     print('${notSyncOrderList.length} orders call to sync api');
@@ -62,8 +81,11 @@ class _TestCategorySyncState extends State<TestCategorySync> {
         int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
       }
     }
+  }
 
-
+  getNotSyncOrderCache() async {
+    List<OrderCache> data = await PosDatabase.instance.readAllNotSyncOrderCache();
+    notSyncOrderCacheList = data;
   }
 
   getNotSyncOrder() async {

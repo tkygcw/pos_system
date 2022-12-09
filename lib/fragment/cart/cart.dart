@@ -737,7 +737,7 @@ class _CartPageState extends State<CartPage> {
       for(int j = 0; j < data.length; j++){
         for(int k = 0; k < cart.cartNotifierItem.length; k++){
           //check printer category
-          if (cart.cartNotifierItem[k].category_id == data[j].category_sqlite_id) {
+          if (cart.cartNotifierItem[k].category_sqlite_id == data[j].category_sqlite_id) {
             //check printer type
             if(printerList[i].type == 1){
               var printerDetail = jsonDecode(printerList[i].value!);
@@ -1616,6 +1616,7 @@ class _CartPageState extends State<CartPage> {
   callAddOrderCache(CartModel cart) async {
     print('add product cache');
     await createOrderCache(cart);
+    await insertOrderCacheKey(cart);
     await createOrderDetail(cart);
   }
 
@@ -1900,6 +1901,7 @@ class _CartPageState extends State<CartPage> {
           _tableUseId = this.localTableUseId;
         }
       }
+      List<TableUse> tableUse = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
       if (batch != 0) {
         //create order cache
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
@@ -1910,7 +1912,7 @@ class _CartPageState extends State<CartPage> {
                 branch_id: branch_id.toString(),
                 order_detail_id: '',
                 table_use_sqlite_id: cart.selectedOption == 'Dine in' ? _tableUseId : '',
-                table_use_key: cart.selectedOption == 'Dine in' ? tableUseKey : '',
+                table_use_key: cart.selectedOption == 'Dine in' ? tableUse[0].table_use_key : '',
                 batch_id: batch.toString().padLeft(5, '0'),
                 dining_id: this.diningOptionID.toString(),
                 order_sqlite_id: '',
@@ -1987,7 +1989,7 @@ class _CartPageState extends State<CartPage> {
                 order_cache_sqlite_id: orderCacheId,
                 order_cache_key: orderCacheKey,
                 branch_link_product_sqlite_id: cart.cartNotifierItem[j].branchProduct_id,
-                category_sqlite_id: '',
+                category_sqlite_id: cart.cartNotifierItem[j].category_sqlite_id,
                 productName: cart.cartNotifierItem[j].name,
                 has_variant: cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
                 product_variant_name: getVariant2(cart.cartNotifierItem[j]),

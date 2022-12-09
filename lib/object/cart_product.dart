@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/variant_group.dart';
 
+import 'order_detail.dart';
+
 class cartProductItem{
    String branchProduct_id = '';
    String name ='';
    String category_id = '';
-   String category_sqlite_id = '';
+   String? category_sqlite_id;
    String price ='';
    int quantity = 1;
    late List<ModifierGroup> modifier ;
@@ -16,6 +18,7 @@ class cartProductItem{
    int status = 0;
    String? orderCacheId;
    Color refColor = Colors.black;
+   String? order_detail_sqlite_id;
 
    cartProductItem(
        String branchProduct_id,
@@ -29,11 +32,11 @@ class cartProductItem{
        int status,
        String? orderCacheId,
        Color refColor,
-       {category_sqlite_id}){
+       {category_sqlite_id, order_detail_sqlite_id}){
        this.branchProduct_id = branchProduct_id;
        this.name = name;
        this.category_id = category_id;
-       //this.category_sqlite_id = category_sqlite_id;
+       this.category_sqlite_id = category_sqlite_id;
        this.price = price;
        this.quantity = quantity;
        this.modifier = modifier;
@@ -42,6 +45,7 @@ class cartProductItem{
        this.status = status;
        this.orderCacheId = orderCacheId;
        this.refColor = refColor;
+       this.order_detail_sqlite_id = order_detail_sqlite_id;
    }
 
 }
