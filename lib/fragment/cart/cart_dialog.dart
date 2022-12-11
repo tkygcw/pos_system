@@ -183,7 +183,7 @@ class _CartDialogState extends State<CartDialog> {
                     side: new BorderSide(color: Colors.white, width: 3.0),
                     borderRadius: BorderRadius.circular(4.0)),
             color: tableList[index].status == 1
-                ? toColor(tableList[index].cardColor!)
+                ? toColor(tableList[index].card_color!)
                 : Colors.white,
             child: InkWell(
               splashColor: Colors.blue.withAlpha(30),
@@ -407,7 +407,7 @@ class _CartDialogState extends State<CartDialog> {
             branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
 
         tableList[i].group = data[0].table_use_sqlite_id;
-        tableList[i].cardColor = data[0].cardColor;
+        tableList[i].card_color = data[0].card_color;
 
         // for (int j = 0; j < data.length; j++) {
         //   tableList[i].total_Amount += double.parse(data[j].total_amount!);
@@ -453,7 +453,7 @@ class _CartDialogState extends State<CartDialog> {
       //Get product category
       List<Product> productResult = await PosDatabase.instance
           .readSpecificProductCategory(result[0].product_id!);
-      orderDetailList[k].category_id = productResult[0].category_id;
+      orderDetailList[k].product_category_id = productResult[0].category_id;
 
       if (result[0].has_variant == '1') {
         //Get product variant
@@ -580,7 +580,7 @@ class _CartDialogState extends State<CartDialog> {
       value = cartProductItem(
           orderDetailList[i].branch_link_product_sqlite_id!,
           orderDetailList[i].productName!,
-          orderDetailList[i].category_id!,
+          orderDetailList[i].product_category_id!,
           orderDetailList[i].price!,
           int.parse(orderDetailList[i].quantity!),
           getModifierGroupItem(orderDetailList[i]),

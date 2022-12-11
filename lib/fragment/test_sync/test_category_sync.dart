@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/categories.dart';
+import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/tax.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,6 +25,8 @@ class TestCategorySync extends StatefulWidget {
 class _TestCategorySyncState extends State<TestCategorySync> {
   List<Order> notSyncOrderList = [];
   List<OrderCache> notSyncOrderCacheList = [];
+  List<OrderDetail> notSyncOrderDetailList = [];
+  List<TableUse> notSyncTableUseList = [];
   Timer? timer;
 
 
@@ -38,7 +42,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
       body: Container(
         alignment: Alignment.center,
         child: ElevatedButton(
-            onPressed: () async   => await orderCacheSyncToCloud(),
+            onPressed: () async  => await tableUseSyncToCloud(),
             child: Text('current screen height/width: ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
       ),
     );
@@ -47,6 +51,45 @@ class _TestCategorySyncState extends State<TestCategorySync> {
 /*
   test sync query  (tb_order)
 */
+  tableUseSyncToCloud() async {
+    List<String> value = [];
+    await getNotSyncTableUse();
+    print('${notSyncTableUseList.length} table use call to sync api');
+    for(int i = 0; i <  notSyncTableUseList.length; i++){
+      value.add(jsonEncode(notSyncTableUseList[i]));
+    }
+    print('Value: ${value.toString()}');
+    Map data = await Domain().SyncTableUseToCloud(value.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        //print('response order key: ${responseJson[i]['order_key']}');
+        int tablaUseData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+      }
+    }
+  }
+
+
+  orderDetailSyncToCloud() async {
+    List<String> value = [];
+    await getNotSyncOrderDetail();
+    print('${notSyncOrderDetailList.length} order detail call to sync api');
+    for(int i = 0; i <  notSyncOrderDetailList.length; i++){
+      print(notSyncOrderDetailList[i].branch_link_product_id);
+      value.add(jsonEncode(notSyncOrderDetailList[i]));
+    }
+    print('Value: ${value.toString()}');
+    // Map data = await Domain().getAllSyncToCloudRecord(value.toString());
+    // print('response: ${data}');
+    // if (data['status'] == '1') {
+    //   List responseJson = data['data'];
+    //   for (var i = 0; i < responseJson.length; i++) {
+    //     //print('response order key: ${responseJson[i]['order_key']}');
+    //     int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+    //   }
+    // }
+  }
+
   orderCacheSyncToCloud() async {
     List<String> value = [];
     await getNotSyncOrderCache();
@@ -62,7 +105,6 @@ class _TestCategorySyncState extends State<TestCategorySync> {
       }
     }
   }
-
 
   orderSyncToCloud() async {
     List<String> value = [];
@@ -81,6 +123,16 @@ class _TestCategorySyncState extends State<TestCategorySync> {
         int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
       }
     }
+  }
+
+  getNotSyncTableUse() async {
+    List<TableUse> data = await PosDatabase.instance.readAllNotSyncTableUse();
+    notSyncTableUseList = data;
+  }
+
+  getNotSyncOrderDetail() async {
+    List<OrderDetail> data = await PosDatabase.instance.readAllNotSyncOrderDetail();
+    notSyncOrderDetailList = data;
   }
 
   getNotSyncOrderCache() async {

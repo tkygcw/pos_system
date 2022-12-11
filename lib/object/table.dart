@@ -42,7 +42,7 @@ class PosTable{
   String? soft_delete;
   double total_Amount = 0.0;
   String? group;
-  String? cardColor;
+  String? card_color;
   bool isSelected = false;
 
   PosTable(

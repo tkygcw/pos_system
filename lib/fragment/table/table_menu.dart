@@ -141,7 +141,7 @@ class _TableMenuState extends State<TableMenu> {
                                 // tableList[index].seats == 2;
                                 return Card(
                                   color: tableList[index].status != 0
-                                      ? toColor(tableList[index].cardColor!)
+                                      ? toColor(tableList[index].card_color!)
                                       : Colors.white,
                                   shape: tableList[index].isSelected
                                       ? new RoundedRectangleBorder(
@@ -388,7 +388,7 @@ class _TableMenuState extends State<TableMenu> {
         List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
             branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
         tableList[i].group = data[0].table_use_sqlite_id;
-        tableList[i].cardColor = data[0].cardColor;
+        tableList[i].card_color = data[0].card_color;
 
         // for(int j = 0; j < data.length; j++){
         //   tableList[i].total_Amount += double.parse(data[j].total_amount!);
@@ -434,7 +434,7 @@ class _TableMenuState extends State<TableMenu> {
       //Get product category
       List<Product> productResult = await PosDatabase.instance
           .readSpecificProductCategory(result[0].product_id!);
-      orderDetailList[k].category_id = productResult[0].category_id;
+      orderDetailList[k].product_category_id = productResult[0].category_id;
 
       if (result[0].has_variant == '1') {
         //Get product variant
@@ -558,7 +558,7 @@ class _TableMenuState extends State<TableMenu> {
       value = cartProductItem(
           orderDetailList[i].branch_link_product_sqlite_id!,
           orderDetailList[i].productName!,
-          orderDetailList[i].category_id!,
+          orderDetailList[i].product_category_id!,
           orderDetailList[i].price!,
           int.parse(orderDetailList[i].quantity!),
           getModifierGroupItem(orderDetailList[i]),
@@ -566,7 +566,7 @@ class _TableMenuState extends State<TableMenu> {
           orderDetailList[i].remark!,
           0,
           orderDetailList[i].order_cache_sqlite_id,
-          toColor(posTable.cardColor!),
+          toColor(posTable.card_color!),
           category_sqlite_id: orderDetailList[i].category_sqlite_id,
           order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString());
       cart.addItem(value);
@@ -593,7 +593,7 @@ class _TableMenuState extends State<TableMenu> {
         value = cartProductItem(
             orderDetailList[i].branch_link_product_sqlite_id!,
             orderDetailList[i].productName!,
-            orderDetailList[i].category_id!,
+            orderDetailList[i].product_category_id!,
             orderDetailList[i].price!,
             int.parse(orderDetailList[i].quantity!),
             getModifierGroupItem(orderDetailList[i]),
@@ -601,7 +601,7 @@ class _TableMenuState extends State<TableMenu> {
             orderDetailList[i].remark!,
             0,
             orderDetailList[i].order_cache_sqlite_id,
-            toColor(posTable.cardColor!),
+            toColor(posTable.card_color!),
             category_sqlite_id: orderDetailList[i].category_sqlite_id,
             order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString());
         cart.removeSpecificItem(value);

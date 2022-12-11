@@ -393,7 +393,7 @@ class PosDatabase {
           ${TableUseFields.table_use_key} $textType,
           ${TableUseFields.branch_id} $integerType,
           ${TableUseFields.order_cache_key} $textType,
-          ${TableUseFields.cardColor} $textType,
+          ${TableUseFields.card_color} $textType,
           ${TableUseFields.sync_status} $integerType,
           ${TableUseFields.created_at} $textType,
           ${TableUseFields.updated_at} $textType,
@@ -2069,7 +2069,7 @@ class PosDatabase {
     try {
       final db = await instance.database;
       final result = await db.rawQuery(
-          'SELECT a.*, b.cardColor FROM $tableOrderCache AS a JOIN $tableTableUse AS b ON a.table_use_sqlite_id = b.table_use_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ? AND a.table_use_sqlite_id = ?',
+          'SELECT a.*, b.card_color FROM $tableOrderCache AS a JOIN $tableTableUse AS b ON a.table_use_sqlite_id = b.table_use_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ? AND a.table_use_sqlite_id = ?',
           ['', '', branch_id, table_use_id]);
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
@@ -3698,11 +3698,51 @@ class PosDatabase {
         ]);
   }
 
+/*
+  update table use(from cloud)
+*/
+  Future<int> updateTableUseSyncStatusFromCloud(String table_use_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableTableUse SET sync_status = ? WHERE table_use_key = ?',
+        [
+          1,
+          table_use_key
+        ]);
+  }
+
 
 
 /*
   ----------------------Sync to cloud--------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  read all not yet sync to cloud table use
+*/
+  /*
+  read all not yet sync to cloud orders
+*/
+  Future<List<TableUse>> readAllNotSyncTableUse() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableTableUse WHERE soft_delete = ? AND sync_status = ? ',
+        ['', 0]);
+
+    return result.map((json) => TableUse.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync to cloud order detail
+*/
+  Future<List<OrderDetail>> readAllNotSyncOrderDetail() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.soft_delete, a.created_at, a.sync_status, a.cancel_by_user_id, a.cancel_by, a.account, a.remark, a.quantity, a.price, a.product_variant_name, a.has_variant, a.product_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.sync_status = ? ',
+        ['', '', '', 0]);
+
+    return result.map((json) => OrderDetail.fromJson(json)).toList();
+  }
 
 /*
   read all not yet sync to cloud order cache

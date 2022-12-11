@@ -276,7 +276,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
       value = cartProductItem(
           orderDetailList[i].branch_link_product_sqlite_id!,
           orderDetailList[i].productName!,
-          orderDetailList[i].category_id!,
+          orderDetailList[i].product_category_id!,
           orderDetailList[i].price!,
           int.parse(orderDetailList[i].quantity!),
           getModifierGroupItem(orderDetailList[i]),
@@ -357,7 +357,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
       List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
       //Get product category
       List<Product> productResult = await PosDatabase.instance.readSpecificProductCategory(result[0].product_id!);
-      orderDetailList[k].category_id = productResult[0].category_id;
+      orderDetailList[k].product_category_id = productResult[0].category_id;
       if(orderDetailList[k].has_variant == '1'){
         List<BranchLinkProduct> variant = await PosDatabase.instance
             .readBranchLinkProductVariant(

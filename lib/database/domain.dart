@@ -196,6 +196,23 @@ class Domain {
   }
 
   /*
+  * get all sync_to_cloud
+  * */
+  SyncTableUseToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_table_use_create': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * update branch notification token to cloud
   * */
   updateBranchNotificationToken(token, branch_id) async {

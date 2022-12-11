@@ -7,7 +7,7 @@ class TableUseFields {
     table_use_key,
     branch_id,
     order_cache_key,
-    cardColor,
+    card_color,
     sync_status,
     created_at,
     updated_at,
@@ -19,7 +19,7 @@ class TableUseFields {
   static String table_use_key = 'table_use_key';
   static String branch_id = 'branch_id';
   static String order_cache_key = 'order_cache_key';
-  static String cardColor = 'cardColor';
+  static String card_color = 'card_color';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -32,7 +32,7 @@ class TableUse{
   String? table_use_key;
   int? branch_id;
   String? order_cache_key;
-  String? cardColor;
+  String? card_color;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -44,7 +44,7 @@ class TableUse{
         this.table_use_key,
         this.order_cache_key,
         this.branch_id,
-        this.cardColor,
+        this.card_color,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -56,7 +56,7 @@ class TableUse{
     String? table_use_key,
     int? branch_id,
     String? order_cache_key,
-    String? cardColor,
+    String? card_color,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -68,7 +68,7 @@ class TableUse{
           table_use_key: table_use_key ?? this.table_use_key,
           branch_id: branch_id ?? this.branch_id,
           order_cache_key: order_cache_key ?? this.order_cache_key,
-          cardColor: cardColor ?? this.cardColor,
+          card_color: card_color ?? this.card_color,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -80,7 +80,7 @@ class TableUse{
     table_use_key: json[TableUseFields.table_use_key] as String?,
     branch_id: json[TableUseFields.branch_id] as int?,
     order_cache_key: json[TableUseFields.order_cache_key] as String?,
-    cardColor: json[TableUseFields.cardColor] as String?,
+    card_color: json[TableUseFields.card_color] as String?,
     sync_status: json[TableUseFields.sync_status] as int?,
     created_at: json[TableUseFields.created_at] as String?,
     updated_at: json[TableUseFields.updated_at] as String?,
@@ -93,7 +93,7 @@ class TableUse{
     TableUseFields.table_use_key: table_use_key,
     TableUseFields.branch_id: branch_id,
     TableUseFields.order_cache_key: order_cache_key,
-    TableUseFields.cardColor: cardColor,
+    TableUseFields.card_color: card_color,
     TableUseFields.sync_status: sync_status,
     TableUseFields.created_at: created_at,
     TableUseFields.updated_at: updated_at,

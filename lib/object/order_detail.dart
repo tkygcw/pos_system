@@ -77,13 +77,15 @@ class OrderDetail{
   String? soft_delete;
   String? total_amount;
   String base_price = '0.0';
-  String? category_id;
+  String? product_category_id;
   String? mod_item_id;
   ProductVariant? productVariant;
   List<VariantItem> variantItem = [];
   List<ModifierItem> modifierItem = [];
   List<String> mod_group_id = [];
   bool hasModifier = false;
+  int? category_id;
+  int? branch_link_product_id;
 
   OrderDetail(
       {this.order_detail_sqlite_id,
@@ -106,7 +108,9 @@ class OrderDetail{
         this.created_at,
         this.updated_at,
         this.soft_delete,
-        this.total_amount});
+        this.total_amount,
+        this.category_id,
+        this.branch_link_product_id});
 
   OrderDetail copy({
     int? order_detail_sqlite_id,
@@ -129,6 +133,8 @@ class OrderDetail{
     String? created_at,
     String? updated_at,
     String? soft_delete,
+    int? category_id,
+    int? branch_link_product_id
   }) =>
       OrderDetail(
           order_detail_sqlite_id: order_detail_sqlite_id ?? this.order_detail_sqlite_id,
@@ -151,7 +157,9 @@ class OrderDetail{
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete,
-          total_amount: total_amount ?? this.total_amount);
+          total_amount: total_amount ?? this.total_amount,
+          category_id: category_id ?? this.category_id,
+          branch_link_product_id: branch_link_product_id ?? this.branch_link_product_id);
 
   static OrderDetail fromJson(Map<String, Object?> json) => OrderDetail(
     order_detail_sqlite_id: json[OrderDetailFields.order_detail_sqlite_id] as int?,
@@ -174,7 +182,9 @@ class OrderDetail{
     created_at: json[OrderDetailFields.created_at] as String?,
     updated_at: json[OrderDetailFields.updated_at] as String?,
     soft_delete: json[OrderDetailFields.soft_delete] as String?,
-    total_amount: json['total_amount'] as String?
+    total_amount: json['total_amount'] as String?,
+    category_id: json['category_id'] as int?,
+    branch_link_product_id: json['branch_link_product_id'] as int?
   );
 
   Map<String, Object?> toJson() => {

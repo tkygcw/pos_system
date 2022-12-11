@@ -1706,12 +1706,12 @@ class _CartPageState extends State<CartPage> {
       hexCode = colorToHex(randomColor());
       if (data.length > 0) {
         for (int i = 0; i < data.length; i++) {
-          if (hexCode == data[i].cardColor) {
+          if (hexCode == data[i].card_color) {
             found = false;
             break;
           } else {
             tempColor = hexToInteger(hexCode!.replaceAll('#', ''));
-            matchColor = hexToInteger(data[i].cardColor!.replaceAll('#', ''));
+            matchColor = hexToInteger(data[i].card_color!.replaceAll('#', ''));
             diff = tempColor - matchColor;
             if (diff.abs() < 150000) {
               print('color too close or not yet loop finish');
@@ -1797,7 +1797,7 @@ class _CartPageState extends State<CartPage> {
                 branch_id: branch_id,
                 table_use_key: '',
                 order_cache_key: '',
-                cardColor: hexCode.toString(),
+                card_color: hexCode.toString(),
                 sync_status: 0,
                 created_at: dateTime,
                 updated_at: '',

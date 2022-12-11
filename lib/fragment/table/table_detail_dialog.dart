@@ -257,7 +257,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
         //Get product category
         List<Product> productResult = await PosDatabase.instance
             .readSpecificProductCategory(result[0].product_id!);
-        orderDetailList[k].category_id = productResult[0].category_id;
+        orderDetailList[k].product_category_id = productResult[0].category_id;
 
         if (result[0].has_variant == '1') {
           //Get product variant
@@ -454,7 +454,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
       value = cartProductItem(
         orderDetailList[i].branch_link_product_sqlite_id!,
         orderDetailList[i].productName!,
-        orderDetailList[i].category_id!,
+        orderDetailList[i].product_category_id!,
         orderDetailList[i].price!,
         int.parse(orderDetailList[i].quantity!),
         getModifierGroupItem(orderDetailList[i]),
