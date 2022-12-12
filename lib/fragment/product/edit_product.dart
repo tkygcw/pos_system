@@ -432,6 +432,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
       String dateTime = dateFormat.format(DateTime.now());
       if(imageDir != null){
         if(widget.product!.image == '' || widget.product!.image == null){
+
           saveFilePermanently(imageDir!);
           if (connectivityResult == ConnectivityResult.mobile ||
               connectivityResult == ConnectivityResult.wifi) {
