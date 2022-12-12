@@ -431,10 +431,22 @@ class _EditProductDialogState extends State<EditProductDialog> {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       if(imageDir != null){
-        saveFilePermanently(imageDir!);
-        if (connectivityResult == ConnectivityResult.mobile ||
-            connectivityResult == ConnectivityResult.wifi) {
-          storeImage(basename(imageDir!).replaceAll('image_picker', ''));
+        if(widget.product!.image == '' || widget.product!.image == null){
+          saveFilePermanently(imageDir!);
+          if (connectivityResult == ConnectivityResult.mobile ||
+              connectivityResult == ConnectivityResult.wifi) {
+            storeImage(basename(imageDir!).replaceAll('image_picker', ''));
+          }
+        }
+        else{
+          deleteFile(widget.product!.image);
+          saveFilePermanently(imageDir!);
+          if (connectivityResult == ConnectivityResult.mobile ||
+              connectivityResult == ConnectivityResult.wifi) {
+            deleteImage(widget.product!.image!);
+            storeImage(basename(imageDir!).replaceAll('image_picker', ''));
+          }
+
         }
       }
       else{
@@ -456,7 +468,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
         SKU: skuController.value.text,
         image: imageDir != null
             ? basename(imageDir!).replaceAll('image_picker', '')
-            : widget.product!.image,
+            : widget.product!.graphic_type == '2' ? widget.product!.image : '',
         has_variant: selectVariant == 'Have Variant' ? 1 : 0,
         stock_type: selectStock == 'Daily Limit' ? 1 : 2,
         stock_quantity: stockQuantityController.value.text,
@@ -489,7 +501,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
             productColor,
             imageDir != null
                 ? basename(imageDir!).replaceAll('image_picker', '')
-                : widget.product!.image,
+                : widget.product!.graphic_type == '2' ? widget.product!.image : '',
             widget.product!.product_id.toString());
         if (response['status'] == '1') {
           int syncData = await PosDatabase.instance.updateSyncProduct(Product(
@@ -2420,8 +2432,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);
-    Map response =
-        await Domain().deleteProductImage(imageName, userObject['company_id']);
+    Map response = await Domain().deleteProductImage(imageName, userObject['company_id']);
     if (response['status'] == '1') {
       return 1;
     } else {

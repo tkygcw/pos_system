@@ -766,6 +766,8 @@ class Domain {
     }
   }
 
+
+
   /*
   * update product
   * */
@@ -802,6 +804,23 @@ class Domain {
         'color': color,
         'imageName': imageName,
 
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+
+  /*
+  * update product
+  * */
+  updateProductImage(imageName, product_id) async {
+    try {
+      var response = await http.post(Domain.product, body: {
+        'editProductImage': '1',
+        'pID': product_id,
+        'imageName': imageName,
       });
       return jsonDecode(response.body);
     } catch (error) {
