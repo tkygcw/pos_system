@@ -71,6 +71,7 @@ class _CartPageState extends State<CartPage> {
   String? orderCacheKey;
   String? orderDetailKey;
   String? tableUseKey;
+  String? orderModifierDetailKey;
   String? tableUseDetailKey;
   bool hasPromo = false, hasSelectedPromo = false, _isSettlement = false;
   Color font = Colors.black45;
@@ -2022,18 +2023,39 @@ class _CartPageState extends State<CartPage> {
               OrderModifierDetail modifierData = await PosDatabase.instance
                   .insertSqliteOrderModifierDetail(OrderModifierDetail(
                   order_modifier_detail_id: 0,
+                  order_modifier_detail_key: '',
                   order_detail_sqlite_id: await detailData.order_detail_sqlite_id.toString(),
                   order_detail_id: '0',
                   order_detail_key: await orderDetailKey,
                   mod_item_id: group.modifierChild[m].mod_item_id.toString(),
                   mod_group_id: group.mod_group_id.toString(),
+                  sync_status: 0,
                   created_at: dateTime,
                   updated_at: '',
                   soft_delete: ''));
+              //insert unique key
+              orderModifierDetailKey = await generateOrderModifierDetailKey(modifierData);
+              if(orderModifierDetailKey != null){
+                OrderModifierDetail orderModifierDetailData = OrderModifierDetail(
+                  order_modifier_detail_key: orderModifierDetailKey,
+                  updated_at: dateTime,
+                  sync_status: 0,
+                  order_modifier_detail_sqlite_id: modifierData.order_modifier_detail_sqlite_id
+                );
+                int tableUseData = await PosDatabase.instance.updateOrderModifierDetailUniqueKey(orderModifierDetailData);
+              }
             }
           }
         }
       }
     }
   }
+
+  generateOrderModifierDetailKey(OrderModifierDetail orderModifierDetail) async  {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes  = orderModifierDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + orderModifierDetail.order_modifier_detail_sqlite_id.toString() + device_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
 }

@@ -1,3 +1,4 @@
+import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
@@ -132,9 +133,7 @@ class OrderDetail{
     int? sync_status,
     String? created_at,
     String? updated_at,
-    String? soft_delete,
-    int? category_id,
-    int? branch_link_product_id
+    String? soft_delete
   }) =>
       OrderDetail(
           order_detail_sqlite_id: order_detail_sqlite_id ?? this.order_detail_sqlite_id,
@@ -156,10 +155,7 @@ class OrderDetail{
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
-          soft_delete: soft_delete ?? this.soft_delete,
-          total_amount: total_amount ?? this.total_amount,
-          category_id: category_id ?? this.category_id,
-          branch_link_product_id: branch_link_product_id ?? this.branch_link_product_id);
+          soft_delete: soft_delete ?? this.soft_delete);
 
   static OrderDetail fromJson(Map<String, Object?> json) => OrderDetail(
     order_detail_sqlite_id: json[OrderDetailFields.order_detail_sqlite_id] as int?,
@@ -207,6 +203,26 @@ class OrderDetail{
     OrderDetailFields.sync_status: sync_status,
     OrderDetailFields.created_at: created_at,
     OrderDetailFields.updated_at: updated_at,
+    OrderDetailFields.soft_delete: soft_delete
+  };
+
+  Map syncJson() => {
+    OrderDetailFields.order_detail_key: order_detail_key,
+    OrderDetailFields.order_cache_key: order_cache_key,
+    OrderDetailFields.productName: productName,
+    OrderDetailFields.has_variant: has_variant,
+    OrderDetailFields.product_variant_name: product_variant_name,
+    OrderDetailFields.price: price,
+    OrderDetailFields.quantity: quantity,
+    OrderDetailFields.remark: remark,
+    OrderDetailFields.account: account,
+    OrderDetailFields.cancel_by: cancel_by,
+    OrderDetailFields.cancel_by_user_id: cancel_by_user_id,
+    OrderDetailFields.sync_status: sync_status,
+    OrderDetailFields.created_at: created_at,
+    OrderDetailFields.updated_at: updated_at,
     OrderDetailFields.soft_delete: soft_delete,
+    CategoriesFields.category_id: category_id,
+    BranchLinkProductFields.branch_link_product_id: branch_link_product_id
   };
 }

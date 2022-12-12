@@ -1,3 +1,5 @@
+import 'package:pos_system/object/table.dart';
+
 String? tableTableUseDetail= 'tb_table_use_detail ';
 
 class TableUseDetailFields {
@@ -40,6 +42,7 @@ class TableUseDetail{
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  int? table_id;
 
   TableUseDetail(
       {this.table_use_detail_sqlite_id,
@@ -52,7 +55,8 @@ class TableUseDetail{
         this.sync_status,
         this.created_at,
         this.updated_at,
-        this.soft_delete});
+        this.soft_delete,
+        this.table_id});
 
   TableUseDetail copy({
     int? table_use_detail_sqlite_id,
@@ -92,6 +96,7 @@ class TableUseDetail{
     created_at: json[TableUseDetailFields.created_at] as String?,
     updated_at: json[TableUseDetailFields.updated_at] as String?,
     soft_delete: json[TableUseDetailFields .soft_delete] as String?,
+    table_id: json['table_id'] as int?
   );
 
   Map<String, Object?> toJson() => {
@@ -106,6 +111,16 @@ class TableUseDetail{
     TableUseDetailFields.created_at: created_at,
     TableUseDetailFields.updated_at: updated_at,
     TableUseDetailFields.soft_delete: soft_delete,
+  };
+
+  Map syncJson() => {
+    TableUseDetailFields.table_use_detail_key: table_use_detail_key,
+    TableUseDetailFields.table_use_key: table_use_key,
+    TableUseDetailFields.sync_status: sync_status,
+    TableUseDetailFields.created_at: created_at,
+    TableUseDetailFields.updated_at: updated_at,
+    TableUseDetailFields.soft_delete: soft_delete,
+    PosTableFields.table_id: table_id
   };
 }
 

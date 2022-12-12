@@ -6,6 +6,7 @@ import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/table_use.dart';
+import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/tax.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,6 +28,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
   List<OrderCache> notSyncOrderCacheList = [];
   List<OrderDetail> notSyncOrderDetailList = [];
   List<TableUse> notSyncTableUseList = [];
+  List<TableUseDetail> notSyncTableUseDetailList = [];
   Timer? timer;
 
 
@@ -42,7 +44,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
       body: Container(
         alignment: Alignment.center,
         child: ElevatedButton(
-            onPressed: () async  => await tableUseSyncToCloud(),
+            onPressed: () async  => await updatedTableUseDetailSyncToCloud(),//tableUseSyncToCloud(),
             child: Text('current screen height/width: ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
       ),
     );
@@ -51,6 +53,53 @@ class _TestCategorySyncState extends State<TestCategorySync> {
 /*
   test sync query  (tb_order)
 */
+  updatedTableUseDetailSyncToCloud() async {
+    List<String> value = [];
+    await getNotSyncUpdatedTableUseDetail();
+    print('${notSyncTableUseDetailList.length} table use detail call to sync api');
+    for(int i = 0; i < notSyncTableUseDetailList.length; i++){
+      value.add(jsonEncode(notSyncTableUseDetailList[i].syncJson()));
+    }
+    print('Value: ${value.toString()}');
+    Map data = await Domain().SyncUpdatedTableUseDetailToCloud(value.toString());
+    List responseJson = data['data'];
+    for (var i = 0; i < responseJson.length; i++) {
+      int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+    }
+  }
+
+  tableUseDetailSyncToCloud() async {
+    List<String> value = [];
+    await getNotSyncTableUseDetail();
+    print('${notSyncTableUseDetailList.length} table use call to sync api');
+    for(int i = 0; i <  notSyncTableUseDetailList.length; i++){
+      value.add(jsonEncode(notSyncTableUseDetailList[i].syncJson()));
+    }
+    print('Value: ${value.toString()}');
+    Map data = await Domain().SyncTableUseDetailToCloud(value.toString());
+    List responseJson = data['data'];
+    for (var i = 0; i < responseJson.length; i++) {
+      int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+    }
+  }
+
+  updatedTableUseSyncToCloud() async {
+    List<String> value = [];
+    await getNotSyncUpdatedTableUse();
+    print('${notSyncTableUseList.length} table use call to sync api');
+    for(int i = 0; i <  notSyncTableUseList.length; i++){
+      value.add(jsonEncode(notSyncTableUseList[i]));
+    }
+    print('Value: ${value.toString()}');
+    Map data = await Domain().SyncUpdatedTableUseToCloud(value.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        int tablaUseData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+      }
+    }
+  }
+
   tableUseSyncToCloud() async {
     List<String> value = [];
     await getNotSyncTableUse();
@@ -63,31 +112,60 @@ class _TestCategorySyncState extends State<TestCategorySync> {
     if (data['status'] == '1') {
       List responseJson = data['data'];
       for (var i = 0; i < responseJson.length; i++) {
-        //print('response order key: ${responseJson[i]['order_key']}');
         int tablaUseData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+      }
+    }
+  }
+
+  updatedOrderDetailSyncToCloud() async {
+    List<String> jsonValue = [];
+    await getNotSyncUpdatedOrderDetail();
+    for(int i = 0; i < notSyncOrderDetailList.length; i++){
+      jsonValue.add(jsonEncode(notSyncOrderDetailList[i].syncJson()));
+    }
+    print('Value: ${jsonValue.toString()}');
+
+    Map data = await Domain().SyncUpdatedOrderDetailToCloud(jsonValue.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        int orderDetailData = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
       }
     }
   }
 
 
   orderDetailSyncToCloud() async {
-    List<String> value = [];
+    List<String> jsonValue = [];
     await getNotSyncOrderDetail();
     print('${notSyncOrderDetailList.length} order detail call to sync api');
     for(int i = 0; i <  notSyncOrderDetailList.length; i++){
-      print(notSyncOrderDetailList[i].branch_link_product_id);
-      value.add(jsonEncode(notSyncOrderDetailList[i]));
+      print('test: ${notSyncOrderDetailList[i].branch_link_product_id}');
+      jsonValue.add(jsonEncode(notSyncOrderDetailList[i].syncJson()));
+    }
+    print('Value: ${jsonValue.toString()}');
+
+    Map data = await Domain().SyncOrderDetailToCloud(jsonValue.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        int orderDetailData = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+      }
+    }
+  }
+
+  updatedOrderCacheSyncToCloud() async {
+    List<String> value = [];
+    await getNotSyncUpdatedOrderCache();
+    for(int i = 0; i <  notSyncOrderCacheList.length; i++){
+      value.add(jsonEncode(notSyncOrderCacheList[i]));
     }
     print('Value: ${value.toString()}');
-    // Map data = await Domain().getAllSyncToCloudRecord(value.toString());
-    // print('response: ${data}');
-    // if (data['status'] == '1') {
-    //   List responseJson = data['data'];
-    //   for (var i = 0; i < responseJson.length; i++) {
-    //     //print('response order key: ${responseJson[i]['order_key']}');
-    //     int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
-    //   }
-    // }
+    Map data = await Domain().SyncUpdatedOrderCacheToCloud(value.toString());
+    List responseJson = data['data'];
+    for(int i = 0 ; i <responseJson.length; i++){
+      int orderCacheData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+    }
   }
 
   orderCacheSyncToCloud() async {
@@ -106,6 +184,24 @@ class _TestCategorySyncState extends State<TestCategorySync> {
     }
   }
 
+  updatedOrderSyncToCloud() async {
+    List<String> value = [];
+    await getNotSyncUpdatedOrder();
+    for(int i = 0; i < notSyncOrderList.length; i++){
+      value.add(jsonEncode(notSyncOrderList[i]));
+    }
+    print('Value: ${value.toString()}');
+    // Map data = await Domain().SyncOrderToCloud(value.toString());
+    // print('response: ${data}');
+    // if (data['status'] == '1') {
+    //   List responseJson = data['data'];
+    //   for (var i = 0; i < responseJson.length; i++) {
+    //     //print('response order key: ${responseJson[i]['order_key']}');
+    //     int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+    //   }
+    // }
+  }
+
   orderSyncToCloud() async {
     List<String> value = [];
     await getNotSyncOrder();
@@ -114,7 +210,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
       value.add(jsonEncode(notSyncOrderList[i]));
     }
     print('Value: ${value}');
-    Map data = await Domain().getAllSyncToCloudRecord(value.toString());
+    Map data = await Domain().SyncOrderToCloud(value.toString());
     print('response: ${data}');
     if (data['status'] == '1') {
       List responseJson = data['data'];
@@ -125,19 +221,60 @@ class _TestCategorySyncState extends State<TestCategorySync> {
     }
   }
 
+  getNotSyncUpdatedTableUseDetail()async{
+    List<TableUseDetail> data = await PosDatabase.instance.readAllNotSyncUpdatedTableUseDetail();
+    notSyncTableUseDetailList = data;
+  }
+
+  getNotSyncTableUseDetail()async{
+    List<TableUseDetail> data = await PosDatabase.instance.readAllNotSyncTableUseDetail();
+    notSyncTableUseDetailList = data;
+  }
+
+/*
+  ----------------------Table use part---------------------------------------------------------------------------------------------------------------------------------------
+*/
+  getNotSyncUpdatedTableUse() async {
+    List<TableUse> data = await PosDatabase.instance.readAllNotSyncUpdatedTableUse();
+    notSyncTableUseList = data;
+  }
+
   getNotSyncTableUse() async {
     List<TableUse> data = await PosDatabase.instance.readAllNotSyncTableUse();
     notSyncTableUseList = data;
+  }
+/*
+  ----------------------Order detail part---------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+  getNotSyncUpdatedOrderDetail() async {
+    List<OrderDetail> data = await PosDatabase.instance.readAllNotSyncUpdatedOrderDetail();
+    notSyncOrderDetailList = data;
   }
 
   getNotSyncOrderDetail() async {
     List<OrderDetail> data = await PosDatabase.instance.readAllNotSyncOrderDetail();
     notSyncOrderDetailList = data;
   }
+/*
+  ----------------------Order cache part---------------------------------------------------------------------------------------------------------------------------------------
+*/
+  getNotSyncUpdatedOrderCache() async {
+    List<OrderCache> data = await PosDatabase.instance.readAllNotSyncUpdatedOrderCache();
+    notSyncOrderCacheList = data;
+  }
 
   getNotSyncOrderCache() async {
     List<OrderCache> data = await PosDatabase.instance.readAllNotSyncOrderCache();
     notSyncOrderCacheList = data;
+  }
+
+/*
+  ----------------------Order part---------------------------------------------------------------------------------------------------------------------------------------
+*/
+  getNotSyncUpdatedOrder() async {
+    List<Order> data = await PosDatabase.instance.readAllNotSyncUpdatedOrder();
+    notSyncOrderList = data;
   }
 
   getNotSyncOrder() async {

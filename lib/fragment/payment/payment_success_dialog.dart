@@ -230,7 +230,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
         OrderCache cacheObject = OrderCache(
             order_sqlite_id: widget.orderId,
             order_key: widget.orderKey,
-            sync_status: 0,
+            sync_status: 2,
             updated_at: dateTime,
             order_cache_sqlite_id: int.parse(widget.orderCacheIdList[j])
         );

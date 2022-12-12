@@ -163,9 +163,9 @@ class Domain {
   }
 
   /*
-  * get all sync_to_cloud
+  * sync order to cloud
   * */
-  getAllSyncToCloudRecord(detail) async {
+  SyncOrderToCloud(detail) async {
     try {
       var response = await http.post(Domain.sync_to_cloud, body: {
         'tb_order_create': '1',
@@ -179,7 +179,7 @@ class Domain {
   }
 
   /*
-  * get all sync_to_cloud
+  * sync order cache to cloud
   * */
   SyncOrderCacheToCloud(detail) async {
     try {
@@ -196,12 +196,114 @@ class Domain {
   }
 
   /*
-  * get all sync_to_cloud
+  * sync order cache to cloud
+  * */
+  SyncUpdatedOrderCacheToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_order_cache_update': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync order detail to cloud
+  * */
+  SyncOrderDetailToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_order_detail_create': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync updated order detail to cloud
+  * */
+  SyncUpdatedOrderDetailToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_order_detail_update': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync table use to cloud
   * */
   SyncTableUseToCloud(detail) async {
     try {
       var response = await http.post(Domain.sync_to_cloud, body: {
         'tb_table_use_create': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync updated table use to cloud
+  * */
+  SyncUpdatedTableUseToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_table_use_update': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync table use detail to cloud
+  * */
+  SyncTableUseDetailToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_table_use_detail_create': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync table use detail to cloud
+  * */
+  SyncUpdatedTableUseDetailToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_table_use_detail_update': '1',
         'details': detail,
       });
 

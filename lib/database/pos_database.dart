@@ -375,11 +375,13 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableOrderModifierDetail(
           ${OrderModifierDetailFields.order_modifier_detail_sqlite_id} $idType,
           ${OrderModifierDetailFields.order_modifier_detail_id} $integerType,
+          ${OrderModifierDetailFields.order_modifier_detail_key} $textType,
           ${OrderModifierDetailFields.order_detail_sqlite_id} $textType,
           ${OrderModifierDetailFields.order_detail_id} $textType,
           ${OrderModifierDetailFields.order_detail_key} $textType,
           ${OrderModifierDetailFields.mod_item_id} $textType,
           ${OrderModifierDetailFields.mod_group_id} $textType,
+          ${OrderModifierDetailFields.sync_status} $integerType,
           ${OrderModifierDetailFields.created_at} $textType,
           ${OrderModifierDetailFields.updated_at} $textType,
           ${OrderModifierDetailFields.soft_delete} $textType)''');
@@ -3016,6 +3018,21 @@ class PosDatabase {
   }
 
 /*
+  update order modifier detail unique key
+*/
+  Future<int> updateOrderModifierDetailUniqueKey(OrderModifierDetail data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderModifierDetail SET order_modifier_detail_key = ?, sync_status = ?, updated_at = ? WHERE order_modifier_detail_sqlite_id = ?',
+        [
+          data.order_modifier_detail_key,
+          data.sync_status,
+          data.updated_at,
+          data.order_modifier_detail_sqlite_id,
+        ]);
+  }
+
+/*
   update table use unique key
 */
   Future<int> updateTableUseOrderCacheUniqueKey(TableUse data) async {
@@ -3310,9 +3327,10 @@ class PosDatabase {
     print('called');
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableOrderDetail SET soft_delete = ?, cancel_by = ?, cancel_by_user_id = ? WHERE order_detail_sqlite_id = ? AND branch_link_product_sqlite_id = ?',
+        'UPDATE $tableOrderDetail SET soft_delete = ?, sync_status = ?, cancel_by = ?, cancel_by_user_id = ? WHERE order_detail_sqlite_id = ? AND branch_link_product_sqlite_id = ?',
         [
           data.soft_delete,
+          2,
           data.cancel_by,
           data.cancel_by_user_id,
           data.order_detail_sqlite_id,
@@ -3336,8 +3354,8 @@ class PosDatabase {
   Future<int> deleteTableUseDetail(TableUseDetail data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableTableUseDetail SET soft_delete = ? WHERE table_use_sqlite_id = ?',
-        [data.soft_delete, data.table_use_sqlite_id]);
+        'UPDATE $tableTableUseDetail SET soft_delete = ?, sync_status = ? WHERE table_use_sqlite_id = ?',
+        [data.soft_delete, 2, data.table_use_sqlite_id]);
   }
 
   /*
@@ -3356,8 +3374,8 @@ class PosDatabase {
   Future<int> deleteTableUseID(TableUse data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableTableUse SET soft_delete = ? WHERE table_use_sqlite_id = ?',
-        [data.soft_delete, data.table_use_sqlite_id]);
+        'UPDATE $tableTableUse SET soft_delete = ?, sync_status = ? WHERE table_use_sqlite_id = ?',
+        [data.soft_delete, 2, data.table_use_sqlite_id]);
   }
 
 /*
@@ -3699,6 +3717,19 @@ class PosDatabase {
   }
 
 /*
+  update order detail (from cloud)
+*/
+  Future<int> updateOrderDetailSyncStatusFromCloud(String order_detail_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderDetail SET sync_status = ? WHERE order_detail_key = ?',
+        [
+          1,
+          order_detail_key
+        ]);
+  }
+
+/*
   update table use(from cloud)
 */
   Future<int> updateTableUseSyncStatusFromCloud(String table_use_key) async {
@@ -3711,17 +3742,101 @@ class PosDatabase {
         ]);
   }
 
-
+/*
+  update table use detail(from cloud)
+*/
+  Future<int> updateTableUseDetailSyncStatusFromCloud(String table_use_detail_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableTableUseDetail SET sync_status = ? WHERE table_use_detail_key = ?',
+        [
+          1,
+          table_use_detail_key
+        ]);
+  }
 
 /*
-  ----------------------Sync to cloud--------------------------------------------------------------------------------------------------------------------------------------------------
+  ----------------------Sync to cloud(update)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  read all not yet sync to cloud updated table_use_detail
+*/
+  Future<List<TableUseDetail>> readAllNotSyncUpdatedTableUseDetail() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.table_use_key, a.table_use_detail_key, b.table_id FROM $tableTableUseDetail AS a JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id WHERE b.soft_delete = ? AND a.sync_status = ? ',
+        ['', 2]);
+
+    return result.map((json) => TableUseDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync to cloud updated table use
+*/
+  Future<List<TableUse>> readAllNotSyncUpdatedTableUse() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableTableUse WHERE sync_status = ? ',
+        [2]);
+
+    return result.map((json) => TableUse.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync to cloud updated order detail
+*/
+  Future<List<OrderDetail>> readAllNotSyncUpdatedOrderDetail() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.cancel_by_user_id, a.cancel_by, a.account, a.remark, a.quantity, a.price, a.product_variant_name, a.has_variant, a.product_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id WHERE b.soft_delete = ? AND c.soft_delete = ? AND a.sync_status = ? ',
+        ['', '', 2]);
+
+    return result.map((json) => OrderDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync to cloud updated order cache
+*/
+  Future<List<OrderCache>> readAllNotSyncUpdatedOrderCache() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderCache WHERE sync_status = ? ',
+        [2]);
+
+    return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync to cloud updated order
+*/
+  Future<List<Order>> readAllNotSyncUpdatedOrder() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrder WHERE sync_status = ? ',
+        [2]);
+
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  ----------------------Sync to cloud(create)--------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+  read all not yet sync to cloud table_use_detail
+*/
+  Future<List<TableUseDetail>> readAllNotSyncTableUseDetail() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.created_at, a.sync_status, a.table_use_key, a.table_use_detail_key, b.table_id FROM $tableTableUseDetail AS a JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.sync_status = ? ',
+        ['', '', 0]);
+
+    return result.map((json) => TableUseDetail.fromJson(json)).toList();
+  }
 
 /*
   read all not yet sync to cloud table use
-*/
-  /*
-  read all not yet sync to cloud orders
 */
   Future<List<TableUse>> readAllNotSyncTableUse() async {
     final db = await instance.database;
@@ -3738,7 +3853,7 @@ class PosDatabase {
   Future<List<OrderDetail>> readAllNotSyncOrderDetail() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.soft_delete, a.created_at, a.sync_status, a.cancel_by_user_id, a.cancel_by, a.account, a.remark, a.quantity, a.price, a.product_variant_name, a.has_variant, a.product_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.sync_status = ? ',
+        'SELECT a.created_at, a.sync_status, a.cancel_by_user_id, a.cancel_by, a.account, a.remark, a.quantity, a.price, a.product_variant_name, a.has_variant, a.product_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.sync_status = ? ',
         ['', '', '', 0]);
 
     return result.map((json) => OrderDetail.fromJson(json)).toList();
