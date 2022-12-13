@@ -2783,20 +2783,6 @@ class PosDatabase {
         ]);
   }
 
-  /*
-  update product image
-*/
-  Future<int> updateProductImage(Product data) async {
-    final db = await instance.database;
-    return await db.rawUpdate(
-        'UPDATE $tableProduct SET image = ?, sync_status = ?,  updated_at = ? WHERE product_sqlite_id = ?',
-        [
-          data.image,
-          data.sync_status,
-          data.updated_at,
-          data.product_sqlite_id,
-        ]);
-  }
 
 /*
   update App color

@@ -432,7 +432,6 @@ class _EditProductDialogState extends State<EditProductDialog> {
       String dateTime = dateFormat.format(DateTime.now());
       if(imageDir != null){
         if(widget.product!.image == '' || widget.product!.image == null){
-
           saveFilePermanently(imageDir!);
           if (connectivityResult == ConnectivityResult.mobile ||
               connectivityResult == ConnectivityResult.wifi) {
@@ -469,7 +468,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
         SKU: skuController.value.text,
         image: imageDir != null
             ? basename(imageDir!).replaceAll('image_picker', '')
-            : widget.product!.graphic_type == '2' ? widget.product!.image : '',
+            : widget.product!.image,
         has_variant: selectVariant == 'Have Variant' ? 1 : 0,
         stock_type: selectStock == 'Daily Limit' ? 1 : 2,
         stock_quantity: stockQuantityController.value.text,
@@ -502,7 +501,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
             productColor,
             imageDir != null
                 ? basename(imageDir!).replaceAll('image_picker', '')
-                : widget.product!.graphic_type == '2' ? widget.product!.image : '',
+                : widget.product!.image,
             widget.product!.product_id.toString());
         if (response['status'] == '1') {
           int syncData = await PosDatabase.instance.updateSyncProduct(Product(
