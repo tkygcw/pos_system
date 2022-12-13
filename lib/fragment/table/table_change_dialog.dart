@@ -133,7 +133,7 @@ leow part
         ));
   }
 
-  updateTableUse() async {
+  updateTable() async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
@@ -145,9 +145,11 @@ leow part
     //check new table is in use or not
     if(NewUseDetailData.length > 0){
       await callChangeToTableInUse(NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
+      await updatePosTable(NewUseDetailData[0].table_use_detail_key!);
 
     } else {
       await changeToUnusedTable(tableData[0].table_sqlite_id.toString(), dateTime);
+      await updatePosTable(NowUseDetailData[0].table_use_detail_key!);
 
     }
   }
@@ -160,26 +162,34 @@ leow part
     int data2 = await PosDatabase.instance.updatePosTableStatus(posTableData);
   }
 
-  updatePosTable() async {
+  updatePosTableTableUseDetailKey(int tableId, String dateTime, String key) async {
+    PosTable posTableData = PosTable(
+        table_use_detail_key: key,
+        updated_at: dateTime,
+        table_sqlite_id: tableId
+    );
+    int data = await PosDatabase.instance.removePosTableTableUseDetailKey(posTableData);
+  }
+
+  updatePosTable(String key) async {
     print('table updated');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
-    List<PosTable> tableData = await PosDatabase.instance
-        .readSpecificTableByTableNo(branch_id!, tableNoController.text);
+    List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(branch_id!, tableNoController.text);
     //update new table status
-    List<PosTable> newTable = await PosDatabase.instance
-        .checkPosTableStatus(branch_id, tableData[0].table_sqlite_id!);
+    List<PosTable> newTable = await PosDatabase.instance.checkPosTableStatus(branch_id, tableData[0].table_sqlite_id!);
     if (newTable[0].status == 0) {
       updatePosTableStatus(tableData[0].table_sqlite_id!, 1, dateTime);
+      updatePosTableTableUseDetailKey(tableData[0].table_sqlite_id!, dateTime, key);
     }
     //update previous table status
-    List<PosTable> lastTable = await PosDatabase.instance
-        .checkPosTableStatus(branch_id, widget.object.table_sqlite_id!);
+    List<PosTable> lastTable = await PosDatabase.instance.checkPosTableStatus(branch_id, widget.object.table_sqlite_id!);
     if (lastTable[0].status == 1) {
       updatePosTableStatus(widget.object.table_sqlite_id!, 0, dateTime);
+      updatePosTableTableUseDetailKey(widget.object.table_sqlite_id!, dateTime, '');
     }
     widget.callBack();
     Navigator.of(context).pop();
@@ -188,8 +198,8 @@ leow part
   void _submit(BuildContext context) {
     setState(() => _submitted = true);
     if (errorTableNo == null) {
-      updateTableUse();
-      updatePosTable();
+      updateTable();
+
     }
   }
 

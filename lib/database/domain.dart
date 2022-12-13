@@ -171,6 +171,84 @@ class Domain {
         'tb_order_create': '1',
         'details': detail,
       });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync updated order to cloud
+  * */
+  SyncUpdatedOrderToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_order_update': '1',
+        'details': detail,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync order tax detail to cloud
+  * */
+  SyncOrderTaxDetailToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_order_tax_detail_create': '1',
+        'details': detail,
+      });
+      print('domain call: ${response.body}');
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync order promotion detail to cloud
+  * */
+  SyncOrderPromotionDetailToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_order_promotion_detail_create': '1',
+        'details': detail,
+      });
+      print('domain call: ${response.body}');
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync updated order tax detail to cloud
+  * */
+  SyncUpdatedOrderTaxDetailToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_order_tax_detail_update': '1',
+        'details': detail,
+      });
+      print('domain call: ${response.body}');
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync updated order promotion detail to cloud
+  * */
+  SyncUpdatedOrderPromotionDetailToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_order_promotion_detail_update': '1',
+        'details': detail,
+      });
       print('domain call: ${response.body}');
       return jsonDecode(response.body);
     } catch (error) {
@@ -247,6 +325,40 @@ class Domain {
   }
 
   /*
+  * sync order modifier detail to cloud
+  * */
+  SyncOrderModifierDetailToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_order_modifier_detail_create': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync updated order modifier detail to cloud
+  * */
+  SyncUpdatedOrderModifierDetailToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_order_modifier_detail_update': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * sync table use to cloud
   * */
   SyncTableUseToCloud(detail) async {
@@ -298,12 +410,29 @@ class Domain {
   }
 
   /*
-  * sync table use detail to cloud
+  * sync updated table use detail to cloud
   * */
   SyncUpdatedTableUseDetailToCloud(detail) async {
     try {
       var response = await http.post(Domain.sync_to_cloud, body: {
         'tb_table_use_detail_update': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync updated pos table to cloud
+  * */
+  SyncUpdatedPosTableToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_table_update': '1',
         'details': detail,
       });
 

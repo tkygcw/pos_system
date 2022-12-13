@@ -497,6 +497,7 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableOrderTaxDetail(
           ${OrderTaxDetailFields.order_tax_detail_sqlite_id} $idType,
           ${OrderTaxDetailFields.order_tax_detail_id} $integerType,
+          ${OrderTaxDetailFields.order_tax_detail_key} $textType,
           ${OrderTaxDetailFields.order_sqlite_id} $textType,
           ${OrderTaxDetailFields.order_id} $textType,
           ${OrderTaxDetailFields.order_key} $textType,
@@ -516,6 +517,7 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableOrderPromotionDetail(
           ${OrderPromotionDetailFields.order_promotion_detail_sqlite_id} $idType,
           ${OrderPromotionDetailFields.order_promotion_detail_id} $integerType,
+          ${OrderPromotionDetailFields.order_promotion_detail_key} $textType,
           ${OrderPromotionDetailFields.order_sqlite_id} $textType,
           ${OrderPromotionDetailFields.order_id} $textType,
           ${OrderPromotionDetailFields.order_key} $textType,
@@ -566,7 +568,7 @@ class PosDatabase {
           data.seats,
           data.status,
           data.table_use_detail_key,
-          2,
+          0,
           data.created_at,
           data.updated_at,
           data.soft_delete
@@ -2862,8 +2864,8 @@ class PosDatabase {
   Future<int> updatePosTableStatus(PosTable data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tablePosTable SET status = ?, updated_at = ? WHERE table_sqlite_id = ?',
-        [data.status, data.updated_at, data.table_sqlite_id]);
+        'UPDATE $tablePosTable SET sync_status = ?, status = ?, updated_at = ? WHERE table_sqlite_id = ?',
+        [2, data.status, data.updated_at, data.table_sqlite_id]);
   }
 
 /*
@@ -2872,9 +2874,20 @@ class PosDatabase {
   Future<int> updateCartPosTableStatus(PosTable data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tablePosTable SET table_use_detail_key = ?, status = ?, updated_at = ? WHERE table_sqlite_id = ?',
-        [data.table_use_detail_key ,data.status, data.updated_at, data.table_sqlite_id]);
+        'UPDATE $tablePosTable SET sync_status = ?, table_use_detail_key = ?, status = ?, updated_at = ? WHERE table_sqlite_id = ?',
+        [2, data.table_use_detail_key ,data.status, data.updated_at, data.table_sqlite_id]);
   }
+
+/*
+  update Pos Table table use detail
+*/
+  Future<int> removePosTableTableUseDetailKey(PosTable data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tablePosTable SET sync_status = ?, table_use_detail_key = ?, updated_at = ? WHERE table_sqlite_id = ?',
+        [2, data.table_use_detail_key, data.updated_at, data.table_sqlite_id]);
+  }
+
 
 /*
   update table use detail
@@ -2986,6 +2999,36 @@ class PosDatabase {
 /*
   ------------------unique key part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  update order promotion detail unique key
+*/
+  Future<int> updateOrderPromotionDetailUniqueKey(OrderPromotionDetail data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderPromotionDetail SET order_promotion_detail_key = ?, sync_status = ?, updated_at = ? WHERE order_promotion_detail_sqlite_id = ?',
+        [
+          data.order_promotion_detail_key,
+          data.sync_status,
+          data.updated_at,
+          data.order_promotion_detail_sqlite_id,
+        ]);
+  }
+
+/*
+  update order tax detail unique key
+*/
+  Future<int> updateOrderTaxDetailUniqueKey(OrderTaxDetail data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderTaxDetail SET order_tax_detail_key = ?, sync_status = ?, updated_at = ? WHERE order_tax_detail_sqlite_id = ?',
+        [
+          data.order_tax_detail_key,
+          data.sync_status,
+          data.updated_at,
+          data.order_tax_detail_sqlite_id,
+        ]);
+  }
 
 /*
   update order unique key
@@ -3359,8 +3402,8 @@ class PosDatabase {
   Future<int> deleteOrderModifierDetail(OrderModifierDetail data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableOrderModifierDetail SET soft_delete = ? WHERE order_detail_sqlite_id = ?',
-        [data.soft_delete, data.order_detail_sqlite_id]);
+        'UPDATE $tableOrderModifierDetail SET soft_delete = ?, sync_status = ? WHERE order_detail_sqlite_id = ?',
+        [data.soft_delete, 2, data.order_detail_sqlite_id]);
   }
 
 /*
@@ -3719,6 +3762,32 @@ class PosDatabase {
   }
 
 /*
+  update order tax (from cloud)
+*/
+  Future<int> updateOrderTaxDetailSyncStatusFromCloud(String order_tax_detail_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderTaxDetail SET sync_status = ? WHERE order_tax_detail_key = ?',
+        [
+          1,
+          order_tax_detail_key
+        ]);
+  }
+
+/*
+  update order promotion detail (from cloud)
+*/
+  Future<int> updateOrderPromotionDetailSyncStatusFromCloud(String order_promotion_detail_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderPromotionDetail SET sync_status = ? WHERE order_promotion_detail_key = ?',
+        [
+          1,
+          order_promotion_detail_key
+        ]);
+  }
+
+/*
   update order cache (from cloud)
 */
   Future<int> updateOrderCacheSyncStatusFromCloud(String order_cache_key) async {
@@ -3741,6 +3810,19 @@ class PosDatabase {
         [
           1,
           order_detail_key
+        ]);
+  }
+
+/*
+  update order modifier detail (from cloud)
+*/
+  Future<int> updateOrderModifierDetailSyncStatusFromCloud(String order_modifier_detail_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderModifierDetail SET sync_status = ? WHERE order_modifier_detail_key = ?',
+        [
+          1,
+          order_modifier_detail_key
         ]);
   }
 
@@ -3771,8 +3853,33 @@ class PosDatabase {
   }
 
 /*
+  update pos table(from cloud)
+*/
+  Future<int> updatePosTableSyncStatusFromCloud(int table_id) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tablePosTable SET sync_status = ? WHERE table_id = ?',
+        [
+          1,
+          table_id
+        ]);
+  }
+
+/*
   ----------------------Sync to cloud(update)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  read all not yet sync to cloud updated pos table
+*/
+  Future<List<PosTable>> readAllNotSyncUpdatedPosTable() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePosTable WHERE sync_status = ? ',
+        [2]);
+
+    return result.map((json) => PosTable.fromJson(json)).toList();
+  }
 
 /*
   read all not yet sync to cloud updated table_use_detail
@@ -3799,6 +3906,18 @@ class PosDatabase {
   }
 
 /*
+  read all not yet sync to cloud updated order modifier detail
+*/
+  Future<List<OrderModifierDetail>> readAllNotSyncUpdatedOrderModifierDetail() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderModifierDetail WHERE sync_status = ? ',
+        [2]);
+
+    return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
+  }
+
+/*
   read all not yet sync to cloud updated order detail
 */
   Future<List<OrderDetail>> readAllNotSyncUpdatedOrderDetail() async {
@@ -3820,6 +3939,30 @@ class PosDatabase {
         [2]);
 
     return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync to cloud updated order promotion detail
+*/
+  Future<List<OrderPromotionDetail>> readAllNotSyncUpdatedOrderPromotionDetail() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderPromotionDetail WHERE sync_status = ? ',
+        [2]);
+
+    return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync to cloud updated order tax detail
+*/
+  Future<List<OrderTaxDetail>> readAllNotSyncUpdatedOrderTaxDetail() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderTaxDetail WHERE sync_status = ? ',
+        [2]);
+
+    return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
   }
 
 /*
@@ -3863,6 +4006,18 @@ class PosDatabase {
   }
 
 /*
+  read all not yet sync to cloud order modifier detail
+*/
+  Future<List<OrderModifierDetail>> readAllNotSyncOrderModDetail() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderModifierDetail WHERE soft_delete = ? AND sync_status = ? ',
+        ['', 0]);
+
+    return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
+  }
+
+/*
   read all not yet sync to cloud order detail
 */
   Future<List<OrderDetail>> readAllNotSyncOrderDetail() async {
@@ -3884,6 +4039,30 @@ class PosDatabase {
         ['', 0]);
 
     return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync to cloud order promotion details
+*/
+  Future<List<OrderPromotionDetail>> readAllNotSyncOrderPromotionDetail() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderPromotionDetail WHERE soft_delete = ? AND sync_status = ? ',
+        ['', 0]);
+
+    return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync to cloud order tax details
+*/
+  Future<List<OrderTaxDetail>> readAllNotSyncOrderTaxDetail() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderTaxDetail WHERE soft_delete = ? AND sync_status = ? ',
+        ['', 0]);
+
+    return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
   }
 
 /*

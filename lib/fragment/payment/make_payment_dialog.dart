@@ -90,10 +90,9 @@ class _MakePaymentState extends State<MakePayment> {
   String orderCacheId = '';
   String ipay_code = '';
   String? allPromo = '';
-  String? orderId;
-  String? orderKey;
   String finalAmount = '';
   String change = '0.00';
+  String? orderId, orderKey;
   int myCount = 0;
   late Map branchObject;
 
@@ -1705,6 +1704,27 @@ class _MakePaymentState extends State<MakePayment> {
     }
   }
 
+  generateOrderPromotionDetailKey(OrderPromotionDetail orderPromotionDetail) async  {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes  = orderPromotionDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + orderPromotionDetail.order_promotion_detail_sqlite_id.toString() + device_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
+  insertOrderPromotionDetailKey(OrderPromotionDetail orderPromotionDetail, String dateTime) async {
+    String? _key;
+    _key = await generateOrderPromotionDetailKey(orderPromotionDetail);
+    if(_key != null){
+      OrderPromotionDetail orderPromoDetailObject = OrderPromotionDetail(
+          order_promotion_detail_key: _key,
+          sync_status: 0,
+          updated_at: dateTime,
+          order_promotion_detail_sqlite_id: orderPromotionDetail.order_promotion_detail_sqlite_id
+      );
+      int data = await PosDatabase.instance.updateOrderPromotionDetailUniqueKey(orderPromoDetailObject);
+    }
+  }
+
   createOrderPromotionDetail() async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -1716,6 +1736,7 @@ class _MakePaymentState extends State<MakePayment> {
       OrderPromotionDetail data = await PosDatabase.instance
           .insertSqliteOrderPromotionDetail(OrderPromotionDetail(
           order_promotion_detail_id: 0,
+          order_promotion_detail_key: '',
           order_sqlite_id: orderId,
           order_id: '0',
           order_key: orderKey,
@@ -1731,6 +1752,28 @@ class _MakePaymentState extends State<MakePayment> {
           updated_at: '',
           soft_delete: ''
       ));
+      await insertOrderPromotionDetailKey(data, dateTime);
+    }
+  }
+
+  generateOrderTaxDetailKey(OrderTaxDetail orderTaxDetail) async  {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes  = orderTaxDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + orderTaxDetail.order_tax_detail_key.toString() + device_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
+  insertOrderTaxDetailKey(OrderTaxDetail orderTaxDetail, String dateTime) async {
+    String? _key;
+    _key = await generateOrderTaxDetailKey(orderTaxDetail);
+    if(_key != null){
+      OrderTaxDetail orderTaxDetailObject = OrderTaxDetail(
+          order_tax_detail_key: _key,
+          sync_status: 0,
+          updated_at: dateTime,
+          order_tax_detail_sqlite_id: orderTaxDetail.order_tax_detail_sqlite_id
+      );
+      int data = await PosDatabase.instance.updateOrderTaxDetailUniqueKey(orderTaxDetailObject);
     }
   }
 
@@ -1746,6 +1789,7 @@ class _MakePaymentState extends State<MakePayment> {
       if(branchTaxData.length > 0){
         OrderTaxDetail data = await PosDatabase.instance.insertSqliteOrderTaxDetail(OrderTaxDetail(
             order_tax_detail_id: 0,
+            order_tax_detail_key: '',
             order_sqlite_id: orderId,
             order_id: '0',
             order_key: orderKey,
@@ -1759,6 +1803,7 @@ class _MakePaymentState extends State<MakePayment> {
             updated_at: '',
             soft_delete: ''
         ));
+        await insertOrderTaxDetailKey(data, dateTime);
       }
     }
   }

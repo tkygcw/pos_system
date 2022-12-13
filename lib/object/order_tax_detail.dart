@@ -4,6 +4,7 @@ class OrderTaxDetailFields {
   static List<String> values = [
     order_tax_detail_sqlite_id,
     order_tax_detail_id,
+    order_tax_detail_key,
     order_sqlite_id,
     order_id,
     order_key,
@@ -20,6 +21,7 @@ class OrderTaxDetailFields {
 
   static String order_tax_detail_sqlite_id = 'order_tax_detail_sqlite_id';
   static String order_tax_detail_id = 'order_tax_detail_id';
+  static String order_tax_detail_key = 'order_tax_detail_key';
   static String order_sqlite_id = 'order_sqlite_id';
   static String order_id = 'order_id';
   static String order_key = 'order_key';
@@ -37,6 +39,7 @@ class OrderTaxDetailFields {
 class OrderTaxDetail {
   int? order_tax_detail_sqlite_id;
   int? order_tax_detail_id;
+  String? order_tax_detail_key;
   String? order_sqlite_id;
   String? order_id;
   String? order_key;
@@ -53,6 +56,7 @@ class OrderTaxDetail {
   OrderTaxDetail(
       {this.order_tax_detail_sqlite_id,
         this.order_tax_detail_id,
+        this.order_tax_detail_key,
         this.order_sqlite_id,
         this.order_id,
         this.order_key,
@@ -69,6 +73,7 @@ class OrderTaxDetail {
   OrderTaxDetail copy({
     int? order_tax_detail_sqlite_id,
     int? order_tax_detail_id,
+    String? order_tax_detail_key,
     String? order_sqlite_id,
     String? order_id,
     String? order_key,
@@ -85,6 +90,7 @@ class OrderTaxDetail {
       OrderTaxDetail(
           order_tax_detail_sqlite_id: order_tax_detail_sqlite_id ?? this.order_tax_detail_sqlite_id,
           order_tax_detail_id: order_tax_detail_id ?? this.order_tax_detail_id,
+          order_tax_detail_key: order_tax_detail_key ?? this.order_tax_detail_key,
           order_sqlite_id: order_sqlite_id ?? this.order_sqlite_id,
           order_id: order_id ?? this.order_id,
           order_key: order_key ?? this.order_key,
@@ -101,6 +107,7 @@ class OrderTaxDetail {
   static OrderTaxDetail fromJson(Map<String, Object?> json) => OrderTaxDetail(
       order_tax_detail_sqlite_id: json[OrderTaxDetailFields.order_tax_detail_sqlite_id] as int?,
       order_tax_detail_id: json[OrderTaxDetailFields.order_tax_detail_id] as int?,
+      order_tax_detail_key: json[OrderTaxDetailFields.order_tax_detail_key] as String?,
       order_sqlite_id: json[OrderTaxDetailFields.order_sqlite_id] as String?,
       order_id: json[OrderTaxDetailFields.order_id] as String?,
       order_key: json[OrderTaxDetailFields.order_key] as String?,
@@ -118,6 +125,7 @@ class OrderTaxDetail {
   Map<String, Object?> toJson() => {
     OrderTaxDetailFields.order_tax_detail_sqlite_id: order_tax_detail_sqlite_id,
     OrderTaxDetailFields.order_tax_detail_id: order_tax_detail_id,
+    OrderTaxDetailFields.order_tax_detail_key: order_tax_detail_key,
     OrderTaxDetailFields.order_sqlite_id: order_sqlite_id,
     OrderTaxDetailFields.order_id: order_id,
     OrderTaxDetailFields.order_key: order_key,

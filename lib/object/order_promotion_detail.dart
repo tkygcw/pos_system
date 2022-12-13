@@ -4,6 +4,7 @@ class OrderPromotionDetailFields {
   static List<String> values = [
     order_promotion_detail_sqlite_id,
     order_promotion_detail_id,
+    order_promotion_detail_key,
     order_sqlite_id,
     order_id,
     order_key,
@@ -22,6 +23,7 @@ class OrderPromotionDetailFields {
 
   static String order_promotion_detail_sqlite_id = 'order_promotion_detail_sqlite_id';
   static String order_promotion_detail_id = 'order_promotion_detail_id';
+  static String order_promotion_detail_key = 'order_promotion_detail_key';
   static String order_sqlite_id = 'order_sqlite_id';
   static String order_id = 'order_id';
   static String order_key = 'order_key';
@@ -41,6 +43,7 @@ class OrderPromotionDetailFields {
 class OrderPromotionDetail {
   int? order_promotion_detail_sqlite_id;
   int? order_promotion_detail_id;
+  String? order_promotion_detail_key;
   String? order_sqlite_id;
   String? order_id;
   String? order_key;
@@ -59,6 +62,7 @@ class OrderPromotionDetail {
   OrderPromotionDetail(
       {this.order_promotion_detail_sqlite_id,
       this.order_promotion_detail_id,
+      this.order_promotion_detail_key,
       this.order_sqlite_id,
       this.order_id,
       this.order_key,
@@ -77,6 +81,7 @@ class OrderPromotionDetail {
   OrderPromotionDetail copy({
     int? order_promotion_detail_sqlite_id,
     int? order_promotion_detail_id,
+    String? order_promotion_detail_key,
     String? order_sqlite_id,
     String? order_id,
     String? order_key,
@@ -95,6 +100,7 @@ class OrderPromotionDetail {
       OrderPromotionDetail(
           order_promotion_detail_sqlite_id: order_promotion_detail_sqlite_id ?? this.order_promotion_detail_sqlite_id,
           order_promotion_detail_id: order_promotion_detail_id ?? this.order_promotion_detail_id,
+          order_promotion_detail_key: order_promotion_detail_key ?? this.order_promotion_detail_key,
           order_sqlite_id: order_sqlite_id ?? this.order_sqlite_id,
           order_id: order_id ?? this.order_id,
           order_key: order_key ?? this.order_key,
@@ -114,6 +120,7 @@ class OrderPromotionDetail {
       OrderPromotionDetail(
         order_promotion_detail_sqlite_id: json[OrderPromotionDetailFields.order_promotion_detail_sqlite_id] as int?,
         order_promotion_detail_id: json[OrderPromotionDetailFields.order_promotion_detail_id] as int?,
+        order_promotion_detail_key: json[OrderPromotionDetailFields.order_promotion_detail_key] as String?,
         order_sqlite_id: json[OrderPromotionDetailFields.order_sqlite_id] as String?,
         order_id: json[OrderPromotionDetailFields.order_id] as String?,
         order_key: json[OrderPromotionDetailFields.order_key] as String?,
@@ -133,6 +140,7 @@ class OrderPromotionDetail {
   Map<String, Object?> toJson() => {
         OrderPromotionDetailFields.order_promotion_detail_sqlite_id: order_promotion_detail_sqlite_id,
         OrderPromotionDetailFields.order_promotion_detail_id: order_promotion_detail_id,
+        OrderPromotionDetailFields.order_promotion_detail_key: order_promotion_detail_key,
         OrderPromotionDetailFields.order_sqlite_id: order_sqlite_id,
         OrderPromotionDetailFields.order_id: order_id,
         OrderPromotionDetailFields.order_key: order_key,

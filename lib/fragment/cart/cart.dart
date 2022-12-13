@@ -1656,16 +1656,14 @@ class _CartPageState extends State<CartPage> {
       final int? branch_id = prefs.getInt('branch_id');
 
       for (int i = 0; i < cart.selectedTable.length; i++) {
-        List<PosTable> result = await PosDatabase.instance.checkPosTableStatus(
-            branch_id!, cart.selectedTable[i].table_sqlite_id!);
+        List<PosTable> result = await PosDatabase.instance.checkPosTableStatus(branch_id!, cart.selectedTable[i].table_sqlite_id!);
         if (result[0].status == 0) {
           PosTable posTableData = PosTable(
               table_sqlite_id: cart.selectedTable[i].table_sqlite_id,
               table_use_detail_key: tableUseDetailKey,
               status: 1,
               updated_at: dateTime);
-          int data =
-              await PosDatabase.instance.updateCartPosTableStatus(posTableData);
+          int data = await PosDatabase.instance.updateCartPosTableStatus(posTableData);
         }
       }
     } catch (e) {

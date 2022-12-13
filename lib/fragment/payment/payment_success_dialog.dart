@@ -164,6 +164,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       await deleteCurrentTableUseDetail();
       await deleteCurrentTableUseId();
       await updatePosTableStatus(0);
+      await updatePosTableTableUseDetailKey();
     }
     await updateOrderCache();
     await deleteOrderCache();
@@ -264,6 +265,21 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           table_sqlite_id: widget.selectedTableList[i].table_sqlite_id
         );
         int data = await PosDatabase.instance.updatePosTableStatus(posTableData);
+      }
+    }
+  }
+
+  updatePosTableTableUseDetailKey() async {
+    String dateTime = dateFormat.format(DateTime.now());
+    if(widget.selectedTableList.length > 0) {
+      for (int i = 0; i < widget.selectedTableList.length; i++) {
+        PosTable posTableData = PosTable(
+            table_use_detail_key: '',
+            updated_at: dateTime,
+            table_sqlite_id: widget.selectedTableList[i].table_sqlite_id
+        );
+        int data = await PosDatabase.instance.removePosTableTableUseDetailKey(
+            posTableData);
       }
     }
   }
