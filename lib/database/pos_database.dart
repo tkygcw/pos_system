@@ -477,6 +477,7 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableCashRecord(
           ${CashRecordFields.cash_record_sqlite_id} $idType,
           ${CashRecordFields.cash_record_id} $integerType,
+          ${CashRecordFields.cash_record_key} $textType,
           ${CashRecordFields.company_id} $textType,
           ${CashRecordFields.branch_id} $textType,
           ${CashRecordFields.remark} $textType,
@@ -1977,8 +1978,8 @@ class PosDatabase {
   Future<List<TableUse>> readSpecificTableUseId(int table_use_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableTableUse WHERE soft_delete = ? AND table_use_sqlite_id = ? ',
-        ['', table_use_sqlite_id]);
+        'SELECT * FROM $tableTableUse WHERE table_use_sqlite_id = ? ',
+        [table_use_sqlite_id]);
 
     return result.map((json) => TableUse.fromJson(json)).toList();
   }
@@ -1994,6 +1995,18 @@ class PosDatabase {
         ['', table_sqlite_id]);
 
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
+  }
+
+/*
+  read specific use table detail based on table use detail local id
+*/
+  Future<TableUseDetail> readSpecificTableUseDetailByLocalId(int table_use_detail_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.table_id FROM $tableTableUseDetail AS a JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id WHERE b.soft_delete = ? AND a.table_use_detail_sqlite_id = ?',
+        ['', table_use_detail_sqlite_id]);
+
+    return TableUseDetail.fromJson(result.first);
   }
 
 /*
@@ -2053,6 +2066,17 @@ class PosDatabase {
         'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND order_cache_sqlite_id = ?',
         ['', order_cache_sqlite_id]);
     return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
+/*
+  read specific order cache
+*/
+  Future<OrderCache> readSpecificOrderCacheByLocalId(int order_cache_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderCache WHERE order_cache_sqlite_id = ?',
+        [order_cache_sqlite_id]);
+    return OrderCache.fromJson(result.first);
   }
 
 /*
@@ -2144,6 +2168,30 @@ class PosDatabase {
   }
 
 /*
+  read specific order detail by local id
+*/
+  Future<OrderDetail> readSpecificOrderDetailByLocalId(int order_detail_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.created_at, a.sync_status, a.cancel_by_user_id, a.cancel_by, a.account, a.remark, a.quantity, a.price, a.product_variant_name, a.has_variant, a.product_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id WHERE b.soft_delete = ? AND c.soft_delete = ? AND a.order_detail_sqlite_id = ? ',
+        ['', '', order_detail_sqlite_id]);
+
+    return OrderDetail.fromJson(result.first);
+  }
+
+/*
+  read specific order modifier detail by local id
+*/
+  Future<OrderModifierDetail> readSpecificOrderModifierDetailByLocalId(int order_modifier_detail_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderModifierDetail WHERE order_modifier_detail_sqlite_id = ? ',
+        [order_modifier_detail_sqlite_id]);
+
+    return OrderModifierDetail.fromJson(result.first);
+  }
+
+/*
   read order modifier detail by order cache (deleted)
 */
   Future<List<OrderModifierDetail>> readDeletedOrderModifierDetail(
@@ -2219,6 +2267,10 @@ class PosDatabase {
   }
 
 /*
+  ----------------------------Printer part------------------------------------------------------------------------------------------------
+*/
+
+/*
   read branch All printer
 */
   Future<List<Printer>> readAllBranchPrinter(int branch_id) async {
@@ -2254,6 +2306,10 @@ class PosDatabase {
   }
 
 /*
+  ----------------------------Receipt layout part------------------------------------------------------------------------------------------------
+*/
+
+/*
   read all receipt layout
 */
   Future<List<Receipt>> readAllReceipt() async {
@@ -2274,7 +2330,7 @@ class PosDatabase {
   Future<List<CashRecord>> readBranchCashRecord(String branch_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date = ? AND a.branch_id = ? AND b.soft_delete = ?',
+        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date = ? AND a.branch_id = ? AND b.soft_delete = ? ORDER BY a.created_at DESC',
         ['', '', branch_id, '']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
@@ -2338,6 +2394,17 @@ class PosDatabase {
         'SELECT * FROM $tableCashRecord WHERE soft_delete = ? AND branch_id = ? AND type = ? ORDER BY settlement_date DESC LIMIT 1',
         ['', branch_id, 0]);
     return result.map((json) => CashRecord.fromJson(json)).toList();
+  }
+
+/*
+  read specific cash record(with deleted)
+*/
+  Future<CashRecord> readSpecificCashRecord(int cash_record_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableCashRecord WHERE cash_record_sqlite_id = ?',
+        [cash_record_sqlite_id]);
+    return CashRecord.fromJson(result.first);
   }
 
 /*
@@ -2441,8 +2508,7 @@ class PosDatabase {
 /*
   read order detail by paid order cache
 */
-  Future<List<OrderDetail>> readSpecificOrderDetail(
-      String order_cache_sqlite_id) async {
+  Future<List<OrderDetail>> readSpecificOrderDetailByOrderCacheId(String order_cache_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT * FROM $tableOrderDetail WHERE soft_delete = ? AND order_cache_sqlite_id = ?',
@@ -2985,6 +3051,20 @@ class PosDatabase {
 /*
   ------------------unique key part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  update cash record unique key
+*/
+  Future<int> updateCashRecordUniqueKey(CashRecord data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableCashRecord SET cash_record_key = ?, updated_at = ? WHERE cash_record_sqlite_id = ?',
+        [
+          data.cash_record_key,
+          data.updated_at,
+          data.cash_record_sqlite_id,
+        ]);
+  }
 
 /*
   update order promotion detail unique key
@@ -3852,8 +3932,33 @@ class PosDatabase {
   }
 
 /*
+  update cash record (from cloud)
+*/
+  Future<int> updateCashRecordSyncStatusFromCloud(String cash_record_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableCashRecord SET sync_status = ? WHERE cash_record_key = ?',
+        [
+          1,
+          cash_record_key
+        ]);
+  }
+
+/*
   ----------------------Sync to cloud(update)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  read all not yet sync to cloud updated cash record
+*/
+  Future<List<CashRecord>> readAllNotSyncUpdatedCashRecord() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableCashRecord WHERE sync_status = ? ',
+        [2]);
+
+    return result.map((json) => CashRecord.fromJson(json)).toList();
+  }
 
 /*
   read all not yet sync to cloud updated pos table
@@ -3966,6 +4071,18 @@ class PosDatabase {
 /*
   ----------------------Sync to cloud(create)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  read all not yet sync to cloud cash record
+*/
+  Future<List<CashRecord>> readAllNotSyncCashRecord() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableCashRecord WHERE soft_delete = ? AND sync_status = ? ',
+        ['', 0]);
+
+    return result.map((json) => CashRecord.fromJson(json)).toList();
+  }
 
 /*
   read all not yet sync to cloud table_use_detail

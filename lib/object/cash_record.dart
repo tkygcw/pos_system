@@ -4,6 +4,7 @@ class CashRecordFields {
   static List<String> values = [
     cash_record_sqlite_id,
     cash_record_id,
+    cash_record_key,
     company_id,
     branch_id,
     remark,
@@ -21,6 +22,7 @@ class CashRecordFields {
 
   static String cash_record_sqlite_id = 'cash_record_sqlite_id';
   static String cash_record_id = 'cash_record_id';
+  static String cash_record_key = 'cash_record_key';
   static String company_id = 'company_id';
   static String branch_id = 'branch_id';
   static String remark = 'remark';
@@ -39,6 +41,7 @@ class CashRecordFields {
 class CashRecord {
   int? cash_record_sqlite_id;
   int? cash_record_id;
+  String? cash_record_key;
   String? company_id;
   String? branch_id;
   String? remark;
@@ -54,26 +57,29 @@ class CashRecord {
   String? soft_delete;
   String? userName;
 
-  CashRecord({this.cash_record_sqlite_id,
-    this.cash_record_id,
-    this.company_id,
-    this.branch_id,
-    this.remark,
-    this.payment_name,
-    this.payment_type_id,
-    this.type,
-    this.amount,
-    this.user_id,
-    this.settlement_date,
-    this.sync_status,
-    this.created_at,
-    this.updated_at,
-    this.soft_delete,
-    this.userName});
+  CashRecord(
+      {this.cash_record_sqlite_id,
+      this.cash_record_id,
+      this.cash_record_key,
+      this.company_id,
+      this.branch_id,
+      this.remark,
+      this.payment_name,
+      this.payment_type_id,
+      this.type,
+      this.amount,
+      this.user_id,
+      this.settlement_date,
+      this.sync_status,
+      this.created_at,
+      this.updated_at,
+      this.soft_delete,
+      this.userName});
 
   CashRecord copy({
     int? cash_record_sqlite_id,
     int? cash_record_id,
+    String? cash_record_key,
     String? company_id,
     String? branch_id,
     String? remark,
@@ -91,6 +97,7 @@ class CashRecord {
       CashRecord(
           cash_record_sqlite_id: cash_record_sqlite_id ?? this.cash_record_sqlite_id,
           cash_record_id: cash_record_id ?? this.cash_record_id,
+          cash_record_key: cash_record_key ?? this.cash_record_key,
           company_id: company_id ?? this.company_id,
           branch_id: branch_id ?? this.branch_id,
           remark: remark ?? this.remark,
@@ -105,42 +112,41 @@ class CashRecord {
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
 
-  static CashRecord fromJson(Map<String, Object?> json) =>
-      CashRecord(
-        cash_record_sqlite_id: json[CashRecordFields.cash_record_sqlite_id] as int?,
-        cash_record_id: json[CashRecordFields.cash_record_id] as int?,
-        company_id: json[CashRecordFields.company_id] as String?,
-        branch_id: json[CashRecordFields.branch_id] as String?,
-        remark: json[CashRecordFields.remark] as String?,
-        payment_name: json[CashRecordFields.payment_name] as String?,
-        payment_type_id: json[CashRecordFields.payment_type_id] as String?,
-        type: json[CashRecordFields.type] as int?,
-        amount: json[CashRecordFields.amount] as String?,
-        user_id: json[CashRecordFields.user_id] as String?,
-        settlement_date: json[CashRecordFields.settlement_date] as String?,
-        sync_status: json[CashRecordFields.sync_status] as int?,
-        created_at: json[CashRecordFields.created_at] as String?,
-        updated_at: json[CashRecordFields.updated_at] as String?,
-        soft_delete: json[CashRecordFields.soft_delete] as String?,
-        userName: json['name'] as String?
-      );
+  static CashRecord fromJson(Map<String, Object?> json) => CashRecord(
+      cash_record_sqlite_id: json[CashRecordFields.cash_record_sqlite_id] as int?,
+      cash_record_id: json[CashRecordFields.cash_record_id] as int?,
+      cash_record_key: json[CashRecordFields.cash_record_key] as String?,
+      company_id: json[CashRecordFields.company_id] as String?,
+      branch_id: json[CashRecordFields.branch_id] as String?,
+      remark: json[CashRecordFields.remark] as String?,
+      payment_name: json[CashRecordFields.payment_name] as String?,
+      payment_type_id: json[CashRecordFields.payment_type_id] as String?,
+      type: json[CashRecordFields.type] as int?,
+      amount: json[CashRecordFields.amount] as String?,
+      user_id: json[CashRecordFields.user_id] as String?,
+      settlement_date: json[CashRecordFields.settlement_date] as String?,
+      sync_status: json[CashRecordFields.sync_status] as int?,
+      created_at: json[CashRecordFields.created_at] as String?,
+      updated_at: json[CashRecordFields.updated_at] as String?,
+      soft_delete: json[CashRecordFields.soft_delete] as String?,
+      userName: json['name'] as String?);
 
-  Map<String, Object?> toJson() =>
-      {
-        CashRecordFields.cash_record_sqlite_id: cash_record_sqlite_id,
-        CashRecordFields.cash_record_id: cash_record_id,
-        CashRecordFields.company_id: company_id,
-        CashRecordFields.branch_id: branch_id,
-        CashRecordFields.remark: remark,
-        CashRecordFields.payment_name: payment_name,
-        CashRecordFields.payment_type_id: payment_type_id,
-        CashRecordFields.type: type,
-        CashRecordFields.amount: amount,
-        CashRecordFields.user_id: user_id,
-        CashRecordFields.settlement_date: settlement_date,
-        CashRecordFields.sync_status: sync_status,
-        CashRecordFields.created_at: created_at,
-        CashRecordFields.updated_at: updated_at,
-        CashRecordFields.soft_delete: soft_delete,
-      };
+  Map<String, Object?> toJson() => {
+    CashRecordFields.cash_record_sqlite_id: cash_record_sqlite_id,
+    CashRecordFields.cash_record_id: cash_record_id,
+    CashRecordFields.cash_record_key: cash_record_key,
+    CashRecordFields.company_id: company_id,
+    CashRecordFields.branch_id: branch_id,
+    CashRecordFields.remark: remark,
+    CashRecordFields.payment_name: payment_name,
+    CashRecordFields.payment_type_id: payment_type_id,
+    CashRecordFields.type: type,
+    CashRecordFields.amount: amount,
+    CashRecordFields.user_id: user_id,
+    CashRecordFields.settlement_date: settlement_date,
+    CashRecordFields.sync_status: sync_status,
+    CashRecordFields.created_at: created_at,
+    CashRecordFields.updated_at: updated_at,
+    CashRecordFields.soft_delete: soft_delete,
+  };
 }

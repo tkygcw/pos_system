@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
@@ -37,6 +38,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
   List<OrderModifierDetail> notSyncOrderModifierDetailList = [];
   List<TableUse> notSyncTableUseList = [];
   List<TableUseDetail> notSyncTableUseDetailList = [];
+  List<CashRecord> notSyncCashRecordList = [];
   Timer? timer;
 
 
@@ -55,7 +57,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
       body: Container(
         alignment: Alignment.center,
         child: ElevatedButton(
-            onPressed: () async  => await updatedPosTableSyncToCloud(),
+            onPressed: () async  => await updatedCashRecordSyncToCloud(),
             child: Text('current screen height/width: ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
       ),
     );
@@ -63,6 +65,57 @@ class _TestCategorySyncState extends State<TestCategorySync> {
 
 /*
   test sync query  (tb_order)
+*/
+
+/*
+  ----------------------Cash record part----------------------------------------------------------------------------------------------------------------------------
+*/
+  updatedCashRecordSyncToCloud() async {
+    List<String> value = [];
+    await getNotSyncUpdatedCashRecord();
+    print('${notSyncCashRecordList.length} cash call to sync api');
+    for(int i = 0; i <  notSyncCashRecordList.length; i++){
+      value.add(jsonEncode(notSyncCashRecordList[i]));
+    }
+    print('Value: ${value}');
+    Map data = await Domain().SyncUpdatedCashRecordToCloud(value.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        int orderPromoData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+      }
+    }
+  }
+
+  cashRecordSyncToCloud() async {
+    List<String> value = [];
+    await getNotSyncCashRecord();
+    print('${notSyncCashRecordList.length} cash call to sync api');
+    for(int i = 0; i <  notSyncCashRecordList.length; i++){
+      value.add(jsonEncode(notSyncCashRecordList[i]));
+    }
+    print('Value: ${value}');
+    Map data = await Domain().SyncCashRecordToCloud(value.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        int orderPromoData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+      }
+    }
+  }
+
+  getNotSyncUpdatedCashRecord() async {
+    List<CashRecord> data = await PosDatabase.instance.readAllNotSyncUpdatedCashRecord();
+    notSyncCashRecordList = data;
+  }
+
+  getNotSyncCashRecord() async {
+    List<CashRecord> data = await PosDatabase.instance.readAllNotSyncCashRecord();
+    notSyncCashRecordList = data;
+  }
+
+/*
+  ----------------------Pos table part----------------------------------------------------------------------------------------------------------------------------
 */
   updatedPosTableSyncToCloud() async {
     List<String> value = [];

@@ -17,6 +17,7 @@ import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../database/domain.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
 import '../../translation/AppLocalizations.dart';
@@ -270,8 +271,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                         textCancel: Text(
                                             '${AppLocalizations.of(context)?.translate('no')}'),
                                       )) {
-                                        return removeCashRecord(
-                                            cashRecordList[index]);
+                                        return removeCashRecord(cashRecordList[index]);
                                       }
                                     }
                                   },
@@ -543,8 +543,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                           textCancel: Text(
                                               '${AppLocalizations.of(context)?.translate('no')}'),
                                         )) {
-                                          return removeCashRecord(
-                                              cashRecordList[index]);
+                                          return removeCashRecord(cashRecordList[index]);
                                         }
                                       }
                                     },
@@ -786,13 +785,27 @@ class _SettlementPageState extends State<SettlementPage> {
     try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
+      List<String> _value = [];
       CashRecord cashRecordObject = CashRecord(
-          sync_status: 0,
+          sync_status: cashRecord.sync_status == 0 ? 0 : 2,
           soft_delete: dateTime,
           cash_record_sqlite_id: cashRecord.cash_record_sqlite_id);
       int data = await PosDatabase.instance.deleteCashRecord(cashRecordObject);
+      //sync to cloud
+      if(data == 1){
+        CashRecord _record = await PosDatabase.instance.readSpecificCashRecord(cashRecord.cash_record_sqlite_id!);
+        if(_record.sync_status != 1){
+          _value.add(jsonEncode(_record));
+          Map response = await Domain().SyncCashRecordToCloud(_value.toString());
+          if (response['status'] == '1') {
+            List responseJson = response['data'];
+            int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+          }
+        }
+      }
       await readCashRecord();
     } catch (e) {
+      print('delete cash record error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Delete cash record error: ${e}");

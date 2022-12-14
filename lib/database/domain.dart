@@ -444,6 +444,36 @@ class Domain {
   }
 
   /*
+  * sync cash record to cloud
+  * */
+  SyncCashRecordToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_cash_record_create': '1',
+        'details': detail,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync updated cash record to cloud
+  * */
+  SyncUpdatedCashRecordToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_cash_record_update': '1',
+        'details': detail,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * update branch notification token to cloud
   * */
   updateBranchNotificationToken(token, branch_id) async {

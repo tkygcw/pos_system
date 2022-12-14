@@ -1464,7 +1464,7 @@ class ReceiptLayout{
 */
   getOrderDetail(OrderCache orderCache) async {
 
-    List<OrderDetail> detailData = await PosDatabase.instance.readSpecificOrderDetail(orderCache.order_cache_sqlite_id.toString());
+    List<OrderDetail> detailData = await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(orderCache.order_cache_sqlite_id.toString());
     if(detailData.length > 0){
       orderDetailList = List.from(detailData);
     }

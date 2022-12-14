@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
@@ -183,14 +184,29 @@ class _SettlementDialogState extends State<SettlementDialog> {
   }
 
   updateAllCashRecordSettlement(String dateTime) async {
+    List<String> _value = [];
     for(int i = 0; i < widget.cashRecordList.length; i++){
       CashRecord cashRecord = CashRecord(
           settlement_date: dateTime,
-          sync_status: 0,
+          sync_status: widget.cashRecordList[i].sync_status == 0 ? 0 : 2,
           updated_at: dateTime,
           cash_record_sqlite_id:  widget.cashRecordList[i].cash_record_sqlite_id);
-
       int data = await PosDatabase.instance.updateCashRecord(cashRecord);
+      if(data == 1){
+        //collect all not sync local create/update data
+        CashRecord _record = await PosDatabase.instance.readSpecificCashRecord(cashRecord.cash_record_sqlite_id!);
+        if(_record.sync_status != 1){
+          _value.add(jsonEncode(_record));
+        }
+      }
+    }
+    //sync to cloud
+    Map response = await Domain().SyncCashRecordToCloud(_value.toString());
+    if (response['status'] == '1') {
+      List responseJson = response['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+      }
     }
   }
 

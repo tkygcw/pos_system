@@ -9,7 +9,9 @@ import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/receipt_layout.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crypto/crypto.dart';
 
+import '../../database/domain.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/app_setting.dart';
 import '../../translation/AppLocalizations.dart';
@@ -88,8 +90,7 @@ class _CashDialogState extends State<CashDialog> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Center(
         child: SingleChildScrollView(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
+          child: LayoutBuilder(builder: (context, constraints) {
               if(constraints.maxWidth > 800){
                 return AlertDialog(
                   title: widget.isNewDay ? Text('Opening Balance') : widget.isCashIn ? Text('Cash-in') :  Text('Cash-out'),
@@ -354,10 +355,39 @@ class _CashDialogState extends State<CashDialog> {
   ----------------DB Query part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
+  generateCashRecordKey(CashRecord cashRecord) async  {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes  = cashRecord.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + cashRecord.cash_record_sqlite_id.toString() + device_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
+  insertCashRecordKey(CashRecord cashRecord, String dateTime) async {
+    CashRecord? _record;
+    int _status = 0;
+    String? _key;
+    _key = await generateCashRecordKey(cashRecord);
+    if(_key != null){
+      CashRecord cashRecordObject = CashRecord(
+          cash_record_key: _key,
+          updated_at: dateTime,
+          cash_record_sqlite_id: cashRecord.cash_record_sqlite_id
+      );
+      int data = await PosDatabase.instance.updateCashRecordUniqueKey(cashRecordObject);
+      if(data == 1){
+         _record = await PosDatabase.instance.readSpecificCashRecord(cashRecord.cash_record_sqlite_id!);
+      }
+    }
+
+    return _record;
+  }
+
   createCashRecord(int type) async {
     try{
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
+      List<String> _value = [];
+      bool _isInserted = false;
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
       final String? pos_user = prefs.getString('pos_pin_user');
@@ -365,8 +395,9 @@ class _CashDialogState extends State<CashDialog> {
       Map userObject = json.decode(pos_user!);
       Map logInUser = json.decode(login_user!);
 
-      CashRecord cashRecordObject  = CashRecord(
+      CashRecord cashRecordObject = CashRecord(
           cash_record_id: 0,
+          cash_record_key: '',
           company_id: logInUser['company_id'].toString(),
           branch_id: branch_id.toString(),
           remark: widget.isNewDay ? 'opening balance' : remarkController.text,
@@ -383,6 +414,17 @@ class _CashDialogState extends State<CashDialog> {
       );
 
       CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
+      CashRecord updatedData = await insertCashRecordKey(data, dateTime);
+
+      //sync to cloud
+      if(updatedData.cash_record_key != '' && updatedData.sync_status == 0){
+        _value.add(jsonEncode(updatedData));
+        Map response = await Domain().SyncCashRecordToCloud(_value.toString());
+        if (response['status'] == '1') {
+          List responseJson = response['data'];
+          int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+        }
+      }
       widget.callBack();
       closeDialog(context);
       if(widget.isNewDay){
@@ -394,6 +436,7 @@ class _CashDialogState extends State<CashDialog> {
       }
 
     }catch(e){
+      print('cash record error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Create cash record error: ${e}");
