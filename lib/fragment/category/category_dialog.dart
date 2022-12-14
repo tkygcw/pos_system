@@ -239,7 +239,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
                       if (await confirm(
                         context,
                         title: const Text('Confirm'),
-                        content: const Text('Would you like to remove?'),
+                        content: const Text('Do you want to delete?(The others branch will not appear this category if delete)'),
                         textOK: const Text('Yes'),
                         textCancel: const Text('No'),
                       )) {

@@ -1701,6 +1701,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                             return Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: TextField(
+                                enabled: isAdd? true : false,
                                 controller: nameController,
                                 decoration: InputDecoration(
                                   errorText: _submitted ? errorNameText : null,
@@ -1723,6 +1724,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                             return Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: TextField(
+                                enabled: isAdd? true : false,
                                 controller: descriptionController,
                                 minLines:
                                     3, // any number you need (It works as the rows for the textarea)
@@ -1747,12 +1749,12 @@ class _EditProductDialogState extends State<EditProductDialog> {
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: DropdownButton<Categories>(
-                          onChanged: (Categories? value) {
+                          onChanged: isAdd? (Categories? value) {
                             setState(() {
                               selectCategory = value!;
                               print(selectCategory!.category_sqlite_id);
                             });
-                          },
+                          } : null,
                           menuMaxHeight: 300,
                           value: selectCategory,
                           // Hide the default underline
@@ -1790,9 +1792,9 @@ class _EditProductDialogState extends State<EditProductDialog> {
                           direction: Axis.horizontal,
                           groupValue: selectStock,
                           horizontalAlignment: MainAxisAlignment.spaceBetween,
-                          onChanged: (value) => setState(() {
+                          onChanged: isAdd? (value) => setState(() {
                             selectStock = value!;
-                          }),
+                          }) : null,
                           items: stockType,
                           textStyle:
                               TextStyle(fontSize: 15, color: color.buttonColor),
@@ -1803,7 +1805,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                         ),
                       ),
                       selectStock == 'Daily Limit'
-                          ? ValueListenableBuilder(
+                          ? selectVariant == 'Have Variant' ? Container() : ValueListenableBuilder(
                               valueListenable: dailyLimitController,
                               builder: (context, TextEditingValue value, __) {
                                 return Padding(
@@ -1831,7 +1833,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                   ),
                                 );
                               })
-                          : ValueListenableBuilder(
+                          : selectVariant == 'Have Variant' ? Container() : ValueListenableBuilder(
                               valueListenable: stockQuantityController,
                               builder: (context, TextEditingValue value, __) {
                                 return Padding(
@@ -1859,7 +1861,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                   ),
                                 );
                               }),
-                      ValueListenableBuilder(
+                      selectVariant == 'Have Variant' ? Container() : ValueListenableBuilder(
                           valueListenable: priceController,
                           builder: (context, TextEditingValue value, __) {
                             return Padding(
@@ -1892,6 +1894,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                             return Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: TextField(
+                                enabled: isAdd? true : false,
                                 controller: skuController,
                                 keyboardType: TextInputType.number,
                                 inputFormatters: [
@@ -1922,6 +1925,8 @@ class _EditProductDialogState extends State<EditProductDialog> {
                             ),
                           ),
                           SimpleGroupedCheckbox<int>(
+                            disableItems: List.generate(modifierElement.length,
+                                    (index) => modifierElement[index].name!),
                             controller: switchController,
                             itemsTitle: List.generate(modifierElement.length,
                                 (index) => modifierElement[index].name!),
@@ -1937,9 +1942,9 @@ class _EditProductDialogState extends State<EditProductDialog> {
                               activeColor: color.backgroundColor,
                             ),
                             checkFirstElement: false,
-                            onItemSelected: (data) {
+                            onItemSelected: isAdd? (data) {
                               print(data);
-                            },
+                            }:null,
                           ),
                         ],
                       ),
@@ -1987,34 +1992,34 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                             variantList[index]['modGroup']),
                                         subtitle: customText(
                                             variantList[index]['modItem']),
-                                        trailing: IconButton(
-                                          icon: Icon(Icons.close),
-                                          onPressed: () {
-                                            setState(() {
-                                              variantList.removeAt(index);
-                                              createProductVariantList();
-                                            });
-                                          },
-                                        ),
+                                        // trailing: IconButton(
+                                        //   icon: Icon(Icons.close),
+                                        //   onPressed: () {
+                                        //     setState(() {
+                                        //       variantList.removeAt(index);
+                                        //       createProductVariantList();
+                                        //     });
+                                        //   },
+                                        // ),
                                       );
                                     }),
-                                variantList.length < 3
-                                    ? Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            15, 0, 15, 0),
-                                        child: ElevatedButton(
-                                          child: Text("Add Variant"),
-                                          onPressed: () {
-                                            openVariantOptionDialog(context);
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                              primary: color.backgroundColor,
-                                              textStyle: TextStyle(
-                                                  color: Colors.white70,
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                      )
-                                    : Container(),
+                                // variantList.length < 3
+                                //     ? Padding(
+                                //         padding: const EdgeInsets.fromLTRB(
+                                //             15, 0, 15, 0),
+                                //         child: ElevatedButton(
+                                //           child: Text("Add Variant"),
+                                //           onPressed: () {
+                                //             openVariantOptionDialog(context);
+                                //           },
+                                //           style: ElevatedButton.styleFrom(
+                                //               primary: color.backgroundColor,
+                                //               textStyle: TextStyle(
+                                //                   color: Colors.white70,
+                                //                   fontWeight: FontWeight.bold)),
+                                //         ),
+                                //       )
+                                //     : Container(),
                                 variantList.length != 0
                                     ? Card(
                                         elevation: 2,
@@ -2141,9 +2146,9 @@ class _EditProductDialogState extends State<EditProductDialog> {
                           direction: Axis.horizontal,
                           groupValue: selectGraphic,
                           horizontalAlignment: MainAxisAlignment.spaceBetween,
-                          onChanged: (value) => setState(() {
+                          onChanged: isAdd? (value) => setState(() {
                             selectGraphic = value!;
-                          }),
+                          }):null,
                           items: graphicType,
                           textStyle:
                               TextStyle(fontSize: 15, color: color.buttonColor),
@@ -2178,9 +2183,9 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                         Text("Pick Image from Gallery"),
                                       ],
                                     ),
-                                    onPressed: () {
+                                    onPressed: isAdd? () {
                                       getImage(ImageSource.gallery);
-                                    },
+                                    }:null,
                                     style: ElevatedButton.styleFrom(
                                         primary: color.backgroundColor,
                                         textStyle: TextStyle(
@@ -2197,9 +2202,9 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                         Text("Pick Image from Camera"),
                                       ],
                                     ),
-                                    onPressed: () {
+                                    onPressed: isAdd? () {
                                       getImage(ImageSource.camera);
-                                    },
+                                    }:null,
                                     style: ElevatedButton.styleFrom(
                                         primary: color.backgroundColor,
                                         textStyle: TextStyle(
@@ -2209,28 +2214,28 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                 ],
                               ),
                             )
-                          : MaterialColorPicker(
+                          : isAdd ? MaterialColorPicker(
                               physics: NeverScrollableScrollPhysics(),
                               allowShades: false,
                               selectedColor: Color(int.parse(
                                   productColor.replaceAll('#', '0xff'))),
                               circleSize: 190,
                               shrinkWrap: true,
-                              onMainColorChange: (color) {
+                              onMainColorChange: isAdd? (color) {
                                 var hex =
                                     '#${color!.value.toRadixString(16).substring(2)}';
                                 productColor = hex;
-                              },
-                            ),
+                              }:null,
+                            ):Container(),
                       Padding(
                         padding: const EdgeInsets.all(15.0),
                         child: RadioGroup<String>.builder(
                           direction: Axis.horizontal,
                           groupValue: selectStatus,
                           horizontalAlignment: MainAxisAlignment.spaceBetween,
-                          onChanged: (value) => setState(() {
+                          onChanged:isAdd? (value) => setState(() {
                             selectStatus = value!;
-                          }),
+                          }):null,
                           items: productStatus,
                           textStyle:
                               TextStyle(fontSize: 15, color: color.buttonColor),
