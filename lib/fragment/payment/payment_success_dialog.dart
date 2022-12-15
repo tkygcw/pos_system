@@ -165,7 +165,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       await deleteCurrentTableUseDetail();
       await deleteCurrentTableUseId();
       await updatePosTableStatus(0);
-      await updatePosTableTableUseDetailKey();
+      //await updatePosTableTableUseDetailKey();
     }
     await updateOrderCache();
     await deleteOrderCache();
@@ -184,20 +184,25 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
 
   deleteCurrentTableUseDetail() async {
     String dateTime = dateFormat.format(DateTime.now());
-
     try{
       if(widget.orderCacheIdList.length > 0) {
         for (int j = 0; j < widget.orderCacheIdList.length; j++) {
           List<OrderCache> data  = await PosDatabase.instance.readSpecificOrderCache(widget.orderCacheIdList[j]);
-          int tableUseDetailData = await PosDatabase.instance.deleteTableUseDetail(
-              TableUseDetail(
+          List<TableUseDetail> tableUseCheckData = await PosDatabase.instance.readAllTableUseDetail(data[0].table_use_sqlite_id!);
+          for(int i = 0; i < tableUseCheckData.length; i++){
+            TableUseDetail tableUseDetailObject = TableUseDetail(
                 soft_delete: dateTime,
+                sync_status: tableUseCheckData[i].sync_status == 0 ? 0 : 2,
                 table_use_sqlite_id: data[0].table_use_sqlite_id!,
-              ));
+                table_use_detail_sqlite_id: tableUseCheckData[i].table_use_detail_sqlite_id
+            );
+            int tableUseDetailData = await PosDatabase.instance.deleteTableUseDetail(tableUseDetailObject);
+          }
         }
       }
 
     } catch(e){
+      print('Delete current table use detail error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Delete current table use detail error: $e");
@@ -206,18 +211,35 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
 
   deleteCurrentTableUseId() async {
     String dateTime = dateFormat.format(DateTime.now());
+    List<String> _value = [];
     try{
       if(widget.orderCacheIdList.length > 0) {
         for (int j = 0; j < widget.orderCacheIdList.length; j++) {
           List<OrderCache> data  = await PosDatabase.instance.readSpecificOrderCache(widget.orderCacheIdList[j]);
-          int tableUseData = await PosDatabase.instance.deleteTableUseID(
-              TableUse(
-                  soft_delete: dateTime,
-                  table_use_sqlite_id: int.parse(data[0].table_use_sqlite_id!)
-              ));
+          TableUse tableUseCheckData =  await PosDatabase.instance.readSpecificTableUseIdByLocalId(int.parse(data[0].table_use_sqlite_id!));
+          TableUse tableUseObject = TableUse(
+              soft_delete: dateTime,
+              sync_status: tableUseCheckData.sync_status == 0 ? 0 : 2,
+              table_use_sqlite_id: int.parse(data[0].table_use_sqlite_id!)
+          );
+          int deletedData = await PosDatabase.instance.deleteTableUseID(tableUseObject);
+          if(deletedData == 1){
+            TableUse tableUseData =  await PosDatabase.instance.readSpecificTableUseIdByLocalId(tableUseObject.table_use_sqlite_id!);
+            _value.add(jsonEncode(tableUseData));
+          }
+        }
+      }
+      print('tb use value: ${_value}');
+      //sync to cloud
+      Map data = await Domain().SyncTableUseToCloud(_value.toString());
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int tablaUseData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
         }
       }
     }catch(e){
+      print('Delete current table use id error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Delete current table use id error: ${e}");
@@ -226,18 +248,30 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
 
   updateOrderCache() async {
     String dateTime = dateFormat.format(DateTime.now());
-
+    List<String> _value = [];
     if(widget.orderCacheIdList.length > 0){
       for(int j = 0; j < widget.orderCacheIdList.length; j++){
+        OrderCache checkData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(int.parse(widget.orderCacheIdList[j]));
         OrderCache cacheObject = OrderCache(
             order_sqlite_id: widget.orderId,
             order_key: widget.orderKey,
-            sync_status: 2,
+            sync_status: checkData.sync_status == 0 ? 0 : 2,
             updated_at: dateTime,
             order_cache_sqlite_id: int.parse(widget.orderCacheIdList[j])
         );
-
-        int data = await PosDatabase.instance.updateOrderCacheOrderId(cacheObject);
+        int updatedOrderCache = await PosDatabase.instance.updateOrderCacheOrderId(cacheObject);
+        if(updatedOrderCache == 1){
+          OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(cacheObject.order_cache_sqlite_id!);
+          _value.add(jsonEncode(orderCacheData));
+        }
+      }
+    }
+    //sync to cloud
+    Map data = await Domain().SyncOrderCacheToCloud(_value.toString());
+    if(data['status'] == '1'){
+      List responseJson = data['data'];
+      for(int i = 0 ; i <responseJson.length; i++){
+        int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
       }
     }
   }
@@ -257,33 +291,49 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   }
 
   updatePosTableStatus(int status) async {
+    List<String> _value = [];
     String dateTime = dateFormat.format(DateTime.now());
     if(widget.selectedTableList.length > 0){
       for(int i = 0; i < widget.selectedTableList.length; i++){
         PosTable posTableData = PosTable(
+          table_use_detail_key: '',
           status: status,
           updated_at: dateTime,
           table_sqlite_id: widget.selectedTableList[i].table_sqlite_id
         );
-        int data = await PosDatabase.instance.updatePosTableStatus(posTableData);
+        int updatedStatus = await PosDatabase.instance.updatePosTableStatus(posTableData);
+        int removeKey = await PosDatabase.instance.removePosTableTableUseDetailKey(posTableData);
+        if(updatedStatus == 1 && removeKey == 1){
+          List<PosTable> posTable  = await PosDatabase.instance.readSpecificTable(posTableData.table_sqlite_id.toString());
+          if(posTable[0].sync_status == 2){
+            _value.add(jsonEncode(posTable[0]));
+          }
+        }
+      }
+      //sync to cloud
+      Map response = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+        }
       }
     }
   }
 
-  updatePosTableTableUseDetailKey() async {
-    String dateTime = dateFormat.format(DateTime.now());
-    if(widget.selectedTableList.length > 0) {
-      for (int i = 0; i < widget.selectedTableList.length; i++) {
-        PosTable posTableData = PosTable(
-            table_use_detail_key: '',
-            updated_at: dateTime,
-            table_sqlite_id: widget.selectedTableList[i].table_sqlite_id
-        );
-        int data = await PosDatabase.instance.removePosTableTableUseDetailKey(
-            posTableData);
-      }
-    }
-  }
+  // updatePosTableTableUseDetailKey() async {
+  //   String dateTime = dateFormat.format(DateTime.now());
+  //   if(widget.selectedTableList.length > 0) {
+  //     for (int i = 0; i < widget.selectedTableList.length; i++) {
+  //       PosTable posTableData = PosTable(
+  //           table_use_detail_key: '',
+  //           updated_at: dateTime,
+  //           table_sqlite_id: widget.selectedTableList[i].table_sqlite_id
+  //       );
+  //       int data = await PosDatabase.instance.removePosTableTableUseDetailKey(posTableData);
+  //     }
+  //   }
+  // }
 
   generateCashRecordKey(CashRecord cashRecord) async  {
     final prefs = await SharedPreferences.getInstance();

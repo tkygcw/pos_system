@@ -1274,8 +1274,7 @@ class ReceiptLayout{
     }
     List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllTableUseDetail(orderCache!.table_use_sqlite_id!);
     for(int i = 0; i < detailData2.length; i++){
-      List<PosTable> tableData = await PosDatabase.instance
-          .readSpecificTable(branch_id, detailData2[i].table_sqlite_id!);
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(detailData2[i].table_sqlite_id!);
       if(!tableList.contains(tableData)){
         tableList.add(tableData[0]);
       }
@@ -1288,9 +1287,6 @@ class ReceiptLayout{
 */
   readSpecificOrderCache(String orderCacheId, String dateTime) async {
 
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
     List<OrderCache> cacheData  = await PosDatabase.instance.readSpecificDeletedOrderCache(int.parse(orderCacheId));
     orderCache = cacheData[0];
     print('order cache: ${orderCache!.order_cache_sqlite_id}');
@@ -1300,8 +1296,7 @@ class ReceiptLayout{
 
     List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllDeletedTableUseDetail(orderCache!.table_use_sqlite_id!);
     for(int i = 0; i < detailData2.length; i++){
-      List<PosTable> tableData = await PosDatabase.instance
-          .readSpecificTable(branch_id!, detailData2[i].table_sqlite_id!);
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(detailData2[i].table_sqlite_id!);
       if(!tableList.contains(tableData)){
         tableList.add(tableData[0]);
       }
@@ -1447,12 +1442,9 @@ class ReceiptLayout{
   read table use detail
 */
   getTableList(OrderCache paidCache) async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
     List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllDeletedTableUseDetail(paidCache.table_use_sqlite_id!);
     for(int i = 0; i < detailData2.length; i++){
-      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(branch_id!, detailData2[i].table_sqlite_id!);
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(detailData2[i].table_sqlite_id!);
       if(!tableList.contains(tableData)){
         tableList.add(tableData[0]);
       }

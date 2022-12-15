@@ -175,8 +175,6 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
   }
 
   addToCart(CartModel cart, List<OrderCache> orderCacheList) async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
     var value;
     List<TableUseDetail> tableUseDetailList = [];
     for (int i = 0; i < orderDetailList.length; i++) {
@@ -211,7 +209,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     }
 
     for (int k = 0; k < tableUseDetailList.length; k++) {
-      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(branch_id!, tableUseDetailList[k].table_sqlite_id!);
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[k].table_sqlite_id!);
       if(cart.selectedTable.length > 0) {
         if(!cart.selectedTable.contains(tableData)){
           cart.addTable(tableData[0]);

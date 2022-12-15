@@ -260,10 +260,13 @@ class _TestCategorySyncState extends State<TestCategorySync> {
     }
     print('Value: ${value.toString()}');
     Map data = await Domain().SyncTableUseDetailToCloud(value.toString());
-    List responseJson = data['data'];
-    for (var i = 0; i < responseJson.length; i++) {
-      int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+      }
     }
+
   }
 
 

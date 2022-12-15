@@ -1396,6 +1396,7 @@ class _CartPageState extends State<CartPage> {
 
   updatePosTable(CartModel cart) async {
     try {
+      List<String> _value = [];
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
@@ -1410,6 +1411,20 @@ class _CartPageState extends State<CartPage> {
               status: 1,
               updated_at: dateTime);
           int data = await PosDatabase.instance.updateCartPosTableStatus(posTableData);
+          if(data == 1){
+            List<PosTable> posTable  = await PosDatabase.instance.readSpecificTable(posTableData.table_sqlite_id.toString());
+            if(posTable[0].sync_status == 2){
+              _value.add(jsonEncode(posTable[0]));
+            }
+          }
+        }
+      }
+
+      Map data = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
         }
       }
     } catch (e) {
@@ -1784,6 +1799,7 @@ class _CartPageState extends State<CartPage> {
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _orderDetailValue = [];
     List<String> _orderModifierValue = [];
+    bool _hasModifier = false;
     //loop cart item & create order detail
     for (int j = 0; j < cart.cartNotifierItem.length; j++) {
       if (cart.cartNotifierItem[j].status == 0) {
@@ -1818,6 +1834,7 @@ class _CartPageState extends State<CartPage> {
           ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
           for (int m = 0; m < group.modifierChild.length; m++) {
             if (group.modifierChild[m].isChecked!) {
+              _hasModifier = true;
               OrderModifierDetail orderModifierDetailData = await PosDatabase.instance
                   .insertSqliteOrderModifierDetail(OrderModifierDetail(
                   order_modifier_detail_id: 0,
@@ -1835,7 +1852,6 @@ class _CartPageState extends State<CartPage> {
               OrderModifierDetail updatedOrderModifierDetail =  await insertOrderModifierDetailKey(orderModifierDetailData, dateTime);
               if(updatedOrderModifierDetail.order_modifier_detail_key != ''){
                 _orderModifierValue.add(jsonEncode(updatedOrderModifierDetail));
-                print('mod value: ${_orderModifierValue.toString()}');
               }
             }
           }
@@ -1849,12 +1865,15 @@ class _CartPageState extends State<CartPage> {
       for(int i = 0 ; i <responseJson.length; i++){
         int syncUpdated = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
       }
-
     }
-    Map orderModifierResponse = await Domain().SyncOrderModifierDetailToCloud(_orderModifierValue.toString());
-    if(orderModifierResponse['status'] == '1'){
-      List responseJson = orderModifierResponse['data'];
-      int syncUpdated = await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[0]['order_modifier_detail_key']);
+    if(_hasModifier == true){
+      Map orderModifierResponse = await Domain().SyncOrderModifierDetailToCloud(_orderModifierValue.toString());
+      if(orderModifierResponse['status'] == '1'){
+        List responseJson = orderModifierResponse['data'];
+        for(int i = 0 ; i <responseJson.length; i++){
+          int syncUpdated = await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
+        }
+      }
     }
   }
 

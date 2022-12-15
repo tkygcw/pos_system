@@ -549,8 +549,6 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   addToCart(CartModel cart, PosTable posTable) async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
     var value;
     List<TableUseDetail> tableUseDetailList = [];
 
@@ -579,8 +577,7 @@ class _TableMenuState extends State<TableMenu> {
     }
 
     for (int k = 0; k < tableUseDetailList.length; k++) {
-      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(
-          branch_id!, tableUseDetailList[k].table_sqlite_id!);
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[k].table_sqlite_id!);
       cart.addTable(tableData[0]);
     }
   }
