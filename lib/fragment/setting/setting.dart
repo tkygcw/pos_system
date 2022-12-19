@@ -19,6 +19,7 @@ import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
 import '../../translation/AppLocalizations.dart';
+import '../test_dual_screen/test_display.dart';
 
 class SettingMenu extends StatefulWidget {
   const SettingMenu({Key? key}) : super(key: key);
@@ -46,6 +47,9 @@ class _SettingMenuState extends State<SettingMenu> {
     ),
     Container(
       child: TestCategorySync(),
+    ),
+    Container(
+      child: SecondDisplayTest(),
     )
   ];
   int selectedIndex = 0;
@@ -125,6 +129,10 @@ class _SettingMenuState extends State<SettingMenu> {
                   SideNavigationBarItem(
                     icon: Icons.list,
                     label: 'Test sync (temp)',
+                  ),
+                  SideNavigationBarItem(
+                    icon: Icons.list,
+                    label: 'Test second screen (temp)',
                   ),
                 ],
                 onTap: (index) {

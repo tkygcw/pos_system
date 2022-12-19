@@ -79,12 +79,7 @@ dependencies:
   firebase_messaging: ^14.1.1
   firebase_core: ^2.3.0
   flutter_local_notifications: ^12.0.4
-
-
-dependency_overrides:
-#  esc_pos_utils:
-#    git:
-#      url: https://github.com/tkygcw/esc_pos_utils.git
+  presentation_displays: ^0.2.3
 
 dev_dependencies:
   flutter_test:

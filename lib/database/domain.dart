@@ -201,7 +201,7 @@ class Domain {
         'tb_order_tax_detail_create': '1',
         'details': detail,
       });
-      print('domain call: ${response.body}');
+
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -217,7 +217,7 @@ class Domain {
         'tb_order_promotion_detail_create': '1',
         'details': detail,
       });
-      print('domain call: ${response.body}');
+
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -233,7 +233,7 @@ class Domain {
         'tb_order_tax_detail_update': '1',
         'details': detail,
       });
-      print('domain call: ${response.body}');
+
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -249,7 +249,7 @@ class Domain {
         'tb_order_promotion_detail_update': '1',
         'details': detail,
       });
-      print('domain call: ${response.body}');
+
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());

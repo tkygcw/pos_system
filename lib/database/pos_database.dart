@@ -1998,12 +1998,11 @@ class PosDatabase {
 /*
   read specific use table detail based on table id
 */
-  Future<List<TableUseDetail>> readSpecificTableUseDetail(
-      int table_sqlite_id) async {
+  Future<List<TableUseDetail>> readSpecificTableUseDetail(int table_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableTableUseDetail WHERE soft_delete = ? AND table_sqlite_id = ?',
-        ['', table_sqlite_id]);
+        'SELECT a.*, b.table_id FROM $tableTableUseDetail AS a JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.table_sqlite_id = ?',
+        ['', '', table_sqlite_id]);
 
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
   }
@@ -2432,6 +2431,17 @@ class PosDatabase {
   }
 
 /*
+  read specific Order detail
+*/
+  Future<Order> readSpecificOrder(int order_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrder WHERE soft_delete = ? AND order_sqlite_id = ?',
+        ['', order_sqlite_id]);
+    return Order.fromJson(result.first);
+  }
+
+/*
   read all payment method
 */
   Future<List<PaymentLinkCompany>> readPaymentMethods() async {
@@ -2553,6 +2563,18 @@ class PosDatabase {
   }
 
 /*
+  read specific order tax detail by local id
+*/
+  Future<OrderTaxDetail> readSpecificOrderTaxDetailByLocalId(int order_tax_detail_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderTaxDetail WHERE soft_delete = ? AND order_tax_detail_sqlite_id = ?',
+        ['', order_tax_detail_sqlite_id]);
+
+    return OrderTaxDetail.fromJson(result.first);
+  }
+
+/*
   read specific order promotion detail
 */
   Future<List<OrderPromotionDetail>> readSpecificOrderPromotionDetail(
@@ -2563,6 +2585,18 @@ class PosDatabase {
         ['', order_sqlite_id]);
 
     return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
+  }
+
+/*
+  read specific order promotion detail by local id
+*/
+  Future<OrderPromotionDetail> readSpecificOrderPromotionDetailByLocalId(int order_promotion_detail_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderPromotionDetail WHERE soft_delete = ? AND order_promotion_detail_sqlite_id = ?',
+        ['', order_promotion_detail_sqlite_id]);
+
+    return OrderPromotionDetail.fromJson(result.first);
   }
 
 /*
@@ -2957,19 +2991,23 @@ class PosDatabase {
       int table_sqlite_id, TableUseDetail data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableTableUseDetail SET table_sqlite_id = ?, updated_at = ? WHERE table_sqlite_id = ?',
-        [data.table_sqlite_id, data.updated_at, table_sqlite_id]);
+        'UPDATE $tableTableUseDetail SET table_sqlite_id = ?, sync_status = ?, updated_at = ? WHERE table_sqlite_id = ?',
+        [
+          data.table_sqlite_id,
+          data.sync_status,
+          data.updated_at,
+          table_sqlite_id
+        ]);
   }
 
 /*
   update order cache
 */
-  Future<int> updateOrderCacheTableUseId(
-      String table_use_sqlite_id, OrderCache data) async {
+  Future<int> updateOrderCacheTableUseId(OrderCache data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableOrderCache SET table_use_sqlite_id = ?, updated_at = ? WHERE table_use_sqlite_id = ?',
-        [data.table_use_sqlite_id, data.updated_at, table_use_sqlite_id]);
+        'UPDATE $tableOrderCache SET table_use_sqlite_id = ?, table_use_key = ?,  sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+        [data.table_use_sqlite_id, data.table_use_key, data.sync_status, data.updated_at, data.order_cache_sqlite_id]);
   }
 
 /*
@@ -3025,8 +3063,8 @@ class PosDatabase {
   Future<int> updateOrderPaymentStatus(Order data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableOrder SET payment_status = ?, updated_at = ? WHERE order_sqlite_id = ?',
-        [1, data.updated_at, data.order_sqlite_id]);
+        'UPDATE $tableOrder SET payment_status = ?, sync_status = ?,  updated_at = ? WHERE order_sqlite_id = ?',
+        [1, data.sync_status, data.updated_at, data.order_sqlite_id]);
   }
 
 /*
@@ -3496,8 +3534,8 @@ class PosDatabase {
   Future<int> deleteTableUseDetailByTableId(TableUseDetail data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableTableUseDetail SET soft_delete = ? WHERE table_sqlite_id = ?',
-        [data.soft_delete, data.table_sqlite_id]);
+        'UPDATE $tableTableUseDetail SET sync_status = ?, soft_delete = ? WHERE table_sqlite_id = ?',
+        [data.sync_status, data.soft_delete, data.table_sqlite_id]);
   }
 
 /*

@@ -542,9 +542,11 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       }
       //sync to cloud
       Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
-      List responseJson = data['data'];
-      for (var i = 0; i < responseJson.length; i++) {
-        int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+      if(data['status'] == 1){
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+        }
       }
 
     } catch (e) {

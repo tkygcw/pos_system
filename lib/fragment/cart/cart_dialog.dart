@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -8,6 +9,7 @@ import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/branch_link_product.dart';
@@ -61,8 +63,7 @@ class _CartDialogState extends State<CartDialog> {
     readAllTable();
   }
 
-  Future showSecondDialog(BuildContext context, ThemeColor color, int dragIndex,
-      int targetIndex, CartModel cart) {
+  Future showSecondDialog(BuildContext context, ThemeColor color, int dragIndex, int targetIndex, CartModel cart) {
     return showDialog(
       barrierDismissible: false,
       context: context,
@@ -607,20 +608,34 @@ class _CartDialogState extends State<CartDialog> {
    */
   callRemoveTableQuery(int table_id) async {
     await deleteCurrentTableUseDetail(table_id);
-    await updatePosTableStatus(table_id, 0);
+    await updatePosTableStatus(table_id, 0, '');
     await readAllTable();
   }
 
   deleteCurrentTableUseDetail(int currentTableId) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
-
+    List<String> _value = [];
     try{
-      int tableUseData = await PosDatabase.instance.deleteTableUseDetailByTableId(
-          TableUseDetail(
-              soft_delete: dateTime,
-              table_sqlite_id: currentTableId.toString(),
-          ));
+      List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(currentTableId);
+      TableUseDetail tableUseDetailObject = TableUseDetail(
+        sync_status: checkData[0].sync_status == 0 ? 0 : 2,
+        soft_delete: dateTime,
+        table_sqlite_id: currentTableId.toString(),
+        table_use_detail_sqlite_id: checkData[0].table_use_detail_sqlite_id
+      );
+      int updatedData = await PosDatabase.instance.deleteTableUseDetailByTableId(tableUseDetailObject);
+      if(updatedData == 1){
+        TableUseDetail detailData =  await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
+        _value.add(jsonEncode(detailData.syncJson()));
+      }
+      print('value: ${_value}');
+      //sync to cloud
+      Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
+      if(data['status'] == 1){
+        List responseJson = data['data'];
+        int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
+      }
     }catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
@@ -628,39 +643,68 @@ class _CartDialogState extends State<CartDialog> {
     }
   }
 
-  updatePosTableStatus(int currentTableId, int status) async {
+  updatePosTableStatus(int dragTableId, int status, String tableUseDetailKey) async {
+    List<String> _value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
-
-    PosTable posTableData = PosTable(table_sqlite_id: currentTableId, status: status, updated_at: dateTime);
-    int data2 = await PosDatabase.instance.updatePosTableStatus(posTableData);
+    /*get target table use key here*/
+    PosTable posTableData = PosTable(
+        table_use_detail_key: tableUseDetailKey,
+        table_sqlite_id: dragTableId,
+        status: status,
+        updated_at: dateTime);
+    int updatedTable = await PosDatabase.instance.updatePosTableStatus(posTableData);
+    int updatedKey = await PosDatabase.instance.removePosTableTableUseDetailKey(posTableData);
+    if(updatedTable == 1 && updatedKey == 1){
+      List<PosTable> posTable  = await PosDatabase.instance.readSpecificTable(posTableData.table_sqlite_id.toString());
+      _value.add(jsonEncode(posTable[0]));
+    }
+    print('table value: ${_value}');
+    //sync to cloud
+    Map response = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
+    if (response['status'] == '1') {
+      List responseJson = response['data'];
+      int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[0]['table_id']);
+    }
   }
 
-  callAddNewTableQuery(int newTableId, int oldTableId) async {
-    await createTableUseDetail(newTableId, oldTableId);
-    await updatePosTableStatus(newTableId, 1);
+  callAddNewTableQuery(int dragTableId, int targetTableId) async {
+    List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(targetTableId);
+    await createTableUseDetail(dragTableId, targetTableId);
+    await updatePosTableStatus(dragTableId, 1, checkData[0].table_use_detail_key!);
     await readAllTable();
   }
 
   createTableUseDetail(int newTableId, int oldTableId) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
+    List<String> _value = [];
     try{
       //read table use detail data based on table id
-      List<TableUseDetail> TableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(oldTableId);
+      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(oldTableId);
 
       //create table use detail
-      TableUseDetail tableUseDetailData = await PosDatabase.instance
-            .insertSqliteTableUseDetail(
+      TableUseDetail insertData = await PosDatabase.instance.insertSqliteTableUseDetail(
             TableUseDetail(
                 table_use_detail_id: 0,
-                table_use_sqlite_id: TableUseDetailData[0].table_use_sqlite_id,
+                table_use_detail_key: tableUseDetailData[0].table_use_detail_key,
+                table_use_sqlite_id: tableUseDetailData[0].table_use_sqlite_id,
+                table_use_key: tableUseDetailData[0].table_use_key,
                 table_sqlite_id: newTableId.toString(),
                 original_table_sqlite_id: newTableId.toString(),
                 created_at: dateTime,
                 sync_status: 0,
                 updated_at: '',
                 soft_delete: ''));
+      TableUseDetail detailData =  await PosDatabase.instance.readSpecificTableUseDetailByLocalId(insertData.table_use_detail_sqlite_id!);
+      _value.add(jsonEncode(detailData.syncJson()));
+      //sync to cloud
+      Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
+      if(data['status'] == 1){
+        List responseJson = data['data'];
+        int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
+      }
+
     } catch(e){
       print('create table use detail error: $e');
       Fluttertoast.showToast(

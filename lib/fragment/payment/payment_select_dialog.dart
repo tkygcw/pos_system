@@ -8,6 +8,7 @@ import '../../notifier/theme_color.dart';
 import '../../object/payment_link_company.dart';
 import 'make_payment_dialog.dart';
 
+
 class PaymentSelect extends StatefulWidget {
   final String? dining_id;
   const PaymentSelect({Key? key, required this.dining_id}) : super(key: key);
@@ -47,7 +48,9 @@ class _PaymentSelectState extends State<PaymentSelect> {
                           children: List.generate(PaymentLists.length, (index) {
                             return GestureDetector(
                               onTap: () {
+                                Navigator.of(context, rootNavigator: true).pop();
                                 openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!);
+
                               },
                               child: Card(
                                 elevation: 5,

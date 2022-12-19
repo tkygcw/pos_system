@@ -4,10 +4,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:pos_system/fragment/test_dual_screen/test_display.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/translation/appLanguage.dart';
+import 'package:presentation_displays/display.dart';
+import 'package:presentation_displays/displays_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'notifier/cart_notifier.dart';
@@ -15,6 +18,21 @@ import 'notifier/connectivity_change_notifier.dart';
 import 'notifier/printer_notifier.dart';
 import 'notifier/theme_color.dart';
 import 'page/loading.dart';
+
+Route<dynamic> generateRoute(RouteSettings settings) {
+  switch (settings.name) {
+    case '/init':
+      return MaterialPageRoute(builder: (_) => const LoginPage());
+    case 'presentation':
+      return MaterialPageRoute(builder: (_) => const SecondDisplayTest());
+    default:
+      return MaterialPageRoute(
+          builder: (_) => Scaffold(
+            body: Center(
+                child: Text('No route defined for ${settings.name}')),
+          ));
+  }
+}
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // If you're going to use other Firebase services in the background, such as Firestore,
@@ -52,6 +70,9 @@ Future<void> main() async {
       DeviceOrientation.landscapeRight,
     ]);
   }
+
+  //second screen test(init second screen)
+  initSecondScreen();
 
   //other method
   statusBarColor();
@@ -161,6 +182,17 @@ class MyApp extends StatelessWidget {
   }
 }
 
+initSecondScreen() async {
+  DisplayManager displayManager = DisplayManager();
+  List<Display?> displays = [];
+  final values = await displayManager.getDisplays();
+  displays.clear();
+  displays.addAll(values!);
+  if(displays.isNotEmpty){
+    await displayManager.showSecondaryDisplay(displayId: 1, routerName: "/init");
+  }
+  print('display list = ${displays.length}');
+}
 
 statusBarColor() {
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(

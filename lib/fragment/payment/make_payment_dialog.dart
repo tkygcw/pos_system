@@ -23,6 +23,7 @@ import 'dart:io';
 import 'dart:developer';
 import 'package:crypto/crypto.dart';
 
+import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/cart_notifier.dart';
 import '../../object/branch_link_dining_option.dart';
@@ -165,8 +166,7 @@ class _MakePaymentState extends State<MakePayment> {
     }
 
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return LayoutBuilder(
-        builder: (context,  constraints) {
+      return LayoutBuilder(builder: (context,  constraints) {
           if(constraints.maxWidth > 800){
             return AlertDialog(
               title: Text('Amount'),
@@ -521,10 +521,14 @@ class _MakePaymentState extends State<MakePayment> {
                                           else if (index == 19) {
                                             return NumberButton(
                                               buttontapped: () async  {
+                                                bool _isCreated = false;
                                                 if(double.parse(inputController.text) >= double.parse(finalAmount)){
                                                   await callCreateOrder(inputController.text, orderChange: change);
-                                                  openPaymentSuccessDialog(widget.dining_id);
-                                                  //ReceiptLayout().openCashDrawer();
+                                                  _isCreated = true;
+                                                  if(_isCreated == true){
+                                                    openPaymentSuccessDialog(widget.dining_id);
+                                                    ReceiptLayout().openCashDrawer();
+                                                  }
                                                 } else {
                                                   Fluttertoast.showToast(
                                                       backgroundColor: Color(0xFFFF0000),
@@ -1691,6 +1695,7 @@ class _MakePaymentState extends State<MakePayment> {
   insertOrderKey() async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
+    List<String> _value = [];
     await readAllOrder();
     orderKey = await generateOrderKey(orderList[0]);
     if(orderKey != null){
@@ -1700,7 +1705,19 @@ class _MakePaymentState extends State<MakePayment> {
         updated_at: dateTime,
         order_sqlite_id: orderList[0].order_sqlite_id
       );
-      int data = await PosDatabase.instance.updateOrderUniqueKey(orderObject);
+      int updatedData = await PosDatabase.instance.updateOrderUniqueKey(orderObject);
+      if(updatedData == 1){
+        Order orderData = await PosDatabase.instance.readSpecificOrder(orderObject.order_sqlite_id!);
+        _value.add(jsonEncode(orderData));
+      }
+    }
+    //sync to cloud
+    Map data = await Domain().SyncOrderToCloud(_value.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+      }
     }
   }
 
@@ -1713,6 +1730,7 @@ class _MakePaymentState extends State<MakePayment> {
 
   insertOrderPromotionDetailKey(OrderPromotionDetail orderPromotionDetail, String dateTime) async {
     String? _key;
+    OrderPromotionDetail? _data;
     _key = await generateOrderPromotionDetailKey(orderPromotionDetail);
     if(_key != null){
       OrderPromotionDetail orderPromoDetailObject = OrderPromotionDetail(
@@ -1721,8 +1739,13 @@ class _MakePaymentState extends State<MakePayment> {
           updated_at: dateTime,
           order_promotion_detail_sqlite_id: orderPromotionDetail.order_promotion_detail_sqlite_id
       );
-      int data = await PosDatabase.instance.updateOrderPromotionDetailUniqueKey(orderPromoDetailObject);
+      int updatedData = await PosDatabase.instance.updateOrderPromotionDetailUniqueKey(orderPromoDetailObject);
+      if(updatedData == 1){
+        OrderPromotionDetail orderPromotionDetailData = await PosDatabase.instance.readSpecificOrderPromotionDetailByLocalId(orderPromoDetailObject.order_promotion_detail_sqlite_id!);
+        _data = orderPromotionDetailData;
+      }
     }
+    return _data;
   }
 
   createOrderPromotionDetail() async {
@@ -1730,6 +1753,7 @@ class _MakePaymentState extends State<MakePayment> {
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
+    List<String> _value = [];
 
     for (int i = 0; i < appliedPromotionList.length; i++) {
       List<BranchLinkPromotion> branchPromotionData = await PosDatabase.instance.readSpecificBranchLinkPromotion(branch_id.toString(), appliedPromotionList[i].promotion_id.toString());
@@ -1752,7 +1776,16 @@ class _MakePaymentState extends State<MakePayment> {
           updated_at: '',
           soft_delete: ''
       ));
-      await insertOrderPromotionDetailKey(data, dateTime);
+      OrderPromotionDetail returnData = await insertOrderPromotionDetailKey(data, dateTime);
+      _value.add(jsonEncode(returnData));
+    }
+    //sync to cloud
+    Map data = await Domain().SyncOrderPromotionDetailToCloud(_value.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        int orderPromoData = await PosDatabase.instance.updateOrderPromotionDetailSyncStatusFromCloud(responseJson[i]['order_promotion_detail_key']);
+      }
     }
   }
 
@@ -1765,6 +1798,7 @@ class _MakePaymentState extends State<MakePayment> {
 
   insertOrderTaxDetailKey(OrderTaxDetail orderTaxDetail, String dateTime) async {
     String? _key;
+    OrderTaxDetail? _data;
     _key = await generateOrderTaxDetailKey(orderTaxDetail);
     if(_key != null){
       OrderTaxDetail orderTaxDetailObject = OrderTaxDetail(
@@ -1773,8 +1807,13 @@ class _MakePaymentState extends State<MakePayment> {
           updated_at: dateTime,
           order_tax_detail_sqlite_id: orderTaxDetail.order_tax_detail_sqlite_id
       );
-      int data = await PosDatabase.instance.updateOrderTaxDetailUniqueKey(orderTaxDetailObject);
+      int updatedData = await PosDatabase.instance.updateOrderTaxDetailUniqueKey(orderTaxDetailObject);
+      if(updatedData == 1 ){
+        OrderTaxDetail orderTaxDetailData = await PosDatabase.instance.readSpecificOrderTaxDetailByLocalId(orderTaxDetailObject.order_tax_detail_sqlite_id!);
+        _data = orderTaxDetailData;
+      }
     }
+    return _data;
   }
 
   crateOrderTaxDetail() async {
@@ -1783,6 +1822,7 @@ class _MakePaymentState extends State<MakePayment> {
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
+    List<String> _value = [];
 
     for(int i = 0; i < taxList.length; i++){
       List<BranchLinkTax> branchTaxData = await PosDatabase.instance.readSpecificBranchLinkTax(branch_id.toString(), taxList[i].tax_id.toString());
@@ -1803,7 +1843,16 @@ class _MakePaymentState extends State<MakePayment> {
             updated_at: '',
             soft_delete: ''
         ));
-        await insertOrderTaxDetailKey(data, dateTime);
+        OrderTaxDetail returnData = await insertOrderTaxDetailKey(data, dateTime);
+        _value.add(jsonEncode(returnData));
+      }
+    }
+    //sync to cloud
+    Map data = await Domain().SyncOrderTaxDetailToCloud(_value.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        int syncData = await PosDatabase.instance.updateOrderTaxDetailSyncStatusFromCloud(responseJson[i]['order_tax_detail_key']);
       }
     }
   }

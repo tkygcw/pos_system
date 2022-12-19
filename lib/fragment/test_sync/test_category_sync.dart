@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/fragment/test_dual_screen/test_display.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/order_detail.dart';
@@ -13,6 +14,9 @@ import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/tax.dart';
+import 'package:pos_system/page/progress_bar.dart';
+import 'package:presentation_displays/display.dart';
+import 'package:presentation_displays/displays_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/domain.dart';
@@ -40,26 +44,41 @@ class _TestCategorySyncState extends State<TestCategorySync> {
   List<TableUseDetail> notSyncTableUseDetailList = [];
   List<CashRecord> notSyncCashRecordList = [];
   Timer? timer;
+  DisplayManager displayManager = DisplayManager();
+  List<Display?> displays = [];
+  bool isLoaded = false;
 
 
   @override
   void initState() {
     super.initState();
+    getDisplay();
+
     // timer = Timer.periodic(Duration(seconds: 15), (Timer t) {
     //   updatedPosTableSyncToCloud();
     //   updatedOrderPromotionDetailSyncToCloud();
     // });
   }
 
+  getDisplay() async {
+    final values = await displayManager.getDisplays();
+    displays.clear();
+    setState(() {
+      displays.addAll(values!);
+      isLoaded = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
+      body: isLoaded ?
+      Container(
         alignment: Alignment.center,
         child: ElevatedButton(
-            onPressed: () async  => await updatedCashRecordSyncToCloud(),
+            onPressed: () async  => await displayManager.showSecondaryDisplay(displayId: 1, routerName: "presentation"),
             child: Text('current screen height/width: ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
-      ),
+      ) : CustomProgressBar(),
     );
   }
 
@@ -94,7 +113,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
     for(int i = 0; i <  notSyncCashRecordList.length; i++){
       value.add(jsonEncode(notSyncCashRecordList[i]));
     }
-    print('Value: ${value}');
+
     Map data = await Domain().SyncCashRecordToCloud(value.toString());
     if (data['status'] == '1') {
       List responseJson = data['data'];
@@ -498,11 +517,9 @@ class _TestCategorySyncState extends State<TestCategorySync> {
     }
     print('Value: ${value}');
     Map data = await Domain().SyncOrderToCloud(value.toString());
-    print('response: ${data}');
     if (data['status'] == '1') {
       List responseJson = data['data'];
       for (var i = 0; i < responseJson.length; i++) {
-        //print('response order key: ${responseJson[i]['order_key']}');
         int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
       }
     }

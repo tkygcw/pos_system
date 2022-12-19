@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/printer.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -42,6 +43,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   List<Printer> printerList = [];
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
+  bool isLoaded = false;
 
 
   closeDialog(BuildContext context) {
@@ -64,12 +66,12 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
               return WillPopScope(
                 onWillPop: () async => false,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
+                child: LayoutBuilder(builder: (context, constraints) {
                     if(constraints.maxWidth > 800) {
                       return AlertDialog(
                         title: Text('Payment success'),
-                        content: Container(
+                        content: isLoaded ?
+                        Container(
                           width: MediaQuery.of(context).size.width / 3,
                           height: MediaQuery.of(context).size.height / 3,
                           child: Column(
@@ -106,13 +108,14 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                               )
                             ],
                           ),
-                        ),
+                        ) : CustomProgressBar(),
                       );
                     } else {
                       //Mobile layout
                       return AlertDialog(
                         title: Text('Payment success'),
-                        content: Container(
+                        content: isLoaded ?
+                        Container(
                           width: MediaQuery.of(context).size.width / 2,
                           height: 150,
                           child: Column(
@@ -146,7 +149,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                               )
                             ],
                           ),
-                        ),
+                        ) : CustomProgressBar(),
                       );
                     }
                   }
@@ -165,24 +168,40 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       await deleteCurrentTableUseDetail();
       await deleteCurrentTableUseId();
       await updatePosTableStatus(0);
-      //await updatePosTableTableUseDetailKey();
     }
     await updateOrderCache();
     await deleteOrderCache();
+    isLoaded = true;
 
   }
 
   updateOrder() async {
     String dateTime = dateFormat.format(DateTime.now());
+    List<String> _value = [];
+    Order checkData = await PosDatabase.instance.readSpecificOrder(int.parse(widget.orderId));
     Order orderObject = Order(
+        sync_status: checkData.sync_status == 0 ? 0 : 2,
         updated_at: dateTime,
         order_sqlite_id: int.parse(widget.orderId)
     );
 
-    int data = await PosDatabase.instance.updateOrderPaymentStatus(orderObject);
+    int updatedData = await PosDatabase.instance.updateOrderPaymentStatus(orderObject);
+    if(updatedData == 1){
+      Order orderData = await PosDatabase.instance.readSpecificOrder(int.parse(widget.orderId));
+      _value.add(jsonEncode(orderData));
+    }
+    //sync to cloud
+    Map data = await Domain().SyncOrderToCloud(_value.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+      }
+    }
   }
 
   deleteCurrentTableUseDetail() async {
+    List<String> _value = [];
     String dateTime = dateFormat.format(DateTime.now());
     try{
       if(widget.orderCacheIdList.length > 0) {
@@ -196,11 +215,22 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                 table_use_sqlite_id: data[0].table_use_sqlite_id!,
                 table_use_detail_sqlite_id: tableUseCheckData[i].table_use_detail_sqlite_id
             );
-            int tableUseDetailData = await PosDatabase.instance.deleteTableUseDetail(tableUseDetailObject);
+            int deletedData = await PosDatabase.instance.deleteTableUseDetail(tableUseDetailObject);
+            if(deletedData == 1){
+              TableUseDetail detailData =  await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
+              _value.add(jsonEncode(detailData.syncJson()));
+            }
           }
         }
       }
-
+      //sync to cloud
+      Map response = await Domain().SyncTableUseDetailToCloud(_value.toString());
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+        }
+      }
     } catch(e){
       print('Delete current table use detail error: ${e}');
       Fluttertoast.showToast(
@@ -229,7 +259,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           }
         }
       }
-      print('tb use value: ${_value}');
       //sync to cloud
       Map data = await Domain().SyncTableUseToCloud(_value.toString());
       if (data['status'] == '1') {
@@ -293,6 +322,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   updatePosTableStatus(int status) async {
     List<String> _value = [];
     String dateTime = dateFormat.format(DateTime.now());
+    print('length: ${widget.selectedTableList.length}');
     if(widget.selectedTableList.length > 0){
       for(int i = 0; i < widget.selectedTableList.length; i++){
         PosTable posTableData = PosTable(
@@ -320,20 +350,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       }
     }
   }
-
-  // updatePosTableTableUseDetailKey() async {
-  //   String dateTime = dateFormat.format(DateTime.now());
-  //   if(widget.selectedTableList.length > 0) {
-  //     for (int i = 0; i < widget.selectedTableList.length; i++) {
-  //       PosTable posTableData = PosTable(
-  //           table_use_detail_key: '',
-  //           updated_at: dateTime,
-  //           table_sqlite_id: widget.selectedTableList[i].table_sqlite_id
-  //       );
-  //       int data = await PosDatabase.instance.removePosTableTableUseDetailKey(posTableData);
-  //     }
-  //   }
-  // }
 
   generateCashRecordKey(CashRecord cashRecord) async  {
     final prefs = await SharedPreferences.getInstance();
@@ -408,7 +424,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           }
         }
       }
-
     }catch(e){
       print(e);
       Fluttertoast.showToast(
