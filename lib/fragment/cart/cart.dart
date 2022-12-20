@@ -178,9 +178,7 @@ class _CartPageState extends State<CartPage> {
                 //     })
               ],
             ),
-            body: StreamBuilder(
-                stream: controller.stream,
-                builder: (context, snapshot) {
+            body: StreamBuilder(stream: controller.stream, builder: (context, snapshot) {
                   return Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -542,8 +540,7 @@ class _CartPageState extends State<CartPage> {
                               } else {
                                 if (widget.currentPage == 'menu' || widget.currentPage == 'qr_order') {
                                   if (cart.selectedOption == 'Dine in') {
-                                    if (cart.selectedTable.isNotEmpty &&
-                                        cart.cartNotifierItem.isNotEmpty) {
+                                    if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
                                       if (cart.cartNotifierItem[0].status == 1) {
                                         print('add new item');
                                         await callAddOrderCache(cart);
@@ -553,8 +550,8 @@ class _CartPageState extends State<CartPage> {
                                         print('add order cache');
                                         // if (printerList.length >= 0) {
                                           await callCreateNewOrder(cart);
-                                          //await _printCheckList();
-                                          //await _printKitchenList(cart);
+                                          await _printCheckList();
+                                          await _printKitchenList(cart);
                                           cart.removeAllCartItem();
                                           cart.removeAllTable();
                                         // } else {
@@ -691,8 +688,7 @@ class _CartPageState extends State<CartPage> {
     print('check List called!');
     try {
       for (int i = 0; i < printerList.length; i++) {
-        List<PrinterLinkCategory> data = await PosDatabase.instance
-            .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+        List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
         print('printer link category length: ${data.length}');
         for(int j = 0; j < data.length; j++){
           if (data[j].category_sqlite_id == '3') {
@@ -1390,7 +1386,6 @@ class _CartPageState extends State<CartPage> {
   callAddOrderCache(CartModel cart) async {
     print('add product cache');
     await createOrderCache(cart);
-    //await insertOrderCacheKey(cart);
     await createOrderDetail(cart);
   }
 

@@ -44,6 +44,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
   bool _submitted = false;
   bool _isUpdate = false;
   bool isLoad = false;
+  bool _isCashier = false;
 
   @override
   void initState() {
@@ -80,16 +81,24 @@ class _PrinterDialogState extends State<PrinterDialog> {
   void _submit(BuildContext context) {
     setState(() => _submitted = true);
     if (errorPrinterLabel == null) {
-      if (printerValue.length > 0 && selectedCategories.length > 0) {
+      if (printerValue.length > 0 && _isCashier) {
         if (_isUpdate == false) {
           callAddNewPrinter(printerValue, selectedCategories);
         } else {
           callUpdatePrinter(selectedCategories, widget.printerObject!);
         }
       } else {
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000),
-            msg: "Make sure printer and category is selected");
+        if(selectedCategories.isNotEmpty){
+          if (_isUpdate == false) {
+            callAddNewPrinter(printerValue, selectedCategories);
+          } else {
+            callUpdatePrinter(selectedCategories, widget.printerObject!);
+          }
+        }else {
+          Fluttertoast.showToast(
+              backgroundColor: Color(0xFFFF0000),
+              msg: "Make sure printer and category is selected");
+        }
       }
     }
   }
@@ -236,7 +245,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                           Expanded(
                             child: RadioListTile<int>(
                               activeColor: color.backgroundColor,
-                              title: const Text('88mm'),
+                              title: const Text('80mm'),
                               value: 0,
                               groupValue: _paperSize,
                               onChanged: (value) {
@@ -265,47 +274,84 @@ class _PrinterDialogState extends State<PrinterDialog> {
                         height: 10,
                       ),
                       Text(
-                        'Category',
+                        'Setting',
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.blueGrey),
                       ),
-                      SizedBox(height: 10),
-                      Wrap(
-                        runSpacing: 5,
-                        spacing: 10,
-                        children: List<Widget>.generate(
-                            selectedCategories.length, (int index) {
-                          return Chip(
-                            label: Text('${selectedCategories[index].name}'),
-                            avatar: CircleAvatar(
-                              backgroundColor: color.backgroundColor,
-                              child: Text(
-                                  '${selectedCategories[index].name![0]}',
-                                  style: TextStyle(color: color.iconColor)),
+                      Row(
+                        children: [
+                          Container(
+                            child: Text('Set as cashier printer'),
+                          ),
+                          Spacer(),
+                          Container(
+                            child: Checkbox(
+                                value: _isCashier,
+                                onChanged: (value){
+                                  setState(() {
+                                    _isCashier = value!;
+                                  });
+                                }
                             ),
-                            elevation: 5,
-                            onDeleted: () => setState(() {
-                              selectedCategories.removeAt(index);
-                            }),
-                            deleteIconColor: Colors.red,
-                            deleteIcon: Icon(Icons.close),
-                            deleteButtonTooltipMessage: 'remove',
-                          );
-                        }),
+                          )
+                        ],
                       ),
-                      Container(
-                        alignment: Alignment.center,
-                        child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                primary: color.backgroundColor),
-                            onPressed: () {
-                              setState(() {
-                                openCategoriesDialog();
-                              });
-                            },
-                            child: Icon(Icons.add)),
+                      SizedBox(
+                        height: 10,
                       ),
+                      Visibility(
+                        visible: _isCashier ? false : true,
+                        child: Container(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Category',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blueGrey),
+                              ),
+                              SizedBox(height: 10),
+                              Wrap(
+                                runSpacing: 5,
+                                spacing: 10,
+                                children: List<Widget>.generate(selectedCategories.length, (int index) {
+                                  return Chip(
+                                    label: Text('${selectedCategories[index].name}'),
+                                    avatar: CircleAvatar(
+                                      backgroundColor: color.backgroundColor,
+                                      child: Text(
+                                          '${selectedCategories[index].name![0]}',
+                                          style: TextStyle(color: color.iconColor)),
+                                    ),
+                                    elevation: 5,
+                                    onDeleted: () => setState(() {
+                                      selectedCategories.removeAt(index);
+                                    }),
+                                    deleteIconColor: Colors.red,
+                                    deleteIcon: Icon(Icons.close),
+                                    deleteButtonTooltipMessage: 'remove',
+                                  );
+                                })
+                              ),
+                              Container(
+                                alignment: Alignment.center,
+                                child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                        primary: color.backgroundColor),
+                                    onPressed: () {
+                                      setState(() {
+                                        openCategoriesDialog();
+                                      });
+                                    },
+                                    child: Icon(Icons.add)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+
                     ],
                   ),
                 ),
@@ -376,7 +422,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
           printerLabel: printerLabelController.text,
           value: value[0],
           type: _typeStatus,
-          printer_link_category_id: '0',
+          printer_link_category_id: '',
           paper_size: _paperSize,
           sync_status: 0,
           created_at: dateTime,
@@ -394,20 +440,32 @@ class _PrinterDialogState extends State<PrinterDialog> {
     try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-
-      for (int i = 0; i < allCategories.length; i++) {
-        if (allCategories[i].isChecked == true) {
-          PrinterLinkCategory data = await PosDatabase.instance
-              .insertSqlitePrinterLinkCategory(PrinterLinkCategory(
-                  printer_link_category_id: 0,
-                  printer_sqlite_id: printerID,
-                  category_sqlite_id: allCategories[i].category_sqlite_id.toString(),
-                  sync_status: 0,
-                  created_at: dateTime,
-                  updated_at: '',
-                  soft_delete: ''));
+      if(_isCashier){
+        PrinterLinkCategory data = await PosDatabase.instance
+            .insertSqlitePrinterLinkCategory(PrinterLinkCategory(
+            printer_link_category_id: 0,
+            printer_sqlite_id: printerID,
+            category_sqlite_id: '0',
+            sync_status: 0,
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: ''));
+      } else {
+        for (int i = 0; i < allCategories.length; i++) {
+          if (allCategories[i].isChecked == true) {
+            PrinterLinkCategory data = await PosDatabase.instance
+                .insertSqlitePrinterLinkCategory(PrinterLinkCategory(
+                printer_link_category_id: 0,
+                printer_sqlite_id: printerID,
+                category_sqlite_id: allCategories[i].category_sqlite_id.toString(),
+                sync_status: 0,
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+          }
         }
       }
+
       widget.callBack();
       closeDialog(context);
     } catch (e) {
@@ -419,15 +477,17 @@ class _PrinterDialogState extends State<PrinterDialog> {
 
   readPrinterCategory() async {
     try {
-      List<PrinterLinkCategory> data = await PosDatabase.instance
-          .readPrinterLinkCategory(widget.printerObject!.printer_sqlite_id!);
+      List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(widget.printerObject!.printer_sqlite_id!);
       if (data.length > 0) {
         for (int i = 0; i < data.length; i++) {
-          List<Categories> catData = await PosDatabase.instance
-              .readSpecificCategoryById(data[i].category_sqlite_id!);
-          if (!selectedCategories.contains(catData)) {
-            catData[0].isChecked = true;
-            selectedCategories.add(catData[0]);
+          if(data[i].category_sqlite_id == '0'){
+            _isCashier = true;
+          } else {
+            List<Categories> catData = await PosDatabase.instance.readSpecificCategoryById(data[i].category_sqlite_id!);
+            if (!selectedCategories.contains(catData)) {
+              catData[0].isChecked = true;
+              selectedCategories.add(catData[0]);
+            }
           }
         }
       }
@@ -453,7 +513,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
               .insertSqlitePrinterLinkCategory(PrinterLinkCategory(
                   printer_link_category_id: 0,
                   printer_sqlite_id: printer.printer_sqlite_id.toString(),
-                  category_sqlite_id: allCategories[i].category_sqlite_id.toString(),
+                  category_sqlite_id: _isCashier ? '0' : allCategories[i].category_sqlite_id.toString(),
                   sync_status: 0,
                   created_at: dateTime,
                   updated_at: '',

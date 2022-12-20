@@ -242,8 +242,12 @@ class _CartDialogState extends State<CartDialog> {
                 }
                 //checking table status and isSelect
                 if (tableList[index].status == 1 && tableList[index].isSelected == true) {
-                  await readSpecificTableDetail(tableList[index]);
-                  addToCart(cart, tableList[index]);
+                  this.isLoad = false;
+                  Future.delayed(const Duration(seconds: 1), () async {
+                    await readSpecificTableDetail(tableList[index]);
+                    addToCart(cart, tableList[index]);
+                    this.isLoad = true;
+                  });
 
                 } else if (tableList[index].status == 0 && tableList[index].isSelected == true) {
                   cart.addTable(tableList[index]);
@@ -486,24 +490,19 @@ class _CartDialogState extends State<CartDialog> {
       }
 
       //check product modifier
-      List<ModifierLinkProduct> productMod =
-          await PosDatabase.instance.readProductModifier(result[0].product_id!);
+      List<ModifierLinkProduct> productMod = await PosDatabase.instance.readProductModifier(result[0].product_sqlite_id!);
       if (productMod.length > 0) {
         orderDetailList[k].hasModifier = true;
       }
 
       if (orderDetailList[k].hasModifier == true) {
         //Get order modifier detail
-        List<OrderModifierDetail> modDetail = await PosDatabase.instance
-            .readOrderModifierDetail(
-                orderDetailList[k].order_detail_id.toString());
+        List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[k].order_detail_sqlite_id.toString());
         if (modDetail.length > 0) {
           orderDetailList[k].modifierItem.clear();
           for (int m = 0; m < modDetail.length; m++) {
             // print('mod detail length: ${modDetail.length}');
-            if (!orderDetailList[k]
-                .modifierItem
-                .contains(modDetail[m].mod_group_id!)) {
+            if (!orderDetailList[k].modifierItem.contains(modDetail[m].mod_group_id!)) {
               orderDetailList[k].modifierItem.add(ModifierItem(
                   mod_group_id: modDetail[m].mod_group_id!,
                   mod_item_id: int.parse(modDetail[m].mod_item_id!),
@@ -557,6 +556,46 @@ class _CartDialogState extends State<CartDialog> {
     }
     return modifierGroup;
   }
+
+  // getModifierGroupItem(OrderDetail orderDetail) {
+  //   modifierGroup = [];
+  //   List<ModifierItem> temp = List.from(orderDetail.modifierItem);
+  //
+  //   for (int j = 0; j < orderDetail.mod_group_id.length; j++) {
+  //     List<ModifierItem> modItemChild = [];
+  //     //check modifier group is existed or not
+  //     bool isModifierExisted = false;
+  //     int position = 0;
+  //     for (int g = 0; g < modifierGroup.length; g++) {
+  //       if (modifierGroup[g].mod_group_id == orderDetail.mod_group_id[j]) {
+  //         isModifierExisted = true;
+  //         position = g;
+  //         break;
+  //       }
+  //     }
+  //     //if new category
+  //     if (!isModifierExisted) {
+  //       modifierGroup.add(ModifierGroup(
+  //           modifierChild: [],
+  //           mod_group_id: int.parse(orderDetail.mod_group_id[j])));
+  //       position = modifierGroup.length - 1;
+  //     }
+  //
+  //     for (int k = 0; k < temp.length; k++) {
+  //       if (modifierGroup[position].mod_group_id.toString() ==
+  //           temp[k].mod_group_id) {
+  //         modItemChild.add(ModifierItem(
+  //             mod_group_id: orderDetail.mod_group_id[position],
+  //             mod_item_id: temp[k].mod_item_id,
+  //             name: temp[k].name,
+  //             isChecked: true));
+  //         temp.removeAt(k);
+  //       }
+  //     }
+  //     modifierGroup[position].modifierChild = modItemChild;
+  //   }
+  //   return modifierGroup;
+  // }
 
   getVariantGroupItem(OrderDetail orderDetail) {
     variantGroup = [];

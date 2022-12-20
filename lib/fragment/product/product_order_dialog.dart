@@ -389,6 +389,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   addToCart(CartModel cart) async {
+    int _seq = 1;
     //check selected variant
     for (int j = 0; j < variantGroup.length; j++) {
       VariantGroup group = variantGroup[j];
@@ -400,23 +401,46 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
         }
       }
     }
-
+    if(cart.cartNotifierItem.isNotEmpty){
+      _seq = cart.cartNotifierItem.last.sequence + 1;
+      var value = cartProductItem(
+          await getBranchLinkProductItem(widget.productDetail!),
+          widget.productDetail!.name!,
+          widget.productDetail!.category_id!,
+          await getProductPrice(widget.productDetail?.product_sqlite_id),
+          simpleIntInput,
+          modifierGroup,
+          variantGroup,
+          remarkController.text,
+          0,
+          null,
+          Colors.black,
+          category_sqlite_id: widget.productDetail!.category_sqlite_id,
+          sequence: _seq
+      );
+      cart.addItem(value);
+      // print('item seq: ${cart.cartNotifierItem.last.sequence}');
+    } else {
+      var value = cartProductItem(
+          await getBranchLinkProductItem(widget.productDetail!),
+          widget.productDetail!.name!,
+          widget.productDetail!.category_id!,
+          await getProductPrice(widget.productDetail?.product_sqlite_id),
+          simpleIntInput,
+          modifierGroup,
+          variantGroup,
+          remarkController.text,
+          0,
+          null,
+          Colors.black,
+          category_sqlite_id: widget.productDetail!.category_sqlite_id,
+          sequence: _seq
+      );
+      cart.addItem(value);
+    }
     //print(jsonEncode(modifierGroup.map((e) => e.addToCartJSon()).toList()));
-    var value = cartProductItem(
-      await getBranchLinkProductItem(widget.productDetail!),
-      widget.productDetail!.name!,
-      widget.productDetail!.category_id!,
-      await getProductPrice(widget.productDetail?.product_sqlite_id),
-      simpleIntInput,
-      modifierGroup,
-      variantGroup,
-      remarkController.text,
-      0,
-      null,
-      Colors.black,
-      category_sqlite_id: widget.productDetail!.category_sqlite_id
-    );
-    cart.addItem(value);
+    
+    
 
   }
 }

@@ -72,7 +72,7 @@ Future<void> main() async {
   }
 
   //second screen test(init second screen)
-  initSecondScreen();
+  //initSecondScreen();
 
   //other method
   statusBarColor();
@@ -188,7 +188,7 @@ initSecondScreen() async {
   final values = await displayManager.getDisplays();
   displays.clear();
   displays.addAll(values!);
-  if(displays.isNotEmpty){
+  if(displays.length > 1){
     await displayManager.showSecondaryDisplay(displayId: 1, routerName: "/init");
   }
   print('display list = ${displays.length}');
