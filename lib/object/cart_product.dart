@@ -19,7 +19,7 @@ class cartProductItem{
    String? orderCacheId;
    Color refColor = Colors.black;
    String? order_detail_sqlite_id;
-   int sequence = 0;
+   int? sequence = 0;
 
    cartProductItem(
        String branchProduct_id,

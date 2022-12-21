@@ -2049,8 +2049,8 @@ class PosDatabase {
   Future<List<OrderCache>> readBranchLatestOrderCache(int branch_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND branch_id = ? ORDER BY created_at DESC LIMIT 1',
-        ['', branch_id]);
+        'SELECT a.*, b.name FROM $tableOrderCache AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ? ORDER BY a.created_at DESC LIMIT 1',
+        ['', '', branch_id]);
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
@@ -2519,8 +2519,8 @@ class PosDatabase {
   Future<List<OrderCache>> readSpecificOrderCacheByOrderID(String order_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableOrderCache WHERE soft_delete != ? AND order_sqlite_id = ?',
-        ['', order_sqlite_id]);
+        'SELECT * FROM $tableOrderCache WHERE order_sqlite_id = ?',
+        [order_sqlite_id]);
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 

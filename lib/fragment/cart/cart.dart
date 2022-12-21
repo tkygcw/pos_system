@@ -13,6 +13,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/cart/promotion_dialog.dart';
 import 'package:pos_system/fragment/cart/remove_cart_dialog.dart';
+import 'package:pos_system/fragment/cart/reprint_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
@@ -522,112 +523,143 @@ class _CartPageState extends State<CartPage> {
                         SizedBox(height: 10),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              primary: color.backgroundColor,
-                              minimumSize: const Size.fromHeight(50), // NEW
-                            ),
-                            onPressed: () async {
-                              await checkCashRecord();
-                              if(_isSettlement == true){
-                                showDialog(
-                                    barrierDismissible: false, context: context, builder: (BuildContext context) {
-                                  return WillPopScope(
-                                      child: CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true),
-                                      onWillPop: () async => false);
-                                });
-                                _isSettlement = false;
-                              } else {
-                                if (widget.currentPage == 'menu' || widget.currentPage == 'qr_order') {
-                                  if (cart.selectedOption == 'Dine in') {
-                                    if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
-                                      if (cart.cartNotifierItem[0].status == 1) {
-                                        print('add new item');
-                                        await callAddOrderCache(cart);
-                                        cart.removeAllCartItem();
-                                        cart.removeAllTable();
+                          child: Row(
+                            children: [
+                              Expanded(
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      primary: color.backgroundColor,
+                                      minimumSize: const Size.fromHeight(50), // NEW
+                                    ),
+                                    onPressed: () async {
+                                      await checkCashRecord();
+                                      if(_isSettlement == true){
+                                        showDialog(
+                                            barrierDismissible: false, context: context, builder: (BuildContext context) {
+                                          return WillPopScope(
+                                              child: CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true),
+                                              onWillPop: () async => false);
+                                        });
+                                        _isSettlement = false;
                                       } else {
-                                        print('add order cache');
-                                        // if (printerList.length >= 0) {
-                                          await callCreateNewOrder(cart);
-                                          await _printCheckList();
-                                          await _printKitchenList(cart);
-                                          cart.removeAllCartItem();
-                                          cart.removeAllTable();
-                                        // } else {
-                                        //   Fluttertoast.showToast(
-                                        //       backgroundColor: Colors.red,
-                                        //       msg: "Printer not found");
-                                        // }
+                                        if (widget.currentPage == 'menu' || widget.currentPage == 'qr_order') {
+                                          if (cart.selectedOption == 'Dine in') {
+                                            if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
+                                              if (cart.cartNotifierItem[0].status == 1) {
+                                                print('add new item');
+                                                await callAddOrderCache(cart);
+                                                await _printCheckList();
+                                                await _printKitchenList(cart);
+                                                cart.removeAllCartItem();
+                                                cart.removeAllTable();
+                                              } else {
+                                                print('add order cache');
+                                                // if (printerList.length >= 0) {
+                                                await callCreateNewOrder(cart);
+                                                await _printCheckList();
+                                                await _printKitchenList(cart);
+                                                cart.removeAllCartItem();
+                                                cart.removeAllTable();
+                                                // } else {
+                                                //   Fluttertoast.showToast(
+                                                //       backgroundColor: Colors.red,
+                                                //       msg: "Printer not found");
+                                                // }
+                                              }
+                                            } else {
+                                              Fluttertoast.showToast(
+                                                  backgroundColor: Colors.red,
+                                                  msg: "make sure cart is not empty and table is selected");
+                                            }
+                                          } else {
+                                            // not dine in call
+                                            cart.removeAllTable();
+                                            if (cart.cartNotifierItem.isNotEmpty) {
+                                              await callCreateNewNotDineOrder(cart);
+                                              await _printCheckList();
+                                              await _printKitchenList(cart);
+                                              cart.removeAllCartItem();
+                                              cart.selectedTable.clear();
+                                            } else {
+                                              Fluttertoast.showToast(
+                                                  backgroundColor: Colors.red,
+                                                  msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                            }
+                                          }
+                                        } else if(widget.currentPage == 'table') {
+                                          if(cart.selectedTable.isNotEmpty){
+                                            if(cart.selectedTable.length > 1){
+                                              if (await confirm(
+                                                context,
+                                                title: Text(
+                                                    '${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
+                                                content: Text(
+                                                    '${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
+                                                textOK: Text(
+                                                    '${AppLocalizations.of(context)?.translate('yes')}'),
+                                                textCancel: Text(
+                                                    '${AppLocalizations.of(context)?.translate('no')}'),
+                                              )) {
+                                                return openPaymentSelect();
+                                              }
+                                            } else {
+                                              openPaymentSelect();
+                                            }
+                                          } else {
+                                            Fluttertoast.showToast(
+                                                backgroundColor: Colors.red,
+                                                msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                          }
+                                        } else if(widget.currentPage == 'other_order'){
+                                          if(cart.cartNotifierItem.isNotEmpty){
+                                            openPaymentSelect();
+                                          } else {
+                                            Fluttertoast.showToast(
+                                                backgroundColor: Colors.red,
+                                                msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                          }
+                                        } else {
+                                          if(cart.cartNotifierItem.isNotEmpty){
+                                            await _printReceiptList();
+                                          } else {
+                                            Fluttertoast.showToast(
+                                                backgroundColor: Colors.red,
+                                                msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                          }
+                                        }
                                       }
-                                    } else {
-                                      Fluttertoast.showToast(
-                                          backgroundColor: Colors.red,
-                                          msg: "make sure cart is not empty and table is selected");
-                                    }
-                                  } else {
-                                    // not dine in call
-                                    cart.removeAllTable();
-                                    if (cart.cartNotifierItem.isNotEmpty) {
-                                      await callCreateNewNotDineOrder(cart);
-                                      //await createOrderCache(cart);
-                                      // await updatePosTable(cart);
-                                      cart.removeAllCartItem();
-                                      cart.selectedTable.clear();
-                                    } else {
-                                      Fluttertoast.showToast(
-                                          backgroundColor: Colors.red,
-                                          msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                    }
-                                  }
-                                } else if(widget.currentPage == 'table') {
-                                  if(cart.selectedTable.isNotEmpty){
-                                    if(cart.selectedTable.length > 1){
-                                      if (await confirm(
-                                        context,
-                                        title: Text(
-                                            '${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
-                                        content: Text(
-                                            '${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
-                                        textOK: Text(
-                                            '${AppLocalizations.of(context)?.translate('yes')}'),
-                                        textCancel: Text(
-                                            '${AppLocalizations.of(context)?.translate('no')}'),
-                                      )) {
-                                        return openPaymentSelect();
-                                      }
-                                    } else {
-                                      openPaymentSelect();
-                                    }
-                                  } else {
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Colors.red,
-                                        msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                  }
-                                } else if(widget.currentPage == 'other_order'){
-                                  if(cart.cartNotifierItem.isNotEmpty){
-                                    openPaymentSelect();
-                                  } else {
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Colors.red,
-                                        msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                  }
-                                } else {
-                                  if(cart.cartNotifierItem.isNotEmpty){
-                                    _printReceiptList();
-                                  } else {
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Colors.red,
-                                        msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                  }
-                                }
-                              }
-                            },
-                            child: widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
-                                ? Text('Place order (RM ${this.finalAmount})')
-                                : widget.currentPage == 'table' || widget.currentPage == 'other_order' ?
-                                  Text('Make payment (RM ${this.finalAmount})')
-                                : Text('Print Receipt'),
+                                    },
+                                    child: widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
+                                        ? Text('Place Order\n (RM ${this.finalAmount})')
+                                        : widget.currentPage == 'table' || widget.currentPage == 'other_order' ?
+                                    Text('Make payment (RM ${this.finalAmount})')
+                                        : Text('Print Receipt'),
+                                  )
+                              ),
+                              Visibility(
+                                visible: cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status == 1 ? true : false,
+                                child: Expanded(
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: 10,),
+                                      Expanded(
+                                          child: ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              primary: color.backgroundColor,
+                                              minimumSize: const Size.fromHeight(50), // NEW
+                                            ),
+                                            onPressed: () {
+                                              //openReprintDialog(printerList, cart);
+                                              print('reprint checklist');
+                                            },
+                                            child: Text('Print Check List'),
+                                          )
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            ],
                           ),
                         ),
                       ],
@@ -643,10 +675,9 @@ class _CartPageState extends State<CartPage> {
   _printReceiptList() async {
     try {
       for (int i = 0; i < printerList.length; i++) {
-        List<PrinterLinkCategory> data = await PosDatabase.instance
-            .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+        List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
         for(int j = 0; j < data.length; j++){
-          if (data[j].category_sqlite_id == '3') {
+          if (data[j].category_sqlite_id == '0') {
             if(printerList[i].type == 0){
               var printerDetail = jsonDecode(printerList[i].value!);
               if(printerList[i].paper_size == 0){
@@ -685,15 +716,13 @@ class _CartPageState extends State<CartPage> {
   }
 
   _printCheckList() async {
-    print('check List called!');
     try {
       for (int i = 0; i < printerList.length; i++) {
         List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-        print('printer link category length: ${data.length}');
         for(int j = 0; j < data.length; j++){
-          if (data[j].category_sqlite_id == '3') {
+          if (data[j].category_sqlite_id == '0') {
+            var printerDetail = jsonDecode(printerList[i].value!);
             if(printerList[i].type == 0){
-              var printerDetail = jsonDecode(printerList[i].value!);
               if(printerList[i].paper_size == 0){
                 var data = Uint8List.fromList(await ReceiptLayout().printCheckList80mm(true));
                 bool? isConnected = await flutterUsbPrinter.connect(
@@ -717,7 +746,30 @@ class _CartPageState extends State<CartPage> {
               }
 
             } else {
-              print("print lan");
+              //print LAN
+              if(printerList[i].paper_size == 0){
+                //print 80mm paper
+                final profile = await CapabilityProfile.load();
+                final printer = NetworkPrinter(PaperSize.mm80, profile);
+                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+                if (res == PosPrintResult.success) {
+                  await ReceiptLayout().printCheckList80mm(false, value: printer);
+                  printer.disconnect();
+                } else {
+                  print('not connected');
+                }
+              } else {
+                // print 58mm paper
+                final profile = await CapabilityProfile.load();
+                final printer = NetworkPrinter(PaperSize.mm58, profile);
+                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+                if (res == PosPrintResult.success) {
+                  await ReceiptLayout().printCheckList58mm(false, value: printer);
+                  printer.disconnect();
+                } else {
+                  print('not connected');
+                }
+              }
             }
           }
         }
@@ -735,7 +787,7 @@ class _CartPageState extends State<CartPage> {
       for(int j = 0; j < data.length; j++){
         for(int k = 0; k < cart.cartNotifierItem.length; k++){
           //check printer category
-          if (cart.cartNotifierItem[k].category_sqlite_id == data[j].category_sqlite_id) {
+          if (cart.cartNotifierItem[k].category_sqlite_id == data[j].category_sqlite_id && cart.cartNotifierItem[k].status == 0) {
             //check printer type
             if(printerList[i].type == 1){
               var printerDetail = jsonDecode(printerList[i].value!);
@@ -753,13 +805,22 @@ class _CartPageState extends State<CartPage> {
                   print('not connected');
                 }
               } else {
-                print('print 58mm');
+                //print LAN 58mm
+                final profile = await CapabilityProfile.load();
+                final printer = NetworkPrinter(PaperSize.mm80, profile);
+                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+
+                if (res == PosPrintResult.success) {
+                  await ReceiptLayout().printKitchenList58mm(false, cart.cartNotifierItem[k], value: printer);
+                  printer.disconnect();
+                } else {
+                  print('not connected');
+                }
               }
             } else {
               if(printerList[i].paper_size == 0) {
                 var printerDetail = jsonDecode(printerList[i].value!);
-                var data = Uint8List.fromList(await ReceiptLayout()
-                    .printKitchenList80mm(true, cart.cartNotifierItem[k]));
+                var data = Uint8List.fromList(await ReceiptLayout().printKitchenList80mm(true, cart.cartNotifierItem[k]));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']),
                     int.parse(printerDetail['productId']));
@@ -769,7 +830,17 @@ class _CartPageState extends State<CartPage> {
                   print('not connected');
                 }
               } else {
-                print('print 58mm');
+                //print 58mm
+                var printerDetail = jsonDecode(printerList[i].value!);
+                var data = Uint8List.fromList(await ReceiptLayout().printKitchenList58mm(true, cart.cartNotifierItem[k]));
+                bool? isConnected = await flutterUsbPrinter.connect(
+                    int.parse(printerDetail['vendorId']),
+                    int.parse(printerDetail['productId']));
+                if (isConnected == true) {
+                  await flutterUsbPrinter.write(data);
+                } else {
+                  print('not connected');
+                }
               }
             }
           }
@@ -1094,6 +1165,7 @@ class _CartPageState extends State<CartPage> {
       //get dining option data
       List<DiningOption> data = await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
       diningOptionID = data[0].dining_id!;
+
       //get dining tax
       List<Tax> taxData = await PosDatabase.instance.readTax(branch_id.toString(), diningOptionID.toString());
       if (taxData.length > 0) {
@@ -1233,6 +1305,31 @@ class _CartPageState extends State<CartPage> {
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+  Future<Future<Object?>> openReprintDialog(List<Printer> printerList, CartModel cart) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: ReprintDialog(
+                printerList: printerList,
+                cart: cart,
+              ),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+
+  }
 
   Future<Future<Object?>> openChooseTableDialog(CartModel cartModel) async {
     return showGeneralDialog(
@@ -1672,21 +1769,25 @@ class _CartPageState extends State<CartPage> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     final String? user = prefs.getString('user');
+    List<TableUse> _tableUse = [];
     Map userObject = json.decode(user!);
     String _tableUseId = '';
     int batch = 0;
     try {
       batch = await batchChecking();
       //check selected table is in use or not
-      for (int i = 0; i < cart.selectedTable.length; i++) {
-        List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
-        if (useDetail.length > 0) {
-          _tableUseId = useDetail[0].table_use_sqlite_id!;
-        } else {
-          _tableUseId = this.localTableUseId;
+      if(cart.selectedOption == 'Dine in'){
+        for (int i = 0; i < cart.selectedTable.length; i++) {
+          List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
+          if (useDetail.length > 0) {
+            _tableUseId = useDetail[0].table_use_sqlite_id!;
+          } else {
+            _tableUseId = this.localTableUseId;
+          }
         }
+        List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
+        _tableUse = tableUseData;
       }
-      List<TableUse> tableUse = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
       if (batch != 0) {
         //create order cache
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
@@ -1697,7 +1798,7 @@ class _CartPageState extends State<CartPage> {
                 branch_id: branch_id.toString(),
                 order_detail_id: '',
                 table_use_sqlite_id: cart.selectedOption == 'Dine in' ? _tableUseId : '',
-                table_use_key: cart.selectedOption == 'Dine in' ? tableUse[0].table_use_key : '',
+                table_use_key: cart.selectedOption == 'Dine in' ? _tableUse[0].table_use_key : '',
                 batch_id: batch.toString().padLeft(5, '0'),
                 dining_id: this.diningOptionID.toString(),
                 order_sqlite_id: '',

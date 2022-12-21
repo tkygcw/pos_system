@@ -603,9 +603,9 @@ class _CartDialogState extends State<CartDialog> {
     for (int i = 0; i < orderDetail.variantItem.length; i++) {
       variantGroup.add(VariantGroup(
           child: orderDetail.variantItem,
-          variant_group_id:
-              int.parse(orderDetail.variantItem[i].variant_group_id!)));
+          variant_group_id: int.parse(orderDetail.variantItem[i].variant_group_id!)));
     }
+
     //print('variant group length: ${variantGroup.length}');
     return variantGroup;
   }
@@ -626,7 +626,8 @@ class _CartDialogState extends State<CartDialog> {
           orderDetailList[i].remark!,
           1,
           null,
-          Colors.black);
+          Colors.black,
+          category_sqlite_id: orderDetailList[i].category_sqlite_id);
       cart.addItem(value);
     }
     for (int j = 0; j < orderCacheList.length; j++) {

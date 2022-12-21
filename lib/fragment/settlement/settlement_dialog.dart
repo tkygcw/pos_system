@@ -225,13 +225,13 @@ class _SettlementDialogState extends State<SettlementDialog> {
     print('printer called');
     try {
       for (int i = 0; i < printerList.length; i++) {
-        List<PrinterLinkCategory> data = await PosDatabase.instance
-            .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+        List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
         for (int j = 0; j < data.length; j++) {
-          if (data[j].category_sqlite_id == '3') {
+          if (data[j].category_sqlite_id == '0') {
+            var printerDetail = jsonDecode(printerList[i].value!);
             if (printerList[i].type == 0) {
-              var printerDetail = jsonDecode(printerList[i].value!);
               if(printerList[i].paper_size == 0){
+                //print USB 80mm
                 var data = Uint8List.fromList(await ReceiptLayout().printSettlementList80mm(true, dateTime));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']),
@@ -242,6 +242,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
                   print('not connected');
                 }
               } else {
+                //print USB 58mm
                 var data = Uint8List.fromList(await ReceiptLayout().printSettlementList58mm(true, dateTime));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']),
@@ -253,9 +254,19 @@ class _SettlementDialogState extends State<SettlementDialog> {
                 }
               }
             } else {
-              if(printerList[i].paper_size == 1){
-                var printerDetail = jsonDecode(printerList[i].value!);
-                //print LAN
+              if(printerList[i].paper_size == 0){
+                //print LAN 80mm
+                final profile = await CapabilityProfile.load();
+                final printer = NetworkPrinter(PaperSize.mm80, profile);
+                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+                if (res == PosPrintResult.success) {
+                  await ReceiptLayout().printSettlementList80mm(false, dateTime, value: printer);
+                  printer.disconnect();
+                } else {
+                  print('not connected');
+                }
+              } else {
+                //print LAN 58mm
                 final profile = await CapabilityProfile.load();
                 final printer = NetworkPrinter(PaperSize.mm58, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100);

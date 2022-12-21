@@ -206,7 +206,7 @@ class _PosPinPageState extends State<PosPinPage> {
     List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord(branch_id.toString());
     if(data.length > 0){
       if(await settlementUserCheck(user.user_id.toString()) == true){
-        //await _printCashBalanceList();
+        await _printCashBalanceList();
         isNewDay = false;
         print('print a cash balance receipt');
       } else{
@@ -239,20 +239,33 @@ class _PosPinPageState extends State<PosPinPage> {
     print('printer called');
     try {
       for (int i = 0; i < printerList.length; i++) {
-        List<PrinterLinkCategory> data = await PosDatabase.instance
-            .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+        List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
         for (int j = 0; j < data.length; j++) {
-          if (data[j].category_sqlite_id == '3') {
+          if (data[j].category_sqlite_id == '0') {
+            var printerDetail = jsonDecode(printerList[i].value!);
             if (printerList[i].type == 0) {
-              var printerDetail = jsonDecode(printerList[i].value!);
-              var data = Uint8List.fromList(await ReceiptLayout().printCashBalanceList80mm(true, null, widget.cashBalance!));
-              bool? isConnected = await flutterUsbPrinter.connect(
-                  int.parse(printerDetail['vendorId']),
-                  int.parse(printerDetail['productId']));
-              if (isConnected == true) {
-                await flutterUsbPrinter.write(data);
+              if(printerList[i].paper_size == 0){
+                //print usb 80mm
+                var data = Uint8List.fromList(await ReceiptLayout().printCashBalanceList80mm(true, widget.cashBalance!));
+                bool? isConnected = await flutterUsbPrinter.connect(
+                    int.parse(printerDetail['vendorId']),
+                    int.parse(printerDetail['productId']));
+                if (isConnected == true) {
+                  await flutterUsbPrinter.write(data);
+                } else {
+                  print('not connected');
+                }
               } else {
-                print('not connected');
+                //print usb 58mm
+                var data = Uint8List.fromList(await ReceiptLayout().printCashBalanceList58mm(true, widget.cashBalance!));
+                bool? isConnected = await flutterUsbPrinter.connect(
+                    int.parse(printerDetail['vendorId']),
+                    int.parse(printerDetail['productId']));
+                if (isConnected == true) {
+                  await flutterUsbPrinter.write(data);
+                } else {
+                  print('not connected');
+                }
               }
             } else {
               print("print lan");

@@ -75,6 +75,7 @@ class OrderCache{
   String? soft_delete;
   String? card_color;
   bool is_selected = false;
+  String? dining_name;
 
   OrderCache(
       {this.order_cache_sqlite_id,
@@ -99,7 +100,8 @@ class OrderCache{
         this.created_at,
         this.updated_at,
         this.soft_delete,
-        this.card_color});
+        this.card_color,
+        this.dining_name});
 
   OrderCache copy({
     int? order_cache_sqlite_id,
@@ -172,7 +174,8 @@ class OrderCache{
     created_at: json[OrderCacheFields.created_at] as String?,
     updated_at: json[OrderCacheFields.updated_at] as String?,
     soft_delete: json[OrderCacheFields.soft_delete] as String?,
-    card_color: json['card_color'] as String?
+    card_color: json['card_color'] as String?,
+    dining_name: json['name'] as String?
   );
 
   Map<String, Object?> toJson() => {

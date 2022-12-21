@@ -40,19 +40,21 @@ class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
             ? Container(
                 height: MediaQuery.of(context).size.height / 3,
                 width: MediaQuery.of(context).size.width / 3,
-                child: Column(
-                  children: [
-                    for (int i = 0; i < categoryList.length; i++)
-                      CheckboxListTile(
-                          title: Text('${categoryList[i].name}'),
-                          activeColor: color.backgroundColor,
-                          value: categoryList[i].isChecked,
-                          onChanged: (isChecked) {
-                            setState(() {
-                              categoryList[i].isChecked = isChecked!;
-                            });
-                          })
-                  ],
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      for (int i = 0; i < categoryList.length; i++)
+                        CheckboxListTile(
+                            title: Text('${categoryList[i].name}'),
+                            activeColor: color.backgroundColor,
+                            value: categoryList[i].isChecked,
+                            onChanged: (isChecked) {
+                              setState(() {
+                                categoryList[i].isChecked = isChecked!;
+                              });
+                            })
+                    ],
+                  ),
                 ))
             : CustomProgressBar(),
         actions: <Widget>[

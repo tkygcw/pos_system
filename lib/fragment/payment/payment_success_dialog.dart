@@ -170,7 +170,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       await updatePosTableStatus(0);
     }
     await updateOrderCache();
-    await deleteOrderCache();
+    //await deleteOrderCache();
     isLoaded = true;
 
   }
@@ -439,11 +439,10 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
         List<PrinterLinkCategory> data = await PosDatabase.instance
             .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
         for(int j = 0; j < data.length; j++){
-          if (data[j].category_sqlite_id == '3') {
+          if (data[j].category_sqlite_id == '0') {
             if(printerList[i].type == 0){
               var printerDetail = jsonDecode(printerList[i].value!);
-              var data = Uint8List.fromList(await ReceiptLayout()
-                  .printReceipt80mm(true, widget.orderId));
+              var data = Uint8List.fromList(await ReceiptLayout().printReceipt80mm(true, widget.orderId));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']),
                   int.parse(printerDetail['productId']));

@@ -34,7 +34,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   String basePrice = '';
   int simpleIntInput = 1;
   String modifierItemPrice = '';
-  List<VariantGroup> variantGroup = [];
+  List<VariantGroup>  variantGroup = [];
   List<ModifierGroup> modifierGroup = [];
   final remarkController = TextEditingController();
   final quantityController = TextEditingController();
@@ -402,7 +402,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       }
     }
     if(cart.cartNotifierItem.isNotEmpty){
-      _seq = cart.cartNotifierItem.last.sequence + 1;
+      //_seq = cart.cartNotifierItem.last.sequence! + 1;
       var value = cartProductItem(
           await getBranchLinkProductItem(widget.productDetail!),
           widget.productDetail!.name!,

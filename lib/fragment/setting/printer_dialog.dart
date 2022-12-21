@@ -81,24 +81,17 @@ class _PrinterDialogState extends State<PrinterDialog> {
   void _submit(BuildContext context) {
     setState(() => _submitted = true);
     if (errorPrinterLabel == null) {
-      if (printerValue.length > 0 && _isCashier) {
+      if (printerValue.length > 0 && selectedCategories.isNotEmpty) {
+        print('selected category: ${selectedCategories.length}');
         if (_isUpdate == false) {
           callAddNewPrinter(printerValue, selectedCategories);
         } else {
           callUpdatePrinter(selectedCategories, widget.printerObject!);
         }
       } else {
-        if(selectedCategories.isNotEmpty){
-          if (_isUpdate == false) {
-            callAddNewPrinter(printerValue, selectedCategories);
-          } else {
-            callUpdatePrinter(selectedCategories, widget.printerObject!);
-          }
-        }else {
-          Fluttertoast.showToast(
-              backgroundColor: Color(0xFFFF0000),
-              msg: "Make sure printer and category is selected");
-        }
+        Fluttertoast.showToast(
+            backgroundColor: Color(0xFFFF0000),
+            msg: "Make sure printer and category is selected");
       }
     }
   }
@@ -291,7 +284,16 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                 onChanged: (value){
                                   setState(() {
                                     _isCashier = value!;
+                                    if(_isCashier){
+                                      selectedCategories.clear();
+                                      selectedCategories.add(Categories(category_sqlite_id: 0));
+                                      selectedCategories[0].isChecked = true;
+                                    } else {
+                                      selectedCategories[0].isChecked = false;
+                                      selectedCategories.clear();
+                                    }
                                   });
+                                  print('selected category length: ${selectedCategories.length}');
                                 }
                             ),
                           )
@@ -313,6 +315,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                     color: Colors.blueGrey),
                               ),
                               SizedBox(height: 10),
+                              !_isCashier ?
                               Wrap(
                                 runSpacing: 5,
                                 spacing: 10,
@@ -334,7 +337,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                     deleteButtonTooltipMessage: 'remove',
                                   );
                                 })
-                              ),
+                              ): Container(),
                               Container(
                                 alignment: Alignment.center,
                                 child: ElevatedButton(
@@ -440,29 +443,17 @@ class _PrinterDialogState extends State<PrinterDialog> {
     try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-      if(_isCashier){
-        PrinterLinkCategory data = await PosDatabase.instance
-            .insertSqlitePrinterLinkCategory(PrinterLinkCategory(
-            printer_link_category_id: 0,
-            printer_sqlite_id: printerID,
-            category_sqlite_id: '0',
-            sync_status: 0,
-            created_at: dateTime,
-            updated_at: '',
-            soft_delete: ''));
-      } else {
-        for (int i = 0; i < allCategories.length; i++) {
-          if (allCategories[i].isChecked == true) {
-            PrinterLinkCategory data = await PosDatabase.instance
-                .insertSqlitePrinterLinkCategory(PrinterLinkCategory(
-                printer_link_category_id: 0,
-                printer_sqlite_id: printerID,
-                category_sqlite_id: allCategories[i].category_sqlite_id.toString(),
-                sync_status: 0,
-                created_at: dateTime,
-                updated_at: '',
-                soft_delete: ''));
-          }
+      for (int i = 0; i < allCategories.length; i++) {
+        if (allCategories[i].isChecked == true) {
+          PrinterLinkCategory data = await PosDatabase.instance
+              .insertSqlitePrinterLinkCategory(PrinterLinkCategory(
+              printer_link_category_id: 0,
+              printer_sqlite_id: printerID,
+              category_sqlite_id: allCategories[i].category_sqlite_id.toString(),
+              sync_status: 0,
+              created_at: dateTime,
+              updated_at: '',
+              soft_delete: ''));
         }
       }
 
@@ -482,6 +473,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
         for (int i = 0; i < data.length; i++) {
           if(data[i].category_sqlite_id == '0'){
             _isCashier = true;
+            selectedCategories.add(Categories(category_sqlite_id: 0));
+            selectedCategories[0].isChecked = true;
           } else {
             List<Categories> catData = await PosDatabase.instance.readSpecificCategoryById(data[i].category_sqlite_id!);
             if (!selectedCategories.contains(catData)) {
@@ -513,7 +506,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
               .insertSqlitePrinterLinkCategory(PrinterLinkCategory(
                   printer_link_category_id: 0,
                   printer_sqlite_id: printer.printer_sqlite_id.toString(),
-                  category_sqlite_id: _isCashier ? '0' : allCategories[i].category_sqlite_id.toString(),
+                  category_sqlite_id: allCategories[i].category_sqlite_id.toString(),
                   sync_status: 0,
                   created_at: dateTime,
                   updated_at: '',
@@ -535,10 +528,11 @@ class _PrinterDialogState extends State<PrinterDialog> {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
 
-      int data = await PosDatabase.instance.deletePrinterCategory(
-          PrinterLinkCategory(
-              soft_delete: dateTime,
-              printer_sqlite_id: printer.printer_sqlite_id.toString()));
+      PrinterLinkCategory printerLinkCategoryObject = PrinterLinkCategory(
+          soft_delete: dateTime,
+          printer_sqlite_id: printer.printer_sqlite_id.toString());
+
+      int data = await PosDatabase.instance.deletePrinterCategory(printerLinkCategoryObject);
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
@@ -551,13 +545,15 @@ class _PrinterDialogState extends State<PrinterDialog> {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
 
-      int data = await PosDatabase.instance.updatePrinter(Printer(
+      Printer printerObject = Printer(
           printerLabel: printerLabelController.text,
           type: _typeStatus,
           value: printerValue[0],
           paper_size: _paperSize,
           updated_at: dateTime,
-          printer_sqlite_id: widget.printerObject!.printer_sqlite_id));
+          printer_sqlite_id: widget.printerObject!.printer_sqlite_id);
+
+      int data = await PosDatabase.instance.updatePrinter(printerObject);
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
@@ -632,7 +628,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
     setState(() {
       selectedCategories.clear();
       for (int i = 0; i < callBackList.length; i++) {
-        if (callBackList[i].isChecked) {
+        if (callBackList[i].isChecked!) {
           selectedCategories.add(callBackList[i]);
         }
       }

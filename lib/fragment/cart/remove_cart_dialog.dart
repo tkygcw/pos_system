@@ -331,7 +331,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       for (int i = 0; i < printerList.length; i++) {
         List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
         for (int j = 0; j < data.length; j++) {
-          if (data[j].category_sqlite_id == '3') {
+          if (data[j].category_sqlite_id == '0') {
             var printerDetail = jsonDecode(printerList[i].value!);
             if (printerList[i].type == 0) {
               var data = Uint8List.fromList(await ReceiptLayout().printDeleteItemList80mm(true, orderCacheId, dateTime));
