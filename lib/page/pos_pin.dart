@@ -2,6 +2,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:esc_pos_printer/esc_pos_printer.dart';
+import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
@@ -268,7 +270,30 @@ class _PosPinPageState extends State<PosPinPage> {
                 }
               }
             } else {
-              print("print lan");
+              //print LAN
+              if(printerList[i].paper_size == 0){
+                //print 80mm
+                final profile = await CapabilityProfile.load();
+                final printer = NetworkPrinter(PaperSize.mm80, profile);
+                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+                if (res == PosPrintResult.success) {
+                  await ReceiptLayout().printCashBalanceList80mm(false, widget.cashBalance!, value: printer);
+                  printer.disconnect();
+                } else {
+                  print('not connected');
+                }
+              } else {
+                //print 58mm
+                final profile = await CapabilityProfile.load();
+                final printer = NetworkPrinter(PaperSize.mm58, profile);
+                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+                if (res == PosPrintResult.success) {
+                  await ReceiptLayout().printCashBalanceList58mm(false, widget.cashBalance!, value: printer);
+                  printer.disconnect();
+                } else {
+                  print('not connected');
+                }
+              }
             }
           }
         }

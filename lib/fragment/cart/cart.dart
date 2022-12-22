@@ -15,6 +15,7 @@ import 'package:pos_system/fragment/cart/promotion_dialog.dart';
 import 'package:pos_system/fragment/cart/remove_cart_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
+import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
@@ -523,144 +524,147 @@ class _CartPageState extends State<CartPage> {
                         SizedBox(height: 10),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      primary: color.backgroundColor,
-                                      minimumSize: const Size.fromHeight(50), // NEW
-                                    ),
-                                    onPressed: () async {
-                                      await checkCashRecord();
-                                      if(_isSettlement == true){
-                                        showDialog(
-                                            barrierDismissible: false, context: context, builder: (BuildContext context) {
-                                          return WillPopScope(
-                                              child: CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true),
-                                              onWillPop: () async => false);
-                                        });
-                                        _isSettlement = false;
-                                      } else {
-                                        if (widget.currentPage == 'menu' || widget.currentPage == 'qr_order') {
-                                          if (cart.selectedOption == 'Dine in') {
-                                            if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
-                                              if (cart.cartNotifierItem[0].status == 1) {
-                                                print('add new item');
-                                                await callAddOrderCache(cart);
-                                                await _printCheckList();
-                                                await _printKitchenList(cart);
-                                                cart.removeAllCartItem();
-                                                cart.removeAllTable();
+                          child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+                            return Row(
+                              children: [
+                                Expanded(
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        primary: color.backgroundColor,
+                                        minimumSize: const Size.fromHeight(50), // NEW
+                                      ),
+                                      onPressed: () async {
+                                        await checkCashRecord();
+                                        if(_isSettlement == true){
+                                          showDialog(
+                                              barrierDismissible: false, context: context, builder: (BuildContext context) {
+                                            return WillPopScope(
+                                                child: CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true),
+                                                onWillPop: () async => false);
+                                          });
+                                          _isSettlement = false;
+                                        } else {
+                                          if (widget.currentPage == 'menu' || widget.currentPage == 'qr_order') {
+                                            if (cart.selectedOption == 'Dine in') {
+                                              if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
+                                                if (cart.cartNotifierItem[0].status == 1) {
+                                                  print('add new item');
+                                                  await callAddOrderCache(cart, connectivity);
+                                                  await _printCheckList();
+                                                  await _printKitchenList(cart);
+                                                  cart.removeAllCartItem();
+                                                  cart.removeAllTable();
+                                                } else {
+                                                  print('add order cache');
+                                                  // if (printerList.length >= 0) {
+                                                  await callCreateNewOrder(cart, connectivity);
+                                                  await _printCheckList();
+                                                  await _printKitchenList(cart);
+                                                  cart.removeAllCartItem();
+                                                  cart.removeAllTable();
+                                                  // } else {
+                                                  //   Fluttertoast.showToast(
+                                                  //       backgroundColor: Colors.red,
+                                                  //       msg: "Printer not found");
+                                                  // }
+                                                }
                                               } else {
-                                                print('add order cache');
-                                                // if (printerList.length >= 0) {
-                                                await callCreateNewOrder(cart);
+                                                Fluttertoast.showToast(
+                                                    backgroundColor: Colors.red,
+                                                    msg: "make sure cart is not empty and table is selected");
+                                              }
+                                            } else {
+                                              // not dine in call
+                                              cart.removeAllTable();
+                                              if (cart.cartNotifierItem.isNotEmpty) {
+                                                await callCreateNewNotDineOrder(cart, connectivity);
                                                 await _printCheckList();
                                                 await _printKitchenList(cart);
                                                 cart.removeAllCartItem();
-                                                cart.removeAllTable();
-                                                // } else {
-                                                //   Fluttertoast.showToast(
-                                                //       backgroundColor: Colors.red,
-                                                //       msg: "Printer not found");
-                                                // }
+                                                cart.selectedTable.clear();
+                                              } else {
+                                                Fluttertoast.showToast(
+                                                    backgroundColor: Colors.red,
+                                                    msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                              }
+                                            }
+                                          } else if(widget.currentPage == 'table') {
+                                            if(cart.selectedTable.isNotEmpty){
+                                              if(cart.selectedTable.length > 1){
+                                                if (await confirm(
+                                                  context,
+                                                  title: Text(
+                                                      '${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
+                                                  content: Text(
+                                                      '${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
+                                                  textOK: Text(
+                                                      '${AppLocalizations.of(context)?.translate('yes')}'),
+                                                  textCancel: Text(
+                                                      '${AppLocalizations.of(context)?.translate('no')}'),
+                                                )) {
+                                                  return openPaymentSelect();
+                                                }
+                                              } else {
+                                                openPaymentSelect();
                                               }
                                             } else {
                                               Fluttertoast.showToast(
                                                   backgroundColor: Colors.red,
-                                                  msg: "make sure cart is not empty and table is selected");
+                                                  msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                            }
+                                          } else if(widget.currentPage == 'other_order'){
+                                            if(cart.cartNotifierItem.isNotEmpty){
+                                              openPaymentSelect();
+                                            } else {
+                                              Fluttertoast.showToast(
+                                                  backgroundColor: Colors.red,
+                                                  msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                             }
                                           } else {
-                                            // not dine in call
-                                            cart.removeAllTable();
-                                            if (cart.cartNotifierItem.isNotEmpty) {
-                                              await callCreateNewNotDineOrder(cart);
-                                              await _printCheckList();
-                                              await _printKitchenList(cart);
-                                              cart.removeAllCartItem();
-                                              cart.selectedTable.clear();
+                                            if(cart.cartNotifierItem.isNotEmpty){
+                                              await _printReceiptList();
                                             } else {
                                               Fluttertoast.showToast(
                                                   backgroundColor: Colors.red,
                                                   msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                             }
                                           }
-                                        } else if(widget.currentPage == 'table') {
-                                          if(cart.selectedTable.isNotEmpty){
-                                            if(cart.selectedTable.length > 1){
-                                              if (await confirm(
-                                                context,
-                                                title: Text(
-                                                    '${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
-                                                content: Text(
-                                                    '${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
-                                                textOK: Text(
-                                                    '${AppLocalizations.of(context)?.translate('yes')}'),
-                                                textCancel: Text(
-                                                    '${AppLocalizations.of(context)?.translate('no')}'),
-                                              )) {
-                                                return openPaymentSelect();
-                                              }
-                                            } else {
-                                              openPaymentSelect();
-                                            }
-                                          } else {
-                                            Fluttertoast.showToast(
-                                                backgroundColor: Colors.red,
-                                                msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                          }
-                                        } else if(widget.currentPage == 'other_order'){
-                                          if(cart.cartNotifierItem.isNotEmpty){
-                                            openPaymentSelect();
-                                          } else {
-                                            Fluttertoast.showToast(
-                                                backgroundColor: Colors.red,
-                                                msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                          }
-                                        } else {
-                                          if(cart.cartNotifierItem.isNotEmpty){
-                                            await _printReceiptList();
-                                          } else {
-                                            Fluttertoast.showToast(
-                                                backgroundColor: Colors.red,
-                                                msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                          }
                                         }
-                                      }
-                                    },
-                                    child: widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
-                                        ? Text('Place Order\n (RM ${this.finalAmount})')
-                                        : widget.currentPage == 'table' || widget.currentPage == 'other_order' ?
-                                    Text('Make payment (RM ${this.finalAmount})')
-                                        : Text('Print Receipt'),
-                                  )
-                              ),
-                              Visibility(
-                                visible: cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status == 1 ? true : false,
-                                child: Expanded(
-                                  child: Row(
-                                    children: [
-                                      SizedBox(width: 10,),
-                                      Expanded(
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              primary: color.backgroundColor,
-                                              minimumSize: const Size.fromHeight(50), // NEW
-                                            ),
-                                            onPressed: () {
-                                              //openReprintDialog(printerList, cart);
-                                              print('reprint checklist');
-                                            },
-                                            child: Text('Print Check List'),
-                                          )
-                                      ),
-                                    ],
-                                  ),
+                                      },
+                                      child: widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
+                                          ? Text('Place Order\n (RM ${this.finalAmount})')
+                                          : widget.currentPage == 'table' || widget.currentPage == 'other_order' ?
+                                      Text('Make payment (RM ${this.finalAmount})')
+                                          : Text('Print Receipt'),
+                                    )
                                 ),
-                              )
-                            ],
-                          ),
+                                Visibility(
+                                  visible: cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status == 1 ? true : false,
+                                  child: Expanded(
+                                    child: Row(
+                                      children: [
+                                        SizedBox(width: 10,),
+                                        Expanded(
+                                            child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                primary: color.backgroundColor,
+                                                minimumSize: const Size.fromHeight(50), // NEW
+                                              ),
+                                              onPressed: () {
+                                                //openReprintDialog(printerList, cart);
+                                                print('reprint checklist');
+                                              },
+                                              child: Text('Print Check List'),
+                                            )
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              ],
+                            );
+                          }),
+
                         ),
                       ],
                     ),
@@ -678,8 +682,8 @@ class _CartPageState extends State<CartPage> {
         List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
         for(int j = 0; j < data.length; j++){
           if (data[j].category_sqlite_id == '0') {
+            var printerDetail = jsonDecode(printerList[i].value!);
             if(printerList[i].type == 0){
-              var printerDetail = jsonDecode(printerList[i].value!);
               if(printerList[i].paper_size == 0){
                 var data = Uint8List.fromList(await ReceiptLayout().printReceipt80mm(true, this.localOrderId));
                 bool? isConnected = await flutterUsbPrinter.connect(
@@ -701,9 +705,28 @@ class _CartPageState extends State<CartPage> {
                   print('not connected');
                 }
               }
-
             } else {
-              print("print lan");
+              if(printerList[i].paper_size == 0){
+                final profile = await CapabilityProfile.load();
+                final printer = NetworkPrinter(PaperSize.mm80, profile);
+                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+                if (res == PosPrintResult.success) {
+                  await ReceiptLayout().printReceipt80mm(false, this.localOrderId, value: printer);
+                  printer.disconnect();
+                } else {
+                  print('not connected');
+                }
+              } else {
+                final profile = await CapabilityProfile.load();
+                final printer = NetworkPrinter(PaperSize.mm58, profile);
+                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+                if (res == PosPrintResult.success) {
+                  await ReceiptLayout().printReceipt58mm(false, this.localOrderId, value: printer);
+                  printer.disconnect();
+                } else {
+                  print('not connected');
+                }
+              }
             }
           }
         }
@@ -723,6 +746,7 @@ class _CartPageState extends State<CartPage> {
           if (data[j].category_sqlite_id == '0') {
             var printerDetail = jsonDecode(printerList[i].value!);
             if(printerList[i].type == 0){
+              //print USB 80mm
               if(printerList[i].paper_size == 0){
                 var data = Uint8List.fromList(await ReceiptLayout().printCheckList80mm(true));
                 bool? isConnected = await flutterUsbPrinter.connect(
@@ -788,9 +812,9 @@ class _CartPageState extends State<CartPage> {
         for(int k = 0; k < cart.cartNotifierItem.length; k++){
           //check printer category
           if (cart.cartNotifierItem[k].category_sqlite_id == data[j].category_sqlite_id && cart.cartNotifierItem[k].status == 0) {
+            var printerDetail = jsonDecode(printerList[i].value!);
             //check printer type
             if(printerList[i].type == 1){
-              var printerDetail = jsonDecode(printerList[i].value!);
               //check paper size
               if(printerList[i].paper_size == 0){
                 //print LAN
@@ -807,7 +831,7 @@ class _CartPageState extends State<CartPage> {
               } else {
                 //print LAN 58mm
                 final profile = await CapabilityProfile.load();
-                final printer = NetworkPrinter(PaperSize.mm80, profile);
+                final printer = NetworkPrinter(PaperSize.mm58, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
                 if (res == PosPrintResult.success) {
@@ -818,8 +842,8 @@ class _CartPageState extends State<CartPage> {
                 }
               }
             } else {
+              //print USB
               if(printerList[i].paper_size == 0) {
-                var printerDetail = jsonDecode(printerList[i].value!);
                 var data = Uint8List.fromList(await ReceiptLayout().printKitchenList80mm(true, cart.cartNotifierItem[k]));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']),
@@ -831,7 +855,6 @@ class _CartPageState extends State<CartPage> {
                 }
               } else {
                 //print 58mm
-                var printerDetail = jsonDecode(printerList[i].value!);
                 var data = Uint8List.fromList(await ReceiptLayout().printKitchenList58mm(true, cart.cartNotifierItem[k]));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']),
@@ -1463,30 +1486,30 @@ class _CartPageState extends State<CartPage> {
 /*
   Not dine in call
 */
-  callCreateNewNotDineOrder(CartModel cart) async {
-    await createOrderCache(cart);
-    await createOrderDetail(cart);
+  callCreateNewNotDineOrder(CartModel cart, ConnectivityChangeNotifier connectivity) async {
+    await createOrderCache(cart, connectivity);
+    await createOrderDetail(cart, connectivity);
     //await _printCheckList();
   }
 /*
   dine in call
 */
-  callCreateNewOrder(CartModel cart) async {
-    await createTableUseID();
-    await createTableUseDetail(cart);
-    await createOrderCache(cart);
-    await createOrderDetail(cart);
-    await updatePosTable(cart);
+  callCreateNewOrder(CartModel cart, ConnectivityChangeNotifier connectivity) async {
+    await createTableUseID(connectivity);
+    await createTableUseDetail(cart, connectivity);
+    await createOrderCache(cart, connectivity);
+    await createOrderDetail(cart, connectivity);
+    await updatePosTable(cart, connectivity);
     //await _printCheckList();
   }
 
-  callAddOrderCache(CartModel cart) async {
+  callAddOrderCache(CartModel cart, ConnectivityChangeNotifier connectivity) async {
     print('add product cache');
-    await createOrderCache(cart);
-    await createOrderDetail(cart);
+    await createOrderCache(cart, connectivity);
+    await createOrderDetail(cart, connectivity);
   }
 
-  updatePosTable(CartModel cart) async {
+  updatePosTable(CartModel cart, ConnectivityChangeNotifier connectivity) async {
     try {
       List<String> _value = [];
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -1511,12 +1534,13 @@ class _CartPageState extends State<CartPage> {
           }
         }
       }
-
-      Map data = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+      if(connectivity.isConnect){
+        Map data = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          for (var i = 0; i < responseJson.length; i++) {
+            int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+          }
         }
       }
     } catch (e) {
@@ -1590,7 +1614,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   randomBatch() {
-    return Random().nextInt(100000) + 1;
+    return Random().nextInt(1000000) + 1;
   }
 
   batchChecking() async {
@@ -1629,7 +1653,7 @@ class _CartPageState extends State<CartPage> {
     return tempBatch;
   }
 
-  createTableUseID() async {
+  createTableUseID(ConnectivityChangeNotifier connectivity) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _value = [];
@@ -1655,7 +1679,7 @@ class _CartPageState extends State<CartPage> {
         localTableUseId = tableUseData.table_use_sqlite_id.toString();
         TableUse _updatedTableUseData =  await insertTableUseKey(tableUseData, dateTime);
         //sync to cloud
-        if(_updatedTableUseData.sync_status == 0 && _updatedTableUseData.table_use_key != ''){
+        if(_updatedTableUseData.sync_status == 0 && _updatedTableUseData.table_use_key != '' && connectivity.isConnect){
           _value.add(jsonEncode(_updatedTableUseData));
           Map response = await Domain().SyncTableUseToCloud(_value.toString());
           if (response['status'] == '1') {
@@ -1705,7 +1729,7 @@ class _CartPageState extends State<CartPage> {
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
-  createTableUseDetail(CartModel cart) async {
+  createTableUseDetail(CartModel cart, ConnectivityChangeNotifier connectivity) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _value = [];
@@ -1730,10 +1754,14 @@ class _CartPageState extends State<CartPage> {
         }
       }
       //sync to cloud
-      Map response = await Domain().SyncTableUseDetailToCloud(_value.toString());
-      List responseJson = response['data'];
-      for (var i = 0; i < responseJson.length; i++) {
-        int updateStatus = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+      if(connectivity.isConnect){
+        Map response = await Domain().SyncTableUseDetailToCloud(_value.toString());
+        if(response['status'] == 1){
+          List responseJson = response['data'];
+          for (var i = 0; i < responseJson.length; i++) {
+            int updateStatus = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+          }
+        }
       }
     } catch (e) {
       print(e);
@@ -1762,7 +1790,7 @@ class _CartPageState extends State<CartPage> {
     return _data;
   }
 
-  createOrderCache(CartModel cart) async {
+  createOrderCache(CartModel cart, ConnectivityChangeNotifier connectivity) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _orderCacheValue = [];
@@ -1799,7 +1827,7 @@ class _CartPageState extends State<CartPage> {
                 order_detail_id: '',
                 table_use_sqlite_id: cart.selectedOption == 'Dine in' ? _tableUseId : '',
                 table_use_key: cart.selectedOption == 'Dine in' ? _tableUse[0].table_use_key : '',
-                batch_id: batch.toString().padLeft(5, '0'),
+                batch_id: batch.toString().padLeft(6, '0'),
                 dining_id: this.diningOptionID.toString(),
                 order_sqlite_id: '',
                 order_key: '',
@@ -1817,17 +1845,17 @@ class _CartPageState extends State<CartPage> {
         OrderCache updatedCache = await insertOrderCacheKey(data, dateTime);
         //sync to cloud
         if(updatedCache.sync_status == 0){
-          _orderCacheValue.add(jsonEncode(updatedCache));
-          Map response = await Domain().SyncOrderCacheToCloud(_orderCacheValue.toString());
-          if(response['status'] == '1'){
-            List responseJson = response['data'];
-            int orderCacheData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[0]['order_cache_key']);
+          if(connectivity.isConnect){
+            _orderCacheValue.add(jsonEncode(updatedCache));
+            Map response = await Domain().SyncOrderCacheToCloud(_orderCacheValue.toString());
+            if(response['status'] == '1'){
+              List responseJson = response['data'];
+              int orderCacheData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[0]['order_cache_key']);
+            }
           }
           //sync updated table use (with order cache key)
-          await insertOrderCacheKeyIntoTableUse(cart, updatedCache, dateTime);
+          await insertOrderCacheKeyIntoTableUse(cart, updatedCache, dateTime, connectivity);
         }
-
-
       }
     } catch (e) {
       print('error: ${e}');
@@ -1865,7 +1893,7 @@ class _CartPageState extends State<CartPage> {
     return data;
   }
 
-  insertOrderCacheKeyIntoTableUse(CartModel cart, OrderCache orderCache, String dateTime) async {
+  insertOrderCacheKeyIntoTableUse(CartModel cart, OrderCache orderCache, String dateTime, ConnectivityChangeNotifier connectivity) async {
     List<String> _tableUseValue = [];
     if(cart.selectedOption == "Dine in"){
       List<TableUse> checkTableUse = await PosDatabase.instance.readSpecificTableUseId(int.parse(orderCache.table_use_sqlite_id!));
@@ -1876,7 +1904,8 @@ class _CartPageState extends State<CartPage> {
           table_use_sqlite_id: int.parse(orderCache.table_use_sqlite_id!)
       );
       int tableUseCacheKey = await PosDatabase.instance.updateTableUseOrderCacheUniqueKey(tableUseObject);
-      if(tableUseCacheKey == 1){
+      //sync to cloud
+      if(tableUseCacheKey == 1 && connectivity.isConnect){
         List<TableUse> updatedTableUseRead = await PosDatabase.instance.readSpecificTableUseId(tableUseObject.table_use_sqlite_id!);
         if(updatedTableUseRead[0].sync_status != 1){
           _tableUseValue.add(jsonEncode(updatedTableUseRead[0]));
@@ -1890,7 +1919,7 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  createOrderDetail(CartModel cart) async {
+  createOrderDetail(CartModel cart, ConnectivityChangeNotifier connectivity) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _orderDetailValue = [];
@@ -1899,8 +1928,7 @@ class _CartPageState extends State<CartPage> {
     //loop cart item & create order detail
     for (int j = 0; j < cart.cartNotifierItem.length; j++) {
       if (cart.cartNotifierItem[j].status == 0) {
-        OrderDetail orderDetailData = await PosDatabase.instance
-            .insertSqliteOrderDetail(OrderDetail(
+        OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(OrderDetail(
                 order_detail_id: 0,
                 order_detail_key: '',
                 order_cache_sqlite_id: orderCacheId,
@@ -1955,14 +1983,17 @@ class _CartPageState extends State<CartPage> {
       }
     }
     //sync to cloud
-    Map orderDetailResponse = await Domain().SyncOrderDetailToCloud(_orderDetailValue.toString());
-    if (orderDetailResponse['status'] == '1') {
-      List responseJson = orderDetailResponse['data'];
-      for(int i = 0 ; i <responseJson.length; i++){
-        int syncUpdated = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+    if(connectivity.isConnect){
+      Map orderDetailResponse = await Domain().SyncOrderDetailToCloud(_orderDetailValue.toString());
+      if (orderDetailResponse['status'] == '1') {
+        List responseJson = orderDetailResponse['data'];
+        for(int i = 0 ; i <responseJson.length; i++){
+          int syncUpdated = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+        }
       }
     }
-    if(_hasModifier == true){
+    //sync to cloud
+    if(_hasModifier == true && connectivity.isConnect){
       Map orderModifierResponse = await Domain().SyncOrderModifierDetailToCloud(_orderModifierValue.toString());
       if(orderModifierResponse['status'] == '1'){
         List responseJson = orderModifierResponse['data'];

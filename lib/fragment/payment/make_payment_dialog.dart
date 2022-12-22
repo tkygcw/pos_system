@@ -1121,13 +1121,12 @@ class _MakePaymentState extends State<MakePayment> {
       p1.pauseCamera();
 
       var api = await paymentApi();
-      if(api != 0){
-        // await updateOrder();
+      if(api == 0){
         openPaymentSuccessDialog(widget.dining_id);
       } else {
-        Navigator.of(context).pop();
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "${api}");
+        Navigator.pop(context);
       }
     });
   }

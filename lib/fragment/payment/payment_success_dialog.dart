@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:esc_pos_printer/esc_pos_printer.dart';
+import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -55,7 +57,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     // TODO: implement initState
     super.initState();
     callUpdateOrder();
-    createCashRecord();
     readAllPrinters();
   }
 
@@ -187,6 +188,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
 
     int updatedData = await PosDatabase.instance.updateOrderPaymentStatus(orderObject);
     if(updatedData == 1){
+      await createCashRecord();
       Order orderData = await PosDatabase.instance.readSpecificOrder(int.parse(widget.orderId));
       _value.add(jsonEncode(orderData));
     }
@@ -322,7 +324,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   updatePosTableStatus(int status) async {
     List<String> _value = [];
     String dateTime = dateFormat.format(DateTime.now());
-    print('length: ${widget.selectedTableList.length}');
     if(widget.selectedTableList.length > 0){
       for(int i = 0; i < widget.selectedTableList.length; i++){
         PosTable posTableData = PosTable(
@@ -440,23 +441,60 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
             .readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
         for(int j = 0; j < data.length; j++){
           if (data[j].category_sqlite_id == '0') {
+            var printerDetail = jsonDecode(printerList[i].value!);
             if(printerList[i].type == 0){
-              var printerDetail = jsonDecode(printerList[i].value!);
-              var data = Uint8List.fromList(await ReceiptLayout().printReceipt80mm(true, widget.orderId));
-              bool? isConnected = await flutterUsbPrinter.connect(
-                  int.parse(printerDetail['vendorId']),
-                  int.parse(printerDetail['productId']));
-              if (isConnected == true) {
-                await flutterUsbPrinter.write(data);
+              if(printerList[i].paper_size == 0){
+                //print 80mm
+                var data = Uint8List.fromList(await ReceiptLayout().printReceipt80mm(true, widget.orderId));
+                bool? isConnected = await flutterUsbPrinter.connect(
+                    int.parse(printerDetail['vendorId']),
+                    int.parse(printerDetail['productId']));
+                if (isConnected == true) {
+                  await flutterUsbPrinter.write(data);
+                } else {
+                  print('not connected');
+                }
               } else {
-                print('not connected');
+                //print 58mm
+                var data = Uint8List.fromList(await ReceiptLayout().printReceipt58mm(true, widget.orderId));
+                bool? isConnected = await flutterUsbPrinter.connect(
+                    int.parse(printerDetail['vendorId']),
+                    int.parse(printerDetail['productId']));
+                if (isConnected == true) {
+                  await flutterUsbPrinter.write(data);
+                } else {
+                  print('not connected');
+                }
               }
             } else {
-              print("print lan");
+              if(printerList[i].paper_size == 0){
+                //print LAN 80mm
+                final profile = await CapabilityProfile.load();
+                final printer = NetworkPrinter(PaperSize.mm80, profile);
+                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+
+                if (res == PosPrintResult.success) {
+                  await ReceiptLayout().printReceipt80mm(false, widget.orderId, value: printer);
+                  printer.disconnect();
+                } else {
+                  print('not connected');
+                }
+              } else {
+                //print LAN 58mm
+                final profile = await CapabilityProfile.load();
+                final printer = NetworkPrinter(PaperSize.mm58, profile);
+                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+
+                if (res == PosPrintResult.success) {
+                  await ReceiptLayout().printReceipt58mm(false, widget.orderId, value: printer);
+                  printer.disconnect();
+                } else {
+                  print('not connected');
+                }
+              }
             }
           }
         }
-
       }
     } catch (e) {
       print('Printer Connection Error cart: ${e}');
