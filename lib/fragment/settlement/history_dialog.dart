@@ -167,6 +167,7 @@ class _HistoryDialogState extends State<HistoryDialog> {
     final int? branch_id = prefs.getInt('branch_id');
 
     List<CashRecord> data = await PosDatabase.instance.readAllBranchSettlementCashRecord(branch_id.toString());
+    print('settlement data: ${data.length}');
     cashRecordList = List.from(data);
     setState(() {
       isLoaded = true;

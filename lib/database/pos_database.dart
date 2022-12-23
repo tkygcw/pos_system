@@ -2350,7 +2350,7 @@ class PosDatabase {
       String branch_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date != ? AND a.branch_id = ? AND b.soft_delete = ? GROUP BY a.settlement_date ORDER BY a.settlement_date DESC',
+        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date != ? AND a.branch_id = ? AND b.soft_delete = ? ORDER BY a.settlement_date DESC',
         ['', '', branch_id, '']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }

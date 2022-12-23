@@ -18,6 +18,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/domain.dart';
+import '../../notifier/connectivity_change_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
 import '../../translation/AppLocalizations.dart';
@@ -229,54 +230,57 @@ class _SettlementPageState extends State<SettlementPage> {
                         cashRecordList.length > 0 ?
                         Container(
                           height: MediaQuery.of(context).size.height / 1.7,
-                          child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: cashRecordList.length,
-                              itemBuilder: (context, index) {
-                                return ListTile(
-                                  leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
-                                      ? Icon(Icons.payments_sharp)
-                                      : cashRecordList[index].payment_type_id == '2'
-                                      ? Icon(Icons.credit_card_rounded)
-                                      : Icon(Icons.wifi),
-                                  title: Text(
-                                      '${cashRecordList[index].remark}'),
-                                  subtitle: cashRecordList[index].type == 1 || cashRecordList[index].type == 0
-                                      ? Text(
-                                      'Cash in by: ${cashRecordList[index].userName}')
-                                      : cashRecordList[index].type == 2
-                                      ? Text(
-                                      'Cash-out by: ${cashRecordList[index].userName}')
-                                      : Text(
-                                      'Close by: ${cashRecordList[index].userName}'),
-                                  trailing: cashRecordList[index].type == 2
-                                      ? Text(
-                                      '-${cashRecordList[index].amount}',
-                                      style: TextStyle(
-                                          color: Colors.red))
-                                      : Text(
-                                      '+${cashRecordList[index].amount}',
-                                      style: TextStyle(
-                                          color: Colors.green)),
-                                  onLongPress: () async {
-                                    if(cashRecordList[index].type != 0 && cashRecordList[index].type != 3){
-                                      if (await confirm(
-                                        context,
-                                        title: Text(
-                                            '${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
-                                        content: Text(
-                                            '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
-                                        textOK: Text(
-                                            '${AppLocalizations.of(context)?.translate('yes')}'),
-                                        textCancel: Text(
-                                            '${AppLocalizations.of(context)?.translate('no')}'),
-                                      )) {
-                                        return removeCashRecord(cashRecordList[index]);
+                          child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+                            return ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: cashRecordList.length,
+                                itemBuilder: (context, index) {
+                                  return ListTile(
+                                    leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
+                                        ? Icon(Icons.payments_sharp)
+                                        : cashRecordList[index].payment_type_id == '2'
+                                        ? Icon(Icons.credit_card_rounded)
+                                        : Icon(Icons.wifi),
+                                    title: Text(
+                                        '${cashRecordList[index].remark}'),
+                                    subtitle: cashRecordList[index].type == 1 || cashRecordList[index].type == 0
+                                        ? Text(
+                                        'Cash in by: ${cashRecordList[index].userName}')
+                                        : cashRecordList[index].type == 2
+                                        ? Text(
+                                        'Cash-out by: ${cashRecordList[index].userName}')
+                                        : Text(
+                                        'Close by: ${cashRecordList[index].userName}'),
+                                    trailing: cashRecordList[index].type == 2
+                                        ? Text(
+                                        '-${cashRecordList[index].amount}',
+                                        style: TextStyle(
+                                            color: Colors.red))
+                                        : Text(
+                                        '+${cashRecordList[index].amount}',
+                                        style: TextStyle(
+                                            color: Colors.green)),
+                                    onLongPress: () async {
+                                      if(cashRecordList[index].type != 0 && cashRecordList[index].type != 3){
+                                        if (await confirm(
+                                          context,
+                                          title: Text(
+                                              '${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
+                                          content: Text(
+                                              '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                                          textOK: Text(
+                                              '${AppLocalizations.of(context)?.translate('yes')}'),
+                                          textCancel: Text(
+                                              '${AppLocalizations.of(context)?.translate('no')}'),
+                                        )) {
+                                          return removeCashRecord(cashRecordList[index], connectivity);
+                                        }
                                       }
-                                    }
-                                  },
-                                );
-                              }),
+                                    },
+                                  );
+                                });
+                          })
+
                         ) : Container(
                           alignment: Alignment.center,
                           height: MediaQuery.of(context).size.height / 1.7,
@@ -500,55 +504,57 @@ class _SettlementPageState extends State<SettlementPage> {
                           margin: EdgeInsets.fromLTRB(25, 0, 25, 0),
                           height: MediaQuery.of(context).size.height / 1.7,
                           child: Scrollbar(
-                            child: ListView.builder(
-                                shrinkWrap: true,
-                                primary: false,
-                                itemCount: cashRecordList.length,
-                                itemBuilder: (context, index) {
-                                  return ListTile(
-                                    leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
-                                        ? Icon(Icons.payments_sharp)
-                                        : cashRecordList[index].payment_type_id == '2'
-                                        ? Icon(Icons.credit_card_rounded)
-                                        : Icon(Icons.wifi),
-                                    title: Text(
-                                        '${cashRecordList[index].remark}'),
-                                    subtitle: cashRecordList[index].type == 1 || cashRecordList[index].type == 0
-                                        ? Text(
-                                        'Cash in by: ${cashRecordList[index].userName}')
-                                        : cashRecordList[index].type == 2
-                                        ? Text(
-                                        'Cash-out by: ${cashRecordList[index].userName}')
-                                        : Text(
-                                        'Close by: ${cashRecordList[index].userName}'),
-                                    trailing: cashRecordList[index].type == 2
-                                        ? Text(
-                                        '-${cashRecordList[index].amount}',
-                                        style: TextStyle(
-                                            color: Colors.red))
-                                        : Text(
-                                        '+${cashRecordList[index].amount}',
-                                        style: TextStyle(
-                                            color: Colors.green)),
-                                    onLongPress: () async {
-                                      if(cashRecordList[index].type != 0 && cashRecordList[index].type != 3){
-                                        if (await confirm(
-                                          context,
-                                          title: Text(
-                                              '${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
-                                          content: Text(
-                                              '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
-                                          textOK: Text(
-                                              '${AppLocalizations.of(context)?.translate('yes')}'),
-                                          textCancel: Text(
-                                              '${AppLocalizations.of(context)?.translate('no')}'),
-                                        )) {
-                                          return removeCashRecord(cashRecordList[index]);
+                            child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+                              return ListView.builder(
+                                  shrinkWrap: true,
+                                  primary: false,
+                                  itemCount: cashRecordList.length,
+                                  itemBuilder: (context, index) {
+                                    return ListTile(
+                                      leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
+                                          ? Icon(Icons.payments_sharp)
+                                          : cashRecordList[index].payment_type_id == '2'
+                                          ? Icon(Icons.credit_card_rounded)
+                                          : Icon(Icons.wifi),
+                                      title: Text(
+                                          '${cashRecordList[index].remark}'),
+                                      subtitle: cashRecordList[index].type == 1 || cashRecordList[index].type == 0
+                                          ? Text(
+                                          'Cash in by: ${cashRecordList[index].userName}')
+                                          : cashRecordList[index].type == 2
+                                          ? Text(
+                                          'Cash-out by: ${cashRecordList[index].userName}')
+                                          : Text(
+                                          'Close by: ${cashRecordList[index].userName}'),
+                                      trailing: cashRecordList[index].type == 2
+                                          ? Text(
+                                          '-${cashRecordList[index].amount}',
+                                          style: TextStyle(
+                                              color: Colors.red))
+                                          : Text(
+                                          '+${cashRecordList[index].amount}',
+                                          style: TextStyle(
+                                              color: Colors.green)),
+                                      onLongPress: () async {
+                                        if(cashRecordList[index].type != 0 && cashRecordList[index].type != 3){
+                                          if (await confirm(
+                                            context,
+                                            title: Text(
+                                                '${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
+                                            content: Text(
+                                                '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                                            textOK: Text(
+                                                '${AppLocalizations.of(context)?.translate('yes')}'),
+                                            textCancel: Text(
+                                                '${AppLocalizations.of(context)?.translate('no')}'),
+                                          )) {
+                                            return removeCashRecord(cashRecordList[index], connectivity);
+                                          }
                                         }
-                                      }
-                                    },
-                                  );
-                                }),
+                                      },
+                                    );
+                                  });
+                            })
                           ),
                         ) : Container(
                           alignment: Alignment.center,
@@ -781,7 +787,7 @@ class _SettlementPageState extends State<SettlementPage> {
     });
   }
 
-  removeCashRecord(CashRecord cashRecord) async {
+  removeCashRecord(CashRecord cashRecord, ConnectivityChangeNotifier connectivity) async {
     try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
@@ -792,7 +798,7 @@ class _SettlementPageState extends State<SettlementPage> {
           cash_record_sqlite_id: cashRecord.cash_record_sqlite_id);
       int data = await PosDatabase.instance.deleteCashRecord(cashRecordObject);
       //sync to cloud
-      if(data == 1){
+      if(data == 1 && connectivity.isConnect){
         CashRecord _record = await PosDatabase.instance.readSpecificCashRecord(cashRecord.cash_record_sqlite_id!);
         if(_record.sync_status != 1){
           _value.add(jsonEncode(_record));

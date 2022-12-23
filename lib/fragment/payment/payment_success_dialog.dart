@@ -8,6 +8,7 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
+import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -56,127 +57,129 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    callUpdateOrder();
     readAllPrinters();
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Consumer<CartModel>(builder: (context, CartModel cartModel, child) {
+      return Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+        callUpdateOrder(connectivity);
+        return Consumer<CartModel>(builder: (context, CartModel cartModel, child) {
           return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
-              return WillPopScope(
-                onWillPop: () async => false,
-                child: LayoutBuilder(builder: (context, constraints) {
-                    if(constraints.maxWidth > 800) {
-                      return AlertDialog(
-                        title: Text('Payment success'),
-                        content: isLoaded ?
-                        Container(
-                          width: MediaQuery.of(context).size.width / 3,
-                          height: MediaQuery.of(context).size.height / 3,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: MediaQuery.of(context).size.height / 6,
-                                child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                        primary: color.backgroundColor,
-                                        padding: EdgeInsets.fromLTRB(0, 30, 0, 30)
-                                    ),
-                                    onPressed: () async {
-                                      await _printReceiptList();
-                                    },
-                                    child: Text('Print receipt', style: TextStyle(fontSize: 18),)
+            return WillPopScope(
+              onWillPop: () async => false,
+              child: LayoutBuilder(builder: (context, constraints) {
+                if(constraints.maxWidth > 800) {
+                  return AlertDialog(
+                    title: Text('Payment success'),
+                    content: isLoaded ?
+                    Container(
+                      width: MediaQuery.of(context).size.width / 3,
+                      height: MediaQuery.of(context).size.height / 3,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: MediaQuery.of(context).size.height / 6,
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                    primary: color.backgroundColor,
+                                    padding: EdgeInsets.fromLTRB(0, 30, 0, 30)
                                 ),
-                              ),
-                              SizedBox(height: 25),
-                              Container(
-                                width: MediaQuery.of(context).size.height / 6,
-                                child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      primary: color.buttonColor,
-                                    ),
-                                    onPressed: (){
-                                      closeDialog(context);
-                                      tableModel.changeContent(true);
-                                      cartModel.initialLoad();
-                                      widget.callback();
-                                    },
-                                    child: Text('${AppLocalizations.of(context)?.translate('close')}')
-                                ),
-                              )
-                            ],
+                                onPressed: () async {
+                                  await _printReceiptList();
+                                },
+                                child: Text('Print receipt', style: TextStyle(fontSize: 18),)
+                            ),
                           ),
-                        ) : CustomProgressBar(),
-                      );
-                    } else {
-                      //Mobile layout
-                      return AlertDialog(
-                        title: Text('Payment success'),
-                        content: isLoaded ?
-                        Container(
-                          width: MediaQuery.of(context).size.width / 2,
-                          height: 150,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                        primary: color.backgroundColor,
-                                    ),
-                                    onPressed: () async {
-                                      await _printReceiptList();
-                                    },
-                                    child: Text('Print receipt', style: TextStyle(fontSize: 15),)
+                          SizedBox(height: 25),
+                          Container(
+                            width: MediaQuery.of(context).size.height / 6,
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  primary: color.buttonColor,
                                 ),
-                              ),
-                              //SizedBox(height: 25),
-                              Container(
-                                child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      primary: color.buttonColor,
-                                    ),
-                                    onPressed: (){
-                                      closeDialog(context);
-                                      tableModel.changeContent(true);
-                                      cartModel.initialLoad();
-                                      widget.callback();
-                                    },
-                                    child: Text('${AppLocalizations.of(context)?.translate('close')}')
+                                onPressed: (){
+                                  closeDialog(context);
+                                  tableModel.changeContent(true);
+                                  cartModel.initialLoad();
+                                  widget.callback();
+                                },
+                                child: Text('${AppLocalizations.of(context)?.translate('close')}')
+                            ),
+                          )
+                        ],
+                      ),
+                    ) : CustomProgressBar(),
+                  );
+                } else {
+                  //Mobile layout
+                  return AlertDialog(
+                    title: Text('Payment success'),
+                    content: isLoaded ?
+                    Container(
+                      width: MediaQuery.of(context).size.width / 2,
+                      height: 150,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  primary: color.backgroundColor,
                                 ),
-                              )
-                            ],
+                                onPressed: () async {
+                                  await _printReceiptList();
+                                },
+                                child: Text('Print receipt', style: TextStyle(fontSize: 15),)
+                            ),
                           ),
-                        ) : CustomProgressBar(),
-                      );
-                    }
-                  }
-                ),
-              );
-            }
+                          //SizedBox(height: 25),
+                          Container(
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  primary: color.buttonColor,
+                                ),
+                                onPressed: (){
+                                  closeDialog(context);
+                                  tableModel.changeContent(true);
+                                  cartModel.initialLoad();
+                                  widget.callback();
+                                },
+                                child: Text('${AppLocalizations.of(context)?.translate('close')}')
+                            ),
+                          )
+                        ],
+                      ),
+                    ) : CustomProgressBar(),
+                  );
+                }
+              }
+              ),
+            );
+          }
           );
         }
-      );
+        );
+      });
     });
   }
 
-  callUpdateOrder() async {
-    await updateOrder();
+  callUpdateOrder(ConnectivityChangeNotifier connectivity) async {
+    await updateOrder(connectivity);
     if(widget.dining_id == '1'){
-      await deleteCurrentTableUseDetail();
-      await deleteCurrentTableUseId();
-      await updatePosTableStatus(0);
+      await deleteCurrentTableUseDetail(connectivity);
+      await deleteCurrentTableUseId(connectivity);
+      await updatePosTableStatus(0, connectivity);
     }
-    await updateOrderCache();
+    await updateOrderCache(connectivity);
     //await deleteOrderCache();
     isLoaded = true;
 
   }
 
-  updateOrder() async {
+  updateOrder(ConnectivityChangeNotifier connectivity) async {
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _value = [];
     Order checkData = await PosDatabase.instance.readSpecificOrder(int.parse(widget.orderId));
@@ -188,21 +191,25 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
 
     int updatedData = await PosDatabase.instance.updateOrderPaymentStatus(orderObject);
     if(updatedData == 1){
-      await createCashRecord();
-      Order orderData = await PosDatabase.instance.readSpecificOrder(int.parse(widget.orderId));
-      _value.add(jsonEncode(orderData));
+      await createCashRecord(connectivity);
+      if(connectivity.isConnect){
+        Order orderData = await PosDatabase.instance.readSpecificOrder(int.parse(widget.orderId));
+        _value.add(jsonEncode(orderData));
+      }
     }
     //sync to cloud
-    Map data = await Domain().SyncOrderToCloud(_value.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['data'];
-      for (var i = 0; i < responseJson.length; i++) {
-        int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+    if(connectivity.isConnect){
+      Map data = await Domain().SyncOrderToCloud(_value.toString());
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+        }
       }
     }
   }
 
-  deleteCurrentTableUseDetail() async {
+  deleteCurrentTableUseDetail(ConnectivityChangeNotifier connectivity) async {
     List<String> _value = [];
     String dateTime = dateFormat.format(DateTime.now());
     try{
@@ -218,7 +225,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                 table_use_detail_sqlite_id: tableUseCheckData[i].table_use_detail_sqlite_id
             );
             int deletedData = await PosDatabase.instance.deleteTableUseDetail(tableUseDetailObject);
-            if(deletedData == 1){
+            if(deletedData == 1 && connectivity.isConnect){
               TableUseDetail detailData =  await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
               _value.add(jsonEncode(detailData.syncJson()));
             }
@@ -226,11 +233,13 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
         }
       }
       //sync to cloud
-      Map response = await Domain().SyncTableUseDetailToCloud(_value.toString());
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+      if(connectivity.isConnect){
+        Map response = await Domain().SyncTableUseDetailToCloud(_value.toString());
+        if (response['status'] == '1') {
+          List responseJson = response['data'];
+          for (var i = 0; i < responseJson.length; i++) {
+            int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+          }
         }
       }
     } catch(e){
@@ -241,7 +250,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     }
   }
 
-  deleteCurrentTableUseId() async {
+  deleteCurrentTableUseId(ConnectivityChangeNotifier connectivity) async {
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _value = [];
     try{
@@ -255,18 +264,20 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
               table_use_sqlite_id: int.parse(data[0].table_use_sqlite_id!)
           );
           int deletedData = await PosDatabase.instance.deleteTableUseID(tableUseObject);
-          if(deletedData == 1){
+          if(deletedData == 1 && connectivity.isConnect){
             TableUse tableUseData =  await PosDatabase.instance.readSpecificTableUseIdByLocalId(tableUseObject.table_use_sqlite_id!);
             _value.add(jsonEncode(tableUseData));
           }
         }
       }
       //sync to cloud
-      Map data = await Domain().SyncTableUseToCloud(_value.toString());
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int tablaUseData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+      if(connectivity.isConnect) {
+        Map data = await Domain().SyncTableUseToCloud(_value.toString());
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          for (var i = 0; i < responseJson.length; i++) {
+            int tablaUseData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+          }
         }
       }
     }catch(e){
@@ -277,7 +288,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     }
   }
 
-  updateOrderCache() async {
+  updateOrderCache(ConnectivityChangeNotifier connectivity) async {
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _value = [];
     if(widget.orderCacheIdList.length > 0){
@@ -291,18 +302,20 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
             order_cache_sqlite_id: int.parse(widget.orderCacheIdList[j])
         );
         int updatedOrderCache = await PosDatabase.instance.updateOrderCacheOrderId(cacheObject);
-        if(updatedOrderCache == 1){
+        if(updatedOrderCache == 1 && connectivity.isConnect){
           OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(cacheObject.order_cache_sqlite_id!);
           _value.add(jsonEncode(orderCacheData));
         }
       }
     }
     //sync to cloud
-    Map data = await Domain().SyncOrderCacheToCloud(_value.toString());
-    if(data['status'] == '1'){
-      List responseJson = data['data'];
-      for(int i = 0 ; i <responseJson.length; i++){
-        int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+    if(connectivity.isConnect){
+      Map data = await Domain().SyncOrderCacheToCloud(_value.toString());
+      if(data['status'] == '1'){
+        List responseJson = data['data'];
+        for(int i = 0 ; i <responseJson.length; i++){
+          int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+        }
       }
     }
   }
@@ -321,7 +334,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     }
   }
 
-  updatePosTableStatus(int status) async {
+  updatePosTableStatus(int status, ConnectivityChangeNotifier connectivity) async {
     List<String> _value = [];
     String dateTime = dateFormat.format(DateTime.now());
     if(widget.selectedTableList.length > 0){
@@ -334,7 +347,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
         );
         int updatedStatus = await PosDatabase.instance.updatePosTableStatus(posTableData);
         int removeKey = await PosDatabase.instance.removePosTableTableUseDetailKey(posTableData);
-        if(updatedStatus == 1 && removeKey == 1){
+        if(updatedStatus == 1 && removeKey == 1 && connectivity.isConnect){
           List<PosTable> posTable  = await PosDatabase.instance.readSpecificTable(posTableData.table_sqlite_id.toString());
           if(posTable[0].sync_status == 2){
             _value.add(jsonEncode(posTable[0]));
@@ -342,11 +355,13 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
         }
       }
       //sync to cloud
-      Map response = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+      if(connectivity.isConnect){
+        Map response = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
+        if (response['status'] == '1') {
+          List responseJson = response['data'];
+          for (var i = 0; i < responseJson.length; i++) {
+            int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+          }
         }
       }
     }
@@ -378,7 +393,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     return _record;
   }
 
-  createCashRecord() async {
+  createCashRecord(ConnectivityChangeNotifier connectivity) async {
     try{
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
@@ -414,7 +429,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
         CashRecord updatedData = await insertCashRecordKey(data, dateTime);
 
         //sync to cloud
-        if(updatedData.cash_record_key != '' && updatedData.sync_status == 0){
+        if(updatedData.cash_record_key != '' && updatedData.sync_status == 0 && connectivity.isConnect){
           _value.add(jsonEncode(updatedData));
           Map response = await Domain().SyncCashRecordToCloud(_value.toString());
           if (response['status'] == '1') {

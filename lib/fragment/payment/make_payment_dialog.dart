@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/payment/ipay_api.dart';
 import 'package:pos_system/fragment/payment/number_button.dart';
 import 'package:pos_system/fragment/payment/payment_success_dialog.dart';
+import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
@@ -519,29 +520,31 @@ class _MakePaymentState extends State<MakePayment> {
                                           }
                                           //GO button
                                           else if (index == 19) {
-                                            return NumberButton(
-                                              buttontapped: () async  {
-                                                bool _isCreated = false;
-                                                if(double.parse(inputController.text) >= double.parse(finalAmount)){
-                                                  await callCreateOrder(inputController.text, orderChange: change);
-                                                  _isCreated = true;
-                                                  if(_isCreated == true){
-                                                    openPaymentSuccessDialog(widget.dining_id);
-                                                    ReceiptLayout().openCashDrawer();
+                                            return Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+                                              return NumberButton(
+                                                buttontapped: () async  {
+                                                  bool _isCreated = false;
+                                                  if(double.parse(inputController.text) >= double.parse(finalAmount)){
+                                                    await callCreateOrder(inputController.text, connectivity, orderChange: change);
+                                                    _isCreated = true;
+                                                    if(_isCreated == true){
+                                                      openPaymentSuccessDialog(widget.dining_id);
+                                                      ReceiptLayout().openCashDrawer();
+                                                    }
+                                                  } else {
+                                                    Fluttertoast.showToast(
+                                                        backgroundColor: Color(0xFFFF0000),
+                                                        msg: "Insufficient balance");
+                                                    setState(() {
+                                                      inputController.text = '0.00';
+                                                    });
                                                   }
-                                                } else {
-                                                  Fluttertoast.showToast(
-                                                      backgroundColor: Color(0xFFFF0000),
-                                                      msg: "Insufficient balance");
-                                                  setState(() {
-                                                    inputController.text = '0.00';
-                                                  });
-                                                }
-                                              },
-                                              buttonText: buttons[index],
-                                              color: color.buttonColor,
-                                              textColor: Colors.white,
-                                            );
+                                                },
+                                                buttonText: buttons[index],
+                                                color: color.buttonColor,
+                                                textColor: Colors.white,
+                                              );
+                                            });
                                           }
                                           //  other buttons
                                           else {
@@ -599,17 +602,18 @@ class _MakePaymentState extends State<MakePayment> {
                                     child: Text('RM${finalAmount}',style: TextStyle(fontSize: 40,fontWeight: FontWeight.bold),),
                                   ),
                                   Container(
-                                    child: ElevatedButton(
-                                      style: ButtonStyle(
-                                          backgroundColor: MaterialStateProperty.all(Colors.green),
-                                        padding: MaterialStateProperty.all(EdgeInsets.all(20))
-                                      ),
-                                      onPressed: () async {
-                                        await callCreateOrder(finalAmount);
-                                        openPaymentSuccessDialog(widget.dining_id);
-                                      }, child: Text("Received payment",style:TextStyle(fontSize: 25)),
-
-                                    ),
+                                    child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+                                      return ElevatedButton(
+                                        style: ButtonStyle(
+                                            backgroundColor: MaterialStateProperty.all(Colors.green),
+                                            padding: MaterialStateProperty.all(EdgeInsets.all(20))
+                                        ),
+                                        onPressed: () async {
+                                          await callCreateOrder(finalAmount, connectivity);
+                                          openPaymentSuccessDialog(widget.dining_id);
+                                        }, child: Text("Received payment",style:TextStyle(fontSize: 25)),
+                                      );
+                                  }),
                                   ),
                                 ],
                               ) ,
@@ -647,9 +651,9 @@ class _MakePaymentState extends State<MakePayment> {
                                       flex:2,
                                       child: Container(
                                         alignment: Alignment.center,
-                                        child: SizedBox(
-                                          height: 60,
-                                          child: ElevatedButton(
+                                        height: 60,
+                                        child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+                                          return ElevatedButton(
                                             style: ButtonStyle(backgroundColor: MaterialStateProperty.all(color.backgroundColor) ),
                                             onPressed: () async {
                                               setState(() {
@@ -657,12 +661,11 @@ class _MakePaymentState extends State<MakePayment> {
                                               });
                                               //await controller?.resumeCamera();
                                               await controller?.scannedDataStream;
-                                              await callCreateOrder(finalAmount);
+                                              await callCreateOrder(finalAmount, connectivity);
 
                                             }, child: Text(scanning==false?"Start Scan":"Scanning...",style:TextStyle(fontSize: 25)),
-
-                                          ),
-                                        ),
+                                          );
+                                        }),
                                       )
                                   ),
                                 ],
@@ -927,22 +930,25 @@ class _MakePaymentState extends State<MakePayment> {
                                                 mainAxisAlignment: MainAxisAlignment.center,
                                                 children: [
                                                   Container(
-                                                    child: ElevatedButton(
-                                                        onPressed: () async {
-                                                          if(double.parse(inputController.text) >= double.parse(finalAmount)){
-                                                            await callCreateOrder(inputController.text, orderChange: change);
-                                                            openPaymentSuccessDialog(widget.dining_id);
-                                                            ReceiptLayout().openCashDrawer();
-                                                          } else {
-                                                            Fluttertoast.showToast(
-                                                                backgroundColor: Color(0xFFFF0000),
-                                                                msg: "Insufficient balance");
-                                                            setState(() {
-                                                              inputController.text = '0.00';
-                                                            });
-                                                          }
-                                                        },
-                                                        child: Text('Pay')),
+                                                    child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+                                                      return ElevatedButton(
+                                                          onPressed: () async {
+                                                            if(double.parse(inputController.text) >= double.parse(finalAmount)){
+                                                              await callCreateOrder(inputController.text, connectivity, orderChange: change);
+                                                              openPaymentSuccessDialog(widget.dining_id);
+                                                              ReceiptLayout().openCashDrawer();
+                                                            } else {
+                                                              Fluttertoast.showToast(
+                                                                  backgroundColor: Color(0xFFFF0000),
+                                                                  msg: "Insufficient balance");
+                                                              setState(() {
+                                                                inputController.text = '0.00';
+                                                              });
+                                                            }
+                                                          },
+                                                          child: Text('Pay'));
+                                                    }),
+
                                                   ),
                                                   SizedBox(width: 10,),
                                                   Container(
@@ -987,13 +993,15 @@ class _MakePaymentState extends State<MakePayment> {
                                       ),
                                       Container(
                                         alignment: Alignment.center,
-                                        child: ElevatedButton(
-                                          style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.green)),
-                                          onPressed: () async {
-                                            await callCreateOrder(finalAmount);
-                                            openPaymentSuccessDialog(widget.dining_id);
-                                          }, child: Text("Received payment",style:TextStyle(fontSize: 20)),
-                                        ),
+                                        child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+                                          return ElevatedButton(
+                                            style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.green)),
+                                            onPressed: () async {
+                                              await callCreateOrder(finalAmount, connectivity);
+                                              openPaymentSuccessDialog(widget.dining_id);
+                                            }, child: Text("Received payment",style:TextStyle(fontSize: 20)),
+                                          );
+                                        }),
                                       ),
                                     ],
                                   ) ,
@@ -1027,19 +1035,21 @@ class _MakePaymentState extends State<MakePayment> {
                                         visible: scanning ? false : true,
                                         child: Container(
                                           alignment: Alignment.center,
-                                          child: ElevatedButton(
-                                            style: ButtonStyle(backgroundColor: MaterialStateProperty.all(color.backgroundColor) ),
-                                            onPressed: () async {
-                                              setState(() {
-                                                scanning = true;
-                                              });
-                                              //await controller?.resumeCamera();
-                                              await controller?.scannedDataStream;
-                                              await callCreateOrder(finalAmount);
+                                          child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+                                            return ElevatedButton(
+                                              style: ButtonStyle(backgroundColor: MaterialStateProperty.all(color.backgroundColor) ),
+                                              onPressed: () async {
+                                                setState(() {
+                                                  scanning = true;
+                                                });
+                                                //await controller?.resumeCamera();
+                                                await controller?.scannedDataStream;
+                                                await callCreateOrder(finalAmount, connectivity);
 
-                                            }, child: Text("Start Scan",style:TextStyle(fontSize: 20)),
+                                              }, child: Text("Start Scan",style:TextStyle(fontSize: 20)),
+                                            );
+                                          }),
 
-                                          ),
                                         ),
                                       )
                                     ],
@@ -1610,11 +1620,11 @@ class _MakePaymentState extends State<MakePayment> {
     streamController.add('refresh');
   }
 
-  callCreateOrder(String? paymentReceived, {orderChange}) async {
+  callCreateOrder(String? paymentReceived, ConnectivityChangeNotifier connectivity, {orderChange}) async {
     await createOrder(double.parse(paymentReceived!), orderChange);
-    await insertOrderKey();
-    await crateOrderTaxDetail();
-    await createOrderPromotionDetail();
+    await insertOrderKey(connectivity);
+    await crateOrderTaxDetail(connectivity);
+    await createOrderPromotionDetail(connectivity);
   }
 
   readBranchPref() async {
@@ -1691,7 +1701,7 @@ class _MakePaymentState extends State<MakePayment> {
     }
   }
 
-  insertOrderKey() async {
+  insertOrderKey(ConnectivityChangeNotifier connectivity) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _value = [];
@@ -1705,17 +1715,19 @@ class _MakePaymentState extends State<MakePayment> {
         order_sqlite_id: orderList[0].order_sqlite_id
       );
       int updatedData = await PosDatabase.instance.updateOrderUniqueKey(orderObject);
-      if(updatedData == 1){
+      if(updatedData == 1 && connectivity.isConnect){
         Order orderData = await PosDatabase.instance.readSpecificOrder(orderObject.order_sqlite_id!);
         _value.add(jsonEncode(orderData));
       }
     }
     //sync to cloud
-    Map data = await Domain().SyncOrderToCloud(_value.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['data'];
-      for (var i = 0; i < responseJson.length; i++) {
-        int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+    if(connectivity.isConnect){
+      Map data = await Domain().SyncOrderToCloud(_value.toString());
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+        }
       }
     }
   }
@@ -1747,7 +1759,7 @@ class _MakePaymentState extends State<MakePayment> {
     return _data;
   }
 
-  createOrderPromotionDetail() async {
+  createOrderPromotionDetail(ConnectivityChangeNotifier connectivity) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
@@ -1776,14 +1788,18 @@ class _MakePaymentState extends State<MakePayment> {
           soft_delete: ''
       ));
       OrderPromotionDetail returnData = await insertOrderPromotionDetailKey(data, dateTime);
-      _value.add(jsonEncode(returnData));
+      if(connectivity.isConnect){
+        _value.add(jsonEncode(returnData));
+      }
     }
     //sync to cloud
-    Map data = await Domain().SyncOrderPromotionDetailToCloud(_value.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['data'];
-      for (var i = 0; i < responseJson.length; i++) {
-        int orderPromoData = await PosDatabase.instance.updateOrderPromotionDetailSyncStatusFromCloud(responseJson[i]['order_promotion_detail_key']);
+    if(connectivity.isConnect){
+      Map data = await Domain().SyncOrderPromotionDetailToCloud(_value.toString());
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int orderPromoData = await PosDatabase.instance.updateOrderPromotionDetailSyncStatusFromCloud(responseJson[i]['order_promotion_detail_key']);
+        }
       }
     }
   }
@@ -1815,7 +1831,7 @@ class _MakePaymentState extends State<MakePayment> {
     return _data;
   }
 
-  crateOrderTaxDetail() async {
+  crateOrderTaxDetail(ConnectivityChangeNotifier connectivity) async {
     print('order tax detail called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -1843,15 +1859,19 @@ class _MakePaymentState extends State<MakePayment> {
             soft_delete: ''
         ));
         OrderTaxDetail returnData = await insertOrderTaxDetailKey(data, dateTime);
-        _value.add(jsonEncode(returnData));
+        if(connectivity.isConnect){
+          _value.add(jsonEncode(returnData));
+        }
       }
     }
     //sync to cloud
-    Map data = await Domain().SyncOrderTaxDetailToCloud(_value.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['data'];
-      for (var i = 0; i < responseJson.length; i++) {
-        int syncData = await PosDatabase.instance.updateOrderTaxDetailSyncStatusFromCloud(responseJson[i]['order_tax_detail_key']);
+    if(connectivity.isConnect){
+      Map data = await Domain().SyncOrderTaxDetailToCloud(_value.toString());
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int syncData = await PosDatabase.instance.updateOrderTaxDetailSyncStatusFromCloud(responseJson[i]['order_tax_detail_key']);
+        }
       }
     }
   }

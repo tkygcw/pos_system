@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -58,10 +59,10 @@ class _SettlementDialogState extends State<SettlementDialog> {
     return null;
   }
 
-  void _submit(BuildContext context) async {
+  void _submit(BuildContext context, ConnectivityChangeNotifier connectivity) async {
     setState(() => _submitted = true);
     if (errorPassword == null) {
-      await readAdminData(adminPosPinController.text);
+      await readAdminData(adminPosPinController.text, connectivity);
       return;
     }
   }
@@ -69,7 +70,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
   closeDialog(BuildContext context) {
     return Navigator.of(context).pop(true);
   }
-  Future showSecondDialog(BuildContext context, ThemeColor color) {
+  Future showSecondDialog(BuildContext context, ThemeColor color, ConnectivityChangeNotifier connectivity) {
     return showDialog(
       barrierDismissible: false,
       context: context,
@@ -119,7 +120,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                 onPressed: () async {
-                  _submit(context);
+                  _submit(context, connectivity);
                 },
               ),
             ],
@@ -131,27 +132,29 @@ class _SettlementDialogState extends State<SettlementDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return AlertDialog(
-        title: Text('Confirm do settlement'),
-        content: Container(
-          child: Text('${AppLocalizations.of(context)?.translate('settlement_desc')}'),
-        ),
-        actions: [
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-            onPressed: (){
-              closeDialog(context);
-            },
+      return Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+        return AlertDialog(
+          title: Text('Confirm do settlement'),
+          content: Container(
+            child: Text('${AppLocalizations.of(context)?.translate('settlement_desc')}'),
           ),
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-            onPressed: () async {
-              await showSecondDialog(context, color);
-              closeDialog(context);
-            },
-          )
-        ],
-      );
+          actions: [
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+              onPressed: (){
+                closeDialog(context);
+              },
+            ),
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+              onPressed: () async {
+                await showSecondDialog(context, color, connectivity);
+                closeDialog(context);
+              },
+            )
+          ],
+        );
+      });
     });
   }
 
@@ -159,7 +162,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
   ----------------DB Query part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
-  readAdminData(String pin) async {
+  readAdminData(String pin, ConnectivityChangeNotifier connectivity) async {
     try {
       String dateTime = dateFormat.format(DateTime.now());
 
@@ -168,9 +171,8 @@ class _SettlementDialogState extends State<SettlementDialog> {
       if (userData.length > 0) {
         closeDialog(context);
         //update all today cash record settlement date
-        await updateAllCashRecordSettlement(dateTime);
+        await updateAllCashRecordSettlement(dateTime, connectivity);
         //print settlement list
-        print('print settlement list');
         await _printSettlementList(dateTime);
       } else {
         Fluttertoast.showToast(
@@ -183,7 +185,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
 
   }
 
-  updateAllCashRecordSettlement(String dateTime) async {
+  updateAllCashRecordSettlement(String dateTime, ConnectivityChangeNotifier connectivity) async {
     List<String> _value = [];
     for(int i = 0; i < widget.cashRecordList.length; i++){
       CashRecord cashRecord = CashRecord(
@@ -192,7 +194,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
           updated_at: dateTime,
           cash_record_sqlite_id:  widget.cashRecordList[i].cash_record_sqlite_id);
       int data = await PosDatabase.instance.updateCashRecord(cashRecord);
-      if(data == 1){
+      if(data == 1 && connectivity.isConnect) {
         //collect all not sync local create/update data
         CashRecord _record = await PosDatabase.instance.readSpecificCashRecord(cashRecord.cash_record_sqlite_id!);
         if(_record.sync_status != 1){
@@ -201,11 +203,13 @@ class _SettlementDialogState extends State<SettlementDialog> {
       }
     }
     //sync to cloud
-    Map response = await Domain().SyncCashRecordToCloud(_value.toString());
-    if (response['status'] == '1') {
-      List responseJson = response['data'];
-      for (var i = 0; i < responseJson.length; i++) {
-        int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+    if(connectivity.isConnect){
+      Map response = await Domain().SyncCashRecordToCloud(_value.toString());
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+        }
       }
     }
   }
@@ -222,7 +226,6 @@ class _SettlementDialogState extends State<SettlementDialog> {
   ----------------Other function part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
   _printSettlementList(String dateTime) async {
-    print('printer called');
     try {
       for (int i = 0; i < printerList.length; i++) {
         List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
@@ -239,7 +242,9 @@ class _SettlementDialogState extends State<SettlementDialog> {
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               } else {
                 //print USB 58mm
@@ -250,7 +255,9 @@ class _SettlementDialogState extends State<SettlementDialog> {
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               }
             } else {
@@ -263,7 +270,9 @@ class _SettlementDialogState extends State<SettlementDialog> {
                   await ReceiptLayout().printSettlementList80mm(false, dateTime, value: printer);
                   printer.disconnect();
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               } else {
                 //print LAN 58mm
@@ -274,16 +283,18 @@ class _SettlementDialogState extends State<SettlementDialog> {
                   await ReceiptLayout().printSettlementList58mm(false, dateTime, value: printer);
                   printer.disconnect();
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               }
-              print("print lan");
             }
           }
         }
       }
     } catch (e) {
       print('Printer Connection Error');
+
       //response = 'Failed to get platform version.';
     }
   }

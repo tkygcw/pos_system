@@ -556,17 +556,11 @@ class _CartPageState extends State<CartPage> {
                                                   cart.removeAllTable();
                                                 } else {
                                                   print('add order cache');
-                                                  // if (printerList.length >= 0) {
                                                   await callCreateNewOrder(cart, connectivity);
                                                   await _printCheckList();
                                                   await _printKitchenList(cart);
                                                   cart.removeAllCartItem();
                                                   cart.removeAllTable();
-                                                  // } else {
-                                                  //   Fluttertoast.showToast(
-                                                  //       backgroundColor: Colors.red,
-                                                  //       msg: "Printer not found");
-                                                  // }
                                                 }
                                               } else {
                                                 Fluttertoast.showToast(
@@ -692,7 +686,9 @@ class _CartPageState extends State<CartPage> {
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               } else {
                 var data = Uint8List.fromList(await ReceiptLayout().printReceipt58mm(true, this.localOrderId));
@@ -702,10 +698,13 @@ class _CartPageState extends State<CartPage> {
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               }
             } else {
+              //print LAN 80mm
               if(printerList[i].paper_size == 0){
                 final profile = await CapabilityProfile.load();
                 final printer = NetworkPrinter(PaperSize.mm80, profile);
@@ -714,9 +713,12 @@ class _CartPageState extends State<CartPage> {
                   await ReceiptLayout().printReceipt80mm(false, this.localOrderId, value: printer);
                   printer.disconnect();
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               } else {
+                //print LAN 58mm
                 final profile = await CapabilityProfile.load();
                 final printer = NetworkPrinter(PaperSize.mm58, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
@@ -724,7 +726,9 @@ class _CartPageState extends State<CartPage> {
                   await ReceiptLayout().printReceipt58mm(false, this.localOrderId, value: printer);
                   printer.disconnect();
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               }
             }
@@ -755,7 +759,9 @@ class _CartPageState extends State<CartPage> {
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               } else {
                 var data = Uint8List.fromList(await ReceiptLayout().printCheckList58mm(true));
@@ -765,14 +771,15 @@ class _CartPageState extends State<CartPage> {
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               }
 
             } else {
-              //print LAN
               if(printerList[i].paper_size == 0){
-                //print 80mm paper
+                //print LAN 80mm paper
                 final profile = await CapabilityProfile.load();
                 final printer = NetworkPrinter(PaperSize.mm80, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
@@ -780,10 +787,12 @@ class _CartPageState extends State<CartPage> {
                   await ReceiptLayout().printCheckList80mm(false, value: printer);
                   printer.disconnect();
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               } else {
-                // print 58mm paper
+                //print LAN 58mm paper
                 final profile = await CapabilityProfile.load();
                 final printer = NetworkPrinter(PaperSize.mm58, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
@@ -791,7 +800,9 @@ class _CartPageState extends State<CartPage> {
                   await ReceiptLayout().printCheckList58mm(false, value: printer);
                   printer.disconnect();
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               }
             }
@@ -826,7 +837,9 @@ class _CartPageState extends State<CartPage> {
                   await ReceiptLayout().printKitchenList80mm(false, cart.cartNotifierItem[k], value: printer);
                   printer.disconnect();
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               } else {
                 //print LAN 58mm
@@ -838,7 +851,9 @@ class _CartPageState extends State<CartPage> {
                   await ReceiptLayout().printKitchenList58mm(false, cart.cartNotifierItem[k], value: printer);
                   printer.disconnect();
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               }
             } else {
@@ -851,7 +866,9 @@ class _CartPageState extends State<CartPage> {
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               } else {
                 //print 58mm
@@ -862,7 +879,9 @@ class _CartPageState extends State<CartPage> {
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               }
             }
@@ -1526,14 +1545,15 @@ class _CartPageState extends State<CartPage> {
               status: 1,
               updated_at: dateTime);
           int data = await PosDatabase.instance.updateCartPosTableStatus(posTableData);
-          if(data == 1){
+          if(data == 1 && connectivity.isConnect){
             List<PosTable> posTable  = await PosDatabase.instance.readSpecificTable(posTableData.table_sqlite_id.toString());
-            if(posTable[0].sync_status == 2){
+            if(posTable[0].sync_status == 2 && connectivity.isConnect){
               _value.add(jsonEncode(posTable[0]));
             }
           }
         }
       }
+      //sync to cloud
       if(connectivity.isConnect){
         Map data = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
         if (data['status'] == '1') {
@@ -1589,7 +1609,7 @@ class _CartPageState extends State<CartPage> {
             tempColor = hexToInteger(hexCode!.replaceAll('#', ''));
             matchColor = hexToInteger(data[i].card_color!.replaceAll('#', ''));
             diff = tempColor - matchColor;
-            if (diff.abs() < 150000) {
+            if (diff.abs() < 160000) {
               print('color too close or not yet loop finish');
               print('diff: ${diff.abs()}');
               found = false;
@@ -1749,7 +1769,7 @@ class _CartPageState extends State<CartPage> {
                 updated_at: '',
                 soft_delete: ''));
         TableUseDetail updatedDetail = await insertTableUseDetailKey(tableUseDetailData, dateTime);
-        if(updatedDetail.sync_status == 0){
+        if(updatedDetail.sync_status == 0 && connectivity.isConnect){
           _value.add(jsonEncode(updatedDetail.syncJson()));
         }
       }
@@ -1950,7 +1970,7 @@ class _CartPageState extends State<CartPage> {
                 soft_delete: ''));
         //insert order detail key
         OrderDetail updatedOrderDetailData = await insertOrderDetailKey(orderDetailData, dateTime);
-        if(updatedOrderDetailData.order_detail_key != ''){
+        if(updatedOrderDetailData.order_detail_key != '' && connectivity.isConnect){
           _orderDetailValue.add(jsonEncode(updatedOrderDetailData.syncJson()));
         }
         //insert order modifier detail
@@ -1974,7 +1994,7 @@ class _CartPageState extends State<CartPage> {
                   soft_delete: ''));
               //insert unique key
               OrderModifierDetail updatedOrderModifierDetail =  await insertOrderModifierDetailKey(orderModifierDetailData, dateTime);
-              if(updatedOrderModifierDetail.order_modifier_detail_key != ''){
+              if(updatedOrderModifierDetail.order_modifier_detail_key != '' && connectivity.isConnect){
                 _orderModifierValue.add(jsonEncode(updatedOrderModifierDetail));
               }
             }
@@ -1982,7 +2002,7 @@ class _CartPageState extends State<CartPage> {
         }
       }
     }
-    //sync to cloud
+    //sync order detail to cloud
     if(connectivity.isConnect){
       Map orderDetailResponse = await Domain().SyncOrderDetailToCloud(_orderDetailValue.toString());
       if (orderDetailResponse['status'] == '1') {
@@ -1991,14 +2011,14 @@ class _CartPageState extends State<CartPage> {
           int syncUpdated = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
         }
       }
-    }
-    //sync to cloud
-    if(_hasModifier == true && connectivity.isConnect){
-      Map orderModifierResponse = await Domain().SyncOrderModifierDetailToCloud(_orderModifierValue.toString());
-      if(orderModifierResponse['status'] == '1'){
-        List responseJson = orderModifierResponse['data'];
-        for(int i = 0 ; i <responseJson.length; i++){
-          int syncUpdated = await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
+      //sync modifier detail to cloud
+      if(_hasModifier == true){
+        Map orderModifierResponse = await Domain().SyncOrderModifierDetailToCloud(_orderModifierValue.toString());
+        if(orderModifierResponse['status'] == '1'){
+          List responseJson = orderModifierResponse['data'];
+          for(int i = 0 ; i <responseJson.length; i++){
+            int syncUpdated = await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
+          }
         }
       }
     }
