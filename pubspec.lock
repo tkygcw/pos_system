@@ -29,6 +29,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0"
+  app_settings:
+    dependency: "direct main"
+    description:
+      name: app_settings
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.1.8"
   archive:
     dependency: transitive
     description:
@@ -329,21 +336,21 @@ packages:
       name: flutter_local_notifications
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "12.0.4"
+    version: "9.9.1"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
       name: flutter_local_notifications_linux
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0"
+    version: "0.5.1"
   flutter_local_notifications_platform_interface:
     dependency: transitive
     description:
       name: flutter_local_notifications_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.0.0"
+    version: "5.0.0"
   flutter_localizations:
     dependency: "direct main"
     description: flutter
@@ -486,12 +493,12 @@ packages:
     source: hosted
     version: "0.8.5+3"
   image_picker_android:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: image_picker_android
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.5+1"
+    version: "0.8.4+13"
   image_picker_for_web:
     dependency: transitive
     description:
@@ -541,6 +548,27 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.5.0"
+  location:
+    dependency: "direct main"
+    description:
+      name: location
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.4.0"
+  location_platform_interface:
+    dependency: transitive
+    description:
+      name: location_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.3.0"
+  location_web:
+    dependency: transitive
+    description:
+      name: location_web
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.1.1"
   matcher:
     dependency: transitive
     description:
@@ -902,7 +930,7 @@ packages:
       name: timezone
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.0"
+    version: "0.8.0"
   typed_data:
     dependency: transitive
     description:
@@ -1010,4 +1038,4 @@ packages:
     version: "5.3.5"
 sdks:
   dart: ">=2.17.0 <3.0.0"
-  flutter: ">=3.0.0"
+  flutter: ">=3.0.1"

@@ -1,3 +1,4 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/app_setting.dart';
@@ -201,6 +202,22 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                             }
                           },
                       ),
+                    ),
+                    ListTile(
+                      title: Text('App Notification setting'),
+                      subtitle: Text('open app notification setting'),
+                      trailing: Icon(Icons.navigate_next),
+                      onTap: () {
+                        AppSettings.openNotificationSettings();
+                      },
+                    ),
+                    ListTile(
+                      title: Text('Sound setting'),
+                      subtitle: Text('open device sound setting'),
+                      trailing: Icon(Icons.volume_down),
+                      onTap: () {
+                        AppSettings.openSoundSettings();
+                      },
                     )
                   ],
                 ),

@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 
 import 'package:lan_scanner/lan_scanner.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
+import 'package:location/location.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:pos_system/notifier/printer_notifier.dart';
@@ -36,7 +38,7 @@ class _DeviceDialogState extends State<DeviceDialog> {
     if (widget.type == 0) {
       _getDevicelist();
     } else {
-      scan_network();
+      checkPermission();
     }
   }
 
@@ -44,6 +46,76 @@ class _DeviceDialogState extends State<DeviceDialog> {
   void dispose() {
     // TODO: implement dispose
     super.dispose();
+
+  }
+
+  checkPermission() async {
+    Location location = new Location();
+    //check location permission is granted or not
+    var permissionGranted = await location.hasPermission();
+    if(permissionGranted == PermissionStatus.denied){
+      permissionGranted = await location.requestPermission();
+      if(permissionGranted != PermissionStatus.granted){
+        Navigator.of(context).pop();
+      } else {
+        //check location is on or not
+        var _locationOn = await location.serviceEnabled();
+        if(!_locationOn){
+          _locationOn = await location.requestService();
+          if(!_locationOn){
+            Navigator.of(context).pop();
+          } else {
+            await scan_network();
+          }
+        } else {
+          await scan_network();
+        }
+      }
+
+    } else {
+      //check location is on or not
+      var _locationOn = await location.serviceEnabled();
+      if(!_locationOn){
+        _locationOn = await location.requestService();
+        if(!_locationOn){
+          Navigator.of(context).pop();
+        } else {
+          await scan_network();
+        }
+      } else {
+        await scan_network();
+      }
+    }
+
+    // bool isOn = await location.serviceEnabled();
+    // if (!isOn) {
+    //   bool isTurnedOn = await location.requestService();
+    //   if (isTurnedOn) {
+    //     print("GPS device is turned ON");
+    //     await scan_network();
+    //   }else{
+    //     print("GPS Device is still OFF");
+    //     Navigator.of(context).pop();
+    //   }
+    // }
+    // var status = await Permission.location.status;
+    // if (status.isDenied || status.isRestricted) {
+    //   if(await Permission.location.request().isGranted){
+    //     if(await Permission.locationWhenInUse.serviceStatus.isEnabled){
+    //       await scan_network();
+    //     }else {
+    //       AppSettings.openLocationSettings();
+    //       Navigator.of(context).pop();
+    //     }
+    //   }
+    // } else {
+    //   if(await Permission.locationWhenInUse.serviceStatus.isEnabled){
+    //     await scan_network();
+    //   } else {
+    //     AppSettings.openLocationSettings();
+    //     Navigator.of(context).pop();
+    //   }
+    // }
   }
 
   scan_network() async {
@@ -56,14 +128,15 @@ class _DeviceDialogState extends State<DeviceDialog> {
     var subnet = ipToCSubnet(wifiIP!);
 
     final stream = scanner.icmpScan(subnet, progressCallback: (progress) {
-      setState(() {
-        info = Text('Scanning device within $wifiName');
-        percentage = progress;
-        if (percentage == 1.0) {
-          print('${wifiName}');
-          isLoad = true;
-        }
-      });
+      if (this.mounted) {
+        setState(() {
+          info = Text('Scanning device within $wifiName');
+          percentage = progress;
+          if (percentage == 1.0) {
+            isLoad = true;
+          }
+        });
+      }
     });
 
     stream.listen((HostModel host) {
@@ -74,11 +147,13 @@ class _DeviceDialogState extends State<DeviceDialog> {
   _getDevicelist() async {
     List<Map<String, dynamic>> results = [];
     results = await FlutterUsbPrinter.getUSBDeviceList();
+    if (this.mounted) {
+      setState(() {
+        devices = results;
+        isLoad = true;
+      });
+    }
 
-    setState(() {
-      devices = results;
-      isLoad = true;
-    });
   }
 
   @override
