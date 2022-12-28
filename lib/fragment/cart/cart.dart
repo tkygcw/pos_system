@@ -9,6 +9,7 @@ import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/cart/promotion_dialog.dart';
@@ -31,6 +32,8 @@ import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
+import 'package:pos_system/page/loading_dialog.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -547,21 +550,21 @@ class _CartPageState extends State<CartPage> {
                                           if (widget.currentPage == 'menu' || widget.currentPage == 'qr_order') {
                                             if (cart.selectedOption == 'Dine in') {
                                               if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
-                                                if (cart.cartNotifierItem[0].status == 1) {
-                                                  print('add new item');
-                                                  await callAddOrderCache(cart, connectivity);
-                                                  await _printCheckList();
-                                                  await _printKitchenList(cart);
+                                                openLoadingDialogBox();
+                                                Future.delayed(new Duration(seconds: 3), () async {
+                                                  if (cart.cartNotifierItem[0].status == 1) {
+                                                    await callAddOrderCache(cart, connectivity);
+                                                    await _printCheckList();
+                                                    await _printKitchenList(cart);
+                                                  } else {
+                                                    await callCreateNewOrder(cart, connectivity);
+                                                    await _printCheckList();
+                                                    await _printKitchenList(cart);
+                                                  }
                                                   cart.removeAllCartItem();
                                                   cart.removeAllTable();
-                                                } else {
-                                                  print('add order cache');
-                                                  await callCreateNewOrder(cart, connectivity);
-                                                  await _printCheckList();
-                                                  await _printKitchenList(cart);
-                                                  cart.removeAllCartItem();
-                                                  cart.removeAllTable();
-                                                }
+                                                  Navigator.of(context).pop();
+                                                });
                                               } else {
                                                 Fluttertoast.showToast(
                                                     backgroundColor: Colors.red,
@@ -738,7 +741,9 @@ class _CartPageState extends State<CartPage> {
       }
     } catch (e) {
       print('Printer Connection Error cart: ${e}');
-      //response = 'Failed to get platform version.';
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printing_error')}");
     }
   }
 
@@ -812,7 +817,9 @@ class _CartPageState extends State<CartPage> {
       }
     } catch (e) {
       print('Printer Connection Error: ${e}');
-      //response = 'Failed to get platform version.';
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printing_error')}");
     }
   }
 
@@ -1439,6 +1446,28 @@ class _CartPageState extends State<CartPage> {
         });
   }
 
+  Future<Future<Object?>> openLoadingDialogBox() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LoadingDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
   openPaymentSelect() async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
@@ -1508,7 +1537,6 @@ class _CartPageState extends State<CartPage> {
   callCreateNewNotDineOrder(CartModel cart, ConnectivityChangeNotifier connectivity) async {
     await createOrderCache(cart, connectivity);
     await createOrderDetail(cart, connectivity);
-    //await _printCheckList();
   }
 /*
   dine in call
@@ -1519,11 +1547,9 @@ class _CartPageState extends State<CartPage> {
     await createOrderCache(cart, connectivity);
     await createOrderDetail(cart, connectivity);
     await updatePosTable(cart, connectivity);
-    //await _printCheckList();
   }
 
   callAddOrderCache(CartModel cart, ConnectivityChangeNotifier connectivity) async {
-    print('add product cache');
     await createOrderCache(cart, connectivity);
     await createOrderDetail(cart, connectivity);
   }
@@ -1554,7 +1580,8 @@ class _CartPageState extends State<CartPage> {
         }
       }
       //sync to cloud
-      if(connectivity.isConnect){
+      bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
+      if(connectivity.isConnect && _hasInternetAccess){
         Map data = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
         if (data['status'] == '1') {
           List responseJson = data['data'];
@@ -1566,7 +1593,7 @@ class _CartPageState extends State<CartPage> {
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000), msg: "update table error: ${e}");
-      print("$e");
+      print("update table error: $e");
     }
   }
 
@@ -1697,9 +1724,10 @@ class _CartPageState extends State<CartPage> {
                 updated_at: '',
                 soft_delete: ''));
         localTableUseId = tableUseData.table_use_sqlite_id.toString();
-        TableUse _updatedTableUseData =  await insertTableUseKey(tableUseData, dateTime);
+        TableUse _updatedTableUseData = await insertTableUseKey(tableUseData, dateTime);
         //sync to cloud
-        if(_updatedTableUseData.sync_status == 0 && _updatedTableUseData.table_use_key != '' && connectivity.isConnect){
+        bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
+        if(_updatedTableUseData.sync_status == 0 && _updatedTableUseData.table_use_key != '' && connectivity.isConnect && _hasInternetAccess){
           _value.add(jsonEncode(_updatedTableUseData));
           Map response = await Domain().SyncTableUseToCloud(_value.toString());
           if (response['status'] == '1') {
@@ -1774,7 +1802,8 @@ class _CartPageState extends State<CartPage> {
         }
       }
       //sync to cloud
-      if(connectivity.isConnect){
+      bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
+      if(connectivity.isConnect && _hasInternetAccess){
         Map response = await Domain().SyncTableUseDetailToCloud(_value.toString());
         if(response['status'] == 1){
           List responseJson = response['data'];
@@ -1863,9 +1892,10 @@ class _CartPageState extends State<CartPage> {
                 soft_delete: ''));
         orderCacheId = data.order_cache_sqlite_id.toString();
         OrderCache updatedCache = await insertOrderCacheKey(data, dateTime);
+        bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
         //sync to cloud
         if(updatedCache.sync_status == 0){
-          if(connectivity.isConnect){
+          if(connectivity.isConnect && _hasInternetAccess){
             _orderCacheValue.add(jsonEncode(updatedCache));
             Map response = await Domain().SyncOrderCacheToCloud(_orderCacheValue.toString());
             if(response['status'] == '1'){
@@ -1925,7 +1955,8 @@ class _CartPageState extends State<CartPage> {
       );
       int tableUseCacheKey = await PosDatabase.instance.updateTableUseOrderCacheUniqueKey(tableUseObject);
       //sync to cloud
-      if(tableUseCacheKey == 1 && connectivity.isConnect){
+      bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
+      if(tableUseCacheKey == 1 && connectivity.isConnect && _hasInternetAccess){
         List<TableUse> updatedTableUseRead = await PosDatabase.instance.readSpecificTableUseId(tableUseObject.table_use_sqlite_id!);
         if(updatedTableUseRead[0].sync_status != 1){
           _tableUseValue.add(jsonEncode(updatedTableUseRead[0]));
@@ -2003,7 +2034,8 @@ class _CartPageState extends State<CartPage> {
       }
     }
     //sync order detail to cloud
-    if(connectivity.isConnect){
+    bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
+    if(connectivity.isConnect && _hasInternetAccess){
       Map orderDetailResponse = await Domain().SyncOrderDetailToCloud(_orderDetailValue.toString());
       if (orderDetailResponse['status'] == '1') {
         List responseJson = orderDetailResponse['data'];

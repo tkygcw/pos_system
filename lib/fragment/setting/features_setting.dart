@@ -203,22 +203,37 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                           },
                       ),
                     ),
+                    Divider(
+                      color: Colors.grey,
+                      height: 1,
+                      thickness: 1,
+                      indent: 20,
+                      endIndent: 20,
+                    ),
+                    ListTile(
+                      title: Text('Wi-Fi setting'),
+                      subtitle: Text('open wi-fi setting'),
+                      trailing: Icon(Icons.wifi),
+                      onTap: () {
+                        AppSettings.openWIFISettings();
+                      },
+                    ),
                     ListTile(
                       title: Text('App Notification setting'),
                       subtitle: Text('open app notification setting'),
-                      trailing: Icon(Icons.navigate_next),
+                      trailing: Icon(Icons.notifications_on),
                       onTap: () {
                         AppSettings.openNotificationSettings();
                       },
                     ),
                     ListTile(
-                      title: Text('Sound setting'),
+                      title: Text('Device Sound setting'),
                       subtitle: Text('open device sound setting'),
-                      trailing: Icon(Icons.volume_down),
+                      trailing: Icon(Icons.volume_up),
                       onTap: () {
                         AppSettings.openSoundSettings();
                       },
-                    )
+                    ),
                   ],
                 ),
               ),

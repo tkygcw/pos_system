@@ -6,6 +6,7 @@ import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +20,7 @@ import '../../object/printer.dart';
 import '../../object/printer_link_category.dart';
 import '../../object/receipt_layout.dart';
 import '../../object/user.dart';
+import '../../page/loading_dialog.dart';
 import '../../translation/AppLocalizations.dart';
 
 class SettlementDialog extends StatefulWidget {
@@ -89,6 +91,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
                         controller: adminPosPinController,
+                        keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           errorText: _submitted
                               ? errorPassword == null
@@ -178,7 +181,6 @@ class _SettlementDialogState extends State<SettlementDialog> {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
       }
-      widget.callBack();
     } catch (e) {
       print('delete error ${e}');
     }
@@ -202,16 +204,21 @@ class _SettlementDialogState extends State<SettlementDialog> {
         }
       }
     }
+    widget.callBack();
     //sync to cloud
     if(connectivity.isConnect){
-      Map response = await Domain().SyncCashRecordToCloud(_value.toString());
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+      bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
+      if(_hasInternetAccess){
+        Map response = await Domain().SyncCashRecordToCloud(_value.toString());
+        if (response['status'] == '1') {
+          List responseJson = response['data'];
+          for (var i = 0; i < responseJson.length; i++) {
+            int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+          }
         }
       }
     }
+    _value.clear();
   }
 
   readAllPrinters() async {

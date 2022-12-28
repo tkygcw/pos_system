@@ -89,6 +89,11 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                 ),
                                 onPressed: () async {
                                   await _printReceiptList();
+                                  await createCashRecord(connectivity);
+                                  closeDialog(context);
+                                  tableModel.changeContent(true);
+                                  cartModel.initialLoad();
+                                  widget.callback();
                                 },
                                 child: Text('Print receipt', style: TextStyle(fontSize: 18),)
                             ),
@@ -100,7 +105,8 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                 style: ElevatedButton.styleFrom(
                                   primary: color.buttonColor,
                                 ),
-                                onPressed: (){
+                                onPressed: () async {
+                                  await createCashRecord(connectivity);
                                   closeDialog(context);
                                   tableModel.changeContent(true);
                                   cartModel.initialLoad();
@@ -131,6 +137,11 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                 ),
                                 onPressed: () async {
                                   await _printReceiptList();
+                                  await createCashRecord(connectivity);
+                                  closeDialog(context);
+                                  tableModel.changeContent(true);
+                                  cartModel.initialLoad();
+                                  widget.callback();
                                 },
                                 child: Text('Print receipt', style: TextStyle(fontSize: 15),)
                             ),
@@ -141,7 +152,8 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                 style: ElevatedButton.styleFrom(
                                   primary: color.buttonColor,
                                 ),
-                                onPressed: (){
+                                onPressed: () async {
+                                  await createCashRecord(connectivity);
                                   closeDialog(context);
                                   tableModel.changeContent(true);
                                   cartModel.initialLoad();
@@ -176,7 +188,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     await updateOrderCache(connectivity);
     //await deleteOrderCache();
     isLoaded = true;
-
   }
 
   updateOrder(ConnectivityChangeNotifier connectivity) async {
@@ -191,7 +202,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
 
     int updatedData = await PosDatabase.instance.updateOrderPaymentStatus(orderObject);
     if(updatedData == 1){
-      await createCashRecord(connectivity);
       if(connectivity.isConnect){
         Order orderData = await PosDatabase.instance.readSpecificOrder(int.parse(widget.orderId));
         _value.add(jsonEncode(orderData));
@@ -449,7 +459,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   }
 
   _printReceiptList() async {
-    print('called');
     try {
       for (int i = 0; i < printerList.length; i++) {
         List<PrinterLinkCategory> data = await PosDatabase.instance
@@ -467,7 +476,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               } else {
                 //print 58mm
@@ -478,7 +489,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               }
             } else {
@@ -492,7 +505,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                   await ReceiptLayout().printReceipt80mm(false, widget.orderId, value: printer);
                   printer.disconnect();
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               } else {
                 //print LAN 58mm
@@ -504,7 +519,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                   await ReceiptLayout().printReceipt58mm(false, widget.orderId, value: printer);
                   printer.disconnect();
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               }
             }
@@ -513,7 +530,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       }
     } catch (e) {
       print('Printer Connection Error cart: ${e}');
-      //response = 'Failed to get platform version.';
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printing_error')}");
     }
   }
 

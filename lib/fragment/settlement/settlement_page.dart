@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -802,14 +803,18 @@ class _SettlementPageState extends State<SettlementPage> {
         CashRecord _record = await PosDatabase.instance.readSpecificCashRecord(cashRecord.cash_record_sqlite_id!);
         if(_record.sync_status != 1){
           _value.add(jsonEncode(_record));
-          Map response = await Domain().SyncCashRecordToCloud(_value.toString());
-          if (response['status'] == '1') {
-            List responseJson = response['data'];
-            int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
-          }
         }
       }
       await readCashRecord();
+      //sync to cloud
+      bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
+      if(connectivity.isConnect && _hasInternetAccess){
+        Map response = await Domain().SyncCashRecordToCloud(_value.toString());
+        if (response['status'] == '1') {
+          List responseJson = response['data'];
+          int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+        }
+      }
     } catch (e) {
       print('delete cash record error: ${e}');
       Fluttertoast.showToast(

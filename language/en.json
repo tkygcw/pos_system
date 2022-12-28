@@ -2,6 +2,7 @@
   "product": "Product",
   "usb_printer_not_connect": "Printer not connected. Please check your usb plugin",
   "lan_printer_not_connect": "Printer not connected. Please check your internet connection",
+  "printing_error": "Printing error",
   "create_table": "Create Table",
   "edit_table": "Edit Table",
   "close": "Close",

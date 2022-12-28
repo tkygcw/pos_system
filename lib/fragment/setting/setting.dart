@@ -124,7 +124,7 @@ class _SettingMenuState extends State<SettingMenu> {
                   ),
                   SideNavigationBarItem(
                     icon: Icons.settings,
-                    label: 'App setting',
+                    label: 'App-Device setting',
                   ),
                   SideNavigationBarItem(
                     icon: Icons.list,

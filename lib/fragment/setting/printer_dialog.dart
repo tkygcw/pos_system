@@ -628,7 +628,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
     setState(() {
       selectedCategories.clear();
       for (int i = 0; i < callBackList.length; i++) {
-        if (callBackList[i].isChecked!) {
+        if (callBackList[i].isChecked) {
           selectedCategories.add(callBackList[i]);
         }
       }
