@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
@@ -9,7 +10,8 @@ class Domain {
   static Uri device = Uri.parse(domain + 'mobile-api/device/index.php');
   static Uri user = Uri.parse(domain + 'mobile-api/user/index.php');
   static Uri table = Uri.parse(domain + 'mobile-api/table/index.php');
-  static Uri dining_option = Uri.parse(domain + 'mobile-api/dining_option/index.php');
+  static Uri dining_option =
+      Uri.parse(domain + 'mobile-api/dining_option/index.php');
   static Uri tax = Uri.parse(domain + 'mobile-api/tax/index.php');
   static Uri categories = Uri.parse(domain + 'mobile-api/categories/index.php');
   static Uri promotion = Uri.parse(domain + 'mobile-api/promotion/index.php');
@@ -24,7 +26,9 @@ class Domain {
   static Uri sale = Uri.parse(domain + 'mobile-api/sale/index.php');
   static Uri table_use = Uri.parse(domain + 'mobile-api/table_use/index.php');
   static Uri sync_record = Uri.parse(domain + 'mobile-api/sync/index.php');
-  static Uri sync_to_cloud = Uri.parse(domain + 'mobile-api/sync_to_cloud/index.php');
+  static Uri sync_to_cloud =
+      Uri.parse(domain + 'mobile-api/sync_to_cloud/index.php');
+
   /*
   * login
   * */
@@ -115,10 +119,11 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
   /*
   * get all table_use
   * */
-  insertTableUse(branch_id,card_color) async {
+  insertTableUse(branch_id, card_color) async {
     try {
       var response = await http.post(Domain.table_use, body: {
         'insertTableUse': '1',
@@ -366,9 +371,11 @@ class Domain {
       var response = await http.post(Domain.sync_to_cloud, body: {
         'tb_table_use_create': '1',
         'details': detail,
-      });
+      }).timeout(Duration(seconds: 3));
 
       return jsonDecode(response.body);
+    } on TimeoutException catch (timeOut) {
+      return;
     } catch (error) {
       print('domain error: ${error}');
       Fluttertoast.showToast(msg: error.toString());
@@ -493,7 +500,7 @@ class Domain {
   /*
   * get all table_use
   * */
-  insertTableUseDetail(table_use_id,table_id,original_table_id) async {
+  insertTableUseDetail(table_use_id, table_id, original_table_id) async {
     try {
       var response = await http.post(Domain.table_use, body: {
         'insertTableUseDetail': '1',
@@ -925,8 +932,6 @@ class Domain {
     }
   }
 
-
-
   /*
   * update product
   * */
@@ -962,7 +967,6 @@ class Domain {
         'graphic': graphic,
         'color': color,
         'imageName': imageName,
-
       });
       return jsonDecode(response.body);
     } catch (error) {
@@ -978,14 +982,13 @@ class Domain {
       var response = await http.post(Domain.product, body: {
         'deleteProduct': '1',
         'product_id': product_id,
-        'branch_id' : branch_id
+        'branch_id': branch_id
       });
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
-
 
   /*
   * get branch link product
@@ -1027,7 +1030,7 @@ class Domain {
   * edit branch link product
   * */
   editBranchLinkProductForVariant(branch_id, product_id, product_variant_id,
-     daily_limit, price, stockType, stock_quantity) async {
+      daily_limit, price, stockType, stock_quantity) async {
     try {
       var response = await http.post(Domain.product, body: {
         'updateBranchLinkProductForVariant': '1',
@@ -1036,7 +1039,7 @@ class Domain {
         'product_variant_id': product_variant_id,
         'price': price,
         'stockType': stockType,
-        'daily_limit' : daily_limit,
+        'daily_limit': daily_limit,
         'stock_quantity': stock_quantity
       });
       return jsonDecode(response.body);
@@ -1048,8 +1051,8 @@ class Domain {
   /*
   * edit branch link product
   * */
-  editBranchLinkProduct(branch_id, product_id,
-      daily_limit, price, stockType, stock_quantity) async {
+  editBranchLinkProduct(branch_id, product_id, daily_limit, price, stockType,
+      stock_quantity) async {
     try {
       var response = await http.post(Domain.product, body: {
         'updateBranchLinkProduct': '1',
@@ -1057,7 +1060,7 @@ class Domain {
         'product_id': product_id,
         'price': price,
         'stockType': stockType,
-        'daily_limit' : daily_limit,
+        'daily_limit': daily_limit,
         'stock_quantity': stock_quantity
       });
       return jsonDecode(response.body);
@@ -1123,7 +1126,7 @@ class Domain {
       var response = await http.post(Domain.product, body: {
         'deleteModLinkProduct': '1',
         'product_id': product_id,
-        'mod_group_id' : mod_group_id
+        'mod_group_id': mod_group_id
       });
       return jsonDecode(response.body);
     } catch (error) {
@@ -1165,7 +1168,7 @@ class Domain {
   /*
   * delete variant group
   * */
-  deleteVariantGroup(product_id,variant_group_id) async {
+  deleteVariantGroup(product_id, variant_group_id) async {
     try {
       var response = await http.post(Domain.product, body: {
         'deleteVariantGroup': '1',
@@ -1357,21 +1360,21 @@ class Domain {
   /*
   * insert order cache
   * */
-  insertOrderCache(company_id, branch_id, table_use_id, table_id, dining_id, order_by, total_amount) async {
+  insertOrderCache(company_id, branch_id, table_use_id, table_id, dining_id,
+      order_by, total_amount) async {
     try {
       var response = await http.post(Domain.order, body: {
         'insertOrderCache': '1',
         'company_id': company_id,
         'branch_id': branch_id,
         'table_use_id': table_use_id,
-        'table_id' : table_id,
-        'dining_id' : dining_id,
-        'order_by' : order_by,
-        'total_amount' : total_amount
+        'table_id': table_id,
+        'dining_id': dining_id,
+        'order_by': order_by,
+        'total_amount': total_amount
       });
       print(jsonDecode(response.body));
       return jsonDecode(response.body);
-
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
@@ -1385,11 +1388,10 @@ class Domain {
       var response = await http.post(Domain.order, body: {
         'editOrderCache': '1',
         'order_cache_id': order_cache_id,
-        'table_id' : table_id,
+        'table_id': table_id,
       });
       print(jsonDecode(response.body));
       return jsonDecode(response.body);
-
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
@@ -1406,7 +1408,6 @@ class Domain {
       });
       print(jsonDecode(response.body));
       return jsonDecode(response.body);
-
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
@@ -1431,19 +1432,28 @@ class Domain {
   /*
   * insert order detail
   * */
-  insertOrderDetail(order_cache_id, branch_link_product_id, product_name, has_variant, 	product_variant_name, price, quantity, remark, account) async {
+  insertOrderDetail(
+      order_cache_id,
+      branch_link_product_id,
+      product_name,
+      has_variant,
+      product_variant_name,
+      price,
+      quantity,
+      remark,
+      account) async {
     try {
       var response = await http.post(Domain.order, body: {
         'insertOrderDetail': '1',
         'order_cache_id': order_cache_id,
         'branch_link_product_id': branch_link_product_id,
-        'product_name' : product_name,
-        'has_variant' : has_variant,
-        'product_variant_name' : product_variant_name,
-        'price' : price,
+        'product_name': product_name,
+        'has_variant': has_variant,
+        'product_variant_name': product_variant_name,
+        'price': price,
         'quantity': quantity,
-        'remark' : remark,
-        'account' : account,
+        'remark': remark,
+        'account': account,
       });
       print(jsonDecode(response.body));
       return jsonDecode(response.body);
@@ -1564,6 +1574,16 @@ class Domain {
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  isHostReachable() async {
+    try {
+      await http
+          .get(Uri.parse('https://pos.lkmng.com/mobile-api/login/index.php'));
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 }

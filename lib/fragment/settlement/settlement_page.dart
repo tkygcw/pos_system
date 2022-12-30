@@ -754,9 +754,7 @@ class _SettlementPageState extends State<SettlementPage> {
     final int? branch_id = prefs.getInt('branch_id');
     List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord(branch_id.toString());
     if (selectedPayment == 'All/Cash Drawer') {
-      if (!cashRecordList.contains(data)) {
-        cashRecordList = List.from(data);
-      }
+      cashRecordList = data;
     } else if (selectedPayment == 'Cash') {
       for (int i = 0; i < data.length; i++) {
         if (data[i].payment_type_id == '1') {
@@ -793,33 +791,37 @@ class _SettlementPageState extends State<SettlementPage> {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       List<String> _value = [];
+      print('delete cash record id: ${cashRecord.cash_record_sqlite_id}');
+      print('delete cash record sync status: ${cashRecord.sync_status}');
       CashRecord cashRecordObject = CashRecord(
           sync_status: cashRecord.sync_status == 0 ? 0 : 2,
           soft_delete: dateTime,
           cash_record_sqlite_id: cashRecord.cash_record_sqlite_id);
       int data = await PosDatabase.instance.deleteCashRecord(cashRecordObject);
       //sync to cloud
-      if(data == 1 && connectivity.isConnect){
+      if(data == 1){
         CashRecord _record = await PosDatabase.instance.readSpecificCashRecord(cashRecord.cash_record_sqlite_id!);
-        if(_record.sync_status != 1){
-          _value.add(jsonEncode(_record));
-        }
+        _value.add(jsonEncode(_record));
       }
       await readCashRecord();
       //sync to cloud
-      bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
-      if(connectivity.isConnect && _hasInternetAccess){
-        Map response = await Domain().SyncCashRecordToCloud(_value.toString());
-        if (response['status'] == '1') {
-          List responseJson = response['data'];
-          int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
-        }
-      }
+      syncUpdatedCashRecordToCloud(_value.toString());
     } catch (e) {
       print('delete cash record error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Delete cash record error: ${e}");
+    }
+  }
+
+  syncUpdatedCashRecordToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map response = await Domain().SyncCashRecordToCloud(value);
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+      }
     }
   }
 

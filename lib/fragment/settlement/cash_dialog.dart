@@ -376,7 +376,7 @@ class _CashDialogState extends State<CashDialog> {
       );
       int data = await PosDatabase.instance.updateCashRecordUniqueKey(cashRecordObject);
       if(data == 1){
-         _record = await PosDatabase.instance.readSpecificCashRecord(cashRecord.cash_record_sqlite_id!);
+         _record = await PosDatabase.instance.readSpecificCashRecord(cashRecordObject.cash_record_sqlite_id!);
       }
     }
 
@@ -417,17 +417,8 @@ class _CashDialogState extends State<CashDialog> {
       CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
       CashRecord updatedData = await insertCashRecordKey(data, dateTime);
 
-      //sync to cloud
-      if(updatedData.cash_record_key != '' && updatedData.sync_status == 0 && connectivity.isConnect){
-        _value.add(jsonEncode(updatedData));
-        Map response = await Domain().SyncCashRecordToCloud(_value.toString());
-        if (response['status'] == '1') {
-          List responseJson = response['data'];
-          int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
-        }
-      }
-      widget.callBack();
       closeDialog(context);
+      widget.callBack();
       if(widget.isNewDay){
         if(appSettingList.length > 0 && appSettingList[0].open_cash_drawer == 1){
           ReceiptLayout().openCashDrawer();
@@ -435,12 +426,23 @@ class _CashDialogState extends State<CashDialog> {
       } else {
         ReceiptLayout().openCashDrawer();
       }
-
+      //sync to cloud
+      await syncCashRecordToCloud(updatedData);
     }catch(e){
       print('cash record error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Create cash record error: ${e}");
+    }
+  }
+
+  syncCashRecordToCloud(CashRecord updatedData) async {
+    List<String> _value = [];
+    _value.add(jsonEncode(updatedData));
+    Map response = await Domain().SyncCashRecordToCloud(_value.toString());
+    if (response['status'] == '1') {
+      List responseJson = response['data'];
+      int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
     }
   }
 

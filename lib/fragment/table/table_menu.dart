@@ -240,20 +240,20 @@ class _TableMenuState extends State<TableMenu> {
                                                     : MediaQuery.of(context).size.height / 6,
                                             child: Stack(
                                               children: [
-                                                Ink.image(
-                                                  image: tableList[index].seats == '2'
-                                                      ? NetworkImage(
-                                                          "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
-                                                      : tableList[index].seats == '4'
-                                                          ? NetworkImage(
-                                                              "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
-                                                          : tableList[index].seats == '6'
-                                                              ? NetworkImage(
-                                                                  "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
-                                                              : NetworkImage(
-                                                                  "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
-                                                  fit: BoxFit.cover,
-                                                ),
+                                                // Ink.image(
+                                                //   image: tableList[index].seats == '2'
+                                                //       ? NetworkImage(
+                                                //           "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
+                                                //       : tableList[index].seats == '4'
+                                                //           ? NetworkImage(
+                                                //               "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
+                                                //           : tableList[index].seats == '6'
+                                                //               ? NetworkImage(
+                                                //                   "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
+                                                //               : NetworkImage(
+                                                //                   "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                                                //   fit: BoxFit.cover,
+                                                // ),
                                                 Container(
                                                     alignment: Alignment.center,
                                                     child: Text("#" + tableList[index].number!)),

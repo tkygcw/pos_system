@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
@@ -35,6 +36,7 @@ class _HomePageState extends State<HomePage> {
   late String currentPage;
   late String role;
   String? branchName;
+  Timer? timer;
 
   @override
   void initState() {
@@ -54,8 +56,10 @@ class _HomePageState extends State<HomePage> {
             //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
         });
       });
-
     }
+    // timer = Timer.periodic(Duration(seconds: 15), (Timer t) {
+    //   print('sync to cloud at home');
+    // });
   }
 
   @override

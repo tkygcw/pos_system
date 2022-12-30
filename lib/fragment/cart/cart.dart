@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -50,8 +51,11 @@ import '../../translation/AppLocalizations.dart';
 import '../settlement/cash_dialog.dart';
 import '../payment/payment_select_dialog.dart';
 
+import 'package:http/http.dart' as http;
+
 class CartPage extends StatefulWidget {
   final String currentPage;
+
   const CartPage({required this.currentPage, Key? key}) : super(key: key);
 
   @override
@@ -70,10 +74,28 @@ class _CartPageState extends State<CartPage> {
   List<OrderTaxDetail> orderTaxList = [];
   List<OrderPromotionDetail> orderPromotionList = [];
   int diningOptionID = 0, simpleIntInput = 0;
-  double total = 0.0, promo = 0.0, selectedPromo = 0.0, selectedPromoAmount = 0.0,
-         taxAmount = 0.0, priceIncAllTaxes = 0.0, priceIncTaxes = 0.0, discountPrice = 0.0,
-         promoAmount = 0.0, totalAmount = 0.0, tableOrderPrice = 0.0, rounding = 0.0, paymentReceived = 0.0, paymentChange = 0.0;
-  String selectedPromoRate = '', promoName = '', promoRate = '', localTableUseId = '', orderCacheId = '', allPromo = '', finalAmount = '', localOrderId = '';
+  double total = 0.0,
+      promo = 0.0,
+      selectedPromo = 0.0,
+      selectedPromoAmount = 0.0,
+      taxAmount = 0.0,
+      priceIncAllTaxes = 0.0,
+      priceIncTaxes = 0.0,
+      discountPrice = 0.0,
+      promoAmount = 0.0,
+      totalAmount = 0.0,
+      tableOrderPrice = 0.0,
+      rounding = 0.0,
+      paymentReceived = 0.0,
+      paymentChange = 0.0;
+  String selectedPromoRate = '',
+      promoName = '',
+      promoRate = '',
+      localTableUseId = '',
+      orderCacheId = '',
+      allPromo = '',
+      finalAmount = '',
+      localOrderId = '';
   String? orderCacheKey;
   String? orderDetailKey;
   String? tableUseKey;
@@ -104,17 +126,20 @@ class _CartPageState extends State<CartPage> {
         padding: const EdgeInsets.all(8.0),
         child: Consumer<CartModel>(builder: (context, CartModel cart, child) {
           widget.currentPage == 'menu' ||
-          widget.currentPage == 'table' ||
-          widget.currentPage == 'qr_order'||
-          widget.currentPage == 'other_order' ?
-          getSubTotal(cart) : getReceiptPaymentDetail(cart);
+                  widget.currentPage == 'table' ||
+                  widget.currentPage == 'qr_order' ||
+                  widget.currentPage == 'other_order'
+              ? getSubTotal(cart)
+              : getReceiptPaymentDetail(cart);
           return Scaffold(
             resizeToAvoidBottomInset: false,
             appBar: AppBar(
               automaticallyImplyLeading: false,
               title: Row(
                 children: [
-                  MediaQuery.of(context).size.height > 500 ? Text('Bill', style: TextStyle(fontSize: 20, color: Colors.black)): SizedBox.shrink(),
+                  MediaQuery.of(context).size.height > 500
+                      ? Text('Bill', style: TextStyle(fontSize: 20, color: Colors.black))
+                      : SizedBox.shrink(),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -143,10 +168,11 @@ class _CartPageState extends State<CartPage> {
                 ),
                 Visibility(
                   visible: widget.currentPage == 'menu' ||
-                           widget.currentPage == 'qr_order' ||
-                           widget.currentPage == 'bill' ||
-                           widget.currentPage == 'other_order'?
-                           false : true,
+                          widget.currentPage == 'qr_order' ||
+                          widget.currentPage == 'bill' ||
+                          widget.currentPage == 'other_order'
+                      ? false
+                      : true,
                   child: IconButton(
                     tooltip: 'promotion',
                     icon: Icon(Icons.discount),
@@ -183,7 +209,9 @@ class _CartPageState extends State<CartPage> {
                 //     })
               ],
             ),
-            body: StreamBuilder(stream: controller.stream, builder: (context, snapshot) {
+            body: StreamBuilder(
+                stream: controller.stream,
+                builder: (context, snapshot) {
                   return Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -193,38 +221,41 @@ class _CartPageState extends State<CartPage> {
                       children: [
                         Padding(
                           padding: EdgeInsets.fromLTRB(10, 8, 14, 0),
-                          child: Column(
-                              children: [
-                                DropdownButton<String>(
-                                  onChanged: widget.currentPage == 'menu' ? (value) {
-                                    setState(() {
-                                      cart.selectedOption = value!;
-                                    });
-                                  } : null,
-                                  value: cart.selectedOption,
-                                  // Hide the default underline
-                                  underline: Container(),
-                                  icon: Visibility(
-                                    visible: widget.currentPage == 'menu' ? true : false,
-                                    child: Icon(
-                                      Icons.arrow_drop_down,
-                                      color: color.backgroundColor,
-                                    ),
-                                  ),
-                                  isExpanded: true,
-                                  // The list of options
-                                  items: diningList.map((e) => DropdownMenuItem(
-                                    child: Container(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(e, style: TextStyle(fontSize: 18)),
-                                    ),
-                                    value: e,
-                                  )).toList(),
-                                  // Customize the selected item
-                                  selectedItemBuilder: (BuildContext context) =>
-                                      diningList.map((e) => Center(child: Text(e))).toList(),
+                          child: Column(children: [
+                            DropdownButton<String>(
+                              onChanged: widget.currentPage == 'menu'
+                                  ? (value) {
+                                      setState(() {
+                                        cart.selectedOption = value!;
+                                      });
+                                    }
+                                  : null,
+                              value: cart.selectedOption,
+                              // Hide the default underline
+                              underline: Container(),
+                              icon: Visibility(
+                                visible: widget.currentPage == 'menu' ? true : false,
+                                child: Icon(
+                                  Icons.arrow_drop_down,
+                                  color: color.backgroundColor,
                                 ),
-                              ]),
+                              ),
+                              isExpanded: true,
+                              // The list of options
+                              items: diningList
+                                  .map((e) => DropdownMenuItem(
+                                        child: Container(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(e, style: TextStyle(fontSize: 18)),
+                                        ),
+                                        value: e,
+                                      ))
+                                  .toList(),
+                              // Customize the selected item
+                              selectedItemBuilder: (BuildContext context) =>
+                                  diningList.map((e) => Center(child: Text(e))).toList(),
+                            ),
+                          ]),
                         ),
                         Expanded(
                           child: Container(
@@ -239,19 +270,20 @@ class _CartPageState extends State<CartPage> {
                                       padding: EdgeInsets.only(left: 25.0),
                                       child: Row(
                                         children: [
-                                          Icon(Icons.delete,
-                                              color: Colors.white),
+                                          Icon(Icons.delete, color: Colors.white),
                                         ],
                                       ),
                                     ),
                                     key: ValueKey(cart.cartNotifierItem[index].name),
                                     direction: widget.currentPage == 'menu' &&
-                                               cart.cartNotifierItem[index].status == 0 ||
-                                               widget.currentPage == 'table' ?
-                                               DismissDirection.startToEnd : DismissDirection.none,
+                                                cart.cartNotifierItem[index].status == 0 ||
+                                            widget.currentPage == 'table'
+                                        ? DismissDirection.startToEnd
+                                        : DismissDirection.none,
                                     confirmDismiss: (direction) async {
                                       if (direction == DismissDirection.startToEnd) {
-                                        await openRemoveCartItemDialog(cart.cartNotifierItem[index], widget.currentPage);
+                                        await openRemoveCartItemDialog(
+                                            cart.cartNotifierItem[index], widget.currentPage);
                                       }
                                       return null;
                                     },
@@ -263,22 +295,21 @@ class _CartPageState extends State<CartPage> {
                                         text: TextSpan(
                                           children: <TextSpan>[
                                             TextSpan(
-                                                text: cart.cartNotifierItem[index].name +'\n',
-                                                style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: cart.cartNotifierItem[index].status == 1
-                                                        ? font
-                                                        : cart.cartNotifierItem[index].refColor,
-                                                    fontWeight:
-                                                        FontWeight.bold),
+                                              text: cart.cartNotifierItem[index].name + '\n',
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: cart.cartNotifierItem[index].status == 1
+                                                      ? font
+                                                      : cart.cartNotifierItem[index].refColor,
+                                                  fontWeight: FontWeight.bold),
                                             ),
                                             TextSpan(
-                                                text: "RM" +
-                                                    cart.cartNotifierItem[index]
-                                                        .price,
+                                                text: "RM" + cart.cartNotifierItem[index].price,
                                                 style: TextStyle(
                                                   fontSize: 13,
-                                                  color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
+                                                  color: cart.cartNotifierItem[index].status == 1
+                                                      ? font
+                                                      : cart.cartNotifierItem[index].refColor,
                                                 )),
                                           ],
                                         ),
@@ -293,38 +324,41 @@ class _CartPageState extends State<CartPage> {
                                           child: Row(
                                             children: [
                                               Visibility(
-                                                visible: widget.currentPage == 'menu' ? true : false,
+                                                visible:
+                                                    widget.currentPage == 'menu' ? true : false,
                                                 child: IconButton(
                                                     hoverColor: Colors.transparent,
                                                     icon: Icon(Icons.remove),
                                                     onPressed: () {
-                                                      cart.cartNotifierItem[index].quantity != 1 ?
-                                                      setState(() => cart.cartNotifierItem[index].quantity--)
+                                                      cart.cartNotifierItem[index].quantity != 1
+                                                          ? setState(() => cart
+                                                              .cartNotifierItem[index].quantity--)
                                                           : null;
                                                     }),
                                               ),
-                                              Text(cart.cartNotifierItem[index].quantity.toString(),
-                                                style: TextStyle(color: cart.cartNotifierItem[index].refColor),
+                                              Text(
+                                                cart.cartNotifierItem[index].quantity.toString(),
+                                                style: TextStyle(
+                                                    color: cart.cartNotifierItem[index].refColor),
                                               ),
-                                              widget.currentPage == 'menu' ?
-                                              IconButton(
-                                                  hoverColor: Colors.transparent,
-                                                  icon: Icon(Icons.add),
-                                                  onPressed: () {
-                                                    if (cart.cartNotifierItem[index].status == 0) {
-                                                      setState(() {
-                                                        cart.cartNotifierItem[index].quantity++;
-                                                      });
-                                                    } else {
-                                                      Fluttertoast.showToast(
-                                                          backgroundColor:
-                                                              Colors.red,
-                                                          msg: "order already placed!");
-                                                    }
-                                                    controller.add('refresh');
-                                                  })
-                                                  :
-                                                  Container()
+                                              widget.currentPage == 'menu'
+                                                  ? IconButton(
+                                                      hoverColor: Colors.transparent,
+                                                      icon: Icon(Icons.add),
+                                                      onPressed: () {
+                                                        if (cart.cartNotifierItem[index].status ==
+                                                            0) {
+                                                          setState(() {
+                                                            cart.cartNotifierItem[index].quantity++;
+                                                          });
+                                                        } else {
+                                                          Fluttertoast.showToast(
+                                                              backgroundColor: Colors.red,
+                                                              msg: "order already placed!");
+                                                        }
+                                                        controller.add('refresh');
+                                                      })
+                                                  : Container()
                                             ],
                                           ),
                                         ),
@@ -334,7 +368,7 @@ class _CartPageState extends State<CartPage> {
                                 }),
                           ),
                         ),
-                        SizedBox(height: MediaQuery.of(context).size.height > 500  ? 20 : 5),
+                        SizedBox(height: MediaQuery.of(context).size.height > 500 ? 20 : 5),
                         Divider(
                           color: Colors.grey,
                           height: 1,
@@ -344,16 +378,17 @@ class _CartPageState extends State<CartPage> {
                         ),
                         SizedBox(height: MediaQuery.of(context).size.height > 500 ? 10 : 5),
                         Container(
-                          height: cart.selectedOption == 'Dine in' && MediaQuery.of(context).size.height > 500  ?
-                                  190 :
-                                  MediaQuery.of(context).size.height > 500 ?
-                                  null : 25,
+                          height: cart.selectedOption == 'Dine in' &&
+                                  MediaQuery.of(context).size.height > 500
+                              ? 190
+                              : MediaQuery.of(context).size.height > 500
+                                  ? null
+                                  : 25,
                           child: ListView(
                             physics: ClampingScrollPhysics(),
                             children: [
                               ListTile(
-                                title: Text("Subtotal",
-                                    style: TextStyle(fontSize: 14)),
+                                title: Text("Subtotal", style: TextStyle(fontSize: 14)),
                                 trailing: Text('${total.toStringAsFixed(2)}',
                                     style: TextStyle(fontSize: 14)),
                                 visualDensity: VisualDensity(vertical: -4),
@@ -383,8 +418,7 @@ class _CartPageState extends State<CartPage> {
                                       ],
                                     ),
                                   ),
-                                  trailing: Text(
-                                      '-${selectedPromo.toStringAsFixed(2)}',
+                                  trailing: Text('-${selectedPromo.toStringAsFixed(2)}',
                                       style: TextStyle(fontSize: 14)),
                                   visualDensity: VisualDensity(vertical: -4),
                                   dense: true,
@@ -401,8 +435,7 @@ class _CartPageState extends State<CartPage> {
                                             title: Text(
                                                 '${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
                                                 style: TextStyle(fontSize: 14)),
-                                            visualDensity:
-                                                VisualDensity(vertical: -4),
+                                            visualDensity: VisualDensity(vertical: -4),
                                             dense: true,
                                             trailing: Text(
                                                 '-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
@@ -419,8 +452,7 @@ class _CartPageState extends State<CartPage> {
                                           title: Text(
                                               '${orderPromotionList[index].promotion_name} (${orderPromotionList[index].rate})',
                                               style: TextStyle(fontSize: 14)),
-                                          visualDensity:
-                                          VisualDensity(vertical: -4),
+                                          visualDensity: VisualDensity(vertical: -4),
                                           dense: true,
                                           trailing: Text(
                                               '-${orderPromotionList[index].promotion_amount}',
@@ -429,23 +461,28 @@ class _CartPageState extends State<CartPage> {
                               ),
                               Visibility(
                                 visible: widget.currentPage == 'menu' ||
-                                         widget.currentPage == 'table' ||
-                                         widget.currentPage == 'qr_order' ||
-                                         widget.currentPage == 'other_order' ?
-                                         true : false,
+                                        widget.currentPage == 'table' ||
+                                        widget.currentPage == 'qr_order' ||
+                                        widget.currentPage == 'other_order'
+                                    ? true
+                                    : false,
                                 child: ListView.builder(
                                     shrinkWrap: true,
                                     physics: NeverScrollableScrollPhysics(),
                                     itemCount: taxRateList.length,
-                                    itemBuilder: (context, index){
+                                    itemBuilder: (context, index) {
                                       return ListTile(
-                                        title: Text('${taxRateList[index].name}(${taxRateList[index].tax_rate}%)', style: TextStyle(fontSize: 14)),
-                                        trailing: Text('${taxRateList[index].tax_amount?.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)), //Text(''),
+                                        title: Text(
+                                            '${taxRateList[index].name}(${taxRateList[index].tax_rate}%)',
+                                            style: TextStyle(fontSize: 14)),
+                                        trailing: Text(
+                                            '${taxRateList[index].tax_amount?.toStringAsFixed(2)}',
+                                            style: TextStyle(fontSize: 14)),
+                                        //Text(''),
                                         visualDensity: VisualDensity(vertical: -4),
                                         dense: true,
                                       );
-                                    }
-                                ),
+                                    }),
                               ),
                               Visibility(
                                 visible: widget.currentPage == 'bill' ? true : false,
@@ -453,27 +490,28 @@ class _CartPageState extends State<CartPage> {
                                     shrinkWrap: true,
                                     physics: NeverScrollableScrollPhysics(),
                                     itemCount: orderTaxList.length,
-                                    itemBuilder: (context, index){
+                                    itemBuilder: (context, index) {
                                       return ListTile(
-                                        title: Text('${orderTaxList[index].tax_name}(${orderTaxList[index].rate}%)', style: TextStyle(fontSize: 14)),
-                                        trailing: Text('${orderTaxList[index].tax_amount}', style: TextStyle(fontSize: 14)), //Text(''),
+                                        title: Text(
+                                            '${orderTaxList[index].tax_name}(${orderTaxList[index].rate}%)',
+                                            style: TextStyle(fontSize: 14)),
+                                        trailing: Text('${orderTaxList[index].tax_amount}',
+                                            style: TextStyle(fontSize: 14)),
+                                        //Text(''),
                                         visualDensity: VisualDensity(vertical: -4),
                                         dense: true,
                                       );
-                                    }
-                                ),
+                                    }),
                               ),
                               ListTile(
-                                title: Text("Amount",
-                                    style: TextStyle(fontSize: 14)),
+                                title: Text("Amount", style: TextStyle(fontSize: 14)),
                                 trailing: Text('${totalAmount.toStringAsFixed(2)}',
                                     style: TextStyle(fontSize: 14)),
                                 visualDensity: VisualDensity(vertical: -4),
                                 dense: true,
                               ),
                               ListTile(
-                                title: Text("Rounding",
-                                    style: TextStyle(fontSize: 14)),
+                                title: Text("Rounding", style: TextStyle(fontSize: 14)),
                                 trailing: Text('${rounding.toStringAsFixed(2)}',
                                     style: TextStyle(fontSize: 14)),
                                 visualDensity: VisualDensity(vertical: -4),
@@ -482,36 +520,36 @@ class _CartPageState extends State<CartPage> {
                               ListTile(
                                 visualDensity: VisualDensity(vertical: -4),
                                 title: Text("Final Amount",
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold)),
-                                trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                trailing: Text("${finalAmount}",
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                                 dense: true,
                               ),
                               Visibility(
-                                visible: widget.currentPage == 'bill' ? true : false,
+                                  visible: widget.currentPage == 'bill' ? true : false,
                                   child: Column(
                                     children: [
                                       Container(
                                         child: ListTile(
                                           visualDensity: VisualDensity(vertical: -4),
-                                          title: Text("Payment received", style: TextStyle(fontSize: 14)),
-                                          trailing: Text("${paymentReceived.toStringAsFixed(2)}", style: TextStyle(fontSize: 14)),
+                                          title: Text("Payment received",
+                                              style: TextStyle(fontSize: 14)),
+                                          trailing: Text("${paymentReceived.toStringAsFixed(2)}",
+                                              style: TextStyle(fontSize: 14)),
                                           dense: true,
                                         ),
                                       ),
                                       Container(
                                         child: ListTile(
                                           visualDensity: VisualDensity(vertical: -4),
-                                          title: Text("Change",
+                                          title: Text("Change", style: TextStyle(fontSize: 14)),
+                                          trailing: Text("${paymentChange.toStringAsFixed(2)}",
                                               style: TextStyle(fontSize: 14)),
-                                          trailing: Text("${paymentChange.toStringAsFixed(2)}", style: TextStyle(fontSize: 14)),
                                           dense: true,
                                         ),
                                       )
                                     ],
-                                  )
-                              )
+                                  ))
                             ],
                             shrinkWrap: true,
                           ),
@@ -527,133 +565,150 @@ class _CartPageState extends State<CartPage> {
                         SizedBox(height: 10),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+                          child: Consumer<ConnectivityChangeNotifier>(
+                              builder: (context, ConnectivityChangeNotifier connectivity, child) {
                             return Row(
                               children: [
                                 Expanded(
                                     child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        primary: color.backgroundColor,
-                                        minimumSize: const Size.fromHeight(50), // NEW
-                                      ),
-                                      onPressed: () async {
-                                        await checkCashRecord();
-                                        if(_isSettlement == true){
-                                          showDialog(
-                                              barrierDismissible: false, context: context, builder: (BuildContext context) {
+                                  style: ElevatedButton.styleFrom(
+                                    primary: color.backgroundColor,
+                                    minimumSize: const Size.fromHeight(50), // NEW
+                                  ),
+                                  onPressed: () async {
+                                    await checkCashRecord();
+                                    if (_isSettlement == true) {
+                                      showDialog(
+                                          barrierDismissible: false,
+                                          context: context,
+                                          builder: (BuildContext context) {
                                             return WillPopScope(
-                                                child: CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true),
+                                                child: CashDialog(
+                                                    isCashIn: true,
+                                                    callBack: () {},
+                                                    isCashOut: false,
+                                                    isNewDay: true),
                                                 onWillPop: () async => false);
                                           });
-                                          _isSettlement = false;
-                                        } else {
-                                          if (widget.currentPage == 'menu' || widget.currentPage == 'qr_order') {
-                                            if (cart.selectedOption == 'Dine in') {
-                                              if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
-                                                openLoadingDialogBox();
-                                                Future.delayed(new Duration(seconds: 3), () async {
-                                                  if (cart.cartNotifierItem[0].status == 1) {
-                                                    await callAddOrderCache(cart, connectivity);
-                                                    await _printCheckList();
-                                                    await _printKitchenList(cart);
-                                                  } else {
-                                                    await callCreateNewOrder(cart, connectivity);
-                                                    await _printCheckList();
-                                                    await _printKitchenList(cart);
-                                                  }
-                                                  cart.removeAllCartItem();
-                                                  cart.removeAllTable();
-                                                  Navigator.of(context).pop();
-                                                });
-                                              } else {
-                                                Fluttertoast.showToast(
-                                                    backgroundColor: Colors.red,
-                                                    msg: "make sure cart is not empty and table is selected");
-                                              }
+                                      _isSettlement = false;
+                                    } else {
+                                      if (widget.currentPage == 'menu' ||
+                                          widget.currentPage == 'qr_order') {
+                                        if (cart.selectedOption == 'Dine in') {
+                                          if (cart.selectedTable.isNotEmpty &&
+                                              cart.cartNotifierItem.isNotEmpty) {
+                                            openLoadingDialogBox();
+                                            if (cart.cartNotifierItem[0].status == 1) {
+                                              await callAddOrderCache(cart, connectivity);
+                                              await _printCheckList();
+                                              await _printKitchenList(cart);
                                             } else {
-                                              // not dine in call
-                                              cart.removeAllTable();
-                                              if (cart.cartNotifierItem.isNotEmpty) {
-                                                await callCreateNewNotDineOrder(cart, connectivity);
-                                                await _printCheckList();
-                                                await _printKitchenList(cart);
-                                                cart.removeAllCartItem();
-                                                cart.selectedTable.clear();
-                                              } else {
-                                                Fluttertoast.showToast(
-                                                    backgroundColor: Colors.red,
-                                                    msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                              }
+                                              await callCreateNewOrder(cart, connectivity);
+                                              await _printCheckList();
+                                              await _printKitchenList(cart);
                                             }
-                                          } else if(widget.currentPage == 'table') {
-                                            if(cart.selectedTable.isNotEmpty){
-                                              if(cart.selectedTable.length > 1){
-                                                if (await confirm(
-                                                  context,
-                                                  title: Text(
-                                                      '${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
-                                                  content: Text(
-                                                      '${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
-                                                  textOK: Text(
-                                                      '${AppLocalizations.of(context)?.translate('yes')}'),
-                                                  textCancel: Text(
-                                                      '${AppLocalizations.of(context)?.translate('no')}'),
-                                                )) {
-                                                  return openPaymentSelect();
-                                                }
-                                              } else {
-                                                openPaymentSelect();
-                                              }
-                                            } else {
-                                              Fluttertoast.showToast(
-                                                  backgroundColor: Colors.red,
-                                                  msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                            }
-                                          } else if(widget.currentPage == 'other_order'){
-                                            if(cart.cartNotifierItem.isNotEmpty){
-                                              openPaymentSelect();
-                                            } else {
-                                              Fluttertoast.showToast(
-                                                  backgroundColor: Colors.red,
-                                                  msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                            }
+                                            cart.removeAllCartItem();
+                                            cart.removeAllTable();
+                                            Navigator.of(context).pop();
                                           } else {
-                                            if(cart.cartNotifierItem.isNotEmpty){
-                                              await _printReceiptList();
-                                            } else {
-                                              Fluttertoast.showToast(
-                                                  backgroundColor: Colors.red,
-                                                  msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                            }
+                                            Fluttertoast.showToast(
+                                                backgroundColor: Colors.red,
+                                                msg:
+                                                    "make sure cart is not empty and table is selected");
+                                          }
+                                        } else {
+                                          // not dine in call
+                                          cart.removeAllTable();
+                                          if (cart.cartNotifierItem.isNotEmpty) {
+                                            await callCreateNewNotDineOrder(cart, connectivity);
+                                            await _printCheckList();
+                                            await _printKitchenList(cart);
+                                            cart.removeAllCartItem();
+                                            cart.selectedTable.clear();
+                                          } else {
+                                            Fluttertoast.showToast(
+                                                backgroundColor: Colors.red,
+                                                msg:
+                                                    "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                           }
                                         }
-                                      },
-                                      child: widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
-                                          ? Text('Place Order\n (RM ${this.finalAmount})')
-                                          : widget.currentPage == 'table' || widget.currentPage == 'other_order' ?
-                                      Text('Make payment (RM ${this.finalAmount})')
+                                      } else if (widget.currentPage == 'table') {
+                                        if (cart.selectedTable.isNotEmpty) {
+                                          if (cart.selectedTable.length > 1) {
+                                            if (await confirm(
+                                              context,
+                                              title: Text(
+                                                  '${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
+                                              content: Text(
+                                                  '${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
+                                              textOK: Text(
+                                                  '${AppLocalizations.of(context)?.translate('yes')}'),
+                                              textCancel: Text(
+                                                  '${AppLocalizations.of(context)?.translate('no')}'),
+                                            )) {
+                                              return openPaymentSelect();
+                                            }
+                                          } else {
+                                            openPaymentSelect();
+                                          }
+                                        } else {
+                                          Fluttertoast.showToast(
+                                              backgroundColor: Colors.red,
+                                              msg:
+                                                  "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                        }
+                                      } else if (widget.currentPage == 'other_order') {
+                                        if (cart.cartNotifierItem.isNotEmpty) {
+                                          openPaymentSelect();
+                                        } else {
+                                          Fluttertoast.showToast(
+                                              backgroundColor: Colors.red,
+                                              msg:
+                                                  "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                        }
+                                      } else {
+                                        if (cart.cartNotifierItem.isNotEmpty) {
+                                          await _printReceiptList();
+                                        } else {
+                                          Fluttertoast.showToast(
+                                              backgroundColor: Colors.red,
+                                              msg:
+                                                  "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                        }
+                                      }
+                                    }
+                                  },
+                                  child: widget.currentPage == 'menu' ||
+                                          widget.currentPage == 'qr_order'
+                                      ? Text('Place Order\n (RM ${this.finalAmount})')
+                                      : widget.currentPage == 'table' ||
+                                              widget.currentPage == 'other_order'
+                                          ? Text('Make payment (RM ${this.finalAmount})')
                                           : Text('Print Receipt'),
-                                    )
-                                ),
+                                )),
                                 Visibility(
-                                  visible: cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status == 1 ? true : false,
+                                  visible: cart.cartNotifierItem.isNotEmpty &&
+                                          cart.cartNotifierItem[0].status == 1
+                                      ? true
+                                      : false,
                                   child: Expanded(
                                     child: Row(
                                       children: [
-                                        SizedBox(width: 10,),
+                                        SizedBox(
+                                          width: 10,
+                                        ),
                                         Expanded(
                                             child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                primary: color.backgroundColor,
-                                                minimumSize: const Size.fromHeight(50), // NEW
-                                              ),
-                                              onPressed: () {
-                                                //openReprintDialog(printerList, cart);
-                                                print('reprint checklist');
-                                              },
-                                              child: Text('Print Check List'),
-                                            )
-                                        ),
+                                          style: ElevatedButton.styleFrom(
+                                            primary: color.backgroundColor,
+                                            minimumSize: const Size.fromHeight(50), // NEW
+                                          ),
+                                          onPressed: () {
+                                            //openReprintDialog(printerList, cart);
+                                            print('reprint checklist');
+                                          },
+                                          child: Text('Print Check List'),
+                                        )),
                                       ],
                                     ),
                                   ),
@@ -661,7 +716,6 @@ class _CartPageState extends State<CartPage> {
                               ],
                             );
                           }),
-
                         ),
                       ],
                     ),
@@ -676,16 +730,17 @@ class _CartPageState extends State<CartPage> {
   _printReceiptList() async {
     try {
       for (int i = 0; i < printerList.length; i++) {
-        List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-        for(int j = 0; j < data.length; j++){
+        List<PrinterLinkCategory> data =
+            await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+        for (int j = 0; j < data.length; j++) {
           if (data[j].category_sqlite_id == '0') {
             var printerDetail = jsonDecode(printerList[i].value!);
-            if(printerList[i].type == 0){
-              if(printerList[i].paper_size == 0){
-                var data = Uint8List.fromList(await ReceiptLayout().printReceipt80mm(true, this.localOrderId));
+            if (printerList[i].type == 0) {
+              if (printerList[i].paper_size == 0) {
+                var data = Uint8List.fromList(
+                    await ReceiptLayout().printReceipt80mm(true, this.localOrderId));
                 bool? isConnected = await flutterUsbPrinter.connect(
-                    int.parse(printerDetail['vendorId']),
-                    int.parse(printerDetail['productId']));
+                    int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
@@ -694,10 +749,10 @@ class _CartPageState extends State<CartPage> {
                       msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               } else {
-                var data = Uint8List.fromList(await ReceiptLayout().printReceipt58mm(true, this.localOrderId));
+                var data = Uint8List.fromList(
+                    await ReceiptLayout().printReceipt58mm(true, this.localOrderId));
                 bool? isConnected = await flutterUsbPrinter.connect(
-                    int.parse(printerDetail['vendorId']),
-                    int.parse(printerDetail['productId']));
+                    int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
@@ -708,7 +763,7 @@ class _CartPageState extends State<CartPage> {
               }
             } else {
               //print LAN 80mm
-              if(printerList[i].paper_size == 0){
+              if (printerList[i].paper_size == 0) {
                 final profile = await CapabilityProfile.load();
                 final printer = NetworkPrinter(PaperSize.mm80, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
@@ -737,7 +792,6 @@ class _CartPageState extends State<CartPage> {
             }
           }
         }
-
       }
     } catch (e) {
       print('Printer Connection Error cart: ${e}');
@@ -751,16 +805,14 @@ class _CartPageState extends State<CartPage> {
     try {
       for (int i = 0; i < printerList.length; i++) {
         List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-        for(int j = 0; j < data.length; j++){
+        for (int j = 0; j < data.length; j++) {
           if (data[j].category_sqlite_id == '0') {
             var printerDetail = jsonDecode(printerList[i].value!);
-            if(printerList[i].type == 0){
+            if (printerList[i].type == 0) {
               //print USB 80mm
-              if(printerList[i].paper_size == 0){
+              if (printerList[i].paper_size == 0) {
                 var data = Uint8List.fromList(await ReceiptLayout().printCheckList80mm(true));
-                bool? isConnected = await flutterUsbPrinter.connect(
-                    int.parse(printerDetail['vendorId']),
-                    int.parse(printerDetail['productId']));
+                bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
@@ -771,8 +823,7 @@ class _CartPageState extends State<CartPage> {
               } else {
                 var data = Uint8List.fromList(await ReceiptLayout().printCheckList58mm(true));
                 bool? isConnected = await flutterUsbPrinter.connect(
-                    int.parse(printerDetail['vendorId']),
-                    int.parse(printerDetail['productId']));
+                    int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
@@ -781,9 +832,8 @@ class _CartPageState extends State<CartPage> {
                       msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               }
-
             } else {
-              if(printerList[i].paper_size == 0){
+              if (printerList[i].paper_size == 0) {
                 //print LAN 80mm paper
                 final profile = await CapabilityProfile.load();
                 final printer = NetworkPrinter(PaperSize.mm80, profile);
@@ -813,7 +863,6 @@ class _CartPageState extends State<CartPage> {
             }
           }
         }
-
       }
     } catch (e) {
       print('Printer Connection Error: ${e}');
@@ -825,23 +874,26 @@ class _CartPageState extends State<CartPage> {
 
   _printKitchenList(CartModel cart) async {
     for (int i = 0; i < printerList.length; i++) {
-      List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-      for(int j = 0; j < data.length; j++){
-        for(int k = 0; k < cart.cartNotifierItem.length; k++){
+      List<PrinterLinkCategory> data =
+          await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+      for (int j = 0; j < data.length; j++) {
+        for (int k = 0; k < cart.cartNotifierItem.length; k++) {
           //check printer category
-          if (cart.cartNotifierItem[k].category_sqlite_id == data[j].category_sqlite_id && cart.cartNotifierItem[k].status == 0) {
+          if (cart.cartNotifierItem[k].category_sqlite_id == data[j].category_sqlite_id &&
+              cart.cartNotifierItem[k].status == 0) {
             var printerDetail = jsonDecode(printerList[i].value!);
             //check printer type
-            if(printerList[i].type == 1){
+            if (printerList[i].type == 1) {
               //check paper size
-              if(printerList[i].paper_size == 0){
+              if (printerList[i].paper_size == 0) {
                 //print LAN
                 final profile = await CapabilityProfile.load();
                 final printer = NetworkPrinter(PaperSize.mm80, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
                 if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printKitchenList80mm(false, cart.cartNotifierItem[k], value: printer);
+                  await ReceiptLayout()
+                      .printKitchenList80mm(false, cart.cartNotifierItem[k], value: printer);
                   printer.disconnect();
                 } else {
                   Fluttertoast.showToast(
@@ -855,7 +907,8 @@ class _CartPageState extends State<CartPage> {
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
                 if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printKitchenList58mm(false, cart.cartNotifierItem[k], value: printer);
+                  await ReceiptLayout()
+                      .printKitchenList58mm(false, cart.cartNotifierItem[k], value: printer);
                   printer.disconnect();
                 } else {
                   Fluttertoast.showToast(
@@ -865,11 +918,11 @@ class _CartPageState extends State<CartPage> {
               }
             } else {
               //print USB
-              if(printerList[i].paper_size == 0) {
-                var data = Uint8List.fromList(await ReceiptLayout().printKitchenList80mm(true, cart.cartNotifierItem[k]));
+              if (printerList[i].paper_size == 0) {
+                var data = Uint8List.fromList(
+                    await ReceiptLayout().printKitchenList80mm(true, cart.cartNotifierItem[k]));
                 bool? isConnected = await flutterUsbPrinter.connect(
-                    int.parse(printerDetail['vendorId']),
-                    int.parse(printerDetail['productId']));
+                    int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
@@ -879,10 +932,10 @@ class _CartPageState extends State<CartPage> {
                 }
               } else {
                 //print 58mm
-                var data = Uint8List.fromList(await ReceiptLayout().printKitchenList58mm(true, cart.cartNotifierItem[k]));
+                var data = Uint8List.fromList(
+                    await ReceiptLayout().printKitchenList58mm(true, cart.cartNotifierItem[k]));
                 bool? isConnected = await flutterUsbPrinter.connect(
-                    int.parse(printerDetail['vendorId']),
-                    int.parse(printerDetail['productId']));
+                    int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
@@ -902,8 +955,7 @@ class _CartPageState extends State<CartPage> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
-    List<Printer> data =
-        await PosDatabase.instance.readAllBranchPrinter(branch_id!);
+    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter(branch_id!);
     printerList = List.from(data);
   }
 
@@ -1013,10 +1065,9 @@ class _CartPageState extends State<CartPage> {
     promoAmount = 0.0;
     getAutoApplyPromotion(cart);
     getManualApplyPromotion(cart);
-    if (!controller.isClosed){
+    if (!controller.isClosed) {
       controller.sink.add('refresh');
     }
-
   }
 
   getManualApplyPromotion(CartModel cart) {
@@ -1034,8 +1085,7 @@ class _CartPageState extends State<CartPage> {
 
         if (cart.selectedPromotion!.specific_category == '1') {
           for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-            if (cart.cartNotifierItem[i].category_id ==
-                cart.selectedPromotion!.category_id) {
+            if (cart.cartNotifierItem[i].category_id == cart.selectedPromotion!.category_id) {
               _sameCategoryList.add(cart.cartNotifierItem[i]);
             }
           }
@@ -1047,7 +1097,7 @@ class _CartPageState extends State<CartPage> {
     } catch (error) {
       print('Get manual promotion error: $error');
     }
-    if (!controller.isClosed){
+    if (!controller.isClosed) {
       controller.sink.add('refresh');
     }
   }
@@ -1060,13 +1110,11 @@ class _CartPageState extends State<CartPage> {
       for (int j = 0; j < cartItem.length; j++) {
         if (promotion.type == 0) {
           hasSelectedPromo = true;
-          selectedPromo +=
-              (double.parse(cartItem[j].price) * cartItem[j].quantity) *
-                  (double.parse(promotion.amount!) / 100);
+          selectedPromo += (double.parse(cartItem[j].price) * cartItem[j].quantity) *
+              (double.parse(promotion.amount!) / 100);
         } else {
           hasSelectedPromo = true;
-          selectedPromo +=
-              (double.parse(promotion.amount!) * cartItem[j].quantity);
+          selectedPromo += (double.parse(promotion.amount!) * cartItem[j].quantity);
         }
       }
       promoAmount += selectedPromo;
@@ -1089,8 +1137,8 @@ class _CartPageState extends State<CartPage> {
         if (cart.cartNotifierItem.isNotEmpty) {
           for (int i = 0; i < cart.cartNotifierItem.length; i++) {
             hasSelectedPromo = true;
-            selectedPromo += double.parse(cart.selectedPromotion!.amount!) *
-                cart.cartNotifierItem[i].quantity;
+            selectedPromo +=
+                double.parse(cart.selectedPromotion!.amount!) * cart.cartNotifierItem[i].quantity;
           }
         }
       }
@@ -1115,18 +1163,16 @@ class _CartPageState extends State<CartPage> {
           if (promotionList[j].specific_category == '1') {
             //Auto apply specific category promotion
             for (int m = 0; m < cart.cartNotifierItem.length; m++) {
-              if (cart.cartNotifierItem[m].category_id ==
-                  promotionList[j].category_id) {
+              if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
                 hasPromo = true;
                 promoName = promotionList[j].name!;
                 if (!autoApplyPromotionList.contains(promotionList[j])) {
                   autoApplyPromotionList.add(promotionList[j]);
-                  if(widget.currentPage !='menu'){
+                  if (widget.currentPage != 'menu') {
                     cart.addAutoApplyPromo(promotionList[j]);
                   }
                 }
-                autoApplySpecificCategoryAmount(
-                    promotionList[j], cart.cartNotifierItem[m]);
+                autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
               }
             }
           } else {
@@ -1134,7 +1180,7 @@ class _CartPageState extends State<CartPage> {
             if (cart.cartNotifierItem.isNotEmpty) {
               hasPromo = true;
               autoApplyPromotionList.add(promotionList[j]);
-              if(widget.currentPage !='menu'){
+              if (widget.currentPage != 'menu') {
                 cart.addAutoApplyPromo(promotionList[j]);
               }
               promoName = promotionList[j].name!;
@@ -1147,10 +1193,9 @@ class _CartPageState extends State<CartPage> {
       print('Promotion error $error');
       promo = 0.0;
     }
-    if(!controller.isClosed){
+    if (!controller.isClosed) {
       controller.sink.add('refresh');
     }
-
   }
 
   autoApplyNonSpecificCategoryAmount(Promotion promotion, CartModel cart) {
@@ -1158,15 +1203,14 @@ class _CartPageState extends State<CartPage> {
       promo = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
         if (promotion.type == 1) {
-          promo += (double.parse(promotion.amount!) *
-              cart.cartNotifierItem[i].quantity);
+          promo += (double.parse(promotion.amount!) * cart.cartNotifierItem[i].quantity);
           promotion.promoAmount = promo;
           promoRate = 'RM' + promotion.amount!;
           promotion.promoRate = promoRate;
         } else {
-          promo += (double.parse(cart.cartNotifierItem[i].price) *
-              cart.cartNotifierItem[i].quantity) *
-              (double.parse(promotion.amount!) / 100);
+          promo +=
+              (double.parse(cart.cartNotifierItem[i].price) * cart.cartNotifierItem[i].quantity) *
+                  (double.parse(promotion.amount!) / 100);
           promotion.promoAmount = promo;
           promoRate = promotion.amount! + '%';
           promotion.promoRate = promoRate;
@@ -1216,7 +1260,8 @@ class _CartPageState extends State<CartPage> {
       diningOptionID = data[0].dining_id!;
 
       //get dining tax
-      List<Tax> taxData = await PosDatabase.instance.readTax(branch_id.toString(), diningOptionID.toString());
+      List<Tax> taxData =
+          await PosDatabase.instance.readTax(branch_id.toString(), diningOptionID.toString());
       if (taxData.length > 0) {
         taxRateList = List.from(taxData);
       } else {
@@ -1225,16 +1270,15 @@ class _CartPageState extends State<CartPage> {
     } catch (error) {
       print('get dining tax error: $error');
     }
-    if (!controller.isClosed){
+    if (!controller.isClosed) {
       controller.sink.add('refresh');
     }
-
   }
 
 /*
   receipt menu initial call
 */
-  getReceiptPaymentDetail(CartModel cart){
+  getReceiptPaymentDetail(CartModel cart) {
     this.total = 0.0;
     this.totalAmount = 0.0;
     this.rounding = 0.0;
@@ -1245,7 +1289,7 @@ class _CartPageState extends State<CartPage> {
     this.orderPromotionList = [];
     this.localOrderId = '';
 
-    for(int i = 0; i < cart.cartNotifierPayment.length; i++){
+    for (int i = 0; i < cart.cartNotifierPayment.length; i++) {
       this.total = cart.cartNotifierPayment[i].subtotal;
       this.totalAmount = cart.cartNotifierPayment[i].amount;
       this.rounding = cart.cartNotifierPayment[i].rounding;
@@ -1255,9 +1299,8 @@ class _CartPageState extends State<CartPage> {
       this.orderTaxList = cart.cartNotifierPayment[i].orderTaxList;
       this.orderPromotionList = cart.cartNotifierPayment[i].orderPromotionDetail;
       this.localOrderId = cart.cartNotifierPayment[i].localOrderId;
-
     }
-    if (!controller.isClosed){
+    if (!controller.isClosed) {
       controller.sink.add('refresh');
     }
   }
@@ -1267,13 +1310,15 @@ class _CartPageState extends State<CartPage> {
 */
   getSubTotal(CartModel cart) async {
     try {
-      widget.currentPage == 'table' || widget.currentPage == 'qr_order' ? cart.selectedOption = 'Dine in' : null;
+      widget.currentPage == 'table' || widget.currentPage == 'qr_order'
+          ? cart.selectedOption = 'Dine in'
+          : null;
       total = 0.0;
       promo = 0.0;
       promoAmount = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        total += (double.parse((cart.cartNotifierItem[i].price)) * cart.cartNotifierItem[i].quantity);
-
+        total +=
+            (double.parse((cart.cartNotifierItem[i].price)) * cart.cartNotifierItem[i].quantity);
       }
     } catch (e) {
       print('Sub Total Error: $e');
@@ -1284,47 +1329,48 @@ class _CartPageState extends State<CartPage> {
     getTaxAmount();
     getRounding();
     getAllTotal();
-    if (!controller.isClosed){
+    if (!controller.isClosed) {
       controller.sink.add('refresh');
     }
   }
 
   getTaxAmount() {
-    try{
+    try {
       discountPrice = total - promoAmount;
-      if(taxRateList.length > 0){
-        for(int i = 0; i < taxRateList.length; i++){
-          priceIncTaxes = discountPrice * (double.parse(taxRateList[i].tax_rate!)/100);
+      if (taxRateList.length > 0) {
+        for (int i = 0; i < taxRateList.length; i++) {
+          priceIncTaxes = discountPrice * (double.parse(taxRateList[i].tax_rate!) / 100);
           taxRateList[i].tax_amount = priceIncTaxes;
         }
       }
-    }catch(e){
+    } catch (e) {
       print('get tax amount error: $e');
     }
-    if (!controller.isClosed){
+    if (!controller.isClosed) {
       controller.sink.add('refresh');
     }
   }
 
-  getAllTaxAmount(){
+  getAllTaxAmount() {
     double total = 0.0;
-    for(int i = 0; i < taxRateList.length; i++){
+    for (int i = 0; i < taxRateList.length; i++) {
       total = total + taxRateList[i].tax_amount!;
     }
     priceIncAllTaxes = total;
     return priceIncAllTaxes;
   }
 
-  getRounding(){
+  getRounding() {
     double _round = 0.0;
-    _round = double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
-    if(_round.toStringAsFixed(2) != '0.05' && _round.toStringAsFixed(2) != '-0.05'){
+    _round =
+        double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
+    if (_round.toStringAsFixed(2) != '0.05' && _round.toStringAsFixed(2) != '-0.05') {
       rounding = _round;
     } else {
       rounding = 0.0;
     }
 
-    if (!controller.isClosed){
+    if (!controller.isClosed) {
       controller.sink.add('refresh');
     }
   }
@@ -1336,7 +1382,7 @@ class _CartPageState extends State<CartPage> {
       discountPrice = total - promoAmount;
       totalAmount = discountPrice + priceIncAllTaxes;
 
-      if(rounding == 0.0){
+      if (rounding == 0.0) {
         finalAmount = totalAmount.toStringAsFixed(2);
       } else {
         finalAmount = totalAmount.toStringAsFixed(1) + '0';
@@ -1346,7 +1392,7 @@ class _CartPageState extends State<CartPage> {
       print('Total calc error: $error');
     }
 
-    if (!controller.isClosed){
+    if (!controller.isClosed) {
       controller.sink.add('refresh');
     }
   }
@@ -1377,7 +1423,6 @@ class _CartPageState extends State<CartPage> {
           // ignore: null_check_always_fails
           return null!;
         });
-
   }
 
   Future<Future<Object?>> openChooseTableDialog(CartModel cartModel) async {
@@ -1433,7 +1478,10 @@ class _CartPageState extends State<CartPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: CartRemoveDialog(cartItem: item, currentPage: currentPage,),
+              child: CartRemoveDialog(
+                cartItem: item,
+                currentPage: currentPage,
+              ),
             ),
           );
         },
@@ -1490,12 +1538,11 @@ class _CartPageState extends State<CartPage> {
         });
   }
 
-
   checkCashRecord() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord(branch_id.toString());
-    if(data.length <= 0){
+    if (data.length <= 0) {
       _isSettlement = true;
     } else {
       _isSettlement = false;
@@ -1505,8 +1552,8 @@ class _CartPageState extends State<CartPage> {
   readAllBranchLinkDiningOption() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    List<BranchLinkDining> data = await PosDatabase.instance
-        .readBranchLinkDiningOption(branch_id!.toString());
+    List<BranchLinkDining> data =
+        await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
     for (int i = 0; i < data.length; i++) {
       diningList.add(data[i].name!);
       branchLinkDiningIdList.add(data[i].dining_id!);
@@ -1519,8 +1566,8 @@ class _CartPageState extends State<CartPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      List<BranchLinkPromotion> data = await PosDatabase.instance
-          .readBranchLinkPromotion(branch_id.toString());
+      List<BranchLinkPromotion> data =
+          await PosDatabase.instance.readBranchLinkPromotion(branch_id.toString());
 
       for (int i = 0; i < data.length; i++) {
         List<Promotion> temp = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
@@ -1538,63 +1585,24 @@ class _CartPageState extends State<CartPage> {
     await createOrderCache(cart, connectivity);
     await createOrderDetail(cart, connectivity);
   }
+
 /*
   dine in call
 */
   callCreateNewOrder(CartModel cart, ConnectivityChangeNotifier connectivity) async {
     await createTableUseID(connectivity);
-    await createTableUseDetail(cart, connectivity);
+    await createTableUseDetail(cart);
     await createOrderCache(cart, connectivity);
     await createOrderDetail(cart, connectivity);
     await updatePosTable(cart, connectivity);
   }
 
+/*
+  add-on call (dine in)
+*/
   callAddOrderCache(CartModel cart, ConnectivityChangeNotifier connectivity) async {
     await createOrderCache(cart, connectivity);
     await createOrderDetail(cart, connectivity);
-  }
-
-  updatePosTable(CartModel cart, ConnectivityChangeNotifier connectivity) async {
-    try {
-      List<String> _value = [];
-      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-      String dateTime = dateFormat.format(DateTime.now());
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-
-      for (int i = 0; i < cart.selectedTable.length; i++) {
-        List<PosTable> result = await PosDatabase.instance.checkPosTableStatus(branch_id!, cart.selectedTable[i].table_sqlite_id!);
-        if (result[0].status == 0) {
-          PosTable posTableData = PosTable(
-              table_sqlite_id: cart.selectedTable[i].table_sqlite_id,
-              table_use_detail_key: tableUseDetailKey,
-              status: 1,
-              updated_at: dateTime);
-          int data = await PosDatabase.instance.updateCartPosTableStatus(posTableData);
-          if(data == 1 && connectivity.isConnect){
-            List<PosTable> posTable  = await PosDatabase.instance.readSpecificTable(posTableData.table_sqlite_id.toString());
-            if(posTable[0].sync_status == 2 && connectivity.isConnect){
-              _value.add(jsonEncode(posTable[0]));
-            }
-          }
-        }
-      }
-      //sync to cloud
-      bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
-      if(connectivity.isConnect && _hasInternetAccess){
-        Map data = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
-        if (data['status'] == '1') {
-          List responseJson = data['data'];
-          for (var i = 0; i < responseJson.length; i++) {
-            int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-          }
-        }
-      }
-    } catch (e) {
-      Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000), msg: "update table error: ${e}");
-      print("update table error: $e");
-    }
   }
 
   randomColor() {
@@ -1621,8 +1629,7 @@ class _CartPageState extends State<CartPage> {
     int count = 0;
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    List<TableUse> data =
-        await PosDatabase.instance.readAllTableUseId(branch_id!);
+    List<TableUse> data = await PosDatabase.instance.readAllTableUseId(branch_id!);
 
     while (colorFound == false) {
       /* change color */
@@ -1672,8 +1679,7 @@ class _CartPageState extends State<CartPage> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
-    List<OrderCache> data =
-        await PosDatabase.instance.readBranchOrderCache(branch_id!);
+    List<OrderCache> data = await PosDatabase.instance.readBranchOrderCache(branch_id!);
     while (batchFound == false) {
       tempBatch = randomBatch();
       if (data.length > 0) {
@@ -1700,10 +1706,12 @@ class _CartPageState extends State<CartPage> {
     return tempBatch;
   }
 
+/*
+  ---------------Place Order part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
   createTableUseID(ConnectivityChangeNotifier connectivity) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
-    List<String> _value = [];
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     String? hexCode;
@@ -1711,58 +1719,64 @@ class _CartPageState extends State<CartPage> {
     try {
       hexCode = await colorChecking();
       if (hexCode != null) {
+        TableUse data = TableUse(
+            table_use_id: 0,
+            branch_id: branch_id,
+            table_use_key: '',
+            order_cache_key: '',
+            card_color: hexCode.toString(),
+            sync_status: 0,
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: '');
         //create table use data
-        TableUse tableUseData = await PosDatabase.instance.insertSqliteTableUse(
-            TableUse(
-                table_use_id: 0,
-                branch_id: branch_id,
-                table_use_key: '',
-                order_cache_key: '',
-                card_color: hexCode.toString(),
-                sync_status: 0,
-                created_at: dateTime,
-                updated_at: '',
-                soft_delete: ''));
+        TableUse tableUseData = await PosDatabase.instance.insertSqliteTableUse(data);
         localTableUseId = tableUseData.table_use_sqlite_id.toString();
         TableUse _updatedTableUseData = await insertTableUseKey(tableUseData, dateTime);
-        //sync to cloud
-        bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
-        if(_updatedTableUseData.sync_status == 0 && _updatedTableUseData.table_use_key != '' && connectivity.isConnect && _hasInternetAccess){
-          _value.add(jsonEncode(_updatedTableUseData));
-          Map response = await Domain().SyncTableUseToCloud(_value.toString());
-          if (response['status'] == '1') {
-            List responseJson = response['data'];
-            int data = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
-          }
-        }
+        //sync tot cloud
+        await syncTableUseIdToCloud(_updatedTableUseData);
       }
     } catch (e) {
       print(e);
       Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: "Create table id error: ${e}");
+          backgroundColor: Color(0xFFFF0000), msg: "Create table id error: ${e}");
     }
   }
 
-  generateTableUseKey(TableUse tableUse) async  {
+  syncTableUseIdToCloud(TableUse updatedTableUseData) async {
+    List<String> _value = [];
+    //check is host reachable
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      _value.add(jsonEncode(updatedTableUseData));
+      Map response = await Domain().SyncTableUseToCloud(_value.toString());
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        int syncData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
+      }
+    }
+  }
+
+  generateTableUseKey(TableUse tableUse) async {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
-    var bytes  = tableUse.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + tableUse.table_use_sqlite_id.toString() + device_id.toString();
+    var bytes = tableUse.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
+        tableUse.table_use_sqlite_id.toString() +
+        device_id.toString();
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
   insertTableUseKey(TableUse tableUse, String dateTime) async {
     List<TableUse> _tbUseList = [];
     tableUseKey = await generateTableUseKey(tableUse);
-    if(tableUseKey != null){
+    if (tableUseKey != null) {
       TableUse tableUseObject = TableUse(
           table_use_key: tableUseKey,
           sync_status: 0,
           updated_at: dateTime,
-          table_use_sqlite_id: tableUse.table_use_sqlite_id
-      );
+          table_use_sqlite_id: tableUse.table_use_sqlite_id);
       int tableUseData = await PosDatabase.instance.updateTableUseUniqueKey(tableUseObject);
-      if(tableUseData == 1){
+      if (tableUseData == 1) {
         List<TableUse> data = await PosDatabase.instance.readSpecificTableUseId(tableUseObject.table_use_sqlite_id!);
         _tbUseList = data;
       }
@@ -1773,19 +1787,39 @@ class _CartPageState extends State<CartPage> {
   generateTableUseDetailKey(TableUseDetail tableUseDetail) async {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
-    var bytes  = tableUseDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + tableUseDetail.table_use_detail_sqlite_id.toString() + device_id.toString();
+    var bytes = tableUseDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
+        tableUseDetail.table_use_detail_sqlite_id.toString() +
+        device_id.toString();
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
-  createTableUseDetail(CartModel cart, ConnectivityChangeNotifier connectivity) async {
+  insertTableUseDetailKey(TableUseDetail tableUseDetail, String dateTime) async {
+    TableUseDetail? _tableUseDetailData;
+    tableUseDetailKey = await generateTableUseDetailKey(tableUseDetail);
+    if (tableUseDetailKey != null) {
+      TableUseDetail tableUseDetailObject = TableUseDetail(
+          table_use_detail_key: tableUseDetailKey,
+          sync_status: 0,
+          updated_at: dateTime,
+          table_use_detail_sqlite_id: tableUseDetail.table_use_detail_sqlite_id);
+      int data = await PosDatabase.instance.updateTableUseDetailUniqueKey(tableUseDetailObject);
+      if (data == 1) {
+        TableUseDetail detailData = await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
+        _tableUseDetailData = detailData;
+      }
+    }
+    return _tableUseDetailData;
+  }
+
+  createTableUseDetail(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _value = [];
     try {
       for (int i = 0; i < cart.selectedTable.length; i++) {
         //create table use detail
-        TableUseDetail tableUseDetailData = await PosDatabase.instance
-            .insertSqliteTableUseDetail(TableUseDetail(
+        TableUseDetail tableUseDetailData = await PosDatabase.instance.insertSqliteTableUseDetail(
+            TableUseDetail(
                 table_use_detail_id: 0,
                 table_use_detail_key: '',
                 table_use_sqlite_id: localTableUseId,
@@ -1797,52 +1831,35 @@ class _CartPageState extends State<CartPage> {
                 updated_at: '',
                 soft_delete: ''));
         TableUseDetail updatedDetail = await insertTableUseDetailKey(tableUseDetailData, dateTime);
-        if(updatedDetail.sync_status == 0 && connectivity.isConnect){
-          _value.add(jsonEncode(updatedDetail.syncJson()));
-        }
+        _value.add(jsonEncode(updatedDetail.syncJson()));
       }
       //sync to cloud
-      bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
-      if(connectivity.isConnect && _hasInternetAccess){
-        Map response = await Domain().SyncTableUseDetailToCloud(_value.toString());
-        if(response['status'] == 1){
-          List responseJson = response['data'];
-          for (var i = 0; i < responseJson.length; i++) {
-            int updateStatus = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-          }
-        }
-      }
+      syncTableUseDetailToCloud(_value.toString());
     } catch (e) {
       print(e);
       Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: "Create table detail error: ${e}");
+          backgroundColor: Color(0xFFFF0000), msg: "Create table detail error: ${e}");
     }
   }
 
-  insertTableUseDetailKey(TableUseDetail tableUseDetail, String dateTime) async {
-    TableUseDetail? _data;
-    tableUseDetailKey = await generateTableUseDetailKey(tableUseDetail);
-    if(tableUseDetailKey != null){
-      TableUseDetail tableUseDetailObject = TableUseDetail(
-          table_use_detail_key: tableUseDetailKey,
-          sync_status: 0,
-          updated_at: dateTime,
-          table_use_detail_sqlite_id: tableUseDetail.table_use_detail_sqlite_id
-      );
-      int data = await PosDatabase.instance.updateTableUseDetailUniqueKey(tableUseDetailObject);
-      if(data == 1){
-        TableUseDetail detailData =  await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
-        _data = detailData;
+  syncTableUseDetailToCloud(String value) async {
+    //check is host reachable
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map response = await Domain().SyncTableUseDetailToCloud(value);
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        for (int i = 0; i < responseJson.length; i++) {
+          int updateStatus = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+        }
       }
     }
-    return _data;
   }
 
   createOrderCache(CartModel cart, ConnectivityChangeNotifier connectivity) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
-    List<String> _orderCacheValue = [];
+
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     final String? user = prefs.getString('user');
@@ -1853,7 +1870,7 @@ class _CartPageState extends State<CartPage> {
     try {
       batch = await batchChecking();
       //check selected table is in use or not
-      if(cart.selectedOption == 'Dine in'){
+      if (cart.selectedOption == 'Dine in') {
         for (int i = 0; i < cart.selectedTable.length; i++) {
           List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
           if (useDetail.length > 0) {
@@ -1867,75 +1884,80 @@ class _CartPageState extends State<CartPage> {
       }
       if (batch != 0) {
         //create order cache
-        OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(
-            OrderCache(
-                order_cache_id: 0,
-                order_cache_key: '',
-                company_id: userObject['company_id'].toString(),
-                branch_id: branch_id.toString(),
-                order_detail_id: '',
-                table_use_sqlite_id: cart.selectedOption == 'Dine in' ? _tableUseId : '',
-                table_use_key: cart.selectedOption == 'Dine in' ? _tableUse[0].table_use_key : '',
-                batch_id: batch.toString().padLeft(6, '0'),
-                dining_id: this.diningOptionID.toString(),
-                order_sqlite_id: '',
-                order_key: '',
-                order_by: userObject['name'].toString(),
-                order_by_user_id: userObject['user_id'].toString(),
-                cancel_by: '',
-                cancel_by_user_id: '',
-                customer_id: '0',
-                total_amount: cart.selectedOption == "Dine in" ? '' :  totalAmount.toStringAsFixed(2),//totalAmount.toStringAsFixed(1),
-                sync_status: 0,
-                created_at: dateTime,
-                updated_at: '',
-                soft_delete: ''));
+        OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(OrderCache(
+            order_cache_id: 0,
+            order_cache_key: '',
+            company_id: userObject['company_id'].toString(),
+            branch_id: branch_id.toString(),
+            order_detail_id: '',
+            table_use_sqlite_id: cart.selectedOption == 'Dine in' ? _tableUseId : '',
+            table_use_key: cart.selectedOption == 'Dine in' ? _tableUse[0].table_use_key : '',
+            batch_id: batch.toString().padLeft(6, '0'),
+            dining_id: this.diningOptionID.toString(),
+            order_sqlite_id: '',
+            order_key: '',
+            order_by: userObject['name'].toString(),
+            order_by_user_id: userObject['user_id'].toString(),
+            cancel_by: '',
+            cancel_by_user_id: '',
+            customer_id: '0',
+            total_amount: cart.selectedOption == "Dine in" ? '' : totalAmount.toStringAsFixed(2),
+            sync_status: 0,
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: ''));
         orderCacheId = data.order_cache_sqlite_id.toString();
         OrderCache updatedCache = await insertOrderCacheKey(data, dateTime);
-        bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
-        //sync to cloud
-        if(updatedCache.sync_status == 0){
-          if(connectivity.isConnect && _hasInternetAccess){
-            _orderCacheValue.add(jsonEncode(updatedCache));
-            Map response = await Domain().SyncOrderCacheToCloud(_orderCacheValue.toString());
-            if(response['status'] == '1'){
-              List responseJson = response['data'];
-              int orderCacheData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[0]['order_cache_key']);
-            }
-          }
+        if (updatedCache.sync_status == 0) {
           //sync updated table use (with order cache key)
           await insertOrderCacheKeyIntoTableUse(cart, updatedCache, dateTime, connectivity);
         }
+        //sync to cloud
+        syncOrderCacheToCloud(updatedCache);
       }
     } catch (e) {
       print('error: ${e}');
       Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: "Create order cache error: ${e}");
+          backgroundColor: Color(0xFFFF0000), msg: "Create order cache error: ${e}");
     }
   }
 
-  generateOrderCacheKey(OrderCache orderCache) async  {
+  syncOrderCacheToCloud(OrderCache updatedCache) async {
+    List<String> _orderCacheValue = [];
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      _orderCacheValue.add(jsonEncode(updatedCache));
+      Map response = await Domain().SyncOrderCacheToCloud(_orderCacheValue.toString());
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        int orderCacheData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[0]['order_cache_key']);
+      }
+    }
+  }
+
+  generateOrderCacheKey(OrderCache orderCache) async {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
-    var bytes  = orderCache.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + orderCache.order_cache_sqlite_id.toString() + device_id.toString();
+    var bytes = orderCache.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
+        orderCache.order_cache_sqlite_id.toString() +
+        device_id.toString();
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
   insertOrderCacheKey(OrderCache orderCache, String dateTime) async {
     OrderCache? data;
     orderCacheKey = await generateOrderCacheKey(orderCache);
-    if(orderCacheKey != null){
+    if (orderCacheKey != null) {
       OrderCache orderCacheObject = OrderCache(
           order_cache_key: orderCacheKey,
           sync_status: 0,
           updated_at: dateTime,
-          order_cache_sqlite_id: orderCache.order_cache_sqlite_id
-      );
+          order_cache_sqlite_id: orderCache.order_cache_sqlite_id);
       int cacheUniqueKey = await PosDatabase.instance.updateOrderCacheUniqueKey(orderCacheObject);
-      if(cacheUniqueKey == 1){
-        OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
-        if(orderCacheData.sync_status == 0){
+      if (cacheUniqueKey == 1) {
+        OrderCache orderCacheData = await PosDatabase.instance
+            .readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
+        if (orderCacheData.sync_status == 0) {
           data = orderCacheData;
         }
       }
@@ -1945,27 +1967,30 @@ class _CartPageState extends State<CartPage> {
 
   insertOrderCacheKeyIntoTableUse(CartModel cart, OrderCache orderCache, String dateTime, ConnectivityChangeNotifier connectivity) async {
     List<String> _tableUseValue = [];
-    if(cart.selectedOption == "Dine in"){
+    if (cart.selectedOption == "Dine in") {
       List<TableUse> checkTableUse = await PosDatabase.instance.readSpecificTableUseId(int.parse(orderCache.table_use_sqlite_id!));
       TableUse tableUseObject = TableUse(
           order_cache_key: orderCacheKey,
           sync_status: checkTableUse[0].sync_status == 0 ? 0 : 2,
           updated_at: dateTime,
-          table_use_sqlite_id: int.parse(orderCache.table_use_sqlite_id!)
-      );
+          table_use_sqlite_id: int.parse(orderCache.table_use_sqlite_id!));
       int tableUseCacheKey = await PosDatabase.instance.updateTableUseOrderCacheUniqueKey(tableUseObject);
-      //sync to cloud
-      bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
-      if(tableUseCacheKey == 1 && connectivity.isConnect && _hasInternetAccess){
+      if (tableUseCacheKey == 1 && connectivity.isConnect) {
         List<TableUse> updatedTableUseRead = await PosDatabase.instance.readSpecificTableUseId(tableUseObject.table_use_sqlite_id!);
-        if(updatedTableUseRead[0].sync_status != 1){
-          _tableUseValue.add(jsonEncode(updatedTableUseRead[0]));
-          Map response = await Domain().SyncTableUseToCloud(_tableUseValue.toString());
-          if (response['status'] == '1') {
-            List responseJson = response['data'];
-            int updatedTableUse = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
-          }
-        }
+        _tableUseValue.add(jsonEncode(updatedTableUseRead[0]));
+        //sync to cloud
+        syncUpdatedTableUseIdToCloud(_tableUseValue.toString());
+      }
+    }
+  }
+
+  syncUpdatedTableUseIdToCloud(String tableUseValue) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map response = await Domain().SyncTableUseToCloud(tableUseValue);
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        int updatedTableUse = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
       }
     }
   }
@@ -1979,7 +2004,8 @@ class _CartPageState extends State<CartPage> {
     //loop cart item & create order detail
     for (int j = 0; j < cart.cartNotifierItem.length; j++) {
       if (cart.cartNotifierItem[j].status == 0) {
-        OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(OrderDetail(
+        OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(
+            OrderDetail(
                 order_detail_id: 0,
                 order_detail_key: '',
                 order_cache_sqlite_id: orderCacheId,
@@ -2001,56 +2027,69 @@ class _CartPageState extends State<CartPage> {
                 soft_delete: ''));
         //insert order detail key
         OrderDetail updatedOrderDetailData = await insertOrderDetailKey(orderDetailData, dateTime);
-        if(updatedOrderDetailData.order_detail_key != '' && connectivity.isConnect){
+        if (updatedOrderDetailData.order_detail_key != '' && connectivity.isConnect) {
           _orderDetailValue.add(jsonEncode(updatedOrderDetailData.syncJson()));
         }
         //insert order modifier detail
-        for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
-          ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
-          for (int m = 0; m < group.modifierChild.length; m++) {
-            if (group.modifierChild[m].isChecked!) {
-              _hasModifier = true;
-              OrderModifierDetail orderModifierDetailData = await PosDatabase.instance
-                  .insertSqliteOrderModifierDetail(OrderModifierDetail(
-                  order_modifier_detail_id: 0,
-                  order_modifier_detail_key: '',
-                  order_detail_sqlite_id: orderDetailData.order_detail_sqlite_id.toString(),
-                  order_detail_id: '0',
-                  order_detail_key: await orderDetailKey,
-                  mod_item_id: group.modifierChild[m].mod_item_id.toString(),
-                  mod_group_id: group.mod_group_id.toString(),
-                  sync_status: 0,
-                  created_at: dateTime,
-                  updated_at: '',
-                  soft_delete: ''));
-              //insert unique key
-              OrderModifierDetail updatedOrderModifierDetail =  await insertOrderModifierDetailKey(orderModifierDetailData, dateTime);
-              if(updatedOrderModifierDetail.order_modifier_detail_key != '' && connectivity.isConnect){
-                _orderModifierValue.add(jsonEncode(updatedOrderModifierDetail));
+        if (cart.cartNotifierItem[j].modifier.isNotEmpty) {
+          for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
+            ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
+            for (int m = 0; m < group.modifierChild.length; m++) {
+              if (group.modifierChild[m].isChecked!) {
+                _hasModifier = true;
+                OrderModifierDetail orderModifierDetailData = await PosDatabase.instance
+                    .insertSqliteOrderModifierDetail(OrderModifierDetail(
+                        order_modifier_detail_id: 0,
+                        order_modifier_detail_key: '',
+                        order_detail_sqlite_id: orderDetailData.order_detail_sqlite_id.toString(),
+                        order_detail_id: '0',
+                        order_detail_key: await orderDetailKey,
+                        mod_item_id: group.modifierChild[m].mod_item_id.toString(),
+                        mod_group_id: group.mod_group_id.toString(),
+                        sync_status: 0,
+                        created_at: dateTime,
+                        updated_at: '',
+                        soft_delete: ''));
+                //insert unique key
+                OrderModifierDetail updatedOrderModifierDetail =
+                    await insertOrderModifierDetailKey(orderModifierDetailData, dateTime);
+                if (updatedOrderModifierDetail.order_modifier_detail_key != '' &&
+                    connectivity.isConnect) {
+                  _orderModifierValue.add(jsonEncode(updatedOrderModifierDetail));
+                }
               }
             }
           }
         }
       }
     }
-    //sync order detail to cloud
-    bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
-    if(connectivity.isConnect && _hasInternetAccess){
-      Map orderDetailResponse = await Domain().SyncOrderDetailToCloud(_orderDetailValue.toString());
+    syncOrderDetailToCloud(_orderDetailValue.toString());
+    if (_hasModifier) {
+      syncOrderModifierToCloud(_orderModifierValue.toString());
+    }
+  }
+
+  syncOrderDetailToCloud(String orderDetailValue) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map orderDetailResponse = await Domain().SyncOrderDetailToCloud(orderDetailValue);
       if (orderDetailResponse['status'] == '1') {
         List responseJson = orderDetailResponse['data'];
-        for(int i = 0 ; i <responseJson.length; i++){
+        for (int i = 0; i < responseJson.length; i++) {
           int syncUpdated = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
         }
       }
-      //sync modifier detail to cloud
-      if(_hasModifier == true){
-        Map orderModifierResponse = await Domain().SyncOrderModifierDetailToCloud(_orderModifierValue.toString());
-        if(orderModifierResponse['status'] == '1'){
-          List responseJson = orderModifierResponse['data'];
-          for(int i = 0 ; i <responseJson.length; i++){
-            int syncUpdated = await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
-          }
+    }
+  }
+
+  syncOrderModifierToCloud(String orderModifierValue) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map orderModifierResponse = await Domain().SyncOrderModifierDetailToCloud(orderModifierValue);
+      if (orderModifierResponse['status'] == '1') {
+        List responseJson = orderModifierResponse['data'];
+        for (int i = 0; i < responseJson.length; i++) {
+          int syncUpdated = await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
         }
       }
     }
@@ -2059,15 +2098,15 @@ class _CartPageState extends State<CartPage> {
   insertOrderModifierDetailKey(OrderModifierDetail orderModifierDetail, String dateTime) async {
     OrderModifierDetail? detailData;
     orderModifierDetailKey = await generateOrderModifierDetailKey(orderModifierDetail);
-    if(orderModifierDetailKey != null){
+    if (orderModifierDetailKey != null) {
       OrderModifierDetail orderModifierDetailData = OrderModifierDetail(
           order_modifier_detail_key: orderModifierDetailKey,
           updated_at: dateTime,
           sync_status: orderModifierDetail.sync_status == 0 ? 0 : 2,
-          order_modifier_detail_sqlite_id: orderModifierDetail.order_modifier_detail_sqlite_id
-      );
-      int updateUniqueKey = await PosDatabase.instance.updateOrderModifierDetailUniqueKey(orderModifierDetailData);
-      if(updateUniqueKey == 1){
+          order_modifier_detail_sqlite_id: orderModifierDetail.order_modifier_detail_sqlite_id);
+      int updateUniqueKey =
+          await PosDatabase.instance.updateOrderModifierDetailUniqueKey(orderModifierDetailData);
+      if (updateUniqueKey == 1) {
         OrderModifierDetail data = await PosDatabase.instance.readSpecificOrderModifierDetailByLocalId(orderModifierDetailData.order_modifier_detail_sqlite_id!);
         detailData = data;
       }
@@ -2078,34 +2117,83 @@ class _CartPageState extends State<CartPage> {
   insertOrderDetailKey(OrderDetail orderDetail, String dateTime) async {
     OrderDetail? detailData;
     orderDetailKey = await generateOrderDetailKey(orderDetail);
-    if(orderDetailKey != null){
+    if (orderDetailKey != null) {
       OrderDetail orderDetailObject = OrderDetail(
           order_detail_key: orderDetailKey,
           sync_status: 0,
           updated_at: dateTime,
-          order_detail_sqlite_id: orderDetail.order_detail_sqlite_id
-      );
-      int updateUniqueKey = await PosDatabase.instance.updateOrderDetailUniqueKey(orderDetailObject);
-      if(updateUniqueKey == 1){
-        OrderDetail data = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
+          order_detail_sqlite_id: orderDetail.order_detail_sqlite_id);
+      int updateUniqueKey =
+          await PosDatabase.instance.updateOrderDetailUniqueKey(orderDetailObject);
+      if (updateUniqueKey == 1) {
+        OrderDetail data = await PosDatabase.instance
+            .readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
         detailData = data;
       }
     }
     return detailData;
   }
 
-  generateOrderDetailKey(OrderDetail orderDetail) async  {
+  generateOrderDetailKey(OrderDetail orderDetail) async {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
-    var bytes  = orderDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + orderDetail.order_detail_sqlite_id.toString() + device_id.toString();
+    var bytes = orderDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
+        orderDetail.order_detail_sqlite_id.toString() +
+        device_id.toString();
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
-  generateOrderModifierDetailKey(OrderModifierDetail orderModifierDetail) async  {
+  generateOrderModifierDetailKey(OrderModifierDetail orderModifierDetail) async {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
-    var bytes  = orderModifierDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + orderModifierDetail.order_modifier_detail_sqlite_id.toString() + device_id.toString();
+    var bytes = orderModifierDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
+        orderModifierDetail.order_modifier_detail_sqlite_id.toString() +
+        device_id.toString();
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
+  updatePosTable(CartModel cart, ConnectivityChangeNotifier connectivity) async {
+    try {
+      List<String> _value = [];
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+
+      for (int i = 0; i < cart.selectedTable.length; i++) {
+        List<PosTable> result = await PosDatabase.instance.checkPosTableStatus(branch_id!, cart.selectedTable[i].table_sqlite_id!);
+        if (result[0].status == 0) {
+          PosTable posTableData = PosTable(
+              table_sqlite_id: cart.selectedTable[i].table_sqlite_id,
+              table_use_detail_key: tableUseDetailKey,
+              status: 1,
+              updated_at: dateTime);
+          int data = await PosDatabase.instance.updateCartPosTableStatus(posTableData);
+          if (data == 1 && connectivity.isConnect) {
+            List<PosTable> posTable = await PosDatabase.instance.readSpecificTable(posTableData.table_sqlite_id.toString());
+            if (posTable[0].sync_status == 2) {
+              _value.add(jsonEncode(posTable[0]));
+            }
+          }
+        }
+      }
+      syncUpdatedTableToCloud(_value.toString());
+    } catch (e) {
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "update table error: ${e}");
+      print("update table error: $e");
+    }
+  }
+
+  syncUpdatedTableToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map data = await Domain().SyncUpdatedPosTableToCloud(value);
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+        }
+      }
+    }
+  }
 }

@@ -177,6 +177,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
         await updateAllCashRecordSettlement(dateTime, connectivity);
         //print settlement list
         await _printSettlementList(dateTime);
+        widget.callBack();
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
@@ -204,21 +205,33 @@ class _SettlementDialogState extends State<SettlementDialog> {
         }
       }
     }
-    widget.callBack();
     //sync to cloud
-    if(connectivity.isConnect){
-      bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
-      if(_hasInternetAccess){
-        Map response = await Domain().SyncCashRecordToCloud(_value.toString());
-        if (response['status'] == '1') {
-          List responseJson = response['data'];
-          for (var i = 0; i < responseJson.length; i++) {
-            int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
-          }
+    await syncSettlementToCloud(_value.toString());
+    // if(connectivity.isConnect){
+    //   bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
+    //   if(_hasInternetAccess){
+    //     Map response = await Domain().SyncCashRecordToCloud(_value.toString());
+    //     if (response['status'] == '1') {
+    //       List responseJson = response['data'];
+    //       for (var i = 0; i < responseJson.length; i++) {
+    //         int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+    //       }
+    //     }
+    //   }
+    // }
+  }
+
+  syncSettlementToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map response = await Domain().SyncCashRecordToCloud(value);
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
         }
       }
     }
-    _value.clear();
   }
 
   readAllPrinters() async {

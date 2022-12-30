@@ -1622,7 +1622,7 @@ class _MakePaymentState extends State<MakePayment> {
 
   callCreateOrder(String? paymentReceived, ConnectivityChangeNotifier connectivity, {orderChange}) async {
     await createOrder(double.parse(paymentReceived!), orderChange);
-    await insertOrderKey(connectivity);
+    //await insertOrderKey(connectivity);
     await crateOrderTaxDetail(connectivity);
     await createOrderPromotionDetail(connectivity);
   }
@@ -1691,6 +1691,9 @@ class _MakePaymentState extends State<MakePayment> {
         );
         Order data = await PosDatabase.instance.insertSqliteOrder(orderObject);
         this.orderId = data.order_sqlite_id.toString();
+        Order updatedOrder = await insertOrderKey();
+        await syncOrderToCloud(updatedOrder);
+
       }
       
     }catch(e){
@@ -1701,10 +1704,24 @@ class _MakePaymentState extends State<MakePayment> {
     }
   }
 
-  insertOrderKey(ConnectivityChangeNotifier connectivity) async {
+  syncOrderToCloud(Order updatedOrder) async {
+    List<String> _value = [];
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      _value.add(jsonEncode(updatedOrder));
+      Map data = await Domain().SyncOrderToCloud(_value.toString());
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[0]['order_key']);
+      }
+    }
+  }
+
+  insertOrderKey() async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _value = [];
+    Order? _updatedOrder;
     await readAllOrder();
     orderKey = await generateOrderKey(orderList[0]);
     if(orderKey != null){
@@ -1715,21 +1732,23 @@ class _MakePaymentState extends State<MakePayment> {
         order_sqlite_id: orderList[0].order_sqlite_id
       );
       int updatedData = await PosDatabase.instance.updateOrderUniqueKey(orderObject);
-      if(updatedData == 1 && connectivity.isConnect){
+      if(updatedData == 1){
         Order orderData = await PosDatabase.instance.readSpecificOrder(orderObject.order_sqlite_id!);
-        _value.add(jsonEncode(orderData));
+        _updatedOrder = orderData;
+        //_value.add(jsonEncode(orderData));
       }
     }
+    return _updatedOrder;
     //sync to cloud
-    if(connectivity.isConnect){
-      Map data = await Domain().SyncOrderToCloud(_value.toString());
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
-        }
-      }
-    }
+    // if(connectivity.isConnect){
+    //   Map data = await Domain().SyncOrderToCloud(_value.toString());
+    //   if (data['status'] == '1') {
+    //     List responseJson = data['data'];
+    //     for (var i = 0; i < responseJson.length; i++) {
+    //       int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+    //     }
+    //   }
+    // }
   }
 
   generateOrderPromotionDetailKey(OrderPromotionDetail orderPromotionDetail) async  {
@@ -1788,13 +1807,25 @@ class _MakePaymentState extends State<MakePayment> {
           soft_delete: ''
       ));
       OrderPromotionDetail returnData = await insertOrderPromotionDetailKey(data, dateTime);
-      if(connectivity.isConnect){
-        _value.add(jsonEncode(returnData));
-      }
+      _value.add(jsonEncode(returnData));
     }
     //sync to cloud
-    if(connectivity.isConnect){
-      Map data = await Domain().SyncOrderPromotionDetailToCloud(_value.toString());
+    syncOrderPromotionDetailToCloud(_value.toString());
+    // if(connectivity.isConnect){
+    //   Map data = await Domain().SyncOrderPromotionDetailToCloud(_value.toString());
+    //   if (data['status'] == '1') {
+    //     List responseJson = data['data'];
+    //     for (var i = 0; i < responseJson.length; i++) {
+    //       int orderPromoData = await PosDatabase.instance.updateOrderPromotionDetailSyncStatusFromCloud(responseJson[i]['order_promotion_detail_key']);
+    //     }
+    //   }
+    // }
+  }
+
+  syncOrderPromotionDetailToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map data = await Domain().SyncOrderPromotionDetailToCloud(value);
       if (data['status'] == '1') {
         List responseJson = data['data'];
         for (var i = 0; i < responseJson.length; i++) {
@@ -1859,14 +1890,26 @@ class _MakePaymentState extends State<MakePayment> {
             soft_delete: ''
         ));
         OrderTaxDetail returnData = await insertOrderTaxDetailKey(data, dateTime);
-        if(connectivity.isConnect){
-          _value.add(jsonEncode(returnData));
-        }
+        _value.add(jsonEncode(returnData));
       }
     }
     //sync to cloud
-    if(connectivity.isConnect){
-      Map data = await Domain().SyncOrderTaxDetailToCloud(_value.toString());
+    syncOrderTaxDetailToCloud(_value.toString());
+    // if(connectivity.isConnect){
+    //   Map data = await Domain().SyncOrderTaxDetailToCloud(_value.toString());
+    //   if (data['status'] == '1') {
+    //     List responseJson = data['data'];
+    //     for (var i = 0; i < responseJson.length; i++) {
+    //       int syncData = await PosDatabase.instance.updateOrderTaxDetailSyncStatusFromCloud(responseJson[i]['order_tax_detail_key']);
+    //     }
+    //   }
+    // }
+  }
+
+  syncOrderTaxDetailToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map data = await Domain().SyncOrderTaxDetailToCloud(value);
       if (data['status'] == '1') {
         List responseJson = data['data'];
         for (var i = 0; i < responseJson.length; i++) {

@@ -113,6 +113,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
                         controller: adminPosPinController,
+                        keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           errorText: _submitted
                               ? errorPassword == null
@@ -258,30 +259,41 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   readAdminData(String pin, CartModel cart, ConnectivityChangeNotifier connectivity) async {
     List<String> _posTableValue = [];
     List<String> _orderModDetailValue = [];
+    bool _hasModifier = false;
     try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
 
       List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
-      if (userData.length > 0) {
+      if (userData.isNotEmpty) {
         closeDialog(context);
         if(cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1){
-          if(cartOrderModDetailList.length > 0){
+          if(cartOrderModDetailList.isNotEmpty){
+            _hasModifier = true;
             for(int i = 0; i < cartOrderModDetailList.length; i++){
               OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
             }
           }
-          callDeleteOrderDetail(userData[0], dateTime, cart, connectivity);
+          callDeleteOrderDetail(userData[0], dateTime, cart);
         } else if(cartTableCacheList.length > 1 && cartOrderDetailList.length <= 1 ){
-          if(cartOrderModDetailList.length > 0){
+          if(cartOrderModDetailList.isNotEmpty){
+            _hasModifier = true;
             for(int i = 0; i < cartOrderModDetailList.length; i++){
               OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
             }
           }
           callDeletePartialOrder(userData[0], dateTime, cart, connectivity);
-        }
-        else {
-          if(cartOrderModDetailList.length > 0){
+        } else if (cartTableCacheList.length > 1 && cartOrderDetailList.length > 1) {
+          if(cartOrderModDetailList.isNotEmpty){
+            _hasModifier = true;
+            for(int i = 0; i < cartOrderModDetailList.length; i++){
+              OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
+            }
+          }
+          callDeleteOrderDetail(userData[0], dateTime, cart);
+        }else {
+          if(cartOrderModDetailList.isNotEmpty){
+            _hasModifier = true;
             for(int i = 0; i < cartOrderModDetailList.length; i++){
               OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
               _orderModDetailValue.add(jsonEncode(deletedMod));
@@ -296,21 +308,12 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
         }
         if(connectivity.isConnect){
           //sync to cloud
-          Map modResponse = await Domain().SyncOrderModifierDetailToCloud(_orderModDetailValue.toString());
-          if(modResponse['status'] == '1'){
-            List responseJson = modResponse['data'];
-            for(int i = 0 ; i <responseJson.length; i++){
-              int syncData = await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
-            }
+          if(_hasModifier == true){
+            syncOrderModifierDetailToCloud(_orderModDetailValue.toString());
           }
           //sync to cloud
-          Map response = await Domain().SyncUpdatedPosTableToCloud(_posTableValue.toString());
-          if (response['status'] == '1') {
-            List responseJson = response['data'];
-            for (var i = 0; i < responseJson.length; i++) {
-              int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-            }
-          }
+          syncUpdatedPosTableToCloud(_posTableValue.toString());
+
         }
         //print cancel receipt
         //await _printDeleteList(widget.cartItem!.orderCacheId!, dateTime);
@@ -327,6 +330,32 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       print('delete error ${e}');
     }
     tableModel.changeContent(true);
+  }
+
+  syncUpdatedPosTableToCloud(String posTableValue) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map response = await Domain().SyncUpdatedPosTableToCloud(posTableValue);
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+        }
+      }
+    }
+  }
+
+  syncOrderModifierDetailToCloud(String orderModDetailValue) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map modResponse = await Domain().SyncOrderModifierDetailToCloud(orderModDetailValue);
+      if(modResponse['status'] == '1'){
+        List responseJson = modResponse['data'];
+        for(int i = 0 ; i <responseJson.length; i++){
+          int syncData = await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
+        }
+      }
+    }
   }
 
   _printDeleteList(String orderCacheId, String dateTime) async {
@@ -488,7 +517,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     return _data;
   }
 
-  callDeleteOrderDetail(User user, String dateTime, CartModel cart, ConnectivityChangeNotifier connectivity) async {
+  callDeleteOrderDetail(User user, String dateTime, CartModel cart) async {
     List<String> _value = [];
     OrderDetail orderDetailObject = OrderDetail(
         soft_delete: dateTime,
@@ -502,15 +531,20 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     if(deleteOrderDetailData == 1){
       await _printDeleteList(widget.cartItem!.orderCacheId!, dateTime);
       await _printKitchenDeleteList(widget.cartItem!.orderCacheId!, dateTime, cart);
-      if(connectivity.isConnect){
-        //sync to cloud
-        OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
-        _value.add(jsonEncode(detailData.syncJson()));
-        Map response = await Domain().SyncUpdatedOrderDetailToCloud(_value.toString());
-        if (response['status'] == '1') {
-          List responseJson = response['data'];
-          int orderDetailData = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[0]['order_detail_key']);
-        }
+      //sync to cloud
+      OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
+      _value.add(jsonEncode(detailData.syncJson()));
+      syncUpdatedOrderDetailToCloud(_value.toString());
+    }
+  }
+
+  syncUpdatedOrderDetailToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map response = await Domain().SyncUpdatedOrderDetailToCloud(value.toString());
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        int orderDetailData = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[0]['order_detail_key']);
       }
     }
   }
@@ -518,12 +552,12 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   callDeleteAllOrder(User user, String currentTableUseId, String dateTime, CartModel cartModel, ConnectivityChangeNotifier connectivity) async {
     await deleteCurrentTableUseDetail(currentTableUseId, dateTime, connectivity);
     await deleteCurrentTableUseId(int.parse(currentTableUseId), dateTime, connectivity);
-    await callDeleteOrderDetail(user, dateTime, cartModel, connectivity);
+    await callDeleteOrderDetail(user, dateTime, cartModel);
     await deleteCurrentOrderCache(user, dateTime, connectivity);
   }
 
   callDeletePartialOrder(User user, String dateTime, CartModel cartModel, ConnectivityChangeNotifier connectivity) async {
-    await callDeleteOrderDetail(user, dateTime, cartModel, connectivity);
+    await callDeleteOrderDetail(user, dateTime, cartModel);
     await deleteCurrentOrderCache(user, dateTime, connectivity);
   }
 
@@ -590,20 +624,25 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           _value.add(jsonEncode(detailData.syncJson()));
         }
       }
-      if(connectivity.isConnect){
-        //sync to cloud
-        Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
-        if(data['status'] == 1){
-          List responseJson = data['data'];
-          for (var i = 0; i < responseJson.length; i++) {
-            int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-          }
-        }
-      }
+      //sync to cloud
+      syncTableUseDetail(_value.toString());
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Delete current table use detail error: $e");
+    }
+  }
+
+  syncTableUseDetail(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map data = await Domain().SyncTableUseDetailToCloud(value);
+      if(data['status'] == '1'){
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+        }
+      }
     }
   }
 
@@ -617,20 +656,27 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
         table_use_sqlite_id: currentTableUseId,
       );
       int deletedTableUse = await PosDatabase.instance.deleteTableUseID(tableUseObject);
-      if(deletedTableUse == 1 && connectivity.isConnect){
+      if(deletedTableUse == 1){
         //sync to cloud
         TableUse tableUseData = await PosDatabase.instance.readSpecificTableUseIdByLocalId(tableUseObject.table_use_sqlite_id!);
         _value.add(jsonEncode(tableUseData));
-        Map data = await Domain().SyncTableUseToCloud(_value.toString());
-        if (data['status'] == '1') {
-          List responseJson = data['data'];
-          int tablaUseData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
-        }
+        syncTableUseIdToCloud(_value.toString());
       }
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Delete current table use id error: ${e}");
+    }
+  }
+
+  syncTableUseIdToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map data = await Domain().SyncTableUseToCloud(value);
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        int tablaUseData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
+      }
     }
   }
 }
