@@ -85,6 +85,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
         print('selected category: ${selectedCategories.length}');
         if (_isUpdate == false) {
           callAddNewPrinter(printerValue, selectedCategories);
+          if(_typeStatus == 0){
+            _print();
+          }
         } else {
           callUpdatePrinter(selectedCategories, widget.printerObject!);
         }

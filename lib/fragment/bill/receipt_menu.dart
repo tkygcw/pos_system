@@ -118,10 +118,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                 cart.initialLoad();
                               }
                               paidOrderList[index].isSelected = true;
-                              await getOrderCache(paidOrderList[index].order_sqlite_id.toString());
-                              for(int i = 0 ; i < orderCacheList.length; i++){
-                                await getOrderDetail(orderCacheList[i]);
-                              }
+                              await getOrderDetail(paidOrderList[index]);
                               await addToCart(cart, orderCacheList);
                               await callReadOrderTaxPromoDetail(paidOrderList[index]);
                               if(_readComplete == true){
@@ -177,6 +174,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
   addToCart(CartModel cart, List<OrderCache> orderCacheList) async {
     var value;
     List<TableUseDetail> tableUseDetailList = [];
+    List<OrderCache> _uniqueOrderCacheList = [];
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
           orderDetailList[i].branch_link_product_sqlite_id!,
@@ -194,10 +192,34 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
       cart.addItem(value);
 
     }
+    print('order cache list: ${orderCacheList.length}');
+    List<String> _uniqueList = [];
+    var _value;
     for (int j = 0; j < orderCacheList.length; j++) {
+      //print('order cache list ${j+1}: ${orderCacheList[j].table_use_sqlite_id}');
+      // if(_uniqueOrderCacheList.isEmpty){
+      //   _uniqueOrderCacheList.add(orderCacheList[j]);
+      // } else {
+      //   for(int m = 0; m < _uniqueOrderCacheList.length; m++){
+      //     print('table use id ${m+1}: ${_uniqueOrderCacheList[m].table_use_sqlite_id}');
+      //     print('cache table use id ${m+1}: ${orderCacheList[j].table_use_sqlite_id}');
+      //     if(_uniqueOrderCacheList[m].table_use_sqlite_id == orderCacheList[j].table_use_sqlite_id){
+      //       break;
+      //       //_uniqueOrderCacheList.removeAt(j);
+      //       //_uniqueOrderCacheList.add(orderCacheList[j]);
+      //     } else {
+      //       //_uniqueOrderCacheList.add(orderCacheList[j]);
+      //     }
+      //   }
+      // }
+      _uniqueList.add(orderCacheList[j].table_use_sqlite_id!);
+      _value = _uniqueList.toSet().toList();
       //Get specific table use detail
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readDeleteOnlyTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
-      tableUseDetailList = List.from(tableUseDetailData);
+      // List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readDeleteOnlyTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
+      // if(!tableUseDetailList.contains(tableUseDetailData)){
+      //   tableUseDetailList.addAll(tableUseDetailData);
+      // }
+      //tableUseDetailList = List.from(tableUseDetailData);
       //add selected dining option
       if(orderCacheList[j].dining_id == '2'){
         cart.selectedOption = 'Take Away';
@@ -206,8 +228,16 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
       } else {
         cart.selectedOption = 'Dine in';
       }
+      print('cycle ${j+1} finish');
     }
-
+    //get all table use detail
+    for(int m = 0; m < _value.length; m++){
+      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readDeleteOnlyTableUseDetail(_value[m]!);
+      if(!tableUseDetailList.contains(tableUseDetailData)){
+        tableUseDetailList.addAll(tableUseDetailData);
+      }
+    }
+    //get table object add to cart
     for (int k = 0; k < tableUseDetailList.length; k++) {
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[k].table_sqlite_id!);
       if(cart.selectedTable.length > 0) {
@@ -274,11 +304,21 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     return variantGroup;
   }
 
-  getOrderDetail(OrderCache orderCache) async {
+  getOrderDetail(Order order) async {
+    orderCacheList.clear();
+    List<OrderDetail> _cacheOrderDetail = [];
+    await getOrderCache(order.order_sqlite_id.toString());
 
-    List<OrderDetail> detailData = await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(orderCache.order_cache_sqlite_id.toString());
-    if(detailData.length > 0){
-      orderDetailList = List.from(detailData);
+    for(int i = 0 ; i < orderCacheList.length; i++){
+      List<OrderDetail> detailData = await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(orderCacheList[i].order_cache_sqlite_id.toString());
+      if(!_cacheOrderDetail.contains(detailData)){
+        _cacheOrderDetail.addAll(detailData);
+      }
+    }
+
+    
+    if(_cacheOrderDetail.length > 0){
+      orderDetailList = List.from(_cacheOrderDetail);
     }
     for (int k = 0; k < orderDetailList.length; k++) {
       List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
@@ -294,9 +334,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
             variant_name: variant[0].variant_name);
 
         //Get product variant detail
-        List<ProductVariantDetail> productVariantDetail = await PosDatabase
-            .instance
-            .readProductVariantDetail(variant[0].product_variant_id!);
+        List<ProductVariantDetail> productVariantDetail = await PosDatabase.instance.readProductVariantDetail(variant[0].product_variant_id!);
         orderDetailList[k].variantItem.clear();
         for (int v = 0; v < productVariantDetail.length; v++) {
           //Get product variant item

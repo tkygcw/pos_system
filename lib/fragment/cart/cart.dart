@@ -275,9 +275,9 @@ class _CartPageState extends State<CartPage> {
                                       ),
                                     ),
                                     key: ValueKey(cart.cartNotifierItem[index].name),
-                                    direction: widget.currentPage == 'menu' &&
-                                                cart.cartNotifierItem[index].status == 0 ||
-                                            widget.currentPage == 'table'
+                                    direction: widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
+                                               widget.currentPage == 'table' ||
+                                               widget.currentPage == 'other_order'
                                         ? DismissDirection.startToEnd
                                         : DismissDirection.none,
                                     confirmDismiss: (direction) async {
@@ -668,7 +668,7 @@ class _CartPageState extends State<CartPage> {
                                         }
                                       } else {
                                         if (cart.cartNotifierItem.isNotEmpty) {
-                                          await _printReceiptList();
+                                          await _printReceiptList(cart);
                                         } else {
                                           Fluttertoast.showToast(
                                               backgroundColor: Colors.red,
@@ -727,7 +727,7 @@ class _CartPageState extends State<CartPage> {
     });
   }
 
-  _printReceiptList() async {
+  _printReceiptList(CartModel cart) async {
     try {
       for (int i = 0; i < printerList.length; i++) {
         List<PrinterLinkCategory> data =
@@ -738,7 +738,7 @@ class _CartPageState extends State<CartPage> {
             if (printerList[i].type == 0) {
               if (printerList[i].paper_size == 0) {
                 var data = Uint8List.fromList(
-                    await ReceiptLayout().printReceipt80mm(true, this.localOrderId));
+                    await ReceiptLayout().printReceipt80mm(true, this.localOrderId, cart.selectedTable));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
@@ -750,7 +750,7 @@ class _CartPageState extends State<CartPage> {
                 }
               } else {
                 var data = Uint8List.fromList(
-                    await ReceiptLayout().printReceipt58mm(true, this.localOrderId));
+                    await ReceiptLayout().printReceipt58mm(true, this.localOrderId, cart.selectedTable));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
@@ -768,7 +768,7 @@ class _CartPageState extends State<CartPage> {
                 final printer = NetworkPrinter(PaperSize.mm80, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
                 if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printReceipt80mm(false, this.localOrderId, value: printer);
+                  await ReceiptLayout().printReceipt80mm(false, this.localOrderId, cart.selectedTable, value: printer);
                   printer.disconnect();
                 } else {
                   Fluttertoast.showToast(
@@ -781,7 +781,7 @@ class _CartPageState extends State<CartPage> {
                 final printer = NetworkPrinter(PaperSize.mm58, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
                 if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printReceipt58mm(false, this.localOrderId, value: printer);
+                  await ReceiptLayout().printReceipt58mm(false, this.localOrderId, cart.selectedTable,value: printer);
                   printer.disconnect();
                 } else {
                   Fluttertoast.showToast(
@@ -1901,7 +1901,7 @@ class _CartPageState extends State<CartPage> {
             cancel_by: '',
             cancel_by_user_id: '',
             customer_id: '0',
-            total_amount: cart.selectedOption == "Dine in" ? '' : totalAmount.toStringAsFixed(2),
+            total_amount: cart.selectedOption == "Dine in" ? '' : finalAmount,
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',

@@ -147,14 +147,14 @@ class _HomePageState extends State<HomePage> {
         onPressed: () => setState(() => currentPage = 'qr_order'),
       ),
       CollapsibleItem(
+        text: 'Other Order',
+        icon: Icons.delivery_dining,
+        onPressed: () => setState(() => currentPage = 'other_order'),
+      ),
+      CollapsibleItem(
         text: 'Bill',
         icon: Icons.receipt_long,
         onPressed: () => setState(() => currentPage = 'bill'),
-      ),
-      CollapsibleItem(
-        text: 'Other Order',
-        icon: Icons.receipt,
-        onPressed: () => setState(() => currentPage = 'other_order'),
       ),
       CollapsibleItem(
         text: 'settlement',

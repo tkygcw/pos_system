@@ -499,7 +499,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
               if (printerList[i].paper_size == 0) {
                 //print 80mm
                 var data = Uint8List.fromList(
-                    await ReceiptLayout().printReceipt80mm(true, widget.orderId));
+                    await ReceiptLayout().printReceipt80mm(true, widget.orderId, widget.selectedTableList));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
@@ -512,7 +512,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
               } else {
                 //print 58mm
                 var data = Uint8List.fromList(
-                    await ReceiptLayout().printReceipt58mm(true, widget.orderId));
+                    await ReceiptLayout().printReceipt58mm(true, widget.orderId, widget.selectedTableList));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
@@ -531,7 +531,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
                 if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printReceipt80mm(false, widget.orderId, value: printer);
+                  await ReceiptLayout().printReceipt80mm(false, widget.orderId, widget.selectedTableList, value: printer);
                   printer.disconnect();
                 } else {
                   Fluttertoast.showToast(
@@ -545,7 +545,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
                 if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printReceipt58mm(false, widget.orderId, value: printer);
+                  await ReceiptLayout().printReceipt58mm(false, widget.orderId, widget.selectedTableList,value: printer);
                   printer.disconnect();
                 } else {
                   Fluttertoast.showToast(

@@ -68,6 +68,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
   }
 
   getOrderList({model}) async {
+    print('refresh UI!');
     if (model != null) {
       model.changeContent2(false);
     }
@@ -76,8 +77,8 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
     Map userObject = json.decode(user!);
     final int? branch_id = prefs.getInt('branch_id');
     if (selectDiningOption == 'All') {
-      List<OrderCache> data = await PosDatabase.instance.readOrderCacheNoDineIn(
-          branch_id.toString(), userObject['company_id']);
+      List<OrderCache> data = await PosDatabase.instance.readOrderCacheNoDineIn(branch_id.toString(), userObject['company_id']);
+      print('data length: ${data.length}');
       setState(() {
         orderCacheList = data;
       });
@@ -234,9 +235,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                             style: TextStyle(fontSize: 16),
                                           ),
                                           title: Text(
-                                            orderCacheList[index]
-                                                .total_amount
-                                                .toString(),
+                                            orderCacheList[index].total_amount!,
                                             style: TextStyle(fontSize: 20),
                                           )),
                                     ),
@@ -284,7 +283,9 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           orderDetailList[i].remark!,
           0,
           orderCache.order_cache_sqlite_id.toString(),
-          Colors.black
+          Colors.black,
+          category_sqlite_id: orderDetailList[i].category_sqlite_id,
+          order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString()
       );
       cart.addItem(value);
       if(orderCache.dining_id == '2'){
@@ -359,26 +360,19 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
       List<Product> productResult = await PosDatabase.instance.readSpecificProductCategory(result[0].product_id!);
       orderDetailList[k].product_category_id = productResult[0].category_id;
       if(orderDetailList[k].has_variant == '1'){
-        List<BranchLinkProduct> variant = await PosDatabase.instance
-            .readBranchLinkProductVariant(
-            orderDetailList[k].branch_link_product_sqlite_id!);
+        List<BranchLinkProduct> variant = await PosDatabase.instance.readBranchLinkProductVariant(orderDetailList[k].branch_link_product_sqlite_id!);
         orderDetailList[k].productVariant = ProductVariant(
             product_variant_id: int.parse(variant[0].product_variant_id!),
             variant_name: variant[0].variant_name);
 
         //Get product variant detail
-        List<ProductVariantDetail> productVariantDetail = await PosDatabase
-            .instance
-            .readProductVariantDetail(variant[0].product_variant_id!);
+        List<ProductVariantDetail> productVariantDetail = await PosDatabase.instance.readProductVariantDetail(variant[0].product_variant_id!);
         orderDetailList[k].variantItem.clear();
         for (int v = 0; v < productVariantDetail.length; v++) {
           //Get product variant item
-          List<VariantItem> variantItemDetail = await PosDatabase.instance
-              .readProductVariantItemByVariantID(
-              productVariantDetail[v].variant_item_id!);
+          List<VariantItem> variantItemDetail = await PosDatabase.instance.readProductVariantItemByVariantID(productVariantDetail[v].variant_item_id!);
           orderDetailList[k].variantItem.add(VariantItem(
-              variant_item_id:
-              int.parse(productVariantDetail[v].variant_item_id!),
+              variant_item_id: int.parse(productVariantDetail[v].variant_item_id!),
               variant_group_id: variantItemDetail[0].variant_group_id,
               name: variant[0].variant_name,
               isSelected: true));

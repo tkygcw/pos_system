@@ -87,6 +87,8 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     setState(() => _submitted = true);
     if (errorPassword == null && _isLoaded == true) {
       await readAdminData(adminPosPinController.text, cart, connectivity);
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
       return;
     }
   }
@@ -266,7 +268,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
 
       List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
       if (userData.isNotEmpty) {
-        closeDialog(context);
+
         if(cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1){
           if(cartOrderModDetailList.isNotEmpty){
             _hasModifier = true;
@@ -291,7 +293,15 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
             }
           }
           callDeleteOrderDetail(userData[0], dateTime, cart);
-        }else {
+        } else if(widget.currentPage == 'other order' && cartOrderDetailList.length > 1){
+          if(cartOrderModDetailList.isNotEmpty){
+            _hasModifier = true;
+            for(int i = 0; i < cartOrderModDetailList.length; i++){
+              OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
+            }
+          }
+          callDeleteOrderDetail(userData[0], dateTime, cart);
+        } else {
           if(cartOrderModDetailList.isNotEmpty){
             _hasModifier = true;
             for(int i = 0; i < cartOrderModDetailList.length; i++){
@@ -313,7 +323,6 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           }
           //sync to cloud
           syncUpdatedPosTableToCloud(_posTableValue.toString());
-
         }
         //print cancel receipt
         //await _printDeleteList(widget.cartItem!.orderCacheId!, dateTime);
@@ -329,7 +338,6 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     } catch (e) {
       print('delete error ${e}');
     }
-    tableModel.changeContent(true);
   }
 
   syncUpdatedPosTableToCloud(String posTableValue) async {
@@ -431,6 +439,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
         List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
         for (int j = 0; j < data.length; j++) {
           if (widget.cartItem?.category_sqlite_id == data[j].category_sqlite_id) {
+            print('printer call');
             var printerDetail = jsonDecode(printerList[i].value!);
             if (printerList[i].type == 0) {
               if(printerList[i].paper_size == 0){
@@ -535,6 +544,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
       _value.add(jsonEncode(detailData.syncJson()));
       syncUpdatedOrderDetailToCloud(_value.toString());
+      tableModel.changeContent(true);
     }
   }
 
@@ -550,8 +560,10 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   }
 
   callDeleteAllOrder(User user, String currentTableUseId, String dateTime, CartModel cartModel, ConnectivityChangeNotifier connectivity) async {
-    await deleteCurrentTableUseDetail(currentTableUseId, dateTime, connectivity);
-    await deleteCurrentTableUseId(int.parse(currentTableUseId), dateTime, connectivity);
+    if(widget.currentPage != 'other_order'){
+      await deleteCurrentTableUseDetail(currentTableUseId, dateTime, connectivity);
+      await deleteCurrentTableUseId(int.parse(currentTableUseId), dateTime, connectivity);
+    }
     await callDeleteOrderDetail(user, dateTime, cartModel);
     await deleteCurrentOrderCache(user, dateTime, connectivity);
   }

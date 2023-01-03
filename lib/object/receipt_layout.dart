@@ -77,7 +77,7 @@ class ReceiptLayout{
     List<int> bytes = [];
 
     //LOGO
-    bytes += generator.text('Lucky 8', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+    bytes += generator.text('Self test print', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
     bytes += generator.text(
         '22-2, Jalan Permas 11/1A, Bandar Permas Baru, 81750, Masai',
         styles: PosStyles(align: PosAlign.center));
@@ -118,7 +118,7 @@ class ReceiptLayout{
     List<int> bytes = [];
 
     //LOGO
-    bytes += generator.text('Lucky 8', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+    bytes += generator.text('Self test', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
     bytes += generator.text('This is 58mm', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
 
     bytes += generator.feed(1);
@@ -130,7 +130,7 @@ class ReceiptLayout{
 /*
   Receipt layout 80mm
 */
-  printReceipt80mm(bool isUSB, String orderId, {value}) async {
+  printReceipt80mm(bool isUSB, String orderId, List<PosTable> selectedTableList, {value}) async {
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
@@ -176,8 +176,8 @@ class ReceiptLayout{
         //other order detail
         bytes += generator.text('Printed at: ${dateTime}');
         if(paidOrder!.dining_id == '1'){
-          for(int i = 0; i < tableList.length; i++){
-            bytes += generator.text('Table No: ${tableList[i].number}');
+          for(int i = 0; i < selectedTableList.length; i++){
+            bytes += generator.text('Table No: ${selectedTableList[i].number}');
           }
         }
         bytes += generator.text('${paidOrder!.dining_name}');
@@ -312,6 +312,7 @@ class ReceiptLayout{
         if(receipt!.footer_text_status == 1){
           bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
         }
+        bytes += generator.emptyLines(1);
         //copyright
         bytes += generator.text('POWERED BY CHANNEL POS', styles: PosStyles(bold: true, align: PosAlign.center));
         bytes += generator.feed(1);
@@ -327,7 +328,7 @@ class ReceiptLayout{
 /*
   Receipt layout 58mm
 */
-  printReceipt58mm(bool isUSB, String orderId, {value}) async {
+  printReceipt58mm(bool isUSB, String orderId, List<PosTable> selectedTableList, {value}) async {
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
@@ -374,8 +375,8 @@ class ReceiptLayout{
         //other order detail
         bytes += generator.text('Printed at: ${dateTime}');
         if(paidOrder!.dining_id == '1'){
-          for(int i = 0; i < tableList.length; i++){
-            bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(align: PosAlign.center));
+          for(int i = 0; i < selectedTableList.length; i++){
+            bytes += generator.text('Table No: ${selectedTableList[i].number}', styles: PosStyles(align: PosAlign.center));
           }
         }
         bytes += generator.text('${paidOrder!.dining_name}', styles: PosStyles(align: PosAlign.center));
@@ -473,7 +474,7 @@ class ReceiptLayout{
         //total
         bytes += generator.hr();
         bytes += generator.row([
-          PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(height: PosTextSize.size2, bold: true)),
+          PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(bold: true)),
           PosColumn(
               text: '${this.paidOrder!.final_amount}',
               width: 4,
@@ -496,10 +497,12 @@ class ReceiptLayout{
           PosColumn(text: '${this.paidOrder!.payment_change}', width: 4),
         ]);
         bytes += generator.emptyLines(1);
+        bytes += generator.reset();
         //footer
         if(receipt!.footer_text_status == 1){
-          bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, height: PosTextSize.size3, width: PosTextSize.size3));
+          bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, height: PosTextSize.size3, width: PosTextSize.size3, align: PosAlign.center));
         }
+        bytes += generator.emptyLines(1);
         //copyright
         bytes += generator.text('POWERED BY CHANNEL POS', styles: PosStyles(bold: true, align: PosAlign.center));
         bytes += generator.feed(1);
@@ -615,6 +618,8 @@ class ReceiptLayout{
 */
   printCheckList58mm(bool isUSB, {value}) async {
     String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
     await readOrderCache();
 
     var generator;
@@ -631,12 +636,21 @@ class ReceiptLayout{
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //other order detail
-      for(int i = 0; i < tableList.length; i++){
-        bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+      if(orderCache!.dining_id == '1'){
+        for(int i = 0; i < tableList.length; i++){
+          bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+        }
+      } else if (orderCache!.dining_id == '2'){
+        bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+      } else if(orderCache!.dining_id == '3'){
+        bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
       }
+      // for(int i = 0; i < tableList.length; i++){
+      //   bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+      // }
       // bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
-      bytes += generator.text('Order No', styles: PosStyles(align: PosAlign.center));
-      bytes += generator.text('${orderCache!.batch_id}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('Batch No', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('#${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
       bytes += generator.text('Order By', styles: PosStyles(align: PosAlign.center));
       bytes += generator.text('${orderCache!.order_by}', styles: PosStyles(align: PosAlign.center));
       bytes += generator.text('Order time', styles: PosStyles(align: PosAlign.center));
@@ -1013,6 +1027,7 @@ class ReceiptLayout{
   Cancellation layout 80mm
 */
   printDeleteItemList80mm(bool isUSB, String orderCacheId, String deleteDateTime, {value}) async {
+    print('delete printer called');
     String dateTime = dateFormat.format(DateTime.now());
     await readSpecificOrderCache(orderCacheId, deleteDateTime);
     final prefs = await SharedPreferences.getInstance();
@@ -1034,8 +1049,12 @@ class ReceiptLayout{
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         //other order detail
-        for(int i = 0; i < tableList.length; i++){
-          bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+        if(orderCache!.dining_id == '1'){
+          for(int i = 0; i < tableList.length; i++){
+            bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+          }
+        } else{
+          bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         }
         bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('cancel time: ${dateTime}', styles: PosStyles(align: PosAlign.center));
@@ -1130,8 +1149,12 @@ class ReceiptLayout{
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         //other order detail
-        for(int i = 0; i < tableList.length; i++){
-          bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+        if(orderCache!.dining_id == '1'){
+          for(int i = 0; i < tableList.length; i++){
+            bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+          }
+        } else{
+          bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center));
         }
         bytes += generator.text('Batch No', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
@@ -1791,7 +1814,7 @@ class ReceiptLayout{
 */
   getPaidOrderCache(String localOrderId) async {
     List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCacheByOrderID(localOrderId);
-    if(cacheData.length > 0){
+    if(cacheData.isNotEmpty){
       paidOrderCacheList = List.from(cacheData);
     }
   }
@@ -1815,8 +1838,12 @@ class ReceiptLayout{
   getOrderDetail(OrderCache orderCache) async {
 
     List<OrderDetail> detailData = await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(orderCache.order_cache_sqlite_id.toString());
-    if(detailData.length > 0){
-      orderDetailList = List.from(detailData);
+    if(detailData.isNotEmpty){
+      for(int i = 0; i < detailData.length; i++){
+        if(!orderDetailList.contains(detailData[i])){
+          orderDetailList.add(detailData[i]);
+        }
+      }
     }
     // for (int k = 0; k < orderDetailList.length; k++) {
     //   List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);

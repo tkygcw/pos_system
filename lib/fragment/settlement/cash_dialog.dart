@@ -416,6 +416,8 @@ class _CashDialogState extends State<CashDialog> {
 
       CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
       CashRecord updatedData = await insertCashRecordKey(data, dateTime);
+      //sync to cloud
+      await syncCashRecordToCloud(updatedData);
 
       closeDialog(context);
       widget.callBack();
@@ -426,8 +428,6 @@ class _CashDialogState extends State<CashDialog> {
       } else {
         ReceiptLayout().openCashDrawer();
       }
-      //sync to cloud
-      await syncCashRecordToCloud(updatedData);
     }catch(e){
       print('cash record error: ${e}');
       Fluttertoast.showToast(

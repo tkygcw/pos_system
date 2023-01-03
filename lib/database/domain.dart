@@ -10,8 +10,7 @@ class Domain {
   static Uri device = Uri.parse(domain + 'mobile-api/device/index.php');
   static Uri user = Uri.parse(domain + 'mobile-api/user/index.php');
   static Uri table = Uri.parse(domain + 'mobile-api/table/index.php');
-  static Uri dining_option =
-      Uri.parse(domain + 'mobile-api/dining_option/index.php');
+  static Uri dining_option = Uri.parse(domain + 'mobile-api/dining_option/index.php');
   static Uri tax = Uri.parse(domain + 'mobile-api/tax/index.php');
   static Uri categories = Uri.parse(domain + 'mobile-api/categories/index.php');
   static Uri promotion = Uri.parse(domain + 'mobile-api/promotion/index.php');
@@ -26,8 +25,7 @@ class Domain {
   static Uri sale = Uri.parse(domain + 'mobile-api/sale/index.php');
   static Uri table_use = Uri.parse(domain + 'mobile-api/table_use/index.php');
   static Uri sync_record = Uri.parse(domain + 'mobile-api/sync/index.php');
-  static Uri sync_to_cloud =
-      Uri.parse(domain + 'mobile-api/sync_to_cloud/index.php');
+  static Uri sync_to_cloud = Uri.parse(domain + 'mobile-api/sync_to_cloud/index.php');
 
   /*
   * login
@@ -798,11 +796,8 @@ class Domain {
   * */
   getAllBill(company_id, branch_id) async {
     try {
-      var response = await http.post(Domain.bill, body: {
-        'getAllCustomer': '1',
-        'company_id': company_id,
-        'branch_id': branch_id
-      });
+      var response = await http.post(Domain.bill,
+          body: {'getAllCustomer': '1', 'company_id': company_id, 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -814,8 +809,8 @@ class Domain {
   * */
   getPaymentLinkCompany(company_id) async {
     try {
-      var response = await http.post(Domain.payment,
-          body: {'getPaymentLinkCompany': '1', 'company_id': company_id});
+      var response = await http
+          .post(Domain.payment, body: {'getPaymentLinkCompany': '1', 'company_id': company_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -827,11 +822,8 @@ class Domain {
   * */
   getAllRefund(company_id, branch_id) async {
     try {
-      var response = await http.post(Domain.refund, body: {
-        'getAllRefund': '1',
-        'company_id': company_id,
-        'branch_id': branch_id
-      });
+      var response = await http.post(Domain.refund,
+          body: {'getAllRefund': '1', 'company_id': company_id, 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -843,8 +835,8 @@ class Domain {
   * */
   getModifierGroup(company_id) async {
     try {
-      var response = await http.post(Domain.modifier,
-          body: {'getModifierGroup': '1', 'company_id': company_id});
+      var response = await http
+          .post(Domain.modifier, body: {'getModifierGroup': '1', 'company_id': company_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -856,8 +848,8 @@ class Domain {
   * */
   getModifierItem(company_id) async {
     try {
-      var response = await http.post(Domain.modifier,
-          body: {'getModifierItem': '1', 'company_id': company_id});
+      var response = await http
+          .post(Domain.modifier, body: {'getModifierItem': '1', 'company_id': company_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -869,8 +861,8 @@ class Domain {
   * */
   getBranchLinkModifier(branch_id) async {
     try {
-      var response = await http.post(Domain.modifier,
-          body: {'getBranchLinkModifier': '1', 'branch_id': branch_id});
+      var response = await http
+          .post(Domain.modifier, body: {'getBranchLinkModifier': '1', 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -882,8 +874,8 @@ class Domain {
   * */
   getAllProduct(company_id) async {
     try {
-      var response = await http.post(Domain.product,
-          body: {'getAllProduct': '1', 'company_id': company_id});
+      var response =
+          await http.post(Domain.product, body: {'getAllProduct': '1', 'company_id': company_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -893,21 +885,8 @@ class Domain {
   /*
   * insert product
   * */
-  insertProduct(
-      name,
-      category_id,
-      description,
-      price,
-      SKU,
-      availableSale,
-      hasVariant,
-      stockType,
-      dailyLimit,
-      stockQuantity,
-      graphic,
-      color,
-      imageName,
-      company_id) async {
+  insertProduct(name, category_id, description, price, SKU, availableSale, hasVariant, stockType,
+      dailyLimit, stockQuantity, graphic, color, imageName, company_id) async {
     try {
       var response = await http.post(Domain.product, body: {
         'addProduct': '1',
@@ -935,21 +914,8 @@ class Domain {
   /*
   * update product
   * */
-  updateProduct(
-      name,
-      category_id,
-      description,
-      price,
-      SKU,
-      availableSale,
-      hasVariant,
-      stockType,
-      dailyLimit,
-      stockQuantity,
-      graphic,
-      color,
-      imageName,
-      product_id) async {
+  updateProduct(name, category_id, description, price, SKU, availableSale, hasVariant, stockType,
+      dailyLimit, stockQuantity, graphic, color, imageName, product_id) async {
     try {
       var response = await http.post(Domain.product, body: {
         'editProduct': '1',
@@ -979,11 +945,8 @@ class Domain {
   * */
   deleteProduct(product_id, branch_id) async {
     try {
-      var response = await http.post(Domain.product, body: {
-        'deleteProduct': '1',
-        'product_id': product_id,
-        'branch_id': branch_id
-      });
+      var response = await http.post(Domain.product,
+          body: {'deleteProduct': '1', 'product_id': product_id, 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -995,8 +958,8 @@ class Domain {
   * */
   getBranchLinkProduct(branch_id) async {
     try {
-      var response = await http.post(Domain.product,
-          body: {'getBranchLinkProduct': '1', 'branch_id': branch_id});
+      var response = await http
+          .post(Domain.product, body: {'getBranchLinkProduct': '1', 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -1006,8 +969,8 @@ class Domain {
   /*
   * insert branch link product
   * */
-  insertBranchLinkProduct(branch_id, product_id, hasVariant, product_variant_id,
-      SKU, price, stockType, quantity) async {
+  insertBranchLinkProduct(branch_id, product_id, hasVariant, product_variant_id, SKU, price,
+      stockType, quantity) async {
     try {
       var response = await http.post(Domain.product, body: {
         'addBranchLinkProduct': '1',
@@ -1029,8 +992,8 @@ class Domain {
   /*
   * edit branch link product
   * */
-  editBranchLinkProductForVariant(branch_id, product_id, product_variant_id,
-      daily_limit, price, stockType, stock_quantity) async {
+  editBranchLinkProductForVariant(branch_id, product_id, product_variant_id, daily_limit, price,
+      stockType, stock_quantity) async {
     try {
       var response = await http.post(Domain.product, body: {
         'updateBranchLinkProductForVariant': '1',
@@ -1051,8 +1014,8 @@ class Domain {
   /*
   * edit branch link product
   * */
-  editBranchLinkProduct(branch_id, product_id, daily_limit, price, stockType,
-      stock_quantity) async {
+  editBranchLinkProduct(
+      branch_id, product_id, daily_limit, price, stockType, stock_quantity) async {
     try {
       var response = await http.post(Domain.product, body: {
         'updateBranchLinkProduct': '1',
@@ -1091,11 +1054,8 @@ class Domain {
   * */
   getModifierLinkProduct(company_id, branch_id) async {
     try {
-      var response = await http.post(Domain.product, body: {
-        'getModifierLinkProduct': '1',
-        'company_id': company_id,
-        'branch_id': branch_id
-      });
+      var response = await http.post(Domain.product,
+          body: {'getModifierLinkProduct': '1', 'company_id': company_id, 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -1245,8 +1205,7 @@ class Domain {
   /*
   * insert product variant
   * */
-  insertProductVariant(
-      product_id, name, SKU, price, stockType, quantity) async {
+  insertProductVariant(product_id, name, SKU, price, stockType, quantity) async {
     try {
       var response = await http.post(Domain.product, body: {
         'addProductVariant': '1',
@@ -1315,10 +1274,8 @@ class Domain {
   * */
   deleteProductVariantDetail(product_variant_id) async {
     try {
-      var response = await http.post(Domain.product, body: {
-        'deleteProductVariantDetail': '1',
-        'product_variant_id': product_variant_id
-      });
+      var response = await http.post(Domain.product,
+          body: {'deleteProductVariantDetail': '1', 'product_variant_id': product_variant_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -1330,11 +1287,8 @@ class Domain {
   * */
   getAllOrder(company_id, branch_id) async {
     try {
-      var response = await http.post(Domain.order, body: {
-        'getAllOrder': '1',
-        'company_id': company_id,
-        'branch_id': branch_id
-      });
+      var response = await http.post(Domain.order,
+          body: {'getAllOrder': '1', 'company_id': company_id, 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -1346,11 +1300,8 @@ class Domain {
   * */
   getAllOrderCache(company_id, branch_id) async {
     try {
-      var response = await http.post(Domain.order, body: {
-        'getAllOrderCache': '1',
-        'company_id': company_id,
-        'branch_id': branch_id
-      });
+      var response = await http.post(Domain.order,
+          body: {'getAllOrderCache': '1', 'company_id': company_id, 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -1360,8 +1311,8 @@ class Domain {
   /*
   * insert order cache
   * */
-  insertOrderCache(company_id, branch_id, table_use_id, table_id, dining_id,
-      order_by, total_amount) async {
+  insertOrderCache(
+      company_id, branch_id, table_use_id, table_id, dining_id, order_by, total_amount) async {
     try {
       var response = await http.post(Domain.order, body: {
         'insertOrderCache': '1',
@@ -1418,11 +1369,8 @@ class Domain {
   * */
   getAllOrderDetail(company_id, branch_id) async {
     try {
-      var response = await http.post(Domain.order, body: {
-        'getAllOrderDetail': '1',
-        'company_id': company_id,
-        'branch_id': branch_id
-      });
+      var response = await http.post(Domain.order,
+          body: {'getAllOrderDetail': '1', 'company_id': company_id, 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -1432,16 +1380,8 @@ class Domain {
   /*
   * insert order detail
   * */
-  insertOrderDetail(
-      order_cache_id,
-      branch_link_product_id,
-      product_name,
-      has_variant,
-      product_variant_name,
-      price,
-      quantity,
-      remark,
-      account) async {
+  insertOrderDetail(order_cache_id, branch_link_product_id, product_name, has_variant,
+      product_variant_name, price, quantity, remark, account) async {
     try {
       var response = await http.post(Domain.order, body: {
         'insertOrderDetail': '1',
@@ -1533,11 +1473,8 @@ class Domain {
   * */
   getSale(company_id, branch_id) async {
     try {
-      var response = await http.post(Domain.sale, body: {
-        'getSale': '1',
-        'company_id': company_id,
-        'branch_id': branch_id
-      });
+      var response = await http.post(Domain.sale,
+          body: {'getSale': '1', 'company_id': company_id, 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
@@ -1579,8 +1516,7 @@ class Domain {
 
   isHostReachable() async {
     try {
-      await http
-          .get(Uri.parse('https://pos.lkmng.com/mobile-api/login/index.php'));
+      await http.get(Uri.parse('https://pos.lkmng.com/mobile-api/login/index.php'));
       return true;
     } catch (e) {
       return false;
