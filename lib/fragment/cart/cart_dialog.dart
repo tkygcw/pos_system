@@ -8,6 +8,7 @@ import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
@@ -243,11 +244,9 @@ class _CartDialogState extends State<CartDialog> {
                 //checking table status and isSelect
                 if (tableList[index].status == 1 && tableList[index].isSelected == true) {
                   this.isLoad = false;
-                  Future.delayed(const Duration(seconds: 1), () async {
-                    await readSpecificTableDetail(tableList[index]);
-                    addToCart(cart, tableList[index]);
-                    this.isLoad = true;
-                  });
+                  await readSpecificTableDetail(tableList[index]);
+                  addToCart(cart, tableList[index]);
+                  this.isLoad = true;
 
                 } else if (tableList[index].status == 0 && tableList[index].isSelected == true) {
                   cart.addTable(tableList[index]);
@@ -653,6 +652,7 @@ class _CartDialogState extends State<CartDialog> {
   }
 
   deleteCurrentTableUseDetail(int currentTableId) async {
+    print('current delete table id: ${currentTableId}');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _value = [];
@@ -671,15 +671,27 @@ class _CartDialogState extends State<CartDialog> {
       }
       print('value: ${_value}');
       //sync to cloud
-      Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
-      if(data['status'] == 1){
-        List responseJson = data['data'];
-        int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
-      }
+      syncDeletedTableUseDetailToCloud(_value.toString());
+      // Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
+      // if(data['status'] == 1){
+      //   List responseJson = data['data'];
+      //   int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
+      // }
     }catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Delete current table use detail error: ${e}");
+    }
+  }
+
+  syncDeletedTableUseDetailToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map data = await Domain().SyncTableUseDetailToCloud(value);
+      if(data['status'] == '1'){
+        List responseJson = data['data'];
+        int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
+      }
     }
   }
 
@@ -701,10 +713,22 @@ class _CartDialogState extends State<CartDialog> {
     }
     print('table value: ${_value}');
     //sync to cloud
-    Map response = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
-    if (response['status'] == '1') {
-      List responseJson = response['data'];
-      int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[0]['table_id']);
+    syncUpdatedTableToCloud(_value.toString());
+    // Map response = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
+    // if (response['status'] == '1') {
+    //   List responseJson = response['data'];
+    //   int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[0]['table_id']);
+    // }
+  }
+
+  syncUpdatedTableToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map response = await Domain().SyncUpdatedPosTableToCloud(value);
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[0]['table_id']);
+      }
     }
   }
 
@@ -715,19 +739,47 @@ class _CartDialogState extends State<CartDialog> {
     await readAllTable();
   }
 
+  generateTableUseDetailKey(TableUseDetail tableUseDetail) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes = tableUseDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
+        tableUseDetail.table_use_detail_sqlite_id.toString() +
+        device_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
+  insertTableUseDetailKey(TableUseDetail tableUseDetail, String dateTime) async {
+    String? tableUseDetailKey;
+    TableUseDetail? _tableUseDetailData;
+    tableUseDetailKey = await generateTableUseDetailKey(tableUseDetail);
+    if (tableUseDetailKey != null) {
+      TableUseDetail tableUseDetailObject = TableUseDetail(
+          table_use_detail_key: tableUseDetailKey,
+          sync_status: 0,
+          updated_at: dateTime,
+          table_use_detail_sqlite_id: tableUseDetail.table_use_detail_sqlite_id);
+      int data = await PosDatabase.instance.updateTableUseDetailUniqueKey(tableUseDetailObject);
+      if (data == 1) {
+        TableUseDetail detailData = await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
+        _tableUseDetailData = detailData;
+      }
+    }
+    return _tableUseDetailData;
+  }
+
   createTableUseDetail(int newTableId, int oldTableId) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _value = [];
     try{
-      //read table use detail data based on table id
+      //read table use detail data based on target table id
       List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(oldTableId);
 
       //create table use detail
       TableUseDetail insertData = await PosDatabase.instance.insertSqliteTableUseDetail(
             TableUseDetail(
                 table_use_detail_id: 0,
-                table_use_detail_key: tableUseDetailData[0].table_use_detail_key,
+                table_use_detail_key: '',
                 table_use_sqlite_id: tableUseDetailData[0].table_use_sqlite_id,
                 table_use_key: tableUseDetailData[0].table_use_key,
                 table_sqlite_id: newTableId.toString(),
@@ -736,20 +788,33 @@ class _CartDialogState extends State<CartDialog> {
                 sync_status: 0,
                 updated_at: '',
                 soft_delete: ''));
-      TableUseDetail detailData =  await PosDatabase.instance.readSpecificTableUseDetailByLocalId(insertData.table_use_detail_sqlite_id!);
-      _value.add(jsonEncode(detailData.syncJson()));
+      TableUseDetail updatedDetail = await insertTableUseDetailKey(insertData, dateTime);
+      //TableUseDetail detailData =  await PosDatabase.instance.readSpecificTableUseDetailByLocalId(insertData.table_use_detail_sqlite_id!);
+      _value.add(jsonEncode(updatedDetail.syncJson()));
       //sync to cloud
-      Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
-      if(data['status'] == 1){
-        List responseJson = data['data'];
-        int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
-      }
+      syncTableUseDetailToCloud(_value.toString());
+      // Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
+      // if(data['status'] == 1){
+      //   List responseJson = data['data'];
+      //   int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
+      // }
 
     } catch(e){
       print('create table use detail error: $e');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Create table detail error: ${e}");
+    }
+  }
+
+  syncTableUseDetailToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map data = await Domain().SyncTableUseDetailToCloud(value);
+      if(data['status'] == '1'){
+        List responseJson = data['data'];
+        int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
+      }
     }
   }
 

@@ -438,11 +438,14 @@ class _CashDialogState extends State<CashDialog> {
 
   syncCashRecordToCloud(CashRecord updatedData) async {
     List<String> _value = [];
-    _value.add(jsonEncode(updatedData));
-    Map response = await Domain().SyncCashRecordToCloud(_value.toString());
-    if (response['status'] == '1') {
-      List responseJson = response['data'];
-      int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      _value.add(jsonEncode(updatedData));
+      Map response = await Domain().SyncCashRecordToCloud(_value.toString());
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+      }
     }
   }
 

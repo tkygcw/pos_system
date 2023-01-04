@@ -66,6 +66,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     super.initState();
     callUpdateOrder();
     readAllPrinters();
+    _printReceiptList();
   }
 
   @override

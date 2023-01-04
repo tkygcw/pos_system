@@ -82,18 +82,32 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
         }
       }
       //sync to cloud
-      Map response = await Domain().SyncOrderCacheToCloud(_value.toString());
+      syncOrderCacheToCloud(_value.toString());
+      // Map response = await Domain().SyncOrderCacheToCloud(_value.toString());
+      // if(response['status'] == '1'){
+      //   List responseJson = response['data'];
+      //   for(int i = 0 ; i <responseJson.length; i++){
+      //     int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+      //   }
+      // }
+    } catch(e){
+      print('Update order cache table use id error: ${e}');
+      Fluttertoast.showToast(
+          backgroundColor: Color(0xFFFF0000),
+          msg: "Update order cache table use id error: ${e}");
+    }
+  }
+
+  syncOrderCacheToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map response = await Domain().SyncOrderCacheToCloud(value);
       if(response['status'] == '1'){
         List responseJson = response['data'];
         for(int i = 0 ; i <responseJson.length; i++){
           int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
         }
       }
-    } catch(e){
-      print('Update order cache table use id error: ${e}');
-      Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: "Update order cache table use id error: ${e}");
     }
   }
 
@@ -115,17 +129,31 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
         }
       }
       //sync to cloud
-      Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
+      syncDeletedTableUseDetailToCloud(_value.toString());
+      // Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
+      // if (data['status'] == '1') {
+      //   List responseJson = data['data'];
+      //   for (var i = 0; i < responseJson.length; i++) {
+      //     int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+      //   }
+      // }
+    } catch(e){
+      Fluttertoast.showToast(
+          backgroundColor: Color(0xFFFF0000),
+          msg: "Delete current table use detail error: $e");
+    }
+  }
+
+  syncDeletedTableUseDetailToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map data = await Domain().SyncTableUseDetailToCloud(value);
       if (data['status'] == '1') {
         List responseJson = data['data'];
         for (var i = 0; i < responseJson.length; i++) {
           int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
         }
       }
-    } catch(e){
-      Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: "Delete current table use detail error: $e");
     }
   }
 
@@ -144,17 +172,30 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
         _value.add(jsonEncode(tableUseData));
       }
       //sync to cloud
-      Map data = await Domain().SyncTableUseToCloud(_value.toString());
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        int syncData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
-      }
+      syncTableUseIdToCloud(_value.toString());
+      // Map data = await Domain().SyncTableUseToCloud(_value.toString());
+      // if (data['status'] == '1') {
+      //   List responseJson = data['data'];
+      //   int syncData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
+      // }
     }catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Delete current table use id error: ${e}");
     }
   }
+
+  syncTableUseIdToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map data = await Domain().SyncTableUseToCloud(value);
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        int syncData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
+      }
+    }
+  }
+
   /**
    * concurrent here
    */
@@ -174,11 +215,25 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       }
     }
     //sync to cloud
-    Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['data'];
-      for (var i = 0; i < responseJson.length; i++) {
-        int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+    syncTableUseDetailToCloud(_value.toString());
+    // Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
+    // if (data['status'] == '1') {
+    //   List responseJson = data['data'];
+    //   for (var i = 0; i < responseJson.length; i++) {
+    //     int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+    //   }
+    // }
+  }
+
+  syncTableUseDetailToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map data = await Domain().SyncTableUseDetailToCloud(value);
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+        }
       }
     }
   }
@@ -245,15 +300,29 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       _value.add(jsonEncode(updatedLastTableData));
     }
     //sync to cloud
-    Map response = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
-    if (response['status'] == '1') {
-      List responseJson = response['data'];
-      for (var i = 0; i < responseJson.length; i++) {
-        int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-      }
-    }
+    syncUpdatedTableToCloud(_value.toString());
+    // Map response = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
+    // if (response['status'] == '1') {
+    //   List responseJson = response['data'];
+    //   for (var i = 0; i < responseJson.length; i++) {
+    //     int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+    //   }
+    // }
     widget.callBack();
     Navigator.of(context).pop();
+  }
+
+  syncUpdatedTableToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map response = await Domain().SyncUpdatedPosTableToCloud(value);
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+        }
+      }
+    }
   }
 
   void _submit(BuildContext context) {

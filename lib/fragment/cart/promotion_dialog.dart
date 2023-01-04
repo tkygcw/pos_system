@@ -54,35 +54,38 @@ class _PromotionDialogState extends State<PromotionDialog> {
                     child: ListView.builder(
                         itemCount: promoName.length,
                         itemBuilder: (BuildContext context, int index) {
-                          return ListTile(
-                            leading: CircleAvatar(
-                                backgroundColor: Colors.grey.shade200,
-                                child: Icon(
-                                  Icons.discount,
-                                  color: Colors.grey,
-                                )),
-                            title: Text('${promoName[index].name}'),
-                            onTap: () {
-                              if(cart.cartNotifierItem.isNotEmpty){
-                                if(promoName[index].all_time == '0') {
-                                  checkOfferTime(promoName[index]);
-                                  isActive == true ?
-                                  cart.addPromotion(promoName[index]) :
+                          return Card(
+                            elevation: 5,
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                  backgroundColor: Colors.grey.shade200,
+                                  child: Icon(
+                                    Icons.discount,
+                                    color: Colors.grey,
+                                  )),
+                              title: Text('${promoName[index].name}'),
+                              onTap: () {
+                                if(cart.cartNotifierItem.isNotEmpty){
+                                  if(promoName[index].all_time == '0') {
+                                    checkOfferTime(promoName[index]);
+                                    isActive == true ?
+                                    cart.addPromotion(promoName[index]) :
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Color(0xFFFF0000),
+                                        msg: "${AppLocalizations.of(context)?.translate('offer_ended')}");
+                                  }else{
+                                    cart.addPromotion(promoName[index]);
+                                  }
+                                  Navigator.of(context).pop();
+                                }else{
                                   Fluttertoast.showToast(
                                       backgroundColor: Color(0xFFFF0000),
-                                      msg: "${AppLocalizations.of(context)?.translate('offer_ended')}");
-                                }else{
-                                  cart.addPromotion(promoName[index]);
-                                }
-                                Navigator.of(context).pop();
-                              }else{
-                                Fluttertoast.showToast(
-                                    backgroundColor: Color(0xFFFF0000),
-                                    msg: "${AppLocalizations.of(context)?.translate("empty_cart")}");
+                                      msg: "${AppLocalizations.of(context)?.translate("empty_cart")}");
 
-                                Navigator.of(context).pop();
-                              }
-                            },
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                            ),
                           );
                         }))
               ],

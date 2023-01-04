@@ -1288,8 +1288,10 @@ class _MakePaymentState extends State<MakePayment> {
         allPromo = cart.selectedPromotion!.name;
         if (cart.selectedPromotion!.type == 0) {
           selectedPromoRate = cart.selectedPromotion!.amount.toString() + '%';
+          cart.selectedPromotion!.promoRate = selectedPromoRate;
         } else {
           selectedPromoRate = cart.selectedPromotion!.amount! + '.00';
+          cart.selectedPromotion!.promoRate = selectedPromoRate;
         }
 
         if (cart.selectedPromotion!.specific_category == '1') {

@@ -907,7 +907,6 @@ class ReceiptLayout{
         }
 
         bytes += generator.feed(1);
-        bytes += generator.beep(n: 3, duration: PosBeepDuration.beep400ms);
         bytes += generator.cut(mode: PosCutMode.partial);
         return bytes;
       } catch (e) {
@@ -1157,7 +1156,7 @@ class ReceiptLayout{
           bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center));
         }
         bytes += generator.text('Batch No', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('#${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('cancel time', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('${dateTime}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.hr();

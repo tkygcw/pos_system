@@ -161,7 +161,7 @@ class _TableMenuState extends State<TableMenu> {
                                       if (tableList[index].status != 1) {
                                         openAddTableDialog(tableList[index]);
                                       } else {
-                                        openChangeTableDialog(tableList[index]);
+                                        openChangeTableDialog(tableList[index], cart);
                                       }
                                     },
                                     onTap: () async {
@@ -308,7 +308,7 @@ class _TableMenuState extends State<TableMenu> {
         });
   }
 
-  Future<Future<Object?>> openChangeTableDialog(PosTable posTable) async {
+  Future<Future<Object?>> openChangeTableDialog(PosTable posTable, CartModel cartModel) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -319,7 +319,10 @@ class _TableMenuState extends State<TableMenu> {
                 opacity: a1.value,
                 child: TableChangeDialog(
                   object: posTable,
-                  callBack: () => readAllTable(),
+                  callBack: () {
+                    readAllTable();
+                    cartModel.initialLoad();
+                  },
                 )),
           );
         },
