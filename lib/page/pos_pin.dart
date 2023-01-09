@@ -8,12 +8,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:pos_system/object/transfer_owner.dart';
 import 'package:pos_system/page/home.dart';
 import 'package:pos_system/page/mobile_home.dart';
 import 'package:provider/provider.dart';
 import 'package:custom_pin_screen/custom_pin_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crypto/crypto.dart';
+import '../database/domain.dart';
 import '../database/pos_database.dart';
 import '../notifier/theme_color.dart';
 import '../object/cash_record.dart';
@@ -167,8 +171,6 @@ class _PosPinPageState extends State<PosPinPage> {
     final int? branch_id = prefs.getInt('branch_id');
     User? user = await PosDatabase.instance.verifyPosPin(pos_pin,branch_id.toString());
     if(user!='' && user != null){
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString("pos_pin_user", jsonEncode(user));
       if(await settlementCheck(user) == true){
         print('pop a start cash dialog');
         Navigator.push(
@@ -193,12 +195,11 @@ class _PosPinPageState extends State<PosPinPage> {
           ),
         );
       }
-
+      await prefs.setString("pos_pin_user", jsonEncode(user));
     }
     else {
       Fluttertoast.showToast( backgroundColor: Colors.red, msg: "Wrong pin. Please insert valid pin");
     }
-
   }
 
   settlementCheck(User user) async {
@@ -222,16 +223,88 @@ class _PosPinPageState extends State<PosPinPage> {
 
   settlementUserCheck(String user_id) async{
     final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-     bool isNewUser = false;
-
-    CashRecord? cashRecord = await PosDatabase.instance.readLastCashRecord(branch_id.toString());
-    if(cashRecord?.user_id == user_id){
-      isNewUser = false;
+    final String? lastUser = prefs.getString('pos_pin_user');
+    bool isNewUser = false;
+    print('last user: ${lastUser}');
+    //CashRecord? cashRecord = await PosDatabase.instance.readLastCashRecord();
+    if(lastUser != null){
+      Map userObject = json.decode(lastUser);
+      if(userObject['user_id'].toString() == user_id){
+        isNewUser = false;
+      } else {
+        isNewUser = true;
+        createTransferOwnerRecord(fromUser: userObject['user_id'].toString(), toUser: user_id);
+      }
     } else {
       isNewUser = true;
     }
+
     return isNewUser;
+  }
+
+  generateTransferOwnerKey(TransferOwner transferOwner) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes = transferOwner.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + transferOwner.transfer_owner_sqlite_id.toString() + device_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
+  insertTransferOwnerKey(TransferOwner transferOwner, String dateTime) async {
+    TransferOwner? updatedRecord;
+    String _key = await generateTransferOwnerKey(transferOwner);
+    TransferOwner objectData = TransferOwner(
+      transfer_owner_key: _key,
+      sync_status: 0,
+      updated_at: dateTime,
+      transfer_owner_sqlite_id: transferOwner.transfer_owner_sqlite_id
+    );
+    int transferOwnerData = await PosDatabase.instance.updateTransferOwnerUniqueKey(objectData);
+    if(transferOwnerData == 1){
+      TransferOwner updatedData = await PosDatabase.instance.readSpecificTransferOwnerByLocalId(objectData.transfer_owner_sqlite_id!);
+      updatedRecord = updatedData;
+    }
+    return updatedRecord;
+  }
+
+  createTransferOwnerRecord({fromUser, toUser}) async {
+    print('user changed!');
+    List<String> _value = [];
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    final int? device_id = prefs.getInt('device_id');
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+
+    TransferOwner object = TransferOwner(
+      transfer_owner_key: '',
+      branch_id: branch_id.toString(),
+      device_id: device_id.toString(),
+      transfer_from_user_id: fromUser,
+      transfer_to_user_id: toUser,
+      cash_balance: widget.cashBalance,
+      sync_status: 0,
+      created_at: dateTime,
+      updated_at: '',
+      soft_delete: ''
+    );
+    TransferOwner createRecord = await PosDatabase.instance.insertSqliteTransferOwner(object);
+    TransferOwner _keyInsert = await insertTransferOwnerKey(createRecord, dateTime);
+    _value.add(jsonEncode(_keyInsert));
+    print('value: ${_value.toString()}');
+    syncToCloud(_value.toString());
+
+  }
+
+  syncToCloud(String value) async {
+    //check is host reachable
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map response = await Domain().SyncTransferOwnerToCloud(value);
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        int updateStatus = await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
+      }
+    }
   }
 
 /*

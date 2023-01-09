@@ -35,6 +35,7 @@ class PaymentLinkCompany{
   String? updated_at;
   String? soft_delete;
   double  totalAmount = 0.0;
+  int total_bill = 0;
 
   PaymentLinkCompany(
       {this.payment_link_company_id,

@@ -479,6 +479,22 @@ class Domain {
   }
 
   /*
+  * sync transfer owner to cloud
+  * */
+  SyncTransferOwnerToCloud(detail) async {
+    try{
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_transfer_owner_create': '1',
+        'details': detail,
+      });
+      return jsonDecode(response.body);
+    } catch(error){
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+
+  /*
   * update branch notification token to cloud
   * */
   updateBranchNotificationToken(token, branch_id) async {

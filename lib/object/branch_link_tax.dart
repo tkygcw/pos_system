@@ -25,6 +25,8 @@ class BranchLinkTax {
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  String? tax_name;
+  double total_amount = 0.0;
 
   BranchLinkTax(
       {this.branch_link_tax_id,
@@ -32,7 +34,8 @@ class BranchLinkTax {
         this.tax_id,
         this.created_at,
         this.updated_at,
-        this.soft_delete});
+        this.soft_delete,
+        this.tax_name});
 
   BranchLinkTax copy({
     int? branch_link_tax_id,
@@ -60,11 +63,11 @@ class BranchLinkTax {
         created_at: json[BranchLinkTaxFields.created_at] as String?,
         updated_at: json[BranchLinkTaxFields.updated_at] as String?,
         soft_delete: json[BranchLinkTaxFields.soft_delete] as String?,
+        tax_name: json['name'] as String?
       );
 
   Map<String, Object?> toJson() => {
-    BranchLinkTaxFields.branch_link_tax_id:
-    branch_link_tax_id,
+    BranchLinkTaxFields.branch_link_tax_id: branch_link_tax_id,
     BranchLinkTaxFields.branch_id: branch_id,
     BranchLinkTaxFields.tax_id: tax_id,
     BranchLinkTaxFields.created_at: created_at,

@@ -8,6 +8,7 @@ import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/display_order/display_order.dart';
 import 'package:pos_system/fragment/order/order.dart';
 import 'package:pos_system/fragment/product/product.dart';
+import 'package:pos_system/fragment/report/report_page.dart';
 import 'package:pos_system/fragment/setting/setting.dart';
 import 'package:pos_system/fragment/settlement/settlement_page.dart';
 import 'package:pos_system/fragment/table/table.dart';
@@ -108,7 +109,8 @@ class _HomePageState extends State<HomePage> {
                     Visibility(
                       visible: currentPage != 'product' &&
                                currentPage != 'setting' &&
-                               currentPage != 'settlement'
+                               currentPage != 'settlement' &&
+                               currentPage != 'report'
                           ? true
                           : false,
                       child: Expanded(
@@ -157,9 +159,14 @@ class _HomePageState extends State<HomePage> {
         onPressed: () => setState(() => currentPage = 'bill'),
       ),
       CollapsibleItem(
-        text: 'settlement',
-        icon: Icons.monetization_on,
+        text: 'Settlement',
+        icon: Icons.point_of_sale,
         onPressed: () => setState(() => currentPage = 'settlement'),
+      ),
+      CollapsibleItem(
+        text: 'Report',
+        icon: Icons.monetization_on,
+        onPressed: () => setState(() => currentPage = 'report'),
       ),
       CollapsibleItem(
         text: 'Setting',
@@ -183,6 +190,8 @@ class _HomePageState extends State<HomePage> {
         return BillPage();
       case 'other_order':
         return DisplayOrderPage();
+      case 'report':
+        return ReportPage();
       case 'settlement':
         return SettlementPage();
       default:

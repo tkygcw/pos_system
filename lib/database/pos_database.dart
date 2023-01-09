@@ -31,6 +31,7 @@ import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/tax.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
+import 'package:pos_system/object/transfer_owner.dart';
 import 'package:pos_system/object/user.dart';
 import 'package:pos_system/object/user_log.dart';
 import 'package:pos_system/object/variant_group.dart';
@@ -540,6 +541,21 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableAppSetting(
           ${AppSettingFields.app_setting_sqlite_id} $idType,
           ${AppSettingFields.open_cash_drawer} $integerType)''');
+/*
+    create transfer owner table
+*/
+    await db.execute('''CREATE TABLE $tableTransferOwner(
+          ${TransferOwnerFields.transfer_owner_sqlite_id} $idType,
+          ${TransferOwnerFields.transfer_owner_key} $textType,
+          ${TransferOwnerFields.branch_id} $textType,
+          ${TransferOwnerFields.device_id} $textType,
+          ${TransferOwnerFields.transfer_from_user_id} $textType,
+          ${TransferOwnerFields.transfer_to_user_id} $textType,
+          ${TransferOwnerFields.cash_balance} $textType,
+          ${TransferOwnerFields.sync_status} $integerType,
+          ${TransferOwnerFields.created_at} $textType,
+          ${TransferOwnerFields.updated_at} $textType,
+          ${TransferOwnerFields.soft_delete} $textType)''');
   }
 
 /*
@@ -1249,6 +1265,16 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableOrderPromotionDetail!, data.toJson());
     return data.copy(order_promotion_detail_sqlite_id: id);
+  }
+
+/*
+  add transfer owner record
+*/
+  Future<TransferOwner> insertSqliteTransferOwner(TransferOwner data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableTransferOwner!, data.toJson());
+    return data.copy(transfer_owner_sqlite_id: id);
+
   }
 
 /*
@@ -2370,8 +2396,7 @@ class PosDatabase {
 /*
   read all payment link company
 */
-  Future<List<PaymentLinkCompany>> readAllPaymentLinkCompany(
-      String company_id) async {
+  Future<List<PaymentLinkCompany>> readAllPaymentLinkCompany(String company_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? AND company_id = ?',
@@ -2382,11 +2407,11 @@ class PosDatabase {
 /*
   read last owner cash record
 */
-  Future<CashRecord?> readLastCashRecord(String branch_id) async {
+  Future<CashRecord?> readLastCashRecord() async {
     final db = await instance.database;
     final maps = await db.rawQuery(
-        'SELECT * FROM $tableCashRecord WHERE soft_delete = ? AND branch_id = ? ORDER BY cash_record_sqlite_id DESC LIMIT 1',
-        ['', branch_id]);
+        'SELECT * FROM $tableCashRecord WHERE soft_delete = ? ORDER BY cash_record_sqlite_id DESC LIMIT 1',
+        ['']);
     if (maps.isNotEmpty) {
       return CashRecord.fromJson(maps.first);
     }
@@ -2612,6 +2637,81 @@ class PosDatabase {
     return result.map((json) => AppSetting.fromJson(json)).toList();
   }
 
+/*
+  --------------------Report part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+  read all transfer record
+*/
+  Future<List<TransferOwner>> readAllTransferOwner() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.name AS name1, c.name AS name2 FROM $tableTransferOwner AS a JOIN $tableUser AS b ON a.transfer_from_user_id = b.user_id JOIN $tableUser AS c ON a.transfer_to_user_id = c.user_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ?',
+        ['', '', '']
+    );
+    return result.map((json) => TransferOwner.fromJson(json)).toList();
+  }
+
+/*
+  read specific transfer owner
+*/
+  Future<TransferOwner> readSpecificTransferOwnerByLocalId(int transfer_owner_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      'SELECT * FROM $tableTransferOwner WHERE soft_delete = ? AND transfer_owner_sqlite_id = ?',
+      ['', transfer_owner_sqlite_id]
+    );
+    return TransferOwner.fromJson(result.first);
+  }
+
+/*
+  read all order tax detail
+*/
+  Future<List<OrderTaxDetail>> readAllPaidOrderTax() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      'SELECT a.* FROM $tableOrderTaxDetail AS a JOIN $tableOrder AS b ON a.order_sqlite_id = b.order_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.payment_status = ?',
+      ['', '', 1]);
+
+
+    return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all branch link tax
+*/
+  Future<List<BranchLinkTax>> readBranchLinkTax() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.name FROM $tableBranchLinkTax AS a JOIN $tableTax AS b ON a.tax_id = b.tax_id WHERE a.soft_delete = ? AND b.soft_delete = ?',
+        ['', '']);
+    return result.map((json) => BranchLinkTax.fromJson(json)).toList();
+  }
+
+/*
+  read all cancel item
+*/
+  Future<List<OrderDetail>> readAllCancelItem() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderDetail WHERE cancel_by != ?',
+      ['']
+    );
+    return result.map((json) => OrderDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all paid promotion detail
+*/
+  Future<List<OrderPromotionDetail>> readAllPaidOrderPromotionDetail() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.* FROM $tableOrderPromotionDetail AS a JOIN $tableOrder AS b ON a.order_sqlite_id = b.order_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.payment_status = ?',
+        ['', '', 1]
+    );
+    return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
+  }
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3247,6 +3347,22 @@ class PosDatabase {
           data.table_use_detail_sqlite_id,
         ]);
   }
+
+/*
+  update transfer owner unique key
+*/
+  Future<int> updateTransferOwnerUniqueKey(TransferOwner data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableTransferOwner SET transfer_owner_key = ?, sync_status = ?, updated_at = ? WHERE transfer_owner_sqlite_id = ?',
+        [
+          data.transfer_owner_key,
+          data.sync_status,
+          data.updated_at,
+          data.transfer_owner_sqlite_id,
+        ]);
+  }
+
 
 /*
   ------------------Soft delete part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3991,6 +4107,20 @@ class PosDatabase {
   }
 
 /*
+  update transfer owner (from cloud)
+*/
+  Future<int> updateTransferOwnerSyncStatusFromCloud(String transfer_owner_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableTransferOwner SET sync_status = ? WHERE transfer_owner_key = ?',
+        [
+          1,
+          transfer_owner_key
+        ]);
+  }
+
+
+/*
   ----------------------Sync to cloud(update)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -4117,6 +4247,18 @@ class PosDatabase {
 /*
   ----------------------Sync to cloud(create)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  read all not yet sync to cloud transfer owner
+*/
+  Future<List<TransferOwner>> readAllNotSyncTransferOwner() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableTransferOwner WHERE soft_delete = ? AND sync_status = ? ',
+        ['', 0]);
+
+    return result.map((json) => TransferOwner.fromJson(json)).toList();
+  }
 
 /*
   read all not yet sync to cloud cash record
