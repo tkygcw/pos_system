@@ -1,6 +1,10 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:esc_pos_printer/esc_pos_printer.dart';
+import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/theme_color.dart';
@@ -13,13 +17,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../object/printer.dart';
+import '../../object/receipt_layout.dart';
 import '../../translation/AppLocalizations.dart';
 
 class TableChangeDialog extends StatefulWidget {
+  final List<Printer> printerList;
   final PosTable object;
   final Function() callBack;
   const TableChangeDialog(
-      {Key? key, required this.object, required this.callBack})
+      {Key? key, required this.object, required this.callBack, required this.printerList})
       : super(key: key);
 
   @override
@@ -27,6 +34,7 @@ class TableChangeDialog extends StatefulWidget {
 }
 
 class _TableChangeDialogState extends State<TableChangeDialog> {
+  FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   final tableNoController = TextEditingController();
   List<OrderCache> orderCacheList = [];
   bool _submitted = false;
@@ -301,13 +309,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     }
     //sync to cloud
     syncUpdatedTableToCloud(_value.toString());
-    // Map response = await Domain().SyncUpdatedPosTableToCloud(_value.toString());
-    // if (response['status'] == '1') {
-    //   List responseJson = response['data'];
-    //   for (var i = 0; i < responseJson.length; i++) {
-    //     int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-    //   }
-    // }
+    await _printChangeTableList(lastTable: lastTable[0].number, newTable: newTable[0].number);
     widget.callBack();
     Navigator.of(context).pop();
   }
@@ -322,6 +324,72 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
           int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
         }
       }
+    }
+  }
+
+  _printChangeTableList({lastTable, newTable}) async {
+    try {
+      for (int i = 0; i < widget.printerList.length; i++) {
+        var printerDetail = jsonDecode(widget.printerList[i].value!);
+        if (widget.printerList[i].type == 0) {
+          //print USB 80mm
+          if (widget.printerList[i].paper_size == 0) {
+            var data = Uint8List.fromList(await ReceiptLayout().printChangeTableList80mm(true, fromTable: lastTable, toTable: newTable));
+            bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+            if (isConnected == true) {
+              await flutterUsbPrinter.write(data);
+            } else {
+              Fluttertoast.showToast(
+                  backgroundColor: Colors.red,
+                  msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+            }
+          } else {
+            var data = Uint8List.fromList(await ReceiptLayout().printChangeTableList58mm(true, fromTable: lastTable, toTable: newTable));
+            bool? isConnected = await flutterUsbPrinter.connect(
+                int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+            if (isConnected == true) {
+              await flutterUsbPrinter.write(data);
+            } else {
+              Fluttertoast.showToast(
+                  backgroundColor: Colors.red,
+                  msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+            }
+          }
+        } else {
+          if (widget.printerList[i].paper_size == 0) {
+            //print LAN 80mm paper
+            final profile = await CapabilityProfile.load();
+            final printer = NetworkPrinter(PaperSize.mm80, profile);
+            final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+            if (res == PosPrintResult.success) {
+              await ReceiptLayout().printChangeTableList80mm(false, value: printer, fromTable: lastTable, toTable: newTable);
+              printer.disconnect();
+            } else {
+              Fluttertoast.showToast(
+                  backgroundColor: Colors.red,
+                  msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+            }
+          } else {
+            //print LAN 58mm paper
+            final profile = await CapabilityProfile.load();
+            final printer = NetworkPrinter(PaperSize.mm58, profile);
+            final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+            if (res == PosPrintResult.success) {
+              await ReceiptLayout().printChangeTableList58mm(false, value: printer, fromTable: lastTable, toTable: newTable);
+              printer.disconnect();
+            } else {
+              Fluttertoast.showToast(
+                  backgroundColor: Colors.red,
+                  msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print('Printer Connection Error: ${e}');
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printing_error')}");
     }
   }
 

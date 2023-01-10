@@ -24,6 +24,7 @@ import '../../object/modifier_item.dart';
 import '../../object/modifier_link_product.dart';
 import '../../object/order_detail.dart';
 import '../../object/order_modifier_detail.dart';
+import '../../object/printer.dart';
 import '../../object/product.dart';
 import '../../object/product_variant.dart';
 import '../../object/product_variant_detail.dart';
@@ -39,6 +40,7 @@ class TableMenu extends StatefulWidget {
 }
 
 class _TableMenuState extends State<TableMenu> {
+  List<Printer> printerList = [];
   List<PosTable> tableList = [];
   List<OrderCache> orderCacheList = [];
   List<OrderDetail> orderDetailList = [];
@@ -55,6 +57,7 @@ class _TableMenuState extends State<TableMenu> {
     // TODO: implement initState
     super.initState();
     readAllTable();
+    readAllPrinters();
   }
 
   @override
@@ -318,6 +321,7 @@ class _TableMenuState extends State<TableMenu> {
             child: Opacity(
                 opacity: a1.value,
                 child: TableChangeDialog(
+                  printerList: printerList,
                   object: posTable,
                   callBack: () {
                     readAllTable();
@@ -358,6 +362,14 @@ class _TableMenuState extends State<TableMenu> {
           // ignore: null_check_always_fails
           return null!;
         });
+  }
+
+  readAllPrinters() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
+    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter(branch_id!);
+    printerList = List.from(data);
   }
 
   readAllTable({model}) async {

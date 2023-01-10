@@ -101,7 +101,7 @@ class _CartPageState extends State<CartPage> {
   String? tableUseKey;
   String? orderModifierDetailKey;
   String? tableUseDetailKey;
-  bool hasPromo = false, hasSelectedPromo = false, _isSettlement = false;
+  bool hasPromo = false, hasSelectedPromo = false, _isSettlement = false, hasNewItem = false, timeOutDetected = false;
   Color font = Colors.black45;
 
   @override
@@ -595,17 +595,21 @@ class _CartPageState extends State<CartPage> {
                                       if (widget.currentPage == 'menu' ||
                                           widget.currentPage == 'qr_order') {
                                         if (cart.selectedOption == 'Dine in') {
-                                          if (cart.selectedTable.isNotEmpty &&
-                                              cart.cartNotifierItem.isNotEmpty) {
+                                          if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
                                             openLoadingDialogBox();
-                                            if (cart.cartNotifierItem[0].status == 1) {
+                                            print('has new item ${hasNewItem}');
+                                            if (cart.cartNotifierItem[0].status == 1 && hasNewItem == true) {
                                               await callAddOrderCache(cart, connectivity);
                                               await _printCheckList();
                                               await _printKitchenList(cart);
-                                            } else {
+                                            } else if(cart.cartNotifierItem[0].status == 0) {
                                               await callCreateNewOrder(cart, connectivity);
                                               await _printCheckList();
                                               await _printKitchenList(cart);
+                                            } else {
+                                              Fluttertoast.showToast(
+                                                  backgroundColor: Colors.red,
+                                                  msg: "Cannot replace same order");
                                             }
                                             cart.removeAllCartItem();
                                             cart.removeAllTable();
@@ -613,8 +617,7 @@ class _CartPageState extends State<CartPage> {
                                           } else {
                                             Fluttertoast.showToast(
                                                 backgroundColor: Colors.red,
-                                                msg:
-                                                    "make sure cart is not empty and table is selected");
+                                                msg: "make sure cart is not empty and table is selected");
                                           }
                                         } else {
                                           // not dine in call
@@ -628,8 +631,7 @@ class _CartPageState extends State<CartPage> {
                                           } else {
                                             Fluttertoast.showToast(
                                                 backgroundColor: Colors.red,
-                                                msg:
-                                                    "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                           }
                                         }
                                       } else if (widget.currentPage == 'table') {
@@ -725,6 +727,16 @@ class _CartPageState extends State<CartPage> {
         }),
       );
     });
+  }
+
+  checkCartItem(CartModel cart){
+    for(int i = 0; i < cart.cartNotifierItem.length; i++){
+      if(cart.cartNotifierItem[i].status == 0){
+        hasNewItem = true;
+      } else {
+        hasNewItem = false;
+      }
+    }
   }
 
   _printReceiptList(CartModel cart) async {
@@ -1329,6 +1341,7 @@ class _CartPageState extends State<CartPage> {
     getTaxAmount();
     getRounding();
     getAllTotal();
+    checkCartItem(cart);
     if (!controller.isClosed) {
       controller.sink.add('refresh');
     }
@@ -1434,7 +1447,10 @@ class _CartPageState extends State<CartPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: CartDialog(selectedTableList: cartModel.selectedTable),
+              child: CartDialog(
+                  selectedTableList: cartModel.selectedTable,
+                  printerList: this.printerList,
+              ),
             ),
           );
         },
@@ -1987,11 +2003,16 @@ class _CartPageState extends State<CartPage> {
   syncUpdatedTableUseIdToCloud(String tableUseValue) async {
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
-      Map response = await Domain().SyncTableUseToCloud(tableUseValue);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int updatedTableUse = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
+      var response = await Domain().SyncTableUseToCloud(tableUseValue);
+      if(response != null){
+        if (response['status'] == '1') {
+          List responseJson = response['data'];
+          int updatedTableUse = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
+        }
+      } else {
+        this.timeOutDetected = true;
       }
+
     }
   }
 
@@ -2063,9 +2084,11 @@ class _CartPageState extends State<CartPage> {
         }
       }
     }
-    syncOrderDetailToCloud(_orderDetailValue.toString());
-    if (_hasModifier) {
-      syncOrderModifierToCloud(_orderModifierValue.toString());
+    if(this.timeOutDetected == false){
+      syncOrderDetailToCloud(_orderDetailValue.toString());
+      if (_hasModifier) {
+        syncOrderModifierToCloud(_orderModifierValue.toString());
+      }
     }
   }
 
@@ -2177,7 +2200,9 @@ class _CartPageState extends State<CartPage> {
           }
         }
       }
-      syncUpdatedTableToCloud(_value.toString());
+      if(this.timeOutDetected == false){
+        syncUpdatedTableToCloud(_value.toString());
+      }
     } catch (e) {
       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "update table error: ${e}");
       print("update table error: $e");

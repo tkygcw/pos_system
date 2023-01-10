@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
@@ -369,11 +370,9 @@ class Domain {
       var response = await http.post(Domain.sync_to_cloud, body: {
         'tb_table_use_create': '1',
         'details': detail,
-      }).timeout(Duration(seconds: 3));
+      });
 
       return jsonDecode(response.body);
-    } on TimeoutException catch (timeOut) {
-      return;
     } catch (error) {
       print('domain error: ${error}');
       Fluttertoast.showToast(msg: error.toString());

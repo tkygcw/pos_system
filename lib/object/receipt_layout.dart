@@ -1595,6 +1595,132 @@ class ReceiptLayout{
   }
 
 /*
+  Add table list layout 80mm
+*/
+  printAddTableList80mm(bool isUSB, {value, dragTable, targetTable}) async{
+    String dateTime = dateFormat.format(DateTime.now());
+    var generator;
+    if (isUSB) {
+      final profile = await CapabilityProfile.load();
+      generator = Generator(PaperSize.mm80, profile);
+    } else {
+      generator = value;
+    }
+
+    List<int> bytes = [];
+    try {
+      bytes += generator.text('** Add Table **', styles: PosStyles(width: PosTextSize.size2, height: PosTextSize.size2, align: PosAlign.center));
+      bytes += generator.emptyLines(1);
+      bytes += generator.reset();
+
+      bytes += generator.text('Printed At', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('${dateTime}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.reset();
+      /*
+    *
+    * body
+    *
+    * */
+      bytes += generator.hr();
+      bytes += generator.text('Table ${dragTable} Merge with Table ${targetTable}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size1));
+      bytes += generator.reset();
+
+      //final part
+      bytes += generator.feed(2);
+      bytes += generator.cut(mode: PosCutMode.partial);
+      return bytes;
+    } catch (e) {
+      print('layout error: $e');
+      return null;
+    }
+
+  }
+
+/*
+  change table list layout 80mm
+*/
+  printChangeTableList80mm(bool isUSB, {value, fromTable, toTable}) async{
+    String dateTime = dateFormat.format(DateTime.now());
+    var generator;
+    if (isUSB) {
+      final profile = await CapabilityProfile.load();
+      generator = Generator(PaperSize.mm80, profile);
+    } else {
+      generator = value;
+    }
+
+    List<int> bytes = [];
+    try {
+      bytes += generator.text('** Change Table **', styles: PosStyles(width: PosTextSize.size2, height: PosTextSize.size2, align: PosAlign.center));
+      bytes += generator.emptyLines(1);
+      bytes += generator.reset();
+
+      bytes += generator.text('Printed At', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('${dateTime}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.reset();
+      /*
+    *
+    * body
+    *
+    * */
+      bytes += generator.hr();
+      bytes += generator.text('Table ${fromTable} change to Table ${toTable}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size1));
+      bytes += generator.reset();
+
+      //final part
+      bytes += generator.feed(2);
+      bytes += generator.cut(mode: PosCutMode.partial);
+      return bytes;
+    } catch (e) {
+      print('layout error: $e');
+      return null;
+    }
+
+  }
+
+/*
+  change table list layout 80mm
+*/
+  printChangeTableList58mm(bool isUSB, {value, fromTable, toTable}) async{
+    String dateTime = dateFormat.format(DateTime.now());
+    var generator;
+    if (isUSB) {
+      final profile = await CapabilityProfile.load();
+      generator = Generator(PaperSize.mm58, profile);
+    } else {
+      generator = value;
+    }
+
+    List<int> bytes = [];
+    try {
+      bytes += generator.text('** Change Table **', styles: PosStyles(width: PosTextSize.size2, height: PosTextSize.size2, align: PosAlign.center));
+      bytes += generator.emptyLines(1);
+      bytes += generator.reset();
+
+      bytes += generator.text('Printed At', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('${dateTime}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.reset();
+      /*
+    *
+    * body
+    *
+    * */
+      bytes += generator.hr();
+      bytes += generator.text('Table ${fromTable} change to Table ${toTable}', styles: PosStyles(bold: true));
+      bytes += generator.reset();
+
+      //final part
+      bytes += generator.feed(2);
+      bytes += generator.cut(mode: PosCutMode.partial);
+      return bytes;
+    } catch (e) {
+      print('layout error: $e');
+      return null;
+    }
+
+  }
+
+/*
   ----------------DB Query part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 

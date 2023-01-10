@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:esc_pos_printer/esc_pos_printer.dart';
+import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
@@ -21,9 +25,12 @@ import '../../object/modifier_link_product.dart';
 import '../../object/order_cache.dart';
 import '../../object/order_detail.dart';
 import '../../object/order_modifier_detail.dart';
+import '../../object/printer.dart';
+import '../../object/printer_link_category.dart';
 import '../../object/product.dart';
 import '../../object/product_variant.dart';
 import '../../object/product_variant_detail.dart';
+import '../../object/receipt_layout.dart';
 import '../../object/table.dart';
 import '../../object/table_use_detail.dart';
 import '../../object/variant_group.dart';
@@ -35,13 +42,15 @@ import '../table/table_change_dialog.dart';
 
 class CartDialog extends StatefulWidget {
   final List<PosTable> selectedTableList;
-  const CartDialog({Key? key, required this.selectedTableList}) : super(key: key);
+  final List<Printer> printerList;
+  const CartDialog({Key? key, required this.selectedTableList, required this.printerList}) : super(key: key);
 
   @override
   State<CartDialog> createState() => _CartDialogState();
 }
 
 class _CartDialogState extends State<CartDialog> {
+  FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   List<PosTable> tableList = [];
   List<OrderCache> orderCacheList = [];
   List<OrderDetail> orderDetailList = [];
@@ -88,6 +97,7 @@ class _CartDialogState extends State<CartDialog> {
               if (tableList[dragIndex].table_sqlite_id != tableList[targetIndex].table_sqlite_id) {
                 if(tableList[targetIndex].status == 1 && tableList[dragIndex].status == 0){
                   await callAddNewTableQuery(tableList[dragIndex].table_sqlite_id!, tableList[targetIndex].table_sqlite_id!);
+                  //await _printTableAddList(dragTable: tableList[dragIndex].number, targetTable: tableList[targetIndex].number);
                   cart.removeAllTable();
                 } else {
                   Fluttertoast.showToast(
@@ -191,7 +201,7 @@ class _CartDialogState extends State<CartDialog> {
               splashColor: Colors.blue.withAlpha(30),
               onDoubleTap: (){
                 if(tableList[index].status == 1){
-                  openChangeTableDialog(tableList[index]);
+                  openChangeTableDialog(tableList[index], printerList: widget.printerList);
                   cart.removeAllTable();
                   cart.removeAllCartItem();
                 } else {
@@ -350,7 +360,74 @@ class _CartDialogState extends State<CartDialog> {
     );
   }
 
-  Future<Future<Object?>> openChangeTableDialog(PosTable posTable) async {
+  // _printTableAddList({dragTable, targetTable}) async {
+  //   try {
+  //     for (int i = 0; i < widget.printerList.length; i++) {
+  //       var printerDetail = jsonDecode(widget.printerList[i].value!);
+  //       if (widget.printerList[i].type == 0) {
+  //         //print USB 80mm
+  //         if (widget.printerList[i].paper_size == 0) {
+  //           var data = Uint8List.fromList(await ReceiptLayout().printAddTableList80mm(true, dragTable: dragTable, targetTable: targetTable));
+  //           bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+  //           if (isConnected == true) {
+  //             await flutterUsbPrinter.write(data);
+  //           } else {
+  //             Fluttertoast.showToast(
+  //                 backgroundColor: Colors.red,
+  //                 msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+  //           }
+  //         } else {
+  //           // var data = Uint8List.fromList(await ReceiptLayout().printCheckList58mm(true));
+  //           // bool? isConnected = await flutterUsbPrinter.connect(
+  //           //     int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+  //           // if (isConnected == true) {
+  //           //   await flutterUsbPrinter.write(data);
+  //           // } else {
+  //           //   Fluttertoast.showToast(
+  //           //       backgroundColor: Colors.red,
+  //           //       msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+  //           // }
+  //         }
+  //       } else {
+  //         if (widget.printerList[i].paper_size == 0) {
+  //           //print LAN 80mm paper
+  //           final profile = await CapabilityProfile.load();
+  //           final printer = NetworkPrinter(PaperSize.mm80, profile);
+  //           final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+  //           if (res == PosPrintResult.success) {
+  //             await ReceiptLayout().printCheckList80mm(false, value: printer);
+  //             //await ReceiptLayout().printAddTableList80mm(false, value: printer, dragTable: dragTable, targetTable: targetTable);
+  //             printer.disconnect();
+  //           } else {
+  //             Fluttertoast.showToast(
+  //                 backgroundColor: Colors.red,
+  //                 msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+  //           }
+  //         } else {
+  //           //print LAN 58mm paper
+  //           final profile = await CapabilityProfile.load();
+  //           final printer = NetworkPrinter(PaperSize.mm58, profile);
+  //           final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+  //           if (res == PosPrintResult.success) {
+  //             await ReceiptLayout().printCheckList58mm(false, value: printer);
+  //             printer.disconnect();
+  //           } else {
+  //             Fluttertoast.showToast(
+  //                 backgroundColor: Colors.red,
+  //                 msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+  //           }
+  //         }
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print('Printer Connection Error: ${e}');
+  //     Fluttertoast.showToast(
+  //         backgroundColor: Colors.red,
+  //         msg: "${AppLocalizations.of(context)?.translate('printing_error')}");
+  //   }
+  // }
+
+  Future<Future<Object?>> openChangeTableDialog(PosTable posTable, {printerList}) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -360,6 +437,7 @@ class _CartDialogState extends State<CartDialog> {
             child: Opacity(
                 opacity: a1.value,
                 child: TableChangeDialog(
+                  printerList: printerList,
                   object: posTable,
                   callBack: () => readAllTable(),
                 )),
@@ -555,46 +633,6 @@ class _CartDialogState extends State<CartDialog> {
     }
     return modifierGroup;
   }
-
-  // getModifierGroupItem(OrderDetail orderDetail) {
-  //   modifierGroup = [];
-  //   List<ModifierItem> temp = List.from(orderDetail.modifierItem);
-  //
-  //   for (int j = 0; j < orderDetail.mod_group_id.length; j++) {
-  //     List<ModifierItem> modItemChild = [];
-  //     //check modifier group is existed or not
-  //     bool isModifierExisted = false;
-  //     int position = 0;
-  //     for (int g = 0; g < modifierGroup.length; g++) {
-  //       if (modifierGroup[g].mod_group_id == orderDetail.mod_group_id[j]) {
-  //         isModifierExisted = true;
-  //         position = g;
-  //         break;
-  //       }
-  //     }
-  //     //if new category
-  //     if (!isModifierExisted) {
-  //       modifierGroup.add(ModifierGroup(
-  //           modifierChild: [],
-  //           mod_group_id: int.parse(orderDetail.mod_group_id[j])));
-  //       position = modifierGroup.length - 1;
-  //     }
-  //
-  //     for (int k = 0; k < temp.length; k++) {
-  //       if (modifierGroup[position].mod_group_id.toString() ==
-  //           temp[k].mod_group_id) {
-  //         modItemChild.add(ModifierItem(
-  //             mod_group_id: orderDetail.mod_group_id[position],
-  //             mod_item_id: temp[k].mod_item_id,
-  //             name: temp[k].name,
-  //             isChecked: true));
-  //         temp.removeAt(k);
-  //       }
-  //     }
-  //     modifierGroup[position].modifierChild = modItemChild;
-  //   }
-  //   return modifierGroup;
-  // }
 
   getVariantGroupItem(OrderDetail orderDetail) {
     variantGroup = [];
