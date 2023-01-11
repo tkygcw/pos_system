@@ -604,7 +604,7 @@ class _CartPageState extends State<CartPage> {
                                               await _printKitchenList(cart);
                                             } else if(cart.cartNotifierItem[0].status == 0) {
                                               await callCreateNewOrder(cart, connectivity);
-                                              await _printCheckList();
+                                              //await _printCheckList();
                                               await _printKitchenList(cart);
                                             } else {
                                               Fluttertoast.showToast(
@@ -691,7 +691,7 @@ class _CartPageState extends State<CartPage> {
                                 Visibility(
                                   visible: cart.cartNotifierItem.isNotEmpty &&
                                           cart.cartNotifierItem[0].status == 1
-                                      ? true
+                                      ? false
                                       : false,
                                   child: Expanded(
                                     child: Row(
