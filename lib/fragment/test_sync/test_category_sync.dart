@@ -10,7 +10,6 @@ import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
-import 'package:pos_system/object/report_class.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
@@ -77,7 +76,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
       Container(
         alignment: Alignment.center,
         child: ElevatedButton(
-            onPressed: () async  => await method1(),
+            onPressed: () async  => await displayManager.showSecondaryDisplay(displayId: 1, routerName: "presentation"),
             child: Text('current screen height/width: ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
       ) : CustomProgressBar(),
     );
@@ -86,11 +85,6 @@ class _TestCategorySyncState extends State<TestCategorySync> {
 /*
   test sync query  (tb_order)
 */
-
-  method1() async {
-    ReportObject object = await ReportObject().getAllPaidOrder(currentStDate: '2023-01-11 00:00:00', currentEdDate: '2023-01-11 00:00:00');
-    print('value: ${object.totalSales}');
-  }
 
 /*
   ----------------------Cash record part----------------------------------------------------------------------------------------------------------------------------
