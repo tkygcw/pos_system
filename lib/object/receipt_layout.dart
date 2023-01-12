@@ -35,6 +35,7 @@ class ReceiptLayout{
   Receipt? receipt;
   OrderCache? orderCache;
   Order? paidOrder;
+  ReportObject? reportObject;
   List<Order> dateOrderList = [];
   List<OrderCache> paidOrderCacheList = [], orderCacheList = [];
   List<OrderTaxDetail> orderTaxList = [];
@@ -1356,7 +1357,7 @@ class ReceiptLayout{
   Settlement layout 80mm
 */
   printSettlementList80mm(bool isUSB, String settlementDateTime, {value}) async {
-    await getTodayCancelItem();
+    //await getTodayCancelItem();
     await getAllTodayPaidOrder();
     await readPaymentLinkCompany(settlementDateTime);
     await calculateCashDrawerAmount(settlementDateTime);
@@ -1371,7 +1372,7 @@ class ReceiptLayout{
 
       List<int> bytes = [];
       try {
-        bytes += generator.text('** SETTLEMENT LIST **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+        bytes += generator.text('** SETTLEMENT **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
 
@@ -1466,6 +1467,8 @@ class ReceiptLayout{
               width: 1,
               styles: PosStyles(align: PosAlign.right)),
         ]);
+        bytes += generator.hr();
+        bytes += generator.reset();
         // Expected total cash drawer
         bytes += generator.row([
           PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
@@ -1512,7 +1515,23 @@ class ReceiptLayout{
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
           PosColumn(
-              text: '${dateOrderList.length}',
+              text: '${reportObject!.dateOrderList!.length}',
+              width: 2,
+              styles: PosStyles(align: PosAlign.right)),
+          PosColumn(
+              text: '',
+              width: 1,
+              styles: PosStyles(align: PosAlign.right)),
+        ]);
+        bytes += generator.row([
+          PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
+          PosColumn(
+              text: 'Total Sales',
+              width: 8,
+              containsChinese: true,
+              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+          PosColumn(
+              text: '${reportObject!.totalSales!.toStringAsFixed(2)}',
               width: 2,
               styles: PosStyles(align: PosAlign.right)),
           PosColumn(
@@ -1528,7 +1547,7 @@ class ReceiptLayout{
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
           PosColumn(
-              text: '${'${cancelOrderDetailList.length}'}',
+              text: '${'${reportObject!.dateOrderDetail!.length}'}',
               width: 2,
               styles: PosStyles(align: PosAlign.right)),
           PosColumn(
@@ -1909,6 +1928,7 @@ class ReceiptLayout{
 */
   calculateTotalAmount(String dateTime) async {
     double total = 0.0;
+    double totalRefund = 0.0;
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
@@ -1919,10 +1939,13 @@ class ReceiptLayout{
         for(int i = 0; i < data.length; i++){
           if(data[i].type == 3 && data[i].payment_type_id == paymentList[j].payment_type_id){
             total += double.parse(data[i].amount!);
-            paymentList[j].totalAmount = total;
+          } else if(data[i].type == 4 && data[i].payment_type_id == paymentList[j].payment_type_id){
+            totalRefund += double.parse(data[i].amount!);
           } else {
             total = 0.0;
+            totalRefund = 0.0;
           }
+          paymentList[j].totalAmount = total - totalRefund;
         }
       }
     }catch(e){
@@ -1935,6 +1958,7 @@ class ReceiptLayout{
 */
   calculateCashDrawerAmount(String dateTime) async {
     double _cashTotal = 0.0;
+    double _cashRefund = 0.0;
     _isLoad = false;
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -1951,9 +1975,11 @@ class ReceiptLayout{
           totalOpeningCash = double.parse(data[i].amount!);
         } else if(data[i].type == 3 && data[i].payment_type_id == '1'){
           _cashTotal += double.parse(data[i].amount!);
+        } else if(data[i].type == 4 && data[i].payment_type_id == '1'){
+          _cashRefund += double.parse(data[i].amount!);
         }
       }
-      totalCashBalance = (totalOpeningCash + totalCashIn + _cashTotal) - totalCashOut;
+      totalCashBalance = (totalOpeningCash + totalCashIn + _cashTotal) - (totalCashOut + _cashRefund);
       _isLoad = true;
     }catch(e){
       print(e);
@@ -1966,15 +1992,19 @@ class ReceiptLayout{
 */
   getAllTodayPaidOrder() async {
     String currentStDate = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
-    List<Order> orderData = await PosDatabase.instance.readAllPaidOrder();
-    if(orderData.isNotEmpty){
-      for(int i = 0 ; i < orderData.length; i++){
-        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(orderData[i].created_at!);
-        if(convertDate.isAfter(DateTime.parse(currentStDate)) && convertDate.isBefore(addDays(date: DateTime.parse(currentStDate)))){
-          dateOrderList.add(orderData[i]);
-        }
-      }
-    }
+    ReportObject object = await ReportObject().getAllPaidOrder(currentStDate: currentStDate, currentEdDate: currentStDate);
+    ReportObject object2 = await ReportObject().getAllCancelOrderDetail(currentStDate: currentStDate, currentEdDate: currentStDate);
+    reportObject = ReportObject(totalSales: object.totalSales, dateOrderList: object.dateOrderList, dateOrderDetail: object2.dateOrderDetail);
+    print('report object: ${object.totalSales}');
+    // List<Order> orderData = await PosDatabase.instance.readAllPaidOrder();
+    // if(orderData.isNotEmpty){
+    //   for(int i = 0 ; i < orderData.length; i++){
+    //     DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(orderData[i].created_at!);
+    //     if(convertDate.isAfter(DateTime.parse(currentStDate)) && convertDate.isBefore(addDays(date: DateTime.parse(currentStDate)))){
+    //       dateOrderList.add(orderData[i]);
+    //     }
+    //   }
+    // }
   }
 
   getTodayCancelItem() async {

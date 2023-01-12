@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/bill.dart';
@@ -150,6 +151,7 @@ class PosDatabase {
            ${OrderFields.payment_received} $textType,
            ${OrderFields.payment_change} $textType,
            ${OrderFields.order_key} $textType,
+           ${OrderFields.refund_key} $textType,
            ${OrderFields.sync_status} $integerType,
            ${OrderFields.created_at} $textType, 
            ${OrderFields.updated_at} $textType, 
@@ -247,11 +249,23 @@ class PosDatabase {
 /*
     create refund table
 */
-    await db.execute(
-        '''CREATE TABLE $tableRefund ( ${RefundFields.refund_sqlite_id} $idType, ${RefundFields.refund_id} $integerType, ${RefundFields.company_id} $textType,
-           ${RefundFields.branch_id} $textType, ${RefundFields.order_cache_id} $textType,${RefundFields.order_detail_id} $textType,
-           ${RefundFields.order_id} $textType, ${RefundFields.refund_by} $textType, ${RefundFields.bill_id} $textType, 
-           ${RefundFields.created_at} $textType,${RefundFields.updated_at} $textType, ${RefundFields.soft_delete} $textType)''');
+    await db.execute('''CREATE TABLE $tableRefund ( 
+          ${RefundFields.refund_sqlite_id} $idType, 
+          ${RefundFields.refund_id} $integerType, 
+          ${RefundFields.refund_key} $textType,
+          ${RefundFields.company_id} $textType,
+          ${RefundFields.branch_id} $textType, 
+          ${RefundFields.order_cache_sqlite_id} $textType,
+          ${RefundFields.order_cache_key} $textType,
+          ${RefundFields.order_sqlite_id} $textType, 
+          ${RefundFields.order_key} $textType,
+          ${RefundFields.refund_by} $textType, 
+          ${RefundFields.refund_by_user_id} $textType,
+          ${RefundFields.bill_id} $textType, 
+          ${RefundFields.sync_status} $integerType,
+          ${RefundFields.created_at} $textType,
+          ${RefundFields.updated_at} $textType, 
+          ${RefundFields.soft_delete} $textType)''');
 /*
     create sale table
 */
@@ -1274,6 +1288,15 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableTransferOwner!, data.toJson());
     return data.copy(transfer_owner_sqlite_id: id);
+  }
+
+/*
+  add refund record
+*/
+  Future<Refund> insertSqliteRefund(Refund data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableRefund!, data.toJson());
+    return data.copy(refund_sqlite_id: id);
 
   }
 
@@ -2289,6 +2312,22 @@ class PosDatabase {
     return result.map((json) => User.fromJson(json)).toList();
   }
 
+/*
+  read specific user with pin
+*/
+  Future<User?> readSpecificUserWithPin(String pin) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableUser WHERE soft_delete = ? AND pos_pin = ?',
+        ['', pin]);
+    if(result.isNotEmpty){
+      return User?.fromJson(result.first);
+    } else {
+      return null;
+    }
+
+  }
+
   /*
   read all the dining option for company
 */
@@ -2533,8 +2572,8 @@ class PosDatabase {
   Future<List<Order>> readAllPaidOrder() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableOrder WHERE payment_status = ? AND soft_delete = ? ORDER BY created_at DESC',
-        [1, '']);
+        'SELECT a.*, b.payment_type_id FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id WHERE a.payment_status = ? AND a.soft_delete = ? AND b.soft_delete = ? ORDER BY a.created_at DESC',
+        [1, '', '']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -2642,6 +2681,17 @@ class PosDatabase {
 */
 
 /*
+  read all refund order
+*/
+  Future<List<Order>> readAllRefundOrder() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.payment_type_id FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id WHERE a.payment_status = ? AND a.refund_key != ? AND a.soft_delete = ? AND b.soft_delete = ? ORDER BY a.created_at DESC',
+        [2, '', '', '']);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
   read all transfer record
 */
   Future<List<TransferOwner>> readAllTransferOwner() async {
@@ -2712,6 +2762,35 @@ class PosDatabase {
     );
     return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
   }
+
+/*
+  read all order
+*/
+  Future<List<Order>> readAllOrder() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.payment_type_id FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id WHERE a.soft_delete = ? AND b.soft_delete = ? ORDER BY a.created_at DESC',
+        ['', '']);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  --------------------Refund part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+  read all refund by local id
+*/
+  Future<Refund> readAllRefundByLocalId(int refund_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableRefund WHERE refund_sqlite_id = ?',
+        [refund_sqlite_id]
+    );
+    return Refund.fromJson(result.first);
+  }
+
+
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3168,6 +3247,16 @@ class PosDatabase {
   }
 
 /*
+  update order payment status (refund)
+*/
+  Future<int> updateOrderPaymentRefundStatus(Order data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrder SET payment_status = ?, refund_key = ?, sync_status = ?,  updated_at = ? WHERE order_sqlite_id = ?',
+        [2, data.refund_key, data.sync_status, data.updated_at, data.order_sqlite_id]);
+  }
+
+/*
   update order cache order id
 */
   Future<int> updateOrderCacheOrderId(OrderCache data) async {
@@ -3198,6 +3287,20 @@ class PosDatabase {
 /*
   ------------------unique key part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  update refund unique key
+*/
+  Future<int> updateRefundUniqueKey(Refund data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableRefund SET refund_key = ?, updated_at = ? WHERE refund_sqlite_id = ?',
+        [
+          data.refund_key,
+          data.updated_at,
+          data.refund_sqlite_id,
+        ]);
+  }
 
 /*
   update cash record unique key

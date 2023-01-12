@@ -1654,6 +1654,7 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   createOrder(double? paymentReceived, String? orderChange) async {
+    print('create order called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
@@ -1686,12 +1687,14 @@ class _MakePaymentState extends State<MakePayment> {
             payment_change: orderChange == null ? '0.00' : orderChange,
             payment_status: 0,
             order_key: '',
+            refund_key: '',
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',
             soft_delete: ''
         );
         Order data = await PosDatabase.instance.insertSqliteOrder(orderObject);
+        print('data: ${data}');
         this.orderId = data.order_sqlite_id.toString();
         Order updatedOrder = await insertOrderKey();
         await syncOrderToCloud(updatedOrder);

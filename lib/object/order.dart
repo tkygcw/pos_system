@@ -22,6 +22,7 @@ class OrderFields {
     payment_received,
     payment_change,
     order_key,
+    refund_key,
     sync_status,
     created_at,
     updated_at,
@@ -48,6 +49,7 @@ class OrderFields {
   static String payment_received = 'payment_received';
   static String payment_change = 'payment_change';
   static String order_key = 'order_key';
+  static String refund_key = 'refund_key';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -75,6 +77,7 @@ class Order {
   String? payment_received;
   String? payment_change;
   String? order_key;
+  String? refund_key;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -110,6 +113,7 @@ class Order {
       this.payment_received,
       this.payment_change,
       this.order_key,
+      this.refund_key,
       this.sync_status,
       this.created_at,
       this.updated_at,
@@ -138,6 +142,7 @@ class Order {
     String? payment_received,
     String? payment_change,
     String? order_key,
+    String? refund_key,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -164,6 +169,7 @@ class Order {
           payment_received: payment_received ?? this.payment_received,
           payment_change: payment_change ?? this.payment_change,
           order_key: order_key ?? this.order_key,
+          refund_key: refund_key ?? this.refund_key,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -192,6 +198,7 @@ class Order {
         payment_received: json[OrderFields.payment_received] as String?,
         payment_change: json[OrderFields.payment_change] as String?,
         order_key: json[OrderFields.order_key] as String?,
+        refund_key: json[OrderFields.refund_key] as String?,
         sync_status: json[OrderFields.sync_status] as int?,
         created_at: json[OrderFields.created_at] as String?,
         updated_at: json[OrderFields.updated_at] as String?,
@@ -221,6 +228,7 @@ class Order {
         OrderFields.payment_received: payment_received,
         OrderFields.payment_change: payment_change,
         OrderFields.order_key: order_key,
+        OrderFields.refund_key: refund_key,
         OrderFields.sync_status: sync_status,
         OrderFields.created_at: created_at,
         OrderFields.updated_at: updated_at,

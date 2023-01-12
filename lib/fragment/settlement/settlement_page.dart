@@ -250,9 +250,10 @@ class _SettlementPageState extends State<SettlementPage> {
                                         : cashRecordList[index].type == 2
                                         ? Text(
                                         'Cash-out by: ${cashRecordList[index].userName}')
-                                        : Text(
-                                        'Close by: ${cashRecordList[index].userName}'),
-                                    trailing: cashRecordList[index].type == 2
+                                        : cashRecordList[index].type == 3
+                                        ? Text('Close by: ${cashRecordList[index].userName}')
+                                        : Text('Refund by: ${cashRecordList[index].userName}'),
+                                    trailing: cashRecordList[index].type == 2 || cashRecordList[index].type == 4
                                         ? Text(
                                         '-${cashRecordList[index].amount}',
                                         style: TextStyle(
@@ -525,9 +526,11 @@ class _SettlementPageState extends State<SettlementPage> {
                                           : cashRecordList[index].type == 2
                                           ? Text(
                                           'Cash-out by: ${cashRecordList[index].userName}')
-                                          : Text(
-                                          'Close by: ${cashRecordList[index].userName}'),
-                                      trailing: cashRecordList[index].type == 2
+                                          : cashRecordList[index].type == 3
+                                          ? Text(
+                                          'Close by: ${cashRecordList[index].userName}')
+                                          : Text('Refund by: ${cashRecordList[index].userName}'),
+                                      trailing: cashRecordList[index].type == 2 || cashRecordList[index].type == 4
                                           ? Text(
                                           '-${cashRecordList[index].amount}',
                                           style: TextStyle(
@@ -842,7 +845,7 @@ class _SettlementPageState extends State<SettlementPage> {
     String total = '';
     switch(selectedPayment) {
       case 'All/Cash Drawer': {
-        total = 'Cash drawer: ' + calcCashDrawer();
+        total = 'Cash drawer(inc: cash bill): ' + calcCashDrawer();
       }
       break;
       case 'Cash': {
@@ -872,12 +875,17 @@ class _SettlementPageState extends State<SettlementPage> {
   calcTotalAmount(String type_id){
     try{
       double total = 0.0;
+      double _totalRefund = 0.0;
+      double subtotal = 0.0;
       for (int i = 0; i < cashRecordList.length; i++) {
-        if(cashRecordList[i].payment_type_id == type_id){
+        if(cashRecordList[i].payment_type_id == type_id && cashRecordList[i].type == 3){
           total += double.parse(cashRecordList[i].amount!);
+        } else if(cashRecordList[i].payment_type_id == type_id && cashRecordList[i].type == 4){
+          _totalRefund += double.parse(cashRecordList[i].amount!);
         }
       }
-      return total.toStringAsFixed(2);
+      subtotal = total - _totalRefund;
+      return subtotal.toStringAsFixed(2);
     }catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
@@ -891,15 +899,24 @@ class _SettlementPageState extends State<SettlementPage> {
       double totalCashIn = 0.0;
       double totalCashOut = 0.0;
       double totalCashDrawer = 0.0;
+      double totalCashRefund = 0.0;
       for (int i = 0; i < cashRecordList.length; i++) {
-        if (cashRecordList[i].type == 0 || cashRecordList[i].type == 1 || cashRecordList[i].payment_type_id == '1') {
+        if (cashRecordList[i].type == 0) {
+          totalCashIn += double.parse(cashRecordList[i].amount!);
+        } else if (cashRecordList[i].type == 3 && cashRecordList[i].payment_type_id == '1'){
           totalCashIn += double.parse(cashRecordList[i].amount!);
         } else if (cashRecordList[i].type == 2 && cashRecordList[i].payment_type_id == '') {
           totalCashOut += double.parse(cashRecordList[i].amount!);
+        } else if(cashRecordList[i].type == 4 && cashRecordList[i].payment_type_id == '1'){
+          totalCashRefund += double.parse(cashRecordList[i].amount!);
         }
       }
+      print('total cash refund: ${totalCashRefund}');
+      print('total cash out: ${totalCashOut}');
+      print('total cash in: ${totalCashIn}');
+      totalCashDrawer = totalCashIn - (totalCashOut + totalCashRefund);
 
-      totalCashDrawer = totalCashIn - totalCashOut;
+      print('total cash drawer: ${totalCashDrawer}');
 
       return totalCashDrawer.toStringAsFixed(2);
     } catch (e) {

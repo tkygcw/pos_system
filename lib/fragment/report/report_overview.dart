@@ -8,6 +8,7 @@ import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
+import 'package:pos_system/object/report_class.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,6 +37,7 @@ class _ReportOverviewState extends State<ReportOverview> {
   List<OrderTaxDetail> paidOrderTaxDetail = [], dateTaxDetail = [];
   List<PaymentLinkCompany> paymentList = [];
   List<BranchLinkTax> branchTaxList = [];
+  ReportObject? reportObject;
   String jsonPayment = '';
   double totalSales = 0.0;
   double totalPromotionAmount = 0.0;
@@ -176,8 +178,20 @@ class _ReportOverviewState extends State<ReportOverview> {
                                 color: color.iconColor,
                                 elevation: 5,
                                 child: ListTile(
+                                  title: Text('Total Refund bill'),
+                                  subtitle: Text('${reportObject!.dateRefundOrderList!.length}',
+                                      style: TextStyle(color: Colors.black, fontSize: 24)),
+                                  trailing: Icon(Icons.refresh),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              child: Card(
+                                color: color.iconColor,
+                                elevation: 5,
+                                child: ListTile(
                                   title: Text('Total Refund'),
-                                  subtitle: Text('0',
+                                  subtitle: Text('${reportObject!.totalSales!.toStringAsFixed(2)}',
                                       style: TextStyle(color: Colors.black, fontSize: 24)),
                                   trailing: Icon(Icons.cancel),
                                 ),
@@ -217,7 +231,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                             physics: NeverScrollableScrollPhysics(),
                             crossAxisCount: 2,
                             crossAxisSpacing: 10,
-                            childAspectRatio: (1 / .7),
+                            childAspectRatio: MediaQuery.of(context).size.height < 750 ? (1 / .6) : (1 / .7),
                             children: [
                               Container(
                                 child: Card(
@@ -333,6 +347,7 @@ class _ReportOverviewState extends State<ReportOverview> {
     await getAllPaidOrderTaxDetail();
     await readBranchTaxes();
     await getAllPaidOrderPromotionDetail();
+    await getRefund();
     getAllCancelOrderDetail();
   }
 
@@ -345,9 +360,11 @@ class _ReportOverviewState extends State<ReportOverview> {
       paymentList = data;
       for(int j = 0 ; j < paymentList.length; j++){
         for(int i = 0; i < dateOrderList.length; i++){
-          if(paymentList[j].payment_link_company_id == int.parse(dateOrderList[i].payment_link_company_id!)){
-            paymentList[j].total_bill ++;
-            paymentList[j].totalAmount += double.parse(dateOrderList[i].final_amount!);
+          if(dateOrderList[i].payment_status != 2){
+            if(paymentList[j].payment_link_company_id == int.parse(dateOrderList[i].payment_link_company_id!)){
+              paymentList[j].total_bill ++;
+              paymentList[j].totalAmount += double.parse(dateOrderList[i].final_amount!);
+            }
           }
         }
       }
@@ -392,31 +409,37 @@ class _ReportOverviewState extends State<ReportOverview> {
   }
 
   getAllPaidOrder() async {
-    DateTime _startDate = DateTime.parse(currentStDate);
-    DateTime _endDate = DateTime.parse(currentEdDate);
-    this.totalSales = 0.0;
-    List<Order> orderData = await PosDatabase.instance.readAllPaidOrder();
-    paidOrderList = orderData;
-    if (paidOrderList.isNotEmpty) {
-      for (int i = 0; i < paidOrderList.length; i++) {
-        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderList[i].created_at!);
-        if(currentStDate != currentEdDate){
-          if(convertDate.isAfter(_startDate)){
-            if(convertDate.isBefore(addDays(date: _endDate))){
-              dateOrderList.add(paidOrderList[i]);
-            }
-          }
-        } else {
-          if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
-            dateOrderList.add(paidOrderList[i]);
-          }
-        }
-
-      }
-      for (int j = 0; j < dateOrderList.length; j++) {
-        sumAllOrderTotal(dateOrderList[j].final_amount!);
-      }
-    }
+    ReportObject object = await ReportObject().getAllPaidOrder(currentStDate: currentStDate, currentEdDate: currentEdDate);
+    reportObject = object;
+    dateOrderList = reportObject!.dateOrderList!;
+    totalSales = reportObject!.totalSales!;
+    // DateTime _startDate = DateTime.parse(currentStDate);
+    // DateTime _endDate = DateTime.parse(currentEdDate);
+    // this.totalSales = 0.0;
+    // List<Order> orderData = await PosDatabase.instance.readAllOrder();
+    // paidOrderList = orderData;
+    // if (paidOrderList.isNotEmpty) {
+    //   for (int i = 0; i < paidOrderList.length; i++) {
+    //     DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderList[i].created_at!);
+    //     if(currentStDate != currentEdDate){
+    //       if(convertDate.isAfter(_startDate)){
+    //         if(convertDate.isBefore(addDays(date: _endDate))){
+    //           dateOrderList.add(paidOrderList[i]);
+    //         }
+    //       }
+    //     } else {
+    //       if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
+    //         dateOrderList.add(paidOrderList[i]);
+    //       }
+    //     }
+    //
+    //   }
+    //   for (int j = 0; j < dateOrderList.length; j++) {
+    //     if(dateOrderList[j].payment_status != 2){
+    //       sumAllOrderTotal(dateOrderList[j].final_amount!);
+    //     }
+    //   }
+    // }
   }
 
   getAllPaidOrderPromotionDetail() async {
@@ -425,6 +448,7 @@ class _ReportOverviewState extends State<ReportOverview> {
     this.totalPromotionAmount = 0.0;
     List<OrderPromotionDetail> detailData = await PosDatabase.instance.readAllPaidOrderPromotionDetail();
     this.paidPromotionDetail = detailData;
+    print('paid promo length: ${paidPromotionDetail.length}');
     if (paidPromotionDetail.isNotEmpty) {
       for (int i = 0; i < paidPromotionDetail.length; i++) {
         DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidPromotionDetail[i].created_at!);
@@ -440,10 +464,17 @@ class _ReportOverviewState extends State<ReportOverview> {
           }
         }
       }
+      print('data length: ${datePromotionDetail.length}');
       for (int j = 0; j < datePromotionDetail.length; j++) {
         sumAllPromotionAmount(datePromotionDetail[j].promotion_amount!);
       }
+      print(this.totalPromotionAmount);
     }
+  }
+
+  getRefund() async {
+    ReportObject object = await ReportObject().getAllRefundOrder(currentStDate: currentStDate, currentEdDate: currentEdDate);
+    reportObject = object;
   }
 
   getAllCancelOrderDetail() async {

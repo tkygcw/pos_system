@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/fragment/bill/refund_dialog.dart';
 import 'package:pos_system/object/cart_payment.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
@@ -131,6 +132,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
 
                           },
                           onLongPress: (){
+                            openRefundDialog(paidOrderList[index], orderCacheList);
                             print('refund bill');
                           },
                         ),
@@ -154,6 +156,31 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
         );
       });
     });
+  }
+
+  Future<Future<Object?>> openRefundDialog(Order order, List<OrderCache> orderCacheList) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: RefundDialog(
+                  callBack: (){},
+                  order: order,
+                  orderCacheList: orderCacheList),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   paymentAddToCart(Order order, CartModel cart){
