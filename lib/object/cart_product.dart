@@ -20,6 +20,7 @@ class cartProductItem{
    Color refColor = Colors.black;
    String? order_detail_sqlite_id;
    int? sequence = 0;
+   bool? isRefund;
 
    cartProductItem(
        String branchProduct_id,
@@ -33,7 +34,7 @@ class cartProductItem{
        int status,
        String? orderCacheId,
        Color refColor,
-       {category_sqlite_id, order_detail_sqlite_id, sequence}){
+       {category_sqlite_id, order_detail_sqlite_id, sequence, this.isRefund}){
        this.branchProduct_id = branchProduct_id;
        this.name = name;
        this.category_id = category_id;

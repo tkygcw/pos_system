@@ -45,12 +45,14 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
   List<OrderPromotionDetail> orderPromotionList = [];
   List<Order> allPaidOrder = [];
   String orderNumber = '';
+  String selectedOption = 'Paid';
+  List<String> optionList = ['Paid','Refunded'];
   bool _isLoaded = false;
   bool _readComplete = false;
   @override
   void initState() {
     super.initState();
-    readPaidOrder();
+    getOrder();
   }
   @override
   Widget build(BuildContext context) {
@@ -87,6 +89,40 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                           ),
                         ),
                       ),
+                     Expanded(
+                         child:  DropdownButton<String>(
+                           onChanged: (String? value) {
+                             setState(() {
+                               selectedOption = value!;
+                               getOrder();
+                               cart.initialLoad();
+                               //readCashRecord();
+                             });
+                             //getCashRecord();
+                           },
+                           menuMaxHeight: 300,
+                           value: selectedOption,
+                           // Hide the default underline
+                           underline: Container(),
+                           icon: Icon(
+                             Icons.arrow_drop_down,
+                             color: color.backgroundColor,
+                           ),
+                           isExpanded: true,
+                           // The list of options
+                           items: optionList.map((e) => DropdownMenuItem(
+                             value: e,
+                             child: Container(
+                               alignment: Alignment.centerLeft,
+                               child: Text(e, style: TextStyle(fontSize: 18),
+                               ),
+                             ),
+                           )).toList(),
+                           // Customize the selected item
+                           selectedItemBuilder: (BuildContext context) =>
+                               optionList.map((e) => Center(child: Text(e))).toList(),
+                         ),
+                     ),
                     ],
                   ),
                 ),
@@ -109,7 +145,9 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                         child: ListTile(
                           title: Text('RM${paidOrderList[index].final_amount}'),
                           leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.receipt, color: Colors.grey,)),
-                          subtitle: Text('close by: ${paidOrderList[index].close_by}'),
+                          subtitle: paidOrderList[index].payment_status == 1
+                                    ? Text('close by: ${paidOrderList[index].close_by}')
+                                    : Text('refund by: ${paidOrderList[index].refund_by}'),
                           trailing: Text('Order: ${paidOrderList[index].generateOrderNumber()}'),
                           onTap: () async {
                             if(paidOrderList[index].isSelected == false){
@@ -120,7 +158,12 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                               }
                               paidOrderList[index].isSelected = true;
                               await getOrderDetail(paidOrderList[index]);
-                              await addToCart(cart, orderCacheList);
+                              //check is order refunded or not
+                              if(paidOrderList[index].payment_status == 1){
+                                await addToCart(cart, orderCacheList, false);
+                              } else {
+                                await addToCart(cart, orderCacheList, true);
+                              }
                               await callReadOrderTaxPromoDetail(paidOrderList[index]);
                               if(_readComplete == true){
                                 await paymentAddToCart(paidOrderList[index], cart);
@@ -131,10 +174,10 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                             }
 
                           },
-                          onLongPress: (){
+                          onLongPress: paidOrderList[index].payment_status == 1 ? (){
                             openRefundDialog(paidOrderList[index], orderCacheList);
                             print('refund bill');
-                          },
+                          } : null,
                         ),
                       );
                     }): Container(
@@ -198,7 +241,8 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     cart.addPaymentDetail(value);
   }
 
-  addToCart(CartModel cart, List<OrderCache> orderCacheList) async {
+  addToCart(CartModel cart, List<OrderCache> orderCacheList, bool isRefund) async {
+    print('is refund: ${isRefund}');
     var value;
     List<TableUseDetail> tableUseDetailList = [];
     List<OrderCache> _uniqueOrderCacheList = [];
@@ -214,7 +258,8 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
           orderDetailList[i].remark!,
           0,
           null,
-          Colors.black
+          Colors.black,
+          isRefund: isRefund
       );
       cart.addItem(value);
 
@@ -411,11 +456,20 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     }
   }
 
-  readPaidOrder() async {
-    List<Order> data = await PosDatabase.instance.readAllPaidOrder();
-    if(data.length > 0){
-      paidOrderList = List.from(data);
+  getOrder() async {
+    paidOrderList = [];
+    if (selectedOption == 'Paid') {
+      List<Order> data = await PosDatabase.instance.readAllPaidOrder();
+      if(data.length > 0){
+        paidOrderList = List.from(data);
+      }
+    } else {
+      List<Order> data = await PosDatabase.instance.readAllRefundOrder();
+      if(data.length > 0){
+        paidOrderList = List.from(data);
+      }
     }
+
     setState(() {
       _isLoaded = true;
     });

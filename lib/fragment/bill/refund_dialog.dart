@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
+import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
@@ -215,6 +216,20 @@ class _RefundDialogState extends State<RefundDialog> {
     refundKey = updatedData.refund_key!;
     _value.add(jsonEncode(updatedData));
 
+  }
+
+  syncTableUseDetailToCloud(String value) async {
+    //check is host reachable
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      // Map response = await Domain().SyncTableUseDetailToCloud(value);
+      // if (response['status'] == '1') {
+      //   List responseJson = response['data'];
+      //   for (int i = 0; i < responseJson.length; i++) {
+      //     int updateStatus = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+      //   }
+      // }
+    }
   }
 
   updateOrderPaymentStatus() async {

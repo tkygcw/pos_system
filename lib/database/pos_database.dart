@@ -2680,14 +2680,15 @@ class PosDatabase {
   --------------------Report part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
+
 /*
   read all refund order
 */
   Future<List<Order>> readAllRefundOrder() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.payment_type_id FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id WHERE a.payment_status = ? AND a.refund_key != ? AND a.soft_delete = ? AND b.soft_delete = ? ORDER BY a.created_at DESC',
-        [2, '', '', '']);
+        'SELECT a.*, b.payment_type_id, c.refund_by AS refund_name FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id JOIN $tableRefund AS c ON a.refund_key = c.refund_key WHERE a.payment_status = ? AND a.refund_key != ? AND a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? ORDER BY a.created_at DESC',
+        [2, '', '', '', '']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -2777,6 +2778,17 @@ class PosDatabase {
 /*
   --------------------Refund part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  refund join
+*/
+  Future<List<Order>> readSpecificRefundOrder(String order_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.name, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id JOIN $tableRefund AS c ON a.refund_key = c.refund_key WHERE a.payment_status = ? AND a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.order_sqlite_id = ?',
+        [2, '', '', '', order_sqlite_id]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
 
 /*
   read all refund by local id

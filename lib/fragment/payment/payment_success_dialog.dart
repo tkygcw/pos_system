@@ -65,8 +65,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     // TODO: implement initState
     super.initState();
     callUpdateOrder();
-    readAllPrinters();
-    _printReceiptList();
+
   }
 
   @override
@@ -193,6 +192,8 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       await updatePosTableStatus(0);
     }
     await updateOrderCache();
+    await readAllPrinters();
+    await _printReceiptList();
     //await deleteOrderCache();
     isLoaded = true;
   }

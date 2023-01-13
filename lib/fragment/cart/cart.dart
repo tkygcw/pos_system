@@ -670,6 +670,7 @@ class _CartPageState extends State<CartPage> {
                                         }
                                       } else {
                                         if (cart.cartNotifierItem.isNotEmpty) {
+                                          print('cart.cartNotifierItem is refund: ${cart.cartNotifierItem[0].isRefund}');
                                           await _printReceiptList(cart);
                                         } else {
                                           Fluttertoast.showToast(
@@ -750,7 +751,7 @@ class _CartPageState extends State<CartPage> {
             if (printerList[i].type == 0) {
               if (printerList[i].paper_size == 0) {
                 var data = Uint8List.fromList(
-                    await ReceiptLayout().printReceipt80mm(true, this.localOrderId, cart.selectedTable));
+                    await ReceiptLayout().printReceipt80mm(true, this.localOrderId, cart.selectedTable, isRefund: cart.cartNotifierItem[0].isRefund));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
@@ -762,7 +763,7 @@ class _CartPageState extends State<CartPage> {
                 }
               } else {
                 var data = Uint8List.fromList(
-                    await ReceiptLayout().printReceipt58mm(true, this.localOrderId, cart.selectedTable));
+                    await ReceiptLayout().printReceipt58mm(true, this.localOrderId, cart.selectedTable, isRefund: cart.cartNotifierItem[0].isRefund));
                 bool? isConnected = await flutterUsbPrinter.connect(
                     int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                 if (isConnected == true) {
@@ -780,7 +781,7 @@ class _CartPageState extends State<CartPage> {
                 final printer = NetworkPrinter(PaperSize.mm80, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
                 if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printReceipt80mm(false, this.localOrderId, cart.selectedTable, value: printer);
+                  await ReceiptLayout().printReceipt80mm(false, this.localOrderId, cart.selectedTable, value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
                   printer.disconnect();
                 } else {
                   Fluttertoast.showToast(
@@ -793,7 +794,7 @@ class _CartPageState extends State<CartPage> {
                 final printer = NetworkPrinter(PaperSize.mm58, profile);
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
                 if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printReceipt58mm(false, this.localOrderId, cart.selectedTable,value: printer);
+                  await ReceiptLayout().printReceipt58mm(false, this.localOrderId, cart.selectedTable,value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
                   printer.disconnect();
                 } else {
                   Fluttertoast.showToast(

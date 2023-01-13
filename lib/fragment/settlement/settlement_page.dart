@@ -911,13 +911,7 @@ class _SettlementPageState extends State<SettlementPage> {
           totalCashRefund += double.parse(cashRecordList[i].amount!);
         }
       }
-      print('total cash refund: ${totalCashRefund}');
-      print('total cash out: ${totalCashOut}');
-      print('total cash in: ${totalCashIn}');
       totalCashDrawer = totalCashIn - (totalCashOut + totalCashRefund);
-
-      print('total cash drawer: ${totalCashDrawer}');
-
       return totalCashDrawer.toStringAsFixed(2);
     } catch (e) {
       Fluttertoast.showToast(
