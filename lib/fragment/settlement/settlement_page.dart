@@ -12,6 +12,7 @@ import 'package:pos_system/fragment/settlement/cash_dialog.dart';
 import 'package:pos_system/fragment/settlement/history_dialog.dart';
 import 'package:pos_system/fragment/settlement/pos_pin_dialog.dart';
 import 'package:pos_system/fragment/settlement/settlement_dialog.dart';
+import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -32,6 +33,7 @@ class SettlementPage extends StatefulWidget {
 }
 
 class _SettlementPageState extends State<SettlementPage> {
+  List<OrderCache> unpaidOrderCacheList = [];
   List<CashRecord> cashRecordList = [];
   List<String> paymentNameList = [];
   String selectedPayment = 'All/Cash Drawer';
@@ -40,6 +42,7 @@ class _SettlementPageState extends State<SettlementPage> {
   @override
   void initState() {
     super.initState();
+    checkUnpaidOrderCache();
     readPaymentLinkCompany();
     readCashRecord();
   }
@@ -156,14 +159,17 @@ class _SettlementPageState extends State<SettlementPage> {
                               ElevatedButton(
                                 child: Text('Settlement'),
                                 onPressed: () {
-                                  if(cashRecordList.length > 0){
+                                  if(cashRecordList.isNotEmpty && unpaidOrderCacheList.isEmpty){
                                     openSettlementDialog(cashRecordList);
-                                  } else {
+                                  } else if(cashRecordList.isEmpty) {
                                     Fluttertoast.showToast(
                                         backgroundColor: Color(0xFFFF0000),
                                         msg: "No record");
+                                  } else if(unpaidOrderCacheList.isNotEmpty){
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Color(0xFFFF0000),
+                                        msg: "Still have order not yet paid");
                                   }
-
                                 },
                                 style: ElevatedButton.styleFrom(
                                     primary: color.backgroundColor),
@@ -748,6 +754,12 @@ class _SettlementPageState extends State<SettlementPage> {
         paymentNameList.add(data[i].name!);
       }
     }
+  }
+
+  checkUnpaidOrderCache() async {
+    List<OrderCache> data = await PosDatabase.instance.readAllUnpaidOrderCache();
+    unpaidOrderCacheList = data;
+    print('unpaid Order Cache List: ${unpaidOrderCacheList.length}');
   }
 
   readCashRecord() async {

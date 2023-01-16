@@ -2088,38 +2088,37 @@ class ReceiptLayout{
 
     settlement_By = userObject['name'];
     List<PaymentLinkCompany> data = await PosDatabase.instance.readAllPaymentLinkCompany(userObject['company_id']);
-    for (int i = 0; i < data.length; i++) {
+    print('data length: ${data.length}');
+    if(data.isNotEmpty){
       paymentList = List.from(data);
-      await calculateTotalAmount(dateTime);
-      _isLoad = true;
     }
+    await calculateTotalAmount(dateTime);
   }
 
 /*
   calculate each payment link company total amount
 */
   calculateTotalAmount(String dateTime) async {
-    double total = 0.0;
-    double totalRefund = 0.0;
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
     try{
-      for(int j = 0; j < paymentList.length; j++){
-        total = 0.0;
+      for (int j = 0; j < paymentList.length; j++) {
+        double total = 0.0;
+        double totalRefund = 0.0;
         List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime);
+
         for(int i = 0; i < data.length; i++){
           if(data[i].type == 3 && data[i].payment_type_id == paymentList[j].payment_type_id){
             total += double.parse(data[i].amount!);
           } else if(data[i].type == 4 && data[i].payment_type_id == paymentList[j].payment_type_id){
             totalRefund += double.parse(data[i].amount!);
-          } else {
-            total = 0.0;
-            totalRefund = 0.0;
           }
-          paymentList[j].totalAmount = total - totalRefund;
+
         }
+        paymentList[j].totalAmount = total - totalRefund;
       }
+      _isLoad = true;
     }catch(e){
       print('Layout calculate total amount error: $e');
     }

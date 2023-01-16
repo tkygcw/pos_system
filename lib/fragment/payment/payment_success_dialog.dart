@@ -222,10 +222,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       Map data = await Domain().SyncOrderToCloud(value);
       if (data['status'] == '1') {
         List responseJson = data['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int orderData = await PosDatabase.instance
-              .updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
-        }
+        int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[0]['order_key']);
       }
     }
   }

@@ -1843,7 +1843,7 @@ class _MakePaymentState extends State<MakePayment> {
   generateOrderTaxDetailKey(OrderTaxDetail orderTaxDetail) async  {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
-    var bytes  = orderTaxDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + orderTaxDetail.order_tax_detail_key.toString() + device_id.toString();
+    var bytes  = orderTaxDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + orderTaxDetail.order_tax_detail_sqlite_id.toString() + device_id.toString();
     return md5.convert(utf8.encode(bytes)).toString();
   }
 

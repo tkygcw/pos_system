@@ -1859,13 +1859,24 @@ class PosDatabase {
   }
 
 /*
-  search receipt
+  search paid receipt
 */
   Future<List<Order>> searchPaidReceipt(String text) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT * FROM $tableOrder WHERE payment_status = ? AND soft_delete = ? AND (order_number LIKE ? OR close_by LIKE ?) ORDER BY created_at DESC ',
         [1, '', '%' + text + '%', '%' + text + '%']);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  search refund receipt
+*/
+  Future<List<Order>> searchRefundReceipt(String text) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.refund_by AS refund_name FROM $tableOrder AS a JOIN $tableRefund AS b ON a.refund_key = b.refund_key WHERE a.payment_status = ? AND a.soft_delete = ? AND b.soft_delete = ? AND (a.order_number LIKE ? OR b.refund_by LIKE ?) ORDER BY created_at DESC ',
+        [2, '', '', '%' + text + '%', '%' + text + '%']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -2396,6 +2407,17 @@ class PosDatabase {
 /*
   ----------------------------Cash record part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+/*
+  read all order cache
+*/
+  Future<List<OrderCache>> readAllUnpaidOrderCache() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND order_key = ?',
+        ['', '']);
+    return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
 
 /*
   read branch cash record(haven't settlement)
@@ -2607,7 +2629,7 @@ class PosDatabase {
       String table_use_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableTableUseDetail WHERE soft_delete != ? AND  table_use_sqlite_id = ?',
+        'SELECT * FROM $tableTableUseDetail WHERE soft_delete != ? AND table_use_sqlite_id = ?',
         ['', table_use_sqlite_id]);
 
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
@@ -4231,6 +4253,19 @@ class PosDatabase {
         [
           1,
           transfer_owner_key
+        ]);
+  }
+
+/*
+  update refund (from cloud)
+*/
+  Future<int> updateRefundSyncStatusFromCloud(String refund_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableRefund SET sync_status = ? WHERE refund_key = ?',
+        [
+          1,
+          refund_key
         ]);
   }
 

@@ -492,6 +492,21 @@ class Domain {
     }
   }
 
+  /*
+  * sync refund to cloud
+  * */
+  SyncRefundToCloud(detail) async {
+    try{
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_refund_create': '1',
+        'details': detail,
+      });
+      return jsonDecode(response.body);
+    } catch(error){
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
 
   /*
   * update branch notification token to cloud

@@ -147,7 +147,7 @@ class _RefundDialogState extends State<RefundDialog> {
         print('user found ${userData.name}');
         //create refund record
         await createRefund(userData);
-        updateOrderPaymentStatus();
+        await updateOrderPaymentStatus();
         createRefundedCashRecord(userData);
         //print refund list
         //await _printSettlementList(dateTime);
@@ -215,20 +215,19 @@ class _RefundDialogState extends State<RefundDialog> {
     Refund updatedData = await insertRefundKey(data, dateTime);
     refundKey = updatedData.refund_key!;
     _value.add(jsonEncode(updatedData));
-
+    //sync to cloud
+    syncRefundToCloud(_value.toString());
   }
 
-  syncTableUseDetailToCloud(String value) async {
+  syncRefundToCloud(String value) async {
     //check is host reachable
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
-      // Map response = await Domain().SyncTableUseDetailToCloud(value);
-      // if (response['status'] == '1') {
-      //   List responseJson = response['data'];
-      //   for (int i = 0; i < responseJson.length; i++) {
-      //     int updateStatus = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-      //   }
-      // }
+      Map response = await Domain().SyncRefundToCloud(value);
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        int updateStatus = await PosDatabase.instance.updateRefundSyncStatusFromCloud(responseJson[0]['refund_key']);
+      }
     }
   }
 
@@ -247,7 +246,19 @@ class _RefundDialogState extends State<RefundDialog> {
       Order orderData = await PosDatabase.instance.readSpecificOrder(_orderObject.order_sqlite_id!);
       _value.add(jsonEncode(orderData));
     }
-    print('updated order value: ${_value.toString()}');
+    //sync to cloud
+    syncUpdatedOrderToCloud(_value.toString());
+  }
+
+  syncUpdatedOrderToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map data = await Domain().SyncOrderToCloud(value);
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[0]['order_key']);
+      }
+    }
   }
 
   generateCashRecordKey(CashRecord cashRecord) async {
@@ -305,7 +316,20 @@ class _RefundDialogState extends State<RefundDialog> {
     CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
     CashRecord updatedData = await insertCashRecordKey(data, dateTime);
     _value.add(jsonEncode(updatedData));
-    print('cash record: ${_value.toString()}');
+    //sync to cloud
+    syncCashRecordToCloud(_value.toString());
   }
 
+  syncCashRecordToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map response = await Domain().SyncCashRecordToCloud(value);
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+        }
+      }
+    }
+  }
 }

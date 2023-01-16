@@ -57,7 +57,10 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return  Consumer<CartModel>(builder: (context, CartModel cart, child) {
+      return Consumer<CartModel>(builder: (context, CartModel cart, child) {
+        if (cart.isInit) {
+          getOrder(model: cart);
+        }
         return Scaffold(
           body: _isLoaded ?
           Container(
@@ -211,7 +214,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
             child: Opacity(
               opacity: a1.value,
               child: RefundDialog(
-                  callBack: (){},
+                  callBack: () => getOrder(),
                   order: order,
                   orderCacheList: orderCacheList),
             ),
@@ -456,7 +459,11 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     }
   }
 
-  getOrder() async {
+  getOrder({model}) async {
+    if(model != null){
+      model.setInit(false);
+    }
+    _isLoaded = false;
     paidOrderList = [];
     if (selectedOption == 'Paid') {
       List<Order> data = await PosDatabase.instance.readAllPaidOrder();
@@ -494,10 +501,17 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
   }
 
   searchPaidOrders(String text) async {
-    List<Order> data = await PosDatabase.instance.searchPaidReceipt(text);
-    setState(() {
-      paidOrderList = data;
-    });
+    if (selectedOption == 'Paid') {
+      List<Order> data = await PosDatabase.instance.searchPaidReceipt(text);
+      setState(() {
+        paidOrderList = data;
+      });
+    } else {
+      List<Order> data = await PosDatabase.instance.searchRefundReceipt(text);
+      setState(() {
+        paidOrderList = data;
+      });
+    }
   }
 
 
