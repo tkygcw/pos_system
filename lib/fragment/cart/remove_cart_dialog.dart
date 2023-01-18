@@ -12,6 +12,7 @@ import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
+import 'package:pos_system/object/print_receipt.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -366,141 +367,6 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     }
   }
 
-  _printDeleteList(String orderCacheId, String dateTime) async {
-    try {
-      for (int i = 0; i < printerList.length; i++) {
-        List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-        for (int j = 0; j < data.length; j++) {
-          if (data[j].category_sqlite_id == '0') {
-            var printerDetail = jsonDecode(printerList[i].value!);
-            if (printerList[i].type == 0) {
-              if(printerList[i].paper_size == 0){
-                var data = Uint8List.fromList(await ReceiptLayout().printDeleteItemList80mm(true, orderCacheId, dateTime));
-                bool? isConnected = await flutterUsbPrinter.connect(
-                    int.parse(printerDetail['vendorId']),
-                    int.parse(printerDetail['productId']));
-                if (isConnected == true) {
-                  await flutterUsbPrinter.write(data);
-                } else {
-                  print('not connected');
-                }
-              } else {
-                var data = Uint8List.fromList(await ReceiptLayout().printDeleteItemList58mm(true, orderCacheId, dateTime));
-                bool? isConnected = await flutterUsbPrinter.connect(
-                    int.parse(printerDetail['vendorId']),
-                    int.parse(printerDetail['productId']));
-                if (isConnected == true) {
-                  await flutterUsbPrinter.write(data);
-                } else {
-                  print('not connected');
-                }
-              }
-            } else {
-              //check paper size (print LAN)
-              if(printerList[i].paper_size == 0){
-                //print LAN
-                final profile = await CapabilityProfile.load();
-                final printer = NetworkPrinter(PaperSize.mm80, profile);
-                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-
-                if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printDeleteItemList80mm(false, orderCacheId, dateTime, value: printer);
-                  printer.disconnect();
-                } else {
-                  print('not connected');
-                }
-              } else {
-                //print LAN
-                final profile = await CapabilityProfile.load();
-                final printer = NetworkPrinter(PaperSize.mm58, profile);
-                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-
-                if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printDeleteItemList58mm(false, orderCacheId, dateTime, value: printer);
-                  printer.disconnect();
-                } else {
-                  print('not connected');
-                }
-              }
-            }
-          }
-
-        }
-      }
-    } catch (e) {
-      print('Printer Connection Error');
-      //response = 'Failed to get platform version.';
-    }
-  }
-
-  _printKitchenDeleteList(String orderCacheId, String dateTime, CartModel cart) async {
-    try {
-      for (int i = 0; i < printerList.length; i++) {
-        List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-        for (int j = 0; j < data.length; j++) {
-          if (widget.cartItem?.category_sqlite_id == data[j].category_sqlite_id) {
-            print('printer call');
-            var printerDetail = jsonDecode(printerList[i].value!);
-            if (printerList[i].type == 0) {
-              if(printerList[i].paper_size == 0){
-                var data = Uint8List.fromList(await ReceiptLayout().printDeleteItemList80mm(true, orderCacheId, dateTime));
-                bool? isConnected = await flutterUsbPrinter.connect(
-                    int.parse(printerDetail['vendorId']),
-                    int.parse(printerDetail['productId']));
-                if (isConnected == true) {
-                  await flutterUsbPrinter.write(data);
-                } else {
-                  print('not connected');
-                }
-              }else {
-                var data = Uint8List.fromList(await ReceiptLayout().printDeleteItemList58mm(true, orderCacheId, dateTime));
-                bool? isConnected = await flutterUsbPrinter.connect(
-                    int.parse(printerDetail['vendorId']),
-                    int.parse(printerDetail['productId']));
-                if (isConnected == true) {
-                  await flutterUsbPrinter.write(data);
-                } else {
-                  print('not connected');
-                }
-              }
-            } else {
-              //check paper size
-              if(printerList[i].paper_size == 0){
-                //print LAN 80mm
-                final profile = await CapabilityProfile.load();
-                final printer = NetworkPrinter(PaperSize.mm80, profile);
-                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-
-                if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printDeleteItemList80mm(false, orderCacheId, dateTime, value: printer);
-                  printer.disconnect();
-                } else {
-                  print('not connected');
-                }
-              } else {
-                //print LAN 58mm
-                final profile = await CapabilityProfile.load();
-                final printer = NetworkPrinter(PaperSize.mm58, profile);
-                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-
-                if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printDeleteItemList58mm(false, orderCacheId, dateTime, value: printer);
-                  printer.disconnect();
-                } else {
-                  print('not connected');
-                }
-              }
-            }
-          }
-
-        }
-      }
-    } catch (e) {
-      print('Printer Connection Error');
-      //response = 'Failed to get platform version.';
-    }
-  }
-
   readAllPrinters() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -538,8 +404,8 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
 
     int deleteOrderDetailData = await PosDatabase.instance.deleteSpecificOrderDetail(orderDetailObject);
     if(deleteOrderDetailData == 1){
-      await _printDeleteList(widget.cartItem!.orderCacheId!, dateTime);
-      await _printKitchenDeleteList(widget.cartItem!.orderCacheId!, dateTime, cart);
+      await PrintReceipt().printDeleteList(printerList, widget.cartItem!.orderCacheId!, dateTime, context);
+      await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.orderCacheId!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
       //sync to cloud
       OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
       _value.add(jsonEncode(detailData.syncJson()));

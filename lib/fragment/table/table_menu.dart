@@ -385,9 +385,11 @@ class _TableMenuState extends State<TableMenu> {
 
     tableList = List.from(data);
     await readAllTableGroup();
-    setState(() {
-      isLoaded = true;
-    });
+    if(mounted){
+      setState(() {
+        isLoaded = true;
+      });
+    }
   }
 
   readAllTableGroup() async {

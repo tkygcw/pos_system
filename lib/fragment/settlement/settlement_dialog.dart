@@ -9,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
+import 'package:pos_system/object/print_receipt.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -65,6 +66,8 @@ class _SettlementDialogState extends State<SettlementDialog> {
     setState(() => _submitted = true);
     if (errorPassword == null) {
       await readAdminData(adminPosPinController.text, connectivity);
+      Navigator.of(context).pop();
+      widget.callBack();
       return;
     }
   }
@@ -169,15 +172,12 @@ class _SettlementDialogState extends State<SettlementDialog> {
     try {
       String dateTime = dateFormat.format(DateTime.now());
 
-      List<User> userData =
-      await PosDatabase.instance.readSpecificUserWithRole(pin);
+      List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
       if (userData.length > 0) {
-        closeDialog(context);
         //update all today cash record settlement date
         await updateAllCashRecordSettlement(dateTime, connectivity);
         //print settlement list
-        await _printSettlementList(dateTime);
-        widget.callBack();
+        await PrintReceipt().printSettlementList(printerList, dateTime, context);
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
@@ -207,18 +207,6 @@ class _SettlementDialogState extends State<SettlementDialog> {
     }
     //sync to cloud
     await syncSettlementToCloud(_value.toString());
-    // if(connectivity.isConnect){
-    //   bool _hasInternetAccess = await InternetConnectionChecker().hasConnection;
-    //   if(_hasInternetAccess){
-    //     Map response = await Domain().SyncCashRecordToCloud(_value.toString());
-    //     if (response['status'] == '1') {
-    //       List responseJson = response['data'];
-    //       for (var i = 0; i < responseJson.length; i++) {
-    //         int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
-    //       }
-    //     }
-    //   }
-    // }
   }
 
   syncSettlementToCloud(String value) async {
@@ -245,77 +233,4 @@ class _SettlementDialogState extends State<SettlementDialog> {
 /*
   ----------------Other function part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
-  _printSettlementList(String dateTime) async {
-    try {
-      for (int i = 0; i < printerList.length; i++) {
-        List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-        for (int j = 0; j < data.length; j++) {
-          if (data[j].category_sqlite_id == '0') {
-            var printerDetail = jsonDecode(printerList[i].value!);
-            if (printerList[i].type == 0) {
-              if(printerList[i].paper_size == 0){
-                //print USB 80mm
-                var data = Uint8List.fromList(await ReceiptLayout().printSettlementList80mm(true, dateTime));
-                bool? isConnected = await flutterUsbPrinter.connect(
-                    int.parse(printerDetail['vendorId']),
-                    int.parse(printerDetail['productId']));
-                if (isConnected == true) {
-                  await flutterUsbPrinter.write(data);
-                } else {
-                  Fluttertoast.showToast(
-                      backgroundColor: Colors.red,
-                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-                }
-              } else {
-                //print USB 58mm
-                var data = Uint8List.fromList(await ReceiptLayout().printSettlementList58mm(true, dateTime));
-                bool? isConnected = await flutterUsbPrinter.connect(
-                    int.parse(printerDetail['vendorId']),
-                    int.parse(printerDetail['productId']));
-                if (isConnected == true) {
-                  await flutterUsbPrinter.write(data);
-                } else {
-                  Fluttertoast.showToast(
-                      backgroundColor: Colors.red,
-                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-                }
-              }
-            } else {
-              if(printerList[i].paper_size == 0){
-                //print LAN 80mm
-                final profile = await CapabilityProfile.load();
-                final printer = NetworkPrinter(PaperSize.mm80, profile);
-                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-                if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printSettlementList80mm(false, dateTime, value: printer);
-                  printer.disconnect();
-                } else {
-                  Fluttertoast.showToast(
-                      backgroundColor: Colors.red,
-                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-                }
-              } else {
-                //print LAN 58mm
-                final profile = await CapabilityProfile.load();
-                final printer = NetworkPrinter(PaperSize.mm58, profile);
-                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-                if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printSettlementList58mm(false, dateTime, value: printer);
-                  printer.disconnect();
-                } else {
-                  Fluttertoast.showToast(
-                      backgroundColor: Colors.red,
-                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-                }
-              }
-            }
-          }
-        }
-      }
-    } catch (e) {
-      print('Printer Connection Error');
-
-      //response = 'Failed to get platform version.';
-    }
-  }
 }

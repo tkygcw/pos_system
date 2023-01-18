@@ -45,6 +45,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
   bool _isUpdate = false;
   bool isLoad = false;
   bool _isCashier = false;
+  bool _isActive = true;
 
   @override
   void initState() {
@@ -56,6 +57,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       _typeStatus = widget.printerObject!.type!;
       _paperSize = widget.printerObject!.paper_size!;
       printerValue.add(widget.printerObject!.value!);
+      widget.printerObject!.printer_status == 1 ? _isActive = true : _isActive = false;
     } else {
       _isUpdate = false;
       isLoad = true;
@@ -111,7 +113,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
         content: isLoad
             ? Container(
                 height: MediaQuery.of(context).size.height / 1.5,
-                width: MediaQuery.of(context).size.width / 2,
+                width: MediaQuery.of(context).size.width / 2.5,
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -356,7 +358,35 @@ class _PrinterDialogState extends State<PrinterDialog> {
                             ],
                           ),
                         ),
-                      )
+                      ),
+                      Text(
+                        'Status',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueGrey),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        children: [
+                          Container(
+                            child: Text('Active'),
+                          ),
+                          Spacer(),
+                          Container(
+                            child: Switch(
+                                value: _isActive,
+                                activeColor: color.backgroundColor,
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    _isActive = value;
+                                  });
+                                }
+                            )
+                          )
+                        ],
+                      ),
 
                     ],
                   ),
@@ -430,6 +460,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
           type: _typeStatus,
           printer_link_category_id: '',
           paper_size: _paperSize,
+          printer_status: _isActive ? 1 : 0,
           sync_status: 0,
           created_at: dateTime,
           updated_at: '',
@@ -553,6 +584,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
           type: _typeStatus,
           value: printerValue[0],
           paper_size: _paperSize,
+          printer_status: _isActive ? 1 : 0,
           updated_at: dateTime,
           printer_sqlite_id: widget.printerObject!.printer_sqlite_id);
 

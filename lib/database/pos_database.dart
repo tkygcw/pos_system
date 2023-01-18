@@ -445,6 +445,7 @@ class PosDatabase {
           ${PrinterFields.printerLabel} $textType,
           ${PrinterFields.printer_link_category_id} $textType,
           ${PrinterFields.paper_size} $integerType,
+          ${PrinterFields.printer_status} $integerType,
           ${PrinterFields.sync_status} $integerType,
           ${PrinterFields.created_at} $textType,
           ${PrinterFields.updated_at} $textType,
@@ -2702,6 +2703,21 @@ class PosDatabase {
   --------------------Report part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
+/*
+  read All Branch Link Dining Option
+*/
+  Future<List<BranchLinkDining>> readAllBranchLinkDiningOption() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      'SELECT a.*, b.name FROM $tableBranchLinkDining AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ?',
+      ['', '']
+    );
+    return result.map((json) => BranchLinkDining.fromJson(json)).toList();
+  }
+
+
+
+
 
 /*
   read all refund order
@@ -3229,12 +3245,13 @@ class PosDatabase {
   Future<int> updatePrinter(Printer data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tablePrinter SET printerLabel = ?, paper_size = ?, type = ?, value = ?, updated_at = ? WHERE printer_sqlite_id = ?',
+        'UPDATE $tablePrinter SET printerLabel = ?, paper_size = ?, type = ?, value = ?, printer_status = ?,updated_at = ? WHERE printer_sqlite_id = ?',
         [
           data.printerLabel,
           data.paper_size,
           data.type,
           data.value,
+          data.printer_status,
           data.updated_at,
           data.printer_sqlite_id
         ]);

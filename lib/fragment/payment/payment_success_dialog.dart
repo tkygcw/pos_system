@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
+import 'package:pos_system/object/print_receipt.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -93,7 +94,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                         primary: color.backgroundColor,
                                         padding: EdgeInsets.fromLTRB(0, 30, 0, 30)),
                                     onPressed: () async {
-                                      await _printReceiptList();
+                                      await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
                                       await createCashRecord();
                                       closeDialog(context);
                                       tableModel.changeContent(true);
@@ -114,10 +115,11 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                     ),
                                     onPressed: () async {
                                       await createCashRecord();
-                                      closeDialog(context);
                                       tableModel.changeContent(true);
                                       cartModel.initialLoad();
-                                      widget.callback();
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
                                     },
                                     child: Text('${AppLocalizations.of(context)?.translate('close')}')),
                               )
@@ -143,7 +145,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                       primary: color.backgroundColor,
                                     ),
                                     onPressed: () async {
-                                      await _printReceiptList();
+                                      await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
                                       await createCashRecord();
                                       closeDialog(context);
                                       tableModel.changeContent(true);
@@ -193,7 +195,8 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     }
     await updateOrderCache();
     await readAllPrinters();
-    await _printReceiptList();
+    await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
+    //await _printReceiptList();
     //await deleteOrderCache();
     isLoaded = true;
   }
@@ -483,84 +486,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
         }
       }
-    }
-  }
-
-  _printReceiptList() async {
-    try {
-      for (int i = 0; i < printerList.length; i++) {
-        List<PrinterLinkCategory> data =
-            await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-        for (int j = 0; j < data.length; j++) {
-          if (data[j].category_sqlite_id == '0') {
-            var printerDetail = jsonDecode(printerList[i].value!);
-            if (printerList[i].type == 0) {
-              if (printerList[i].paper_size == 0) {
-                //print 80mm
-                var data = Uint8List.fromList(
-                    await ReceiptLayout().printReceipt80mm(true, widget.orderId, widget.selectedTableList));
-                bool? isConnected = await flutterUsbPrinter.connect(
-                    int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-                if (isConnected == true) {
-                  await flutterUsbPrinter.write(data);
-                } else {
-                  Fluttertoast.showToast(
-                      backgroundColor: Colors.red,
-                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-                }
-              } else {
-                //print 58mm
-                var data = Uint8List.fromList(
-                    await ReceiptLayout().printReceipt58mm(true, widget.orderId, widget.selectedTableList));
-                bool? isConnected = await flutterUsbPrinter.connect(
-                    int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-                if (isConnected == true) {
-                  await flutterUsbPrinter.write(data);
-                } else {
-                  Fluttertoast.showToast(
-                      backgroundColor: Colors.red,
-                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-                }
-              }
-            } else {
-              if (printerList[i].paper_size == 0) {
-                //print LAN 80mm
-                final profile = await CapabilityProfile.load();
-                final printer = NetworkPrinter(PaperSize.mm80, profile);
-                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-
-                if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printReceipt80mm(false, widget.orderId, widget.selectedTableList, value: printer);
-                  printer.disconnect();
-                } else {
-                  Fluttertoast.showToast(
-                      backgroundColor: Colors.red,
-                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-                }
-              } else {
-                //print LAN 58mm
-                final profile = await CapabilityProfile.load();
-                final printer = NetworkPrinter(PaperSize.mm58, profile);
-                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-
-                if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printReceipt58mm(false, widget.orderId, widget.selectedTableList,value: printer);
-                  printer.disconnect();
-                } else {
-                  Fluttertoast.showToast(
-                      backgroundColor: Colors.red,
-                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-                }
-              }
-            }
-          }
-        }
-      }
-    } catch (e) {
-      print('Printer Connection Error cart: ${e}');
-      Fluttertoast.showToast(
-          backgroundColor: Colors.red,
-          msg: "${AppLocalizations.of(context)?.translate('printing_error')}");
     }
   }
 

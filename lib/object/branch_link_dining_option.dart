@@ -32,6 +32,7 @@ class BranchLinkDining {
   String? updated_at;
   String? soft_delete;
   String? name;
+  int? total_bill;
 
   BranchLinkDining(
       {this.branch_link_dining_id,
@@ -42,7 +43,8 @@ class BranchLinkDining {
       this.created_at,
       this.updated_at,
       this.soft_delete,
-      this.name});
+      this.name,
+      this.total_bill});
 
   BranchLinkDining copy({
     int? branch_link_dining_id,

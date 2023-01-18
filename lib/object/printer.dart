@@ -11,6 +11,7 @@ class PrinterFields {
     printerLabel,
     printer_link_category_id,
     paper_size,
+    printer_status,
     sync_status,
     created_at,
     updated_at,
@@ -26,6 +27,7 @@ class PrinterFields {
   static String printerLabel = 'printerLabel';
   static String printer_link_category_id = 'printer_link_category_id';
   static String paper_size = 'paper_size';
+  static String printer_status = 'printer_status';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -42,6 +44,7 @@ class Printer {
   String? printerLabel;
   String? printer_link_category_id;
   int? paper_size;
+  int? printer_status;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -57,6 +60,7 @@ class Printer {
       this.printerLabel,
       this.printer_link_category_id,
       this.paper_size,
+      this.printer_status,
       this.sync_status,
       this.created_at,
       this.updated_at,
@@ -72,6 +76,7 @@ class Printer {
     String? printerLabel,
     String? printer_link_category_id,
     int? paper_size,
+    int? printer_status,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -87,6 +92,7 @@ class Printer {
         printerLabel: printerLabel ?? this.printerLabel,
         printer_link_category_id: printer_link_category_id ?? this.printer_link_category_id,
         paper_size: paper_size ?? this.paper_size,
+        printer_status: printer_status ?? this.printer_status,
         sync_status: sync_status ?? this.sync_status,
         created_at: created_at ?? this.created_at,
         updated_at: updated_at ?? this.updated_at,
@@ -102,6 +108,7 @@ class Printer {
     printerLabel: json[PrinterFields.printerLabel] as String?,
     printer_link_category_id: json[PrinterFields.printer_link_category_id] as String?,
     paper_size: json[PrinterFields.paper_size] as int?,
+    printer_status: json[PrinterFields.printer_status] as int?,
     sync_status: json[PrinterFields.sync_status] as int?,
     created_at: json[PrinterFields.created_at] as String?,
     updated_at: json[PrinterFields.updated_at] as String?,
@@ -118,6 +125,7 @@ class Printer {
     PrinterFields.printerLabel: printerLabel,
     PrinterFields.printer_link_category_id: printer_link_category_id,
     PrinterFields.paper_size: paper_size,
+    PrinterFields.printer_status: printer_status,
     PrinterFields.sync_status: sync_status,
     PrinterFields.created_at: created_at,
     PrinterFields.updated_at: updated_at,
