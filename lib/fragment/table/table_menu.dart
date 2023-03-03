@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -24,6 +25,7 @@ import '../../object/modifier_item.dart';
 import '../../object/modifier_link_product.dart';
 import '../../object/order_detail.dart';
 import '../../object/order_modifier_detail.dart';
+import '../../object/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/product.dart';
 import '../../object/product_variant.dart';
@@ -32,8 +34,9 @@ import '../../object/variant_group.dart';
 import '../../object/variant_item.dart';
 
 class TableMenu extends StatefulWidget {
+  final CartModel cartModel;
   final Function() callBack;
-  const TableMenu({Key? key, required this.callBack}) : super(key: key);
+  const TableMenu({Key? key, required this.callBack, required this.cartModel}) : super(key: key);
 
   @override
   _TableMenuState createState() => _TableMenuState();
@@ -58,6 +61,9 @@ class _TableMenuState extends State<TableMenu> {
     super.initState();
     readAllTable();
     readAllPrinters();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.cartModel.initialLoad();
+    });
   }
 
   @override
@@ -243,20 +249,24 @@ class _TableMenuState extends State<TableMenu> {
                                                     : MediaQuery.of(context).size.height / 6,
                                             child: Stack(
                                               children: [
-                                                // Ink.image(
-                                                //   image: tableList[index].seats == '2'
-                                                //       ? NetworkImage(
-                                                //           "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
-                                                //       : tableList[index].seats == '4'
-                                                //           ? NetworkImage(
-                                                //               "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
-                                                //           : tableList[index].seats == '6'
-                                                //               ? NetworkImage(
-                                                //                   "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
-                                                //               : NetworkImage(
-                                                //                   "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
-                                                //   fit: BoxFit.cover,
-                                                // ),
+                                                Ink.image(
+                                                  image: tableList[index].seats == '2'
+                                                      ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/two-seat.jpg'))
+                                                  // NetworkImage(
+                                                  //         "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
+                                                      : tableList[index].seats == '4'
+                                                          ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/four-seat.jpg'))
+                                                  // NetworkImage(
+                                                  //             "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
+                                                          : tableList[index].seats == '6'
+                                                              ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/six-seat.jpg'))
+                                                  // NetworkImage(
+                                                  //                 "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
+                                                              : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/duitNow.jpg')),
+                                                  // NetworkImage(
+                                                  //                 "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                                                  fit: BoxFit.cover,
+                                                ),
                                                 Container(
                                                     alignment: Alignment.center,
                                                     child: Text("#" + tableList[index].number!)),
@@ -321,7 +331,6 @@ class _TableMenuState extends State<TableMenu> {
             child: Opacity(
                 opacity: a1.value,
                 child: TableChangeDialog(
-                  printerList: printerList,
                   object: posTable,
                   callBack: () {
                     readAllTable();
@@ -365,11 +374,7 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   readAllPrinters() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
-    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter(branch_id!);
-    printerList = List.from(data);
+    printerList = await PrintReceipt().readAllPrinters();
   }
 
   readAllTable({model}) async {
@@ -378,10 +383,8 @@ class _TableMenuState extends State<TableMenu> {
       model.changeContent2(false);
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
     List<PosTable> data =
-        await PosDatabase.instance.readAllTable(branch_id!.toInt());
+        await PosDatabase.instance.readAllTable();
 
     tableList = List.from(data);
     await readAllTableGroup();
@@ -583,7 +586,9 @@ class _TableMenuState extends State<TableMenu> {
           orderDetailList[i].order_cache_sqlite_id,
           toColor(posTable.card_color!),
           category_sqlite_id: orderDetailList[i].category_sqlite_id,
-          order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString());
+          order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString(),
+          base_price: orderDetailList[i].original_price
+      );
       cart.addItem(value);
     }
     for (int j = 0; j < orderCacheList.length; j++) {

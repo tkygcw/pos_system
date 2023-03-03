@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/refund.dart';
@@ -27,251 +29,282 @@ class ReportOverview extends StatefulWidget {
 }
 
 class _ReportOverviewState extends State<ReportOverview> {
-  late TextEditingController _controller;
-  DateRangePickerController _dateRangePickerController = DateRangePickerController();
   DateFormat dateFormat = DateFormat("dd/MM/yyyy");
-  String currentStDate = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
-  String currentEdDate = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
+  String currentStDate = '';
+  String currentEdDate = '';
   List<Order> paidOrderList = [], dateOrderList = [], dateRefundList = [];
   List<OrderDetail> cancelledOrderDetail = [], dateOrderDetail = [];
   List<OrderPromotionDetail> paidPromotionDetail = [], datePromotionDetail = [];
   List<OrderTaxDetail> paidOrderTaxDetail = [], dateTaxDetail = [];
   List<PaymentLinkCompany> paymentList = [];
   List<BranchLinkTax> branchTaxList = [];
+  List<OrderDetailCancel> dateOrderDetailCancel = [];
   ReportObject? reportObject;
   String jsonPayment = '';
   double totalSales = 0.0, totalRefundAmount = 0.0;
   double totalPromotionAmount = 0.0;
-  String dateTimeNow = '';
-  String _range = '';
   bool isLoaded = false;
-
-  void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
-    DateFormat _dateFormat = DateFormat("yyyy-MM-dd 00:00:00");
-    if (args.value is PickerDateRange) {
-      _range = '${DateFormat('dd/MM/yyyy').format(args.value.startDate)} -'
-      // ignore: lines_longer_than_80_chars
-          ' ${DateFormat('dd/MM/yyyy').format(args.value.endDate ?? args.value.startDate)}';
-
-      currentStDate = _dateFormat.format(args.value.startDate);
-      currentEdDate = _dateFormat.format(args.value.endDate ?? args.value.startDate);
-      _dateRangePickerController.selectedRange = PickerDateRange(args.value.startDate, args.value.endDate ?? args.value.startDate);
-    }
-  }
 
   @override
   void initState() {
     super.initState();
-    dateTimeNow = dateFormat.format(DateTime.now());
-    _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
-    _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
-    preload();
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return LayoutBuilder(builder: (context, constraints) {
-        if (constraints.maxWidth > 800) {
-          return isLoaded == true
-              ? Scaffold(
-                  resizeToAvoidBottomInset: false,
-                  body: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      children: [
-                        Row(
+      return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child) {
+        preload(reportModel);
+          return LayoutBuilder(builder: (context, constraints) {
+            if (constraints.maxWidth > 800) {
+              return isLoaded == true ?
+              Scaffold(
+                      resizeToAvoidBottomInset: false,
+                      body: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Column(
                           children: [
-                            Container(
-                              child: Text('Overview',
-                                  style: TextStyle(fontSize: 25, color: Colors.black)),
+                            Row(
+                              children: [
+                                Container(
+                                  child: Text('Overview',
+                                      style: TextStyle(fontSize: 25, color: Colors.black)),
+                                ),
+                              ],
                             ),
+                            SizedBox(height: 5),
+                            Divider(
+                              height: 10,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(height: 5),
+                            Container(
+                                child: GridView.count(
+                              physics: NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              crossAxisSpacing: 5,
+                              mainAxisSpacing: 5,
+                              crossAxisCount: 4,
+                              childAspectRatio: (1 / .4),
+                              children: [
+                                Container(
+                                  child: Card(
+                                    color: color.iconColor,
+                                    elevation: 5,
+                                    child: ListTile(
+                                      title: Text('Total bills'),
+                                      subtitle: Text('${dateOrderList.length}',
+                                          style: TextStyle(color: Colors.black, fontSize: 24)),
+                                      trailing: Icon(Icons.receipt_long),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  child: Card(
+                                    color: color.iconColor,
+                                    elevation: 5,
+                                    child: ListTile(
+                                      title: Text('Total Sales (MYR)'),
+                                      subtitle: Text('${totalSales.toStringAsFixed(2)}',
+                                          style: TextStyle(color: Colors.black, fontSize: 24)),
+                                      trailing: Icon(Icons.monetization_on),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  child: Card(
+                                    color: color.iconColor,
+                                    elevation: 5,
+                                    child: ListTile(
+                                      title: Text('Total Refund bill'),
+                                      subtitle: Text('${dateRefundList.length}',
+                                          style: TextStyle(color: Colors.black, fontSize: 24)),
+                                      trailing: Icon(Icons.refresh),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  child: Card(
+                                    color: color.iconColor,
+                                    elevation: 5,
+                                    child: ListTile(
+                                      title: Text('Total Refund'),
+                                      subtitle: Text('${totalRefundAmount.toStringAsFixed(2)}',
+                                          style: TextStyle(color: Colors.black, fontSize: 24)),
+                                      trailing: Icon(Icons.cancel),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  child: Card(
+                                    color: color.iconColor,
+                                    elevation: 5,
+                                    child: ListTile(
+                                      title: Text('Total discount'),
+                                      subtitle: Text('${totalPromotionAmount.toStringAsFixed(2)}',
+                                          style: TextStyle(color: Colors.black, fontSize: 24)),
+                                      trailing: Icon(Icons.discount),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  child: Card(
+                                    color: color.iconColor,
+                                    elevation: 5,
+                                    child: ListTile(
+                                      title: Text('Total Cancelled item'),
+                                      subtitle: dateOrderDetailCancel[0].total_item != null ?
+                                      Text('${dateOrderDetailCancel[0].total_item}',
+                                          style: TextStyle(color: Colors.black, fontSize: 24))
+                                          :
+                                      Text('0', style: TextStyle(color: Colors.black, fontSize: 24)),
+                                      trailing: Icon(Icons.no_food),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )),
                             Spacer(),
                             Container(
-                                margin: EdgeInsets.only(right: 10),
-                                child: IconButton(
-                                  onPressed: () {
-                                    showDialog(context: context, builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Text('Select a date range'),
-                                        content: Container(
-                                          height: 350,
-                                          width: 350,
-                                          child: Container(
-                                            child: Card(
-                                              child: SfDateRangePicker(
-                                                controller: _dateRangePickerController,
-                                                selectionMode: DateRangePickerSelectionMode.range,
-                                                onSelectionChanged: _onSelectionChanged,
-                                                showActionButtons: true,
-                                                onSubmit: (object) {
-                                                  this.dateOrderList.clear();
-                                                  this.dateOrderDetail.clear();
-                                                  this.dateTaxDetail.clear();
-                                                  this.datePromotionDetail.clear();
-                                                  _controller = new TextEditingController(text: '${_range}');
-                                                  preload();
-                                                  Navigator.of(context).pop();
-                                                },
-                                                onCancel: (){
-                                                  Navigator.of(context).pop();
-                                                },
-
-                                              ),
+                              //flex: 2,
+                              child: GridView.count(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 10,
+                                childAspectRatio: MediaQuery.of(context).size.height < 750 ? (1 / .6) : (1 / .7),
+                                children: [
+                                  Container(
+                                    child: Card(
+                                      color: color.iconColor,
+                                      elevation: 5,
+                                      child: Padding(
+                                        padding: EdgeInsets.all(20),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              margin: EdgeInsets.only(bottom: 20),
+                                              child: Text('Payment Overview',
+                                                  style: TextStyle(fontSize: 20)),
                                             ),
-                                          ),
+                                            Container(
+                                              child: Table(
+                                                children: [
+                                                  for (var payment in paymentList)
+                                                    TableRow(children: [
+                                                      Container(
+                                                        padding: EdgeInsets.only(bottom: 10),
+                                                        child: Text('${payment.name}'),
+                                                      ),
+                                                      Container(
+                                                        padding: EdgeInsets.only(bottom: 10),
+                                                        child: Text('${payment.total_bill}'),
+                                                      ),
+                                                      Container(
+                                                        padding: EdgeInsets.only(bottom: 10),
+                                                        child: Text(
+                                                            '${payment.totalAmount.toStringAsFixed(2)}'),
+                                                      ),
+                                                    ]),
+                                                ],
+                                              ),
+                                            )
+                                          ],
                                         ),
-                                      );
-                                    });
-                                  },
-                                  icon: Icon(Icons.calendar_month),
-                                )),
-                            Container(
-                              width: 300,
-                              child: TextField(
-                                controller: _controller,
-                                enabled: false,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    child: Card(
+                                      color: color.iconColor,
+                                      elevation: 5,
+                                      child: Padding(
+                                        padding: EdgeInsets.all(20),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              margin: EdgeInsets.only(bottom: 20),
+                                              child: Text('Charges Overview',
+                                                  style: TextStyle(fontSize: 20)),
+                                            ),
+                                            branchTaxList.isNotEmpty ?
+                                            Container(
+                                              child: Table(
+                                                children: [
+                                                  for (var branchTax in branchTaxList)
+                                                  TableRow(children: [
+                                                    Container(
+                                                      padding: EdgeInsets.only(bottom: 10),
+                                                      child: Text('${branchTax.tax_name}'),
+                                                    ),
+                                                    Container(
+                                                      padding: EdgeInsets.only(bottom: 10),
+                                                      child: Text('${branchTax.total_amount.toStringAsFixed(2)}'),
+                                                    ),
+                                                  ]),
+                                                ],
+                                              ),
+                                            ) :
+                                            Center(
+                                              heightFactor: 5,
+                                              child: Column(
+                                                children: [
+                                                  Icon(Icons.no_meals_ouline),
+                                                  Text('No Charges Record')
+                                                ],
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
+                            )
                           ],
                         ),
-                        SizedBox(height: 5),
-                        Divider(
-                          height: 10,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 5),
-                        Container(
-                            child: GridView.count(
-                          physics: NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          crossAxisSpacing: 5,
-                          mainAxisSpacing: 5,
-                          crossAxisCount: 4,
-                          childAspectRatio: (1 / .4),
-                          children: [
-                            Container(
-                              child: Card(
-                                color: color.iconColor,
-                                elevation: 5,
-                                child: ListTile(
-                                  title: Text('Total bills'),
-                                  subtitle: Text('${dateOrderList.length}',
-                                      style: TextStyle(color: Colors.black, fontSize: 24)),
-                                  trailing: Icon(Icons.receipt_long),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              child: Card(
-                                color: color.iconColor,
-                                elevation: 5,
-                                child: ListTile(
-                                  title: Text('Total Sales (MYR)'),
-                                  subtitle: Text('${totalSales.toStringAsFixed(2)}',
-                                      style: TextStyle(color: Colors.black, fontSize: 24)),
-                                  trailing: Icon(Icons.monetization_on),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              child: Card(
-                                color: color.iconColor,
-                                elevation: 5,
-                                child: ListTile(
-                                  title: Text('Total Refund bill'),
-                                  subtitle: Text('${dateRefundList.length}',
-                                      style: TextStyle(color: Colors.black, fontSize: 24)),
-                                  trailing: Icon(Icons.refresh),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              child: Card(
-                                color: color.iconColor,
-                                elevation: 5,
-                                child: ListTile(
-                                  title: Text('Total Refund'),
-                                  subtitle: Text('${totalRefundAmount.toStringAsFixed(2)}',
-                                      style: TextStyle(color: Colors.black, fontSize: 24)),
-                                  trailing: Icon(Icons.cancel),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              child: Card(
-                                color: color.iconColor,
-                                elevation: 5,
-                                child: ListTile(
-                                  title: Text('Total discount'),
-                                  subtitle: Text('${totalPromotionAmount.toStringAsFixed(2)}',
-                                      style: TextStyle(color: Colors.black, fontSize: 24)),
-                                  trailing: Icon(Icons.discount),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              child: Card(
-                                color: color.iconColor,
-                                elevation: 5,
-                                child: ListTile(
-                                  title: Text('Total Cancellation'),
-                                  subtitle: Text('${dateOrderDetail.length}',
-                                      style: TextStyle(color: Colors.black, fontSize: 24)),
-                                  trailing: Icon(Icons.no_food),
-                                ),
-                              ),
-                            ),
-                          ],
-                        )),
-                        Spacer(),
-                        Container(
-                          //flex: 2,
+                      ),
+                    )
+                  : CustomProgressBar();
+            } else {
+              ///mobile view
+              return isLoaded == true ?
+              Scaffold(
+                resizeToAvoidBottomInset: false,
+                body: Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        child: Text('Overview',
+                            style: TextStyle(fontSize: 25, color: Colors.black)),
+                      ),
+                      SizedBox(height: 5),
+                      Divider(
+                        height: 10,
+                        color: Colors.grey,
+                      ),
+                      SizedBox(height: 5),
+                      Container(
                           child: GridView.count(
                             shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 10,
-                            childAspectRatio: MediaQuery.of(context).size.height < 750 ? (1 / .6) : (1 / .7),
+                            crossAxisSpacing: 5,
+                            mainAxisSpacing: 5,
+                            crossAxisCount: 4,
+                            childAspectRatio: (1 / 0.8),
                             children: [
                               Container(
                                 child: Card(
                                   color: color.iconColor,
                                   elevation: 5,
-                                  child: Padding(
-                                    padding: EdgeInsets.all(20),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          margin: EdgeInsets.only(bottom: 20),
-                                          child: Text('Payment Overview',
-                                              style: TextStyle(fontSize: 20)),
-                                        ),
-                                        Container(
-                                          child: Table(
-                                            children: [
-                                              for (var payment in paymentList)
-                                                TableRow(children: [
-                                                  Container(
-                                                    padding: EdgeInsets.only(bottom: 10),
-                                                    child: Text('${payment.name}'),
-                                                  ),
-                                                  Container(
-                                                    padding: EdgeInsets.only(bottom: 10),
-                                                    child: Text('${payment.total_bill}'),
-                                                  ),
-                                                  Container(
-                                                    padding: EdgeInsets.only(bottom: 10),
-                                                    child: Text(
-                                                        '${payment.totalAmount.toStringAsFixed(2)}'),
-                                                  ),
-                                                ]),
-                                            ],
-                                          ),
-                                        )
-                                      ],
-                                    ),
+                                  child: ListTile(
+                                    title: Text('Total bills'),
+                                    subtitle: Text('${dateOrderList.length}',
+                                        style: TextStyle(color: Colors.black, fontSize: 24)),
                                   ),
                                 ),
                               ),
@@ -279,21 +312,129 @@ class _ReportOverviewState extends State<ReportOverview> {
                                 child: Card(
                                   color: color.iconColor,
                                   elevation: 5,
-                                  child: Padding(
-                                    padding: EdgeInsets.all(20),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          margin: EdgeInsets.only(bottom: 20),
-                                          child: Text('Charges Overview',
-                                              style: TextStyle(fontSize: 20)),
+                                  child: ListTile(
+                                    title: Text('Total Sales (MYR)'),
+                                    subtitle: Text('${totalSales.toStringAsFixed(2)}',
+                                        style: TextStyle(color: Colors.black, fontSize: 24)),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                child: Card(
+                                  color: color.iconColor,
+                                  elevation: 5,
+                                  child: ListTile(
+                                    title: Text('Total Refund bill'),
+                                    subtitle: Text('${dateRefundList.length}',
+                                        style: TextStyle(color: Colors.black, fontSize: 24)),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                child: Card(
+                                  color: color.iconColor,
+                                  elevation: 5,
+                                  child: ListTile(
+                                    title: Text('Total Refund'),
+                                    subtitle: Text('${totalRefundAmount.toStringAsFixed(2)}',
+                                        style: TextStyle(color: Colors.black, fontSize: 24)),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                child: Card(
+                                  color: color.iconColor,
+                                  elevation: 5,
+                                  child: ListTile(
+                                    title: Text('Total discount'),
+                                    subtitle: Text('${totalPromotionAmount.toStringAsFixed(2)}',
+                                        style: TextStyle(color: Colors.black, fontSize: 24)),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                child: Card(
+                                  color: color.iconColor,
+                                  elevation: 5,
+                                  child: ListTile(
+                                    title: Text('Total Cancelled Item'),
+                                    subtitle: Text('${dateOrderDetail.length}',
+                                        style: TextStyle(color: Colors.black, fontSize: 24)),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )),
+                      Spacer(),
+                      Container(
+                        //flex: 2,
+                        child: GridView.count(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 10,
+                          childAspectRatio: MediaQuery.of(context).size.height < 750 ? (1 / .6) : (1 / .7),
+                          children: [
+                            Container(
+                              child: Card(
+                                color: color.iconColor,
+                                elevation: 5,
+                                child: Padding(
+                                  padding: EdgeInsets.all(20),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        margin: EdgeInsets.only(bottom: 20),
+                                        child: Text('Payment Overview',
+                                            style: TextStyle(fontSize: 20)),
+                                      ),
+                                      Container(
+                                        child: Table(
+                                          children: [
+                                            for (var payment in paymentList)
+                                              TableRow(children: [
+                                                Container(
+                                                  padding: EdgeInsets.only(bottom: 10),
+                                                  child: Text('${payment.name}'),
+                                                ),
+                                                Container(
+                                                  padding: EdgeInsets.only(bottom: 10),
+                                                  child: Text('${payment.total_bill}'),
+                                                ),
+                                                Container(
+                                                  padding: EdgeInsets.only(bottom: 10),
+                                                  child: Text(
+                                                      '${payment.totalAmount.toStringAsFixed(2)}'),
+                                                ),
+                                              ]),
+                                          ],
                                         ),
-                                        branchTaxList.isNotEmpty ?
-                                        Container(
-                                          child: Table(
-                                            children: [
-                                              for (var branchTax in branchTaxList)
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              child: Card(
+                                color: color.iconColor,
+                                elevation: 5,
+                                child: Padding(
+                                  padding: EdgeInsets.all(20),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        margin: EdgeInsets.only(bottom: 20),
+                                        child: Text('Charges Overview',
+                                            style: TextStyle(fontSize: 20)),
+                                      ),
+                                      branchTaxList.isNotEmpty ?
+                                      Container(
+                                        child: Table(
+                                          children: [
+                                            for (var branchTax in branchTaxList)
                                               TableRow(children: [
                                                 Container(
                                                   padding: EdgeInsets.only(bottom: 10),
@@ -304,45 +445,40 @@ class _ReportOverviewState extends State<ReportOverview> {
                                                   child: Text('${branchTax.total_amount.toStringAsFixed(2)}'),
                                                 ),
                                               ]),
-                                            ],
-                                          ),
-                                        ) :
-                                        Center(
-                                          heightFactor: 5,
-                                          child: Column(
-                                            children: [
-                                              Icon(Icons.no_meals_ouline),
-                                              Text('No Charges Record')
-                                            ],
-                                          ),
-                                        )
-                                      ],
-                                    ),
+                                          ],
+                                        ),
+                                      ) :
+                                      Center(
+                                        heightFactor: 5,
+                                        child: Column(
+                                          children: [
+                                            Icon(Icons.no_meals_ouline),
+                                            Text('No Charges Record')
+                                          ],
+                                        ),
+                                      )
+                                    ],
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
                   ),
-                )
-              : CustomProgressBar();
-        } else {
-          return Scaffold(
-            resizeToAvoidBottomInset: false,
-            body: Container(
-              padding: const EdgeInsets.all(8),
-              child: Text('this is overview'),
-            ),
-          );
+                ),
+              ) : CustomProgressBar();
+            }
+          });
         }
-      });
+      );
     });
   }
 
-  preload() async {
+  preload(ReportModel reportModel) async {
+    this.currentStDate = reportModel.startDateTime;
+    this.currentEdDate = reportModel.endDateTime;
     await getAllPaidOrder();
     await readPaymentLinkCompany();
     await readBranchTaxes();
@@ -398,11 +534,13 @@ class _ReportOverviewState extends State<ReportOverview> {
   }
 
   getAllCancelOrderDetail() async {
-    ReportObject object = await ReportObject().getAllCancelOrderDetail(currentStDate: currentStDate, currentEdDate: currentEdDate);
+    ReportObject object = await ReportObject().getTotalCancelledItem(currentStDate: currentStDate, currentEdDate: currentEdDate);
     reportObject  = object;
-    dateOrderDetail = object.dateOrderDetail!;
-    setState(() {
-      isLoaded = true;
-    });
+    dateOrderDetailCancel = object.dateOrderDetailCancelList!;
+    if(mounted){
+      setState(() {
+        isLoaded = true;
+      });
+    }
   }
 }

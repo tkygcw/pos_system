@@ -9,17 +9,29 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
+import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/order_detail_cancel.dart';
+import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/print_receipt.dart';
+import 'package:pos_system/object/refund.dart';
+import 'package:pos_system/object/settlement.dart';
+import 'package:pos_system/object/settlement_link_payment.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/branch_link_tax.dart';
 import '../../object/cash_record.dart';
+import '../../object/order.dart';
+import '../../object/order_tax_detail.dart';
+import '../../object/payment_link_company.dart';
 import '../../object/printer.dart';
 import '../../object/printer_link_category.dart';
 import '../../object/receipt_layout.dart';
+import '../../object/report_class.dart';
 import '../../object/user.dart';
 import '../../page/loading_dialog.dart';
 import '../../translation/AppLocalizations.dart';
@@ -37,13 +49,23 @@ class _SettlementDialogState extends State<SettlementDialog> {
   final adminPosPinController = TextEditingController();
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+  String currentEdDate = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
+  double totalSales = 0.0, totalRefundAmount = 0.0, totalPromotionAmount = 0.0, totalTax = 0.0;
+  List<Order> dateOrderList = [], dateRefundList = [];
+  List<OrderPromotionDetail> datePromotionDetail = [];
+  List<OrderDetailCancel> dateOrderDetailCancel = [];
+  List<OrderTaxDetail> dateTaxList = [];
+  List<PaymentLinkCompany> paymentList = [];
   List<Printer> printerList = [];
+  String localSettlementId = '', settlementKey = '';
   bool _submitted = false;
+  bool _isLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    readAllPrinters();
+    print('sub string: ${widget.cashRecordList[0].created_at!.substring(0, 10)}');
+    preload();
   }
 
   @override
@@ -126,7 +148,9 @@ class _SettlementDialogState extends State<SettlementDialog> {
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                 onPressed: () async {
-                  _submit(context, connectivity);
+                  if(_isLoaded){
+                    _submit(context, connectivity);
+                  }
                 },
               ),
             ],
@@ -171,21 +195,159 @@ class _SettlementDialogState extends State<SettlementDialog> {
   readAdminData(String pin, ConnectivityChangeNotifier connectivity) async {
     try {
       String dateTime = dateFormat.format(DateTime.now());
-
       List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
       if (userData.length > 0) {
-        //update all today cash record settlement date
-        await updateAllCashRecordSettlement(dateTime, connectivity);
-        //print settlement list
-        await PrintReceipt().printSettlementList(printerList, dateTime, context);
+        List<Settlement> settlementData = await PosDatabase.instance.readAllSettlement();
+        if(settlementData.isNotEmpty){
+          if(widget.cashRecordList[0].created_at!.substring(0, 10) != settlementData[0].created_at!.substring(0, 10)){
+            //create settlement
+            await createSettlement();
+            createSettlementLinkPayment();
+            //update all today cash record settlement date
+            await updateAllCashRecordSettlement(dateTime, connectivity);
+            //print settlement list
+            await PrintReceipt().printSettlementList(printerList, dateTime, context);
+          } else {
+            //update settlement
+            updateSettlement(settlementData[0].settlement_sqlite_id!);
+            updateSettlementLinkPayment();
+            //update all today cash record settlement date
+            await updateAllCashRecordSettlement(dateTime, connectivity);
+            //print settlement list
+            await PrintReceipt().printSettlementList(printerList, dateTime, context);
+          }
+        } else {
+          //create settlement
+          await createSettlement();
+          await createSettlementLinkPayment();
+          //update all today cash record settlement date
+          await updateAllCashRecordSettlement(dateTime, connectivity);
+          //print settlement list
+          await PrintReceipt().printSettlementList(printerList, dateTime, context);
+        }
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
       }
     } catch (e) {
-      print('delete error ${e}');
+      print('user checking error ${e}');
     }
+  }
 
+  generateSettlementKey(Settlement settlement) async  {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes  = settlement.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + settlement.settlement_sqlite_id.toString() + device_id.toString();
+    print('bytes: ${bytes}');
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
+  insertSettlementKey(Settlement settlement, String dateTime) async {
+    String? _key;
+    Settlement? _data;
+    _key = await generateSettlementKey(settlement);
+    if(_key != null){
+      Settlement object = Settlement(
+        settlement_key: _key,
+        sync_status: 0,
+        updated_at: dateTime,
+        settlement_sqlite_id: settlement.settlement_sqlite_id
+      );
+
+      int updatedData = await PosDatabase.instance.updateSettlementUniqueKey(object);
+      if(updatedData == 1){
+        Settlement data = await PosDatabase.instance.readSpecificSettlementByLocalId(settlement.settlement_sqlite_id!);
+        _data = data;
+      }
+    }
+    return _data;
+  }
+
+  createSettlement() async {
+    List<String> value = [];
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final String? login_user = prefs.getString('user');
+    final int? branch_id = prefs.getInt('branch_id');
+    final String? pos_user = prefs.getString('pos_pin_user');
+    Map logInUser = json.decode(login_user!);
+    Map userObject = json.decode(pos_user!);
+
+    Settlement object = Settlement(
+      settlement_id: 0,
+      settlement_key: '',
+      company_id: logInUser['company_id'].toString(),
+      branch_id: branch_id.toString(),
+      total_bill: dateOrderList.length.toString(),
+      total_sales: this.totalSales.toStringAsFixed(2),
+      total_refund_bill: dateRefundList.length.toString(),
+      total_refund_amount: totalRefundAmount.toStringAsFixed(2),
+      total_discount: totalPromotionAmount.toStringAsFixed(2),
+      total_cancellation: dateOrderDetailCancel[0].total_item.toString(),
+      total_tax: totalTax.toStringAsFixed(2),
+      settlement_by_user_id: userObject['user_id'].toString(),
+      settlement_by: userObject['name'].toString(),
+      status: 0,
+      sync_status: 0,
+      created_at: dateTime,
+      updated_at: '',
+      soft_delete: ''
+    );
+    Settlement data = await PosDatabase.instance.insertSqliteSettlement(object);
+    Settlement updatedData = await insertSettlementKey(data, dateTime);
+    localSettlementId = updatedData.settlement_sqlite_id.toString();
+    settlementKey = updatedData.settlement_key!;
+    value.add(jsonEncode(updatedData));
+    print('value: ${value.toString()}');
+    syncSettlementToCloud(value.toString());
+  }
+
+  syncSettlementToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map settlementResponse = await Domain().SyncSettlementToCloud(value);
+      if (settlementResponse['status'] == '1') {
+        List responseJson = settlementResponse['data'];
+        for (int i = 0; i < responseJson.length; i++) {
+          int syncUpdated = await PosDatabase.instance.updateSettlementSyncStatusFromCloud(responseJson[i]['settlement_key']);
+        }
+      }
+    }
+  }
+
+  updateSettlement(int settlement_sqlite_id) async {
+    List<String> value = [];
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final String? pos_user = prefs.getString('pos_pin_user');
+    Map userObject = json.decode(pos_user!);
+
+    Settlement checkData = await PosDatabase.instance.readSpecificSettlementByLocalId(settlement_sqlite_id);
+    Settlement object = Settlement(
+        settlement_sqlite_id: settlement_sqlite_id,
+        total_bill: dateOrderList.length.toString(),
+        total_sales: this.totalSales.toStringAsFixed(2),
+        total_refund_bill: dateRefundList.length.toString(),
+        total_refund_amount: totalRefundAmount.toStringAsFixed(2),
+        total_discount: totalPromotionAmount.toStringAsFixed(2),
+        total_cancellation: dateOrderDetailCancel[0].total_item.toString(),
+        total_tax: totalTax.toStringAsFixed(2),
+        settlement_by_user_id: userObject['user_id'].toString(),
+        settlement_by: userObject['name'].toString(),
+        status: 0,
+        sync_status: checkData.sync_status == 0 ? 0 : 2,
+        updated_at: dateTime,
+    );
+
+    int data = await PosDatabase.instance.updateSettlement(object);
+    if(data == 1){
+      Settlement updatedData = await PosDatabase.instance.readSpecificSettlementByLocalId(settlement_sqlite_id);
+      value.add(jsonEncode(updatedData));
+    }
+    //sync to cloud
+    syncSettlementToCloud(value.toString());
   }
 
   updateAllCashRecordSettlement(String dateTime, ConnectivityChangeNotifier connectivity) async {
@@ -206,10 +368,10 @@ class _SettlementDialogState extends State<SettlementDialog> {
       }
     }
     //sync to cloud
-    await syncSettlementToCloud(_value.toString());
+    await syncSettlementCashRecordToCloud(_value.toString());
   }
 
-  syncSettlementToCloud(String value) async {
+  syncSettlementCashRecordToCloud(String value) async {
     bool _hasInternetAccess = await Domain().isHostReachable();
     if(_hasInternetAccess){
       Map response = await Domain().SyncCashRecordToCloud(value);
@@ -222,15 +384,181 @@ class _SettlementDialogState extends State<SettlementDialog> {
     }
   }
 
-  readAllPrinters() async {
+  generateSettlementLinkKey(SettlementLinkPayment settlementLinkPayment) async  {
     final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
-    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter(branch_id!);
-    printerList = List.from(data);
+    final int? device_id = prefs.getInt('device_id');
+    var bytes  = settlementLinkPayment.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') +
+        settlementLinkPayment.settlement_link_payment_sqlite_id.toString() + device_id.toString();
+    print('bytes: ${bytes}');
+    return md5.convert(utf8.encode(bytes)).toString();
   }
 
-/*
-  ----------------Other function part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-*/
+  insertSettlementLinkPaymentKey(SettlementLinkPayment settlementLinkPayment, String dateTime) async {
+    String? _key;
+    SettlementLinkPayment? _data;
+    _key = await generateSettlementLinkKey(settlementLinkPayment);
+    if(_key != null){
+      SettlementLinkPayment object = SettlementLinkPayment(
+        settlement_link_payment_key: _key,
+        sync_status: 0,
+        updated_at: dateTime,
+        settlement_link_payment_sqlite_id: settlementLinkPayment.settlement_link_payment_sqlite_id
+      );
+
+      int updatedData = await PosDatabase.instance.updateSettlementLinkPaymentUniqueKey(object);
+      if(updatedData == 1){
+        SettlementLinkPayment data = await PosDatabase.instance.readSpecificSettlementLinkPaymentByLocalId(settlementLinkPayment.settlement_link_payment_sqlite_id!);
+        _data = data;
+      }
+    }
+    return _data;
+  }
+
+  createSettlementLinkPayment() async {
+    List<String> _value = [];
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final String? login_user = prefs.getString('user');
+    final int? branch_id = prefs.getInt('branch_id');
+    final String? pos_user = prefs.getString('pos_pin_user');
+    Map logInUser = json.decode(login_user!);
+    Map userObject = json.decode(pos_user!);
+    print('settlement id: ${this.localSettlementId}');
+    for(int j = 0 ; j < paymentList.length; j++) {
+      SettlementLinkPayment object = SettlementLinkPayment(
+          settlement_link_payment_id: 0,
+          settlement_link_payment_key: '',
+          company_id: logInUser['company_id'].toString(),
+          branch_id: branch_id.toString(),
+          settlement_sqlite_id: localSettlementId,
+          settlement_key: settlementKey,
+          total_bill: paymentList[j].total_bill.toString(),
+          total_sales: paymentList[j].totalAmount.toStringAsFixed(2),
+          payment_link_company_id: paymentList[j].payment_link_company_id.toString(),
+          status: 0,
+          sync_status: 0,
+          created_at: dateTime,
+          updated_at: '',
+          soft_delete: ''
+      );
+
+      SettlementLinkPayment data = await PosDatabase.instance.insertSqliteSettlementLinkPayment(object);
+      SettlementLinkPayment updatedData = await insertSettlementLinkPaymentKey(data, dateTime);
+      _value.add(jsonEncode(updatedData));
+    }
+    syncSettlementLinkPaymentToCloud(_value.toString());
+  }
+
+  syncSettlementLinkPaymentToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map settlementResponse = await Domain().SyncSettlementLinkPaymentToCloud(value);
+      if (settlementResponse['status'] == '1') {
+        List responseJson = settlementResponse['data'];
+        for (int i = 0; i < responseJson.length; i++) {
+          int syncUpdated = await PosDatabase.instance.updateSettlementLinkPaymentSyncStatusFromCloud(responseJson[i]['settlement_link_payment_key']);
+        }
+      }
+    }
+  }
+
+  updateSettlementLinkPayment() async {
+    List<String> _value = [];
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+
+    for(int j = 0 ; j < paymentList.length; j++) {
+      SettlementLinkPayment checkData = await PosDatabase.instance.readSpecificSettlementLinkPaymentByLocalId(paymentList[j].payment_link_company_id!);
+      SettlementLinkPayment object = SettlementLinkPayment(
+          total_bill: paymentList[j].total_bill.toString(),
+          total_sales: paymentList[j].totalAmount.toStringAsFixed(2),
+          status: 0,
+          sync_status: checkData.sync_status == 0 ? 0 : 2,
+          updated_at: dateTime,
+          settlement_link_payment_sqlite_id: checkData.settlement_link_payment_sqlite_id
+      );
+      int status = await PosDatabase.instance.updateSettlementLinkPayment(object);
+      if(status == 1){
+        SettlementLinkPayment updatedData = await PosDatabase.instance.readSpecificSettlementLinkPaymentByPaymentLinkCompany(paymentList[j].payment_link_company_id!);
+        _value.add(jsonEncode(updatedData));
+      }
+      print('updated value: ${_value.toString()}');
+      // print('value: ${_value.toString()}');
+      syncSettlementLinkPaymentToCloud(_value.toString());
+    }
+  }
+
+  preload() async {
+    DateTime _startDate = DateTime.parse(widget.cashRecordList[0].created_at!);
+    String currentStDate = new DateFormat("yyyy-MM-dd 00:00:00").format(_startDate);
+    await getAllPaidOrder(currentStDate);
+    await getRefund(currentStDate);
+    await getAllPaidOrderPromotionDetail(currentStDate);
+    await getAllCancelOrderDetail(currentStDate);
+    await readPaymentLinkCompany();
+    await getBranchTaxes(currentStDate);
+    await readAllPrinters();
+    setState(() {
+      _isLoaded = true;
+    });
+  }
+
+  readPaymentLinkCompany() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    List<PaymentLinkCompany> data = await PosDatabase.instance.readAllPaymentLinkCompany(userObject['company_id']);
+    if (data.isNotEmpty) {
+      paymentList = data;
+      for(int j = 0 ; j < paymentList.length; j++){
+        for(int i = 0; i < dateOrderList.length; i++){
+          if(dateOrderList[i].payment_status != 2){
+            if(paymentList[j].payment_link_company_id == int.parse(dateOrderList[i].payment_link_company_id!)){
+              paymentList[j].total_bill ++;
+              paymentList[j].totalAmount += double.parse(dateOrderList[i].final_amount!);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  getAllPaidOrder(String currentStDate) async {
+    ReportObject object = await ReportObject().getAllPaidOrder(currentStDate: currentStDate, currentEdDate: currentEdDate);
+    dateOrderList = object.dateOrderList!;
+    totalSales = object.totalSales!;
+  }
+
+  getRefund(String currentStDate) async {
+    ReportObject object = await ReportObject().getAllRefundOrder(currentStDate: currentStDate, currentEdDate: currentEdDate);
+    dateRefundList = object.dateRefundOrderList!;
+    totalRefundAmount = object.totalRefundAmount!;
+  }
+
+  getAllPaidOrderPromotionDetail(String currentStDate) async {
+    ReportObject object = await ReportObject().getAllPaidOrderPromotionDetail(currentStDate: currentStDate, currentEdDate: currentEdDate);
+    datePromotionDetail = object.datePromotionDetail!;
+    totalPromotionAmount = object.totalPromotionAmount!;
+  }
+
+  getAllCancelOrderDetail(String currentStDate) async {
+    ReportObject object = await ReportObject().getTotalCancelledItem(currentStDate: currentStDate, currentEdDate: currentEdDate);
+    dateOrderDetailCancel = object.dateOrderDetailCancelList!;
+    //ateOrderDetail = object.dateOrderDetail!;
+  }
+
+  getBranchTaxes(String currentStDate) async {
+    ReportObject object = await ReportObject().getAllPaidOrderTaxDetail(currentStDate: currentStDate, currentEdDate: currentEdDate);
+    dateTaxList = object.dateTaxDetail!;
+    //totalTax = dateTaxList[0].total_tax_amount!;
+    for(int i = 0; i < dateTaxList.length; i++){
+      totalTax = totalTax + dateTaxList[i].total_tax_amount!;
+    }
+  }
+
+  readAllPrinters() async {
+    printerList = await PrintReceipt().readAllPrinters();
+  }
+
 }

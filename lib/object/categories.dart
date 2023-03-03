@@ -1,3 +1,5 @@
+import 'order_detail.dart';
+
 String? tableCategories = 'tb_categories';
 
 class CategoriesFields {
@@ -39,6 +41,9 @@ class Categories {
   String? soft_delete;
   int? item_sum;
   bool isChecked = false;
+  double? net_sales;
+  double? gross_sales;
+  List<OrderDetail> categoryOrderDetailList = [];
 
   Categories(
       {this.category_sqlite_id,
@@ -51,7 +56,9 @@ class Categories {
       this.created_at,
       this.updated_at,
       this.soft_delete,
-      this.item_sum});
+      this.item_sum,
+      this.gross_sales,
+      this.net_sales});
 
   Categories copy({
     int? category_sqlite_id,
@@ -90,6 +97,8 @@ class Categories {
         created_at: json[CategoriesFields.created_at] as String?,
         updated_at: json[CategoriesFields.updated_at] as String?,
         soft_delete: json[CategoriesFields.soft_delete] as String?,
+        net_sales: json['category_sales'] as double?,
+        gross_sales: json['category_gross_sales'] as double?,
         item_sum: json['item_sum'] as int?,
       );
 

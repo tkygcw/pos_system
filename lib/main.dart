@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/test_dual_screen/test_display.dart';
+import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
@@ -158,6 +159,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => TableModel(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ReportModel(),
         ),
       ],
       child: Consumer<AppLanguage>(builder: (context, model, child) {

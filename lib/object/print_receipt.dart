@@ -18,13 +18,20 @@ import '../translation/AppLocalizations.dart';
 class PrintReceipt{
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
 
+  readAllPrinters() async {
+    List<Printer> printerList = [];
+    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter();
+    printerList = List.from(data);
+    return printerList;
+  }
+
   printPaymentReceiptList(List<Printer> printerList, String orderId, List<PosTable> selectedTableList, context) async {
     try {
       for (int i = 0; i < printerList.length; i++) {
-        if(printerList[i].printer_status == 1){
+        if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
           List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
           for (int j = 0; j < data.length; j++) {
-            if (data[j].category_sqlite_id == '0') {
+            if (data[j].category_sqlite_id == '-1') {
               var printerDetail = jsonDecode(printerList[i].value!);
               if (printerList[i].type == 0) {
                 if (printerList[i].paper_size == 0) {
@@ -100,10 +107,10 @@ class PrintReceipt{
   printCartReceiptList(List<Printer> printerList, CartModel cart, String localOrderId, context) async {
     try {
       for (int i = 0; i < printerList.length; i++) {
-        if(printerList[i].printer_status == 1){
+        if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
           List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
           for (int j = 0; j < data.length; j++) {
-            if (data[j].category_sqlite_id == '0') {
+            if (data[j].category_sqlite_id == '-1') {
               var printerDetail = jsonDecode(printerList[i].value!);
               if (printerList[i].type == 0) {
                 if (printerList[i].paper_size == 0) {
@@ -175,10 +182,10 @@ class PrintReceipt{
   printCheckList(List<Printer> printerList, context) async {
     try {
       for (int i = 0; i < printerList.length; i++) {
-        if(printerList[i].printer_status == 1){
+        if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
           List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
           for (int j = 0; j < data.length; j++) {
-            if (data[j].category_sqlite_id == '0') {
+            if (data[j].category_sqlite_id == '-1') {
               var printerDetail = jsonDecode(printerList[i].value!);
               if (printerList[i].type == 0) {
                 //print USB 80mm
@@ -193,6 +200,7 @@ class PrintReceipt{
                         msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                   }
                 } else {
+                  //print 58mm
                   var data = Uint8List.fromList(await ReceiptLayout().printCheckList58mm(true));
                   bool? isConnected = await flutterUsbPrinter.connect(
                       int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
@@ -248,13 +256,12 @@ class PrintReceipt{
   printKitchenList(List<Printer> printerList, context, CartModel cart) async {
     try{
       for (int i = 0; i < printerList.length; i++) {
-        if(printerList[i].printer_status == 1){
+        if(printerList[i].printer_status == 1 && printerList[i].is_counter == 0){
           List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
           for (int j = 0; j < data.length; j++) {
             for (int k = 0; k < cart.cartNotifierItem.length; k++) {
               //check printer category
-              if (cart.cartNotifierItem[k].category_sqlite_id == data[j].category_sqlite_id &&
-                  cart.cartNotifierItem[k].status == 0) {
+              if (cart.cartNotifierItem[k].category_sqlite_id == data[j].category_sqlite_id && cart.cartNotifierItem[k].status == 0) {
                 var printerDetail = jsonDecode(printerList[i].value!);
                 //check printer type
                 if (printerList[i].type == 1) {
@@ -332,13 +339,13 @@ class PrintReceipt{
     }
   }
 
-  printDeleteList(List<Printer> printerList, String orderCacheId, String dateTime, context) async {
+  printDeleteList(List<Printer> printerList, String orderCacheId, String dateTime) async {
     try {
       for (int i = 0; i < printerList.length; i++) {
-        if(printerList[i].printer_status == 1){
+        if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
           List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
           for (int j = 0; j < data.length; j++) {
-            if (data[j].category_sqlite_id == '0') {
+            if (data[j].category_sqlite_id == '-1') {
               var printerDetail = jsonDecode(printerList[i].value!);
               if (printerList[i].type == 0) {
                 if(printerList[i].paper_size == 0){
@@ -403,11 +410,10 @@ class PrintReceipt{
   printKitchenDeleteList(List<Printer> printerList, String orderCacheId, String category_id, String dateTime, CartModel cart) async {
     try {
       for (int i = 0; i < printerList.length; i++) {
-        if(printerList[i].printer_status == 1){
+        if(printerList[i].printer_status == 1 && printerList[i].is_counter == 0){
           List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
           for (int j = 0; j < data.length; j++) {
             if (category_id == data[j].category_sqlite_id) {
-              print('printer call');
               var printerDetail = jsonDecode(printerList[i].value!);
               if (printerList[i].type == 0) {
                 if(printerList[i].paper_size == 0){
@@ -472,10 +478,10 @@ class PrintReceipt{
   printSettlementList(List<Printer> printerList, String dateTime, context) async {
     try {
       for (int i = 0; i < printerList.length; i++) {
-        if(printerList[i].printer_status == 1){
+        if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
           List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
           for (int j = 0; j < data.length; j++) {
-            if (data[j].category_sqlite_id == '0') {
+            if (data[j].category_sqlite_id == '-1') {
               var printerDetail = jsonDecode(printerList[i].value!);
               if (printerList[i].type == 0) {
                 if(printerList[i].paper_size == 0){

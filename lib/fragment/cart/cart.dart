@@ -20,6 +20,7 @@ import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
+import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/dining_option.dart';
@@ -41,6 +42,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../object/cart_payment.dart';
 import '../../object/cash_record.dart';
 import '../../object/order_modifier_detail.dart';
 import '../../object/print_receipt.dart';
@@ -64,6 +66,7 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
+  final ScrollController _scrollController = ScrollController();
   late StreamController controller;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   List<Printer> printerList = [];
@@ -104,6 +107,11 @@ class _CartPageState extends State<CartPage> {
   String? tableUseDetailKey;
   bool hasPromo = false, hasSelectedPromo = false, _isSettlement = false, hasNewItem = false, timeOutDetected = false;
   Color font = Colors.black45;
+  int myCount = 0;
+
+  void _scrollDown() {
+    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+  }
 
   @override
   void initState() {
@@ -192,8 +200,8 @@ class _CartPageState extends State<CartPage> {
                     ),
                     color: color.backgroundColor,
                     onPressed: () {
-                      cart.removeAllCartItem();
-                      cart.removeAllTable();
+                      cart.removePartialCartItem();
+                      //cart.removeAllTable();
                     },
                   ),
                 ),
@@ -262,6 +270,7 @@ class _CartPageState extends State<CartPage> {
                           child: Container(
                             height: 350,
                             child: ListView.builder(
+                                controller: _scrollController,
                                 shrinkWrap: true,
                                 itemCount: cart.cartNotifierItem.length,
                                 itemBuilder: (context, index) {
@@ -649,9 +658,11 @@ class _CartPageState extends State<CartPage> {
                                             textCancel: Text(
                                                 '${AppLocalizations.of(context)?.translate('no')}'),
                                           )) {
+                                            paymentAddToCart(cart);
                                             return openPaymentSelect();
                                           }
                                         } else {
+                                          paymentAddToCart(cart);
                                           openPaymentSelect();
                                         }
                                       } else {
@@ -662,6 +673,7 @@ class _CartPageState extends State<CartPage> {
                                       }
                                     } else if (widget.currentPage == 'other_order') {
                                       if (cart.cartNotifierItem.isNotEmpty) {
+                                        paymentAddToCart(cart);
                                         openPaymentSelect();
                                       } else {
                                         Fluttertoast.showToast(
@@ -727,6 +739,26 @@ class _CartPageState extends State<CartPage> {
     });
   }
 
+  paymentAddToCart(CartModel cart){
+    var value = cartPaymentDetail(
+        '',
+        total,
+        totalAmount,
+        rounding,
+        finalAmount,
+        0.0,
+        0.0,
+        [],
+        [],
+        promotionList: autoApplyPromotionList,
+        manualPromo: cart.selectedPromotion,
+        taxList: taxRateList,
+        dining_name: cart.selectedOption
+    );
+
+    cart.addPaymentDetail(value);
+  }
+
   checkCartItem(CartModel cart){
     for(int i = 0; i < cart.cartNotifierItem.length; i++){
       if(cart.cartNotifierItem[i].status == 0){
@@ -738,11 +770,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   readAllPrinters() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
-    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter(branch_id!);
-    printerList = List.from(data);
+    printerList = await PrintReceipt().readAllPrinters();
   }
 
 /*
@@ -865,8 +893,10 @@ class _CartPageState extends State<CartPage> {
         allPromo = cart.selectedPromotion!.name!;
         if (cart.selectedPromotion!.type == 0) {
           selectedPromoRate = cart.selectedPromotion!.amount.toString() + '%';
+          cart.selectedPromotion!.promoRate = selectedPromoRate;
         } else {
           selectedPromoRate = cart.selectedPromotion!.amount! + '.00';
+          cart.selectedPromotion!.promoRate = selectedPromoRate;
         }
 
         if (cart.selectedPromotion!.specific_category == '1') {
@@ -875,7 +905,7 @@ class _CartPageState extends State<CartPage> {
               _sameCategoryList.add(cart.cartNotifierItem[i]);
             }
           }
-          specificCategoryAmount(cart.selectedPromotion!, _sameCategoryList);
+          specificCategoryAmount(cart.selectedPromotion!, _sameCategoryList, cart);
         } else {
           nonSpecificCategoryAmount(cart);
         }
@@ -888,7 +918,7 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  specificCategoryAmount(Promotion promotion, List<cartProductItem> cartItem) {
+  specificCategoryAmount(Promotion promotion, List<cartProductItem> cartItem, CartModel cart) {
     try {
       selectedPromo = 0.0;
       hasSelectedPromo = false;
@@ -896,11 +926,12 @@ class _CartPageState extends State<CartPage> {
       for (int j = 0; j < cartItem.length; j++) {
         if (promotion.type == 0) {
           hasSelectedPromo = true;
-          selectedPromo += (double.parse(cartItem[j].price) * cartItem[j].quantity) *
-              (double.parse(promotion.amount!) / 100);
+          selectedPromo += (double.parse(cartItem[j].price) * cartItem[j].quantity) * (double.parse(promotion.amount!) / 100);
+          cart.selectedPromotion!.promoAmount = selectedPromo;
         } else {
           hasSelectedPromo = true;
           selectedPromo += (double.parse(promotion.amount!) * cartItem[j].quantity);
+          cart.selectedPromotion!.promoAmount = selectedPromo;
         }
       }
       promoAmount += selectedPromo;
@@ -923,17 +954,197 @@ class _CartPageState extends State<CartPage> {
         if (cart.cartNotifierItem.isNotEmpty) {
           for (int i = 0; i < cart.cartNotifierItem.length; i++) {
             hasSelectedPromo = true;
-            selectedPromo +=
-                double.parse(cart.selectedPromotion!.amount!) * cart.cartNotifierItem[i].quantity;
+            selectedPromo += double.parse(cart.selectedPromotion!.amount!) * cart.cartNotifierItem[i].quantity;
+            cart.selectedPromotion!.promoAmount = selectedPromo;
           }
         }
       }
       promoAmount += selectedPromo;
+      cart.selectedPromotion!.promoAmount = selectedPromo;
     } catch (error) {
       print('check promotion type error: $error');
       selectedPromo = 0.0;
     }
     controller.add('refresh');
+  }
+
+  promotionDateTimeChecking({cache_created_at, sDate, eDate, sTime, eTime,}){
+    // String stime = "20:00";
+    // String etime = '22:19';
+    DateTime currentDateTime = DateTime.now();
+    bool inTime = false;
+
+    try{
+      if(cache_created_at == null) {
+        if(sDate != null && eDate != null && sTime != null && eTime != null) {
+          //parse date
+          DateTime parsedStartDate = DateTime.parse(sDate);
+          DateTime parsedEndDate = DateTime.parse(eDate);
+          //parse time
+          DateTime startTime = new DateFormat("HH:mm").parse(sTime);
+          DateTime endTime = new DateFormat("HH:mm").parse(eTime);
+          TimeOfDay parsedStartTime = TimeOfDay.fromDateTime(startTime);
+          TimeOfDay parsedEndTime = TimeOfDay.fromDateTime(endTime);
+
+          //compare date
+          int startDateComparison = currentDateTime.compareTo(parsedStartDate);
+          int endDateComparison = currentDateTime.compareTo(parsedEndDate);
+
+          //compare start time
+          int startTimeComparison = currentDateTime.hour.compareTo(parsedStartTime.hour);
+          if (startTimeComparison == 0) {
+            startTimeComparison = currentDateTime.minute.compareTo(parsedStartTime.minute);
+          }
+          //compare end time
+          int endTimeComparison = currentDateTime.hour.compareTo(parsedEndTime.hour);
+          if (endTimeComparison == 0) {
+            endTimeComparison = currentDateTime.minute.compareTo(parsedEndTime.minute);
+          }
+
+          //combine two comparison
+          if (startDateComparison >= 0 && endDateComparison <= 0) {
+            if (startTimeComparison >= 0 && endTimeComparison <= 0) {
+              inTime = true;
+            } else {
+              inTime = false;
+            }
+          } else {
+            inTime = false;
+          }
+
+        }
+        else if(sDate != null && eDate != null) {
+          DateTime parsedStartDate = DateTime.parse(sDate);
+          DateTime parsedEndDate = DateTime.parse(eDate);
+
+          int startDateComparison = currentDateTime.compareTo(parsedStartDate);
+          int endDateComparison = currentDateTime.compareTo(parsedEndDate);
+
+          if (startDateComparison >= 0 && endDateComparison <= 0) {
+            inTime = true;
+
+          } else {
+            inTime = false;
+          }
+        }
+        else if (sTime != null && eTime != null){
+          DateTime startTime = new DateFormat("HH:mm").parse(sTime);
+          DateTime endTime = new DateFormat("HH:mm").parse(eTime);
+
+          TimeOfDay parsedStartTime = TimeOfDay.fromDateTime(startTime);
+          TimeOfDay parsedEndTime = TimeOfDay.fromDateTime(endTime);
+          //compare start time
+          int startTimeComparison = currentDateTime.hour.compareTo(parsedStartTime.hour);
+          if (startTimeComparison == 0) {
+            startTimeComparison = currentDateTime.minute.compareTo(parsedStartTime.minute);
+          }
+          //compare end time
+          int endTimeComparison = currentDateTime.hour.compareTo(parsedEndTime.hour);
+          if (endTimeComparison == 0) {
+            endTimeComparison = currentDateTime.minute.compareTo(parsedEndTime.minute);
+          }
+          //combine two comparison
+          if (startTimeComparison >= 0 && endTimeComparison <= 0) {
+            inTime = true;
+          } else {
+            inTime = false;
+          }
+        }
+      } else {
+        //compare with order cache created date time
+        if(sDate != null && eDate != null && sTime != null && eTime != null) {
+          //parse date
+          DateTime parsedCacheDate = DateTime.parse(cache_created_at);
+          DateTime parsedStartDate = DateTime.parse(sDate);
+          DateTime parsedEndDate = DateTime.parse(eDate);
+          //format time
+          String formatDate = new DateFormat("HH:mm").format(parsedCacheDate);
+          //parse time
+          DateTime cacheTime = new DateFormat("HH:mm").parse(formatDate);
+          DateTime startTime = new DateFormat("HH:mm").parse(sTime);
+          DateTime endTime = new DateFormat("HH:mm").parse(eTime);
+          TimeOfDay parsedCacheTime = TimeOfDay.fromDateTime(cacheTime);
+          TimeOfDay parsedStartTime = TimeOfDay.fromDateTime(startTime);
+          TimeOfDay parsedEndTime = TimeOfDay.fromDateTime(endTime);
+          //compare date
+          int startDateComparison = parsedCacheDate.compareTo(parsedStartDate);
+          int endDateComparison = parsedCacheDate.compareTo(parsedEndDate);
+
+          //compare start time
+          int startTimeComparison = parsedCacheTime.hour.compareTo(parsedStartTime.hour);
+          if (startTimeComparison == 0) {
+            startTimeComparison = parsedCacheTime.minute.compareTo(parsedStartTime.minute);
+          }
+          //compare end time
+          int endTimeComparison = parsedCacheTime.hour.compareTo(parsedEndTime.hour);
+          if (endTimeComparison == 0) {
+            endTimeComparison = parsedCacheTime.minute.compareTo(parsedEndTime.minute);
+          }
+          //combine two comparison
+          if (startDateComparison >= 0 && endDateComparison <= 0) {
+            if (startTimeComparison >= 0 && endTimeComparison <= 0) {
+              inTime = true;
+
+            } else {
+              inTime = false;
+
+            }
+          } else {
+            inTime = false;
+
+          }
+
+        } else if(sDate != null && eDate != null) {
+          DateTime parsedCacheDate = DateTime.parse(cache_created_at);
+          DateTime parsedStartDate = DateTime.parse(sDate);
+          DateTime parsedEndDate = DateTime.parse(eDate);
+
+          int startDateComparison = parsedCacheDate.compareTo(parsedStartDate);
+          int endDateComparison = parsedCacheDate.compareTo(parsedEndDate);
+
+          if (startDateComparison >= 0 && endDateComparison <= 0) {
+            inTime = true;
+
+          } else {
+            inTime = false;
+
+          }
+        } else if (sTime != null && eTime != null){
+          DateTime cacheDate = DateTime.parse(cache_created_at);
+
+          String formatDate = new DateFormat("HH:mm").format(cacheDate);
+
+          DateTime cacheTime = new DateFormat("HH:mm").parse(formatDate);
+          DateTime startTime = new DateFormat("HH:mm").parse(sTime);
+          DateTime endTime = new DateFormat("HH:mm").parse(eTime);
+
+          TimeOfDay parsedCacheTime = TimeOfDay.fromDateTime(cacheTime);
+          TimeOfDay parsedStartTime = TimeOfDay.fromDateTime(startTime);
+          TimeOfDay parsedEndTime = TimeOfDay.fromDateTime(endTime);
+          //compare start time
+          int startTimeComparison = parsedCacheTime.hour.compareTo(parsedStartTime.hour);
+          if (startTimeComparison == 0) {
+            startTimeComparison = parsedCacheTime.minute.compareTo(parsedStartTime.minute);
+          }
+          //compare end time
+          int endTimeComparison = parsedCacheTime.hour.compareTo(parsedEndTime.hour);
+          if (endTimeComparison == 0) {
+            endTimeComparison = parsedCacheTime.minute.compareTo(parsedEndTime.minute);
+          }
+          //combine two comparison
+          if (startTimeComparison >= 0 && endTimeComparison <= 0) {
+            inTime = true;
+          } else {
+            inTime = false;
+          }
+        }
+
+      }
+      return inTime;
+    } catch(e){
+      print('error caught:$e');
+      return;
+    }
   }
 
   getAutoApplyPromotion(CartModel cart) {
@@ -942,39 +1153,245 @@ class _CartPageState extends State<CartPage> {
       autoApplyPromotionList = [];
       promoName = '';
       hasPromo = false;
-      //loop promotion list get promotion
-      for (int j = 0; j < promotionList.length; j++) {
-        promotionList[j].promoAmount = 0.0;
-        if (promotionList[j].auto_apply == '1') {
-          if (promotionList[j].specific_category == '1') {
-            //Auto apply specific category promotion
-            for (int m = 0; m < cart.cartNotifierItem.length; m++) {
-              if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
-                hasPromo = true;
-                promoName = promotionList[j].name!;
-                if (!autoApplyPromotionList.contains(promotionList[j])) {
+      if(cart.cartNotifierItem.isNotEmpty){
+        //loop promotion list get promotion
+        for (int j = 0; j < promotionList.length; j++) {
+          promotionList[j].promoAmount = 0.0;
+          //check is the promotion auto apply
+          if (promotionList[j].auto_apply == '1') {
+
+            //check is promotion all day & all time
+            if(promotionList[j].all_day == '1' && promotionList[j].all_time == '1'){
+
+              if (promotionList[j].specific_category == '1') {
+                //Auto apply specific category promotion
+                for (int m = 0; m < cart.cartNotifierItem.length; m++) {
+                  if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                    hasPromo = true;
+                    promoName = promotionList[j].name!;
+                    if (!autoApplyPromotionList.contains(promotionList[j])) {
+                      autoApplyPromotionList.add(promotionList[j]);
+                      if (widget.currentPage != 'menu') {
+                        cart.addAutoApplyPromo(promotionList[j]);
+                      }
+                    }
+                    autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
+                  }
+                }
+              } else {
+                //Auto apply non specific category promotion
+                if (cart.cartNotifierItem.isNotEmpty) {
+                  hasPromo = true;
                   autoApplyPromotionList.add(promotionList[j]);
                   if (widget.currentPage != 'menu') {
                     cart.addAutoApplyPromo(promotionList[j]);
                   }
+                  promoName = promotionList[j].name!;
+                  autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
                 }
-                autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
               }
             }
-          } else {
-            //Auto apply non specific category promotion
-            if (cart.cartNotifierItem.isNotEmpty) {
-              hasPromo = true;
-              autoApplyPromotionList.add(promotionList[j]);
-              if (widget.currentPage != 'menu') {
-                cart.addAutoApplyPromo(promotionList[j]);
+            else {
+              if(promotionList[j].all_day == '0' && promotionList[j].all_time == '0'){
+                if(cart.cartNotifierItem[0].status == 0){
+                  if(promotionDateTimeChecking(sDate: promotionList[j].sdate, eDate: promotionList[j].edate,
+                      sTime: promotionList[j].stime, eTime: promotionList[j].etime) == true){
+                    if (promotionList[j].specific_category == '1') {
+                      //Auto apply specific category promotion
+                      for (int m = 0; m < cart.cartNotifierItem.length; m++) {
+                        if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                          hasPromo = true;
+                          promoName = promotionList[j].name!;
+                          if (!autoApplyPromotionList.contains(promotionList[j])) {
+                            autoApplyPromotionList.add(promotionList[j]);
+                            if (widget.currentPage != 'menu') {
+                              cart.addAutoApplyPromo(promotionList[j]);
+                            }
+                          }
+                          autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
+                        }
+                      }
+                    } else {
+                      //Auto apply non specific category promotion
+                      if (cart.cartNotifierItem.isNotEmpty) {
+                        hasPromo = true;
+                        autoApplyPromotionList.add(promotionList[j]);
+                        if (widget.currentPage != 'menu') {
+                          cart.addAutoApplyPromo(promotionList[j]);
+                        }
+                        promoName = promotionList[j].name!;
+                        autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
+                      }
+                    }
+                  }
+                } else {
+                  if(promotionDateTimeChecking(sDate: promotionList[j].sdate, eDate: promotionList[j].edate,
+                      sTime: promotionList[j].stime, eTime: promotionList[j].etime,
+                      cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) == true){
+                    if (promotionList[j].specific_category == '1') {
+                      //Auto apply specific category promotion
+                      for (int m = 0; m < cart.cartNotifierItem.length; m++) {
+                        if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                          hasPromo = true;
+                          promoName = promotionList[j].name!;
+                          if (!autoApplyPromotionList.contains(promotionList[j])) {
+                            autoApplyPromotionList.add(promotionList[j]);
+                            if (widget.currentPage != 'menu') {
+                              cart.addAutoApplyPromo(promotionList[j]);
+                            }
+                          }
+                          autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
+                        }
+                      }
+                    } else {
+                      //Auto apply non specific category promotion
+                      if (cart.cartNotifierItem.isNotEmpty) {
+                        hasPromo = true;
+                        autoApplyPromotionList.add(promotionList[j]);
+                        if (widget.currentPage != 'menu') {
+                          cart.addAutoApplyPromo(promotionList[j]);
+                        }
+                        promoName = promotionList[j].name!;
+                        autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
+                      }
+                    }
+                  }
+                }
               }
-              promoName = promotionList[j].name!;
-              autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
+              else if (promotionList[j].all_day == '0' && promotionList[j].all_time == '1'){
+                //check cart item status and promotion time
+                if(cart.cartNotifierItem[0].status == 0){
+                  if(promotionDateTimeChecking(sDate: promotionList[j].sdate, eDate: promotionList[j].edate) == true){
+                    if (promotionList[j].specific_category == '1') {
+                      //Auto apply specific category promotion
+                      for (int m = 0; m < cart.cartNotifierItem.length; m++) {
+                        if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                          hasPromo = true;
+                          promoName = promotionList[j].name!;
+                          if (!autoApplyPromotionList.contains(promotionList[j])) {
+                            autoApplyPromotionList.add(promotionList[j]);
+                            if (widget.currentPage != 'menu') {
+                              cart.addAutoApplyPromo(promotionList[j]);
+                            }
+                          }
+                          autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
+                        }
+                      }
+                    } else {
+                      //Auto apply non specific category promotion
+                      if (cart.cartNotifierItem.isNotEmpty) {
+                        hasPromo = true;
+                        autoApplyPromotionList.add(promotionList[j]);
+                        if (widget.currentPage != 'menu') {
+                          cart.addAutoApplyPromo(promotionList[j]);
+                        }
+                        promoName = promotionList[j].name!;
+                        autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
+                      }
+                    }
+                  }
+                } else {
+                  if(promotionDateTimeChecking(sDate: promotionList[j].sdate, eDate: promotionList[j].edate,
+                      cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) == true){
+                    if (promotionList[j].specific_category == '1') {
+                      //Auto apply specific category promotion
+                      for (int m = 0; m < cart.cartNotifierItem.length; m++) {
+                        if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                          hasPromo = true;
+                          promoName = promotionList[j].name!;
+                          if (!autoApplyPromotionList.contains(promotionList[j])) {
+                            autoApplyPromotionList.add(promotionList[j]);
+                            if (widget.currentPage != 'menu') {
+                              cart.addAutoApplyPromo(promotionList[j]);
+                            }
+                          }
+                          autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
+                        }
+                      }
+                    } else {
+                      //Auto apply non specific category promotion
+                      if (cart.cartNotifierItem.isNotEmpty) {
+                        hasPromo = true;
+                        autoApplyPromotionList.add(promotionList[j]);
+                        if (widget.currentPage != 'menu') {
+                          cart.addAutoApplyPromo(promotionList[j]);
+                        }
+                        promoName = promotionList[j].name!;
+                        autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
+                      }
+                    }
+                  }
+                }
+              } else if (promotionList[j].all_time == '0' && promotionList[j].all_day == '1'){
+                //check cart item status and promotion time
+                if(cart.cartNotifierItem[0].status == 0){
+                  if(promotionDateTimeChecking(sTime: promotionList[j].stime, eTime: promotionList[j].etime) == true){
+                    if (promotionList[j].specific_category == '1') {
+                      //Auto apply specific category promotion
+                      for (int m = 0; m < cart.cartNotifierItem.length; m++) {
+                        if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                          hasPromo = true;
+                          promoName = promotionList[j].name!;
+                          if (!autoApplyPromotionList.contains(promotionList[j])) {
+                            autoApplyPromotionList.add(promotionList[j]);
+                            if (widget.currentPage != 'menu') {
+                              cart.addAutoApplyPromo(promotionList[j]);
+                            }
+                          }
+                          autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
+                        }
+                      }
+                    } else {
+                      //Auto apply non specific category promotion
+                      if (cart.cartNotifierItem.isNotEmpty) {
+                        hasPromo = true;
+                        autoApplyPromotionList.add(promotionList[j]);
+                        if (widget.currentPage != 'menu') {
+                          cart.addAutoApplyPromo(promotionList[j]);
+                        }
+                        promoName = promotionList[j].name!;
+                        autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
+                      }
+                    }
+                  }
+                } else {
+                  if(promotionDateTimeChecking(sTime: promotionList[j].stime, eTime: promotionList[j].etime,
+                      cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) == true){
+                    if (promotionList[j].specific_category == '1') {
+                      //Auto apply specific category promotion
+                      for (int m = 0; m < cart.cartNotifierItem.length; m++) {
+                        if (cart.cartNotifierItem[m].category_id == promotionList[j].category_id) {
+                          hasPromo = true;
+                          promoName = promotionList[j].name!;
+                          if (!autoApplyPromotionList.contains(promotionList[j])) {
+                            autoApplyPromotionList.add(promotionList[j]);
+                            if (widget.currentPage != 'menu') {
+                              cart.addAutoApplyPromo(promotionList[j]);
+                            }
+                          }
+                          autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
+                        }
+                      }
+                    } else {
+                      //Auto apply non specific category promotion
+                      if (cart.cartNotifierItem.isNotEmpty) {
+                        hasPromo = true;
+                        autoApplyPromotionList.add(promotionList[j]);
+                        if (widget.currentPage != 'menu') {
+                          cart.addAutoApplyPromo(promotionList[j]);
+                        }
+                        promoName = promotionList[j].name!;
+                        autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
       }
+
     } catch (error) {
       print('Promotion error $error');
       promo = 0.0;
@@ -1115,6 +1532,14 @@ class _CartPageState extends State<CartPage> {
     getRounding();
     getAllTotal();
     checkCartItem(cart);
+    if(cart.myCount == 0){
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _scrollDown();
+        });
+      });
+      cart.myCount++;
+    }
     if (!controller.isClosed) {
       controller.sink.add('refresh');
     }
@@ -1222,7 +1647,6 @@ class _CartPageState extends State<CartPage> {
               opacity: a1.value,
               child: CartDialog(
                   selectedTableList: cartModel.selectedTable,
-                  printerList: this.printerList,
               ),
             ),
           );
@@ -1355,9 +1779,7 @@ class _CartPageState extends State<CartPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      List<BranchLinkPromotion> data =
-          await PosDatabase.instance.readBranchLinkPromotion(branch_id.toString());
-
+      List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion(branch_id.toString());
       for (int i = 0; i < data.length; i++) {
         List<Promotion> temp = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
         if (temp.length > 0) promotionList.add(temp[0]);
@@ -1514,6 +1936,7 @@ class _CartPageState extends State<CartPage> {
             table_use_key: '',
             order_cache_key: '',
             card_color: hexCode.toString(),
+            status: 0,
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',
@@ -1556,7 +1979,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   insertTableUseKey(TableUse tableUse, String dateTime) async {
-    List<TableUse> _tbUseList = [];
+    TableUse? _tbUseList;
     tableUseKey = await generateTableUseKey(tableUse);
     if (tableUseKey != null) {
       TableUse tableUseObject = TableUse(
@@ -1566,11 +1989,11 @@ class _CartPageState extends State<CartPage> {
           table_use_sqlite_id: tableUse.table_use_sqlite_id);
       int tableUseData = await PosDatabase.instance.updateTableUseUniqueKey(tableUseObject);
       if (tableUseData == 1) {
-        List<TableUse> data = await PosDatabase.instance.readSpecificTableUseId(tableUseObject.table_use_sqlite_id!);
+        TableUse data = await PosDatabase.instance.readSpecificTableUseIdByLocalId(tableUseObject.table_use_sqlite_id!);
         _tbUseList = data;
       }
     }
-    return _tbUseList[0];
+    return _tbUseList;
   }
 
   generateTableUseDetailKey(TableUseDetail tableUseDetail) async {
@@ -1614,14 +2037,16 @@ class _CartPageState extends State<CartPage> {
                 table_use_sqlite_id: localTableUseId,
                 table_use_key: tableUseKey,
                 table_sqlite_id: cart.selectedTable[i].table_sqlite_id.toString(),
-                original_table_sqlite_id: cart.selectedTable[i].table_sqlite_id.toString(),
+                table_id: cart.selectedTable[i].table_id.toString(),
+                status: 0,
                 sync_status: 0,
                 created_at: dateTime,
                 updated_at: '',
                 soft_delete: ''));
         TableUseDetail updatedDetail = await insertTableUseDetailKey(tableUseDetailData, dateTime);
-        _value.add(jsonEncode(updatedDetail.syncJson()));
+        _value.add(jsonEncode(updatedDetail));
       }
+      print('value: ${_value.toString()}');
       //sync to cloud
       syncTableUseDetailToCloud(_value.toString());
     } catch (e) {
@@ -1691,6 +2116,9 @@ class _CartPageState extends State<CartPage> {
             cancel_by_user_id: '',
             customer_id: '0',
             total_amount: cart.selectedOption == "Dine in" ? '' : finalAmount,
+            qr_order: 0,
+            qr_order_table_sqlite_id: '',
+            accepted: 0,
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',
@@ -1785,7 +2213,6 @@ class _CartPageState extends State<CartPage> {
       } else {
         this.timeOutDetected = true;
       }
-
     }
   }
 
@@ -1794,36 +2221,40 @@ class _CartPageState extends State<CartPage> {
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _orderDetailValue = [];
     List<String> _orderModifierValue = [];
+    List<String> _branchLinkProductValue = [];
     bool _hasModifier = false;
     //loop cart item & create order detail
     for (int j = 0; j < cart.cartNotifierItem.length; j++) {
+      print('ori price: ${cart.cartNotifierItem[j].base_price}');
       if (cart.cartNotifierItem[j].status == 0) {
-        OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(
-            OrderDetail(
-                order_detail_id: 0,
-                order_detail_key: '',
-                order_cache_sqlite_id: orderCacheId,
-                order_cache_key: orderCacheKey,
-                branch_link_product_sqlite_id: cart.cartNotifierItem[j].branchProduct_id,
-                category_sqlite_id: cart.cartNotifierItem[j].category_sqlite_id,
-                productName: cart.cartNotifierItem[j].name,
-                has_variant: cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
-                product_variant_name: getVariant2(cart.cartNotifierItem[j]),
-                price: cart.cartNotifierItem[j].price,
-                quantity: cart.cartNotifierItem[j].quantity.toString(),
-                remark: cart.cartNotifierItem[j].remark,
-                account: '',
-                cancel_by: '',
-                cancel_by_user_id: '',
-                sync_status: 0,
-                created_at: dateTime,
-                updated_at: '',
-                soft_delete: ''));
+        OrderDetail object = OrderDetail(
+            order_detail_id: 0,
+            order_detail_key: '',
+            order_cache_sqlite_id: orderCacheId,
+            order_cache_key: orderCacheKey,
+            branch_link_product_sqlite_id: cart.cartNotifierItem[j].branchProduct_id,
+            category_sqlite_id: cart.cartNotifierItem[j].category_sqlite_id,
+            productName: cart.cartNotifierItem[j].name,
+            has_variant: cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
+            product_variant_name: getVariant2(cart.cartNotifierItem[j]),
+            price: cart.cartNotifierItem[j].price,
+            original_price: cart.cartNotifierItem[j].base_price,
+            quantity: cart.cartNotifierItem[j].quantity.toString(),
+            remark: cart.cartNotifierItem[j].remark,
+            account: '',
+            cancel_by: '',
+            cancel_by_user_id: '',
+            status: 0,
+            sync_status: 0,
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: '');
+        OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(object);
+        BranchLinkProduct branchLinkProductData = await updateProductStock(orderDetailData.branch_link_product_sqlite_id.toString(), int.parse(orderDetailData.quantity!), dateTime);
+        _branchLinkProductValue.add(jsonEncode(branchLinkProductData.toJson()));
         //insert order detail key
         OrderDetail updatedOrderDetailData = await insertOrderDetailKey(orderDetailData, dateTime);
-        if (updatedOrderDetailData.order_detail_key != '' && connectivity.isConnect) {
-          _orderDetailValue.add(jsonEncode(updatedOrderDetailData.syncJson()));
-        }
+        _orderDetailValue.add(jsonEncode(updatedOrderDetailData.syncJson()));
         //insert order modifier detail
         if (cart.cartNotifierItem[j].modifier.isNotEmpty) {
           for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
@@ -1839,6 +2270,8 @@ class _CartPageState extends State<CartPage> {
                         order_detail_id: '0',
                         order_detail_key: await orderDetailKey,
                         mod_item_id: group.modifierChild[m].mod_item_id.toString(),
+                        mod_name: group.modifierChild[m].name,
+                        mod_price: group.modifierChild[m].price,
                         mod_group_id: group.mod_group_id.toString(),
                         sync_status: 0,
                         created_at: dateTime,
@@ -1847,9 +2280,9 @@ class _CartPageState extends State<CartPage> {
                 //insert unique key
                 OrderModifierDetail updatedOrderModifierDetail =
                     await insertOrderModifierDetailKey(orderModifierDetailData, dateTime);
-                if (updatedOrderModifierDetail.order_modifier_detail_key != '' &&
-                    connectivity.isConnect) {
+                if (updatedOrderModifierDetail.order_modifier_detail_key != '' && connectivity.isConnect) {
                   _orderModifierValue.add(jsonEncode(updatedOrderModifierDetail));
+                  print('mod value: ${_orderModifierValue.toString()}');
                 }
               }
             }
@@ -1859,8 +2292,39 @@ class _CartPageState extends State<CartPage> {
     }
     if(this.timeOutDetected == false){
       syncOrderDetailToCloud(_orderDetailValue.toString());
+      syncBranchLinkProductStock(_branchLinkProductValue.toString());
       if (_hasModifier) {
         syncOrderModifierToCloud(_orderModifierValue.toString());
+      }
+    }
+  }
+
+  updateProductStock(String branch_link_product_sqlite_id, int quantity, String dateTime) async {
+    int _totalStockQty = 0;
+    List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+    _totalStockQty = int.parse(checkData[0].stock_quantity!) - quantity;
+    BranchLinkProduct object = BranchLinkProduct(
+      updated_at: dateTime,
+      sync_status: 2,
+      stock_quantity: _totalStockQty.toString(),
+      branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
+    );
+    int updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+    if(updateStock == 1){
+      List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+      return updatedData[0];
+    }
+  }
+
+  syncBranchLinkProductStock(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess) {
+      Map orderDetailResponse = await Domain().SyncBranchLinkProductToCloud(value);
+      if (orderDetailResponse['status'] == '1') {
+        List responseJson = orderDetailResponse['data'];
+        for (int i = 0; i < responseJson.length; i++) {
+          int syncUpdated = await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+        }
       }
     }
   }
@@ -1912,22 +2376,26 @@ class _CartPageState extends State<CartPage> {
 
   insertOrderDetailKey(OrderDetail orderDetail, String dateTime) async {
     OrderDetail? detailData;
-    orderDetailKey = await generateOrderDetailKey(orderDetail);
-    if (orderDetailKey != null) {
-      OrderDetail orderDetailObject = OrderDetail(
-          order_detail_key: orderDetailKey,
-          sync_status: 0,
-          updated_at: dateTime,
-          order_detail_sqlite_id: orderDetail.order_detail_sqlite_id);
-      int updateUniqueKey =
-          await PosDatabase.instance.updateOrderDetailUniqueKey(orderDetailObject);
-      if (updateUniqueKey == 1) {
-        OrderDetail data = await PosDatabase.instance
-            .readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
-        detailData = data;
+    try{
+      orderDetailKey = await generateOrderDetailKey(orderDetail);
+      if (orderDetailKey != null) {
+        OrderDetail orderDetailObject = OrderDetail(
+            order_detail_key: orderDetailKey,
+            sync_status: 0,
+            updated_at: dateTime,
+            order_detail_sqlite_id: orderDetail.order_detail_sqlite_id);
+        int updateUniqueKey =
+        await PosDatabase.instance.updateOrderDetailUniqueKey(orderDetailObject);
+        if (updateUniqueKey == 1) {
+          OrderDetail data = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
+          detailData = data;
+        }
       }
+      return detailData;
+    }catch (e){
+      print('insert order detail key error: ${e}');
+      return;
     }
-    return detailData;
   }
 
   generateOrderDetailKey(OrderDetail orderDetail) async {
@@ -1953,15 +2421,14 @@ class _CartPageState extends State<CartPage> {
       List<String> _value = [];
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
 
       for (int i = 0; i < cart.selectedTable.length; i++) {
-        List<PosTable> result = await PosDatabase.instance.checkPosTableStatus(branch_id!, cart.selectedTable[i].table_sqlite_id!);
+        List<PosTable> result = await PosDatabase.instance.checkPosTableStatus(cart.selectedTable[i].table_sqlite_id!);
         if (result[0].status == 0) {
           PosTable posTableData = PosTable(
               table_sqlite_id: cart.selectedTable[i].table_sqlite_id,
               table_use_detail_key: tableUseDetailKey,
+              table_use_key: tableUseKey,
               status: 1,
               updated_at: dateTime);
           int data = await PosDatabase.instance.updateCartPosTableStatus(posTableData);

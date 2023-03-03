@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:pos_system/fragment/bill/bill_menu.dart';
 import 'package:pos_system/fragment/bill/receipt_menu.dart';
-import 'package:pos_system/fragment/cart/cart.dart';
+import 'package:provider/provider.dart';
+
+import '../../notifier/cart_notifier.dart';
 
 class BillPage extends StatefulWidget {
   const BillPage({Key? key}) : super(key: key);
@@ -13,12 +14,15 @@ class BillPage extends StatefulWidget {
 class _BillPageState extends State<BillPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        children: [
-          Expanded(flex: 12,child: ReceiptMenu())
-        ],
-      ),
-    );
+    return Consumer<CartModel>(builder: (context, CartModel cart, child) {
+      return Scaffold(
+        body: Row(
+          children: [
+            Expanded(flex: 12,child: ReceiptMenu(cartModel: cart,))
+          ],
+        ),
+      );
+    });
+
   }
 }

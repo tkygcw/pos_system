@@ -5,8 +5,6 @@ import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/variant_item.dart';
 
-import 'modifier_group.dart';
-
 String? tableOrderDetail = 'tb_order_detail ';
 
 class OrderDetailFields {
@@ -22,11 +20,13 @@ class OrderDetailFields {
     has_variant,
     product_variant_name,
     price,
+    original_price,
     quantity,
     remark,
     account,
     cancel_by,
     cancel_by_user_id,
+    status,
     sync_status,
     created_at,
     updated_at,
@@ -44,11 +44,13 @@ class OrderDetailFields {
   static String has_variant = 'has_variant';
   static String product_variant_name = 'product_variant_name';
   static String price = 'price';
+  static String original_price = 'original_price';
   static String quantity = 'quantity';
   static String remark = 'remark';
   static String account = 'account';
   static String cancel_by = 'cancel_by';
   static String cancel_by_user_id = 'cancel_by_user_id';
+  static String status = 'status';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -67,11 +69,13 @@ class OrderDetail{
   String? has_variant = '';
   String? product_variant_name = '';
   String? price = '';
+  String? original_price = '';
   String? quantity;
   String? remark;
   String? account;
   String? cancel_by;
   String? cancel_by_user_id;
+  int? status;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -83,10 +87,19 @@ class OrderDetail{
   ProductVariant? productVariant;
   List<VariantItem> variantItem = [];
   List<ModifierItem> modifierItem = [];
+  List<OrderModifierDetail> orderModifierDetail = [];
   List<String> mod_group_id = [];
   bool hasModifier = false;
   int? category_id;
   int? branch_link_product_id;
+  String? category_name;
+  int? item_sum;
+  double? double_price;
+  double? gross_price;
+  int? total_record;
+  String? available_stock;
+  bool? isRemove;
+  String? item_cancel;
 
   OrderDetail(
       {this.order_detail_sqlite_id,
@@ -100,18 +113,29 @@ class OrderDetail{
         this.has_variant,
         this.product_variant_name,
         this.price,
+        this.original_price,
         this.quantity,
         this.remark,
         this.account,
         this.cancel_by,
         this.cancel_by_user_id,
+        this.status,
         this.sync_status,
         this.created_at,
         this.updated_at,
         this.soft_delete,
         this.total_amount,
         this.category_id,
-        this.branch_link_product_id});
+        this.branch_link_product_id,
+        this.category_name,
+        this.item_sum,
+        this.double_price,
+        this.gross_price,
+        this.total_record,
+        this.available_stock,
+        this.isRemove,
+        this.item_cancel
+      });
 
   OrderDetail copy({
     int? order_detail_sqlite_id,
@@ -125,11 +149,13 @@ class OrderDetail{
     String? has_variant,
     String? product_variant_name,
     String? price,
+    String? original_price,
     String? quantity,
     String? remark,
     String? account,
     String? cancel_by,
     String? cancel_by_user_id,
+    int? status,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -147,11 +173,13 @@ class OrderDetail{
           has_variant: has_variant ?? this.has_variant,
           product_variant_name: product_variant_name ?? this.product_variant_name,
           price: price ?? this.price,
+          original_price: original_price ?? this.original_price,
           quantity: quantity ?? this.quantity,
           remark: remark ?? this.remark,
           account: account ?? this.account,
           cancel_by: cancel_by ?? this.cancel_by,
           cancel_by_user_id: cancel_by_user_id ?? this.cancel_by_user_id,
+          status: status ?? this.status,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -169,18 +197,27 @@ class OrderDetail{
     has_variant: json[OrderDetailFields.has_variant] as String?,
     product_variant_name: json[OrderDetailFields.product_variant_name] as String?,
     price: json[OrderDetailFields.price] as String?,
+    original_price: json[OrderDetailFields.original_price] as String?,
     quantity: json[OrderDetailFields.quantity] as String?,
     remark: json[OrderDetailFields.remark] as String?,
     account: json[OrderDetailFields.account] as String?,
     cancel_by: json[OrderDetailFields.cancel_by] as String?,
     cancel_by_user_id: json[OrderDetailFields.cancel_by_user_id] as String?,
+    status: json[OrderDetailFields.status] as int?,
     sync_status: json[OrderDetailFields.sync_status] as int?,
     created_at: json[OrderDetailFields.created_at] as String?,
     updated_at: json[OrderDetailFields.updated_at] as String?,
     soft_delete: json[OrderDetailFields.soft_delete] as String?,
     total_amount: json['total_amount'] as String?,
     category_id: json['category_id'] as int?,
-    branch_link_product_id: json['branch_link_product_id'] as int?
+    branch_link_product_id: json['branch_link_product_id'] as int?,
+    category_name: json['category_name'] as String?,
+    item_sum: json['item_sum'] as int?,
+    double_price: json['net_sales'] as double?,
+    gross_price: json['gross_price'] as double?,
+    total_record: json['total_record'] as int?,
+    item_cancel: json['item_cancel'] as String?
+
   );
 
   Map<String, Object?> toJson() => {
@@ -195,11 +232,13 @@ class OrderDetail{
     OrderDetailFields.has_variant: has_variant,
     OrderDetailFields.product_variant_name: product_variant_name,
     OrderDetailFields.price: price,
+    OrderDetailFields.original_price: original_price,
     OrderDetailFields.quantity: quantity,
     OrderDetailFields.remark: remark,
     OrderDetailFields.account: account,
     OrderDetailFields.cancel_by: cancel_by,
     OrderDetailFields.cancel_by_user_id: cancel_by_user_id,
+    OrderDetailFields.status: status,
     OrderDetailFields.sync_status: sync_status,
     OrderDetailFields.created_at: created_at,
     OrderDetailFields.updated_at: updated_at,
@@ -213,11 +252,13 @@ class OrderDetail{
     OrderDetailFields.has_variant: has_variant,
     OrderDetailFields.product_variant_name: product_variant_name,
     OrderDetailFields.price: price,
+    OrderDetailFields.original_price: original_price,
     OrderDetailFields.quantity: quantity,
     OrderDetailFields.remark: remark,
     OrderDetailFields.account: account,
     OrderDetailFields.cancel_by: cancel_by,
     OrderDetailFields.cancel_by_user_id: cancel_by_user_id,
+    OrderDetailFields.status: status,
     OrderDetailFields.sync_status: sync_status,
     OrderDetailFields.created_at: created_at,
     OrderDetailFields.updated_at: updated_at,

@@ -19,8 +19,11 @@ class OrderCacheFields {
     cancel_by,
     cancel_by_user_id,
     customer_id,
-    sync_status,
     total_amount,
+    qr_order,
+    qr_order_table_sqlite_id,
+    accepted,
+    sync_status,
     created_at,
     updated_at,
     soft_delete
@@ -44,6 +47,9 @@ class OrderCacheFields {
   static String cancel_by_user_id = 'cancel_by_user_id';
   static String customer_id = 'customer_id';
   static String total_amount = 'total_amount';
+  static String qr_order = 'qr_order';
+  static String qr_order_table_sqlite_id = 'qr_order_table_sqlite_id';
+  static String accepted = 'accepted';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -69,6 +75,9 @@ class OrderCache{
   String? cancel_by_user_id;
   String? customer_id;
   String? total_amount;
+  int? qr_order;
+  String? qr_order_table_sqlite_id;
+  int? accepted;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -96,6 +105,9 @@ class OrderCache{
         this.cancel_by_user_id,
         this.customer_id,
         this.total_amount,
+        this.qr_order,
+        this.qr_order_table_sqlite_id,
+        this.accepted,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -122,6 +134,9 @@ class OrderCache{
     String? cancel_by_user_id,
     String? customer_id,
     String? total_amount,
+    int? qr_order,
+    String? qr_order_table_sqlite_id,
+    int? accepted,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -146,6 +161,9 @@ class OrderCache{
           cancel_by_user_id: cancel_by_user_id ?? this.cancel_by_user_id,
           customer_id: customer_id ?? this.customer_id,
           total_amount: total_amount ?? this.total_amount,
+          qr_order: qr_order ?? this.qr_order,
+          qr_order_table_sqlite_id: qr_order_table_sqlite_id ?? this.qr_order_table_sqlite_id,
+          accepted: accepted ?? this.accepted,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -170,6 +188,9 @@ class OrderCache{
     cancel_by_user_id: json[OrderCacheFields.cancel_by_user_id] as String?,
     customer_id: json[OrderCacheFields.customer_id] as String?,
     total_amount: json[OrderCacheFields.total_amount] as String?,
+    qr_order: json[OrderCacheFields.qr_order] as int?,
+    qr_order_table_sqlite_id: json[OrderCacheFields.qr_order_table_sqlite_id] as String?,
+    accepted: json[OrderCacheFields.accepted] as int?,
     sync_status: json[OrderCacheFields.sync_status] as int?,
     created_at: json[OrderCacheFields.created_at] as String?,
     updated_at: json[OrderCacheFields.updated_at] as String?,
@@ -197,6 +218,9 @@ class OrderCache{
     OrderCacheFields.cancel_by_user_id: cancel_by_user_id,
     OrderCacheFields.customer_id: customer_id,
     OrderCacheFields.total_amount: total_amount,
+    OrderCacheFields.qr_order: qr_order,
+    OrderCacheFields.qr_order_table_sqlite_id: qr_order_table_sqlite_id,
+    OrderCacheFields.accepted: accepted,
     OrderCacheFields.sync_status: sync_status,
     OrderCacheFields.created_at: created_at,
     OrderCacheFields.updated_at: updated_at,

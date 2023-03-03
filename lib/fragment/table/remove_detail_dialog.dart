@@ -57,7 +57,7 @@ class _DetailRemoveDialogState extends State<DetailRemoveDialog> {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
 
-      int orderCacheData = await PosDatabase.instance.deleteOrderCache(OrderCache(
+      int orderCacheData = await PosDatabase.instance.cancelOrderCache(OrderCache(
         soft_delete: dateTime,
         order_cache_sqlite_id: int.parse(widget.object.order_cache_sqlite_id!)
       ));

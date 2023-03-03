@@ -36,6 +36,9 @@ class PaymentLinkCompany{
   String? soft_delete;
   double  totalAmount = 0.0;
   int total_bill = 0;
+  double? gross_sales;
+  double? net_sales;
+  int? item_sum;
 
   PaymentLinkCompany(
       {this.payment_link_company_id,
@@ -47,6 +50,9 @@ class PaymentLinkCompany{
         this.created_at,
         this.updated_at,
         this.soft_delete,
+        this.gross_sales,
+        this.net_sales,
+        this.item_sum
       });
 
   PaymentLinkCompany copy({
@@ -81,6 +87,9 @@ class PaymentLinkCompany{
     created_at: json[PaymentLinkCompanyFields.created_at] as String?,
     updated_at: json[PaymentLinkCompanyFields.updated_at] as String?,
     soft_delete: json[PaymentLinkCompanyFields.soft_delete] as String?,
+    gross_sales: json['gross_sales'] as double?,
+    net_sales: json['net_sales'] as double?,
+    item_sum: json['item_sum'] as int?
   );
 
   Map<String, Object?> toJson() => {

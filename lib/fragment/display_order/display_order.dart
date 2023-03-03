@@ -28,7 +28,8 @@ import '../../object/variant_group.dart';
 import '../../object/variant_item.dart';
 
 class DisplayOrderPage extends StatefulWidget {
-  const DisplayOrderPage({Key? key}) : super(key: key);
+  final CartModel cartModel;
+  const DisplayOrderPage({Key? key, required this.cartModel}) : super(key: key);
 
   @override
   _DisplayOrderPageState createState() => _DisplayOrderPageState();
@@ -50,15 +51,15 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
     super.initState();
     getDiningList();
     getOrderList();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.cartModel.initialLoad();
+    });
   }
 
 
   getDiningList() async{
     list.add('All');
-    final prefs = await SharedPreferences.getInstance();
-    final String? user = prefs.getString('user');
-    Map userObject = json.decode(user!);
-    List<DiningOption> data = await PosDatabase.instance.readAllDiningOption(userObject['company_id']);
+    List<DiningOption> data = await PosDatabase.instance.readAllDiningOption();
     for(int i=0; i< data.length; i++){
       if(data[i].name != 'Dine in'){
         list.add(data[i].name!);
@@ -122,6 +123,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
               getOrderList(model: tableModel);
             }
               return Scaffold(
+                resizeToAvoidBottomInset: false,
                 body: Container(
                   child: Padding(
                     padding: EdgeInsets.all(20),

@@ -84,8 +84,8 @@ class BranchLinkProduct {
         this.created_at,
         this.updated_at,
         this.soft_delete,
-      this.variant_name,
-      this.product_name});
+        this.variant_name,
+        this.product_name});
 
   BranchLinkProduct copy({
     int? branch_link_product_sqlite_id,
@@ -175,7 +175,5 @@ class BranchLinkProduct {
     BranchLinkProductFields.created_at: created_at,
     BranchLinkProductFields.updated_at: updated_at,
     BranchLinkProductFields.soft_delete: soft_delete,
-
-
   };
 }

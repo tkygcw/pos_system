@@ -11,6 +11,7 @@ import 'package:pos_system/object/branch_link_modifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
+import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
@@ -19,6 +20,8 @@ import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
+import 'package:pos_system/object/order_promotion_detail.dart';
+import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/product_variant.dart';
@@ -26,6 +29,8 @@ import 'package:pos_system/object/product_variant_detail.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/refund.dart';
 import 'package:pos_system/object/sale.dart';
+import 'package:pos_system/object/settlement.dart';
+import 'package:pos_system/object/settlement_link_payment.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/object/user.dart';
@@ -56,8 +61,8 @@ class _LoadingPageState extends State<LoadingPage> {
     // TODO: implement initState
     super.initState();
     _createProductImgFolder();
-    getAllCategory();
     getAllUser();
+    getAllOrder();
     getAllTable();
     getBranchLinkUser();
     getAllDiningOption();
@@ -70,22 +75,15 @@ class _LoadingPageState extends State<LoadingPage> {
     getAllCustomer();
     getAllBill();
     getPaymentLinkCompany();
-    getAllRefund();
     getModifierGroup();
     getModifierItem();
     getBranchLinkModifier();
-    getAllOrder();
-    getAllOrderCache();
-    getAllOrderDetail();
-    getAllOrderModifierDetail();
     getSale();
-    getAllTableUse();
-    getAllTableUseDetail();
-
-
+    getSettlement();
+    getCashRecord();
 
     // Go to Page2 after 5s.
-    Timer(Duration(seconds: 4), () {
+    Timer(Duration(seconds: 5), () {
       Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
     });
   }
@@ -134,14 +132,25 @@ class _LoadingPageState extends State<LoadingPage> {
     if (data['status'] == '1') {
       List responseJson = data['table_use'];
       for (var i = 0; i < responseJson.length; i++) {
-        TableUse user = await PosDatabase.instance
-            .insertSqliteTableUse(TableUse.fromJson(responseJson[i]));
+        TableUse item = TableUse.fromJson(responseJson[i]);
+        TableUse user = await PosDatabase.instance.insertTableUse(TableUse(
+          table_use_id: item.table_use_id,
+          table_use_key: item.table_use_key,
+          branch_id: item.branch_id,
+          order_cache_key: item.order_cache_key,
+          card_color: item.card_color,
+          status: item.status,
+          sync_status: 1,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          soft_delete: item.soft_delete,
+        ));
       }
     }
   }
 
   /*
-  sava table use detailto database
+  sava table use detail to database
 */
   getAllTableUseDetail() async {
     final prefs = await SharedPreferences.getInstance();
@@ -150,9 +159,23 @@ class _LoadingPageState extends State<LoadingPage> {
     if (data['status'] == '1') {
       List responseJson = data['table_use'];
       for (var i = 0; i < responseJson.length; i++) {
-        TableUseDetail user = await PosDatabase.instance
-            .insertSqliteTableUseDetail(
-                TableUseDetail.fromJson(responseJson[i]));
+        TableUseDetail item = TableUseDetail.fromJson(responseJson[i]);
+        TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(item.table_use_key!);
+        PosTable tableData = await PosDatabase.instance.readTableByCloudId(item.table_id.toString());
+        //TableUseDetail user = await PosDatabase.instance.insertSqliteTableUseDetail(TableUseDetail.fromJson(responseJson[i]));
+        TableUseDetail user = await PosDatabase.instance.insertTableUseDetail(TableUseDetail(
+          table_use_detail_id: item.table_use_detail_id,
+          table_use_detail_key: item.table_use_detail_key,
+          table_use_sqlite_id: tableUseData != null ? tableUseData.table_use_sqlite_id.toString() : '0',
+          table_use_key: item.table_use_key,
+          table_sqlite_id: tableData.table_sqlite_id.toString(),
+          table_id: item.table_id,
+          status: item.status,
+          sync_status: 1,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          soft_delete: item.soft_delete
+        ));
       }
     }
   }
@@ -183,10 +206,13 @@ class _LoadingPageState extends State<LoadingPage> {
     if (data['status'] == '1') {
       List responseJson = data['table'];
       for (var i = 0; i < responseJson.length; i++) {
-        PosTable table = await PosDatabase.instance
-            .insertPosTable(PosTable.fromJson(responseJson[i]));
+        PosTable table = await PosDatabase.instance.insertPosTable(PosTable.fromJson(responseJson[i]));
       }
     }
+    await getAllCategory();
+    await getAllTableUse();
+    await getAllTableUseDetail();
+    await getAllOrderCache();
   }
 }
 
@@ -286,7 +312,7 @@ getAllCategory() async {
       Categories data = await PosDatabase.instance
           .insertCategories(Categories.fromJson(responseJson[i]));
     }
-    getAllProduct();
+    await getAllProduct();
   }
 }
 
@@ -386,15 +412,42 @@ getAllRefund() async {
   final String? user = prefs.getString('user');
   final int? branch_id = prefs.getInt('branch_id');
   Map userObject = json.decode(user!);
-  Map data = await Domain()
-      .getAllRefund(userObject['company_id'], branch_id.toString());
+  Map data = await Domain().getAllRefund(userObject['company_id'], branch_id.toString());
   if (data['status'] == '1') {
     List responseJson = data['refund'];
     for (var i = 0; i < responseJson.length; i++) {
-      Refund data = await PosDatabase.instance
-          .insertRefund(Refund.fromJson(responseJson[i]));
+      Order orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
+      Refund data = await PosDatabase.instance.insertRefund(Refund(
+        refund_id: responseJson[i]['refund_id'],
+        refund_key: responseJson[i]['refund_key'],
+        company_id: responseJson[i]['company_id'],
+        branch_id: responseJson[i]['branch_id'],
+        order_cache_sqlite_id: '',
+        order_cache_key: '',
+        order_sqlite_id: orderData.order_sqlite_id.toString(),
+        order_key: responseJson[i]['order_key'],
+        refund_by: responseJson[i]['refund_by'],
+        refund_by_user_id: responseJson[i]['refund_by_user_id'],
+        bill_id: responseJson[i]['bill_id'],
+        sync_status: 1,
+        created_at: responseJson[i]['created_at'],
+        updated_at: responseJson[i]['updated_at'],
+        soft_delete: responseJson[i]['soft_delete'],
+      ));
+      updateOrderRefundSqliteId(data.refund_sqlite_id.toString(), orderData.order_sqlite_id!);
     }
   }
+}
+
+/*
+  save refund local id into order
+*/
+updateOrderRefundSqliteId(String refundLocalId, int orderLocalId) async {
+  Order order = Order(
+    refund_sqlite_id: refundLocalId,
+    order_sqlite_id: orderLocalId
+  );
+  int data = await PosDatabase.instance.updateOrderRefundSqliteId(order);
 }
 
 /*
@@ -485,10 +538,12 @@ getAllProduct() async {
         soft_delete: productItem.soft_delete
       ));
     }
+
+
     getModifierLinkProduct();
     getVariantGroup();
     getProductVariant();
-    getBranchLinkProduct();
+    await getBranchLinkProduct();
 
 
   }
@@ -522,7 +577,7 @@ getBranchLinkProduct() async {
         daily_limit: branchLinkProductData.daily_limit,
         daily_limit_amount: branchLinkProductData.daily_limit_amount,
         stock_quantity: branchLinkProductData.stock_quantity,
-        sync_status: 2,
+        sync_status: 1,
         created_at: branchLinkProductData.created_at,
         updated_at: branchLinkProductData.updated_at,
         soft_delete: branchLinkProductData.soft_delete
@@ -698,13 +753,109 @@ getAllOrder() async {
   final int? branch_id = prefs.getInt('branch_id');
   final String? user = prefs.getString('user');
   Map userObject = json.decode(user!);
-  Map data = await Domain()
-      .getAllOrder(userObject['company_id'], branch_id.toString());
+  Map data = await Domain().getAllOrder(userObject['company_id'], branch_id.toString());
   if (data['status'] == '1') {
     List responseJson = data['order'];
     for (var i = 0; i < responseJson.length; i++) {
-      Order data = await PosDatabase.instance
-          .insertOrder(Order.fromJson(responseJson[i]));
+      Order data = await PosDatabase.instance.insertOrder(Order(
+        order_id: responseJson[i]['order_id'],
+        order_number: responseJson[i]['order_number'],
+        company_id: responseJson[i]['company_id'],
+        customer_id: responseJson[i]['customer_id'],
+        dining_id: responseJson[i]['dining_id'],
+        dining_name: responseJson[i]['dining_name'],
+        branch_link_promotion_id: responseJson[i]['branch_link_promotion_id'],
+        payment_link_company_id: responseJson[i]['payment_link_company_id'],
+        branch_id: responseJson[i]['branch_id'],
+        branch_link_tax_id: responseJson[i]['branch_link_tax_id'],
+        subtotal: responseJson[i]['subtotal'],
+        amount: responseJson[i]['amount'],
+        rounding: responseJson[i]['rounding'],
+        final_amount: responseJson[i]['final_amount'],
+        close_by: responseJson[i]['close_by'],
+        payment_status: responseJson[i]['payment_status'],
+        payment_received: responseJson[i]['payment_received'],
+        payment_change: responseJson[i]['payment_change'],
+        order_key: responseJson[i]['order_key'],
+        refund_sqlite_id: '',
+        refund_key: responseJson[i]['refund_key'],
+        sync_status: 1,
+        created_at: responseJson[i]['created_at'],
+        updated_at: responseJson[i]['updated_at'],
+        soft_delete: responseJson[i]['soft_delete']
+      ));
+    }
+  }
+  getAllOrderPromotionDetail();
+  getAllOrderTaxDetail();
+  getAllRefund();
+
+}
+
+/*
+  save order promotion detail to database
+*/
+getAllOrderPromotionDetail() async{
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  final String? user = prefs.getString('user');
+  Map userObject = json.decode(user!);
+  Map data = await Domain().getAllOrderPromotionDetail(userObject['company_id'], branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['order'];
+    for (var i = 0; i < responseJson.length; i++) {
+      Order orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
+      OrderPromotionDetail data = await PosDatabase.instance.insertOrderPromotionDetail(OrderPromotionDetail(
+        order_promotion_detail_id: responseJson[i]['order_promotion_detail_id'],
+        order_promotion_detail_key:  responseJson[i]['order_promotion_detail_key'],
+        order_sqlite_id: orderData.order_sqlite_id.toString(),
+        order_id: orderData.order_id.toString(),
+        order_key: responseJson[i]['order_key'],
+        promotion_name: responseJson[i]['promotion_name'],
+        rate: responseJson[i]['rate'],
+        promotion_id: responseJson[i]['promotion_id'],
+        branch_link_promotion_id: responseJson[i]['branch_link_promotion_id'],
+        promotion_amount: responseJson[i]['promotion_amount'],
+        promotion_type: responseJson[i]['promotion_type'],
+        auto_apply: responseJson[i]['auto_apply'],
+        sync_status: 1,
+        created_at: responseJson[i]['created_at'],
+        updated_at: responseJson[i]['updated_at'],
+        soft_delete: responseJson[i]['soft_delete'],
+      ));
+    }
+  }
+}
+
+/*
+  save order tax detail to database
+*/
+getAllOrderTaxDetail() async{
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  final String? user = prefs.getString('user');
+  Map userObject = json.decode(user!);
+  Map data = await Domain().getAllOrderTaxDetail(userObject['company_id'], branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['order'];
+    for (var i = 0; i < responseJson.length; i++) {
+      Order orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
+      OrderTaxDetail data = await PosDatabase.instance.insertOrderTaxDetail(OrderTaxDetail(
+        order_tax_detail_id: responseJson[i]['order_tax_detail_id'],
+        order_tax_detail_key: responseJson[i]['order_tax_detail_key'],
+        order_sqlite_id: orderData.order_sqlite_id.toString(),
+        order_id: orderData.order_id.toString(),
+        order_key: responseJson[i]['order_key'],
+        tax_name: responseJson[i]['tax_name'],
+        rate: responseJson[i]['rate'],
+        tax_id: responseJson[i]['tax_id'],
+        branch_link_tax_id: responseJson[i]['branch_link_tax_id'],
+        tax_amount: responseJson[i]['tax_amount'],
+        sync_status: 1,
+        created_at: responseJson[i]['created_at'],
+        updated_at: responseJson[i]['updated_at'],
+        soft_delete: responseJson[i]['soft_delete'],
+      ));
     }
   }
 }
@@ -713,18 +864,52 @@ getAllOrder() async {
   save order cache to database
 */
 getAllOrderCache() async {
+  String tableUseLocalId = '', orderLocalId = '';
   final prefs = await SharedPreferences.getInstance();
   final int? branch_id = prefs.getInt('branch_id');
   final String? user = prefs.getString('user');
   Map userObject = json.decode(user!);
-  Map data = await Domain()
-      .getAllOrderCache(userObject['company_id'], branch_id.toString());
+  Map data = await Domain().getAllOrderCache(userObject['company_id'], branch_id.toString());
   if (data['status'] == '1') {
     List responseJson = data['order'];
     for (var i = 0; i < responseJson.length; i++) {
-      OrderCache data = await PosDatabase.instance
-          .insertOrderCache(OrderCache.fromJson(responseJson[i]));
+      OrderCache cloudData = OrderCache.fromJson(responseJson[i]);
+      if(cloudData.table_use_key != ''){
+        TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(cloudData.table_use_key!);
+        tableUseLocalId = tableUseData!.table_use_sqlite_id.toString();
+      }
+      if(cloudData.order_key != ''){
+        Order orderData = await PosDatabase.instance.readOrderSqliteID(cloudData.order_key!);
+        orderLocalId = orderData.order_sqlite_id.toString();
+      }
+      OrderCache data = await PosDatabase.instance.insertOrderCache(OrderCache(
+        order_cache_id: cloudData.order_cache_id,
+        order_cache_key: cloudData.order_cache_key,
+        company_id: cloudData.company_id,
+        branch_id: cloudData.branch_id,
+        order_detail_id: '',
+        table_use_sqlite_id: cloudData.table_use_key != '' ? tableUseLocalId : '',
+        table_use_key: cloudData.table_use_key != '' ? cloudData.table_use_key : '',
+        batch_id: cloudData.batch_id,
+        dining_id: cloudData.dining_id,
+        order_sqlite_id: cloudData.order_key != '' ? orderLocalId : '',
+        order_key: cloudData.order_key != '' ? cloudData.order_key : '',
+        order_by: cloudData.order_by != '' ? cloudData.order_by : '',
+        order_by_user_id: cloudData.order_by_user_id,
+        cancel_by: cloudData.cancel_by != '' ? cloudData.cancel_by : '',
+        cancel_by_user_id: cloudData.cancel_by_user_id != '' ? cloudData.cancel_by_user_id: '',
+        customer_id: cloudData.customer_id,
+        total_amount: cloudData.total_amount != '' ? cloudData.total_amount : '',
+        qr_order: cloudData.qr_order,
+        qr_order_table_sqlite_id: '',
+        accepted: cloudData.accepted,
+        sync_status: 1,
+        created_at: cloudData.created_at,
+        updated_at: cloudData.updated_at,
+        soft_delete: cloudData.soft_delete,
+      ));
     }
+    getAllOrderDetail();
   }
 }
 
@@ -741,9 +926,35 @@ getAllOrderDetail() async {
   if (data['status'] == '1') {
     List responseJson = data['order'];
     for (var i = 0; i < responseJson.length; i++) {
-      OrderDetail data = await PosDatabase.instance
-          .insertOrderDetail(OrderDetail.fromJson(responseJson[i]));
+      //OrderDetail item = OrderDetail.fromJson(responseJson[i]);
+      OrderCache cacheData = await PosDatabase.instance.readOrderCacheSqliteID(responseJson[i]['order_cache_key']);
+      Categories? categoriesData = await PosDatabase.instance.readCategorySqliteID(responseJson[i]['category_id'].toString());
+      BranchLinkProduct branchLinkProductData = await PosDatabase.instance.readBranchLinkProductSqliteID(responseJson[i]['branch_link_product_id'].toString());
+      OrderDetail data = await PosDatabase.instance.insertOrderDetail(OrderDetail(
+        order_detail_id: responseJson[i]['order_detail_id'],
+        order_detail_key: responseJson[i]['order_detail_key'].toString(),
+        order_cache_sqlite_id: cacheData.order_cache_sqlite_id.toString(),
+        order_cache_key: responseJson[i]['order_cache_key'],
+        branch_link_product_sqlite_id: branchLinkProductData.branch_link_product_sqlite_id.toString(),
+        category_sqlite_id: categoriesData != null ? categoriesData.category_sqlite_id.toString() : '0',
+        productName: responseJson[i]['product_name'],
+        has_variant: responseJson[i]['has_variant'],
+        product_variant_name: responseJson[i]['product_variant_name'],
+        price: responseJson[i]['price'],
+        original_price: responseJson[i]['original_price'],
+        quantity: responseJson[i]['quantity'],
+        remark: responseJson[i]['remark'],
+        account: responseJson[i]['account'],
+        cancel_by: responseJson[i]['cancel_by'],
+        cancel_by_user_id: responseJson[i]['cancel_by_user_id'],
+        status: responseJson[i]['status'],
+        sync_status: 1,
+        created_at: responseJson[i]['created_at'],
+        updated_at: responseJson[i]['updated_at'],
+        soft_delete: responseJson[i]['soft_delete']
+      ));
     }
+    getAllOrderModifierDetail();
   }
 }
 
@@ -760,9 +971,22 @@ getAllOrderModifierDetail() async {
   if (data['status'] == '1') {
     List responseJson = data['order'];
     for (var i = 0; i < responseJson.length; i++) {
-      OrderModifierDetail data = await PosDatabase.instance
-          .insertOrderModifierDetail(
-              OrderModifierDetail.fromJson(responseJson[i]));
+      OrderDetail detailData = await PosDatabase.instance.readOrderDetailSqliteID(responseJson[i]['order_detail_key']);
+      OrderModifierDetail data = await PosDatabase.instance.insertOrderModifierDetail(OrderModifierDetail(
+        order_modifier_detail_id: responseJson[i]['order_modifier_detail_id'],
+        order_modifier_detail_key: responseJson[i]['order_modifier_detail_key'],
+        order_detail_key: responseJson[i]['order_detail_key'],
+        order_detail_sqlite_id: detailData.order_detail_sqlite_id.toString(),
+        order_detail_id: '0',
+        mod_item_id: responseJson[i]['mod_item_id'],
+        mod_name: responseJson[i]['name'],
+        mod_price: responseJson[i]['price'],
+        mod_group_id: responseJson[i]['mod_group_id'],
+        sync_status: 1,
+        created_at: responseJson[i]['created_at'],
+        updated_at: responseJson[i]['updated_at'],
+        soft_delete: responseJson[i]['soft_delete']
+      ));
     }
   }
 }
@@ -785,6 +1009,114 @@ getSale() async {
     }
   }
 }
+
+/*
+  save settlement to database
+*/
+getSettlement() async {
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  final String? user = prefs.getString('user');
+  Map userObject = json.decode(user!);
+  Map data = await Domain().getSettlement(userObject['company_id'], branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['settlement'];
+    for (var i = 0; i < responseJson.length; i++) {
+      Settlement item = Settlement.fromJson(responseJson[i]);
+      Settlement data = await PosDatabase.instance.insertSettlement(Settlement(
+        settlement_id: item.settlement_id,
+        settlement_key: item.settlement_key,
+        company_id: item.company_id,
+        branch_id: item.branch_id,
+        total_bill: item.total_bill,
+        total_sales: item.total_sales,
+        total_refund_bill: item.total_refund_bill,
+        total_refund_amount: item.total_refund_amount,
+        total_discount: item.total_discount,
+        total_cancellation: item.total_cancellation,
+        total_tax: item.total_tax,
+        settlement_by_user_id: item.settlement_by_user_id,
+        settlement_by: item.settlement_by,
+        status: item.status,
+        sync_status: 1,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        soft_delete: item.soft_delete,
+      ));
+    }
+    getSettlementLinkPayment();
+  }
+}
+
+/*
+  save settlement link payment to database
+*/
+getSettlementLinkPayment() async {
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  final String? user = prefs.getString('user');
+  Map userObject = json.decode(user!);
+  Map data = await Domain().getSettlementLinkPayment(userObject['company_id'], branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['settlement'];
+    for (var i = 0; i < responseJson.length; i++) {
+      SettlementLinkPayment item = SettlementLinkPayment.fromJson(responseJson[i]);
+      Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(item.settlement_key!);
+      SettlementLinkPayment data = await PosDatabase.instance.insertSettlementLinkPayment(SettlementLinkPayment(
+        settlement_link_payment_id: item.settlement_link_payment_id,
+        settlement_link_payment_key: item.settlement_link_payment_key,
+        company_id: item.company_id,
+        branch_id: item.branch_id,
+        settlement_sqlite_id: settlementData.settlement_sqlite_id.toString(),
+        settlement_key: item.settlement_key,
+        total_bill: item.total_bill,
+        total_sales: item.total_sales,
+        payment_link_company_id: item.payment_link_company_id,
+        status: item.status,
+        sync_status: 1,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        soft_delete: item.soft_delete,
+      ));
+    }
+  }
+}
+
+/*
+  save cash record to database
+*/
+getCashRecord() async {
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  final String? user = prefs.getString('user');
+  Map userObject = json.decode(user!);
+  Map data = await Domain().getCashRecord(userObject['company_id'], branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['data'];
+    for (var i = 0; i < responseJson.length; i++) {
+      CashRecord data = await PosDatabase.instance.insertCashRecord(CashRecord(
+        cash_record_id: responseJson[i]['cash_record_id'],
+        cash_record_key: responseJson[i]['cash_record_key'],
+        company_id: responseJson[i]['company_id'],
+        branch_id: responseJson[i]['branch_id'],
+        remark: responseJson[i]['remark'],
+        payment_name: responseJson[i]['payment_name'],
+        payment_type_id: responseJson[i]['payment_type_id'],
+        type: responseJson[i]['type'],
+        amount: responseJson[i]['amount'],
+        user_id: responseJson[i]['user_id'],
+        settlement_date: responseJson[i]['settlement_date'],
+        sync_status: 1,
+        created_at: responseJson[i]['created_at'],
+        updated_at: responseJson[i]['updated_at'],
+        soft_delete: responseJson[i]['soft_delete'],
+      ));
+    }
+  }
+}
+
+
+
 
 /*
   create folder to save product image
@@ -833,3 +1165,4 @@ downloadProductImage(String path) async {
     }
   }
 }
+

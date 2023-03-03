@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/print_receipt.dart';
 import '../../translation/AppLocalizations.dart';
 
 class PrinterSetting extends StatefulWidget {
@@ -34,89 +35,147 @@ class _PrinterSettingState extends State<PrinterSetting> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return isLoaded ?
-      Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: printerList.length > 0 ?
-                ListView.builder(
-                    itemCount: printerList.length,
-                    itemBuilder: (BuildContext context,int index){
-                      return Card(
-                        elevation: 5,
-                        child: ListTile(
-                            leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.print, color: Colors.grey,)),
-                            title:Text("${printerList[index].printerLabel}"),
-                          subtitle: printerList[index].type == 0 ? Text("Type: USB") : Text('Type: LAN'),
-                          trailing: Container(
-                            child: FittedBox(
-                              child: printerList[index].type == 0 ? Icon(Icons.usb) : Icon(Icons.wifi),
-                            ),
+      return LayoutBuilder(builder: (context,  constraints) {
+        if(constraints.maxWidth > 800){
+          return isLoaded ?
+          Scaffold(
+            resizeToAvoidBottomInset: false,
+            floatingActionButton: FloatingActionButton(
+              backgroundColor: color.backgroundColor,
+              onPressed: () {
+                openPrinterDialog(null);
+              },
+              tooltip: "Add Printer",
+              child: const Icon(Icons.add),
+            ),
+            body: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: printerList.length > 0 ?
+              ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: printerList.length,
+                  itemBuilder: (BuildContext context,int index){
+                    return Card(
+                      elevation: 5,
+                      child: ListTile(
+                        leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.print, color: Colors.grey,)),
+                        title:Text("${printerList[index].printerLabel}"),
+                        subtitle: printerList[index].type == 0 ? Text("Type: USB") : Text('Type: LAN'),
+                        trailing: Container(
+                          child: FittedBox(
+                            child: printerList[index].type == 0 ? Icon(Icons.usb) : Icon(Icons.wifi),
                           ),
-                          onLongPress: () async {
-                            if (await confirm(
-                              context,
-                              title: Text(
-                                  '${AppLocalizations.of(context)?.translate('remove_printer')}'),
-                              content: Text(
-                                  '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
-                              textOK:
-                              Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                              textCancel:
-                              Text('${AppLocalizations.of(context)?.translate('no')}'),
-                            )) {
-                              return callClearAllPrinterRecord(printerList[index]);
-                            }
-                          },
-                          onTap: (){
-                              openPrinterDialog(printerList[index]);
-                          },
                         ),
-                      );
-                    }
-                ) : Container(
-                  alignment: Alignment.center,
-                  height:
-                  MediaQuery.of(context).size.height / 1.7,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.print_disabled, size: 36.0),
-                      Text('NO PRINTER', style: TextStyle(fontSize: 24)),
-                    ],
-                  ),
+                        onLongPress: () async {
+                          if (await confirm(
+                            context,
+                            title: Text(
+                                '${AppLocalizations.of(context)?.translate('remove_printer')}'),
+                            content: Text(
+                                '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                            textOK:
+                            Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                            textCancel:
+                            Text('${AppLocalizations.of(context)?.translate('no')}'),
+                          )) {
+                            return callClearAllPrinterRecord(printerList[index]);
+                          }
+                        },
+                        onTap: (){
+                          openPrinterDialog(printerList[index]);
+                        },
+                      ),
+                    );
+                  }
+              ) : Stack(
+                  children: [
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.print_disabled, size: 36.0),
+                          Text('NO PRINTER', style: TextStyle(fontSize: 24)),
+                        ],
+                      ),
+                    ),
+                  ]
+              ),
+            ),
+          ) : CustomProgressBar();
+        } else {
+          ///mobile layout
+          return isLoaded ?
+          Scaffold(
+            resizeToAvoidBottomInset: false,
+            floatingActionButton: FloatingActionButton(
+              backgroundColor: color.backgroundColor,
+              onPressed: () {
+                openPrinterDialog(null);
+              },
+              tooltip: "Add Printer",
+              child: const Icon(Icons.add),
+            ),
+            body: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: printerList.length > 0 ?
+              ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: printerList.length,
+                  itemBuilder: (BuildContext context,int index){
+                    return Card(
+                      elevation: 5,
+                      child: ListTile(
+                        leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.print, color: Colors.grey,)),
+                        title:Text("${printerList[index].printerLabel}"),
+                        subtitle: printerList[index].type == 0 ? Text("Type: USB") : Text('Type: LAN'),
+                        trailing: Container(
+                          child: FittedBox(
+                            child: printerList[index].type == 0 ? Icon(Icons.usb) : Icon(Icons.wifi),
+                          ),
+                        ),
+                        onLongPress: () async {
+                          if (await confirm(
+                            context,
+                            title: Text(
+                                '${AppLocalizations.of(context)?.translate('remove_printer')}'),
+                            content: Text(
+                                '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                            textOK:
+                            Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                            textCancel:
+                            Text('${AppLocalizations.of(context)?.translate('no')}'),
+                          )) {
+                            return callClearAllPrinterRecord(printerList[index]);
+                          }
+                        },
+                        onTap: (){
+                          openPrinterDialog(printerList[index]);
+                        },
+                      ),
+                    );
+                  }
+              ) : Container(
+                alignment: Alignment.center,
+                height:
+                MediaQuery.of(context).size.height / 1.7,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.print_disabled, size: 36.0),
+                    Text('NO PRINTER', style: TextStyle(fontSize: 24)),
+                  ],
                 ),
               ),
-              Container(
-                alignment: Alignment.bottomRight,
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: FloatingActionButton(
-                    backgroundColor: color.backgroundColor,
-                    onPressed: () {
-                      openPrinterDialog(null);
-                    },
-                    tooltip: "Add Printer",
-                    child: const Icon(Icons.add),
-                  ),
-                ),
-              )
-            ],
-          ),
-        ),
-      ) : CustomProgressBar();
+            ),
+          ) : CustomProgressBar();
+        }
+      });
+
     });
   }
 
   readAllPrinters() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
-    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter(branch_id!);
-    printerList = List.from(data);
+    printerList = await PrintReceipt().readAllPrinters();
 
     setState(() {
       isLoaded = true;

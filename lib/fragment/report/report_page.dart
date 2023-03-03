@@ -1,7 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:page_transition/page_transition.dart';
+import 'package:pos_system/fragment/report/cancel_modifier_report.dart';
+import 'package:pos_system/fragment/report/cancellation_report.dart';
+import 'package:pos_system/fragment/report/category_report.dart';
+import 'package:pos_system/fragment/report/daily_sales_report.dart';
+import 'package:pos_system/fragment/report/dining_report.dart';
+import 'package:pos_system/fragment/report/modifier_report.dart';
+import 'package:pos_system/fragment/report/payment_report.dart';
+import 'package:pos_system/fragment/report/print_report_page.dart';
+import 'package:pos_system/fragment/report/product_report.dart';
+import 'package:pos_system/fragment/report/refund_report.dart';
 import 'package:pos_system/fragment/report/report_overview.dart';
+import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:provider/provider.dart';
 import 'package:side_navigation/side_navigation.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import '../../notifier/theme_color.dart';
 import 'transfer_report.dart';
@@ -14,116 +28,411 @@ class ReportPage extends StatefulWidget {
 }
 
 class _ReportPageState extends State<ReportPage> {
-  List<Widget> views = [
-    Container(
-      child: ReportOverview(),
-    ),
-    Container(
-      child: TransferRecord(),
-    ),
-  ];
+  late TextEditingController _controller;
+  DateRangePickerController _dateRangePickerController = DateRangePickerController();
+  DateFormat dateFormat = DateFormat("dd/MM/yyyy");
+  String currentStDate = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
+  String currentEdDate = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
+  String dateTimeNow = '';
+  String _range = '';
+  bool isLoaded = false;
+  List<Widget> views = [];
   int selectedIndex = 0;
+  int currentPage = 0;
+
+
+  @override
+  void initState() {
+    super.initState();
+    preload();
+    dateTimeNow = dateFormat.format(DateTime.now());
+    _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+    _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
+    currentPage = 0;
+  }
+
+  void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
+    DateFormat _dateFormat = DateFormat("yyyy-MM-dd 00:00:00");
+    if (args.value is PickerDateRange) {
+      _range = '${DateFormat('dd/MM/yyyy').format(args.value.startDate)} -'
+      // ignore: lines_longer_than_80_chars
+          ' ${DateFormat('dd/MM/yyyy').format(args.value.endDate ?? args.value.startDate)}';
+
+      this.currentStDate = _dateFormat.format(args.value.startDate);
+      this.currentEdDate = _dateFormat.format(args.value.endDate ?? args.value.startDate);
+      _dateRangePickerController.selectedRange = PickerDateRange(args.value.startDate, args.value.endDate ?? args.value.startDate);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return LayoutBuilder(builder: (context, constraints) {
-        if(constraints.maxWidth > 800){
-          return Scaffold(
-            appBar: AppBar(
-              automaticallyImplyLeading: false,
-              title: Text('Report',
-                  style: TextStyle(fontSize: 25, color: Colors.black)),
-              backgroundColor: Color(0xffFAFAFA),
-              elevation: 0,
-            ),
-            body: Padding(
-              padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
-              child: Row(
-                children: [
-                  SideNavigationBar(
-                    expandable: false,
-                    theme: SideNavigationBarTheme(
-                      backgroundColor: Colors.white,
-                      togglerTheme: SideNavigationBarTogglerTheme.standard(),
-                      itemTheme: SideNavigationBarItemTheme(
-                        selectedItemColor: color.backgroundColor,
+      return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child){
+          return LayoutBuilder(builder: (context, constraints) {
+            if(constraints.maxWidth > 800){
+              return Scaffold(
+                resizeToAvoidBottomInset: false,
+                appBar: AppBar(
+                  automaticallyImplyLeading: false,
+                  title: Row(
+                    children: [
+                      Text('Report',
+                          style: TextStyle(fontSize: 25, color: Colors.black)),
+                      Spacer(),
+                      Container(
+                        child: IconButton(
+                            icon: Icon(Icons.print),
+                            color: color.backgroundColor,
+                            onPressed: (){
+                              Navigator.push(
+                                context,
+                                PageTransition(
+                                  type: PageTransitionType.bottomToTop,
+                                  child: PrintReportPage(currentPage: this.currentPage,),
+                                ),
+                              );
+                            },
+                        ),
                       ),
-                      dividerTheme: SideNavigationBarDividerTheme.standard(),
-                    ),
-                    selectedIndex: selectedIndex,
-                    items: const [
-                      SideNavigationBarItem(
-                        icon: Icons.view_comfy_alt,
-                        label: 'Overview',
-                      ),
-                      SideNavigationBarItem(
-                        icon: Icons.list,
-                        label: 'Transfer report',
-                      ),
-                    ],
-                    onTap: (index) {
-                      setState(() {
-                        selectedIndex = index;
-                      });
-                    },
-                  ),
-                  Expanded(
-                    child: views.elementAt(selectedIndex),
-                  )
-                ],
-              ),
-            ),
-          );
-        } else {
-          return Scaffold(
-            appBar: AppBar(
-              automaticallyImplyLeading: false,
-              title: Text('Report',
-                  style: TextStyle(fontSize: 25, color: Colors.black)),
-              backgroundColor: Color(0xffFAFAFA),
-              elevation: 0,
-            ),
-            body: Padding(
-              padding: EdgeInsets.fromLTRB(8, 0, 8, 8),
-              child: Row(
-                children: [
-                  SideNavigationBar(
-                    initiallyExpanded: false,
-                    expandable: true,
-                    theme: SideNavigationBarTheme(
-                      backgroundColor: Colors.white,
-                      togglerTheme: SideNavigationBarTogglerTheme.standard(),
-                      itemTheme: SideNavigationBarItemTheme(
-                        selectedItemColor: color.backgroundColor,
-                      ),
-                      dividerTheme: SideNavigationBarDividerTheme.standard(),
-                    ),
-                    selectedIndex: selectedIndex,
-                    items: const [
-                      SideNavigationBarItem(
-                        icon: Icons.view_comfy_alt,
-                        label: 'Overview',
-                      ),
-                      SideNavigationBarItem(
-                        icon: Icons.list,
-                        label: 'Daily Sales',
+                      Container(
+                          margin: EdgeInsets.only(right: 10),
+                          child: IconButton(
+                            onPressed: () {
+                              showDialog(context: context, builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('Select a date range'),
+                                  content: Container(
+                                    height: 350,
+                                    width: 350,
+                                    child: Container(
+                                      child: Card(
+                                        elevation: 10,
+                                        child: SfDateRangePicker(
+                                          controller: _dateRangePickerController,
+                                          selectionMode: DateRangePickerSelectionMode.range,
+                                          allowViewNavigation: false,
+                                          onSelectionChanged: _onSelectionChanged,
+                                          maxDate: DateTime.now(),
+                                          showActionButtons: true,
+                                          onSubmit: (object) {
+                                            _controller = _range != '' ?
+                                            new TextEditingController(text: '${_range}')
+                                                :
+                                            new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                            setState(() {
+                                              reportModel.setDateTime(this.currentStDate, this.currentEdDate);
+                                              reportModel.resetLoad();
+                                            });
+                                            Navigator.of(context).pop();
+                                          },
+                                          onCancel: (){
+                                            Navigator.of(context).pop();
+                                          },
+
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              });
+                            },
+                            icon: Icon(Icons.calendar_month),
+                            color: color.backgroundColor,
+                          )),
+                      Container(
+                        width: 300,
+                        child: TextField(
+                          controller: _controller,
+                          enabled: false,
+                        ),
                       ),
                     ],
-                    onTap: (index) {
-                      setState(() {
-                        selectedIndex = index;
-                      });
-                    },
                   ),
-                  Expanded(
-                    child: views.elementAt(selectedIndex),
-                  )
-                ],
-              ),
-            ),
-          );
+                  backgroundColor: Color(0xffFAFAFA),
+                  elevation: 0,
+                ),
+                body: Padding(
+                  padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
+                  child: Row(
+                    children: [
+                      SideNavigationBar(
+                        expandable: false,
+                        theme: SideNavigationBarTheme(
+                          backgroundColor: Colors.white,
+                          togglerTheme: SideNavigationBarTogglerTheme.standard(),
+                          itemTheme: SideNavigationBarItemTheme(
+                            selectedItemColor: color.backgroundColor,
+                          ),
+                          dividerTheme: SideNavigationBarDividerTheme.standard(),
+                        ),
+                        selectedIndex: selectedIndex,
+                        items: const [
+                          SideNavigationBarItem(
+                            icon: Icons.view_comfy_alt,
+                            label: 'Overview',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.list_alt,
+                            label: 'Daily Sales',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.fastfood,
+                            label: 'Product Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.fastfood,
+                            label: 'Category Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.fastfood,
+                            label: 'Modifier Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.no_food,
+                            label: 'Cancel Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.no_food,
+                            label: 'Cancel Modifier Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.local_dining,
+                            label: 'Dining Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.payment,
+                            label: 'Payment Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.refresh,
+                            label: 'Refund Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.compare_arrows,
+                            label: 'Transfer Report',
+                          ),
+                        ],
+                        onTap: (index) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            reportModel.resetLoad();
+                          });
+                          setState(() {
+                            this.currentPage = index;
+                            selectedIndex = index;
+                          });
+                        },
+                      ),
+                      Expanded(
+                        child: views.elementAt(selectedIndex),
+                      )
+                    ],
+                  ),
+                ),
+              );
+            } else {
+              ///mobile layout
+              return Scaffold(
+                resizeToAvoidBottomInset: false,
+                appBar: AppBar(
+                  automaticallyImplyLeading: false,
+                  title: Row(
+                    children: [
+                      Text('Report',
+                          style: TextStyle(fontSize: 25, color: Colors.black)),
+                      Spacer(),
+                      Container(
+                        child: IconButton(
+                          icon: Icon(Icons.print),
+                          color: color.backgroundColor,
+                          onPressed: (){
+                            Navigator.push(
+                              context,
+                              PageTransition(
+                                type: PageTransitionType.bottomToTop,
+                                child: PrintReportPage(currentPage: this.currentPage,),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      Container(
+                          margin: EdgeInsets.only(right: 10),
+                          child: IconButton(
+                            onPressed: () {
+                              showDialog(context: context, builder: (BuildContext context) {
+                                return AlertDialog(
+                                  contentPadding: EdgeInsets.zero,
+                                  content: Container(
+                                    height: MediaQuery.of(context).size.height,
+                                    width: MediaQuery.of(context).size.width,
+                                    child: Container(
+                                      child: Card(
+                                        child: SfDateRangePicker(
+                                          controller: _dateRangePickerController,
+                                          selectionMode: DateRangePickerSelectionMode.range,
+                                          allowViewNavigation: false,
+                                          onSelectionChanged: _onSelectionChanged,
+                                          maxDate: DateTime.now(),
+                                          showActionButtons: true,
+                                          onSubmit: (object) {
+                                            _controller = _range != '' ?
+                                            new TextEditingController(text: '${_range}')
+                                                :
+                                            new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                            setState(() {
+                                              reportModel.setDateTime(this.currentStDate, this.currentEdDate);
+                                              reportModel.resetLoad();
+                                            });
+                                            Navigator.of(context).pop();
+                                          },
+                                          onCancel: (){
+                                            Navigator.of(context).pop();
+                                          },
+
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              });
+                            },
+                            icon: Icon(Icons.calendar_month),
+                            color: color.backgroundColor,
+                          )),
+                      Container(
+                        width: 200,
+                        child: TextField(
+                          controller: _controller,
+                          enabled: false,
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Color(0xffFAFAFA),
+                  elevation: 0,
+                ),
+                body: Padding(
+                  padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
+                  child: Row(
+                    children: [
+                      SideNavigationBar(
+                        initiallyExpanded: false,
+                        expandable: false,
+                        theme: SideNavigationBarTheme(
+                          backgroundColor: Colors.white,
+                          togglerTheme: SideNavigationBarTogglerTheme.standard(),
+                          itemTheme: SideNavigationBarItemTheme(
+                            selectedItemColor: color.backgroundColor,
+                          ),
+                          dividerTheme: SideNavigationBarDividerTheme.standard(),
+                        ),
+                        selectedIndex: selectedIndex,
+                        items: const [
+                          SideNavigationBarItem(
+                            icon: Icons.view_comfy_alt,
+                            label: 'Overview',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.list_alt,
+                            label: 'Daily Sales',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.fastfood,
+                            label: 'Product Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.fastfood,
+                            label: 'Category Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.fastfood,
+                            label: 'Modifier Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.no_food,
+                            label: 'Cancel Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.no_food,
+                            label: 'Cancel Modifier Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.local_dining,
+                            label: 'Dining Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.payment,
+                            label: 'Payment Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.refresh,
+                            label: 'Refund Report',
+                          ),
+                          SideNavigationBarItem(
+                            icon: Icons.compare_arrows,
+                            label: 'Transfer Report',
+                          ),
+                        ],
+                        onTap: (index) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            reportModel.resetLoad();
+                          });
+                          setState(() {
+                            this.currentPage = index;
+                            selectedIndex = index;
+                          });
+                        },
+                      ),
+                      Expanded(
+                        child: views.elementAt(selectedIndex),
+                      )
+                    ],
+                  ),
+                ),
+              );
+            }
+          });
         }
-      });
+      );
     });
+  }
+  preload(){
+    print('preload called');
+    views.clear();
+    views.addAll([
+      Container(
+        child: ReportOverview(),
+      ),
+      Container(
+        child: DailySalesReport(),
+      ),
+      Container(
+        child: ProductReport(),
+      ),
+      Container(
+        child: CategoryReport(),
+      ),
+      Container(
+        child: ModifierReport(),
+      ),
+      Container(
+        child: CancellationReport(),
+      ),
+      Container(
+        child: CancelModifierReport(),
+      ),
+      Container(
+        child: DiningReport(),
+      ),
+      Container(
+        child: PaymentReport(),
+      ),
+      Container(
+        child: RefundReport(),
+      ),
+      Container(
+        child: TransferRecord(),
+      ),
+    ]);
   }
 }

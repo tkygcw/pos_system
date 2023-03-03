@@ -50,8 +50,7 @@ class _SettlementPageState extends State<SettlementPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return LayoutBuilder(
-        builder: (context, constraints) {
+      return LayoutBuilder(builder: (context, constraints) {
           if(constraints.maxWidth > 800){
             return Scaffold(
               body: isLoad
@@ -159,7 +158,7 @@ class _SettlementPageState extends State<SettlementPage> {
                               ElevatedButton(
                                 child: Text('Settlement'),
                                 onPressed: () {
-                                  if(cashRecordList.isNotEmpty && unpaidOrderCacheList.isEmpty){
+                                  if(cashRecordList.length > 1 && unpaidOrderCacheList.isEmpty){
                                     openSettlementDialog(cashRecordList);
                                   } else if(cashRecordList.isEmpty) {
                                     Fluttertoast.showToast(
@@ -169,6 +168,11 @@ class _SettlementPageState extends State<SettlementPage> {
                                     Fluttertoast.showToast(
                                         backgroundColor: Color(0xFFFF0000),
                                         msg: "Still have order not yet paid");
+                                  }
+                                  else if(cashRecordList.length == 1){
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Color(0xFFFF0000),
+                                        msg: "Cannot do settlement with opening balance");
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -207,7 +211,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                     textCancel: Text(
                                         '${AppLocalizations.of(context)?.translate('no')}'),
                                   )) {
-                                    return toPosPinPage();
+                                    return openPosPinDialog();
                                   }
 
                                 },
@@ -325,8 +329,9 @@ class _SettlementPageState extends State<SettlementPage> {
                   : CustomProgressBar(),
             );
           } else {
-            //mobile view
+            ///mobile view
             return Scaffold(
+              resizeToAvoidBottomInset: false,
               body: isLoad
                   ? Container(
                 child: Padding(
@@ -434,9 +439,13 @@ class _SettlementPageState extends State<SettlementPage> {
                                 ElevatedButton(
                                   child: Text('Settlement'),
                                   onPressed: () {
-                                    if(cashRecordList.length > 0){
+                                    if(cashRecordList.length > 1){
                                       openSettlementDialog(cashRecordList);
-                                    } else {
+                                    } else if(cashRecordList.length == 1){
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Color(0xFFFF0000),
+                                          msg: "Cannot do settlement with only opening cash");
+                                    } else  {
                                       Fluttertoast.showToast(
                                           backgroundColor: Color(0xFFFF0000),
                                           msg: "No record");
@@ -467,21 +476,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                 ElevatedButton(
                                   child: Text('Transfer ownership'),
                                   onPressed: () async {
-
-                                    if (await confirm(
-                                      context,
-                                      title: Text(
-                                          '${AppLocalizations.of(context)?.translate('confirm_pos_pin')}'),
-                                      content: Text(
-                                          '${AppLocalizations.of(context)?.translate('to_pos_pin')}'),
-                                      textOK: Text(
-                                          '${AppLocalizations.of(context)?.translate('yes')}'),
-                                      textCancel: Text(
-                                          '${AppLocalizations.of(context)?.translate('no')}'),
-                                    )) {
-                                      return toPosPinPage();
-                                    }
-
+                                    openPosPinDialog();
                                   },
                                   style: ElevatedButton.styleFrom(
                                       primary: color.backgroundColor),
@@ -617,6 +612,30 @@ class _SettlementPageState extends State<SettlementPage> {
 /*
   -------------------Dialog part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+  openPosPinDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: PosPinDialog(
+                callBack: () => toPosPinPage(),
+              ),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
   Future<Future<Object?>> openCashOutDialog() async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),

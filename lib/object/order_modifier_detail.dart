@@ -9,6 +9,8 @@ class OrderModifierDetailFields {
     order_detail_id,
     order_detail_key,
     mod_item_id,
+    mod_name,
+    mod_price,
     mod_group_id,
     sync_status,
     created_at,
@@ -23,6 +25,8 @@ class OrderModifierDetailFields {
   static String order_detail_id = 'order_detail_id';
   static String order_detail_key = 'order_detail_key';
   static String mod_item_id = 'mod_item_id';
+  static String mod_name = 'mod_name';
+  static String mod_price = 'mod_price';
   static String mod_group_id = 'mod_group_id';
   static String created_at = 'created_at';
   static String sync_status = 'sync_status';
@@ -38,12 +42,16 @@ class OrderModifierDetail{
   String? order_detail_id;
   String? order_detail_key;
   String? mod_item_id;
+  String? mod_name;
+  String? mod_price;
   String? mod_group_id;
   int? sync_status;
   String? created_at;
   String? updated_at;
   String? soft_delete;
   String? modifier_name;
+  int? item_sum;
+  double? net_sales;
 
   OrderModifierDetail(
       {this.order_modifier_detail_sqlite_id,
@@ -53,12 +61,16 @@ class OrderModifierDetail{
         this.order_detail_id,
         this.order_detail_key,
         this.mod_item_id,
+        this.mod_name,
+        this.mod_price,
         this.mod_group_id,
         this.sync_status,
         this.created_at,
         this.updated_at,
         this.soft_delete,
-        this.modifier_name});
+        this.modifier_name,
+        this.item_sum,
+        this.net_sales});
 
   OrderModifierDetail copy({
      int? order_modifier_detail_sqlite_id,
@@ -68,6 +80,8 @@ class OrderModifierDetail{
      String? order_detail_id,
      String? order_detail_key,
      String? mod_item_id,
+     String? mod_name,
+     String? mod_price,
      String? mod_group_id,
      int? sync_status,
      String? created_at,
@@ -83,6 +97,8 @@ class OrderModifierDetail{
         order_detail_key: order_detail_key ?? this.order_detail_key,
         mod_item_id: mod_item_id ?? this.mod_item_id,
         mod_group_id: mod_group_id ?? this.mod_group_id,
+        mod_name: mod_name ?? this.mod_name,
+        mod_price: mod_price ?? this.mod_price,
         sync_status: sync_status ?? this.sync_status,
         created_at: created_at ?? this.created_at,
         updated_at: updated_at ?? this.updated_at,
@@ -96,12 +112,16 @@ class OrderModifierDetail{
     order_detail_id: json[OrderModifierDetailFields.order_detail_id] as String?,
     order_detail_key: json[OrderModifierDetailFields.order_detail_key] as String?,
     mod_item_id: json[OrderModifierDetailFields.mod_item_id] as String?,
+    mod_name: json[OrderModifierDetailFields.mod_name] as String?,
+    mod_price: json[OrderModifierDetailFields.mod_price] as String?,
     mod_group_id: json[OrderModifierDetailFields.mod_group_id] as String?,
     sync_status: json[OrderModifierDetailFields.sync_status] as int?,
     created_at: json[OrderModifierDetailFields.created_at] as String?,
     updated_at: json[OrderModifierDetailFields.updated_at] as String?,
     soft_delete: json[OrderModifierDetailFields.soft_delete] as String?,
-    modifier_name: json['name'] as String?
+    modifier_name: json['name'] as String?,
+    item_sum: json['item_sum'] as int?,
+    net_sales: json['net_sales'] as double?
   );
 
   Map<String, Object?> toJson() => {
@@ -112,6 +132,8 @@ class OrderModifierDetail{
     OrderModifierDetailFields.order_detail_id: order_detail_id,
     OrderModifierDetailFields.order_detail_key: order_detail_key,
     OrderModifierDetailFields.mod_item_id: mod_item_id,
+    OrderModifierDetailFields.mod_name: mod_name,
+    OrderModifierDetailFields.mod_price: mod_price,
     OrderModifierDetailFields.mod_group_id: mod_group_id,
     OrderModifierDetailFields.sync_status: sync_status,
     OrderModifierDetailFields.created_at: created_at,

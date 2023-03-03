@@ -108,136 +108,131 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
       return Scaffold(
         body: _isLoaded ?
         SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-                height: MediaQuery.of(context).size.height,
-                child: Column(
-                  children: [
-                    ListTile(
-                      title: Text("Change Background Color"),
-                      subtitle: Text("Main Color for the appearance of app"),
-                      trailing: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.black,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: CircleAvatar(
-                          backgroundColor: color.backgroundColor,
-                          child: InkWell(
-                            onTap: () {
-                              _openMainColorPicker();
-                            },
-                          ),
-                        ),
+          child: Container(
+            child: Column(
+              children: [
+                ListTile(
+                  title: Text("Change Background Color"),
+                  subtitle: Text("Main Color for the appearance of app"),
+                  trailing: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 1.5,
                       ),
                     ),
-                    ListTile(
-                      title: Text("Change Button Color"),
-                      subtitle: Text("Button Color for the appearance of app"),
-                      trailing: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.black,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: CircleAvatar(
-                          backgroundColor: color.buttonColor,
-                          child: InkWell(
-                            onTap: () {
-                              _openButtonColorPicker();
-                            },
-                          ),
-                        ),
+                    child: CircleAvatar(
+                      backgroundColor: color.backgroundColor,
+                      child: InkWell(
+                        onTap: () {
+                          _openMainColorPicker();
+                        },
                       ),
                     ),
-                    ListTile(
-                      title: Text("Change Icon Color"),
-                      subtitle: Text("Icon Color for the appearance of app"),
-                      trailing: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.black,
-                            width: 1.0,
-                          ),
-                        ),
-                        child: CircleAvatar(
-                          backgroundColor: color.iconColor,
-                          child: InkWell(
-                            onTap: () {
-                              _openIconColorPicker();
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                    Divider(
-                      color: Colors.grey,
-                      height: 1,
-                      thickness: 1,
-                      indent: 20,
-                      endIndent: 20,
-                    ),
-                    ListTile(
-                      title: Text('Auto open cash drawer'),
-                      subtitle: Text('Auto open cash drawer after insert opening balance'),
-                      trailing: Switch(
-                          value: this.cashDrawer,
-                          activeColor: color.backgroundColor,
-                          onChanged: (value) async {
-                            await getAllAppSetting();
-                            setState(() {
-                              this.cashDrawer = value;
-                            });
-                            if(appSettingList.length == 0){
-                              await createAppSetting();
-                            } else {
-                              await updateAppSetting();
-                            }
-                          },
-                      ),
-                    ),
-                    Divider(
-                      color: Colors.grey,
-                      height: 1,
-                      thickness: 1,
-                      indent: 20,
-                      endIndent: 20,
-                    ),
-                    ListTile(
-                      title: Text('Wi-Fi setting'),
-                      subtitle: Text('open wi-fi setting'),
-                      trailing: Icon(Icons.wifi),
-                      onTap: () {
-                        AppSettings.openWIFISettings();
-                      },
-                    ),
-                    ListTile(
-                      title: Text('App Notification setting'),
-                      subtitle: Text('open app notification setting'),
-                      trailing: Icon(Icons.notifications_on),
-                      onTap: () {
-                        AppSettings.openNotificationSettings();
-                      },
-                    ),
-                    ListTile(
-                      title: Text('Device Sound setting'),
-                      subtitle: Text('open device sound setting'),
-                      trailing: Icon(Icons.volume_up),
-                      onTap: () {
-                        AppSettings.openSoundSettings();
-                      },
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+                ListTile(
+                  title: Text("Change Button Color"),
+                  subtitle: Text("Button Color for the appearance of app"),
+                  trailing: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      backgroundColor: color.buttonColor,
+                      child: InkWell(
+                        onTap: () {
+                          _openButtonColorPicker();
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                ListTile(
+                  title: Text("Change Icon Color"),
+                  subtitle: Text("Icon Color for the appearance of app"),
+                  trailing: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 1.0,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      backgroundColor: color.iconColor,
+                      child: InkWell(
+                        onTap: () {
+                          _openIconColorPicker();
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                Divider(
+                  color: Colors.grey,
+                  height: 1,
+                  thickness: 1,
+                  indent: 20,
+                  endIndent: 20,
+                ),
+                ListTile(
+                  title: Text('Auto open cash drawer'),
+                  subtitle: Text('Auto open cash drawer after insert opening balance'),
+                  trailing: Switch(
+                      value: this.cashDrawer,
+                      activeColor: color.backgroundColor,
+                      onChanged: (value) async {
+                        await getAllAppSetting();
+                        setState(() {
+                          this.cashDrawer = value;
+                        });
+                        if(appSettingList.length == 0){
+                          await createAppSetting();
+                        } else {
+                          await updateAppSetting();
+                        }
+                      },
+                  ),
+                ),
+                Divider(
+                  color: Colors.grey,
+                  height: 1,
+                  thickness: 1,
+                  indent: 20,
+                  endIndent: 20,
+                ),
+                ListTile(
+                  title: Text('Wi-Fi setting'),
+                  subtitle: Text('open wi-fi setting'),
+                  trailing: Icon(Icons.wifi),
+                  onTap: () {
+                    AppSettings.openWIFISettings();
+                  },
+                ),
+                ListTile(
+                  title: Text('App Notification setting'),
+                  subtitle: Text('open app notification setting'),
+                  trailing: Icon(Icons.notifications_on),
+                  onTap: () {
+                    AppSettings.openNotificationSettings();
+                  },
+                ),
+                ListTile(
+                  title: Text('Device Sound setting'),
+                  subtitle: Text('open device sound setting'),
+                  trailing: Icon(Icons.volume_up),
+                  onTap: () {
+                    AppSettings.openSoundSettings();
+                  },
+                ),
+              ],
+            ),
           ),
         ) : CustomProgressBar(),
       );

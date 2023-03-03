@@ -18,6 +18,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/pos_database.dart';
+import '../fragment/display_order/other_order.dart';
 import '../fragment/qr_order/qr_order_page.dart';
 import '../fragment/settlement/cash_dialog.dart';
 import '../object/branch.dart';
@@ -67,61 +68,65 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Scaffold(
-          resizeToAvoidBottomInset: false,
-          body: SafeArea(
-            //side nav bar
-            child: CollapsibleSidebar(
-                sidebarBoxShadow: [
-                  BoxShadow(
-                    color: Colors.transparent,
-                  ),
-                ],
-                // maxWidth: 80,
-                isCollapsed: true,
-                items: _items,
-                avatarImg: FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
-                title: widget.user!.name! +
-                    "\n" +
-                    (branchName ?? '') +
-                    " - " +
-                    role,
-                backgroundColor: color.backgroundColor,
-                selectedTextColor: color.iconColor,
-                textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
-                titleStyle: TextStyle(
-                    fontSize: 17,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.bold),
-                toggleTitleStyle:
-                    TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                selectedIconColor: color.iconColor,
-                selectedIconBox: color.buttonColor,
-                body: Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connection, child) {
-                        return _body(size, context);
-                      }),
+      return WillPopScope(
+        onWillPop: () async => false,
+        child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            body: SafeArea(
+              //side nav bar
+              child: CollapsibleSidebar(
+                  sidebarBoxShadow: [
+                    BoxShadow(
+                      color: Colors.transparent,
                     ),
-                    //cart page
-                    Visibility(
-                      visible: currentPage != 'product' &&
-                               currentPage != 'setting' &&
-                               currentPage != 'settlement' &&
-                               currentPage != 'report'
-                          ? true
-                          : false,
-                      child: Expanded(
-                          flex: MediaQuery.of(context).size.height > 500 ? 1 : 2,
-                          child: CartPage(
-                            currentPage: currentPage,
-                          )),
-                    )
                   ],
-                )),
-          ));
+                  // maxWidth: 80,
+                  isCollapsed: true,
+                  items: _items,
+                  avatarImg: FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
+                  title: widget.user!.name! +
+                      "\n" +
+                      (branchName ?? '') +
+                      " - " +
+                      role,
+                  backgroundColor: color.backgroundColor,
+                  selectedTextColor: color.iconColor,
+                  textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
+                  titleStyle: TextStyle(
+                      fontSize: 17,
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.bold),
+                  toggleTitleStyle:
+                  TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  selectedIconColor: color.iconColor,
+                  selectedIconBox: color.buttonColor,
+                  body: Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connection, child) {
+                          return _body(size, context);
+                        }),
+                      ),
+                      //cart page
+                      Visibility(
+                        visible: currentPage != 'product' &&
+                            currentPage != 'setting' &&
+                            currentPage != 'settlement' &&
+                            currentPage != 'qr_order' &&
+                            currentPage != 'report'
+                            ? true
+                            : false,
+                        child: Expanded(
+                            flex: MediaQuery.of(context).size.height > 500 ? 1 : 2,
+                            child: CartPage(
+                              currentPage: currentPage,
+                            )),
+                      )
+                    ],
+                  )),
+            )),
+      );
     });
   }
 
@@ -132,11 +137,6 @@ class _HomePageState extends State<HomePage> {
         icon: Icons.add_shopping_cart,
         onPressed: () => setState(() => currentPage = 'menu'),
         isSelected: true,
-      ),
-      CollapsibleItem(
-        text: 'Product',
-        icon: Icons.fastfood,
-        onPressed: () => setState(() => currentPage = 'product'),
       ),
       CollapsibleItem(
         text: 'Table',
@@ -169,6 +169,11 @@ class _HomePageState extends State<HomePage> {
         onPressed: () => setState(() => currentPage = 'report'),
       ),
       CollapsibleItem(
+        text: 'Product',
+        icon: Icons.fastfood,
+        onPressed: () => setState(() => currentPage = 'product'),
+      ),
+      CollapsibleItem(
         text: 'Setting',
         icon: Icons.settings,
         onPressed: () => setState(() => currentPage = 'setting'),
@@ -189,7 +194,7 @@ class _HomePageState extends State<HomePage> {
       case 'bill':
         return BillPage();
       case 'other_order':
-        return DisplayOrderPage();
+        return OtherOrderPage();
       case 'report':
         return ReportPage();
       case 'settlement':

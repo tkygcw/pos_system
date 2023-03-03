@@ -146,6 +146,11 @@ class _LoginPageState extends State<LoginPage> {
     pathImg.create();
     downloadOtherImage(pathImg.path);
     downloadLogo(pathImg.path);
+    downloadDuitNowLogo(pathImg.path);
+    downloadTNGLogo(pathImg.path);
+    downloadTwoSeat(pathImg.path);
+    downloadFourSeat(pathImg.path);
+    downloadSixSeat(pathImg.path);
   }
   downloadOtherImage(String path) async{
     final String url = 'https://pos.lkmng.com/asset/output-onlinegiftools.gif';
@@ -158,6 +163,45 @@ class _LoginPageState extends State<LoginPage> {
     final String url = 'https://pos.lkmng.com/asset/logo1.jpg';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/logo1.jpg';
+    final imageFile = File(localPath);
+    await imageFile.writeAsBytes(response.bodyBytes);
+  }
+  downloadDuitNowLogo(String path) async {
+    final String url = 'https://pos.lkmng.com/asset/duitNow.jpg';
+    final response = await http.get(Uri.parse(url));
+    var localPath = path + '/duitNow.jpg';
+    final imageFile = File(localPath);
+    await imageFile.writeAsBytes(response.bodyBytes);
+
+  }
+  downloadTNGLogo(String path) async {
+    final String url = 'https://pos.lkmng.com/asset/TNG.jpg';
+    final response = await http.get(Uri.parse(url));
+    var localPath = path + '/TNG.jpg';
+    final imageFile = File(localPath);
+    await imageFile.writeAsBytes(response.bodyBytes);
+  }
+
+  downloadTwoSeat(String path) async{
+    final String url = 'https://pos.lkmng.com/asset/two-seat.jpg';
+    final response = await http.get(Uri.parse(url));
+    var localPath = path + '/two-seat.jpg';
+    final imageFile = File(localPath);
+    await imageFile.writeAsBytes(response.bodyBytes);
+  }
+
+  downloadFourSeat(String path) async{
+    final String url = 'https://pos.lkmng.com/asset/four-seat.jpg';
+    final response = await http.get(Uri.parse(url));
+    var localPath = path + '/four-seat.jpg';
+    final imageFile = File(localPath);
+    await imageFile.writeAsBytes(response.bodyBytes);
+  }
+
+  downloadSixSeat(String path) async{
+    final String url = 'https://pos.lkmng.com/asset/six-seat.jpg';
+    final response = await http.get(Uri.parse(url));
+    var localPath = path + '/six-seat.jpg';
     final imageFile = File(localPath);
     await imageFile.writeAsBytes(response.bodyBytes);
   }

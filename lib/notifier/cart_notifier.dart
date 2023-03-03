@@ -16,7 +16,7 @@ class CartModel extends ChangeNotifier {
   List<PosTable> selectedTable = [];
   String selectedOption = 'Dine in';
   bool isInit = false;
-  int count = 0;
+  int myCount = 0;
   bool isChange = false;
 
   void initialLoad() {
@@ -24,6 +24,11 @@ class CartModel extends ChangeNotifier {
     removeAllCartItem();
     removePromotion();
     removePaymentDetail();
+    notifyListeners();
+  }
+
+  void resetCount(){
+    myCount = 0;
     notifyListeners();
   }
 
@@ -74,6 +79,16 @@ class CartModel extends ChangeNotifier {
   void removeAllCartItem(){
     cartNotifierItem.clear();
     notifyListeners();
+  }
+
+  void removePartialCartItem(){
+    List<cartProductItem> _removeItem = [];
+    for(int j = 0; j < cartNotifierItem.length; j++){
+      if(cartNotifierItem[j].status == 0){
+        _removeItem.add(cartNotifierItem[j]);
+      }
+    }
+    cartNotifierItem.removeWhere((element) => _removeItem.contains(element));
   }
 
   void addTable(PosTable posTable){

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -9,6 +11,7 @@ import 'package:pos_system/object/table.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crypto/crypto.dart';
 
 class TableDialog extends StatefulWidget {
   final Function() callBack;
@@ -75,47 +78,70 @@ class _TableDialogState extends State<TableDialog> {
     }
   }
 
+  generateUrl(String dateTime) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    var bytes = dateTime.replaceAll(new RegExp(r'[^0-9]'), '') + branch_id.toString() + tableNoController.text;
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
   void createPosTable() async {
     try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      PosTable data = await PosDatabase.instance.insertSyncPosTable(PosTable(
-          table_id: 0,
-          branch_id: branch_id.toString(),
-          number: tableNoController.text,
-          seats: seatController.text,
-          table_use_detail_key: '',
-          status: 0,
-          sync_status: 0,
-          created_at: dateTime,
-          updated_at: '',
-          soft_delete: ''));
+      var url = await generateUrl(dateTime);
+
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if(_hasInternetAccess){
+        Map response = await Domain().insertTable(seatController.text, tableNoController.text, branch_id.toString(), url);
+        if (response['status'] == '1') {
+          //create local
+          PosTable data = await PosDatabase.instance.insertSyncPosTable(PosTable(
+              table_id: response['table'],
+              table_url: url,
+              branch_id: branch_id.toString(),
+              number: tableNoController.text,
+              seats: seatController.text,
+              table_use_detail_key: '',
+              table_use_key: '',
+              status: 0,
+              sync_status: 1,
+              created_at: dateTime,
+              updated_at: '',
+              soft_delete: ''));
+
+          if (data.table_sqlite_id != '') {
+            Fluttertoast.showToast(msg: 'Successfully create');
+            widget.callBack();
+            closeDialog(context);
+          } else {
+            Fluttertoast.showToast(msg: 'Fail create');
+          }
+        }
+      } else {
+        Fluttertoast.showToast(msg: 'No Internet access');
+      }
+
+
 /*
       -------------------------sync to cloud-----------------------------------
 */
-      Map response = await Domain().insertTable(
-          seatController.text, tableNoController.text, branch_id.toString());
-      if (response['status'] == '1') {
-        int syncData = await PosDatabase.instance.updateSyncPosTable(PosTable(
-          table_id: response['table'],
-          sync_status: 2,
-          updated_at: dateTime,
-          table_sqlite_id: data.table_sqlite_id,
-        ));
-      }
+      // Map response = await Domain().insertTable(seatController.text, tableNoController.text, branch_id.toString());
+      // if (response['status'] == '1') {
+      //   int syncData = await PosDatabase.instance.updateSyncPosTable(PosTable(
+      //     table_id: response['table'],
+      //     sync_status: 2,
+      //     updated_at: dateTime,
+      //     table_sqlite_id: data.table_sqlite_id,
+      //   ));
+      // }
 /*
       ------------------------------sync end-----------------------------------
 */
-      if (data.table_sqlite_id != '') {
-        Fluttertoast.showToast(msg: 'Successfully create');
-        widget.callBack();
-        closeDialog(context);
-      } else {
-        Fluttertoast.showToast(msg: 'Fail create');
-      }
     } catch (error) {
+      print('error: ${error}');
       Fluttertoast.showToast(msg: 'Something went wrong, please try again');
     }
   }
@@ -133,16 +159,20 @@ class _TableDialogState extends State<TableDialog> {
 /*
       --------------------------------sync to cloud----------------------------
 */
-      Map response = await Domain().editTable(seatController.text,
-          tableNoController.text, widget.object.table_id.toString());
-      if (response['status'] == '1') {
-        int syncData = await PosDatabase.instance.updateSyncPosTable(PosTable(
-          table_id: widget.object.table_id,
-          sync_status: 2,
-          updated_at: dateTime,
-          table_sqlite_id: widget.object.table_sqlite_id,
-        ));
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if(_hasInternetAccess){
+        Map response = await Domain().editTable(seatController.text,
+            tableNoController.text, widget.object.table_id.toString());
+        if (response['status'] == '1') {
+          int syncData = await PosDatabase.instance.updateSyncPosTable(PosTable(
+            table_id: widget.object.table_id,
+            sync_status: 2,
+            updated_at: dateTime,
+            table_sqlite_id: widget.object.table_sqlite_id,
+          ));
+        }
       }
+
 /*
       ---------------------------------end sync--------------------------------
 */
@@ -169,15 +199,17 @@ class _TableDialogState extends State<TableDialog> {
 /*
       -------------------------------sync to cloud----------------------------
 */
-      Map response =
-          await Domain().deleteBranchTable(widget.object.table_id.toString());
-      if (response['status'] == '1') {
-        int syncData = await PosDatabase.instance.updateSyncPosTable(PosTable(
-          table_id: widget.object.table_id,
-          sync_status: 2,
-          updated_at: dateTime,
-          table_sqlite_id: widget.object.table_sqlite_id,
-        ));
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if(_hasInternetAccess){
+        Map response = await Domain().deleteBranchTable(widget.object.table_id.toString());
+        if (response['status'] == '1') {
+          int syncData = await PosDatabase.instance.updateSyncPosTable(PosTable(
+            table_id: widget.object.table_id,
+            sync_status: 2,
+            updated_at: dateTime,
+            table_sqlite_id: widget.object.table_sqlite_id,
+          ));
+        }
       }
 /*
       ---------------------------------end sync-------------------------------

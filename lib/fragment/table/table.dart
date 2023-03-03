@@ -16,7 +16,7 @@ class _TablePageState extends State<TablePage> {
     return Scaffold(
         body: Consumer<CartModel>(builder: (context, CartModel cart, child) {
       return Row(
-        children: [Expanded(flex: 12, child: TableMenu(callBack: () {}))],
+        children: [Expanded(flex: 12, child: TableMenu(callBack: () {}, cartModel: cart,))],
       );
     }));
   }

@@ -36,6 +36,7 @@ class ModifierItem{
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  String? mod_status;
   bool? isChecked;
 
   ModifierItem(
@@ -48,6 +49,7 @@ class ModifierItem{
         this.created_at,
         this.updated_at,
         this.soft_delete,
+        this.mod_status,
         this.isChecked });
 
   ModifierItem copy({
@@ -82,6 +84,7 @@ class ModifierItem{
     created_at: json[ModifierItemFields.created_at] as String?,
     updated_at: json[ModifierItemFields.updated_at] as String?,
     soft_delete: json[ModifierItemFields.soft_delete] as String?,
+    mod_status: json['mod_status'] as String?
   );
 
   Map<String, Object?> toJson() => {

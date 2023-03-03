@@ -26,7 +26,7 @@ class TableModel extends ChangeNotifier {
   readAllTable() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    List<PosTable> data = await PosDatabase.instance.readAllTable(branch_id!.toInt());
+    List<PosTable> data = await PosDatabase.instance.readAllTable();
     notifierTableList = List.from(data);
   }
 }

@@ -21,10 +21,12 @@ import '../database/domain.dart';
 import '../database/pos_database.dart';
 import '../notifier/theme_color.dart';
 import '../object/cash_record.dart';
+import '../object/print_receipt.dart';
 import '../object/printer.dart';
 import '../object/printer_link_category.dart';
 import '../object/receipt_layout.dart';
 import '../object/user.dart';
+import '../translation/AppLocalizations.dart';
 
 class PosPinPage extends StatefulWidget {
   final String? cashBalance;
@@ -155,11 +157,7 @@ class _PosPinPageState extends State<PosPinPage> {
 */
 
   readAllPrinters() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
-    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter(branch_id!);
-    printerList = List.from(data);
+    printerList = await PrintReceipt().readAllPrinters();
   }
 
 /*
@@ -311,12 +309,11 @@ class _PosPinPageState extends State<PosPinPage> {
   -------------------Printing part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
   _printCashBalanceList() async {
-    print('printer called');
     try {
       for (int i = 0; i < printerList.length; i++) {
         List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
         for (int j = 0; j < data.length; j++) {
-          if (data[j].category_sqlite_id == '0') {
+          if (data[j].category_sqlite_id == '-1') {
             var printerDetail = jsonDecode(printerList[i].value!);
             if (printerList[i].type == 0) {
               if(printerList[i].paper_size == 0){
@@ -328,7 +325,9 @@ class _PosPinPageState extends State<PosPinPage> {
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               } else {
                 //print usb 58mm
@@ -339,7 +338,9 @@ class _PosPinPageState extends State<PosPinPage> {
                 if (isConnected == true) {
                   await flutterUsbPrinter.write(data);
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
                 }
               }
             } else {
@@ -353,7 +354,9 @@ class _PosPinPageState extends State<PosPinPage> {
                   await ReceiptLayout().printCashBalanceList80mm(false, widget.cashBalance!, value: printer);
                   printer.disconnect();
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               } else {
                 //print 58mm
@@ -364,7 +367,9 @@ class _PosPinPageState extends State<PosPinPage> {
                   await ReceiptLayout().printCashBalanceList58mm(false, widget.cashBalance!, value: printer);
                   printer.disconnect();
                 } else {
-                  print('not connected');
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
                 }
               }
             }

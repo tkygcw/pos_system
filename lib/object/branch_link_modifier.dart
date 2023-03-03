@@ -40,6 +40,8 @@ class BranchLinkModifier {
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  double? net_sales;
+  int? item_sum;
 
   BranchLinkModifier(
       {this.branch_link_modifier_id,
@@ -52,7 +54,9 @@ class BranchLinkModifier {
       this.status,
       this.created_at,
       this.updated_at,
-      this.soft_delete});
+      this.soft_delete,
+      this.net_sales,
+      this.item_sum});
 
   BranchLinkModifier copy({
     int? branch_link_modifier_id,
@@ -95,6 +99,8 @@ class BranchLinkModifier {
         created_at: json[BranchLinkModifierFields.created_at] as String?,
         updated_at: json[BranchLinkModifierFields.updated_at] as String?,
         soft_delete: json[BranchLinkModifierFields.soft_delete] as String?,
+        net_sales: json['net_sales'] as double?,
+        item_sum: json['item_sum'] as int?
       );
 
   Map<String, Object?> toJson() => {

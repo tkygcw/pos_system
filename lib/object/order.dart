@@ -1,3 +1,5 @@
+import 'order_tax_detail.dart';
+
 String? tableOrder = 'tb_order';
 
 class OrderFields {
@@ -22,6 +24,7 @@ class OrderFields {
     payment_received,
     payment_change,
     order_key,
+    refund_sqlite_id,
     refund_key,
     sync_status,
     created_at,
@@ -49,6 +52,7 @@ class OrderFields {
   static String payment_received = 'payment_received';
   static String payment_change = 'payment_change';
   static String order_key = 'order_key';
+  static String refund_sqlite_id = 'refund_sqlite_id';
   static String refund_key = 'refund_key';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
@@ -77,6 +81,7 @@ class Order {
   String? payment_received;
   String? payment_change;
   String? order_key;
+  String? refund_sqlite_id;
   String? refund_key;
   int? sync_status;
   String? created_at;
@@ -87,6 +92,13 @@ class Order {
   String? payment_type;
   String? refund_by;
   String? refund_at;
+  int? item_sum;
+  double? net_sales;
+  double? gross_sales;
+  String? bill_no;
+  double? promo_amount;
+  String? tax_id;
+  List<OrderTaxDetail> taxDetailList = [];
 
   generateOrderNumber(){
     String orderNum = '';
@@ -115,6 +127,7 @@ class Order {
       this.payment_received,
       this.payment_change,
       this.order_key,
+      this.refund_sqlite_id,
       this.refund_key,
       this.sync_status,
       this.created_at,
@@ -123,7 +136,13 @@ class Order {
       this.payment_name,
       this.payment_type,
       this.refund_by,
-      this.refund_at});
+      this.refund_at,
+      this.item_sum,
+      this.net_sales,
+      this.gross_sales,
+      this.bill_no,
+      this.promo_amount,
+      this.tax_id});
 
   Order copy({
     int? order_sqlite_id,
@@ -146,6 +165,7 @@ class Order {
     String? payment_received,
     String? payment_change,
     String? order_key,
+    String? refund_sqlite_id,
     String? refund_key,
     int? sync_status,
     String? created_at,
@@ -173,6 +193,7 @@ class Order {
           payment_received: payment_received ?? this.payment_received,
           payment_change: payment_change ?? this.payment_change,
           order_key: order_key ?? this.order_key,
+          refund_sqlite_id: refund_sqlite_id ?? this.refund_sqlite_id,
           refund_key: refund_key ?? this.refund_key,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
@@ -202,6 +223,7 @@ class Order {
         payment_received: json[OrderFields.payment_received] as String?,
         payment_change: json[OrderFields.payment_change] as String?,
         order_key: json[OrderFields.order_key] as String?,
+        refund_sqlite_id: json[OrderFields.refund_sqlite_id] as String?,
         refund_key: json[OrderFields.refund_key] as String?,
         sync_status: json[OrderFields.sync_status] as int?,
         created_at: json[OrderFields.created_at] as String?,
@@ -210,7 +232,13 @@ class Order {
         payment_name: json['name'] as String?,
         payment_type: json['payment_type_id'] as String?,
         refund_by: json['refund_name'] as String?,
-        refund_at: json['refund_at'] as String?
+        refund_at: json['refund_at'] as String?,
+        item_sum: json['item_sum'] as int?,
+        net_sales: json['net_sales'] as double?,
+        gross_sales: json['gross_sales'] as double?,
+        bill_no: json['bill_no'] as String?,
+        promo_amount: json['promo_amount'] as double?,
+        tax_id: json['tax_id'] as String?
       );
 
   Map<String, Object?> toJson() => {
@@ -234,6 +262,7 @@ class Order {
         OrderFields.payment_received: payment_received,
         OrderFields.payment_change: payment_change,
         OrderFields.order_key: order_key,
+        OrderFields.refund_sqlite_id: refund_sqlite_id,
         OrderFields.refund_key: refund_key,
         OrderFields.sync_status: sync_status,
         OrderFields.created_at: created_at,

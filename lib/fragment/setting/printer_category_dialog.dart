@@ -79,6 +79,10 @@ class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
   readCategory() async {
     List<Categories> data = await PosDatabase.instance.readAllCategory();
     categoryList = List.from(data);
+    categoryList.add(Categories(
+      category_sqlite_id: 0,
+      name: 'other/uncategorized'
+    ));
 
     for (int i = 0; i < categoryList.length; i++) {
       for (int j = 0; j < widget.selectedList.length; j++) {

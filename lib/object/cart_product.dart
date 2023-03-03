@@ -21,6 +21,9 @@ class cartProductItem{
    String? order_detail_sqlite_id;
    int? sequence = 0;
    bool? isRefund;
+   String? base_price;
+   String? first_cache_created_date_time;
+   String? subtotal;
 
    cartProductItem(
        String branchProduct_id,
@@ -34,7 +37,15 @@ class cartProductItem{
        int status,
        String? orderCacheId,
        Color refColor,
-       {category_sqlite_id, order_detail_sqlite_id, sequence, this.isRefund}){
+       {category_sqlite_id,
+         order_detail_sqlite_id,
+         sequence,
+         this.isRefund,
+         this.base_price,
+         this.first_cache_created_date_time,
+         this.subtotal
+       })
+   {
        this.branchProduct_id = branchProduct_id;
        this.name = name;
        this.category_id = category_id;

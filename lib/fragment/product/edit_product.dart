@@ -1108,7 +1108,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                   .editBranchLinkProductForVariant(
                       branch_id.toString(),
                       widget.product!.product_id.toString(),
-                      getProductVariant!.product_variant_id.toString(),
+                      getProductVariant.product_variant_id.toString(),
                       selectStock == 'Daily Limit'
                           ? productVariantList[a]['quantity']
                           : '',
@@ -1136,7 +1136,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
         }
       } else {
         int updateBranchLinkProduct = await PosDatabase.instance
-            .updateBranchLinkProduct(BranchLinkProduct(
+            .updateBranchLinkProductEdit(BranchLinkProduct(
                 sync_status: 1,
                 updated_at: dateTime,
                 stock_type: selectStock == 'Daily Limit' ? '1' : '2',
@@ -2065,62 +2065,37 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                                       productVariantList.length,
                                                       (int index) => DataRow(
                                                             cells: <DataCell>[
-                                                              DataCell(Text(
-                                                                  productVariantList[
-                                                                          index]
-                                                                      [
-                                                                      'variant_name'])),
+                                                              DataCell(Text(productVariantList[index]['variant_name'])),
                                                               DataCell(
                                                                 Padding(
-                                                                  padding:
-                                                                      const EdgeInsets
-                                                                              .all(
-                                                                          8.0),
+                                                                  padding: const EdgeInsets.all(8.0),
                                                                   child:
                                                                       TextField(
-                                                                    keyboardType:
-                                                                        TextInputType
-                                                                            .number,
-                                                                    inputFormatters: [
-                                                                      FilteringTextInputFormatter
-                                                                          .digitsOnly
-                                                                    ],
-                                                                    controller:
-                                                                        TextEditingController(
-                                                                            text:
-                                                                                productVariantList[index]['quantity']),
-                                                                    decoration:
-                                                                        InputDecoration(),
+                                                                    keyboardType: TextInputType.number,
+                                                                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                                                    controller: TextEditingController(text: productVariantList[index]['quantity']),
+                                                                    decoration: InputDecoration(),
                                                                     onChanged:
                                                                         (value) {
                                                                       changeValue(
                                                                           'quantity',
                                                                           value,
-                                                                          productVariantList[
-                                                                              index]);
+                                                                          productVariantList[index]);
                                                                     },
                                                                   ),
                                                                 ),
                                                               ),
                                                               DataCell(
                                                                 Padding(
-                                                                  padding:
-                                                                      const EdgeInsets
-                                                                              .all(
-                                                                          8.0),
+                                                                  padding: const EdgeInsets.all(8.0),
                                                                   child:
                                                                       TextField(
-                                                                    keyboardType:
-                                                                        TextInputType
-                                                                            .number,
+                                                                    keyboardType: TextInputType.number,
                                                                     inputFormatters: [
-                                                                      FilteringTextInputFormatter
-                                                                          .digitsOnly
+                                                                      FilteringTextInputFormatter.digitsOnly
                                                                     ],
                                                                     controller:
-                                                                        TextEditingController(
-                                                                            text:
-                                                                                productVariantList[index]['price']),
+                                                                        TextEditingController(text: productVariantList[index]['price']),
                                                                     decoration:
                                                                         InputDecoration(),
                                                                     onChanged:
@@ -2128,8 +2103,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                                                       changeValue(
                                                                           'price',
                                                                           value,
-                                                                          productVariantList[
-                                                                              index]);
+                                                                          productVariantList[index]);
                                                                     },
                                                                   ),
                                                                 ),

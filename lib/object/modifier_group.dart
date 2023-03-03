@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:pos_system/object/modifier_item.dart';
 
+import 'order_modifier_detail.dart';
+
 String? tableModifierGroup = 'tb_modifier_group';
 
 class ModifierGroupFields {
@@ -38,6 +40,9 @@ class ModifierGroup{
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  int? item_sum;
+  double? net_sales;
+  List<OrderModifierDetail> modDetailList = [];
 
   ModifierGroup(
       {this.mod_group_id,
@@ -49,7 +54,10 @@ class ModifierGroup{
         this.name,
         this.created_at,
         this.updated_at,
-        this.soft_delete});
+        this.soft_delete,
+        this.item_sum,
+        this.net_sales
+      });
 
   ModifierGroup copy({
     int? mod_group_id,
@@ -79,7 +87,10 @@ class ModifierGroup{
     compulsory: json[ModifierGroupFields.compulsory] as String?,
     created_at: json[ModifierGroupFields.created_at] as String?,
     updated_at: json[ModifierGroupFields.updated_at] as String?,
-    soft_delete: json[ModifierGroupFields.soft_delete] as String?, modifierChild: [],
+    soft_delete: json[ModifierGroupFields.soft_delete] as String?,
+    modifierChild: [],
+    item_sum: json['item_sum'] as int?,
+    net_sales: json['net_sales'] as double?
   );
 
   Map<String, Object?> toJson() => {

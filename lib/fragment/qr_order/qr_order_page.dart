@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pos_system/fragment/qr_order/qr_main_page.dart';
 import 'package:pos_system/page/progress_bar.dart';
 
 class QrOrderPage extends StatefulWidget {
@@ -20,16 +21,11 @@ class _QrOrderPageState extends State<QrOrderPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _isLoaded ? 
-      Container(
-        padding:  EdgeInsets.all(20),
-        child: Container(
-          margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
-          alignment: Alignment.topLeft,
-          child: Text('Qr Order', style: TextStyle(fontSize: 25)),
-        ),
-      ) 
-          : CustomProgressBar(),
+      body: Row(
+        children: [
+          Expanded(flex: 12, child: QrMainPage())
+        ],
+      ),
     );
   }
 }

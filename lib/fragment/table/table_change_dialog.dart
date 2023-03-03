@@ -17,16 +17,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../object/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/receipt_layout.dart';
 import '../../translation/AppLocalizations.dart';
 
 class TableChangeDialog extends StatefulWidget {
-  final List<Printer> printerList;
   final PosTable object;
   final Function() callBack;
   const TableChangeDialog(
-      {Key? key, required this.object, required this.callBack, required this.printerList})
+      {Key? key, required this.object, required this.callBack })
       : super(key: key);
 
   @override
@@ -37,6 +37,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   final tableNoController = TextEditingController();
   List<OrderCache> orderCacheList = [];
+  List<Printer> printerList = [];
   bool _submitted = false;
 
   @override
@@ -44,6 +45,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     // TODO: implement initState
     //readAllTableCache();
     super.initState();
+    readAllPrinters();
   }
 
   @override
@@ -51,6 +53,10 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     // TODO: implement dispose
     super.dispose();
     tableNoController.dispose();
+  }
+
+  readAllPrinters() async {
+    printerList = await PrintReceipt().readAllPrinters();
   }
 
   String? get errorTableNo {
@@ -125,15 +131,15 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       List<TableUseDetail> checkData  = await PosDatabase.instance.readAllTableUseDetail(currentTableUseId);
       for(int i = 0; i < checkData.length; i++){
         TableUseDetail tableUseDetailObject =  TableUseDetail(
-          soft_delete: dateTime,
           sync_status: checkData[i].sync_status == 0 ?  0 : 2,
+          status: 1,
           table_use_sqlite_id: currentTableUseId,
           table_use_detail_sqlite_id: checkData[i].table_use_detail_sqlite_id
         );
         int updatedData = await PosDatabase.instance.deleteTableUseDetail(tableUseDetailObject);
         if(updatedData == 1){
           TableUseDetail detailData =  await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
-          _value.add(jsonEncode(detailData.syncJson()));
+          _value.add(jsonEncode(detailData));
         }
       }
       //sync to cloud
@@ -170,8 +176,8 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     try{
       TableUse checkData = await PosDatabase.instance.readSpecificTableUseIdByLocalId(currentTableUseId);
       TableUse tableUseObject = TableUse(
-        soft_delete: dateTime,
         sync_status: checkData.sync_status == 0 ? 0 : 2,
+        status: 1,
         table_use_sqlite_id: currentTableUseId,
       );
       int updatedData = await PosDatabase.instance.deleteTableUseID(tableUseObject);
@@ -219,7 +225,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     if(updatedData == 1){
       List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(int.parse(tableUseDetailObject.table_sqlite_id!));
       if(tableUseDetailData[0].soft_delete == ''){
-        _value.add(jsonEncode(tableUseDetailData[0].syncJson()));
+        _value.add(jsonEncode(tableUseDetailData[0]));
       }
     }
     //sync to cloud
@@ -249,21 +255,26 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   updateTable() async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
 
-    List<TableUseDetail> NowUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(widget.object.table_sqlite_id!);
-    List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(branch_id!, tableNoController.text);
-    List<TableUseDetail> NewUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableData[0].table_sqlite_id!);
-    //check new table is in use or not
-    if(NewUseDetailData.length > 0){
-      await callChangeToTableInUse(NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
-      await updatePosTable(NewUseDetailData[0].table_use_detail_key!, dateTime);
+    try{
+      List<TableUseDetail> NowUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(widget.object.table_sqlite_id!);
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(tableNoController.text);
+      List<TableUseDetail> NewUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableData[0].table_sqlite_id!);
+      //check new table is in use or not
+      if(NewUseDetailData.length > 0){
+        await callChangeToTableInUse(NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
+        await updatePosTable(NewUseDetailData[0].table_use_detail_key!, dateTime);
 
-    } else {
-      await changeToUnusedTable(widget.object.table_sqlite_id!, tableData[0].table_sqlite_id.toString(), dateTime);
-      await updatePosTable(NowUseDetailData[0].table_use_detail_key!, dateTime);
+      } else {
+        await changeToUnusedTable(widget.object.table_sqlite_id!, tableData[0].table_sqlite_id.toString(), dateTime);
+        await updatePosTable(NowUseDetailData[0].table_use_detail_key!, dateTime);
 
+      }
+    } catch(e){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate("table_not_found")}");
+      return;
     }
   }
 
@@ -290,19 +301,17 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
 
   updatePosTable(String key, String dateTime) async {
     print('table updated');
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
     List<String> _value = [];
 
-    List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(branch_id!, tableNoController.text);
+    List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(tableNoController.text);
     //update new table status
-    List<PosTable> newTable = await PosDatabase.instance.checkPosTableStatus(branch_id, tableData[0].table_sqlite_id!);
+    List<PosTable> newTable = await PosDatabase.instance.checkPosTableStatus(tableData[0].table_sqlite_id!);
     if (newTable[0].status == 0) {
       PosTable updateNewTableData = await updatePosTableStatusAndDetailKey(tableData[0].table_sqlite_id!, 1, dateTime, key);
       _value.add(jsonEncode(updateNewTableData));
     }
     //update previous table status
-    List<PosTable> lastTable = await PosDatabase.instance.checkPosTableStatus(branch_id, widget.object.table_sqlite_id!);
+    List<PosTable> lastTable = await PosDatabase.instance.checkPosTableStatus(widget.object.table_sqlite_id!);
     if (lastTable[0].status == 1) {
       PosTable updatedLastTableData = await updatePosTableStatusAndDetailKey(widget.object.table_sqlite_id!, 0, dateTime, '');
       _value.add(jsonEncode(updatedLastTableData));
@@ -329,11 +338,11 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
 
   _printChangeTableList({lastTable, newTable}) async {
     try {
-      for (int i = 0; i < widget.printerList.length; i++) {
-        var printerDetail = jsonDecode(widget.printerList[i].value!);
-        if (widget.printerList[i].type == 0) {
+      for (int i = 0; i < printerList.length; i++) {
+        var printerDetail = jsonDecode(printerList[i].value!);
+        if (printerList[i].type == 0) {
           //print USB 80mm
-          if (widget.printerList[i].paper_size == 0) {
+          if (printerList[i].paper_size == 0) {
             var data = Uint8List.fromList(await ReceiptLayout().printChangeTableList80mm(true, fromTable: lastTable, toTable: newTable));
             bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
             if (isConnected == true) {
@@ -356,7 +365,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
             }
           }
         } else {
-          if (widget.printerList[i].paper_size == 0) {
+          if (printerList[i].paper_size == 0) {
             //print LAN 80mm paper
             final profile = await CapabilityProfile.load();
             final printer = NetworkPrinter(PaperSize.mm80, profile);

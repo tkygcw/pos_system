@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
@@ -52,7 +55,7 @@ class _PosPinDialogState extends State<PosPinDialog> {
       return Center(
         child: SingleChildScrollView(
           child: AlertDialog(
-            title: Text('Enter Admin PIN'),
+            title: Text('Enter PIN'),
             content: SizedBox(
               height: 100.0,
               width: 350.0,
@@ -108,12 +111,20 @@ class _PosPinDialogState extends State<PosPinDialog> {
   }
 
   readAdminData(String pin) async {
-    print('called');
     try {
-      List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
-      if (userData.length > 0) {
-        closeDialog(context);
-        widget.callBack();
+      //List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
+      final prefs = await SharedPreferences.getInstance();
+      final String? pos_user = prefs.getString('pos_pin_user');
+      Map userObject = json.decode(pos_user!);
+      User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
+      if (userData != null) {
+        if(userData.user_id == userObject['user_id']){
+          closeDialog(context);
+          widget.callBack();
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
+        }
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");

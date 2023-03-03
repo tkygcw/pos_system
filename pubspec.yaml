@@ -65,7 +65,6 @@ dependencies:
     git:
       url: https://github.com/tkygcw/esc_pos_printer.git
   flutter_usb_printer: ^0.1.0+1
-  esc_pos_utils: ^1.1.0
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.4
@@ -85,6 +84,12 @@ dependencies:
   internet_connection_checker: ^0.0.1+4
   syncfusion_flutter_datepicker: ^20.4.42
   device_info_plus: ^8.0.0
+  syncfusion_flutter_pdf: ^20.4.50
+  pdf: ^3.8.4
+  printing: ^5.9.3
+  qr_flutter:
+    git:
+      url: https://github.com/theyakka/qr.flutter.git
 
 dependency_overrides:
   image_picker_android: 0.8.4+13

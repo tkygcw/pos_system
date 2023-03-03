@@ -33,66 +33,10 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Scaffold(
-        body: isLoad ? Padding(
-            padding: EdgeInsets.all(8),
-          child: Column(
-            children: [
-              Expanded(
-                  child: receiptList.length > 0 ?  ListView.builder(
-                      itemCount: receiptList.length,
-                      itemBuilder: (BuildContext context,int index){
-                        return Card(
-                          shape: receiptList[index].status == 1
-                              ? new RoundedRectangleBorder(
-                              side: new BorderSide(color: color.backgroundColor, width: 3.0),
-                              borderRadius: BorderRadius.circular(4.0))
-                              : new RoundedRectangleBorder(
-                              side: new BorderSide(color: Colors.white, width: 3.0),
-                              borderRadius: BorderRadius.circular(4.0)),
-                          elevation: 5,
-                          child: ListTile(
-                            title: Text('Layout ${index +1}'),
-                            leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.receipt, color: Colors.grey,)),
-                            onTap: () {
-                              openReceiptDialog(receiptList[index], receiptList);
-                            },
-                            onLongPress: () async {
-                              if (await confirm(
-                              context,
-                              title: Text(
-                              '${AppLocalizations.of(context)?.translate('remove_layout')}'),
-                              content: Text(
-                              '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
-                              textOK:
-                              Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                              textCancel:
-                              Text('${AppLocalizations.of(context)?.translate('no')}'),
-                              )) {
-                              return callRemoveLayout(receiptList[index]);
-                              }
-                            },
-                          ),
-                        );
-                      }
-                  ) : Container(
-                    alignment: Alignment.center,
-                    height:
-                    MediaQuery.of(context).size.height / 1.7,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.receipt, size: 36.0),
-                        Text('NO LAYOUT', style: TextStyle(fontSize: 24)),
-                      ],
-                    ),
-                  ),
-              ),
-              Container(
-                alignment: Alignment.bottomRight,
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: FloatingActionButton(
+      return LayoutBuilder(builder: (context,  constraints) {
+        if(constraints.maxWidth > 800){
+          return Scaffold(
+            floatingActionButton: FloatingActionButton(
                     backgroundColor: color.backgroundColor,
                     onPressed: () {
                       openReceiptDialog(null, receiptList);
@@ -100,13 +44,131 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                     tooltip: "Add Receipt layout",
                     child: const Icon(Icons.add),
                   ),
-                ),
-              )
-            ],
-          ),
-        ) : CustomProgressBar(),
+            body: isLoad ? Padding(
+              padding: EdgeInsets.all(8),
+              child: receiptList.length > 0 ?
+              ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: receiptList.length,
+                  itemBuilder: (BuildContext context,int index){
+                    return Card(
+                      shape: receiptList[index].status == 1
+                          ? new RoundedRectangleBorder(
+                          side: new BorderSide(color: color.backgroundColor, width: 3.0),
+                          borderRadius: BorderRadius.circular(4.0))
+                          : new RoundedRectangleBorder(
+                          side: new BorderSide(color: Colors.white, width: 3.0),
+                          borderRadius: BorderRadius.circular(4.0)),
+                      elevation: 5,
+                      child: ListTile(
+                        title: Text('Layout ${index +1}'),
+                        leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.receipt, color: Colors.grey,)),
+                        onTap: () {
+                          openReceiptDialog(receiptList[index], receiptList);
+                        },
+                        onLongPress: () async {
+                          if (await confirm(
+                            context,
+                            title: Text(
+                                '${AppLocalizations.of(context)?.translate('remove_layout')}'),
+                            content: Text(
+                                '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                            textOK:
+                            Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                            textCancel:
+                            Text('${AppLocalizations.of(context)?.translate('no')}'),
+                          )) {
+                            return callRemoveLayout(receiptList[index]);
+                          }
+                        },
+                      ),
+                    );
+                  }
+              ) : Stack(
+                  children: [
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.receipt, size: 36.0),
+                          Text('NO LAYOUT', style: TextStyle(fontSize: 24)),
+                        ],
+                      ),
+                    ),
+                  ]
+              ),
+            ) : CustomProgressBar(),
 
-      );
+          );
+        } else {
+          return Scaffold(
+            resizeToAvoidBottomInset: true,
+            floatingActionButton: FloatingActionButton(
+              backgroundColor: color.backgroundColor,
+              onPressed: () {
+                openReceiptDialog(null, receiptList);
+              },
+              tooltip: "Add Receipt layout",
+              child: const Icon(Icons.add),
+            ),
+            body: isLoad ? Padding(
+              padding: EdgeInsets.all(8),
+              child: receiptList.length > 0 ?
+              ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: receiptList.length,
+                  itemBuilder: (BuildContext context, int index){
+                    return Card(
+                      shape: receiptList[index].status == 1
+                          ? new RoundedRectangleBorder(
+                          side: new BorderSide(color: color.backgroundColor, width: 3.0),
+                          borderRadius: BorderRadius.circular(4.0))
+                          : new RoundedRectangleBorder(
+                          side: new BorderSide(color: Colors.white, width: 3.0),
+                          borderRadius: BorderRadius.circular(4.0)),
+                      elevation: 5,
+                      child: ListTile(
+                        title: Text('Layout ${index +1}'),
+                        leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.receipt, color: Colors.grey,)),
+                        onTap: () {
+                          openReceiptDialog(receiptList[index], receiptList);
+                        },
+                        onLongPress: () async {
+                          if (await confirm(
+                            context,
+                            title: Text(
+                                '${AppLocalizations.of(context)?.translate('remove_layout')}'),
+                            content: Text(
+                                '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                            textOK:
+                            Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                            textCancel:
+                            Text('${AppLocalizations.of(context)?.translate('no')}'),
+                          )) {
+                            return callRemoveLayout(receiptList[index]);
+                          }
+                        },
+                      ),
+                    );
+                  }
+              ) : Stack(
+                alignment: Alignment.center,
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.receipt, size: 36.0),
+                      Text('NO LAYOUT', style: TextStyle(fontSize: 24)),
+                    ],
+                  ),
+                ]
+              ),
+            ) : CustomProgressBar(),
+
+          );
+        }
+      });
+
     });
   }
   

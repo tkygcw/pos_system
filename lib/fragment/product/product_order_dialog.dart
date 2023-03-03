@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/cart_product.dart';
@@ -19,6 +20,7 @@ import '../../notifier/theme_color.dart';
 import '../../object/modifier_group.dart';
 import '../../object/modifier_item.dart';
 import '../../translation/AppLocalizations.dart';
+import '../cart/cart_dialog.dart';
 
 class ProductOrderDialog extends StatefulWidget {
   final Product? productDetail;
@@ -32,6 +34,7 @@ class ProductOrderDialog extends StatefulWidget {
 class _ProductOrderDialogState extends State<ProductOrderDialog> {
   String branchLinkProduct_id = '';
   String basePrice = '';
+  String finalPrice = '';
   int simpleIntInput = 1;
   String modifierItemPrice = '';
   List<VariantGroup>  variantGroup = [];
@@ -42,6 +45,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   bool checkboxValueA = false;
   bool isLoaded = false;
   bool hasPromo = false;
+  bool hasStock = false;
 
   @override
   void initState() {
@@ -85,11 +89,12 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                 ],
               ),
               value: modifierGroup.modifierChild[i].isChecked,
-              onChanged: (isChecked) {
+              onChanged: modifierGroup.modifierChild[i].mod_status! == '2' ? null : (isChecked) {
                 setState(() {
                   modifierGroup.modifierChild[i].isChecked = isChecked!;
                   print(
-                      'flavour ${modifierGroup.modifierChild[i].name},is check ${modifierGroup.modifierChild[i].isChecked}');
+                      'flavour ${modifierGroup.modifierChild[i].name},'
+                          'is check ${modifierGroup.modifierChild[i].isChecked}, ${modifierGroup.modifierChild[i].mod_status}');
                 });
               },
               controlAffinity: ListTileControlAffinity.trailing,
@@ -103,122 +108,291 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
-              return this.isLoaded ?
-              Center(
-                child: SingleChildScrollView(
-                  child: AlertDialog(
-                    title: Row(
-                      children: [
-                        Text(widget.productDetail!.name!,
+        return LayoutBuilder(builder: (context,  constraints) {
+          if(constraints.maxWidth > 800){
+            return this.isLoaded ?
+            Center(
+              child: SingleChildScrollView(
+                child: AlertDialog(
+                  title: Row(
+                    children: [
+                      Container(
+                        constraints: BoxConstraints(
+                          maxWidth: 300
+                        ),
+                        child: Text(widget.productDetail!.name!,
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             )),
-                        Spacer(),
-                        Text("RM ${widget.productDetail!.price!}",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            )),
-                      ],
-                    ),
-                    content: Container(
-                      height: MediaQuery.of(context).size.height > 500 ? 500.0 : MediaQuery.of(context).size.height / 2.5, // Change as per your requirement
-                      width: 350.0,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (int i = 0; i < variantGroup.length; i++)
-                              variantGroupLayout(variantGroup[i]),
-                            for (int j = 0; j < modifierGroup.length; j++)
-                              modifierGroupLayout(modifierGroup[j],cart),
-                            Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Quantity",
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                QuantityInput(
-                                    inputWidth: 273,
-                                    decoration: InputDecoration(
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: color.backgroundColor),
-                                      ),
-                                    ),
-                                    buttonColor: color.backgroundColor,
-                                    value: simpleIntInput,
-                                    onChanged: (value) => setState(() =>
-                                        simpleIntInput =
-                                            int.parse(value.replaceAll(',', ''))))
-                              ],
-                            ),
-                            Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Remark",
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                TextField(
-                                  controller: remarkController,
-                                  decoration: InputDecoration(
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide:
-                                          BorderSide(color: color.backgroundColor),
-                                    ),
-                                  ),
-                                  keyboardType: TextInputType.multiline,
-                                  maxLines: null,
-                                )
-                              ],
-                            )
-                          ],
-                        ),
                       ),
-                    ),
-                    actions: <Widget>[
-                      TextButton(
-                        child: Text(
-                            '${AppLocalizations.of(context)?.translate('close')}'),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      TextButton(
-                        child: Text(
-                            '${AppLocalizations.of(context)?.translate('add')}'),
-                        onPressed: () async {
-                          await addToCart(cart);
-                          Navigator.of(context).pop();
-                        },
-                      ),
+                      Spacer(),
+                      Text("RM ${widget.productDetail!.price!}",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          )),
                     ],
                   ),
+                  content: Container(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height > 500 ? 500.0 : MediaQuery.of(context).size.height / 2.5,
+                    ),
+                    height: MediaQuery.of(context).size.height > 500 ? 500.0 : MediaQuery.of(context).size.height / 2.5, // Change as per your requirement
+                    width: MediaQuery.of(context).size.width / 3,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (int i = 0; i < variantGroup.length; i++)
+                            variantGroupLayout(variantGroup[i]),
+                          for (int j = 0; j < modifierGroup.length; j++)
+                            modifierGroupLayout(modifierGroup[j],cart),
+                          Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Quantity",
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              QuantityInput(
+                                  inputWidth: 273,
+                                  decoration: InputDecoration(
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: color.backgroundColor),
+                                    ),
+                                  ),
+                                  buttonColor: color.backgroundColor,
+                                  value: simpleIntInput,
+                                  onChanged: (value) => setState(() =>
+                                  simpleIntInput =
+                                      int.parse(value.replaceAll(',', ''))))
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Remark",
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              TextField(
+                                controller: remarkController,
+                                decoration: InputDecoration(
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide:
+                                    BorderSide(color: color.backgroundColor),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.multiline,
+                                maxLines: null,
+                              )
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text(
+                          '${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: Text(
+                          '${AppLocalizations.of(context)?.translate('add')}'),
+                      onPressed: () async {
+                        await getBranchLinkProductItem(widget.productDetail!);
+                        if(hasStock){
+                          if(cart.selectedOption == 'Dine in'){
+                            if(cart.selectedTable.isNotEmpty){
+                              await addToCart(cart);
+                              Navigator.of(context).pop();
+                            } else {
+                              openChooseTableDialog(cart);
+                              // Fluttertoast.showToast(
+                              //     backgroundColor: Colors.red,
+                              //     msg: "make sure cart table is selected");
+                            }
+                          } else {
+                            await addToCart(cart);
+                            Navigator.of(context).pop();
+                          }
+                        } else {
+                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Product variant sold out!");
+                        }
+                      },
+                    ),
+                  ],
                 ),
-              ) : CustomProgressBar();
-            });
+              ),
+            ) : CustomProgressBar();
+          }else {
+            ///mobile layout
+            return Center(
+              child: SingleChildScrollView(
+                physics: NeverScrollableScrollPhysics(),
+                child: AlertDialog(
+                  title: Row(
+                    children: [
+                      Container(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width/2
+                        ),
+                        child: Text(widget.productDetail!.name!,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            )),
+                      ),
+                      Spacer(),
+                      Text("RM ${widget.productDetail!.price!}",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          )),
+                    ],
+                  ),
+                  content: this.isLoaded ?
+                  Container(
+                    height: MediaQuery.of(context).size.height / 2.5, // Change as per your requirement
+                    width: MediaQuery.of(context).size.width/1.5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (int i = 0; i < variantGroup.length; i++)
+                            variantGroupLayout(variantGroup[i]),
+                          for (int j = 0; j < modifierGroup.length; j++)
+                            modifierGroupLayout(modifierGroup[j],cart),
+                          Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Quantity",
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              QuantityInput(
+                                  inputWidth: 273,
+                                  decoration: InputDecoration(
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: color.backgroundColor),
+                                    ),
+                                  ),
+                                  buttonColor: color.backgroundColor,
+                                  value: simpleIntInput,
+                                  onChanged: (value) => setState(() =>
+                                  simpleIntInput =
+                                      int.parse(value.replaceAll(',', ''))))
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Remark",
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              TextField(
+                                controller: remarkController,
+                                decoration: InputDecoration(
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide:
+                                    BorderSide(color: color.backgroundColor),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.multiline,
+                                maxLines: null,
+                              )
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  ) : CustomProgressBar(),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text(
+                          '${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: Text(
+                          '${AppLocalizations.of(context)?.translate('add')}'),
+                      onPressed: () async {
+                        await getBranchLinkProductItem(widget.productDetail!);
+                        if(hasStock){
+                          if(cart.selectedOption == 'Dine in'){
+                            if(cart.selectedTable.isNotEmpty){
+                              await addToCart(cart);
+                              Navigator.of(context).pop();
+                            } else {
+                              openChooseTableDialog(cart);
+                              // Fluttertoast.showToast(
+                              //     backgroundColor: Colors.red,
+                              //     msg: "make sure cart table is selected");
+                            }
+                          } else {
+                            await addToCart(cart);
+                            Navigator.of(context).pop();
+                          }
+                        } else {
+                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Product variant sold out!");
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+        });
+      });
     });
   }
 
@@ -254,8 +428,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   }
 
   readProductModifier(int productID) async {
-    List<ModifierGroup> data =
-        await PosDatabase.instance.readProductModifierGroupName(productID);
+    List<ModifierGroup> data = await PosDatabase.instance.readProductModifierGroupName(productID);
 
     for (int i = 0; i < data.length; i++) {
       modifierGroup.add(ModifierGroup(
@@ -263,8 +436,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
           name: data[i].name,
           mod_group_id: data[i].mod_group_id));
 
-      List<ModifierItem> itemData = await PosDatabase.instance
-          .readProductModifierItem(data[i].mod_group_id!);
+      List<ModifierItem> itemData = await PosDatabase.instance.readProductModifierItem(data[i].mod_group_id!);
       List<ModifierItem> modItemChild = [];
 
       for (int j = 0; j < itemData.length; j++) {
@@ -272,6 +444,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
             mod_group_id: data[i].mod_group_id.toString(),
             name: itemData[j].name!,
             mod_item_id: itemData[j].mod_item_id,
+            mod_status: itemData[j].mod_status,
             isChecked: false));
       }
       modifierGroup[i].modifierChild = modItemChild;
@@ -281,11 +454,9 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
 
   readProductModifierItemPrice(ModifierGroup modGroup) async {
     modifierItemPrice = '';
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
 
     for (int i = 0; i < modGroup.modifierChild.length; i++) {
-      List<BranchLinkModifier> data = await PosDatabase.instance.readBranchLinkModifier(branch_id.toString(), modGroup.modifierChild[i].mod_item_id.toString());
+      List<BranchLinkModifier> data = await PosDatabase.instance.readBranchLinkModifier(modGroup.modifierChild[i].mod_item_id.toString());
       modGroup.modifierChild[i].price = data[0].price!;
     }
   }
@@ -308,22 +479,24 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), productId.toString());
       if (data[0].has_variant == '0') {
         basePrice = data[0].price!;
+        finalPrice = basePrice;
         //check product mod group
         for (int j = 0; j < modifierGroup.length; j++) {
           ModifierGroup group = modifierGroup[j];
           //loop mod group child
           for (int k = 0; k < group.modifierChild.length; k++) {
             if (group.modifierChild[k].isChecked == true) {
-              List<BranchLinkModifier> modPrice = await PosDatabase.instance.readBranchLinkModifier(branch_id!.toString(), group.modifierChild[k].mod_item_id.toString());
+              List<BranchLinkModifier> modPrice = await PosDatabase.instance.readBranchLinkModifier(group.modifierChild[k].mod_item_id.toString());
               totalModPrice += double.parse(modPrice[0].price!);
               totalBasePrice = double.parse(data[0].price!) + totalModPrice;
-              basePrice = totalBasePrice.toStringAsFixed(2);
+              finalPrice = totalBasePrice.toStringAsFixed(2);
             }
           }
         }
       } else {
-        List<BranchLinkProduct> productVariant = await PosDatabase.instance.checkProductVariant(await getHasVariantProductPrice(productId), productId.toString());
+        List<BranchLinkProduct> productVariant = await PosDatabase.instance.checkProductVariant(await getProductVariant(productId!), productId.toString());
         basePrice = productVariant[0].price!;
+        finalPrice = basePrice;
 
         //loop has variant product modifier group
         for (int j = 0; j < modifierGroup.length; j++) {
@@ -331,10 +504,10 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
           //loop mod group child
           for (int k = 0; k < group.modifierChild.length; k++) {
             if (group.modifierChild[k].isChecked == true) {
-              List<BranchLinkModifier> modPrice = await PosDatabase.instance.readBranchLinkModifier(branch_id!.toString(), group.modifierChild[k].mod_item_id.toString());
+              List<BranchLinkModifier> modPrice = await PosDatabase.instance.readBranchLinkModifier(group.modifierChild[k].mod_item_id.toString());
               totalModPrice += double.parse(modPrice[0].price!);
               totalBasePrice = double.parse(productVariant[0].price!) + totalModPrice;
-              basePrice = totalBasePrice.toStringAsFixed(2);
+              finalPrice = totalBasePrice.toStringAsFixed(2);
             }
           }
         }
@@ -342,31 +515,44 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     } catch (error) {
       print('Get product base price error ${error}');
     }
-    return basePrice;
+    return finalPrice;
   }
 
   getBranchLinkProductItem(Product product) async {
     branchLinkProduct_id = '';
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    if(product.has_variant == 0){
-      List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
-      branchLinkProduct_id = data1[0].branch_link_product_sqlite_id.toString();
-    } else {
-      List<BranchLinkProduct> data =
-      await PosDatabase.instance.checkProductVariant(await getHasVariantProductPrice(product.product_sqlite_id), product.product_sqlite_id.toString());
-      branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      if(product.has_variant == 0){
+        List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
+        branchLinkProduct_id = data1[0].branch_link_product_sqlite_id.toString();
+        if(int.parse(data1[0].stock_quantity!) > 0 ){
+          hasStock = true;
+        }
+      } else {
+        List<BranchLinkProduct> data = await PosDatabase.instance.checkProductVariant(await getProductVariant(product.product_sqlite_id!), product.product_sqlite_id.toString());
+        branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
+        print('branch link product id: ${branchLinkProduct_id}');
+        print('stock: ${data[0].stock_quantity}');
+        if(int.parse(data[0].stock_quantity!) > 0 ){
+          hasStock = true;
+        }
+      }
+
+      return branchLinkProduct_id;
+    }catch(e){
+      Fluttertoast.showToast(msg: 'Make sure stock is restock');
     }
 
-
-    return branchLinkProduct_id;
   }
 
-  getHasVariantProductPrice(int? product_id) async {
+  getProductVariant(int product_id) async {
     String variant = '';
     String variant2 = '';
+    String variant3 = '';
     String productVariant = '';
     try {
+      print('variant group length: ${variantGroup.length}');
       for (int j = 0; j < variantGroup.length; j++) {
         VariantGroup group = variantGroup[j];
         for (int i = 0; i < group.child.length; i++) {
@@ -374,22 +560,68 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
             group.child[i].isSelected = true;
             if (variant == '') {
               variant = group.child[i].name!;
-            } else {
+              if(variantGroup.length == 1){
+                List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant);
+                productVariant = data[0].product_variant_sqlite_id.toString();
+                break;
+              }
+            } else if(variant2 == '') {
+              print('variant 2 called');
               variant2 = variant + " | " + group.child[i].name!;
-              List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant2);
-              productVariant = data[0].product_variant_sqlite_id.toString();
+              print('variant2: ${variant2}');
+              if(variantGroup.length == 2){
+                List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant2);
+                productVariant = data[0].product_variant_sqlite_id.toString();
+                break;
+              }
+            } else if (variant3 == ''){
+              print('variant2 in variant3: ${variant2}');
+              variant3 = variant2 + " | " + group.child[i].name!;
+              print('variant3: ${variant3}');
+              print('product id: ${product_id}');
+              if(variantGroup.length == 3){
+                List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant3);
+                productVariant = data[0].product_variant_sqlite_id.toString();
+                break;
+              }
             }
           }
         }
       }
+      print('variant string: ${variant}');
+      print('product variant: ${productVariant}');
+      return productVariant;
     } catch (error) {
-      print('Price checking error: ${error}');
+      print('get product variant error: ${error}');
+      return;
     }
-    return productVariant;
+  }
+
+  Future<Future<Object?>> openChooseTableDialog(CartModel cartModel) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: CartDialog(
+                selectedTableList: cartModel.selectedTable,
+              ),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   addToCart(CartModel cart) async {
-    int _seq = 1;
     //check selected variant
     for (int j = 0; j < variantGroup.length; j++) {
       VariantGroup group = variantGroup[j];
@@ -401,46 +633,24 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
         }
       }
     }
-    if(cart.cartNotifierItem.isNotEmpty){
-      //_seq = cart.cartNotifierItem.last.sequence! + 1;
-      var value = cartProductItem(
-          await getBranchLinkProductItem(widget.productDetail!),
-          widget.productDetail!.name!,
-          widget.productDetail!.category_id!,
-          await getProductPrice(widget.productDetail?.product_sqlite_id),
-          simpleIntInput,
-          modifierGroup,
-          variantGroup,
-          remarkController.text,
-          0,
-          null,
-          Colors.black,
-          category_sqlite_id: widget.productDetail!.category_sqlite_id,
-          sequence: _seq
-      );
-      cart.addItem(value);
-      // print('item seq: ${cart.cartNotifierItem.last.sequence}');
-    } else {
-      var value = cartProductItem(
-          await getBranchLinkProductItem(widget.productDetail!),
-          widget.productDetail!.name!,
-          widget.productDetail!.category_id!,
-          await getProductPrice(widget.productDetail?.product_sqlite_id),
-          simpleIntInput,
-          modifierGroup,
-          variantGroup,
-          remarkController.text,
-          0,
-          null,
-          Colors.black,
-          category_sqlite_id: widget.productDetail!.category_sqlite_id,
-          sequence: _seq
-      );
-      cart.addItem(value);
-    }
-    //print(jsonEncode(modifierGroup.map((e) => e.addToCartJSon()).toList()));
-    
-    
-
+    var value = cartProductItem(
+        await getBranchLinkProductItem(widget.productDetail!),
+        widget.productDetail!.name!,
+        widget.productDetail!.category_id!,
+        await getProductPrice(widget.productDetail?.product_sqlite_id),
+        simpleIntInput,
+        modifierGroup,
+        variantGroup,
+        remarkController.text,
+        0,
+        null,
+        Colors.black,
+        category_sqlite_id: widget.productDetail!.category_sqlite_id,
+        base_price: basePrice
+    );
+    print('base price: ${value.base_price}');
+    print('price: ${value.price}');
+    cart.addItem(value);
+    cart.resetCount();
   }
 }

@@ -3,11 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/printer/test_print.dart';
+import 'package:pos_system/fragment/qr_order/test_qrcode.dart';
+import 'package:pos_system/fragment/report/print_report_page.dart';
 // import 'package:pos_system/fragment/printer/test_scanner.dart';
 import 'package:pos_system/fragment/setting/features_setting.dart';
 import 'package:pos_system/fragment/setting/logout_dialog.dart';
 import 'package:pos_system/fragment/setting/printer_setting.dart';
 import 'package:pos_system/fragment/setting/receipt_setting.dart';
+import 'package:pos_system/fragment/setting/table_setting.dart';
 import 'package:pos_system/fragment/test_sync/test_category_sync.dart';
 import 'package:pos_system/object/user.dart';
 import 'package:pos_system/page/login.dart';
@@ -43,6 +46,9 @@ class _SettingMenuState extends State<SettingMenu> {
       child: ReceiptSetting(),
     ),
     Container(
+      child: TableSetting(),
+    ),
+    Container(
       child: FeaturesSetting(),
     ),
     Container(
@@ -50,6 +56,12 @@ class _SettingMenuState extends State<SettingMenu> {
     ),
     Container(
       child: SecondDisplayTest(),
+    ),
+    Container(
+      child: TestPrint(),
+    ),
+    Container(
+      child: TestQrcode(),
     )
   ];
   int selectedIndex = 0;
@@ -64,94 +76,211 @@ class _SettingMenuState extends State<SettingMenu> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Padding(
-        padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
-        child: this.isLoaded ? Scaffold(
-          appBar: AppBar(
-            automaticallyImplyLeading: false,
-            title: Text('Setting',
-                style: TextStyle(fontSize: 25, color: Colors.black)),
-            backgroundColor: Color(0xffFAFAFA),
-            elevation: 0,
-          ),
-          body: Row(
-            children: [
-              /// Pretty similar to the BottomNavigationBar!
-              SideNavigationBar(
-                expandable: false,
-                footer: SideNavigationBarFooter(
-                    label: Column(
-                  children: [
-                    Text("${userEmail}"),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        primary: color.backgroundColor,
-                      ),
-                      onPressed: () {
-                        if(this.cashRecordList.length == 0){
-                          openLogoutDialog();
-                        } else {
-                          if(this.count == 0){
-                            Fluttertoast.showToast(
-                                backgroundColor: Colors.red,
-                                msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}");
-                            this.count++;
-                          }
-                        }
-
-                      },
-                      child: Text('Logout'),
-                    ),
-                  ],
-                )),
-                theme: SideNavigationBarTheme(
-                  backgroundColor: Colors.white,
-                  togglerTheme: SideNavigationBarTogglerTheme.standard(),
-                  itemTheme: SideNavigationBarItemTheme(
-                    selectedItemColor: color.backgroundColor,
-                  ),
-                  dividerTheme: SideNavigationBarDividerTheme.standard(),
-                ),
-                selectedIndex: selectedIndex,
-                items: const [
-                  SideNavigationBarItem(
-                    icon: Icons.print,
-                    label: 'Printer',
-                  ),
-                  SideNavigationBarItem(
-                    icon: Icons.receipt,
-                    label: 'Receipt Layout',
-                  ),
-                  SideNavigationBarItem(
-                    icon: Icons.settings,
-                    label: 'App-Device setting',
-                  ),
-                  SideNavigationBarItem(
-                    icon: Icons.list,
-                    label: 'Test sync (temp)',
-                  ),
-                  SideNavigationBarItem(
-                    icon: Icons.list,
-                    label: 'Test second screen (temp)',
-                  ),
-                ],
-                onTap: (index) {
-                  setState(() {
-                    selectedIndex = index;
-                  });
-                },
+      return LayoutBuilder(builder: (context,  constraints) {
+        if(constraints.maxWidth > 800){
+          return Padding(
+            padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
+            child: this.isLoaded ?
+            Scaffold(
+              resizeToAvoidBottomInset: false,
+              appBar: AppBar(
+                automaticallyImplyLeading: false,
+                title: Text('Setting',
+                    style: TextStyle(fontSize: 25, color: Colors.black)),
+                backgroundColor: Color(0xffFAFAFA),
+                elevation: 0,
               ),
+              body: Row(
+                children: [
+                  /// Pretty similar to the BottomNavigationBar!
+                  SideNavigationBar(
+                    expandable: false,
+                    footer: SideNavigationBarFooter(
+                        label: Column(
+                          children: [
+                            Text("${userEmail}"),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                primary: color.backgroundColor,
+                              ),
+                              onPressed: () {
+                                if(this.cashRecordList.length == 0){
+                                  openLogoutDialog();
+                                } else {
+                                  if(this.count == 0){
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Colors.red,
+                                        msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}");
+                                    this.count++;
+                                  }
+                                }
 
-              /// Make it take the rest of the available width
-              Expanded(
-                child: views.elementAt(selectedIndex),
-              )
-            ],
-          ),
-        ) : CustomProgressBar(),
-      );
+                              },
+                              child: Text('Logout'),
+                            ),
+                          ],
+                        )),
+                    theme: SideNavigationBarTheme(
+                      backgroundColor: Colors.white,
+                      togglerTheme: SideNavigationBarTogglerTheme.standard(),
+                      itemTheme: SideNavigationBarItemTheme(
+                        selectedItemColor: color.backgroundColor,
+                      ),
+                      dividerTheme: SideNavigationBarDividerTheme.standard(),
+                    ),
+                    selectedIndex: selectedIndex,
+                    items: const [
+                      SideNavigationBarItem(
+                        icon: Icons.print,
+                        label: 'Printer',
+                      ),
+                      SideNavigationBarItem(
+                        icon: Icons.receipt,
+                        label: 'Receipt Layout',
+                      ),
+                      SideNavigationBarItem(
+                        icon: Icons.settings,
+                        label: 'Table Setting',
+                      ),
+                      SideNavigationBarItem(
+                        icon: Icons.settings,
+                        label: 'App-Device setting',
+                      ),
+                      SideNavigationBarItem(
+                        icon: Icons.list,
+                        label: 'Test sync (temp)',
+                      ),
+                      SideNavigationBarItem(
+                        icon: Icons.list,
+                        label: 'Test second screen (temp)',
+                      ),
+                      SideNavigationBarItem(
+                        icon: Icons.list,
+                        label: 'Test report print (temp)',
+                      ),
+                      SideNavigationBarItem(
+                        icon: Icons.list,
+                        label: 'Test qr code (temp)',
+                      ),
+                    ],
+                    onTap: (index) {
+                      setState(() {
+                        selectedIndex = index;
+                      });
+                    },
+                  ),
+
+                  /// Make it take the rest of the available width
+                  Expanded(
+                    child: views.elementAt(selectedIndex),
+                  )
+                ],
+              ),
+            ) : CustomProgressBar(),
+          ); 
+        } else {
+          ///mobile layout
+          return Padding(
+            padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
+            child: this.isLoaded ?
+            Scaffold(
+              resizeToAvoidBottomInset: false,
+              appBar: AppBar(
+                automaticallyImplyLeading: false,
+                title: Text('Setting',
+                    style: TextStyle(fontSize: 25, color: Colors.black)),
+                backgroundColor: Color(0xffFAFAFA),
+                elevation: 0,
+              ),
+              body: Row(
+                children: [
+                  /// Pretty similar to the BottomNavigationBar!
+                  Expanded(
+                    flex: 1,
+                    child: SideNavigationBar(
+                      expandable: false,
+                      footer: SideNavigationBarFooter(
+                          label: Column(
+                            children: [
+                              Text("${userEmail}"),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  primary: color.backgroundColor,
+                                ),
+                                onPressed: () {
+                                  if(this.cashRecordList.length == 0){
+                                    openLogoutDialog();
+                                  } else {
+                                    if(this.count == 0){
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Colors.red,
+                                          msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}");
+                                      this.count++;
+                                    }
+                                  }
+
+                                },
+                                child: Text('Logout'),
+                              ),
+                            ],
+                          )),
+                      theme: SideNavigationBarTheme(
+                        backgroundColor: Colors.white,
+                        togglerTheme: SideNavigationBarTogglerTheme.standard(),
+                        itemTheme: SideNavigationBarItemTheme(
+                          selectedItemColor: color.backgroundColor,
+                        ),
+                        dividerTheme: SideNavigationBarDividerTheme.standard(),
+                      ),
+                      selectedIndex: selectedIndex,
+                      items: const [
+                        SideNavigationBarItem(
+                          icon: Icons.print,
+                          label: 'Printer',
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.receipt,
+                          label: 'Receipt Layout',
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.settings,
+                          label: 'App-Device setting',
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.list,
+                          label: 'Test sync (temp)',
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.list,
+                          label: 'Test second screen (temp)',
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.list,
+                          label: 'Test report print (temp)',
+                        ),
+                      ],
+                      onTap: (index) {
+                        setState(() {
+                          selectedIndex = index;
+                        });
+                      },
+                    ),
+                  ),
+
+                  /// Make it take the rest of the available width
+                  Expanded(
+                    flex: 2,
+                      child: views.elementAt(selectedIndex),
+                  )
+                ],
+              ),
+            ) : CustomProgressBar(),
+          );
+        }
+      });
     });
   }
+  
   logout() async{
     final prefs = await SharedPreferences.getInstance();
     prefs.clear();

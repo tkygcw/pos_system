@@ -82,6 +82,24 @@ class _TestPrintState extends State<TestPrint> {
         styles: PosStyles(align: PosAlign.left, width: PosTextSize.size1, height: PosTextSize.size1, bold: true));
     bytes += generator.reset();
     // //other order detail
+    bytes += generator.row([
+      PosColumn(
+        text: '1',
+        width: 2,
+        styles: PosStyles(align: PosAlign.center, underline: true),
+      ),
+      PosColumn(
+        text: 'testing long name print 炸虾乌东名字长测试',
+        width: 8,
+        containsChinese: true,
+        styles: PosStyles(align: PosAlign.center, underline: true),
+      ),
+      PosColumn(
+        text: 'col3',
+        width: 2,
+        styles: PosStyles(align: PosAlign.center, underline: true),
+      ),
+    ]);
     // bytes += generator.text('2022-10-03 17:18:18');
     // bytes += generator.text('Close by: Taylor');
     // bytes += generator.hr(ch: '-');

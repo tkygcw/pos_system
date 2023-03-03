@@ -24,9 +24,12 @@ class Domain {
   static Uri variant = Uri.parse(domain + 'mobile-api/variant/index.php');
   static Uri order = Uri.parse(domain + 'mobile-api/order/index.php');
   static Uri sale = Uri.parse(domain + 'mobile-api/sale/index.php');
+  static Uri settlement = Uri.parse(domain + 'mobile-api/settlement/index.php');
   static Uri table_use = Uri.parse(domain + 'mobile-api/table_use/index.php');
+  static Uri cash_record = Uri.parse(domain + 'mobile-api/cash_record/index.php');
   static Uri sync_record = Uri.parse(domain + 'mobile-api/sync/index.php');
   static Uri sync_to_cloud = Uri.parse(domain + 'mobile-api/sync_to_cloud/index.php');
+  static Uri qr_order_sync = Uri.parse(domain + 'mobile-api/qr_order_sync/index.php');
 
   /*
   * login
@@ -150,6 +153,10 @@ class Domain {
     }
   }
 
+/*
+  --------------------Sync part----------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
   /*
   * get all sync_record
   * */
@@ -158,6 +165,23 @@ class Domain {
       var response = await http.post(Domain.sync_record, body: {
         'sync': '1',
         'branch_id': branch_id,
+      });
+      print('domain call:${response}');
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * update all cloud sync_record
+  * */
+  updateAllCloudSyncRecord(branch_id, String sync_list) async {
+    try {
+      var response = await http.post(Domain.sync_record, body: {
+        'response_sync': '1',
+        'branch_id': branch_id,
+        'sync_list': sync_list
       });
       print('domain call:${response}');
       return jsonDecode(response.body);
@@ -507,6 +531,99 @@ class Domain {
     }
   }
 
+  /*
+  * sync order detail to cloud
+  * */
+  SyncBranchLinkProductToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_branch_link_product_update': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync settlement to cloud
+  * */
+  SyncSettlementToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_settlement_create': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync settlement link payment to cloud
+  * */
+  SyncSettlementLinkPaymentToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_settlement_link_payment_create': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync order detail cancel to cloud
+  * */
+  SyncOrderDetailCancelToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_order_detail_cancel_create': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+/*
+  ---------------QR Order---------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+  /*
+  * sync order from cloud (Qr order)
+  * */
+  SyncQrOrderFromCloud(String branch_id, String company_id) async {
+    try {
+      var response = await http.post(Domain.qr_order_sync, body: {
+        'get_new_qr_order': '1',
+        'branch_id': branch_id,
+        'company_id': company_id
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+/*
+  ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
 
   /*
   * update branch notification token to cloud
@@ -575,13 +692,14 @@ class Domain {
   /*
   * insert branch table
   * */
-  insertTable(seats, number, branch_id) async {
+  insertTable(seats, number, branch_id, table_url) async {
     try {
       var response = await http.post(Domain.table, body: {
         'addTable': '1',
         'seats': seats,
         'number': number,
         'branch_id': branch_id,
+        'table_url': table_url,
       });
       return jsonDecode(response.body);
     } catch (error) {
@@ -1326,6 +1444,32 @@ class Domain {
   }
 
   /*
+  * get all order promotion detail
+  * */
+  getAllOrderPromotionDetail(company_id, branch_id) async {
+    try {
+      var response = await http.post(Domain.order,
+          body: {'getAllOrderPromotionDetail': '1', 'company_id': company_id, 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get all order promotion detail
+  * */
+  getAllOrderTaxDetail(company_id, branch_id) async {
+    try {
+      var response = await http.post(Domain.order,
+          body: {'getAllOrderTaxDetail': '1', 'company_id': company_id, 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all order cache
   * */
   getAllOrderCache(company_id, branch_id) async {
@@ -1505,6 +1649,45 @@ class Domain {
     try {
       var response = await http.post(Domain.sale,
           body: {'getSale': '1', 'company_id': company_id, 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get settlement
+  * */
+  getSettlement(company_id, branch_id) async {
+    try {
+      var response = await http.post(Domain.settlement,
+          body: {'getAllSettlement': '1', 'company_id': company_id, 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get settlement link payment
+  * */
+  getSettlementLinkPayment(company_id, branch_id) async {
+    try {
+      var response = await http.post(Domain.settlement,
+          body: {'getAllSettlementLinkPayment': '1', 'company_id': company_id, 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get settlement link payment
+  * */
+  getCashRecord(company_id, branch_id) async {
+    try {
+      var response = await http.post(Domain.cash_record,
+          body: {'getAllCashRecord': '1', 'company_id': company_id, 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());

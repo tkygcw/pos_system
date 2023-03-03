@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/food/food_menu.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
+import '../../notifier/cart_notifier.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/print_receipt.dart';
+import '../../object/printer.dart';
 
 class OrderPage extends StatefulWidget {
   const OrderPage({Key? key}) : super(key: key);
@@ -12,9 +16,23 @@ class OrderPage extends StatefulWidget {
 }
 
 class _OrderPageState extends State<OrderPage> {
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
+      return Consumer<CartModel>(builder: (context, CartModel cart, child) {
+        return Scaffold(
+            body: Row(
+              children: [
+                Expanded(
+                    flex: 12,
+                    child: FoodMenu(
+                      cartModel: cart,
+                    )
+                )
+              ],
+            ));
+      });
       // final drawerHeader = UserAccountsDrawerHeader(
       //   decoration: BoxDecoration(
       //     color: color.backgroundColor,
@@ -67,10 +85,6 @@ class _OrderPageState extends State<OrderPage> {
       //     ),
       //   ],
       // );
-      return Scaffold(
-          body: Row(
-        children: [Expanded(flex: 12, child: FoodMenu())],
-      ));
     });
   }
 }

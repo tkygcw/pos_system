@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pos_system/fragment/display_order/other_order.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -172,7 +173,7 @@ class _MobileHomePageState extends State<MobileHomePage> {
       case 'bill':
         return BillPage();
       case 'other_order':
-        return DisplayOrderPage();
+        return OtherOrderPage();
       case 'settlement':
         return SettlementPage();
       default:

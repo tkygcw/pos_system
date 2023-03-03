@@ -1,3 +1,6 @@
+import 'package:pos_system/object/promotion.dart';
+import 'package:pos_system/object/tax.dart';
+
 import 'order_promotion_detail.dart';
 import 'order_tax_detail.dart';
 
@@ -11,6 +14,10 @@ class cartPaymentDetail {
   double paymentChange = 0.0;
   List<OrderTaxDetail> orderTaxList = [];
   List<OrderPromotionDetail> orderPromotionDetail = [];
+  List<Promotion>? promotionList = [];
+  Promotion? manualPromo;
+  List<Tax>? taxList = [];
+  String? dining_name;
 
   cartPaymentDetail(
       String localOrderId,
@@ -21,7 +28,11 @@ class cartPaymentDetail {
       double paymentReceived,
       double paymentChange,
       List<OrderTaxDetail> orderTaxList,
-      List<OrderPromotionDetail> orderPromotionDetail)
+      List<OrderPromotionDetail> orderPromotionDetail,
+      {this.promotionList,
+        this.manualPromo,
+        this.taxList,
+        this.dining_name})
   {
     this.localOrderId = localOrderId;
     this.subtotal = subtotal;

@@ -240,14 +240,15 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           List<TableUseDetail> tableUseCheckData = await PosDatabase.instance.readAllTableUseDetail(data[0].table_use_sqlite_id!);
           for (int i = 0; i < tableUseCheckData.length; i++) {
             TableUseDetail tableUseDetailObject = TableUseDetail(
-                soft_delete: dateTime,
                 sync_status: tableUseCheckData[i].sync_status == 0 ? 0 : 2,
+                status: 1,
                 table_use_sqlite_id: data[0].table_use_sqlite_id!,
                 table_use_detail_sqlite_id: tableUseCheckData[i].table_use_detail_sqlite_id);
+
             int deletedData = await PosDatabase.instance.deleteTableUseDetail(tableUseDetailObject);
             if (deletedData == 1) {
               TableUseDetail detailData = await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
-              _value.add(jsonEncode(detailData.syncJson()));
+              _value.add(jsonEncode(detailData));
             }
           }
         }
@@ -284,9 +285,11 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           List<OrderCache> data = await PosDatabase.instance.readSpecificOrderCache(widget.orderCacheIdList[j]);
           TableUse tableUseCheckData = await PosDatabase.instance.readSpecificTableUseIdByLocalId(int.parse(data[0].table_use_sqlite_id!));
           TableUse tableUseObject = TableUse(
-              soft_delete: dateTime,
               sync_status: tableUseCheckData.sync_status == 0 ? 0 : 2,
-              table_use_sqlite_id: int.parse(data[0].table_use_sqlite_id!));
+              status: 1,
+              table_use_sqlite_id: int.parse(data[0].table_use_sqlite_id!)
+          );
+
           int deletedData = await PosDatabase.instance.deleteTableUseID(tableUseObject);
           if (deletedData == 1) {
             TableUse tableUseData = await PosDatabase.instance
@@ -490,10 +493,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   }
 
   readAllPrinters() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
-    List<Printer> data = await PosDatabase.instance.readAllBranchPrinter(branch_id!);
-    printerList = List.from(data);
+    printerList = await PrintReceipt().readAllPrinters();
   }
 }

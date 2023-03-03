@@ -3,6 +3,7 @@ String? tableBranch = 'tb_branch';
 class BranchFields {
   static List<String> values = [
     branchID,
+    branch_url,
     name,
     address,
     phone,
@@ -12,6 +13,7 @@ class BranchFields {
   ];
 
   static String branchID = 'branchID';
+  static String branch_url = 'branch_url';
   static String name = 'name';
   static String address = 'address';
   static String phone = 'phone';
@@ -22,6 +24,7 @@ class BranchFields {
 
 class Branch {
   int? branchID;
+  String? branch_url;
   String? name;
   String? address;
   String? phone;
@@ -31,6 +34,7 @@ class Branch {
 
   Branch(
       {this.branchID,
+      this.branch_url,
       this.name,
       this.address,
       this.phone,
@@ -40,6 +44,7 @@ class Branch {
 
   Branch copy({int? branchID, String? name}) => Branch(
       branchID: branchID ?? this.branchID,
+      branch_url: branch_url ?? this.branch_url,
       name: name ?? this.name,
       address: address ?? this.address,
       phone: phone ?? this.phone,
@@ -50,6 +55,7 @@ class Branch {
   factory Branch.fromJson(Map<String, dynamic> json) {
     return Branch(
       branchID: json['branch_id'],
+      branch_url: json['branch_url'],
       name: json['name'] as String,
       address: json['address'] as String,
       phone: json['phone'] as String,
@@ -61,6 +67,7 @@ class Branch {
 
   Map<String, Object?> toJson() => {
         BranchFields.branchID: branchID,
+        BranchFields.branch_url: branch_url,
         BranchFields.name: name,
         BranchFields.address: address,
         BranchFields.phone: phone,

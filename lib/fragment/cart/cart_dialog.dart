@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:esc_pos_printer/esc_pos_printer.dart';
@@ -25,6 +26,7 @@ import '../../object/modifier_link_product.dart';
 import '../../object/order_cache.dart';
 import '../../object/order_detail.dart';
 import '../../object/order_modifier_detail.dart';
+import '../../object/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/printer_link_category.dart';
 import '../../object/product.dart';
@@ -42,8 +44,7 @@ import '../table/table_change_dialog.dart';
 
 class CartDialog extends StatefulWidget {
   final List<PosTable> selectedTableList;
-  final List<Printer> printerList;
-  const CartDialog({Key? key, required this.selectedTableList, required this.printerList}) : super(key: key);
+  const CartDialog({Key? key, required this.selectedTableList}) : super(key: key);
 
   @override
   State<CartDialog> createState() => _CartDialogState();
@@ -58,6 +59,7 @@ class _CartDialogState extends State<CartDialog> {
   List<ModifierGroup> modifierGroup = [];
   List<TableUseDetail> tbUseDetailList = [];
   List<PosTable> sameGroupTbList = [];
+  List<Printer> printerList = [];
   late StreamController controller;
   double priceSST = 0.0;
   double priceServeTax = 0.0;
@@ -201,7 +203,7 @@ class _CartDialogState extends State<CartDialog> {
               splashColor: Colors.blue.withAlpha(30),
               onDoubleTap: (){
                 if(tableList[index].status == 1){
-                  openChangeTableDialog(tableList[index], printerList: widget.printerList);
+                  openChangeTableDialog(tableList[index], printerList: printerList);
                   cart.removeAllTable();
                   cart.removeAllCartItem();
                 } else {
@@ -318,6 +320,24 @@ class _CartDialogState extends State<CartDialog> {
                       child: Stack(
                         alignment: Alignment.bottomLeft,
                         children: [
+                          Ink.image(
+                            image: tableList[index].seats == '2'
+                                ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/two-seat.jpg'))
+                            // NetworkImage(
+                            //         "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
+                                : tableList[index].seats == '4'
+                                ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/four-seat.jpg'))
+                            // NetworkImage(
+                            //             "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
+                                : tableList[index].seats == '6'
+                                ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/six-seat.jpg'))
+                            // NetworkImage(
+                            //                 "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
+                                : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/duitNow.jpg')),
+                            // NetworkImage(
+                            //                 "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                            fit: BoxFit.cover,
+                          ),
                           // Ink.image(
                           //   image: tableList[index].seats == '2'
                           //       ? NetworkImage(
@@ -437,7 +457,6 @@ class _CartDialogState extends State<CartDialog> {
             child: Opacity(
                 opacity: a1.value,
                 child: TableChangeDialog(
-                  printerList: printerList,
                   object: posTable,
                   callBack: () => readAllTable(),
                 )),
@@ -454,11 +473,9 @@ class _CartDialogState extends State<CartDialog> {
 
   readAllTable() async {
     isLoad = false;
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
 
     List<PosTable> data =
-        await PosDatabase.instance.readAllTable(branch_id!.toInt());
+        await PosDatabase.instance.readAllTable();
 
     tableList = List.from(data);
     await readAllTableAmount();
@@ -471,9 +488,16 @@ class _CartDialogState extends State<CartDialog> {
         }
       }
     }
-    setState(() {
-      isLoad = true;
-    });
+    await readAllPrinters();
+    if(mounted){
+      setState(() {
+        isLoad = true;
+      });
+    }
+  }
+
+  readAllPrinters() async {
+    printerList = await PrintReceipt().readAllPrinters();
   }
 
   readAllTableAmount() async {
@@ -481,8 +505,7 @@ class _CartDialogState extends State<CartDialog> {
     final int? branch_id = prefs.getInt('branch_id');
 
     for (int i = 0; i < tableList.length; i++) {
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
-          .readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
+      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
 
       if (tableUseDetailData.length > 0) {
         List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
@@ -510,8 +533,7 @@ class _CartDialogState extends State<CartDialog> {
         .readSpecificTableUseDetail(posTable.table_sqlite_id!);
 
     //Get all order table cache
-    List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
-        branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
+    List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
     //loop all table order cache
     for (int i = 0; i < data.length; i++) {
       if (!orderCacheList.contains(data)) {
@@ -664,13 +686,14 @@ class _CartDialogState extends State<CartDialog> {
           1,
           null,
           Colors.black,
-          category_sqlite_id: orderDetailList[i].category_sqlite_id);
+          category_sqlite_id: orderDetailList[i].category_sqlite_id,
+          first_cache_created_date_time: orderCacheList[0].created_at);
       cart.addItem(value);
     }
+    print('first order cache: ${orderCacheList[0].order_cache_sqlite_id}');
     for (int j = 0; j < orderCacheList.length; j++) {
       //Get specific table use detail
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
-          .readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
+      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
       tableUseDetailList = List.from(tableUseDetailData);
     }
 
@@ -698,14 +721,14 @@ class _CartDialogState extends State<CartDialog> {
       List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(currentTableId);
       TableUseDetail tableUseDetailObject = TableUseDetail(
         sync_status: checkData[0].sync_status == 0 ? 0 : 2,
-        soft_delete: dateTime,
+        status: 1,
         table_sqlite_id: currentTableId.toString(),
         table_use_detail_sqlite_id: checkData[0].table_use_detail_sqlite_id
       );
       int updatedData = await PosDatabase.instance.deleteTableUseDetailByTableId(tableUseDetailObject);
       if(updatedData == 1){
         TableUseDetail detailData =  await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
-        _value.add(jsonEncode(detailData.syncJson()));
+        _value.add(jsonEncode(detailData));
       }
       print('value: ${_value}');
       //sync to cloud
@@ -821,14 +844,14 @@ class _CartDialogState extends State<CartDialog> {
                 table_use_sqlite_id: tableUseDetailData[0].table_use_sqlite_id,
                 table_use_key: tableUseDetailData[0].table_use_key,
                 table_sqlite_id: newTableId.toString(),
-                original_table_sqlite_id: newTableId.toString(),
                 created_at: dateTime,
+                status: 0,
                 sync_status: 0,
                 updated_at: '',
                 soft_delete: ''));
       TableUseDetail updatedDetail = await insertTableUseDetailKey(insertData, dateTime);
       //TableUseDetail detailData =  await PosDatabase.instance.readSpecificTableUseDetailByLocalId(insertData.table_use_detail_sqlite_id!);
-      _value.add(jsonEncode(updatedDetail.syncJson()));
+      _value.add(jsonEncode(updatedDetail));
       //sync to cloud
       syncTableUseDetailToCloud(_value.toString());
       // Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());

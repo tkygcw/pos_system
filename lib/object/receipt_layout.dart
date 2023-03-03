@@ -224,7 +224,7 @@ class ReceiptLayout{
           bytes += generator.reset();
           if(orderDetailList[i].has_variant == '1'){
             bytes += generator.row([
-              PosColumn(text: '(${orderDetailList[i].product_variant_name!})', width: 6, styles: PosStyles(align: PosAlign.left)),
+              PosColumn(text: '(${orderDetailList[i].product_variant_name!})', width: 6, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
               PosColumn(text: '', width: 2),
               PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
             ]);
@@ -267,7 +267,7 @@ class ReceiptLayout{
         if(receipt!.promotion_detail_status == 1){
           for(int p = 0; p < orderPromotionList.length; p++){
             bytes += generator.row([
-              PosColumn(text: '${orderPromotionList[p].promotion_name}(${orderPromotionList[p].rate})', width: 8, styles: PosStyles(align: PosAlign.right)),
+              PosColumn(text: '${orderPromotionList[p].promotion_name}(${orderPromotionList[p].rate})', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.right)),
               PosColumn(text: '-${orderPromotionList[p].promotion_amount}', width: 4, styles: PosStyles(align: PosAlign.right)),
             ]);
           }
@@ -429,6 +429,7 @@ class ReceiptLayout{
             PosColumn(
                 text: '${orderDetailList[i].productName}',
                 width: 6,
+                containsChinese: true,
                 styles: PosStyles(bold: true)),
             PosColumn(text: '${orderDetailList[i].quantity}', width: 2),
             PosColumn(text: '${orderDetailList[i].price}', width: 4),
@@ -436,7 +437,7 @@ class ReceiptLayout{
           bytes += generator.reset();
           if(orderDetailList[i].has_variant == '1'){
             bytes += generator.row([
-              PosColumn(text: '(${orderDetailList[i].product_variant_name!})', width: 6),
+              PosColumn(text: '(${orderDetailList[i].product_variant_name!})', width: 6, containsChinese: true),
               PosColumn(text: '', width: 2),
               PosColumn(text: '', width: 4),
             ]);
@@ -447,7 +448,7 @@ class ReceiptLayout{
             for(int j = 0; j < orderModifierDetailList.length; j++){
               //modifier
               bytes += generator.row([
-                PosColumn(text: '-${orderModifierDetailList[j].modifier_name}', width: 6),
+                PosColumn(text: '-${orderModifierDetailList[j].modifier_name}', width: 6, containsChinese: true),
                 PosColumn(text: '', width: 2),
                 PosColumn(text: '', width: 4),
               ]);
@@ -458,7 +459,7 @@ class ReceiptLayout{
           if (orderDetailList[i].remark != '') {
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '**${orderDetailList[i].remark}', width: 8),
+              PosColumn(text: '**${orderDetailList[i].remark}', width: 8, containsChinese: true),
               PosColumn(text: '', width: 2),
             ]);
           }
@@ -479,7 +480,7 @@ class ReceiptLayout{
         //discount
         bytes += generator.row([
           PosColumn(text: 'Total discount', width: 8),
-          PosColumn(text: '-${this.totalPromotion}', width: 4),
+          PosColumn(text: '-${this.totalPromotion.toStringAsFixed(2)}', width: 4),
         ]);
         //tax
         for(int t = 0; t < orderTaxList.length; t++){
@@ -566,7 +567,6 @@ class ReceiptLayout{
     } else {
       generator = value;
     }
-
     List<int> bytes = [];
     try {
       bytes += generator.text('** ORDER LIST **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
@@ -597,22 +597,19 @@ class ReceiptLayout{
       //order product
       for(int i = 0; i < orderDetailList.length; i++){
         bytes += generator.row([
-          PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
+          PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(bold: true)),
           PosColumn(
               text: '${orderDetailList[i].productName}',
               width: 8,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
-          PosColumn(
-              text: '[   ]',
-              width: 2,
-              styles: PosStyles(align: PosAlign.right)),
+          PosColumn(text: '', width: 2),
         ]);
         bytes += generator.reset();
         if(orderDetailList[i].has_variant == '1'){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '(${orderDetailList[i].product_variant_name})', width: 8, styles: PosStyles(align: PosAlign.left)),
+            PosColumn(text: '(${orderDetailList[i].product_variant_name})', containsChinese: true, width: 8, styles: PosStyles(align: PosAlign.left)),
             PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
           ]);
         }
@@ -703,15 +700,15 @@ class ReceiptLayout{
           PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(bold: true)),
           PosColumn(
               text: '${orderDetailList[i].productName}',
-              width: 8,
-              styles: PosStyles(height: PosTextSize.size2, width: PosTextSize.size1)),
-          PosColumn(text: '[ ]', width: 2),
+              width: 10,
+              containsChinese: true,
+              styles: PosStyles(height: PosTextSize.size2, width: PosTextSize.size1, fontType: PosFontType.fontB)),
         ]);
         bytes += generator.reset();
         if(orderDetailList[i].has_variant == '1'){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '(${orderDetailList[i].product_variant_name})', width: 8),
+            PosColumn(text: '(${orderDetailList[i].product_variant_name})', containsChinese: true, width: 8),
             PosColumn(text: '', width: 2),
           ]);
         }
@@ -1102,33 +1099,30 @@ class ReceiptLayout{
         //order product
         for(int i = 0; i < orderDetailList.length; i++){
           bytes += generator.row([
-            PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
             PosColumn(
                 text: '${orderDetailList[i].productName}',
-                width: 8,
+                width: 10,
                 containsChinese: true,
                 styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
             PosColumn(
-                text: '',
+                text: 'x${orderDetailList[i].item_cancel}',
                 width: 2,
                 styles: PosStyles(align: PosAlign.right)),
           ]);
           bytes += generator.reset();
           if(orderDetailList[i].has_variant == '1'){
             bytes += generator.row([
-              PosColumn(text: '', width: 2),
-              PosColumn(text: '(${orderDetailList[i].product_variant_name})', width: 8, styles: PosStyles(align: PosAlign.left)),
+              PosColumn(text: '(${orderDetailList[i].product_variant_name})', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
               PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
             ]);
           }
           bytes += generator.reset();
-          await getDeletedOrderModifierDetail(orderDetailList[i], deleteDateTime);
-          if(orderModifierDetailList.length > 0){
+          await getDeletedOrderModifierDetail(orderDetailList[i]);
+          if(orderModifierDetailList.isNotEmpty){
             for(int j = 0; j < orderModifierDetailList.length; j++){
               //modifier
               bytes += generator.row([
-                PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.left)),
-                PosColumn(text: '-${orderModifierDetailList[j].modifier_name}', width: 8, styles: PosStyles(align: PosAlign.left)),
+                PosColumn(text: '-${orderModifierDetailList[j].modifier_name}', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
                 PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
               ]);
             }
@@ -1204,33 +1198,29 @@ class ReceiptLayout{
         //order product
         for(int i = 0; i < orderDetailList.length; i++){
           bytes += generator.row([
-            PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(bold: true)),
             PosColumn(
                 text: '${orderDetailList[i].productName}',
                 width: 8,
                 containsChinese: true,
                 styles: PosStyles(height: PosTextSize.size2, width: PosTextSize.size1)),
-            PosColumn(
-                text: '',
-                width: 2),
+            PosColumn(text: '', width: 2),
+            PosColumn(text: 'x${orderDetailList[i].item_cancel}', width: 2, styles: PosStyles(bold: true)),
           ]);
           bytes += generator.reset();
           if(orderDetailList[i].has_variant == '1'){
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '(${orderDetailList[i].product_variant_name})', width: 8),
+              PosColumn(text: '(${orderDetailList[i].product_variant_name})', width: 8, containsChinese: true),
               PosColumn(text: '', width: 2),
             ]);
           }
           bytes += generator.reset();
-          await getDeletedOrderModifierDetail(orderDetailList[i], deleteDateTime);
-          if(orderModifierDetailList.length > 0){
+          await getDeletedOrderModifierDetail(orderDetailList[i]);
+          if(orderModifierDetailList.isNotEmpty){
             for(int j = 0; j < orderModifierDetailList.length; j++){
               //modifier
               bytes += generator.row([
-                PosColumn(text: '', width: 2),
-                PosColumn(text: '-${orderModifierDetailList[j].modifier_name}', width: 8),
-                PosColumn(text: '', width: 2),
+                PosColumn(text: '-${orderModifierDetailList[j].modifier_name}', width: 12, containsChinese: true,),
               ]);
             }
           }
@@ -1241,7 +1231,7 @@ class ReceiptLayout{
           if (orderDetailList[i].remark != '') {
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '**${orderDetailList[i].remark}', width: 8),
+              PosColumn(text: '**${orderDetailList[i].remark}', width: 8, containsChinese: true,),
               PosColumn(text: '', width: 2),
             ]);
           }
@@ -1622,12 +1612,12 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: 'Cancellation',
+              text: 'Item Cancelled',
               width: 8,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
           PosColumn(
-              text: '${'${reportObject!.dateOrderDetail!.length}'}',
+              text: '${'${reportObject!.dateOrderDetailCancelList![0].total_item}'}',
               width: 2,
               styles: PosStyles(align: PosAlign.right)),
           PosColumn(
@@ -1846,11 +1836,11 @@ class ReceiptLayout{
         ]);
         bytes += generator.row([
           PosColumn(
-              text: 'Cancellation',
+              text: 'Item Cancelled',
               width: 9,
               containsChinese: true),
           PosColumn(
-              text: '${'${reportObject!.dateOrderDetail!.length}'}',
+              text: '${'${reportObject!.dateOrderDetailCancelList![0].total_item}'}',
               width: 3),
         ]);
         bytes += generator.hr();
@@ -2097,7 +2087,7 @@ class ReceiptLayout{
     orderCache = cacheData[0];
     print('order cache: ${orderCache!.order_cache_sqlite_id}');
     print('dateTime: ${dateTime}');
-    List<OrderDetail> detailData = await PosDatabase.instance.readDeletedOrderDetail(orderCache!.order_cache_sqlite_id.toString(), dateTime);
+    List<OrderDetail> detailData = await PosDatabase.instance.readDeletedOrderDetail(orderCache!.order_cache_sqlite_id.toString());
     orderDetailList = List.from(detailData);
     print('order detail list: ${orderDetailList.length}');
 
@@ -2114,8 +2104,8 @@ class ReceiptLayout{
   /*
   get paid order modifier detail
   */
-  getDeletedOrderModifierDetail(OrderDetail orderDetail, String dateTime) async {
-    List<OrderModifierDetail> modDetailData = await PosDatabase.instance.readDeletedOrderModifierDetail(orderDetail.order_detail_sqlite_id.toString(), dateTime);
+  getDeletedOrderModifierDetail(OrderDetail orderDetail) async {
+    List<OrderModifierDetail> modDetailData = await PosDatabase.instance.readDeletedOrderModifierDetail(orderDetail.order_detail_sqlite_id.toString());
     orderModifierDetailList = List.from(modDetailData);
   }
 
@@ -2236,14 +2226,14 @@ class ReceiptLayout{
   getAllTodayOrderOverview() async {
     String currentStDate = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
     ReportObject object = await ReportObject().getAllPaidOrder(currentStDate: currentStDate, currentEdDate: currentStDate);
-    ReportObject object2 = await ReportObject().getAllCancelOrderDetail(currentStDate: currentStDate, currentEdDate: currentStDate);
+    ReportObject object2 = await ReportObject().getTotalCancelledItem(currentStDate: currentStDate, currentEdDate: currentStDate);
     ReportObject object3 = await ReportObject().getAllRefundOrder(currentStDate: currentStDate, currentEdDate: currentStDate);
     ReportObject object4 = await ReportObject().getAllPaidOrderPromotionDetail(currentStDate: currentStDate, currentEdDate: currentStDate);
     ReportObject object5 = await ReportObject().getAllPaidOrderTaxDetail(currentStDate: currentStDate, currentEdDate: currentStDate);
     reportObject = ReportObject(
         totalSales: object.totalSales,
         dateOrderList: object.dateOrderList,
-        dateOrderDetail: object2.dateOrderDetail,
+        dateOrderDetailCancelList: object2.dateOrderDetailCancelList,
         totalRefundAmount: object3.totalRefundAmount,
         dateRefundOrderList: object3.dateRefundOrderList,
         totalPromotionAmount: object4.totalPromotionAmount,

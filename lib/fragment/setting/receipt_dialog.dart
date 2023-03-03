@@ -110,1203 +110,820 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return LayoutBuilder(builder: (context,  constraints) {
         if(constraints.maxWidth > 800){
-          return AlertDialog(
-            title: !_isUpdate ? Text('Add receipt layout') : Text("Receipt Layout"),
-            content: isLoad ?
-            Container(
-              height: MediaQuery.of(context).size.height / 1,
-              width: MediaQuery.of(context).size.width / 1.5,
-              child: SingleChildScrollView(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                          flex: 1,
-                          child: Container(
-                            padding: MediaQuery.of(context).size.width > 1300 ? EdgeInsets.fromLTRB(50, 20, 50, 20) : EdgeInsets.fromLTRB(20, 20, 20, 20) ,
-                            color: Colors.black12,
-                            height: MediaQuery.of(context).size.height,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Visibility(
-                                    visible: logoImage ? true : false,
-                                    child: Center(
-                                      child: CircleAvatar(
-                                        radius: 30,
-                                        backgroundColor: Colors.black,
-                                        child: Text('Logo'),
-                                      ),
-                                    )
-                                ),
-                                Visibility(
-                                    visible: logoText ? true : false,
-                                    child: Center(
-                                      child: Text('Logo text here', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
-                                    )
-                                ),
-                                Container(
-                                  child: Center(
-                                    child: Column(
-                                      children: [
-                                        Text('Jalan permas baru'),
-                                        Text('Tel: 0123456789'),
-                                        Text('xxx@gmail.com')
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  height: 1,
-                                  thickness: 1,
-                                ),
-                                Container(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('Receipt NO: #xxxx-xxxx'),
-                                      Text('Table No: x'),
-                                      Text('Dine in'),
-                                      Text('Close by: xxx')
-                                    ],
-                                  ),
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  height: 1,
-                                  thickness: 1,
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text('ITEM'),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('QTY'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('AMOUNT'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  height: 1,
-                                  thickness: 1,
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text('product1'),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('2'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('2.00'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text('product2'),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('1'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('2.00'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  height: 1,
-                                  thickness: 1,
-                                ),
-                                Container(
-                                  child: Text('Item count: 2'),
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  height: 1,
-                                  thickness: 1,
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Subtotal'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('4.00'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Visibility(
-                                    visible: promoDetail ? true : false,
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                flex: 1,
-                                                child: Text(''),
-                                              ),
-                                              Expanded(
-                                                flex: 1,
-                                                child: Text('Discount 1'),
-                                              ),
-                                              Expanded(
-                                                flex: 0,
-                                                child: Text('-1.00'),
-                                              )
-                                            ],
+          return Center(
+            child: SingleChildScrollView(
+              physics: NeverScrollableScrollPhysics(),
+              child: AlertDialog(
+                title: !_isUpdate ? Text('Add receipt layout') : Text("Receipt Layout"),
+                content: isLoad ?
+                Container(
+                  height: MediaQuery.of(context).size.height / 1.5,
+                  width: MediaQuery.of(context).size.width / 1.5,
+                  child: SingleChildScrollView(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                              flex: 1,
+                              child: Container(
+                                padding: MediaQuery.of(context).size.width > 1300 ? EdgeInsets.fromLTRB(50, 20, 50, 20) : EdgeInsets.fromLTRB(20, 20, 20, 20) ,
+                                color: Colors.black12,
+                                height: MediaQuery.of(context).size.height,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Visibility(
+                                        visible: logoImage ? true : false,
+                                        child: Center(
+                                          child: CircleAvatar(
+                                            radius: 30,
+                                            backgroundColor: Colors.black,
+                                            child: Text('Logo'),
                                           ),
-                                        ),
-                                        Container(
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                flex: 1,
-                                                child: Text(''),
-                                              ),
-                                              Expanded(
-                                                flex: 1,
-                                                child: Text('Discount 2'),
-                                              ),
-                                              Expanded(
-                                                flex: 0,
-                                                child: Text('-1.00'),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                ),
-                                Visibility(
-                                  visible: !promoDetail ? true : false,
-                                  child: Container(
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          flex: 1,
-                                          child: Text(''),
-                                        ),
-                                        Expanded(
-                                          flex: 1,
-                                          child: Text('Total discount'),
-                                        ),
-                                        Expanded(
-                                          flex: 0,
-                                          child: Text('-2.00'),
                                         )
-                                      ],
                                     ),
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
+                                    Visibility(
+                                        visible: logoText ? true : false,
+                                        child: Center(
+                                          child: Text('Logo text here', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                                        )
+                                    ),
+                                    Container(
+                                      child: Center(
+                                        child: Column(
+                                          children: [
+                                            Text('Jalan permas baru'),
+                                            Text('Tel: 0123456789'),
+                                            Text('xxx@gmail.com')
+                                          ],
+                                        ),
                                       ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Tax1(10%)'),
+                                    ),
+                                    Divider(
+                                      color: Colors.black,
+                                      height: 1,
+                                      thickness: 1,
+                                    ),
+                                    Container(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('Receipt NO: #xxxx-xxxx'),
+                                          Text('Table No: x'),
+                                          Text('Dine in'),
+                                          Text('Close by: xxx')
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('0.20'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
+                                    ),
+                                    Divider(
+                                      color: Colors.black,
+                                      height: 1,
+                                      thickness: 1,
+                                    ),
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 2,
+                                            child: Text('ITEM'),
+                                          ),
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text('QTY'),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Text('AMOUNT'),
+                                          )
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Tax2(6%)'),
+                                    ),
+                                    Divider(
+                                      color: Colors.black,
+                                      height: 1,
+                                      thickness: 1,
+                                    ),
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 2,
+                                            child: Text('product1'),
+                                          ),
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text('2'),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Text('2.00'),
+                                          )
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('0.12'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
+                                    ),
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 2,
+                                            child: Text('product2'),
+                                          ),
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text('1'),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Text('2.00'),
+                                          )
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Amount'),
+                                    ),
+                                    Divider(
+                                      color: Colors.black,
+                                      height: 1,
+                                      thickness: 1,
+                                    ),
+                                    Container(
+                                      child: Text('Item count: 2'),
+                                    ),
+                                    Divider(
+                                      color: Colors.black,
+                                      height: 1,
+                                      thickness: 1,
+                                    ),
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text(''),
+                                          ),
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text('Subtotal'),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Text('4.00'),
+                                          )
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('2.32'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
+                                    ),
+                                    Visibility(
+                                        visible: promoDetail ? true : false,
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    flex: 1,
+                                                    child: Text(''),
+                                                  ),
+                                                  Expanded(
+                                                    flex: 1,
+                                                    child: Text('Discount 1'),
+                                                  ),
+                                                  Expanded(
+                                                    flex: 0,
+                                                    child: Text('-1.00'),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                            Container(
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    flex: 1,
+                                                    child: Text(''),
+                                                  ),
+                                                  Expanded(
+                                                    flex: 1,
+                                                    child: Text('Discount 2'),
+                                                  ),
+                                                  Expanded(
+                                                    flex: 0,
+                                                    child: Text('-1.00'),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                    ),
+                                    Visibility(
+                                      visible: !promoDetail ? true : false,
+                                      child: Container(
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              flex: 1,
+                                              child: Text(''),
+                                            ),
+                                            Expanded(
+                                              flex: 1,
+                                              child: Text('Total discount'),
+                                            ),
+                                            Expanded(
+                                              flex: 0,
+                                              child: Text('-2.00'),
+                                            )
+                                          ],
+                                        ),
                                       ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Rounding'),
+                                    ),
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text(''),
+                                          ),
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text('Tax1(10%)'),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Text('0.20'),
+                                          )
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('-0.02'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  height: 1,
-                                  thickness: 1,
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
+                                    ),
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text(''),
+                                          ),
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text('Tax2(6%)'),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Text('0.12'),
+                                          )
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Final Amount', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                    ),
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text(''),
+                                          ),
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text('Amount'),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Text('2.32'),
+                                          )
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('2.30'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  height: 1,
-                                  thickness: 1,
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
+                                    ),
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text(''),
+                                          ),
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text('Rounding'),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Text('-0.02'),
+                                          )
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Payment method'),
+                                    ),
+                                    Divider(
+                                      color: Colors.black,
+                                      height: 1,
+                                      thickness: 1,
+                                    ),
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text(''),
+                                          ),
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text('Final Amount', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Text('2.30'),
+                                          )
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('Cash'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
+                                    ),
+                                    Divider(
+                                      color: Colors.black,
+                                      height: 1,
+                                      thickness: 1,
+                                    ),
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text(''),
+                                          ),
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text('Payment method'),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Text('Cash'),
+                                          )
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Payment received'),
+                                    ),
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text(''),
+                                          ),
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text('Payment received'),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Text('14.00'),
+                                          )
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('14.00'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
+                                    ),
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text(''),
+                                          ),
+                                          Expanded(
+                                            flex: 1,
+                                            child: Text('Change'),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Text('0.00'),
+                                          )
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Change'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('0.00'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(height: 20),
-                                Visibility(
-                                    visible: footerImage ? true : false,
-                                    child: Center(
-                                      child: CircleAvatar(
-                                        radius: 30,
-                                        backgroundColor: Colors.black,
-                                        child: Text('footer'),
+                                    ),
+                                    SizedBox(height: 20),
+                                    Visibility(
+                                        visible: footerImage ? true : false,
+                                        child: Center(
+                                          child: CircleAvatar(
+                                            radius: 30,
+                                            backgroundColor: Colors.black,
+                                            child: Text('footer'),
+                                          ),
+                                        )
+                                    ),
+                                    SizedBox(height: 10),
+                                    Visibility(
+                                        visible: footerText ? true : false,
+                                        child: Center(
+                                          child: Text('footer text here', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                                        )
+                                    ),
+                                    SizedBox(height: 10),
+                                    Container(
+                                      child: Center(
+                                        child: Text('POWERED BY CHANNEL POS'),
                                       ),
                                     )
+                                  ],
                                 ),
-                                SizedBox(height: 10),
-                                Visibility(
-                                    visible: footerText ? true : false,
-                                    child: Center(
-                                      child: Text('footer text here', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                              )
+                          ),
+                          SizedBox(width: 25),
+                          Expanded(
+                            flex: 1,
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      alignment: Alignment.topLeft,
+                                      child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                                    ),
+                                    Spacer(),
+                                    Container(
+                                      child: Switch(
+                                          value: logoImage,
+                                          activeColor: color.backgroundColor,
+                                          onChanged: !_isUpdate ?  (bool value){
+                                            setState(() {
+                                              logoImage = value;
+                                            });
+                                          }: null ),
                                     )
+                                  ],
                                 ),
-                                SizedBox(height: 10),
-                                Container(
-                                  child: Center(
-                                    child: Text('POWERED BY CHANNEL POS'),
+                                Row(
+                                  children: [
+                                    Container(
+                                      alignment: Alignment.topLeft,
+                                      child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                                    ),
+                                    Spacer(),
+                                    Container(
+                                      child: Switch(
+                                          value: footerImage,
+                                          activeColor: color.backgroundColor,
+                                          onChanged: !_isUpdate ? (bool value){
+                                            setState(() {
+                                              footerImage = value;
+                                            });
+                                          }: null),
+                                    )
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Container(
+                                      alignment: Alignment.topLeft,
+                                      child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                                    ),
+                                    Spacer(),
+                                    Container(
+                                      child: Switch(
+                                          value: logoText,
+                                          activeColor: color.backgroundColor,
+                                          onChanged: !_isUpdate ? (bool value){
+                                            setState(() {
+                                              logoText = value;
+                                            });
+                                          } : null),
+                                    )
+                                  ],
+                                ),
+                                Visibility(
+                                  visible: logoText ? true : false,
+                                  child: Container(
+                                    child: ValueListenableBuilder(
+                                      // Note: pass _controller to the animation argument
+                                        valueListenable: headerTextController,
+                                        builder: (context, TextEditingValue value, __) {
+                                          return SizedBox(
+                                            height: MediaQuery.of(context).size.height / 8,
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: TextField(
+                                                enabled: _isUpdate ? false : true,
+                                                controller: headerTextController,
+                                                decoration: InputDecoration(
+                                                  errorText: _submitted
+                                                      ? errorHeaderText == null
+                                                      ? errorHeaderText
+                                                      : AppLocalizations.of(context)
+                                                      ?.translate(errorHeaderText!)
+                                                      : null,
+                                                  border: OutlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: color.backgroundColor),
+                                                  ),
+                                                  focusedBorder: OutlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: color.backgroundColor),
+                                                  ),
+                                                  labelText: 'Logo text here',
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }),
                                   ),
-                                )
+                                ),
+                                Row(
+                                  children: [
+                                    Container(
+                                      alignment: Alignment.topLeft,
+                                      child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                                    ),
+                                    Spacer(),
+                                    Container(
+                                      child: Switch(
+                                          value: footerText,
+                                          activeColor: color.backgroundColor,
+                                          onChanged: !_isUpdate ? (bool value){
+                                            setState(() {
+                                              footerText = value;
+                                            });
+                                          } : null),
+                                    )
+                                  ],
+                                ),
+                                Visibility(
+                                  visible: footerText ? true : false,
+                                  child: Container(
+                                    child: ValueListenableBuilder(
+                                      // Note: pass _controller to the animation argument
+                                        valueListenable: footerTextController,
+                                        builder: (context, TextEditingValue value, __) {
+                                          return SizedBox(
+                                            height: MediaQuery.of(context).size.height / 8,
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: TextField(
+                                                enabled: _isUpdate ? false : true,
+                                                controller: footerTextController,
+                                                decoration: InputDecoration(
+                                                  errorText: _submitted
+                                                      ? errorFooterText == null
+                                                      ? errorFooterText
+                                                      : AppLocalizations.of(context)
+                                                      ?.translate(errorFooterText!)
+                                                      : null,
+                                                  border: OutlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: color.backgroundColor),
+                                                  ),
+                                                  focusedBorder: OutlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: color.backgroundColor),
+                                                  ),
+                                                  labelText: 'footer text here',
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }),
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Container(
+                                      alignment: Alignment.topLeft,
+                                      child: Text('Show promotion detail (80mm)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                                    ),
+                                    Spacer(),
+                                    Container(
+                                      child: Switch(
+                                          value: promoDetail,
+                                          activeColor: color.backgroundColor,
+                                          onChanged: !_isUpdate ?  (bool value){
+                                            setState(() {
+                                              promoDetail = value;
+                                            });
+                                          }: null ),
+                                    )
+                                  ],
+                                ),
                               ],
                             ),
                           )
-                      ),
-                      SizedBox(width: 25),
-                      Expanded(
-                        flex: 1,
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  alignment: Alignment.topLeft,
-                                  child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                ),
-                                Spacer(),
-                                Container(
-                                  child: Switch(
-                                      value: logoImage,
-                                      activeColor: color.backgroundColor,
-                                      onChanged: !_isUpdate ?  (bool value){
-                                        setState(() {
-                                          logoImage = value;
-                                        });
-                                      }: null ),
-                                )
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Container(
-                                  alignment: Alignment.topLeft,
-                                  child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                ),
-                                Spacer(),
-                                Container(
-                                  child: Switch(
-                                      value: footerImage,
-                                      activeColor: color.backgroundColor,
-                                      onChanged: !_isUpdate ? (bool value){
-                                        setState(() {
-                                          footerImage = value;
-                                        });
-                                      }: null),
-                                )
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Container(
-                                  alignment: Alignment.topLeft,
-                                  child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                ),
-                                Spacer(),
-                                Container(
-                                  child: Switch(
-                                      value: logoText,
-                                      activeColor: color.backgroundColor,
-                                      onChanged: !_isUpdate ? (bool value){
-                                        setState(() {
-                                          logoText = value;
-                                        });
-                                      } : null),
-                                )
-                              ],
-                            ),
-                            Visibility(
-                              visible: logoText ? true : false,
-                              child: Container(
-                                child: ValueListenableBuilder(
-                                  // Note: pass _controller to the animation argument
-                                    valueListenable: headerTextController,
-                                    builder: (context, TextEditingValue value, __) {
-                                      return SizedBox(
-                                        height: MediaQuery.of(context).size.height / 8,
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextField(
-                                            enabled: _isUpdate ? false : true,
-                                            controller: headerTextController,
-                                            decoration: InputDecoration(
-                                              errorText: _submitted
-                                                  ? errorHeaderText == null
-                                                  ? errorHeaderText
-                                                  : AppLocalizations.of(context)
-                                                  ?.translate(errorHeaderText!)
-                                                  : null,
-                                              border: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                    color: color.backgroundColor),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                    color: color.backgroundColor),
-                                              ),
-                                              labelText: 'Logo text here',
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }),
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Container(
-                                  alignment: Alignment.topLeft,
-                                  child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                ),
-                                Spacer(),
-                                Container(
-                                  child: Switch(
-                                      value: footerText,
-                                      activeColor: color.backgroundColor,
-                                      onChanged: !_isUpdate ? (bool value){
-                                        setState(() {
-                                          footerText = value;
-                                        });
-                                      } : null),
-                                )
-                              ],
-                            ),
-                            Visibility(
-                              visible: footerText ? true : false,
-                              child: Container(
-                                child: ValueListenableBuilder(
-                                  // Note: pass _controller to the animation argument
-                                    valueListenable: footerTextController,
-                                    builder: (context, TextEditingValue value, __) {
-                                      return SizedBox(
-                                        height: MediaQuery.of(context).size.height / 8,
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextField(
-                                            enabled: _isUpdate ? false : true,
-                                            controller: footerTextController,
-                                            decoration: InputDecoration(
-                                              errorText: _submitted
-                                                  ? errorFooterText == null
-                                                  ? errorFooterText
-                                                  : AppLocalizations.of(context)
-                                                  ?.translate(errorFooterText!)
-                                                  : null,
-                                              border: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                    color: color.backgroundColor),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                    color: color.backgroundColor),
-                                              ),
-                                              labelText: 'footer text here',
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }),
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Container(
-                                  alignment: Alignment.topLeft,
-                                  child: Text('Show promotion detail (80mm)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                ),
-                                Spacer(),
-                                Container(
-                                  child: Switch(
-                                      value: promoDetail,
-                                      activeColor: color.backgroundColor,
-                                      onChanged: !_isUpdate ?  (bool value){
-                                        setState(() {
-                                          promoDetail = value;
-                                        });
-                                      }: null ),
-                                )
-                              ],
-                            ),
-                          ],
-                        ),
+                        ],
                       )
-                    ],
-                  )
+                  ),
+                ) : CustomProgressBar(),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                    onPressed: () {
+                      closeDialog(context);
+                    },
+                  ),
+                  TextButton(
+                    child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text("Apply"),
+                    onPressed: () {
+                      _submit(context);
+                    },
+                  ),
+                ],
               ),
-            ) : CustomProgressBar(),
-            actions: <Widget>[
-              TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: () {
-                  closeDialog(context);
-                },
-              ),
-              TextButton(
-                child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text("Apply"),
-                onPressed: () {
-                  _submit(context);
-                },
-              ),
-            ],
+            ),
           );
         } else {
-          return AlertDialog(
-            title: !_isUpdate ? Text('Add receipt layout') : Text("Receipt Layout"),
-            content: isLoad ?
-            Container(
-              height: MediaQuery.of(context).size.height / 1,
-              width: MediaQuery.of(context).size.width / 1.5,
-              child: SingleChildScrollView(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                          flex: 1,
-                          child: Container(
-                            padding: MediaQuery.of(context).size.width > 1300 ? EdgeInsets.fromLTRB(50, 20, 50, 20) : EdgeInsets.fromLTRB(20, 20, 20, 20) ,
-                            color: Colors.black12,
-                            height: MediaQuery.of(context).size.width * 1.1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Visibility(
-                                    visible: logoImage ? true : false,
-                                    child: Center(
-                                      child: CircleAvatar(
-                                        radius: 30,
-                                        backgroundColor: Colors.black,
-                                        child: Text('Logo'),
-                                      ),
-                                    )
-                                ),
-                                Visibility(
-                                    visible: logoText ? true : false,
-                                    child: Center(
-                                      child: Text('Logo text here', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
-                                    )
-                                ),
-                                Container(
-                                  child: Center(
-                                    child: Column(
-                                      children: [
-                                        Text('Jalan permas baru'),
-                                        Text('Tel: 0123456789'),
-                                        Text('xxx@gmail.com')
-                                      ],
-                                    ),
+          ///mobile layout
+          return SingleChildScrollView(
+            physics: NeverScrollableScrollPhysics(),
+            child: Center(
+              child: AlertDialog(
+                title: !_isUpdate ? Text('Add receipt layout') : Text("Receipt Layout"),
+                content: isLoad ?
+                Container(
+                  height: MediaQuery.of(context).size.height / 2.5,
+                  width: MediaQuery.of(context).size.width / 1.5,
+                  child: SingleChildScrollView(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 25),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    alignment: Alignment.topLeft,
+                                    child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                                   ),
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  height: 1,
-                                  thickness: 1,
-                                ),
-                                Container(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('Receipt NO: #xxxx-xxxx'),
-                                      Text('Table No: x'),
-                                      Text('Dine in'),
-                                      Text('Close by: xxx')
-                                    ],
+                                  Spacer(),
+                                  Container(
+                                    child: Switch(
+                                        value: logoImage,
+                                        activeColor: color.backgroundColor,
+                                        onChanged: !_isUpdate ?  (bool value){
+                                          setState(() {
+                                            logoImage = value;
+                                          });
+                                        }: null ),
+                                  )
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Container(
+                                    alignment: Alignment.topLeft,
+                                    child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                                   ),
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  height: 1,
-                                  thickness: 1,
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text('ITEM'),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('QTY'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('AMOUNT'),
-                                      )
-                                    ],
+                                  Spacer(),
+                                  Container(
+                                    child: Switch(
+                                        value: footerImage,
+                                        activeColor: color.backgroundColor,
+                                        onChanged: !_isUpdate ? (bool value){
+                                          setState(() {
+                                            footerImage = value;
+                                          });
+                                        }: null),
+                                  )
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Container(
+                                    alignment: Alignment.topLeft,
+                                    child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                                   ),
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  height: 1,
-                                  thickness: 1,
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text('product1'),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('2'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('2.00'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text('product2'),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('1'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('2.00'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  height: 1,
-                                  thickness: 1,
-                                ),
-                                Container(
-                                  child: Text('Item count: 2'),
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  height: 1,
-                                  thickness: 1,
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Subtotal'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('4.00'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Visibility(
-                                    visible: promoDetail ? true : false,
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                flex: 1,
-                                                child: Text(''),
+                                  Spacer(),
+                                  Container(
+                                    child: Switch(
+                                        value: logoText,
+                                        activeColor: color.backgroundColor,
+                                        onChanged: !_isUpdate ? (bool value){
+                                          setState(() {
+                                            logoText = value;
+                                          });
+                                        } : null),
+                                  )
+                                ],
+                              ),
+                              Visibility(
+                                visible: logoText ? true : false,
+                                child: Container(
+                                  child: ValueListenableBuilder(
+                                    // Note: pass _controller to the animation argument
+                                      valueListenable: headerTextController,
+                                      builder: (context, TextEditingValue value, __) {
+                                        return SizedBox(
+                                          height: MediaQuery.of(context).size.height / 4,
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextField(
+                                              enabled: _isUpdate ? false : true,
+                                              controller: headerTextController,
+                                              decoration: InputDecoration(
+                                                errorText: _submitted
+                                                    ? errorHeaderText == null
+                                                    ? errorHeaderText
+                                                    : AppLocalizations.of(context)
+                                                    ?.translate(errorHeaderText!)
+                                                    : null,
+                                                border: OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: color.backgroundColor),
+                                                ),
+                                                focusedBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: color.backgroundColor),
+                                                ),
+                                                labelText: 'Logo text here',
                                               ),
-                                              Expanded(
-                                                flex: 1,
-                                                child: Text('Discount 1'),
-                                              ),
-                                              Expanded(
-                                                flex: 0,
-                                                child: Text('-1.00'),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                        Container(
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                flex: 1,
-                                                child: Text(''),
-                                              ),
-                                              Expanded(
-                                                flex: 1,
-                                                child: Text('Discount 2'),
-                                              ),
-                                              Expanded(
-                                                flex: 0,
-                                                child: Text('-1.00'),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                ),
-                                Visibility(
-                                  visible: !promoDetail ? true : false,
-                                  child: Container(
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          flex: 1,
-                                          child: Text(''),
-                                        ),
-                                        Expanded(
-                                          flex: 1,
-                                          child: Text('Total discount'),
-                                        ),
-                                        Expanded(
-                                          flex: 0,
-                                          child: Text('-2.00'),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Tax1(10%)'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('0.20'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Tax2(6%)'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('0.12'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Amount'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('2.32'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Rounding'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('-0.02'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  height: 1,
-                                  thickness: 1,
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Final Amount', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('2.30'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Divider(
-                                  color: Colors.black,
-                                  height: 1,
-                                  thickness: 1,
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Payment method'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('Cash'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Payment received'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('14.00'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text(''),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: Text('Change'),
-                                      ),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Text('0.00'),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(height: 20),
-                                Visibility(
-                                    visible: footerImage ? true : false,
-                                    child: Center(
-                                      child: CircleAvatar(
-                                        radius: 30,
-                                        backgroundColor: Colors.black,
-                                        child: Text('footer'),
-                                      ),
-                                    )
-                                ),
-                                SizedBox(height: 10),
-                                Visibility(
-                                    visible: footerText ? true : false,
-                                    child: Center(
-                                      child: Text('footer text here', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
-                                    )
-                                ),
-                                SizedBox(height: 10),
-                                Container(
-                                  child: Center(
-                                    child: Text('POWERED BY CHANNEL POS'),
-                                  ),
-                                )
-                              ],
-                            ),
-                          )
-                      ),
-                      SizedBox(width: 25),
-                      Expanded(
-                        flex: 1,
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  alignment: Alignment.topLeft,
-                                  child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                ),
-                                Spacer(),
-                                Container(
-                                  child: Switch(
-                                      value: logoImage,
-                                      activeColor: color.backgroundColor,
-                                      onChanged: !_isUpdate ?  (bool value){
-                                        setState(() {
-                                          logoImage = value;
-                                        });
-                                      }: null ),
-                                )
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Container(
-                                  alignment: Alignment.topLeft,
-                                  child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                ),
-                                Spacer(),
-                                Container(
-                                  child: Switch(
-                                      value: footerImage,
-                                      activeColor: color.backgroundColor,
-                                      onChanged: !_isUpdate ? (bool value){
-                                        setState(() {
-                                          footerImage = value;
-                                        });
-                                      }: null),
-                                )
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Container(
-                                  alignment: Alignment.topLeft,
-                                  child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                ),
-                                Spacer(),
-                                Container(
-                                  child: Switch(
-                                      value: logoText,
-                                      activeColor: color.backgroundColor,
-                                      onChanged: !_isUpdate ? (bool value){
-                                        setState(() {
-                                          logoText = value;
-                                        });
-                                      } : null),
-                                )
-                              ],
-                            ),
-                            Visibility(
-                              visible: logoText ? true : false,
-                              child: Container(
-                                child: ValueListenableBuilder(
-                                  // Note: pass _controller to the animation argument
-                                    valueListenable: headerTextController,
-                                    builder: (context, TextEditingValue value, __) {
-                                      return SizedBox(
-                                        height: MediaQuery.of(context).size.height / 8,
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextField(
-                                            enabled: _isUpdate ? false : true,
-                                            controller: headerTextController,
-                                            decoration: InputDecoration(
-                                              errorText: _submitted
-                                                  ? errorHeaderText == null
-                                                  ? errorHeaderText
-                                                  : AppLocalizations.of(context)
-                                                  ?.translate(errorHeaderText!)
-                                                  : null,
-                                              border: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                    color: color.backgroundColor),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                    color: color.backgroundColor),
-                                              ),
-                                              labelText: 'Logo text here',
                                             ),
                                           ),
-                                        ),
-                                      );
-                                    }),
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Container(
-                                  alignment: Alignment.topLeft,
-                                  child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                                        );
+                                      }),
                                 ),
-                                Spacer(),
-                                Container(
-                                  child: Switch(
-                                      value: footerText,
-                                      activeColor: color.backgroundColor,
-                                      onChanged: !_isUpdate ? (bool value){
-                                        setState(() {
-                                          footerText = value;
-                                        });
-                                      } : null),
-                                )
-                              ],
-                            ),
-                            Visibility(
-                              visible: footerText ? true : false,
-                              child: Container(
-                                child: ValueListenableBuilder(
-                                  // Note: pass _controller to the animation argument
-                                    valueListenable: footerTextController,
-                                    builder: (context, TextEditingValue value, __) {
-                                      return SizedBox(
-                                        height: MediaQuery.of(context).size.height / 8,
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextField(
-                                            enabled: _isUpdate ? false : true,
-                                            controller: footerTextController,
-                                            decoration: InputDecoration(
-                                              errorText: _submitted
-                                                  ? errorFooterText == null
-                                                  ? errorFooterText
-                                                  : AppLocalizations.of(context)
-                                                  ?.translate(errorFooterText!)
-                                                  : null,
-                                              border: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                    color: color.backgroundColor),
+                              ),
+                              Row(
+                                children: [
+                                  Container(
+                                    alignment: Alignment.topLeft,
+                                    child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                                  ),
+                                  Spacer(),
+                                  Container(
+                                    child: Switch(
+                                        value: footerText,
+                                        activeColor: color.backgroundColor,
+                                        onChanged: !_isUpdate ? (bool value){
+                                          setState(() {
+                                            footerText = value;
+                                          });
+                                        } : null),
+                                  )
+                                ],
+                              ),
+                              Visibility(
+                                visible: footerText ? true : false,
+                                child: Container(
+                                  child: ValueListenableBuilder(
+                                    // Note: pass _controller to the animation argument
+                                      valueListenable: footerTextController,
+                                      builder: (context, TextEditingValue value, __) {
+                                        return SizedBox(
+                                          height: MediaQuery.of(context).size.height / 4,
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextField(
+                                              enabled: _isUpdate ? false : true,
+                                              controller: footerTextController,
+                                              decoration: InputDecoration(
+                                                errorText: _submitted
+                                                    ? errorFooterText == null
+                                                    ? errorFooterText
+                                                    : AppLocalizations.of(context)
+                                                    ?.translate(errorFooterText!)
+                                                    : null,
+                                                border: OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: color.backgroundColor),
+                                                ),
+                                                focusedBorder: OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: color.backgroundColor),
+                                                ),
+                                                labelText: 'footer text here',
                                               ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderSide: BorderSide(
-                                                    color: color.backgroundColor),
-                                              ),
-                                              labelText: 'footer text here',
                                             ),
                                           ),
-                                        ),
-                                      );
-                                    }),
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text('Show promotion detail (80mm)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                                        );
+                                      }),
                                 ),
-                                Spacer(),
-                                Container(
-                                  child: Switch(
-                                      value: promoDetail,
-                                      activeColor: color.backgroundColor,
-                                      onChanged: !_isUpdate ?  (bool value){
-                                        setState(() {
-                                          promoDetail = value;
-                                        });
-                                      }: null ),
-                                )
-                              ],
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  )
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text('Show promotion detail (80mm)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                                  ),
+                                  Spacer(),
+                                  Container(
+                                    child: Switch(
+                                        value: promoDetail,
+                                        activeColor: color.backgroundColor,
+                                        onChanged: !_isUpdate ?  (bool value){
+                                          setState(() {
+                                            promoDetail = value;
+                                          });
+                                        }: null ),
+                                  )
+                                ],
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ) : CustomProgressBar(),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                    onPressed: () {
+                      closeDialog(context);
+                    },
+                  ),
+                  TextButton(
+                    child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text("Apply"),
+                    onPressed: () {
+                      _submit(context);
+                    },
+                  ),
+                ],
               ),
-            ) : CustomProgressBar(),
-            actions: <Widget>[
-              TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: () {
-                  closeDialog(context);
-                },
-              ),
-              TextButton(
-                child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text("Apply"),
-                onPressed: () {
-                  _submit(context);
-                },
-              ),
-            ],
+            ),
           );
         }
       });

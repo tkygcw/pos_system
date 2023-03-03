@@ -92,6 +92,7 @@ class _CashDialogState extends State<CashDialog> {
       return Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
         return Center(
           child: SingleChildScrollView(
+            physics: NeverScrollableScrollPhysics(),
             child: LayoutBuilder(builder: (context, constraints) {
               if(constraints.maxWidth > 800){
                 return AlertDialog(

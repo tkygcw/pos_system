@@ -30,6 +30,7 @@ class RefundDialog extends StatefulWidget {
 class _RefundDialogState extends State<RefundDialog> {
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   final adminPosPinController = TextEditingController();
+  String refundLocalId = '';
   String refundKey = '';
   bool _submitted = false;
 
@@ -59,7 +60,7 @@ class _RefundDialogState extends State<RefundDialog> {
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
           child: AlertDialog(
-            title: Text('Enter User PIN'),
+            title: Text('Enter Current User PIN'),
             content: SizedBox(
               height: 100.0,
               width: 350.0,
@@ -142,16 +143,22 @@ class _RefundDialogState extends State<RefundDialog> {
 
   readAdminData(String pin) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? pos_user = prefs.getString('pos_pin_user');
+      Map userObject = json.decode(pos_user!);
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
-        print('user found ${userData.name}');
-        //create refund record
-        await createRefund(userData);
-        await updateOrderPaymentStatus();
-        createRefundedCashRecord(userData);
-        //print refund list
-        //await _printSettlementList(dateTime);
-        widget.callBack();
+        if(userData.user_id == userObject['user_id']){
+          print('user found ${userData.name}');
+          //create refund record
+          await createRefund(userData);
+          await updateOrderPaymentStatus();
+          createRefundedCashRecord(userData);
+          widget.callBack();
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
+        }
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "PIN incorrect, User not found");
@@ -212,6 +219,7 @@ class _RefundDialogState extends State<RefundDialog> {
         soft_delete: ''
     );
     Refund data = await PosDatabase.instance.insertSqliteRefund(refundObject);
+    refundLocalId = data.refund_sqlite_id.toString();
     Refund updatedData = await insertRefundKey(data, dateTime);
     refundKey = updatedData.refund_key!;
     _value.add(jsonEncode(updatedData));
@@ -236,6 +244,7 @@ class _RefundDialogState extends State<RefundDialog> {
     String dateTime = dateFormat.format(DateTime.now());
     Order checkData = await PosDatabase.instance.readSpecificOrder(widget.order.order_sqlite_id!);
     Order _orderObject = Order(
+        refund_sqlite_id: this.refundLocalId,
         refund_key: this.refundKey,
         sync_status: checkData.sync_status == 0 ? 0 : 2,
         updated_at: dateTime,
@@ -246,6 +255,7 @@ class _RefundDialogState extends State<RefundDialog> {
       Order orderData = await PosDatabase.instance.readSpecificOrder(_orderObject.order_sqlite_id!);
       _value.add(jsonEncode(orderData));
     }
+    print('refund value: ${_value.toString()}');
     //sync to cloud
     syncUpdatedOrderToCloud(_value.toString());
   }

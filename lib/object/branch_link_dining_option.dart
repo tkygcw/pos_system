@@ -33,6 +33,10 @@ class BranchLinkDining {
   String? soft_delete;
   String? name;
   int? total_bill;
+  double? gross_sales;
+  double? net_sales;
+  int? item_sum;
+  String? order_date;
 
   BranchLinkDining(
       {this.branch_link_dining_id,
@@ -44,7 +48,11 @@ class BranchLinkDining {
       this.updated_at,
       this.soft_delete,
       this.name,
-      this.total_bill});
+      this.total_bill,
+      this.gross_sales,
+      this.net_sales,
+      this.item_sum,
+      this.order_date});
 
   BranchLinkDining copy({
     int? branch_link_dining_id,
@@ -55,7 +63,6 @@ class BranchLinkDining {
     String? created_at,
     String? updated_at,
     String? soft_delete,
-    String? name,
   }) =>
       BranchLinkDining(
           branch_link_dining_id:
@@ -66,8 +73,7 @@ class BranchLinkDining {
           sequence: sequence ?? this.sequence,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
-          soft_delete: soft_delete ?? this.soft_delete,
-          name: name ?? this.name);
+          soft_delete: soft_delete ?? this.soft_delete);
 
   static BranchLinkDining fromJson(Map<String, Object?> json) =>
       BranchLinkDining(
@@ -81,6 +87,10 @@ class BranchLinkDining {
         updated_at: json[BranchLinkDiningFields.updated_at] as String?,
         soft_delete: json[BranchLinkDiningFields.soft_delete] as String?,
         name: json['name'] as String?,
+        gross_sales: json['gross_sales'] as double?,
+        net_sales: json['net_sales'] as double?,
+        item_sum: json['item_sum'] as int?,
+        order_date: json['order_date'] as String?
       );
 
   Map<String, Object?> toJson() => {
