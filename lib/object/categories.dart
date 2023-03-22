@@ -112,5 +112,10 @@ class Categories {
         CategoriesFields.created_at: created_at,
         CategoriesFields.updated_at: updated_at,
         CategoriesFields.soft_delete: soft_delete,
-      };
+  };
+
+  Map tableJson() => {
+    CategoriesFields.name: name,
+    'product_list': categoryOrderDetailList
+  };
 }

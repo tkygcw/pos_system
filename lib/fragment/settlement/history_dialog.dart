@@ -24,6 +24,8 @@ class _HistoryDialogState extends State<HistoryDialog> {
   List<CashRecord> cashRecordList =[];
   late String jsonList = jsonEncode(cashRecordList);
   bool isLoaded = false;
+  bool isButtonDisabled = false;
+
 
   @override
   void initState() {
@@ -155,7 +157,11 @@ class _HistoryDialogState extends State<HistoryDialog> {
             actions: [
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: () {
+                onPressed: isButtonDisabled ? null : () {
+                  // Disable the button after it has been pressed
+                  setState(() {
+                    isButtonDisabled = true;
+                  });
                   Navigator.of(context).pop();
                 },
               ),
@@ -218,7 +224,11 @@ class _HistoryDialogState extends State<HistoryDialog> {
             actions: [
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: () {
+                onPressed: isButtonDisabled ? null : () {
+                  // Disable the button after it has been pressed
+                  setState(() {
+                    isButtonDisabled = true;
+                  });
                   Navigator.of(context).pop();
                 },
               ),

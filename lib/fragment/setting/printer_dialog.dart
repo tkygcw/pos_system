@@ -16,7 +16,9 @@ import 'package:pos_system/object/receipt_layout.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crypto/crypto.dart';
 
+import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/categories.dart';
@@ -36,9 +38,11 @@ class PrinterDialog extends StatefulWidget {
 class _PrinterDialogState extends State<PrinterDialog> {
   final printerLabelController = TextEditingController();
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
+  Printer? printer;
   List<String> printerValue = [];
   List<Categories> selectedCategories = [];
-  String printerID = '';
+  String printerID = '', printer_key = '';
+  String? printer_value, printer_category_value, printer_category_delete_value;
   int? _typeStatus = 0;
   int? _paperSize = 0;
   bool _submitted = false;
@@ -53,10 +57,11 @@ class _PrinterDialogState extends State<PrinterDialog> {
     if (widget.printerObject != null) {
       readPrinterCategory();
       _isUpdate = true;
-      printerLabelController.text = widget.printerObject!.printerLabel!;
+      printerLabelController.text = widget.printerObject!.printer_label!;
       _typeStatus = widget.printerObject!.type!;
       _paperSize = widget.printerObject!.paper_size!;
       printerValue.add(widget.printerObject!.value!);
+      widget.printerObject!.is_counter == 1 ? _isCashier = true : _isCashier = false;
       widget.printerObject!.printer_status == 1 ? _isActive = true : _isActive = false;
     } else {
       _isUpdate = false;
@@ -80,17 +85,23 @@ class _PrinterDialogState extends State<PrinterDialog> {
     return null;
   }
 
-  void _submit(BuildContext context) {
+  void _submit(BuildContext context) async {
     setState(() => _submitted = true);
     if (errorPrinterLabel == null) {
-      if (printerValue.length > 0 && selectedCategories.isNotEmpty) {
+      if (printerValue.isNotEmpty) {
         if (_isUpdate == false) {
-          callAddNewPrinter(printerValue, selectedCategories);
+          await callAddNewPrinter(printerValue, selectedCategories);
           if(_typeStatus == 0){
-            _print();
+            var printerDetail = jsonDecode(printerValue[0]);
+            bool? isConnected = await flutterUsbPrinter.connect(
+                int.parse(printerDetail['vendorId']),
+                int.parse(printerDetail['productId']));
           }
         } else {
-          callUpdatePrinter(selectedCategories, widget.printerObject!);
+          await callUpdatePrinter(selectedCategories, widget.printerObject!);
+        }
+        if(this.printer!.type == 1){
+          syncAllToCloud();
         }
       } else {
         Fluttertoast.showToast(
@@ -98,6 +109,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
             msg: "Make sure printer and category is selected");
       }
     }
+    widget.callBack();
+    closeDialog(context);
   }
 
   closeDialog(BuildContext context) {
@@ -767,68 +780,158 @@ class _PrinterDialogState extends State<PrinterDialog> {
 
   callAddNewPrinter(List<String> value, List<Categories> allCategories) async {
     await createPrinter(value);
-    await createPrinterCategory(allCategories);
+    if(printer!.is_counter != 1){
+      await createPrinterCategory(allCategories);
+    }
   }
 
   callUpdatePrinter(List<Categories> allCategories, Printer printer) async {
-    await clearPrinterCategory(printer);
     await updatePrinterInfo();
-    await updatePrinterCategory(allCategories, printer);
+    await clearPrinterCategory(printer);
+    if(this.printer!.is_counter != 1){
+      await updatePrinterCategory(allCategories, printer);
+    }
+  }
+
+  generatePrinterKey(Printer printer) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes = printer.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
+        printer.printer_sqlite_id.toString() +
+        device_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
+  insertPrinterKey(Printer printer, String dateTime) async {
+    Printer? detailData;
+    var key = await generatePrinterKey(printer);
+    if (key != null) {
+      Printer printerData = Printer(
+          printer_key: key,
+          updated_at: dateTime,
+          sync_status: printer.sync_status == 0 ? 0 : printer.sync_status == 1 ? 2 : 1,
+          printer_sqlite_id: printer.printer_sqlite_id);
+      int updateUniqueKey = await PosDatabase.instance.updatePrinterUniqueKey(printerData);
+      if (updateUniqueKey == 1) {
+        Printer data = await PosDatabase.instance.readSpecificPrinterByLocalId(printerData.printer_sqlite_id!);
+        detailData = data;
+      }
+    }
+    return detailData;
   }
 
   createPrinter(List<String> value) async {
     try {
+      List<String> _value = [];
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
       final String? login_user = prefs.getString('user');
       Map logInUser = json.decode(login_user!);
-
+      //start insert
       Printer data = await PosDatabase.instance.insertSqlitePrinter(Printer(
+          printer_key: '',
           printer_id: 0,
           branch_id: branch_id.toString(),
           company_id: logInUser['company_id'].toString(),
-          printerLabel: printerLabelController.text,
+          printer_label: printerLabelController.text,
           value: value[0],
           type: _typeStatus,
           printer_link_category_id: '',
           paper_size: _paperSize,
           printer_status: _isActive ? 1 : 0,
           is_counter: _isCashier ? 1 : 0,
-          sync_status: 0,
+          sync_status: _typeStatus == 0 ? -1 : 0,
           created_at: dateTime,
           updated_at: '',
           soft_delete: ''));
       printerID = data.printer_sqlite_id.toString();
+      //get key and update into printer
+      Printer updatedData = await insertPrinterKey(data, dateTime);
+      this.printer = updatedData;
+      printer_key = updatedData.printer_key!;
+      if(data.type == 1){
+        _value.add(jsonEncode(updatedData));
+        printer_value = _value.toString();
+        //sync to cloud
+        //syncPrinterToCloud(_value.toString());
+      }
     } catch (e) {
+      print('create printer error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Something went wrong, Please try again $e");
     }
   }
 
+  syncPrinterToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map response = await Domain().SyncPrinterToCloud(value);
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        int syncUpdated = await PosDatabase.instance.updatePrinterSyncStatusFromCloud(responseJson[0]['printer_key']);
+      }
+    }
+  }
+
+  generatePrinterCategoryKey(PrinterLinkCategory printerLinkCategory) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    var bytes = printerLinkCategory.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
+        printerLinkCategory.printer_link_category_sqlite_id.toString() +
+        device_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
+  insertPrinterCategoryKey(PrinterLinkCategory printerLinkCategory, String dateTime) async {
+    PrinterLinkCategory? detailData;
+    var key = await generatePrinterCategoryKey(printerLinkCategory);
+    if (key != null) {
+      PrinterLinkCategory object = PrinterLinkCategory(
+        updated_at: dateTime,
+        sync_status: this.printer!.type == 0 ? 1 : 0,
+        printer_link_category_key: key,
+        printer_link_category_sqlite_id: printerLinkCategory.printer_link_category_sqlite_id
+      );
+      int updateUniqueKey = await PosDatabase.instance.updatePrinterLinkCategoryUniqueKey(object);
+      if (updateUniqueKey == 1) {
+        PrinterLinkCategory data = await PosDatabase.instance.readSpecificPrinterCategoryByLocalId(object.printer_link_category_sqlite_id!);
+        detailData = data;
+      }
+    }
+    return detailData;
+  }
+
   createPrinterCategory(List<Categories> allCategories) async {
     try {
+      List<String> _value = [];
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       for (int i = 0; i < allCategories.length; i++) {
         if (allCategories[i].isChecked == true) {
-          PrinterLinkCategory data = await PosDatabase.instance
-              .insertSqlitePrinterLinkCategory(PrinterLinkCategory(
+          Categories? categories = await PosDatabase.instance.readSpecificCategoryById(allCategories[i].category_sqlite_id.toString());
+          PrinterLinkCategory data = await PosDatabase.instance.insertSqlitePrinterLinkCategory(PrinterLinkCategory(
               printer_link_category_id: 0,
+              printer_link_category_key: '',
               printer_sqlite_id: printerID,
+              printer_key: printer_key,
               category_sqlite_id: allCategories[i].category_sqlite_id.toString(),
+              category_id: categories != null ? categories.category_id.toString() : '0',
               sync_status: 0,
               created_at: dateTime,
               updated_at: '',
               soft_delete: ''));
+
+          PrinterLinkCategory updatedData = await insertPrinterCategoryKey(data, dateTime);
+          _value.add(jsonEncode(updatedData));
         }
       }
-
-      widget.callBack();
-      closeDialog(context);
+      this.printer_category_value = _value.toString();
+      print('value: ${_value.toString()}');
     } catch (e) {
+      print('error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Something went wrong, Please try again $e");
@@ -849,10 +952,10 @@ class _PrinterDialogState extends State<PrinterDialog> {
             selectedCategories[0].isChecked = true;
           }
           else {
-            List<Categories> catData = await PosDatabase.instance.readSpecificCategoryById(data[i].category_sqlite_id!);
+            Categories? catData = await PosDatabase.instance.readSpecificCategoryById(data[i].category_sqlite_id!);
             if (!selectedCategories.contains(catData)) {
-              catData[0].isChecked = true;
-              selectedCategories.add(catData[0]);
+              catData!.isChecked = true;
+              selectedCategories.add(catData);
             }
           }
         }
@@ -868,26 +971,31 @@ class _PrinterDialogState extends State<PrinterDialog> {
   }
 
   updatePrinterCategory(List<Categories> allCategories, Printer printer) async {
-    print('update category call');
     try {
+      List<String> _value = [];
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
 
       for (int i = 0; i < allCategories.length; i++) {
         if (allCategories[i].isChecked == true) {
-          PrinterLinkCategory data = await PosDatabase.instance
-              .insertSqlitePrinterLinkCategory(PrinterLinkCategory(
-                  printer_link_category_id: 0,
-                  printer_sqlite_id: printer.printer_sqlite_id.toString(),
-                  category_sqlite_id: allCategories[i].category_sqlite_id.toString(),
-                  sync_status: 0,
-                  created_at: dateTime,
-                  updated_at: '',
-                  soft_delete: ''));
+          Categories? categories = await PosDatabase.instance.readSpecificCategoryById(allCategories[i].category_sqlite_id.toString());
+          PrinterLinkCategory data = await PosDatabase.instance.insertSqlitePrinterLinkCategory(PrinterLinkCategory(
+              printer_link_category_id: 0,
+              printer_link_category_key: '',
+              printer_sqlite_id: printer.printer_sqlite_id.toString(),
+              printer_key: printer.printer_key,
+              category_sqlite_id: allCategories[i].category_sqlite_id.toString(),
+              category_id: categories != null ? categories.category_id.toString() : '0',
+              sync_status: this.printer!.type == 1 ? 0 : this.printer!.type ==  0 ? 1 : 2,
+              created_at: dateTime,
+              updated_at: '',
+              soft_delete: ''));
+
+          PrinterLinkCategory updatedData = await insertPrinterCategoryKey(data, dateTime);
+          _value.add(jsonEncode(updatedData));
         }
       }
-      widget.callBack();
-      closeDialog(context);
+      this.printer_category_value = _value.toString();
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
@@ -898,14 +1006,23 @@ class _PrinterDialogState extends State<PrinterDialog> {
 
   clearPrinterCategory(Printer printer) async {
     try {
+      List<String> _value = [];
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
 
       PrinterLinkCategory printerLinkCategoryObject = PrinterLinkCategory(
           soft_delete: dateTime,
+          sync_status: this.printer!.type ==  0 ? 1 : 2,
           printer_sqlite_id: printer.printer_sqlite_id.toString());
 
       int data = await PosDatabase.instance.deletePrinterCategory(printerLinkCategoryObject);
+      if(this.printer!.type == 1){
+        List<PrinterLinkCategory> printerCategoryList = await PosDatabase.instance.readDeletedPrinterLinkCategory(int.parse(printerLinkCategoryObject.printer_sqlite_id!));
+        for(int i = 0 ; i < printerCategoryList.length; i++){
+          _value.add(jsonEncode(printerCategoryList[i]));
+        }
+      }
+      printer_category_delete_value = _value.toString();
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
@@ -915,19 +1032,29 @@ class _PrinterDialogState extends State<PrinterDialog> {
 
   updatePrinterInfo() async {
     try {
+      List<String> _value = [];
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-
+      Printer checkData = await PosDatabase.instance.readSpecificPrinterByLocalId(widget.printerObject!.printer_sqlite_id!);
       Printer printerObject = Printer(
-          printerLabel: printerLabelController.text,
+          printer_label: printerLabelController.text,
           type: _typeStatus,
           value: printerValue[0],
           paper_size: _paperSize,
           printer_status: _isActive ? 1 : 0,
+          is_counter: _isCashier ? 1 : 0,
+          sync_status: checkData.type == 0 && _typeStatus == 1 ? 0
+              : checkData.type == 0 && _typeStatus == 0 ? 1
+              : checkData.type == 1 && _typeStatus == 0 ? 1
+              : 2,
           updated_at: dateTime,
           printer_sqlite_id: widget.printerObject!.printer_sqlite_id);
 
       int data = await PosDatabase.instance.updatePrinter(printerObject);
+      this.printer = printerObject;
+      Printer updatedData = await PosDatabase.instance.readSpecificPrinterByLocalId(printerObject.printer_sqlite_id!);
+      _value.add(jsonEncode(updatedData));
+      this.printer_value = _value.toString();
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
@@ -1009,6 +1136,34 @@ class _PrinterDialogState extends State<PrinterDialog> {
     });
   }
 
+  syncAllToCloud() async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map data = await Domain().syncLocalUpdateToCloud(
+        printer_value: this.printer_value,
+        printer_link_category_value: this.printer_category_value,
+        printer_link_category_delete_value: this.printer_category_delete_value
+      );
+      if(data['status'] == '1'){
+        List responseJson = data['data'];
+        for(int i = 0; i < responseJson.length; i++) {
+          switch (responseJson[i]['table_name']) {
+            case 'tb_printer': {
+              await PosDatabase.instance.updatePrinterSyncStatusFromCloud(responseJson[i]['printer_key']);
+            }
+            break;
+            case 'tb_printer_link_category': {
+              await PosDatabase.instance.updatePrinterLinkCategorySyncStatusFromCloud(responseJson[i]['printer_link_category_key']);
+            }
+            break;
+            default:
+              return;
+          }
+        }
+      }
+    }
+  }
+
 /*
   -------------------Printing part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -1018,13 +1173,12 @@ class _PrinterDialogState extends State<PrinterDialog> {
       var printerDetail = jsonDecode(printerValue[0]);
 
       if(_paperSize == 0){
-        var data = Uint8List.fromList(
-            await ReceiptLayout().testTicket80mm(true));
+        var data = Uint8List.fromList(await ReceiptLayout().testTicket80mm(true));
         bool? isConnected = await flutterUsbPrinter.connect(
             int.parse(printerDetail['vendorId']),
             int.parse(printerDetail['productId']));
         if (isConnected == true) {
-          await flutterUsbPrinter.write(data);
+          bool? status = await flutterUsbPrinter.write(data);
         } else {
           print('not connected');
         }

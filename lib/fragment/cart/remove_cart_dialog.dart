@@ -1,14 +1,10 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
-import 'package:esc_pos_printer/esc_pos_printer.dart';
-import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/cart/adjust_quantity.dart';
-import 'package:pos_system/fragment/cart/cancel_order_dialog.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/order_cache.dart';
@@ -28,8 +24,6 @@ import '../../object/branch_link_product.dart';
 import '../../object/order_detail.dart';
 import '../../object/order_detail_cancel.dart';
 import '../../object/printer.dart';
-import '../../object/printer_link_category.dart';
-import '../../object/receipt_layout.dart';
 import '../../object/table.dart';
 import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
@@ -58,6 +52,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   List<OrderModifierDetail> cartOrderModDetailList = [];
   List<TableUseDetail> cartTableUseDetail = [];
   OrderDetail? orderDetail;
+  String? table_use_value, table_use_detail_value, branch_link_product_value, order_cache_value, order_detail_value, order_detail_cancel_value, table_value;
   bool _isLoaded = false;
   int simpleIntInput = 1;
 
@@ -113,7 +108,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
         child: SingleChildScrollView(
           physics: NeverScrollableScrollPhysics(),
           child: AlertDialog(
-            title: Text('Enter admin PIN'),
+            title: Text('Enter Current User PIN'),
             content: SizedBox(
               height: 100.0,
               width: 350.0,
@@ -151,11 +146,12 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                 child: Text('${AppLocalizations.of(context)?.translate('close')}'),
                 onPressed: () {
                   Navigator.of(context).pop();
+                  Navigator.of(context).pop();
                 },
               ),
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                onPressed: () async {
+                onPressed: ()  {
                   _submit(context, cart, connectivity);
                 },
               ),
@@ -186,54 +182,6 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           // ignore: null_check_always_fails
           return null!;
         });
-  }
-
-  showAdjustQuantityDialog(BuildContext context, ThemeColor color, CartModel cart, ConnectivityChangeNotifier connectivity) {
-    return showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (BuildContext context) {
-        return Center(
-          child: SingleChildScrollView(
-            physics: NeverScrollableScrollPhysics(),
-            child: AlertDialog(
-              title: Text('Adjust Quantity'),
-              content: SizedBox(
-                  height: 100.0,
-                  width: 350.0,
-                  child: QuantityInput(
-                      inputWidth: 273,
-                      decoration: InputDecoration(
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: color.backgroundColor),
-                        ),
-                      ),
-                      buttonColor: color.backgroundColor,
-                      value: simpleIntInput,
-                      onChanged: (value) => setState(() =>
-                      simpleIntInput =
-                          int.parse(value.replaceAll(',', ''))))
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                  onPressed: () async {
-                    await showSecondDialog(context, color, cart, connectivity);
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      }
-    );
   }
 
   @override
@@ -275,8 +223,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                         } else {
                           openDialog(cartItem: widget.cartItem, currentPage: widget.currentPage);
                           //await showAdjustQuantityDialog(context, color, cart, connectivity);
-                        }
-                        //openCancelOrderDialog(widget.cartItem!);
+                        }                        //openCancelOrderDialog(widget.cartItem!);
                         //Navigator.of(context).pop();
                       }
                     })
@@ -295,13 +242,15 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCache(widget.cartItem!.orderCacheId!);
     cartCacheList = List.from(cacheData);
 
-    //get table use order cache
-    List<OrderCache> tableCacheData = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), cacheData[0].table_use_sqlite_id!);
-    cartTableCacheList = List.from(tableCacheData);
+    if(widget.currentPage != 'other order'){
+      //get table use order cache
+      List<OrderCache> tableCacheData = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), cacheData[0].table_use_sqlite_id!);
+      cartTableCacheList = List.from(tableCacheData);
 
-    //get table use detail
-    List<TableUseDetail> tableDetailData = await PosDatabase.instance.readAllTableUseDetail(cacheData[0].table_use_sqlite_id!);
-    cartTableUseDetail = List.from(tableDetailData);
+      //get table use detail
+      List<TableUseDetail> tableDetailData = await PosDatabase.instance.readAllTableUseDetail(cacheData[0].table_use_sqlite_id!);
+      cartTableUseDetail = List.from(tableDetailData);
+    }
 
     //get cart item order cache order detail
     List<OrderDetail> orderDetailData = await PosDatabase.instance.readTableOrderDetail(widget.cartItem!.orderCacheId!);
@@ -322,79 +271,59 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     List<String> _orderModDetailValue = [];
     bool _hasModifier = false;
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? pos_user = prefs.getString('pos_pin_user');
+      Map userObject = json.decode(pos_user!);
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
 
-      List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
-      if (userData.isNotEmpty) {
+      //List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
+      User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
+      if (userData != null) {
+        if (userData.user_id == userObject['user_id']) {
 
-        if(cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1){
-          // if(cartOrderModDetailList.isNotEmpty){
-          //   _hasModifier = true;
-          //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-          //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-          //   }
-          // }
-          callDeleteOrderDetail(userData[0], dateTime, cart);
-        } else if(cartTableCacheList.length > 1 && cartOrderDetailList.length <= 1 ){
-          // if(cartOrderModDetailList.isNotEmpty){
-          //   _hasModifier = true;
-          //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-          //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-          //   }
-          // }
-          callDeletePartialOrder(userData[0], dateTime, cart, connectivity);
-        } else if (cartTableCacheList.length > 1 && cartOrderDetailList.length > 1) {
-          // if(cartOrderModDetailList.isNotEmpty){
-          //   _hasModifier = true;
-          //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-          //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-          //   }
-          // }
-          callDeleteOrderDetail(userData[0], dateTime, cart);
-        } else if(widget.currentPage == 'other order' && cartOrderDetailList.length > 1){
-          // if(cartOrderModDetailList.isNotEmpty){
-          //   _hasModifier = true;
-          //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-          //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-          //   }
-          // }
-          callDeleteOrderDetail(userData[0], dateTime, cart);
-        } else {
-          // if(cartOrderModDetailList.isNotEmpty){
-          //   _hasModifier = true;
-          //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-          //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-          //     _orderModDetailValue.add(jsonEncode(deletedMod));
-          //   }
-          // }
-          callDeleteAllOrder(userData[0], cartCacheList[0].table_use_sqlite_id!, dateTime, cart, connectivity);
-          for (int i = 0; i < cartTableUseDetail.length; i++) {
-            //update all table to unused
-            PosTable posTableData = await updatePosTableStatus(int.parse(cartTableUseDetail[i].table_sqlite_id!), 0, dateTime);
-            _posTableValue.add(jsonEncode(posTableData));
+          if(cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1){
+            await callDeleteOrderDetail(userData, dateTime, cart);
+
+          } else if(cartTableCacheList.length > 1 && cartOrderDetailList.length <= 1 ){
+            await callDeletePartialOrder(userData, dateTime, cart, connectivity);
+
+          } else if (cartTableCacheList.length > 1 && cartOrderDetailList.length > 1) {
+            await callDeleteOrderDetail(userData, dateTime, cart);
+
+          } else if(widget.currentPage == 'other order' && cartOrderDetailList.length > 1){
+            await callDeleteOrderDetail(userData, dateTime, cart);
+
+          } else {
+            print('delete all called');
+            await callDeleteAllOrder(userData, cartCacheList[0].table_use_sqlite_id!, dateTime, cart, connectivity);
+            for (int i = 0; i < cartTableUseDetail.length; i++) {
+              //update all table to unused
+              PosTable posTableData = await updatePosTableStatus(int.parse(cartTableUseDetail[i].table_sqlite_id!), 0, dateTime);
+              _posTableValue.add(jsonEncode(posTableData));
+            }
           }
-        }
-        if(connectivity.isConnect){
-          //sync to cloud
-          // if(_hasModifier == true){
-          //   syncOrderModifierDetailToCloud(_orderModDetailValue.toString());
-          // }
-          //sync to cloud
-          syncUpdatedPosTableToCloud(_posTableValue.toString());
-        }
-        //print cancel receipt
-        //await _printDeleteList(widget.cartItem!.orderCacheId!, dateTime);
+          table_value = _posTableValue.toString();
+          tableModel.changeContent(true);
+          if(connectivity.isConnect){
+            //sync to cloud
+            syncAllToCloud();
+            //syncUpdatedPosTableToCloud(_posTableValue.toString());
+          }
+          cart.removeAllTable();
+          cart.removeAllCartItem();
+          cart.removePromotion();
+          Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: "delete successful");
 
-        cart.removeAllTable();
-        cart.removeAllCartItem();
-        cart.removePromotion();
-        Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: "delete successful");
-
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('pin_not_match')}");
+        }
       } else {
         Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
+            backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");
       }
+
     } catch (e) {
       print('delete error ${e}');
     }
@@ -418,7 +347,8 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.orderCacheId!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
       _value.add(jsonEncode(detailData.syncJson()));
     }
-    syncUpdatedOrderDetailToCloud(_value.toString());
+    // order_detail_value = _value.toString();
+    //syncUpdatedOrderDetailToCloud(_value.toString());
   }
 
   generateOrderDetailCancelKey(OrderDetailCancel orderDetailCancel) async {
@@ -460,6 +390,8 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       quantity: data.quantity,
       cancel_by: user.name,
       cancel_by_user_id: user.user_id.toString(),
+      settlement_sqlite_id: '',
+      settlement_key: '',
       status: 0,
       sync_status: 0,
       created_at: dateTime,
@@ -469,8 +401,8 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     OrderDetailCancel orderDetailCancel = await PosDatabase.instance.insertSqliteOrderDetailCancel(object);
     OrderDetailCancel updateData = await insertOrderDetailCancelKey(orderDetailCancel, dateTime);
     _value.add(jsonEncode(updateData));
-    print('value: ${_value.toString()}');
-    syncOrderDetailCancelToCloud(_value.toString());
+    order_detail_cancel_value = _value.toString();
+    //syncOrderDetailCancelToCloud(_value.toString());
   }
 
   syncOrderDetailCancelToCloud(String value) async {
@@ -514,22 +446,6 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     printerList = await PrintReceipt().readAllPrinters();
   }
 
-  // deleteAllOrderModDetail(String dateTime, OrderModifierDetail orderModifierDetail) async {
-  //   OrderModifierDetail? _data;
-  //   OrderModifierDetail orderModifierDetailObject = OrderModifierDetail(
-  //     soft_delete: dateTime,
-  //     sync_status: orderModifierDetail.sync_status == 0 ? 0 : 2,
-  //     order_detail_sqlite_id: widget.cartItem!.order_detail_sqlite_id,
-  //     order_modifier_detail_sqlite_id: orderModifierDetail.order_modifier_detail_sqlite_id
-  //   );
-  //   int deleteMod = await PosDatabase.instance.deleteOrderModifierDetail(orderModifierDetailObject);
-  //   if(deleteMod == 1){
-  //     OrderModifierDetail detailData = await PosDatabase.instance.readSpecificOrderModifierDetailByLocalId(orderModifierDetailObject.order_modifier_detail_sqlite_id!);
-  //     _data = detailData;
-  //   }
-  //   return _data;
-  // }
-
   callDeleteOrderDetail(User user, String dateTime, CartModel cart) async {
     await createOrderDetailCancel(user, dateTime);
     await updateOrderDetailQuantity(dateTime, cart);
@@ -548,30 +464,57 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       //sync to cloud
       OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
       _value.add(jsonEncode(detailData.syncJson()));
-      print('value: ${_value.toString()}');
+      await updateOrderCacheSubtotal(detailData.order_cache_sqlite_id!, detailData.price, detailData.quantity, dateTime);
+      //print('value: ${_value.toString()}');
     }
-    syncUpdatedOrderDetailToCloud(_value.toString());
-    tableModel.changeContent(true);
+    order_detail_value = _value.toString();
+    //syncUpdatedOrderDetailToCloud(_value.toString());
+  }
+
+  updateOrderCacheSubtotal(String orderCacheLocalId, price, quantity, String dateTime) async {
+    double subtotal = 0.0;
+    OrderCache data = await PosDatabase.instance.readSpecificOrderCacheByLocalId(int.parse(orderCacheLocalId));
+    subtotal = double.parse(data.total_amount!) - double.parse(price);
+    OrderCache orderCache = OrderCache(
+      order_cache_sqlite_id: data.order_cache_sqlite_id,
+      total_amount: subtotal.toStringAsFixed(2),
+      sync_status: data.sync_status == 0 ? 0 : 2,
+      updated_at: dateTime
+    );
+    int status = await PosDatabase.instance.updateOrderCacheSubtotal(orderCache);
   }
 
   updateProductStock(String branch_link_product_sqlite_id, int quantity, String dateTime) async{
-    List<String> value = [];
-    int _totalStockQty = 0;
+    List<String> _value = [];
+    int _totalStockQty = 0, updateStock = 0;
+    BranchLinkProduct? object;
     List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-    _totalStockQty = int.parse(checkData[0].stock_quantity!) + quantity;
-    BranchLinkProduct object = BranchLinkProduct(
-        updated_at: dateTime,
-        sync_status: 2,
-        stock_quantity: _totalStockQty.toString(),
-        branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
-    );
-    int updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+    if(checkData[0].stock_type == '2'){
+      _totalStockQty = int.parse(checkData[0].stock_quantity!) + quantity;
+      object = BranchLinkProduct(
+          updated_at: dateTime,
+          sync_status: 2,
+          stock_quantity: _totalStockQty.toString(),
+          branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
+      );
+      updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+    } else {
+      _totalStockQty = int.parse(checkData[0].daily_limit_amount!) + quantity;
+      object = BranchLinkProduct(
+          updated_at: dateTime,
+          sync_status: 2,
+          daily_limit_amount: _totalStockQty.toString(),
+          branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
+      );
+      updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimitAmount(object);
+    }
     if(updateStock == 1){
       List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-      value.add(jsonEncode(updatedData[0].toJson()));
+      _value.add(jsonEncode(updatedData[0].toJson()));
     }
+    branch_link_product_value = _value.toString();
     //sync to cloud
-    syncBranchLinkProductStock(value.toString());
+    //syncBranchLinkProductStock(value.toString());
   }
 
   syncBranchLinkProductStock(String value) async {
@@ -646,14 +589,22 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
         if(orderCacheData.sync_status != 1){
           _orderCacheValue.add(jsonEncode(orderCacheData));
         }
-        Map response = await Domain().SyncOrderCacheToCloud(_orderCacheValue.toString());
-        if(response['status'] == '1'){
-          List responseJson = response['data'];
-          int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[0]['order_cache_key']);
-        }
+        order_cache_value = _orderCacheValue.toString();
+        //syncOrderCacheToCloud(_orderCacheValue.toString());
       }
     } catch (e) {
       print('delete order cache error: ${e}');
+    }
+  }
+
+  syncOrderCacheToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map response = await Domain().SyncOrderCacheToCloud(value);
+      if(response['status'] == '1'){
+        List responseJson = response['data'];
+        int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[0]['order_cache_key']);
+      }
     }
   }
 
@@ -670,13 +621,14 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           table_use_detail_sqlite_id: checkData[i].table_use_detail_sqlite_id
         );
         int deleteStatus = await PosDatabase.instance.deleteTableUseDetail(tableUseDetailObject);
-        if(deleteStatus == 1 && connectivity.isConnect){
+        if(deleteStatus == 1){
           TableUseDetail detailData = await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
           _value.add(jsonEncode(detailData));
         }
       }
+      table_use_detail_value = _value.toString();
       //sync to cloud
-      syncTableUseDetail(_value.toString());
+      //syncTableUseDetail(_value.toString());
     } catch (e) {
       print(e);
       Fluttertoast.showToast(
@@ -712,7 +664,8 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
         //sync to cloud
         TableUse tableUseData = await PosDatabase.instance.readSpecificTableUseIdByLocalId(tableUseObject.table_use_sqlite_id!);
         _value.add(jsonEncode(tableUseData));
-        syncTableUseIdToCloud(_value.toString());
+        table_use_value = _value.toString();
+        //syncTableUseIdToCloud(_value.toString());
       }
     } catch (e) {
       Fluttertoast.showToast(
@@ -728,6 +681,60 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       if (data['status'] == '1') {
         List responseJson = data['data'];
         int tablaUseData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
+      }
+    }
+  }
+
+  syncAllToCloud() async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map data = await Domain().syncLocalUpdateToCloud(
+        table_use_value: this.table_use_value,
+        table_use_detail_value: this.table_use_detail_value,
+        order_cache_value: this.order_cache_value,
+        order_detail_value: this.order_detail_value,
+        order_detail_cancel_value: this.order_detail_cancel_value,
+        branch_link_product_value: this.branch_link_product_value,
+        table_value: this.table_value
+      );
+      //if success update local sync status
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for(int i = 0; i < responseJson.length; i++){
+          switch(responseJson[i]['table_name']){
+            case 'tb_table_use_detail': {
+              await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+            }
+            break;
+            case 'tb_table_use': {
+              await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+            }
+            break;
+            case 'tb_order_detail_cancel': {
+              await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[i]['order_detail_cancel_key']);
+            }
+            break;
+            case 'tb_branch_link_product': {
+              await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+            }
+            break;
+            case 'tb_order_detail': {
+              await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+            }
+            break;
+            case 'tb_order_cache': {
+              await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+            }
+            break;
+            case 'tb_table': {
+              await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+            }
+            break;
+            default: {
+              return;
+            }
+          }
+        }
       }
     }
   }

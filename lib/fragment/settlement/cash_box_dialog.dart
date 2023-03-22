@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/object/receipt_layout.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
@@ -18,6 +21,8 @@ class CashBoxDialog extends StatefulWidget {
 class _CashBoxDialogState extends State<CashBoxDialog> {
   final adminPosPinController = TextEditingController();
   bool _submitted = false;
+  bool isButtonDisabled = false;
+
 
   @override
   void dispose() {
@@ -37,6 +42,10 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
   _submit(BuildContext context) async  {
     setState(() => _submitted = true);
     if (errorPassword == null) {
+      // Disable the button after it has been pressed
+      setState(() {
+        isButtonDisabled = true;
+      });
       await readAdminData(adminPosPinController.text);
       return;
     }
@@ -52,7 +61,7 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
       return Center(
         child: SingleChildScrollView(
           child: AlertDialog(
-            title: Text('Enter Admin PIN'),
+            title: Text('Enter Current User PIN'),
             content: SizedBox(
               height: 100.0,
               width: 350.0,
@@ -86,14 +95,18 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
             actions: <Widget>[
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: () {
+                onPressed: isButtonDisabled ? null : () {
+                  // Disable the button after it has been pressed
+                  setState(() {
+                    isButtonDisabled = true;
+                  });
                   closeDialog(context);
                 },
               ),
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                onPressed: () async {
-                  await _submit(context);
+                onPressed: isButtonDisabled ? null : () async {
+                  _submit(context);
                 },
               ),
             ],
@@ -104,15 +117,22 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
   }
 
   readAdminData(String pin) async {
-    print('called');
     try {
-      List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
-      if (userData.length > 0) {
-        closeDialog(context);
-       ReceiptLayout().openCashDrawer();
+      final prefs = await SharedPreferences.getInstance();
+      final String? pos_user = prefs.getString('pos_pin_user');
+      Map userObject = json.decode(pos_user!);
+      User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
+      if (userData != null) {
+        if(userData.user_id == userObject['user_id']){
+          closeDialog(context);
+          ReceiptLayout().openCashDrawer();
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('pin_not_match')}");
+        }
       } else {
         Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
+            backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");
       }
     } catch (e) {
       print('pos pin error ${e}');

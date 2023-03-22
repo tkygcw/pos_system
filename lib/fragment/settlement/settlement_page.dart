@@ -934,6 +934,8 @@ class _SettlementPageState extends State<SettlementPage> {
       for (int i = 0; i < cashRecordList.length; i++) {
         if (cashRecordList[i].type == 0) {
           totalCashIn += double.parse(cashRecordList[i].amount!);
+        } else if (cashRecordList[i].type == 1){
+          totalCashIn += double.parse(cashRecordList[i].amount!);
         } else if (cashRecordList[i].type == 3 && cashRecordList[i].payment_type_id == '1'){
           totalCashIn += double.parse(cashRecordList[i].amount!);
         } else if (cashRecordList[i].type == 2 && cashRecordList[i].payment_type_id == '') {

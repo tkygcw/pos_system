@@ -21,6 +21,8 @@ class PosPinDialog extends StatefulWidget {
 class _PosPinDialogState extends State<PosPinDialog> {
   final adminPosPinController = TextEditingController();
   bool _submitted = false;
+  bool isButtonDisabled = false;
+
 
   @override
   void dispose() {
@@ -40,6 +42,10 @@ class _PosPinDialogState extends State<PosPinDialog> {
   _submit(BuildContext context) async  {
     setState(() => _submitted = true);
     if (errorPassword == null) {
+      // Disable the button after it has been pressed
+      setState(() {
+        isButtonDisabled = true;
+      });
       await readAdminData(adminPosPinController.text);
       return;
     }
@@ -55,7 +61,7 @@ class _PosPinDialogState extends State<PosPinDialog> {
       return Center(
         child: SingleChildScrollView(
           child: AlertDialog(
-            title: Text('Enter PIN'),
+            title: Text('Enter Current User PIN'),
             content: SizedBox(
               height: 100.0,
               width: 350.0,
@@ -93,14 +99,18 @@ class _PosPinDialogState extends State<PosPinDialog> {
             actions: <Widget>[
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: () {
+                onPressed: isButtonDisabled ? null : () {
+                  // Disable the button after it has been pressed
+                  setState(() {
+                    isButtonDisabled = true;
+                  });
                   closeDialog(context);
                 },
               ),
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                onPressed: () async {
-                  await _submit(context);
+                onPressed: isButtonDisabled ? null : () async {
+                  _submit(context);
                 },
               ),
             ],
@@ -123,11 +133,11 @@ class _PosPinDialogState extends State<PosPinDialog> {
           widget.callBack();
         } else {
           Fluttertoast.showToast(
-              backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
+              backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('pin_not_match')}");
         }
       } else {
         Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
+            backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");
       }
     } catch (e) {
       print('pos pin error ${e}');

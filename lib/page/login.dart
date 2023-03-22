@@ -77,7 +77,7 @@ class _LoginPageState extends State<LoginPage> {
             child: Padding(
               padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
               child: FlutterLogin(
-                title: 'ChannelPOS',
+                title: 'BillionPOS',
                 navigateBackAfterRecovery: true,
                 messages: LoginMessages(
                   recoverPasswordButton: "SEND",

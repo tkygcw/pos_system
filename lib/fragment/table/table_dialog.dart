@@ -29,6 +29,8 @@ class _TableDialogState extends State<TableDialog> {
   final seatController = TextEditingController();
   bool _submitted = false;
   bool isUpdate = false;
+  bool isButtonDisabled = false;
+
 
   @override
   void initState() {
@@ -70,6 +72,10 @@ class _TableDialogState extends State<TableDialog> {
   void _submit(BuildContext context) {
     setState(() => _submitted = true);
     if (errorTableNo == null && errorSeat == null) {
+      // Disable the button after it has been pressed
+      setState(() {
+        isButtonDisabled = true;
+      });
       if (isUpdate) {
         updatePosTable();
       } else {
@@ -345,7 +351,11 @@ class _TableDialogState extends State<TableDialog> {
             actions: <Widget>[
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: () {
+                onPressed: isButtonDisabled ? null : () {
+                  // Disable the button after it has been pressed
+                  setState(() {
+                    isButtonDisabled = true;
+                  });
                   Navigator.of(context).pop();
                 },
               ),
@@ -353,7 +363,7 @@ class _TableDialogState extends State<TableDialog> {
                 child: widget.object.table_id == null
                     ? Text('${AppLocalizations.of(context)?.translate('add')}')
                     : Text("Submit"),
-                onPressed: () async {
+                onPressed: isButtonDisabled ? null : () async {
                   _submit(context);
                 },
               ),

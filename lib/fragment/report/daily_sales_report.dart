@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import '../../database/pos_database.dart';
+import '../../notifier/report_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/payment_link_company.dart';
 import '../../object/report_class.dart';
@@ -32,6 +33,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
   String dateTimeNow = '';
   String _range = '';
   bool isLoaded = false;
+  List<String> settlementStringList = [], paymentStringList = [], settlementPaymentStringList = [];
 
 
   @override
@@ -40,269 +42,279 @@ class _DailySalesReportState extends State<DailySalesReport> {
     dateTimeNow = dateFormat.format(DateTime.now());
     _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
     _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
-    preload();
+    //preload();
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return LayoutBuilder(builder: (context, constraints) {
-        if (constraints.maxWidth > 800) {
-          return Scaffold(
-            body: Container(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        child: Text('Daily Sales Report',
-                            style: TextStyle(fontSize: 25, color: Colors.black)),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 5),
-                  Divider(
-                    height: 10,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 5),
-                  _dataRow.isNotEmpty ?
-                  Container(
-                    margin: EdgeInsets.all(10),
-                    child:  isLoaded ?
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                          border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                          headingTextStyle: TextStyle(color: Colors.white),
-                          headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                          columns: <DataColumn>[
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Date',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Total Bills',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Total Sales',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Total Refund bill',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Total Refund',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Total Discount',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Total Tax',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Total Cancellation',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            for(int i = 0; i < paymentLinkCompanyList.length; i++)
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    '${paymentLinkCompanyList[i].name}',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                          ],
-                          rows: _dataRow
-                      ),
-                    ) : Center(
-                      child: CustomProgressBar(),
-                    ),
-                  ):
-                  Center(
-                    heightFactor: 12,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+      return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if(reportModel.load == 0){
+            preload(reportModel);
+            reportModel.setLoaded();
+          }
+        });
+        return LayoutBuilder(builder: (context, constraints) {
+          if (constraints.maxWidth > 800) {
+            return Scaffold(
+              body: Container(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Icon(Icons.menu),
-                        Text('NO RECORD FOUND'),
+                        Container(
+                          child: Text('Daily Sales Report',
+                              style: TextStyle(fontSize: 25, color: Colors.black)),
+                        ),
                       ],
                     ),
-                  )
-                ],
-              ),
-            ),
-          );
-        } else {
-          return Scaffold(
-            body: Container(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        child: Text('Daily Sales Report',
-                            style: TextStyle(fontSize: 25, color: Colors.black)),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 5),
-                  Divider(
-                    height: 10,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 5),
-                  _dataRow.isNotEmpty ?
-                  Container(
-                    margin: EdgeInsets.all(10),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                          border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                          headingTextStyle: TextStyle(color: Colors.white),
-                          headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                          columns: <DataColumn>[
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Date',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Total Bills',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Total Sales',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Total Refund bill',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Total Refund',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Total Discount',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Total Tax',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            DataColumn(
-                              label: Expanded(
-                                child: Text(
-                                  'Total Cancellation',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                            for(int i = 0; i < paymentLinkCompanyList.length; i++)
+                    SizedBox(height: 5),
+                    Divider(
+                      height: 10,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 5),
+                    _dataRow.isNotEmpty ?
+                    Container(
+                      margin: EdgeInsets.all(10),
+                      child:  isLoaded ?
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                            border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                            headingTextStyle: TextStyle(color: Colors.white),
+                            headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                            columns: <DataColumn>[
                               DataColumn(
                                 label: Expanded(
                                   child: Text(
-                                    '${paymentLinkCompanyList[i].name}',
+                                    'Date',
                                     style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               ),
-                          ],
-                          rows: _dataRow
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Total Bills',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Total Sales',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Total Refund bill',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Total Refund',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Total Discount',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Total Tax',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Total Cancellation',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                              for(int i = 0; i < paymentLinkCompanyList.length; i++)
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      '${paymentLinkCompanyList[i].name}',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                            rows: _dataRow
+                        ),
+                      ) : Center(
+                        child: CustomProgressBar(),
+                      ),
+                    ):
+                    Center(
+                      heightFactor: 12,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(Icons.menu),
+                          Text('NO RECORD FOUND'),
+                        ],
                       ),
                     )
-                  ):
-                  Center(
-                    heightFactor: 4,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                  ],
+                ),
+              ),
+            );
+          } else {
+            return Scaffold(
+              body: Container(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Icon(Icons.menu),
-                        Text('NO RECORD FOUND'),
+                        Container(
+                          child: Text('Daily Sales Report',
+                              style: TextStyle(fontSize: 25, color: Colors.black)),
+                        ),
                       ],
                     ),
-                  )
-                ],
+                    SizedBox(height: 5),
+                    Divider(
+                      height: 10,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 5),
+                    _dataRow.isNotEmpty ?
+                    Container(
+                        margin: EdgeInsets.all(10),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: DataTable(
+                              border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                              headingTextStyle: TextStyle(color: Colors.white),
+                              headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                              columns: <DataColumn>[
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Date',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Total Bills',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Total Sales',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Total Refund bill',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Total Refund',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Total Discount',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Total Tax',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Total Cancellation',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                for(int i = 0; i < paymentLinkCompanyList.length; i++)
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(
+                                        '${paymentLinkCompanyList[i].name}',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                              rows: _dataRow
+                          ),
+                        )
+                    ):
+                    Center(
+                      heightFactor: 4,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(Icons.menu),
+                          Text('NO RECORD FOUND'),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
               ),
-            ),
-          );
-        }
+            );
+          }
+        });
       });
+
     });
   }
-  preload() async {
+  preload(ReportModel reportModel) async {
     await getTotalSales();
     await getAllPaymentLinkCompany();
+    reportModel.addOtherReportValue(value1: settlementStringList.toString(), value2: paymentStringList.toString(), value3: settlementPaymentStringList.toString());
     setState(() {
       isLoaded = true;
     });
@@ -315,6 +327,9 @@ class _DailySalesReportState extends State<DailySalesReport> {
     List<PaymentLinkCompany> data = await PosDatabase.instance.readAllPaymentLinkCompany(userObject['company_id']);
     if(data.isNotEmpty){
       paymentLinkCompanyList = data;
+      for(int i = 0 ; i < paymentLinkCompanyList.length; i++){
+        paymentStringList.add(jsonEncode(paymentLinkCompanyList[i]));
+      }
     }
   }
 
@@ -327,8 +342,12 @@ class _DailySalesReportState extends State<DailySalesReport> {
     //print('dining data: ${modifierData.length}');
     if(settlementList.isNotEmpty){
       for(int i = 0; i < settlementList.length; i++){
+        settlementStringList.add(jsonEncode(settlementList[i]));
         ReportObject object = await ReportObject().getAllSettlementPaymentDetail(settlementList[i].settlement_sqlite_id!);
         settlementLinkPaymentList = object.dateSettlementPaymentList!;
+        for(int k = 0; k < settlementLinkPaymentList.length; k++){
+          settlementPaymentStringList.add(jsonEncode(settlementLinkPaymentList[k]));
+        }
         print('settlement payment length: ${settlementLinkPaymentList.length}');
         _dataRow.addAll([
           DataRow(

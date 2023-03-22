@@ -38,6 +38,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   final tableNoController = TextEditingController();
   List<OrderCache> orderCacheList = [];
   List<Printer> printerList = [];
+  String? table_use_value, table_use_detail_value, order_cache_value, table_value;
   bool _submitted = false;
 
   @override
@@ -95,8 +96,9 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
           _value.add(jsonEncode(orderCacheData));
         }
       }
+      this.order_cache_value = _value.toString();
       //sync to cloud
-      syncOrderCacheToCloud(_value.toString());
+      //syncOrderCacheToCloud(_value.toString());
       // Map response = await Domain().SyncOrderCacheToCloud(_value.toString());
       // if(response['status'] == '1'){
       //   List responseJson = response['data'];
@@ -142,8 +144,9 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
           _value.add(jsonEncode(detailData));
         }
       }
+      this.table_use_detail_value = _value.toString();
       //sync to cloud
-      syncDeletedTableUseDetailToCloud(_value.toString());
+      //syncDeletedTableUseDetailToCloud(_value.toString());
       // Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
       // if (data['status'] == '1') {
       //   List responseJson = data['data'];
@@ -185,8 +188,9 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
         TableUse tableUseData = await PosDatabase.instance.readSpecificTableUseIdByLocalId(tableUseObject.table_use_sqlite_id!);
         _value.add(jsonEncode(tableUseData));
       }
+      this.table_use_value = _value.toString();
       //sync to cloud
-      syncTableUseIdToCloud(_value.toString());
+      //syncTableUseIdToCloud(_value.toString());
       // Map data = await Domain().SyncTableUseToCloud(_value.toString());
       // if (data['status'] == '1') {
       //   List responseJson = data['data'];
@@ -213,11 +217,13 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   /**
    * concurrent here
    */
-  changeToUnusedTable(int currentDetailTableId, String table_id, String dateTime) async {
+  changeToUnusedTable(int currentDetailTableId, String table_local_id, String table_id, String dateTime) async {
+    print('table id : ${table_id}');
     List<String> _value = [];
     List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(currentDetailTableId);
     TableUseDetail tableUseDetailObject = TableUseDetail(
-        table_sqlite_id: table_id,
+        table_sqlite_id: table_local_id,
+        table_id: table_id,
         sync_status: checkData[0].sync_status == 0 ? 0 : 2,
         updated_at: dateTime
     );
@@ -228,8 +234,9 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
         _value.add(jsonEncode(tableUseDetailData[0]));
       }
     }
+    this.table_use_detail_value = _value.toString();
     //sync to cloud
-    syncTableUseDetailToCloud(_value.toString());
+    //syncTableUseDetailToCloud(_value.toString());
     // Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
     // if (data['status'] == '1') {
     //   List responseJson = data['data'];
@@ -266,10 +273,10 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
         await updatePosTable(NewUseDetailData[0].table_use_detail_key!, dateTime);
 
       } else {
-        await changeToUnusedTable(widget.object.table_sqlite_id!, tableData[0].table_sqlite_id.toString(), dateTime);
+        await changeToUnusedTable(widget.object.table_sqlite_id!, tableData[0].table_sqlite_id.toString(), tableData[0].table_id.toString(), dateTime);
         await updatePosTable(NowUseDetailData[0].table_use_detail_key!, dateTime);
-
       }
+      syncAllToCloud();
     } catch(e){
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
@@ -316,8 +323,9 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       PosTable updatedLastTableData = await updatePosTableStatusAndDetailKey(widget.object.table_sqlite_id!, 0, dateTime, '');
       _value.add(jsonEncode(updatedLastTableData));
     }
+    this.table_value = _value.toString();
     //sync to cloud
-    syncUpdatedTableToCloud(_value.toString());
+    //syncUpdatedTableToCloud(_value.toString());
     await _printChangeTableList(lastTable: lastTable[0].number, newTable: newTable[0].number);
     widget.callBack();
     Navigator.of(context).pop();
@@ -461,6 +469,44 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
         ],
       );
     });
+  }
+
+  syncAllToCloud() async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map data = await Domain().syncLocalUpdateToCloud(
+          table_use_value: this.table_use_value,
+          table_use_detail_value: this.table_use_detail_value,
+          order_cache_value: this.order_cache_value,
+          table_value: this.table_value
+      );
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for (int i = 0; i < responseJson.length; i++) {
+          switch(responseJson[i]['table_name']){
+            case 'tb_table_use': {
+              await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+            }
+            break;
+            case 'tb_table_use_detail': {
+              await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+            }
+            break;
+            case 'tb_order_cache': {
+              await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+            }
+            break;
+            case 'tb_table': {
+              await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+            }
+            break;
+            default: {
+              return;
+            }
+          }
+        }
+      }
+    }
   }
 
   // readAllTableCache() async {

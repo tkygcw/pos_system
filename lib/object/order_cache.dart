@@ -22,6 +22,7 @@ class OrderCacheFields {
     total_amount,
     qr_order,
     qr_order_table_sqlite_id,
+    qr_order_table_id,
     accepted,
     sync_status,
     created_at,
@@ -49,6 +50,7 @@ class OrderCacheFields {
   static String total_amount = 'total_amount';
   static String qr_order = 'qr_order';
   static String qr_order_table_sqlite_id = 'qr_order_table_sqlite_id';
+  static String qr_order_table_id = 'qr_order_table_id';
   static String accepted = 'accepted';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
@@ -77,6 +79,7 @@ class OrderCache{
   String? total_amount;
   int? qr_order;
   String? qr_order_table_sqlite_id;
+  String? qr_order_table_id;
   int? accepted;
   int? sync_status;
   String? created_at;
@@ -85,6 +88,7 @@ class OrderCache{
   String? card_color;
   bool is_selected = false;
   String? dining_name;
+  String? table_number;
 
   OrderCache(
       {this.order_cache_sqlite_id,
@@ -107,13 +111,16 @@ class OrderCache{
         this.total_amount,
         this.qr_order,
         this.qr_order_table_sqlite_id,
+        this.qr_order_table_id,
         this.accepted,
         this.sync_status,
         this.created_at,
         this.updated_at,
         this.soft_delete,
         this.card_color,
-        this.dining_name});
+        this.dining_name,
+        this.table_number
+      });
 
   OrderCache copy({
     int? order_cache_sqlite_id,
@@ -136,6 +143,7 @@ class OrderCache{
     String? total_amount,
     int? qr_order,
     String? qr_order_table_sqlite_id,
+    String? qr_order_table_id,
     int? accepted,
     int? sync_status,
     String? created_at,
@@ -163,6 +171,7 @@ class OrderCache{
           total_amount: total_amount ?? this.total_amount,
           qr_order: qr_order ?? this.qr_order,
           qr_order_table_sqlite_id: qr_order_table_sqlite_id ?? this.qr_order_table_sqlite_id,
+          qr_order_table_id: qr_order_table_id ?? this.qr_order_table_id,
           accepted: accepted ?? this.accepted,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
@@ -190,13 +199,15 @@ class OrderCache{
     total_amount: json[OrderCacheFields.total_amount] as String?,
     qr_order: json[OrderCacheFields.qr_order] as int?,
     qr_order_table_sqlite_id: json[OrderCacheFields.qr_order_table_sqlite_id] as String?,
+    qr_order_table_id: json[OrderCacheFields.qr_order_table_id] as String?,
     accepted: json[OrderCacheFields.accepted] as int?,
     sync_status: json[OrderCacheFields.sync_status] as int?,
     created_at: json[OrderCacheFields.created_at] as String?,
     updated_at: json[OrderCacheFields.updated_at] as String?,
     soft_delete: json[OrderCacheFields.soft_delete] as String?,
     card_color: json['card_color'] as String?,
-    dining_name: json['name'] as String?
+    dining_name: json['name'] as String?,
+    table_number: json['table_number'] as String?
   );
 
   Map<String, Object?> toJson() => {
@@ -220,6 +231,7 @@ class OrderCache{
     OrderCacheFields.total_amount: total_amount,
     OrderCacheFields.qr_order: qr_order,
     OrderCacheFields.qr_order_table_sqlite_id: qr_order_table_sqlite_id,
+    OrderCacheFields.qr_order_table_id: qr_order_table_id,
     OrderCacheFields.accepted: accepted,
     OrderCacheFields.sync_status: sync_status,
     OrderCacheFields.created_at: created_at,

@@ -835,6 +835,7 @@ class _CartDialogState extends State<CartDialog> {
     try{
       //read table use detail data based on target table id
       List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(oldTableId);
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(newTableId.toString());
 
       //create table use detail
       TableUseDetail insertData = await PosDatabase.instance.insertSqliteTableUseDetail(
@@ -844,21 +845,16 @@ class _CartDialogState extends State<CartDialog> {
                 table_use_sqlite_id: tableUseDetailData[0].table_use_sqlite_id,
                 table_use_key: tableUseDetailData[0].table_use_key,
                 table_sqlite_id: newTableId.toString(),
+                table_id: tableData[0].table_id.toString(),
                 created_at: dateTime,
                 status: 0,
                 sync_status: 0,
                 updated_at: '',
                 soft_delete: ''));
       TableUseDetail updatedDetail = await insertTableUseDetailKey(insertData, dateTime);
-      //TableUseDetail detailData =  await PosDatabase.instance.readSpecificTableUseDetailByLocalId(insertData.table_use_detail_sqlite_id!);
       _value.add(jsonEncode(updatedDetail));
       //sync to cloud
       syncTableUseDetailToCloud(_value.toString());
-      // Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
-      // if(data['status'] == 1){
-      //   List responseJson = data['data'];
-      //   int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
-      // }
 
     } catch(e){
       print('create table use detail error: $e');

@@ -12,16 +12,22 @@ import 'package:pos_system/fragment/report/report_page.dart';
 import 'package:pos_system/fragment/setting/setting.dart';
 import 'package:pos_system/fragment/settlement/settlement_page.dart';
 import 'package:pos_system/fragment/table/table.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
+import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../database/domain.dart';
 import '../database/pos_database.dart';
 import '../fragment/display_order/other_order.dart';
 import '../fragment/qr_order/qr_order_page.dart';
 import '../fragment/settlement/cash_dialog.dart';
 import '../object/branch.dart';
+import '../object/qr_order.dart';
+import '../object/sync_record.dart';
+import '../object/sync_to_cloud.dart';
 import '../object/user.dart';
 
 class HomePage extends StatefulWidget {
@@ -39,11 +45,15 @@ class _HomePageState extends State<HomePage> {
   late String role;
   String? branchName;
   Timer? timer;
+  bool hasNotification = false;
+  int loaded = 0;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    print('init called');
+    startTimers(notificationModel);
     _items = _generateItems;
     currentPage = 'menu';
     getRoleName();
@@ -59,74 +69,74 @@ class _HomePageState extends State<HomePage> {
         });
       });
     }
-    // timer = Timer.periodic(Duration(seconds: 15), (Timer t) {
-    //   print('sync to cloud at home');
-    // });
   }
 
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return WillPopScope(
-        onWillPop: () async => false,
-        child: Scaffold(
-            resizeToAvoidBottomInset: false,
-            body: SafeArea(
-              //side nav bar
-              child: CollapsibleSidebar(
-                  sidebarBoxShadow: [
-                    BoxShadow(
-                      color: Colors.transparent,
-                    ),
-                  ],
-                  // maxWidth: 80,
-                  isCollapsed: true,
-                  items: _items,
-                  avatarImg: FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
-                  title: widget.user!.name! +
-                      "\n" +
-                      (branchName ?? '') +
-                      " - " +
-                      role,
-                  backgroundColor: color.backgroundColor,
-                  selectedTextColor: color.iconColor,
-                  textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
-                  titleStyle: TextStyle(
-                      fontSize: 17,
-                      fontStyle: FontStyle.italic,
-                      fontWeight: FontWeight.bold),
-                  toggleTitleStyle:
-                  TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  selectedIconColor: color.iconColor,
-                  selectedIconBox: color.buttonColor,
-                  body: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connection, child) {
-                          return _body(size, context);
-                        }),
+      return Consumer<NotificationModel>(builder: (context, NotificationModel notificationModel, child) {
+        //this.hasNotification = notificationModel.notificationStatus;
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: Scaffold(
+              resizeToAvoidBottomInset: false,
+              body: SafeArea(
+                //side nav bar
+                child: CollapsibleSidebar(
+                    sidebarBoxShadow: [
+                      BoxShadow(
+                        color: Colors.transparent,
                       ),
-                      //cart page
-                      Visibility(
-                        visible: currentPage != 'product' &&
-                            currentPage != 'setting' &&
-                            currentPage != 'settlement' &&
-                            currentPage != 'qr_order' &&
-                            currentPage != 'report'
-                            ? true
-                            : false,
-                        child: Expanded(
-                            flex: MediaQuery.of(context).size.height > 500 ? 1 : 2,
-                            child: CartPage(
-                              currentPage: currentPage,
-                            )),
-                      )
                     ],
-                  )),
-            )),
-      );
+                    // maxWidth: 80,
+                    isCollapsed: true,
+                    items: _items,
+                    avatarImg: FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
+                    title: widget.user!.name! +
+                        "\n" +
+                        (branchName ?? '') +
+                        " - " +
+                        role,
+                    backgroundColor: color.backgroundColor,
+                    selectedTextColor: color.iconColor,
+                    textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
+                    titleStyle: TextStyle(
+                        fontSize: 17,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.bold),
+                    toggleTitleStyle:
+                    TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    selectedIconColor: color.iconColor,
+                    selectedIconBox: color.buttonColor,
+                    body: Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connection, child) {
+                            return _body(size, context);
+                          }),
+                        ),
+                        //cart page
+                        Visibility(
+                          visible: currentPage != 'product' &&
+                              currentPage != 'setting' &&
+                              currentPage != 'settlement' &&
+                              currentPage != 'qr_order' &&
+                              currentPage != 'report'
+                              ? true
+                              : false,
+                          child: Expanded(
+                              flex: MediaQuery.of(context).size.height > 500 ? 1 : 2,
+                              child: CartPage(
+                                currentPage: currentPage,
+                              )),
+                        )
+                      ],
+                    )),
+              )),
+        );
+      });
     });
   }
 
@@ -145,7 +155,7 @@ class _HomePageState extends State<HomePage> {
       ),
       CollapsibleItem(
         text: 'Qr Order',
-        icon: Icons.qr_code ,
+        icon: Icons.qr_code_2 ,
         onPressed: () => setState(() => currentPage = 'qr_order'),
       ),
       CollapsibleItem(
@@ -225,6 +235,38 @@ class _HomePageState extends State<HomePage> {
       branchName = data!.name!;
     });
     print('branch name : $branchName');
+  }
+
+  startTimers(NotificationModel notificationModel) {
+    int timerCount = 0;
+    Timer.periodic(Duration(seconds: 15), (timer) async {
+      bool _status = notificationModel.notificationStatus;
+      if(_status == true){
+        print('timer reset');
+        timerCount = 0;
+      }
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if(_hasInternetAccess){
+        if (timerCount == 0) {
+          //sync to cloud
+          SyncToCloud().syncAllToCloud();
+          //SyncToCloud().syncToCloud();
+        } else {
+          //qr order sync
+          QrOrder().getQrOrder();
+          //sync from cloud
+          SyncRecord().syncFromCloud();
+        }
+        //add timer and reset hasNotification
+        timerCount++;
+        notificationModel.resetNotifier();
+        // reset the timer after two executions
+        if (timerCount >= 2) {
+          timerCount = 0;
+        }
+      }
+    });
+    this.loaded = 1;
   }
 
 }

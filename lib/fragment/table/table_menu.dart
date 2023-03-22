@@ -215,9 +215,7 @@ class _TableMenuState extends State<TableMenu> {
                                                   Color(0xFF07F107),
                                               msg: "Table not in use");
                                         }
-                                        if (tableList[index].status == 1 &&
-                                            tableList[index].isSelected ==
-                                                true) {
+                                        if (tableList[index].status == 1 && tableList[index].isSelected == true) {
                                           //await readSpecificTableDetail(tableList[index]);
                                           addToCart(cart, tableList[index]);
                                         }
@@ -273,15 +271,15 @@ class _TableMenuState extends State<TableMenu> {
                                               ],
                                             ),
                                           ),
-                                          MediaQuery.of(context).size.height > 500 ? Container(height: 10) : Container()
-                                          // tableList[index].status == 1 ?
-                                          // Expanded(
-                                          //     child: Text(
-                                          //       "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
-                                          //       style: TextStyle(fontSize: 18)),
-                                          // ) :
-                                          //     Expanded
-                                          //       (child: Text(''))
+                                          MediaQuery.of(context).size.height > 500 ? Container(height: 10) : Container(),
+                                          tableList[index].status == 1 ?
+                                          Expanded(
+                                              child: Text(
+                                                "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
+                                                style: TextStyle(fontSize: 18)),
+                                          ) :
+                                              Expanded
+                                                (child: Text(''))
                                         ],
                                       ),
                                     ),
@@ -383,8 +381,7 @@ class _TableMenuState extends State<TableMenu> {
       model.changeContent2(false);
     }
 
-    List<PosTable> data =
-        await PosDatabase.instance.readAllTable();
+    List<PosTable> data = await PosDatabase.instance.readAllTable();
 
     tableList = List.from(data);
     await readAllTableGroup();
@@ -402,17 +399,16 @@ class _TableMenuState extends State<TableMenu> {
     final int? branch_id = prefs.getInt('branch_id');
 
     for (int i = 0; i < tableList.length; i++) {
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
-          .readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
+      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
       if (tableUseDetailData.length > 0) {
-        List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(
-            branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
+        List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
         tableList[i].group = data[0].table_use_sqlite_id;
         tableList[i].card_color = data[0].card_color;
+        //tableList[i].total_Amount = double.parse(data[0].total_amount!);
 
-        // for(int j = 0; j < data.length; j++){
-        //   tableList[i].total_Amount += double.parse(data[j].total_amount!);
-        // }
+        for(int j = 0; j < data.length; j++){
+          tableList[i].total_Amount += double.parse(data[j].total_amount!);
+        }
       }
     }
   }

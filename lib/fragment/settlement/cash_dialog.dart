@@ -35,6 +35,7 @@ class _CashDialogState extends State<CashDialog> {
   String amount = '';
   bool _isLoad = false;
   bool _submitted = false;
+  bool isButtonDisabled = false;
 
   @override
   void initState() {
@@ -70,6 +71,10 @@ class _CashDialogState extends State<CashDialog> {
   void _submit(BuildContext context, ConnectivityChangeNotifier connectivity) {
     setState(() => _submitted = true);
     if (errorRemark == null && errorAmount == null) {
+      // Disable the button after it has been pressed
+      setState(() {
+        isButtonDisabled = true;
+      });
       if (widget.isCashIn) {
         print('cash in');
         createCashRecord(1, connectivity);
@@ -207,20 +212,24 @@ class _CashDialogState extends State<CashDialog> {
                     widget.isNewDay ? Container() :
                     TextButton(
                       child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                      onPressed: (){
-                        closeDialog(context);
+                      onPressed: isButtonDisabled ? null : (){
+                        // Disable the button after it has been pressed
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        Navigator.of(context).pop();
                       },
                     ),
                     TextButton(
                       child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                      onPressed: (){
+                      onPressed: isButtonDisabled ? null : (){
                         _submit(context, connectivity);
                       },
                     )
                   ],
                 );
               } else {
-                //mobile layout
+                ///mobile layout
                 return SingleChildScrollView(
                   child: AlertDialog(
                     title: widget.isNewDay ? Text('Opening Balance') : widget.isCashIn ? Text('Cash-in') :  Text('Cash-out'),
@@ -331,13 +340,17 @@ class _CashDialogState extends State<CashDialog> {
                       widget.isNewDay ? Container() :
                       TextButton(
                         child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                        onPressed: (){
-                          closeDialog(context);
+                        onPressed: isButtonDisabled ? null : (){
+                          // Disable the button after it has been pressed
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
+                          Navigator.of(context).pop();
                         },
                       ),
                       TextButton(
                         child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                        onPressed: (){
+                        onPressed: isButtonDisabled ? null : (){
                           _submit(context, connectivity);
                         },
                       )
@@ -417,8 +430,10 @@ class _CashDialogState extends State<CashDialog> {
 
       CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
       CashRecord updatedData = await insertCashRecordKey(data, dateTime);
+      _value.add(jsonEncode(updatedData));
       //sync to cloud
-      await syncCashRecordToCloud(updatedData);
+      print('cash record value: ${_value.toString()}');
+      await syncCashRecordToCloud(_value.toString());
 
       closeDialog(context);
       widget.callBack();
@@ -437,15 +452,15 @@ class _CashDialogState extends State<CashDialog> {
     }
   }
 
-  syncCashRecordToCloud(CashRecord updatedData) async {
-    List<String> _value = [];
+  syncCashRecordToCloud(String value) async {
     bool _hasInternetAccess = await Domain().isHostReachable();
     if(_hasInternetAccess){
-      _value.add(jsonEncode(updatedData));
-      Map response = await Domain().SyncCashRecordToCloud(_value.toString());
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+      Map data = await Domain().syncLocalUpdateToCloud(
+        cash_record_value: value
+      );
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
       }
     }
   }

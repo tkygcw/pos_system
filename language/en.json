@@ -26,6 +26,8 @@
   "logout-Desc": "All this app data will be deleted permanently. This includes all files, setting, database etc.",
   "password_required": "Password is required",
   "password_incorrect":"Password incorrect",
+  "user_not_found": "User Not Found",
+  "pin_not_match": "user pin not match",
   "yes": "Yes",
   "no": "No",
   "incorrect_password": "incorrect password",

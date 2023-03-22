@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,8 +9,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/test_dual_screen/test_display.dart';
+import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
+import 'package:pos_system/object/cart_product.dart';
+import 'package:pos_system/object/qr_order.dart';
+import 'package:pos_system/object/sync_record.dart';
+import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/translation/appLanguage.dart';
@@ -15,6 +23,7 @@ import 'package:presentation_displays/display.dart';
 import 'package:presentation_displays/displays_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'database/domain.dart';
 import 'notifier/cart_notifier.dart';
 import 'notifier/connectivity_change_notifier.dart';
 import 'notifier/printer_notifier.dart';
@@ -36,55 +45,106 @@ Route<dynamic> generateRoute(RouteSettings settings) {
   }
 }
 
+void showFlutterNotification(RemoteMessage message) {
+  RemoteNotification? notification = message.notification;
+  AndroidNotification? android = message.notification?.android;
+  if (notification != null && android != null) {
+    print('title: ${message.data['type']}');
+    if(message.data['type'] == '0'){
+      flutterLocalNotificationsPlugin.show(
+          notification.hashCode,
+          notification.title,
+          notification.body,
+          NotificationDetails(
+            android: AndroidNotificationDetails(
+              channel.id,
+              channel.name,
+              channelDescription: channel.description,
+              color: Colors.red,
+              // TODO add a proper drawable resource to android, for now using
+              //      one that already exists in example app.
+              icon: "@mipmap/ic_launcher",
+            ),
+          ));
+      QrOrder().getQrOrder();
+      hasNotification = true;
+      notificationModel.setNotification(hasNotification);
+    } else {
+      hasNotification = true;
+      notificationModel.setNotification(hasNotification);
+      Fluttertoast.showToast(
+          backgroundColor: Colors.green,
+          msg:
+          "Cloud db change! sync from cloud");
+      print('Notification not show, but received: ${notification.title}');
+      SyncRecord().syncFromCloud();
+    }
+  }
+}
+
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // If you're going to use other Firebase services in the background, such as Firestore,
   // make sure you call `initializeApp` before using other Firebase services.
   await Firebase.initializeApp();
   print('Handling a background message ${message.messageId}');
+  showFlutterNotification(message);
+}
+
+Future<void> onResume(RemoteMessage message) async {
+  // Show a notification
+  showFlutterNotification(message);
 }
 
 Future<void> main() async {
   //firebase method
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  //FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(channel);
 
-  // await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-  //   alert: true,
-  //   badge: true,
-  //   sound: true,
-  // );
+  FirebaseMessaging.onMessage.listen(showFlutterNotification);
 
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    RemoteNotification? notification = message.notification;
-    AndroidNotification? android = message.notification?.android;
-    if (notification != null && android != null) {
-      if(notification.title != 'test1'){
-        flutterLocalNotificationsPlugin.show(
-            notification.hashCode,
-            notification.title,
-            notification.body,
-            NotificationDetails(
-              android: AndroidNotificationDetails(
-                channel.id,
-                channel.name,
-                channelDescription: channel.description,
-                color: Colors.blue,
-                // TODO add a proper drawable resource to android, for now using
-                //      one that already exists in example app.
-                icon: "@mipmap/ic_launcher",
-              ),
-            ));
-      } else {
-        Fluttertoast.showToast(
-            backgroundColor: Colors.green,
-            msg:
-            "Cloud db change! sync from cloud");
-        print('Notification not show, but received: ${notification.title}');
-      }
-    }
+  // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  //   RemoteNotification? notification = message.notification;
+  //   AndroidNotification? android = message.notification?.android;
+  //   if (notification != null && android != null) {
+  //     print('title: ${message.data['type']}');
+  //     if (message.data['type'] == '0') {
+  //       flutterLocalNotificationsPlugin.show(
+  //           notification.hashCode,
+  //           notification.title,
+  //           notification.body,
+  //           NotificationDetails(
+  //             android: AndroidNotificationDetails(
+  //               channel.id,
+  //               channel.name,
+  //               channelDescription: channel.description,
+  //               color: Colors.red,
+  //               // TODO add a proper drawable resource to android, for now using
+  //               //      one that already exists in example app.
+  //               icon: "@mipmap/ic_launcher",
+  //             ),
+  //           ));
+  //       QrOrder().getQrOrder();
+  //       hasNotification = true;
+  //       notificationModel.setNotification(hasNotification);
+  //     } else {
+  //       hasNotification = true;
+  //       Fluttertoast.showToast(
+  //           backgroundColor: Colors.green,
+  //           msg:
+  //           "Cloud db change! sync from cloud");
+  //       print('Notification not show, but received: ${notification.title}');
+  //       SyncRecord().syncFromCloud();
+  //     }
+  //   }
+  // });
+
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    // Resume the app and call onResume
+    onResume(message);
   });
+
 
   //device detect
   final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
@@ -100,6 +160,10 @@ Future<void> main() async {
     ]);
   }
 
+  //sync
+  //startTimers();
+
+
   //second screen test(init second screen)
   //initSecondScreen();
 
@@ -110,19 +174,56 @@ Future<void> main() async {
   AppLanguage appLanguage = AppLanguage();
   //create default app color
   await appLanguage.fetchLocale();
-  runApp(MyApp(
-    appLanguage: appLanguage,
-  ));
+  runApp(
+      ChangeNotifierProvider.value(
+        value: notificationModel,
+        child: MyApp(appLanguage: appLanguage),
+      )
+  );
 }
+
+final NotificationModel notificationModel = NotificationModel();
+
+bool hasNotification = false;
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 //Notification importance setting
 const AndroidNotificationChannel channel = AndroidNotificationChannel(
   'high_importance_channel', // id
   'High Importance Notifications', // title
   description: 'This channel is used for important notifications.', // description
-  importance: Importance.high,
+  importance: Importance.max,
 );
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+// startTimers() {
+//   int timerCount = 0;
+//
+//   Timer.periodic(Duration(seconds: 15), (timer) async {
+//     print('has notification: ${hasNotification}');
+//     if(hasNotification == true){
+//       print('timer reset');
+//       timerCount = 0;
+//     }
+//     bool _hasInternetAccess = await Domain().isHostReachable();
+//     if(_hasInternetAccess){
+//       if (timerCount == 0) {
+//         //sync to cloud
+//         SyncToCloud().syncToCloud();
+//       } else {
+//         //sync from cloud
+//         SyncRecord().syncFromCloud();
+//       }
+//       //add timer and reset hasNotification
+//       timerCount++;
+//       hasNotification = false;
+//       // reset the timer after two executions
+//       if (timerCount >= 2) {
+//         timerCount = 0;
+//       }
+//     }
+//   });
+// }
 
 class MyApp extends StatelessWidget {
   final AppLanguage appLanguage;
@@ -131,6 +232,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool notification = hasNotification;
+    print('notification inside build main: ${notification}');
     // Set landscape orientation
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -143,8 +246,7 @@ class MyApp extends StatelessWidget {
           create: (_) => appLanguage,
         ),
         ChangeNotifierProvider(create: (_) {
-          ConnectivityChangeNotifier changeNotifier =
-              ConnectivityChangeNotifier();
+          ConnectivityChangeNotifier changeNotifier = ConnectivityChangeNotifier();
           changeNotifier.initialLoad();
           return changeNotifier;
         }),

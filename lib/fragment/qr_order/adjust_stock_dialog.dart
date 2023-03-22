@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/object/print_receipt.dart';
+import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -36,202 +38,456 @@ class AdjustStockDialog extends StatefulWidget {
 
 class _AdjustStockDialogState extends State<AdjustStockDialog> {
   List<OrderDetail> orderDetailList = [], noStockOrderDetailList = [], removeDetailList = [];
+  List<Printer> printerList = [];
   String localTableUseId = '', tableUseKey = '', tableUseDetailKey = '';
+  String? table_use_value, table_use_detail_value, order_cache_value, order_detail_value, order_modifier_detail_value, table_value, branch_link_product_value;
   bool hasNoStockProduct = false, tableInUsed = false;
+  bool isButtonDisabled = false;
 
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(
-        "Order detail",
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      content: Container(
-        height: MediaQuery.of(context).size.height / 3,
-        width: MediaQuery.of(context).size.width /3,
-        child: ListView.builder(
-            itemCount: widget.orderDetailList.length,
-            shrinkWrap: true,
-            itemBuilder: (context, index) {
-              return Dismissible(
-                background: Container(
-                  color: Colors.red,
-                  padding: EdgeInsets.only(left: 25.0),
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete,
-                          color: Colors.white),
-                    ],
-                  ),
-                ),
-                key: ValueKey(widget.orderDetailList[index].productName),
-                direction: DismissDirection.startToEnd,
-                confirmDismiss: (direction) async {
-                  if (direction == DismissDirection.startToEnd) {
-                    print('detail remove');
-                    if(mounted){
-                      setState(() {
-                        widget.orderDetailList[index].isRemove = true;
-                        removeDetailList.add(widget.orderDetailList[index]);
-                        widget.orderDetailList.removeAt(index);
-                      });
-                    }
-                  }
-                  return null;
-                },
-                child: Card(
-                  elevation: 5,
-                  child: Container(
-                    margin: EdgeInsets.all(10),
-                    height: 85.0,
-                    child: Column(children: [
-                      Expanded(
-                        child: ListTile(
-                          onTap: null,
-                          isThreeLine: true,
-                          title: RichText(
-                            text: TextSpan(
-                              children: <TextSpan>[
-                                TextSpan(
-                                    text:
-                                    "${widget.orderDetailList[index].productName}" +
-                                        "\n",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.black
-                                    )),
-                                TextSpan(
-                                    text: "RM ${widget.orderDetailList[index].price}",
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.black
-                                    )),
-                              ],
-                            ),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                            children: [
-                              Text("+${widget.orderDetailList[index].product_variant_name}"),
-                              Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
-                              widget.orderDetailList[index].remark != '' ?
-                              Text("*${widget.orderDetailList[index].remark}"): Text('')
-                                  
-                            ],
-                          ),
-                          // Text(
-                          //     "Add on: ${reformatModifierDetail(orderDetailList[index].modifier_name) + "\n"} "
-                          //     "${orderDetailList[index].variant_name +"\n"} "
-                          //     "${orderDetailList[index].remark}"
-                          // ),
-                          trailing: Container(
-                            child: FittedBox(
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                          hoverColor: Colors.transparent,
-                                          icon: Icon(Icons.remove),
-                                          onPressed: () {
-                                            print('qty remove');
-                                            int qty = int.parse(widget.orderDetailList[index].quantity!);
-                                            int totalQty = qty - 1;
-                                            if(totalQty <= 0){
-                                              setState(() {
-                                                widget.orderDetailList[index].isRemove = true;
-                                                removeDetailList.add(widget.orderDetailList[index]);
-                                                widget.orderDetailList.removeAt(index);
-                                              });
-                                            } else {
-                                              setState(() {
-                                                widget.orderDetailList[index].quantity = totalQty.toString();
-                                              });
-                                            }
-                                          }),
-                                      Text(
-                                        '${widget.orderDetailList[index].quantity}',
-                                        style: TextStyle(
-                                            color: Colors.black),
-                                      ),
-                                      IconButton(
-                                          hoverColor: Colors.transparent,
-                                          icon: Icon(Icons.add),
-                                          onPressed: () {
-                                            if(int.parse(widget.orderDetailList[index].quantity!) < int.parse(widget.orderDetailList[index].available_stock!)){
-                                              setState(() {
-                                                int qty = int.parse(widget.orderDetailList[index].quantity!);
-                                                int totalQty = qty + 1;
-                                                widget.orderDetailList[index].quantity = totalQty.toString();
+  void initState() {
+    super.initState();
+    readAllPrinters();
+  }
 
-                                              });
-                                            } else {
-                                              Fluttertoast.showToast(
-                                                  backgroundColor: Colors.red,
-                                                  msg: "Out of stock!");
-                                            }
-                                          })
+  readAllPrinters() async {
+    printerList = await PrintReceipt().readAllPrinters();
+  }
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      if (constraints.maxWidth > 800){
+        return AlertDialog(
+          title: Text(
+            "Order detail",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Container(
+            height: MediaQuery.of(context).size.height / 3,
+            width: MediaQuery.of(context).size.width /3,
+            child: ListView.builder(
+                itemCount: widget.orderDetailList.length,
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  return Dismissible(
+                    background: Container(
+                      color: Colors.red,
+                      padding: EdgeInsets.only(left: 25.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete,
+                              color: Colors.white),
+                        ],
+                      ),
+                    ),
+                    key: ValueKey(widget.orderDetailList[index].productName),
+                    direction: DismissDirection.startToEnd,
+                    confirmDismiss: (direction) async {
+                      if (direction == DismissDirection.startToEnd) {
+                        print('detail remove');
+                        if(mounted){
+                          setState(() {
+                            widget.orderDetailList[index].isRemove = true;
+                            removeDetailList.add(widget.orderDetailList[index]);
+                            widget.orderDetailList.removeAt(index);
+                          });
+                        }
+                      }
+                      return null;
+                    },
+                    child: Card(
+                      elevation: 5,
+                      child: Container(
+                        margin: EdgeInsets.all(10),
+                        height: MediaQuery.of(context).size.height / 7,
+                        child: Column(children: [
+                          Expanded(
+                            child: ListTile(
+                              onTap: null,
+                              isThreeLine: true,
+                              title: RichText(
+                                text: TextSpan(
+                                  children: <TextSpan>[
+                                    TextSpan(
+                                        text:
+                                        "${widget.orderDetailList[index].productName}" +
+                                            "\n",
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black
+                                        )),
+                                    TextSpan(
+                                        text: "RM ${widget.orderDetailList[index].price}",
+                                        style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.black
+                                        )),
+                                  ],
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                children: [
+                                  Visibility(
+                                    visible: widget.orderDetailList[index].product_variant_name != '' ? true : false,
+                                    child: Text("(${widget.orderDetailList[index].product_variant_name})"),
+                                  ),
+                                  Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
+                                  widget.orderDetailList[index].remark != '' ?
+                                  Text("*${widget.orderDetailList[index].remark}"): Text('')
+
+                                ],
+                              ),
+                              // Text(
+                              //     "Add on: ${reformatModifierDetail(orderDetailList[index].modifier_name) + "\n"} "
+                              //     "${orderDetailList[index].variant_name +"\n"} "
+                              //     "${orderDetailList[index].remark}"
+                              // ),
+                              trailing: Container(
+                                child: FittedBox(
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                              hoverColor: Colors.transparent,
+                                              icon: Icon(Icons.remove),
+                                              onPressed: () {
+                                                print('qty remove');
+                                                int qty = int.parse(widget.orderDetailList[index].quantity!);
+                                                int totalQty = qty - 1;
+                                                if(totalQty <= 0){
+                                                  setState(() {
+                                                    widget.orderDetailList[index].isRemove = true;
+                                                    removeDetailList.add(widget.orderDetailList[index]);
+                                                    widget.orderDetailList.removeAt(index);
+                                                  });
+                                                } else {
+                                                  setState(() {
+                                                    widget.orderDetailList[index].quantity = totalQty.toString();
+                                                  });
+                                                }
+                                              }),
+                                          Text(
+                                            '${widget.orderDetailList[index].quantity}',
+                                            style: TextStyle(
+                                                color: Colors.black),
+                                          ),
+                                          IconButton(
+                                              hoverColor: Colors.transparent,
+                                              icon: Icon(Icons.add),
+                                              onPressed: () {
+                                                if(int.parse(widget.orderDetailList[index].quantity!) < int.parse(widget.orderDetailList[index].available_stock!)){
+                                                  setState(() {
+                                                    int qty = int.parse(widget.orderDetailList[index].quantity!);
+                                                    int totalQty = qty + 1;
+                                                    widget.orderDetailList[index].quantity = totalQty.toString();
+
+                                                  });
+                                                } else {
+                                                  Fluttertoast.showToast(
+                                                      backgroundColor: Colors.red,
+                                                      msg: "Out of stock!");
+                                                }
+                                              })
+                                        ],
+                                      ),
+                                      Text('Available stock: ${widget.orderDetailList[index].available_stock}')
                                     ],
                                   ),
-                                  Text('Available stock: ${widget.orderDetailList[index].available_stock}')
-                                ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                        ]),
                       ),
-                    ]),
-                  ),
-                ),
-              );
-            }
-        ),
-      ),
-      actions: <Widget>[
-        TextButton(
-          child: Text('Close'),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        TextButton(
-          child: const Text('Reject'),
-          onPressed: () {
-            rejectOrder(widget.orderCacheLocalId);
-            Navigator.of(context).pop();
-          },
-        ),
-        TextButton(
-          child: const Text('Add'),
-          onPressed: widget.orderDetailList.isNotEmpty ? () async {
-            await checkOrderDetailStock();
-            if(hasNoStockProduct){
-              Fluttertoast.showToast(
-                  backgroundColor: Colors.red,
-                  msg: "Contain out of stock product");
-            } else {
-              await checkTable();
-              if(removeDetailList.isNotEmpty){
-                await removeOrderDetail();
-              }
-              if(tableInUsed == true){
-                updateOrderCache();
-                updateProductStock();
-              } else {
-                 await callNewOrder();
-                updateProductStock();
-              }
+                    ),
+                  );
+                }
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Close'),
+              onPressed: isButtonDisabled ? null : () {
+                // Disable the button after it has been pressed
+                setState(() {
+                  isButtonDisabled = true;
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Reject'),
+              onPressed: isButtonDisabled ? null : () {
+                // Disable the button after it has been pressed
+                setState(() {
+                  isButtonDisabled = true;
+                });
+                rejectOrder(widget.orderCacheLocalId);
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Add'),
+              onPressed: isButtonDisabled ? null : widget.orderDetailList.isNotEmpty ? () async {
+                await checkOrderDetailStock();
+                if(hasNoStockProduct){
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "Contain out of stock product");
+                } else {
+                  // Disable the button after it has been pressed
+                  setState(() {
+                    isButtonDisabled = true;
+                  });
+                  if(removeDetailList.isNotEmpty){
+                    await removeOrderDetail();
+                  }
+                  if(widget.tableLocalId != ''){
+                    await checkTable();
+                    if(tableInUsed == true){
+                      await updateOrderCache();
+                      await updateProductStock();
+                      syncAllToCloud();
+                      await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                      await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                    } else {
+                      await callNewOrder();
+                      await updateProductStock();
+                      syncAllToCloud();
+                      await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                      await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                    }
+                  } else {
+                    callOtherOrder();
+                  }
+                  Navigator.of(context).pop();
+                }
+              } : null,
+            ),
+          ],
+        );
+      } else {
+        ///mobile view
+        return AlertDialog(
+          title: Text(
+            "Order Detail",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Container(
+            height: MediaQuery.of(context).size.height / 2,
+            width: MediaQuery.of(context).size.width /2,
+            child: ListView.builder(
+                itemCount: widget.orderDetailList.length,
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  return Dismissible(
+                    background: Container(
+                      color: Colors.red,
+                      padding: EdgeInsets.only(left: 25.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete,
+                              color: Colors.white),
+                        ],
+                      ),
+                    ),
+                    key: ValueKey(widget.orderDetailList[index].productName),
+                    direction: DismissDirection.startToEnd,
+                    confirmDismiss: (direction) async {
+                      if (direction == DismissDirection.startToEnd) {
+                        print('detail remove');
+                        if(mounted){
+                          setState(() {
+                            widget.orderDetailList[index].isRemove = true;
+                            removeDetailList.add(widget.orderDetailList[index]);
+                            widget.orderDetailList.removeAt(index);
+                          });
+                        }
+                      }
+                      return null;
+                    },
+                    child: Card(
+                      elevation: 5,
+                      child: Container(
+                        margin: EdgeInsets.all(10),
+                        height: 85.0,
+                        child: Column(children: [
+                          Expanded(
+                            child: ListTile(
+                              onTap: null,
+                              isThreeLine: true,
+                              title: RichText(
+                                text: TextSpan(
+                                  children: <TextSpan>[
+                                    TextSpan(
+                                        text:
+                                        "${widget.orderDetailList[index].productName}" +
+                                            "\n",
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.black
+                                        )),
+                                    TextSpan(
+                                        text: "RM ${widget.orderDetailList[index].price}",
+                                        style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.black
+                                        )),
+                                  ],
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                children: [
+                                  Text("+${widget.orderDetailList[index].product_variant_name}"),
+                                  Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
+                                  widget.orderDetailList[index].remark != '' ?
+                                  Text("*${widget.orderDetailList[index].remark}"): Text('')
 
-              Navigator.of(context).pop();
-            }
-          } : null,
-        ),
-      ],
-    );
+                                ],
+                              ),
+                              // Text(
+                              //     "Add on: ${reformatModifierDetail(orderDetailList[index].modifier_name) + "\n"} "
+                              //     "${orderDetailList[index].variant_name +"\n"} "
+                              //     "${orderDetailList[index].remark}"
+                              // ),
+                              trailing: Container(
+                                child: FittedBox(
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                              hoverColor: Colors.transparent,
+                                              icon: Icon(Icons.remove),
+                                              onPressed: () {
+                                                print('qty remove');
+                                                int qty = int.parse(widget.orderDetailList[index].quantity!);
+                                                int totalQty = qty - 1;
+                                                if(totalQty <= 0){
+                                                  setState(() {
+                                                    widget.orderDetailList[index].isRemove = true;
+                                                    removeDetailList.add(widget.orderDetailList[index]);
+                                                    widget.orderDetailList.removeAt(index);
+                                                  });
+                                                } else {
+                                                  setState(() {
+                                                    widget.orderDetailList[index].quantity = totalQty.toString();
+                                                  });
+                                                }
+                                              }),
+                                          Text(
+                                            '${widget.orderDetailList[index].quantity}',
+                                            style: TextStyle(
+                                                color: Colors.black),
+                                          ),
+                                          IconButton(
+                                              hoverColor: Colors.transparent,
+                                              icon: Icon(Icons.add),
+                                              onPressed: () {
+                                                if(int.parse(widget.orderDetailList[index].quantity!) < int.parse(widget.orderDetailList[index].available_stock!)){
+                                                  setState(() {
+                                                    int qty = int.parse(widget.orderDetailList[index].quantity!);
+                                                    int totalQty = qty + 1;
+                                                    widget.orderDetailList[index].quantity = totalQty.toString();
+
+                                                  });
+                                                } else {
+                                                  Fluttertoast.showToast(
+                                                      backgroundColor: Colors.red,
+                                                      msg: "Out of stock!");
+                                                }
+                                              })
+                                        ],
+                                      ),
+                                      Text('Available stock: ${widget.orderDetailList[index].available_stock}')
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ]),
+                      ),
+                    ),
+                  );
+                }
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Close'),
+              onPressed: isButtonDisabled ? null : () {
+                // Disable the button after it has been pressed
+                setState(() {
+                  isButtonDisabled = true;
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Reject'),
+              onPressed: isButtonDisabled ? null : () {
+                // Disable the button after it has been pressed
+                setState(() {
+                  isButtonDisabled = true;
+                });
+                rejectOrder(widget.orderCacheLocalId);
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Add'),
+              onPressed: isButtonDisabled ? null : widget.orderDetailList.isNotEmpty ? () async {
+                await checkOrderDetailStock();
+                if(hasNoStockProduct){
+                  Fluttertoast.showToast(
+                      backgroundColor: Colors.red,
+                      msg: "Contain out of stock product");
+                } else {
+                  // Disable the button after it has been pressed
+                  setState(() {
+                    isButtonDisabled = true;
+                  });
+                  if(removeDetailList.isNotEmpty){
+                    await removeOrderDetail();
+                  }
+                  if(widget.tableLocalId != ''){
+                    await checkTable();
+                    if(tableInUsed == true){
+                      await updateOrderCache();
+                      await updateProductStock();
+                      syncAllToCloud();
+                      await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                      await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                    } else {
+                      await callNewOrder();
+                      await updateProductStock();
+                      syncAllToCloud();
+                      await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                      await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                    }
+                  } else {
+                    callOtherOrder();
+                  }
+                  Navigator.of(context).pop();
+                }
+              } : null,
+            ),
+          ],
+        );
+      }
+    });
   }
 
   callNewOrder() async {
@@ -241,32 +497,46 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     updatePosTable();
   }
 
+  callOtherOrder() async {
+    await acceptOrder(widget.orderCacheLocalId);
+    updateProductStock();
+  }
+
   updateProductStock() async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     List<String> _branchLinkProductValue = [];
-    int _totalStockQty = 0;
+    int _totalStockQty = 0, updateStock = 0;
+    BranchLinkProduct? object;
     for(int i = 0; i < orderDetailList.length; i++){
       List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
-      _totalStockQty = int.parse(checkData[0].stock_quantity!) - int.parse(orderDetailList[i].quantity!);
-
-      BranchLinkProduct object = BranchLinkProduct(
-          updated_at: dateTime,
-          sync_status: 2,
-          stock_quantity: _totalStockQty.toString(),
-          branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!)
-      );
-
-      int updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+      if(checkData[0].stock_type == '2'){
+        _totalStockQty = int.parse(checkData[0].stock_quantity!) - int.parse(orderDetailList[i].quantity!);
+        object = BranchLinkProduct(
+            updated_at: dateTime,
+            sync_status: 2,
+            stock_quantity: _totalStockQty.toString(),
+            branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!)
+        );
+        updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+      } else {
+        _totalStockQty = int.parse(checkData[0].daily_limit_amount!) - int.parse(orderDetailList[i].quantity!);
+        object = BranchLinkProduct(
+            updated_at: dateTime,
+            sync_status: 2,
+            daily_limit_amount: _totalStockQty.toString(),
+            branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!)
+        );
+        updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimitAmount(object);
+      }
       if(updateStock == 1){
         List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
-
         _branchLinkProductValue.add(jsonEncode(updatedData[0]));
       }
     }
-    print('branch link product value: ${_branchLinkProductValue.toString()}');
+    this.branch_link_product_value = _branchLinkProductValue.toString();
     //sync to cloud
-    syncBranchLinkProductStock(_branchLinkProductValue.toString());
+    //syncBranchLinkProductStock(_branchLinkProductValue.toString());
 
   }
 
@@ -305,7 +575,8 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           }
         }
       }
-      syncUpdatedTableToCloud(_value.toString());
+      this.table_value = _value.toString();
+      //syncUpdatedTableToCloud(_value.toString());
     } catch (e) {
       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "update table error: ${e}");
       print("update table error: $e");
@@ -326,7 +597,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   }
 
   updateOrderCache() async {
-    List<String> value = [];
+    List<String> _value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     OrderCache orderCache = OrderCache(
@@ -340,7 +611,9 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     if(status == 1){
       await acceptOrder(orderCache.order_cache_sqlite_id!);
       OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);
-      syncOrderCacheToCloud(updatedCache);
+      _value.add(jsonEncode(updatedCache));
+      this.order_cache_value = _value.toString();
+      //syncOrderCacheToCloud(updatedCache);
     }
   }
 
@@ -372,16 +645,17 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
               table_use_sqlite_id: localTableUseId,
               table_use_key: tableUseKey,
               table_sqlite_id: widget.tableLocalId,
-              table_id: tableData[0].table_sqlite_id.toString(),
+              table_id: tableData[0].table_id.toString(),
+              status: 0,
               sync_status: 0,
               created_at: dateTime,
               updated_at: '',
               soft_delete: ''));
       TableUseDetail updatedDetail = await insertTableUseDetailKey(tableUseDetailData, dateTime);
       _value.add(jsonEncode(updatedDetail));
-      print('table use detail value: ${_value}');
+      this.table_use_detail_value = _value.toString();
       //sync to cloud
-      syncTableUseDetailToCloud(_value.toString());
+      //syncTableUseDetailToCloud(_value.toString());
     } catch (e) {
       print(e);
       Fluttertoast.showToast(
@@ -429,6 +703,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   }
 
   createTableUseID() async {
+    List<String> _value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
@@ -453,8 +728,10 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         TableUse tableUseData = await PosDatabase.instance.insertSqliteTableUse(data);
         localTableUseId = tableUseData.table_use_sqlite_id.toString();
         TableUse _updatedTableUseData = await insertTableUseKey(tableUseData, dateTime);
+        _value.add(jsonEncode(_updatedTableUseData));
+        this.table_use_value = _value.toString();
         //sync tot cloud
-        await syncTableUseIdToCloud(_updatedTableUseData);
+        //await syncTableUseIdToCloud(_updatedTableUseData);
       }
     } catch (e) {
       print(e);
@@ -585,8 +862,8 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         value.add(jsonEncode(data.syncJson()));
       }
     }
-    print('remove order detail value: ${value.toString()}');
-    syncOrderDetailToCloud(value.toString());
+    this.order_detail_value = value.toString();
+    //syncOrderDetailToCloud(value.toString());
   }
 
   syncOrderDetailToCloud(String orderDetailValue) async {
@@ -604,12 +881,14 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
 
   checkTable() async {
     tableInUsed = false;
-    List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(widget.tableLocalId);
-    if(tableData[0].status == 1){
-      TableUse tableUse = await PosDatabase.instance.readSpecificTableUseByKey(tableData[0].table_use_key!);
-      tableInUsed = true;
-      this.tableUseKey = tableData[0].table_use_key!;
-      this.localTableUseId = tableUse.table_use_sqlite_id.toString();
+    if(widget.tableLocalId != ''){
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(widget.tableLocalId);
+      if(tableData[0].status == 1){
+        TableUse tableUse = await PosDatabase.instance.readSpecificTableUseByKey(tableData[0].table_use_key!);
+        tableInUsed = true;
+        this.tableUseKey = tableData[0].table_use_key!;
+        this.localTableUseId = tableUse.table_use_sqlite_id.toString();
+      }
     }
   }
 
@@ -621,12 +900,23 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     for(int i = 0; i < orderDetailList.length; i++){
       print('inside call');
       List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
-      orderDetailList[i].available_stock = data[0].stock_quantity!;
+      if(data[0].stock_type == '2'){
+        orderDetailList[i].available_stock = data[0].stock_quantity!;
+        if(int.parse(orderDetailList[i].quantity!) > int.parse(data[0].stock_quantity!)){
+          hasNoStockProduct = true;
+        } else {
+          hasNoStockProduct = false;
+        }
+      } else {
+        orderDetailList[i].available_stock = data[0].daily_limit_amount!;
+        if(int.parse(orderDetailList[i].quantity!) > int.parse(data[0].daily_limit_amount!)){
+          hasNoStockProduct = true;
+        } else {
+          hasNoStockProduct = false;
+        }
+      }
       //orderDetailList[i].isRemove = false;
       //noStockOrderDetailList.add(orderDetailList[i]);
-      if(int.parse(orderDetailList[i].quantity!) > int.parse(data[0].stock_quantity!)){
-        hasNoStockProduct = true;
-      }
     }
   }
 
@@ -639,28 +929,18 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     List<String> _orderCacheValue = [];
     try {
       OrderCache orderCacheObject = OrderCache(
+          soft_delete: '',
           updated_at: dateTime,
           sync_status: 2,
+          order_by: userObject['name'].toString(),
+          order_by_user_id: userObject['user_id'].toString(),
           accepted: 0,
           order_cache_sqlite_id: orderCacheLocalId
       );
       int acceptedOrderCache = await PosDatabase.instance.updateOrderCacheAccept(orderCacheObject);
       widget.callBack;
-      //sync to cloud
-      // if(deletedOrderCache == 1){
-      //   OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
-      //   if(orderCacheData.sync_status != 1){
-      //     _orderCacheValue.add(jsonEncode(orderCacheData));
-      //   }
-      //   Map response = await Domain().SyncOrderCacheToCloud(_orderCacheValue.toString());
-      //   if(response['status'] == '1'){
-      //     List responseJson = response['data'];
-      //     int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[0]['order_cache_key']);
-      //   }
-      // }
-      //controller.sink.add('1');
     } catch (e) {
-      print('delete order cache error: ${e}');
+      print('accept order cache error: ${e}');
     }
   }
 
@@ -673,8 +953,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     List<String> _orderCacheValue = [];
     try {
       OrderCache orderCacheObject = OrderCache(
+          soft_delete: dateTime,
           updated_at: dateTime,
-          sync_status: 0,
+          order_by: '',
+          order_by_user_id: '',
+          sync_status: 2,
           accepted: 2,
           order_cache_sqlite_id: orderCacheLocalId
       );
@@ -694,6 +977,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       // }
       //controller.sink.add('1');
     } catch (e) {
+      print(e);
       print('delete order cache error: ${e}');
     }
   }
@@ -701,6 +985,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   getOrderDetailModifier(OrderDetail orderDetail){
     List<String> modifier = [];
     String result = '';
+    print('mod length: ${orderDetail.orderModifierDetail.length}');
     for(int j = 0; j < orderDetail.orderModifierDetail.length; j++){
       modifier.add(orderDetail.orderModifierDetail[j].mod_name!);
       result = modifier
@@ -712,6 +997,59 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     }
 
     return result;
+  }
+
+  syncAllToCloud() async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map data = await Domain().syncLocalUpdateToCloud(
+          table_use_value: this.table_use_value,
+          table_use_detail_value: this.table_use_detail_value,
+          order_cache_value: this.order_cache_value,
+          order_detail_value: this.order_detail_value,
+          branch_link_product_value: this.branch_link_product_value,
+          order_modifier_value: this.order_modifier_detail_value,
+          table_value: this.table_value
+      );
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for(int i = 0; i < responseJson.length; i++){
+          switch(responseJson[i]['table_name']){
+            case 'tb_table_use': {
+              await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+            }
+            break;
+            case 'tb_table_use_detail': {
+              await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+            }
+            break;
+            case 'tb_order_cache': {
+              await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+            }
+            break;
+            case 'tb_order_detail': {
+              await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+            }
+            break;
+            case 'tb_order_modifier_detail': {
+              await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
+            }
+            break;
+            case 'tb_branch_link_product': {
+              await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+            }
+            break;
+            case 'tb_table': {
+              await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+            }
+            break;
+            default: {
+              return;
+            }
+          }
+        }
+      }
+    }
   }
 
 }

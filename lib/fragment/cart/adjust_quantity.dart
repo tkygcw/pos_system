@@ -45,6 +45,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   List<OrderDetail> cartOrderDetailList = [];
   List<OrderModifierDetail> cartOrderModDetailList = [];
   List<TableUseDetail> cartTableUseDetail = [];
+  String? table_use_value, table_use_detail_value, branch_link_product_value, order_cache_value, order_detail_value, order_detail_cancel_value, table_value;
   OrderDetail? orderDetail;
   bool _isLoaded = false;
   bool _submitted = false;
@@ -94,7 +95,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         child: SingleChildScrollView(
           physics: NeverScrollableScrollPhysics(),
           child: AlertDialog(
-            title: Text('Enter admin PIN'),
+            title: Text('Enter Current User PIN'),
             content: SizedBox(
               height: 100.0,
               width: 350.0,
@@ -163,6 +164,9 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                     child: QuantityInput(
                         inputWidth: 273,
                         maxValue: widget.cartItem.quantity,
+                        minValue: 0,
+                        readOnly: true,
+                        acceptsNegatives: false,
                         decoration: InputDecoration(
                           focusedBorder: OutlineInputBorder(
                             borderSide: BorderSide(
@@ -172,8 +176,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                         buttonColor: Colors.black,
                         value: simpleIntInput,
                         onChanged: (value) => setState(() =>
-                        simpleIntInput =
-                            int.parse(value.replaceAll(',', ''))))
+                        simpleIntInput = int.parse(value.replaceAll(',', ''))))
                 ),
                 actions: <Widget>[
                   TextButton(
@@ -209,13 +212,15 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCache(widget.cartItem.orderCacheId!);
     cartCacheList = List.from(cacheData);
 
-    //get table use order cache
-    List<OrderCache> tableCacheData = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), cacheData[0].table_use_sqlite_id!);
-    cartTableCacheList = List.from(tableCacheData);
+    if(widget.currentPage != 'other order'){
+      //get table use order cache
+      List<OrderCache> tableCacheData = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), cacheData[0].table_use_sqlite_id!);
+      cartTableCacheList = List.from(tableCacheData);
 
-    //get table use detail
-    List<TableUseDetail> tableDetailData = await PosDatabase.instance.readAllTableUseDetail(cacheData[0].table_use_sqlite_id!);
-    cartTableUseDetail = List.from(tableDetailData);
+      //get table use detail
+      List<TableUseDetail> tableDetailData = await PosDatabase.instance.readAllTableUseDetail(cacheData[0].table_use_sqlite_id!);
+      cartTableUseDetail = List.from(tableDetailData);
+    }
 
     //get cart item order cache order detail
     List<OrderDetail> orderDetailData = await PosDatabase.instance.readTableOrderDetail(widget.cartItem.orderCacheId!);
@@ -234,78 +239,93 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   readAdminData(String pin, CartModel cart) async {
     List<String> _posTableValue = [];
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? pos_user = prefs.getString('pos_pin_user');
+      Map userObject = json.decode(pos_user!);
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
 
-      List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
-      if (userData.isNotEmpty) {
-        if(simpleIntInput == widget.cartItem.quantity){
-          if(cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1){
-            // if(cartOrderModDetailList.isNotEmpty){
-            //   _hasModifier = true;
-            //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-            //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-            //   }
-            // }
-            callDeleteOrderDetail(userData[0], dateTime, cart);
-          } else if(cartTableCacheList.length > 1 && cartOrderDetailList.length <= 1 ){
-            // if(cartOrderModDetailList.isNotEmpty){
-            //   _hasModifier = true;
-            //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-            //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-            //   }
-            // }
-            callDeletePartialOrder(userData[0], dateTime, cart);
-          } else if (cartTableCacheList.length > 1 && cartOrderDetailList.length > 1) {
-            // if(cartOrderModDetailList.isNotEmpty){
-            //   _hasModifier = true;
-            //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-            //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-            //   }
-            // }
-            callDeleteOrderDetail(userData[0], dateTime, cart);
-          } else if(widget.currentPage == 'other order' && cartOrderDetailList.length > 1){
-            // if(cartOrderModDetailList.isNotEmpty){
-            //   _hasModifier = true;
-            //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-            //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-            //   }
-            // }
-            callDeleteOrderDetail(userData[0], dateTime, cart);
-          } else {
-            // if(cartOrderModDetailList.isNotEmpty){
-            //   _hasModifier = true;
-            //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-            //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-            //     _orderModDetailValue.add(jsonEncode(deletedMod));
-            //   }
-            // }
-            callDeleteAllOrder(userData[0], cartCacheList[0].table_use_sqlite_id!, dateTime, cart);
-            for (int i = 0; i < cartTableUseDetail.length; i++) {
-              //update all table to unused
-              PosTable posTableData = await updatePosTableStatus(int.parse(cartTableUseDetail[i].table_sqlite_id!), 0, dateTime);
-              _posTableValue.add(jsonEncode(posTableData));
+      //List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
+      User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
+      if (userData != null) {
+        if(userData.user_id == userObject['user_id']){
+          if(simpleIntInput == widget.cartItem.quantity){
+            if(cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1){
+              // if(cartOrderModDetailList.isNotEmpty){
+              //   _hasModifier = true;
+              //   for(int i = 0; i < cartOrderModDetailList.length; i++){
+              //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
+              //   }
+              // }
+              callDeleteOrderDetail(userData, dateTime, cart);
+            } else if(cartTableCacheList.length > 1 && cartOrderDetailList.length <= 1 ){
+              // if(cartOrderModDetailList.isNotEmpty){
+              //   _hasModifier = true;
+              //   for(int i = 0; i < cartOrderModDetailList.length; i++){
+              //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
+              //   }
+              // }
+              callDeletePartialOrder(userData, dateTime, cart);
+            } else if (cartTableCacheList.length > 1 && cartOrderDetailList.length > 1) {
+              // if(cartOrderModDetailList.isNotEmpty){
+              //   _hasModifier = true;
+              //   for(int i = 0; i < cartOrderModDetailList.length; i++){
+              //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
+              //   }
+              // }
+              callDeleteOrderDetail(userData, dateTime, cart);
+            } else if(widget.currentPage == 'other order' && cartOrderDetailList.length > 1){
+              // if(cartOrderModDetailList.isNotEmpty){
+              //   _hasModifier = true;
+              //   for(int i = 0; i < cartOrderModDetailList.length; i++){
+              //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
+              //   }
+              // }
+              await callDeleteOrderDetail(userData, dateTime, cart);
+            } else {
+              // if(cartOrderModDetailList.isNotEmpty){
+              //   _hasModifier = true;
+              //   for(int i = 0; i < cartOrderModDetailList.length; i++){
+              //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
+              //     _orderModDetailValue.add(jsonEncode(deletedMod));
+              //   }
+              // }
+              await callDeleteAllOrder(userData, cartCacheList[0].table_use_sqlite_id!, dateTime, cart);
+              if(widget.currentPage != 'other order'){
+                for (int i = 0; i < cartTableUseDetail.length; i++) {
+                  //update all table to unused
+                  PosTable posTableData = await updatePosTableStatus(int.parse(cartTableUseDetail[i].table_sqlite_id!), 0, dateTime);
+                  _posTableValue.add(jsonEncode(posTableData));
+                }
+                table_value = _posTableValue.toString();
+              }
+              tableModel.changeContent(true);
             }
+          } else {
+            await createOrderDetailCancel(userData, dateTime, cart);
+            await updateOrderDetailQuantity(dateTime, cart);
+            tableModel.changeContent(true);
+            print('update order detail quantity & create order detail cancel');
           }
-        } else {
-          createOrderDetailCancel(userData[0], dateTime, cart);
-          await updateOrderDetailQuantity(dateTime, cart);
-          tableModel.changeContent(true);
-          print('update order detail quantity & create order detail cancel');
-        }
-        //sync to cloud
-        syncUpdatedPosTableToCloud(_posTableValue.toString());
-        //print cancel receipt
-        //await _printDeleteList(widget.cartItem!.orderCacheId!, dateTime);
+          //sync to cloud
+          syncAllToCloud();
+          //syncUpdatedPosTableToCloud(_posTableValue.toString());
+          //print cancel receipt
+          //await _printDeleteList(widget.cartItem!.orderCacheId!, dateTime);
 
-        cart.removeAllTable();
-        cart.removeAllCartItem();
-        cart.removePromotion();
-        Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: "delete successful");
+          cart.removeAllTable();
+          cart.removeAllCartItem();
+          cart.removePromotion();
+          Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: "delete successful");
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('pin_not_match')}");
+        }
+
 
       } else {
         Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
+            backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");
       }
     } catch (e) {
       print('delete error ${e}');
@@ -351,6 +371,8 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       quantity: simpleIntInput.toString(),
       cancel_by: user.name,
       cancel_by_user_id: user.user_id.toString(),
+      settlement_sqlite_id: '',
+      settlement_key: '',
       status: 0,
       sync_status: 0,
       created_at: dateTime,
@@ -360,8 +382,8 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     OrderDetailCancel orderDetailCancel = await PosDatabase.instance.insertSqliteOrderDetailCancel(object);
     OrderDetailCancel updateData = await insertOrderDetailCancelKey(orderDetailCancel, dateTime);
     _value.add(jsonEncode(updateData));
-    print('value: ${_value.toString()}');
-    syncOrderDetailCancelToCloud(_value.toString());
+    order_detail_cancel_value = _value.toString();
+    //syncOrderDetailCancelToCloud(_value.toString());
   }
 
   syncOrderDetailCancelToCloud(String value) async {
@@ -390,12 +412,26 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     int data = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObject);
     if(data == 1){
       OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
+      await updateOrderCacheSubtotal(detailData.order_cache_sqlite_id!, detailData.price, simpleIntInput, dateTime);
       await updateProductStock(widget.cartItem.branchProduct_id, simpleIntInput, dateTime);
       await PrintReceipt().printDeleteList(printerList, widget.cartItem.orderCacheId!, dateTime);
       await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem.orderCacheId!, widget.cartItem.category_sqlite_id!, dateTime, cart);
       _value.add(jsonEncode(detailData.syncJson()));
     }
-    syncUpdatedOrderDetailToCloud(_value.toString());
+    order_detail_value = _value.toString();
+    //syncUpdatedOrderDetailToCloud(_value.toString());
+  }
+  updateOrderCacheSubtotal(String orderCacheLocalId, price, quantity, String dateTime) async {
+    double subtotal = 0.0;
+    OrderCache data = await PosDatabase.instance.readSpecificOrderCacheByLocalId(int.parse(orderCacheLocalId));
+    subtotal = double.parse(data.total_amount!) - double.parse(price) * quantity;
+    OrderCache orderCache = OrderCache(
+        order_cache_sqlite_id: data.order_cache_sqlite_id,
+        total_amount: subtotal.toStringAsFixed(2),
+        sync_status: data.sync_status == 0 ? 0 : 2,
+        updated_at: dateTime
+    );
+    int status = await PosDatabase.instance.updateOrderCacheSubtotal(orderCache);
   }
 
   syncUpdatedPosTableToCloud(String posTableValue) async {
@@ -430,30 +466,45 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       //sync to cloud
       OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
       _value.add(jsonEncode(detailData.syncJson()));
-      print('value: ${_value.toString()}');
+      order_detail_value = _value.toString();
+      //print('value: ${_value.toString()}');
     }
-    syncUpdatedOrderDetailToCloud(_value.toString());
-    tableModel.changeContent(true);
+    //syncUpdatedOrderDetailToCloud(_value.toString());
   }
 
   updateProductStock(String branch_link_product_sqlite_id, int quantity, String dateTime) async{
-    List<String> value = [];
-    int _totalStockQty = 0;
+    print('update stock called');
+    List<String> _value = [];
+    int _totalStockQty = 0, updateStock = 0;
+    BranchLinkProduct? object;
     List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-    _totalStockQty = int.parse(checkData[0].stock_quantity!) + quantity;
-    BranchLinkProduct object = BranchLinkProduct(
-        updated_at: dateTime,
-        sync_status: 2,
-        stock_quantity: _totalStockQty.toString(),
-        branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
-    );
-    int updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+    if(checkData[0].stock_type == '2'){
+      _totalStockQty = int.parse(checkData[0].stock_quantity!) + quantity;
+      object = BranchLinkProduct(
+          updated_at: dateTime,
+          sync_status: 2,
+          stock_quantity: _totalStockQty.toString(),
+          branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
+      );
+      updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+    } else {
+      _totalStockQty = int.parse(checkData[0].daily_limit_amount!) + quantity;
+      object = BranchLinkProduct(
+          updated_at: dateTime,
+          sync_status: 2,
+          daily_limit_amount: _totalStockQty.toString(),
+          branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
+      );
+      updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimitAmount(object);
+    }
     if(updateStock == 1){
       List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-      value.add(jsonEncode(updatedData[0].toJson()));
+      _value.add(jsonEncode(updatedData[0]));
+      branch_link_product_value = _value.toString();
     }
+    print('branch link product value in function: ${branch_link_product_value}');
     //sync to cloud
-    syncBranchLinkProductStock(value.toString());
+    //syncBranchLinkProductStock(value.toString());
   }
 
   syncBranchLinkProductStock(String value) async {
@@ -481,6 +532,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   }
 
   callDeleteAllOrder(User user, String currentTableUseId, String dateTime, CartModel cartModel) async {
+    print('delete all order called');
     if(widget.currentPage != 'other_order'){
       await deleteCurrentTableUseDetail(currentTableUseId, dateTime);
       await deleteCurrentTableUseId(int.parse(currentTableUseId), dateTime);
@@ -513,6 +565,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   }
 
   deleteCurrentOrderCache(User user, String dateTime) async {
+    print('delete order cache called');
     List<String> _orderCacheValue = [];
     try {
       OrderCache orderCacheObject = OrderCache(
@@ -528,14 +581,22 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         if(orderCacheData.sync_status != 1){
           _orderCacheValue.add(jsonEncode(orderCacheData));
         }
-        Map response = await Domain().SyncOrderCacheToCloud(_orderCacheValue.toString());
-        if(response['status'] == '1'){
-          List responseJson = response['data'];
-          int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[0]['order_cache_key']);
-        }
+        order_cache_value = _orderCacheValue.toString();
+        //syncOrderCacheToCloud(_orderCacheValue.toString());
       }
     } catch (e) {
       print('delete order cache error: ${e}');
+    }
+  }
+
+  syncOrderCacheToCloud(String value) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map response = await Domain().SyncOrderCacheToCloud(value);
+      if(response['status'] == '1'){
+        List responseJson = response['data'];
+        int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[0]['order_cache_key']);
+      }
     }
   }
 
@@ -555,10 +616,11 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         if(deleteStatus == 1){
           TableUseDetail detailData = await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
           _value.add(jsonEncode(detailData));
+          table_use_detail_value = _value.toString();
         }
       }
       //sync to cloud
-      syncTableUseDetail(_value.toString());
+      //syncTableUseDetail(_value.toString());
     } catch (e) {
       print(e);
       Fluttertoast.showToast(
@@ -594,7 +656,8 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         //sync to cloud
         TableUse tableUseData = await PosDatabase.instance.readSpecificTableUseIdByLocalId(tableUseObject.table_use_sqlite_id!);
         _value.add(jsonEncode(tableUseData));
-        syncTableUseIdToCloud(_value.toString());
+        table_use_value = _value.toString();
+        //syncTableUseIdToCloud(_value.toString());
       }
     } catch (e) {
       Fluttertoast.showToast(
@@ -610,6 +673,62 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       if (data['status'] == '1') {
         List responseJson = data['data'];
         int tablaUseData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
+      }
+    }
+  }
+
+  syncAllToCloud() async {
+    print('sync all called');
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      print('branch link product value in sync: ${this.branch_link_product_value}');
+      Map data = await Domain().syncLocalUpdateToCloud(
+          table_use_value: this.table_use_value,
+          table_use_detail_value: this.table_use_detail_value,
+          order_cache_value: this.order_cache_value,
+          order_detail_value: this.order_detail_value,
+          order_detail_cancel_value: this.order_detail_cancel_value,
+          branch_link_product_value: this.branch_link_product_value,
+          table_value: this.table_value
+      );
+      //if success update local sync status
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for(int i = 0; i < responseJson.length; i++){
+          switch(responseJson[i]['table_name']){
+            case 'tb_table_use_detail': {
+              await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+            }
+            break;
+            case 'tb_table_use': {
+              await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+            }
+            break;
+            case 'tb_order_detail_cancel': {
+              await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[i]['order_detail_cancel_key']);
+            }
+            break;
+            case 'tb_branch_link_product': {
+              await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+            }
+            break;
+            case 'tb_order_detail': {
+              await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+            }
+            break;
+            case 'tb_order_cache': {
+              await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+            }
+            break;
+            case 'tb_table': {
+              await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+            }
+            break;
+            default: {
+              return;
+            }
+          }
+        }
       }
     }
   }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -7,8 +9,9 @@ import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+
+import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/print_receipt.dart';
@@ -22,6 +25,7 @@ class PrinterSetting extends StatefulWidget {
 }
 
 class _PrinterSettingState extends State<PrinterSetting> {
+  String? printer_value, printer_category_value;
   bool isLoaded = false;
   List<Printer> printerList = [];
 
@@ -59,7 +63,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
                       elevation: 5,
                       child: ListTile(
                         leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.print, color: Colors.grey,)),
-                        title:Text("${printerList[index].printerLabel}"),
+                        title:Text("${printerList[index].printer_label}"),
                         subtitle: printerList[index].type == 0 ? Text("Type: USB") : Text('Type: LAN'),
                         trailing: Container(
                           child: FittedBox(
@@ -126,7 +130,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
                       elevation: 5,
                       child: ListTile(
                         leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.print, color: Colors.grey,)),
-                        title:Text("${printerList[index].printerLabel}"),
+                        title:Text("${printerList[index].printer_label}"),
                         subtitle: printerList[index].type == 0 ? Text("Type: USB") : Text('Type: LAN'),
                         trailing: Container(
                           child: FittedBox(
@@ -185,18 +189,28 @@ class _PrinterSettingState extends State<PrinterSetting> {
 
   callClearAllPrinterRecord(Printer printer) async {
     await removePrinter(printer);
-    await clearPrinterCategory(printer);
+    if(printer.is_counter == 0){
+      await clearPrinterCategory(printer);
+    }
+    if(printer.type == 1){
+      syncAllToCloud();
+    }
   }
 
   removePrinter(Printer printer) async {
     try{
+      List<String?> _value = [];
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
 
       int data = await PosDatabase.instance.deletePrinter(Printer(
           soft_delete: dateTime,
+          sync_status: printer.type == 0 ? 1 : 2,
           printer_sqlite_id: printer.printer_sqlite_id
       ));
+      Printer printerData = await PosDatabase.instance.readSpecificPrinterByLocalId(printer.printer_sqlite_id!);
+      _value.add(jsonEncode(printerData));
+      this.printer_value = _value.toString();
       await readAllPrinters();
     }catch(e){
       Fluttertoast.showToast(
@@ -207,17 +221,53 @@ class _PrinterSettingState extends State<PrinterSetting> {
 
   clearPrinterCategory(Printer printer) async {
     try{
+      List<String?> _value = [];
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
 
       int data = await PosDatabase.instance.deletePrinterCategory(PrinterLinkCategory(
         soft_delete: dateTime,
+        sync_status: printer.type == 0 ? 1 : 2,
         printer_sqlite_id: printer.printer_sqlite_id.toString()
       ));
+      if(printer.type == 1){
+        List<PrinterLinkCategory> printerCategoryList = await PosDatabase.instance.readDeletedPrinterLinkCategory(printer.printer_sqlite_id!);
+        for(int i = 0 ; i < printerCategoryList.length; i++){
+          _value.add(jsonEncode(printerCategoryList[i]));
+        }
+      }
+      this.printer_category_value = _value.toString();
     }catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: "Clear printer category, Please try again $e");
+    }
+  }
+
+  syncAllToCloud() async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map data = await Domain().syncLocalUpdateToCloud(
+          printer_value: this.printer_value,
+          printer_link_category_value: this.printer_category_value
+      );
+      if(data['status'] == '1'){
+        List responseJson = data['data'];
+        for(int i = 0; i < responseJson.length; i++) {
+          switch (responseJson[i]['table_name']) {
+            case 'tb_printer': {
+              await PosDatabase.instance.updatePrinterSyncStatusFromCloud(responseJson[i]['printer_key']);
+            }
+            break;
+            case 'tb_printer_link_category': {
+              await PosDatabase.instance.updatePrinterLinkCategorySyncStatusFromCloud(responseJson[i]['printer_link_category_key']);
+            }
+            break;
+            default:
+              return;
+          }
+        }
+      }
     }
   }
 

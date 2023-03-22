@@ -37,6 +37,7 @@ class PaymentSuccessDialog extends StatefulWidget {
   final String orderId;
   final String orderKey;
   final String dining_id;
+  final String? change;
   const PaymentSuccessDialog(
       {Key? key,
       required this.orderId,
@@ -44,7 +45,7 @@ class PaymentSuccessDialog extends StatefulWidget {
       required this.orderCacheIdList,
       required this.selectedTableList,
       required this.dining_id,
-      required this.orderKey})
+      required this.orderKey, this.change})
       : super(key: key);
 
   @override
@@ -55,7 +56,10 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   List<Printer> printerList = [];
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
+  String? order_value, order_cache_value, table_use_value, table_use_detail_value, cash_record_value, table_value;
   bool isLoaded = false;
+  bool isButtonDisabled = false;
+
 
   closeDialog(BuildContext context) {
     return Navigator.of(context).pop(true);
@@ -87,19 +91,30 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              Visibility(
+                                visible: widget.change != null ? true : false,
+                                  child: Text('Change: ${widget.change}')
+                              ),
+                              SizedBox(height: 25),
                               Container(
                                 width: MediaQuery.of(context).size.height / 6,
                                 child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
                                         primary: color.backgroundColor,
                                         padding: EdgeInsets.fromLTRB(0, 30, 0, 30)),
-                                    onPressed: () async {
+                                    onPressed: isButtonDisabled ? null : () async {
+                                      // Disable the button after it has been pressed
+                                      setState(() {
+                                        isButtonDisabled = true;
+                                      });
                                       await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
                                       await createCashRecord();
-                                      closeDialog(context);
+                                      syncAllToCloud();
                                       tableModel.changeContent(true);
                                       cartModel.initialLoad();
-                                      widget.callback();
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
                                     },
                                     child: Text(
                                       'Print receipt',
@@ -113,8 +128,13 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                     style: ElevatedButton.styleFrom(
                                       primary: color.buttonColor,
                                     ),
-                                    onPressed: () async {
+                                    onPressed: isButtonDisabled ? null : () async {
+                                      // Disable the button after it has been pressed
+                                      setState(() {
+                                        isButtonDisabled = true;
+                                      });
                                       await createCashRecord();
+                                      syncAllToCloud();
                                       tableModel.changeContent(true);
                                       cartModel.initialLoad();
                                       Navigator.of(context).pop();
@@ -129,7 +149,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                       : CustomProgressBar(),
                 );
               } else {
-                //Mobile layout
+                ///Mobile layout
                 return AlertDialog(
                   title: Text('Payment success'),
                   content: isLoaded
@@ -144,13 +164,19 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                     style: ElevatedButton.styleFrom(
                                       primary: color.backgroundColor,
                                     ),
-                                    onPressed: () async {
+                                    onPressed: isButtonDisabled ? null : () async {
+                                      // Disable the button after it has been pressed
+                                      setState(() {
+                                        isButtonDisabled = true;
+                                      });
                                       await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
                                       await createCashRecord();
-                                      closeDialog(context);
+                                      syncAllToCloud();
                                       tableModel.changeContent(true);
                                       cartModel.initialLoad();
-                                      widget.callback();
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
                                     },
                                     child: Text(
                                       'Print receipt',
@@ -163,12 +189,18 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                     style: ElevatedButton.styleFrom(
                                       primary: color.buttonColor,
                                     ),
-                                    onPressed: () async {
+                                    onPressed: isButtonDisabled ? null : () async {
+                                      // Disable the button after it has been pressed
+                                      setState(() {
+                                        isButtonDisabled = true;
+                                      });
                                       await createCashRecord();
-                                      closeDialog(context);
+                                      syncAllToCloud();
                                       tableModel.changeContent(true);
                                       cartModel.initialLoad();
-                                      widget.callback();
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
                                     },
                                     child: Text(
                                         '${AppLocalizations.of(context)?.translate('close')}')),
@@ -196,6 +228,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     await updateOrderCache();
     await readAllPrinters();
     await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
+    syncAllToCloud();
     //await _printReceiptList();
     //await deleteOrderCache();
     isLoaded = true;
@@ -215,8 +248,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       Order orderData = await PosDatabase.instance.readSpecificOrder(int.parse(widget.orderId));
       _value.add(jsonEncode(orderData));
     }
+    order_value = _value.toString();
     //sync to cloud
-    await syncUpdatedOrderToCloud(_value.toString());
+    //await syncUpdatedOrderToCloud(_value.toString());
   }
 
   syncUpdatedOrderToCloud(String value) async {
@@ -252,8 +286,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
             }
           }
         }
+        table_use_detail_value = _value.toString();
         //sync to cloud
-        syncTableUseDetailToCloud(_value.toString());
+        //syncTableUseDetailToCloud(_value.toString());
       }
     } catch (e) {
       print('Delete current table use detail error: ${e}');
@@ -297,8 +332,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
             _value.add(jsonEncode(tableUseData));
           }
         }
+        table_use_value = _value.toString();
         //sync to cloud
-        syncUpdatedTableUseIdToCloud(_value.toString());
+        //syncUpdatedTableUseIdToCloud(_value.toString());
       }
     } catch (e) {
       print('Delete current table use id error: ${e}');
@@ -339,8 +375,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           _value.add(jsonEncode(orderCacheData));
         }
       }
+      order_cache_value = _value.toString();
       //sync to cloud
-      syncUpdatedOrderCacheToCloud(_value.toString());
+      //syncUpdatedOrderCacheToCloud(_value.toString());
     }
   }
 
@@ -387,8 +424,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           }
         }
       }
+      table_value = _value.toString();
       //sync to cloud
-      syncUpdatedPosTableToCloud(_value.toString());
+      //syncUpdatedPosTableToCloud(_value.toString());
     }
   }
 
@@ -435,9 +473,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
 
   createCashRecord() async {
     try {
+      List<String> _value = [];
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-      List<String> _value = [];
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
       final String? pos_user = prefs.getString('pos_pin_user');
@@ -466,9 +504,10 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
             soft_delete: '');
         CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
         CashRecord updatedData = await insertCashRecordKey(data, dateTime);
-
+        _value.add(jsonEncode(updatedData));
+        cash_record_value = _value.toString();
         //sync to cloud
-        syncCashRecordToCloud(updatedData);
+        //syncCashRecordToCloud(updatedData);
       }
     } catch (e) {
       print(e);
@@ -494,5 +533,54 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
 
   readAllPrinters() async {
     printerList = await PrintReceipt().readAllPrinters();
+  }
+
+  syncAllToCloud() async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map data = await Domain().syncLocalUpdateToCloud(
+        order_value:  this.order_value,
+        order_cache_value: this.order_cache_value,
+        table_use_detail_value: this.table_use_detail_value,
+        table_use_value: this.table_use_value,
+        table_value: this.table_value,
+        cash_record_value: this.cash_record_value
+
+      );
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for(int i = 0; i < responseJson.length; i++){
+          switch(responseJson[i]['table_name']){
+            case 'tb_order': {
+              await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+            }
+            break;
+            case 'tb_table_use': {
+              await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+            }
+            break;
+            case 'tb_table_use_detail': {
+              await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+            }
+            break;
+            case 'tb_order_cache': {
+              await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+            }
+            break;
+            case 'tb_table': {
+              await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+            }
+            break;
+            case 'tb_cash_record': {
+              await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+            }
+            break;
+            default: {
+              return;
+            }
+          }
+        }
+      }
+    }
   }
 }

@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/payment/ipay_api.dart';
-import 'package:pos_system/fragment/payment/number_button.dart';
 import 'package:pos_system/fragment/payment/payment_success_dialog.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
@@ -34,7 +33,6 @@ import '../../object/modifier_group.dart';
 import '../../object/promotion.dart';
 import '../../object/table.dart';
 import '../../object/tax.dart';
-import '../../object/tax_link_dining.dart';
 import '../../object/variant_group.dart';
 
 
@@ -96,6 +94,7 @@ class _MakePaymentState extends State<MakePayment> {
   String finalAmount = '';
   String change = '0.00';
   String? orderId, orderKey;
+  String? order_value, order_tax_value, order_promotion_value;
   int myCount = 0;
   late Map branchObject;
 
@@ -1119,6 +1118,7 @@ class _MakePaymentState extends State<MakePayment> {
                 callback: () => {},
                 orderId: orderId!,
                 orderKey: orderKey!,
+                change: change,
               ),
             ),
           );
@@ -1449,7 +1449,6 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   getReceiptPaymentDetail(CartModel cart) {
-    print('cart payment length: ${cart.cartNotifierPayment.length}');
     for (int i = 0; i < cart.cartNotifierPayment.length; i++) {
       this.total = cart.cartNotifierPayment[i].subtotal;
       this.totalAmount = cart.cartNotifierPayment[i].amount;
@@ -1607,9 +1606,9 @@ class _MakePaymentState extends State<MakePayment> {
 
   callCreateOrder(String? paymentReceived, ConnectivityChangeNotifier connectivity, {orderChange}) async {
     await createOrder(double.parse(paymentReceived!), orderChange);
-    //await insertOrderKey(connectivity);
     await crateOrderTaxDetail(connectivity);
     await createOrderPromotionDetail(connectivity);
+    await syncAllToCloud();
   }
 
   readBranchPref() async {
@@ -1638,6 +1637,7 @@ class _MakePaymentState extends State<MakePayment> {
 
   createOrder(double? paymentReceived, String? orderChange) async {
     print('create order called');
+    List<String> _value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
@@ -1672,6 +1672,8 @@ class _MakePaymentState extends State<MakePayment> {
             order_key: '',
             refund_sqlite_id: '',
             refund_key: '',
+            settlement_sqlite_id: '',
+            settlement_key: '',
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',
@@ -1681,7 +1683,9 @@ class _MakePaymentState extends State<MakePayment> {
         print('data: ${data}');
         this.orderId = data.order_sqlite_id.toString();
         Order updatedOrder = await insertOrderKey();
-        await syncOrderToCloud(updatedOrder);
+        _value.add(jsonEncode(updatedOrder));
+        order_value = _value.toString();
+        //await syncOrderToCloud(updatedOrder);
 
       }
       
@@ -1693,18 +1697,18 @@ class _MakePaymentState extends State<MakePayment> {
     }
   }
 
-  syncOrderToCloud(Order updatedOrder) async {
-    List<String> _value = [];
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess){
-      _value.add(jsonEncode(updatedOrder));
-      Map data = await Domain().SyncOrderToCloud(_value.toString());
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[0]['order_key']);
-      }
-    }
-  }
+  // syncOrderToCloud(Order updatedOrder) async {
+  //
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if(_hasInternetAccess){
+  //
+  //     Map data = await Domain().SyncOrderToCloud(_value.toString());
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[0]['order_key']);
+  //     }
+  //   }
+  // }
 
   insertOrderKey() async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -1728,16 +1732,6 @@ class _MakePaymentState extends State<MakePayment> {
       }
     }
     return _updatedOrder;
-    //sync to cloud
-    // if(connectivity.isConnect){
-    //   Map data = await Domain().SyncOrderToCloud(_value.toString());
-    //   if (data['status'] == '1') {
-    //     List responseJson = data['data'];
-    //     for (var i = 0; i < responseJson.length; i++) {
-    //       int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
-    //     }
-    //   }
-    // }
   }
 
   generateOrderPromotionDetailKey(OrderPromotionDetail orderPromotionDetail) async  {
@@ -1798,8 +1792,9 @@ class _MakePaymentState extends State<MakePayment> {
       OrderPromotionDetail returnData = await insertOrderPromotionDetailKey(data, dateTime);
       _value.add(jsonEncode(returnData));
     }
+    order_promotion_value = _value.toString();
     //sync to cloud
-    syncOrderPromotionDetailToCloud(_value.toString());
+    //syncOrderPromotionDetailToCloud(_value.toString());
     // if(connectivity.isConnect){
     //   Map data = await Domain().SyncOrderPromotionDetailToCloud(_value.toString());
     //   if (data['status'] == '1') {
@@ -1882,8 +1877,9 @@ class _MakePaymentState extends State<MakePayment> {
         _value.add(jsonEncode(returnData));
       }
     }
+    order_tax_value = _value.toString();
     //sync to cloud
-    syncOrderTaxDetailToCloud(_value.toString());
+    //syncOrderTaxDetailToCloud(_value.toString());
     // if(connectivity.isConnect){
     //   Map data = await Domain().SyncOrderTaxDetailToCloud(_value.toString());
     //   if (data['status'] == '1') {
@@ -1919,6 +1915,39 @@ class _MakePaymentState extends State<MakePayment> {
     List<Order> data = await PosDatabase.instance.readLatestOrder();
     orderList = List.from(data);
 
+  }
+
+  syncAllToCloud() async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map data = await Domain().syncLocalUpdateToCloud(
+        order_value:  this.order_value,
+        order_promotion_value: this.order_promotion_value,
+        order_tax_value: this.order_tax_value
+      );
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for(int i = 0; i < responseJson.length; i++){
+          switch(responseJson[i]['table_name']){
+            case 'tb_order': {
+              await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+            }
+            break;
+            case 'tb_order_promotion_detail': {
+              await PosDatabase.instance.updateOrderPromotionDetailSyncStatusFromCloud(responseJson[i]['order_promotion_detail_key']);
+            }
+            break;
+            case 'tb_order_tax_detail': {
+              await PosDatabase.instance.updateOrderTaxDetailSyncStatusFromCloud(responseJson[i]['order_tax_detail_key']);
+            }
+            break;
+            default: {
+              return;
+            }
+          }
+        }
+      }
+    }
   }
 
 /*

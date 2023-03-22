@@ -243,6 +243,10 @@ class _SettingMenuState extends State<SettingMenu> {
                           label: 'Receipt Layout',
                         ),
                         SideNavigationBarItem(
+                          icon: Icons.table_restaurant,
+                          label: 'Table Setting',
+                        ),
+                        SideNavigationBarItem(
                           icon: Icons.settings,
                           label: 'App-Device setting',
                         ),

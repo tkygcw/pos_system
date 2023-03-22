@@ -10,6 +10,8 @@ class OrderDetailCancelFields{
     quantity,
     cancel_by,
     cancel_by_user_id,
+    settlement_sqlite_id,
+    settlement_key,
     status,
     sync_status,
     created_at,
@@ -25,6 +27,8 @@ class OrderDetailCancelFields{
   static String quantity = 'quantity';
   static String cancel_by = 'cancel_by';
   static String cancel_by_user_id = 'cancel_by_user_id';
+  static String settlement_sqlite_id = 'settlement_sqlite_id';
+  static String settlement_key = 'settlement_key';
   static String status = 'status';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
@@ -41,6 +45,8 @@ class OrderDetailCancel{
   String? quantity;
   String? cancel_by;
   String? cancel_by_user_id;
+  String? settlement_sqlite_id;
+  String? settlement_key;
   int? status;
   int? sync_status;
   String? created_at;
@@ -57,6 +63,8 @@ class OrderDetailCancel{
         this.quantity,
         this.cancel_by,
         this.cancel_by_user_id,
+        this.settlement_sqlite_id,
+        this.settlement_key,
         this.status,
         this.sync_status,
         this.created_at,
@@ -74,6 +82,8 @@ class OrderDetailCancel{
     String? quantity,
     String? cancel_by,
     String? cancel_by_user_id,
+    String? settlement_sqlite_id,
+    String? settlement_key,
     int? status,
     int? sync_status,
     String? created_at,
@@ -89,6 +99,8 @@ class OrderDetailCancel{
         quantity: quantity ?? this.quantity,
         cancel_by: cancel_by ?? this.cancel_by,
         cancel_by_user_id: cancel_by_user_id ?? this.cancel_by_user_id,
+        settlement_sqlite_id: settlement_sqlite_id ?? this.settlement_sqlite_id,
+        settlement_key: settlement_key ?? this.settlement_key,
         status: status ?? this.status,
         sync_status: sync_status ?? this.sync_status,
         created_at: created_at ?? this.created_at,
@@ -105,6 +117,8 @@ class OrderDetailCancel{
     quantity: json[OrderDetailCancelFields.quantity] as String?,
     cancel_by: json[OrderDetailCancelFields.cancel_by] as String?,
     cancel_by_user_id: json[OrderDetailCancelFields.cancel_by_user_id] as String?,
+    settlement_sqlite_id: json[OrderDetailCancelFields.settlement_sqlite_id] as String?,
+    settlement_key: json[OrderDetailCancelFields.settlement_key] as String?,
     status: json[OrderDetailCancelFields.status] as int?,
     sync_status: json[OrderDetailCancelFields.sync_status] as int?,
     created_at: json[OrderDetailCancelFields.created_at] as String?,
@@ -122,6 +136,8 @@ class OrderDetailCancel{
     OrderDetailCancelFields.quantity: quantity,
     OrderDetailCancelFields.cancel_by: cancel_by,
     OrderDetailCancelFields.cancel_by_user_id: cancel_by_user_id,
+    OrderDetailCancelFields.settlement_sqlite_id: settlement_sqlite_id,
+    OrderDetailCancelFields.settlement_key: settlement_key,
     OrderDetailCancelFields.status: status,
     OrderDetailCancelFields.sync_status: sync_status,
     OrderDetailCancelFields.created_at: created_at,

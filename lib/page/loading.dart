@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/bill.dart';
@@ -19,10 +21,13 @@ import 'package:pos_system/object/modifier_link_product.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
+import 'package:pos_system/object/printer.dart';
+import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/product_variant_detail.dart';
@@ -44,6 +49,7 @@ import '../notifier/theme_color.dart';
 import '../object/branch_link_user.dart';
 import '../object/customer.dart';
 import '../object/dining_option.dart';
+import '../object/receipt.dart';
 import '../object/table_use.dart';
 import '../object/table_use_detail.dart';
 import '../object/tax.dart';
@@ -62,8 +68,7 @@ class _LoadingPageState extends State<LoadingPage> {
     super.initState();
     _createProductImgFolder();
     getAllUser();
-    getAllOrder();
-    getAllTable();
+    getAllSettlement();
     getBranchLinkUser();
     getAllDiningOption();
     getBranchLinkDiningOption();
@@ -79,8 +84,10 @@ class _LoadingPageState extends State<LoadingPage> {
     getModifierItem();
     getBranchLinkModifier();
     getSale();
-    getSettlement();
     getCashRecord();
+    getAllPrinter();
+    clearCloudSyncRecord();
+    createReceiptLayout();
 
     // Go to Page2 after 5s.
     Timer(Duration(seconds: 5), () {
@@ -98,6 +105,78 @@ class _LoadingPageState extends State<LoadingPage> {
                 'data/user/0/com.example.pos_system/files/assets/img/output-onlinegiftools.gif'))),
       );
     });
+  }
+
+  createReceiptLayout() async {
+    try{
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+
+      Receipt data = await PosDatabase.instance.insertSqliteReceipt(Receipt(
+          receipt_id: 0,
+          branch_id: branch_id.toString(),
+          company_id: '',
+          header_text: '',
+          footer_text: '',
+          header_image: '',
+          footer_image: '',
+          header_text_status: 0,
+          footer_text_status: 0,
+          header_image_status: 0,
+          footer_image_status: 0,
+          promotion_detail_status: 0,
+          status: 1,
+          sync_status: 0,
+          created_at: dateTime,
+          updated_at: '',
+          soft_delete: ''
+      ));
+    }catch(e){
+      Fluttertoast.showToast(
+          backgroundColor: Color(0xFFFF0000),
+          msg: "Fail to add receipt layout, Please try again $e");
+      print('$e');
+    }
+  }
+
+  clearCloudSyncRecord() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    Map data = await Domain().clearAllSyncRecord(branch_id.toString());
+  }
+
+/*
+  save printer to local database
+*/
+  getAllPrinter() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    Map data = await Domain().getPrinter(branch_id.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['printer'];
+      for(var i = 0; i < responseJson.length; i++){
+        Printer printerItem = Printer.fromJson(responseJson[i]);
+        Printer data = await PosDatabase.instance.insertPrinter(Printer(
+          printer_id: printerItem.printer_id,
+          printer_key: printerItem.printer_key,
+          branch_id: printerItem.branch_id,
+          company_id: printerItem.company_id,
+          printer_link_category_id: '',
+          value: printerItem.value,
+          type: printerItem.type,
+          printer_label: printerItem.printer_label,
+          paper_size: printerItem.paper_size,
+          printer_status: printerItem.printer_status,
+          is_counter: printerItem.is_counter,
+          sync_status: 1,
+          created_at: printerItem.created_at,
+          updated_at: printerItem.updated_at,
+          soft_delete: printerItem.soft_delete
+        ));
+      }
+    }
   }
 
 /*
@@ -122,64 +201,6 @@ class _LoadingPageState extends State<LoadingPage> {
     }
   }
 
-  /*
-  sava table use to database
-*/
-  getAllTableUse() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    Map data = await Domain().getAllTableUse(branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['table_use'];
-      for (var i = 0; i < responseJson.length; i++) {
-        TableUse item = TableUse.fromJson(responseJson[i]);
-        TableUse user = await PosDatabase.instance.insertTableUse(TableUse(
-          table_use_id: item.table_use_id,
-          table_use_key: item.table_use_key,
-          branch_id: item.branch_id,
-          order_cache_key: item.order_cache_key,
-          card_color: item.card_color,
-          status: item.status,
-          sync_status: 1,
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-          soft_delete: item.soft_delete,
-        ));
-      }
-    }
-  }
-
-  /*
-  sava table use detail to database
-*/
-  getAllTableUseDetail() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    Map data = await Domain().getAllTableUseDetail(branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['table_use'];
-      for (var i = 0; i < responseJson.length; i++) {
-        TableUseDetail item = TableUseDetail.fromJson(responseJson[i]);
-        TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(item.table_use_key!);
-        PosTable tableData = await PosDatabase.instance.readTableByCloudId(item.table_id.toString());
-        //TableUseDetail user = await PosDatabase.instance.insertSqliteTableUseDetail(TableUseDetail.fromJson(responseJson[i]));
-        TableUseDetail user = await PosDatabase.instance.insertTableUseDetail(TableUseDetail(
-          table_use_detail_id: item.table_use_detail_id,
-          table_use_detail_key: item.table_use_detail_key,
-          table_use_sqlite_id: tableUseData != null ? tableUseData.table_use_sqlite_id.toString() : '0',
-          table_use_key: item.table_use_key,
-          table_sqlite_id: tableData.table_sqlite_id.toString(),
-          table_id: item.table_id,
-          status: item.status,
-          sync_status: 1,
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-          soft_delete: item.soft_delete
-        ));
-      }
-    }
-  }
-
 /*
   save branch link user table to database
 */
@@ -197,6 +218,50 @@ class _LoadingPageState extends State<LoadingPage> {
   }
 
 /*
+  save settlement to database
+*/
+  getAllSettlement() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    Map data = await Domain().getSettlement(userObject['company_id'], branch_id.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['settlement'];
+      for (var i = 0; i < responseJson.length; i++) {
+        Settlement item = Settlement.fromJson(responseJson[i]);
+        Settlement data = await PosDatabase.instance.insertSettlement(Settlement(
+          settlement_id: item.settlement_id,
+          settlement_key: item.settlement_key,
+          company_id: item.company_id,
+          branch_id: item.branch_id,
+          total_bill: item.total_bill,
+          total_sales: item.total_sales,
+          total_refund_bill: item.total_refund_bill,
+          total_refund_amount: item.total_refund_amount,
+          total_discount: item.total_discount,
+          total_cancellation: item.total_cancellation,
+          total_tax: item.total_tax,
+          settlement_by_user_id: item.settlement_by_user_id,
+          settlement_by: item.settlement_by,
+          status: item.status,
+          sync_status: 1,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          soft_delete: item.soft_delete,
+        ));
+      }
+      getAllOrder();
+      getAllTable();
+      getSettlementLinkPayment();
+    } else {
+      getAllOrder();
+      getAllTable();
+      getSettlementLinkPayment();
+    }
+  }
+
+/*
   save branch table to database
 */
   getAllTable() async {
@@ -208,11 +273,101 @@ class _LoadingPageState extends State<LoadingPage> {
       for (var i = 0; i < responseJson.length; i++) {
         PosTable table = await PosDatabase.instance.insertPosTable(PosTable.fromJson(responseJson[i]));
       }
+      getAllCategory();
+    } else {
+      getAllCategory();
     }
-    await getAllCategory();
-    await getAllTableUse();
-    await getAllTableUseDetail();
-    await getAllOrderCache();
+  }
+}
+
+/*
+  save categories to database
+*/
+getAllCategory() async {
+  final prefs = await SharedPreferences.getInstance();
+  final String? user = prefs.getString('user');
+  Map userObject = json.decode(user!);
+  Map data = await Domain().getAllCategory(userObject['company_id']);
+  if (data['status'] == '1') {
+    List responseJson = data['categories'];
+    for (var i = 0; i < responseJson.length; i++) {
+      Categories data = await PosDatabase.instance
+          .insertCategories(Categories.fromJson(responseJson[i]));
+    }
+    getAllProduct();
+    getAllPrinterLinkCategory();
+  }
+}
+
+/*
+  save printer category to database
+*/
+getAllPrinterLinkCategory() async{
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  Map data = await Domain().getPrinterCategory(branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['printer'];
+    for(var i = 0; i < responseJson.length; i++){
+      PrinterLinkCategory item = PrinterLinkCategory.fromJson(responseJson[i]);
+      Printer printer = await PosDatabase.instance.readPrinterSqliteID(item.printer_key!);
+      Categories? categories = await PosDatabase.instance.readCategorySqliteID(item.category_id!);
+      PrinterLinkCategory data = await PosDatabase.instance.insertPrinterCategory(PrinterLinkCategory(
+        printer_link_category_key: item.printer_link_category_key,
+        printer_link_category_id: item.printer_link_category_id,
+        printer_sqlite_id: printer.printer_sqlite_id.toString(),
+        printer_key: item.printer_key,
+        category_sqlite_id: categories != null ? categories.category_sqlite_id.toString() : '0',
+        category_id: item.category_id,
+        sync_status: 1,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        soft_delete: item.soft_delete,
+      ));
+    }
+  }
+}
+
+/*
+  save product to database
+*/
+getAllProduct() async {
+  final prefs = await SharedPreferences.getInstance();
+  final String? user = prefs.getString('user');
+  Map userObject = json.decode(user!);
+  Map data = await Domain().getAllProduct(userObject['company_id']);
+  if (data['status'] == '1') {
+    List responseJson = data['product'];
+    for (var i = 0; i < responseJson.length; i++) {
+      Product productItem = Product.fromJson(responseJson[i]);
+      Categories? categoryData = await PosDatabase.instance.readCategorySqliteID(productItem.category_id!);
+      Product data = await PosDatabase.instance.insertProduct(Product(
+          product_id: productItem.product_id,
+          category_id: productItem.category_id,
+          category_sqlite_id: categoryData != null ? categoryData.category_sqlite_id.toString(): '0' ,
+          company_id: productItem.company_id,
+          name: productItem.name,
+          price: productItem.price,
+          description: productItem.description,
+          SKU: productItem.SKU,
+          image: productItem.image,
+          has_variant: productItem.has_variant,
+          stock_type: productItem.stock_type,
+          stock_quantity: productItem.stock_quantity,
+          available: productItem.available,
+          graphic_type: productItem.graphic_type,
+          color: productItem.color,
+          daily_limit: productItem.daily_limit,
+          daily_limit_amount: productItem.daily_limit_amount,
+          sync_status: 2,
+          created_at: productItem.created_at,
+          updated_at: productItem.updated_at,
+          soft_delete: productItem.soft_delete
+      ));
+    }
+    getModifierLinkProduct();
+    getVariantGroup();
+    getProductVariant();
   }
 }
 
@@ -299,24 +454,6 @@ getTaxLinkDining() async {
 }
 
 /*
-  save categories to database
-*/
-getAllCategory() async {
-  final prefs = await SharedPreferences.getInstance();
-  final String? user = prefs.getString('user');
-  Map userObject = json.decode(user!);
-  Map data = await Domain().getAllCategory(userObject['company_id']);
-  if (data['status'] == '1') {
-    List responseJson = data['categories'];
-    for (var i = 0; i < responseJson.length; i++) {
-      Categories data = await PosDatabase.instance
-          .insertCategories(Categories.fromJson(responseJson[i]));
-    }
-    await getAllProduct();
-  }
-}
-
-/*
   save promotion to database
 */
 getAllPromotion() async {
@@ -343,9 +480,7 @@ getBranchLinkPromotion() async {
   if (data['status'] == '1') {
     List responseJson = data['promotion'];
     for (var i = 0; i < responseJson.length; i++) {
-      BranchLinkPromotion data = await PosDatabase.instance
-          .insertBranchLinkPromotion(
-              BranchLinkPromotion.fromJson(responseJson[i]));
+      BranchLinkPromotion data = await PosDatabase.instance.insertBranchLinkPromotion(BranchLinkPromotion.fromJson(responseJson[i]));
     }
   }
 }
@@ -502,54 +637,6 @@ getBranchLinkModifier() async {
 }
 
 /*
-  save product to database
-*/
-getAllProduct() async {
-  final prefs = await SharedPreferences.getInstance();
-  final String? user = prefs.getString('user');
-  Map userObject = json.decode(user!);
-  Map data = await Domain().getAllProduct(userObject['company_id']);
-  if (data['status'] == '1') {
-    List responseJson = data['product'];
-    for (var i = 0; i < responseJson.length; i++) {
-      Product productItem = Product.fromJson(responseJson[i]);
-      Categories? categoryData = await PosDatabase.instance.readCategorySqliteID(productItem.category_id!);
-      Product data = await PosDatabase.instance.insertProduct(Product(
-        product_id: productItem.product_id,
-        category_id: productItem.category_id,
-        category_sqlite_id: categoryData != null ? categoryData.category_sqlite_id.toString(): '0' ,
-        company_id: productItem.company_id,
-        name: productItem.name,
-        price: productItem.price,
-        description: productItem.description,
-        SKU: productItem.SKU,
-        image: productItem.image,
-        has_variant: productItem.has_variant,
-        stock_type: productItem.stock_type,
-        stock_quantity: productItem.stock_quantity,
-        available: productItem.available,
-        graphic_type: productItem.graphic_type,
-        color: productItem.color,
-        daily_limit: productItem.daily_limit,
-        daily_limit_amount: productItem.daily_limit_amount,
-        sync_status: 2,
-        created_at: productItem.created_at,
-        updated_at: productItem.updated_at,
-        soft_delete: productItem.soft_delete
-      ));
-    }
-
-
-    getModifierLinkProduct();
-    getVariantGroup();
-    getProductVariant();
-    await getBranchLinkProduct();
-
-
-  }
-}
-
-/*
   save branch link product to database
 */
 getBranchLinkProduct() async {
@@ -562,8 +649,7 @@ getBranchLinkProduct() async {
       BranchLinkProduct branchLinkProductData = BranchLinkProduct.fromJson(responseJson[i]);
       Product? productData = await PosDatabase.instance.readProductSqliteID(branchLinkProductData.product_id!);
       ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(branchLinkProductData.product_variant_id!);
-      BranchLinkProduct data = await PosDatabase.instance
-          .insertBranchLinkProduct(BranchLinkProduct(
+      BranchLinkProduct data = await PosDatabase.instance.insertBranchLinkProduct(BranchLinkProduct(
         branch_link_product_id: branchLinkProductData.branch_link_product_id,
         branch_id: branchLinkProductData.branch_id,
         product_sqlite_id: productData!.product_sqlite_id.toString(),
@@ -581,8 +667,69 @@ getBranchLinkProduct() async {
         created_at: branchLinkProductData.created_at,
         updated_at: branchLinkProductData.updated_at,
         soft_delete: branchLinkProductData.soft_delete
-      )
-      );
+      ));
+    }
+    getAllTableUse();
+  }
+}
+
+/*
+  sava table use to database
+*/
+getAllTableUse() async {
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  Map data = await Domain().getAllTableUse(branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['table_use'];
+    for (var i = 0; i < responseJson.length; i++) {
+      TableUse item = TableUse.fromJson(responseJson[i]);
+      TableUse user = await PosDatabase.instance.insertTableUse(TableUse(
+        table_use_id: item.table_use_id,
+        table_use_key: item.table_use_key,
+        branch_id: item.branch_id,
+        order_cache_key: item.order_cache_key,
+        card_color: item.card_color,
+        status: item.status,
+        sync_status: 1,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        soft_delete: item.soft_delete,
+      ));
+    }
+    getAllOrderCache();
+    getAllTableUseDetail();
+  }
+}
+
+/*
+  sava table use detail to database
+*/
+getAllTableUseDetail() async {
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  Map data = await Domain().getAllTableUseDetail(branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['table_use'];
+    for (var i = 0; i < responseJson.length; i++) {
+      TableUseDetail item = TableUseDetail.fromJson(responseJson[i]);
+      TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(item.table_use_key!);
+      print('table id: ${item.table_id}');
+      PosTable tableData = await PosDatabase.instance.readTableByCloudId(item.table_id.toString());
+      //TableUseDetail user = await PosDatabase.instance.insertSqliteTableUseDetail(TableUseDetail.fromJson(responseJson[i]));
+      TableUseDetail user = await PosDatabase.instance.insertTableUseDetail(TableUseDetail(
+          table_use_detail_id: item.table_use_detail_id,
+          table_use_detail_key: item.table_use_detail_key,
+          table_use_sqlite_id: tableUseData != null ? tableUseData.table_use_sqlite_id.toString() : '0',
+          table_use_key: item.table_use_key,
+          table_sqlite_id: tableData.table_sqlite_id.toString(),
+          table_id: item.table_id,
+          status: item.status,
+          sync_status: 1,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          soft_delete: item.soft_delete
+      ));
     }
   }
 }
@@ -646,7 +793,6 @@ getVariantGroup() async {
       );
     }
     getVariantItem();
-
   }
 
 }
@@ -676,6 +822,9 @@ getVariantItem() async {
         soft_delete: variantItemData.soft_delete
       ));
     }
+    getBranchLinkProduct();
+  } else {
+    getBranchLinkProduct();
   }
 }
 
@@ -711,7 +860,6 @@ getProductVariant() async {
       ));
     }
     getProductVariantDetail();
-
   }
 }
 
@@ -746,9 +894,44 @@ getProductVariantDetail() async {
 }
 
 /*
+  save settlement link payment to database
+*/
+getSettlementLinkPayment() async {
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  final String? user = prefs.getString('user');
+  Map userObject = json.decode(user!);
+  Map data = await Domain().getSettlementLinkPayment(userObject['company_id'], branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['settlement'];
+    for (var i = 0; i < responseJson.length; i++) {
+      SettlementLinkPayment item = SettlementLinkPayment.fromJson(responseJson[i]);
+      Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(item.settlement_key!);
+      SettlementLinkPayment data = await PosDatabase.instance.insertSettlementLinkPayment(SettlementLinkPayment(
+        settlement_link_payment_id: item.settlement_link_payment_id,
+        settlement_link_payment_key: item.settlement_link_payment_key,
+        company_id: item.company_id,
+        branch_id: item.branch_id,
+        settlement_sqlite_id: settlementData.settlement_sqlite_id.toString(),
+        settlement_key: item.settlement_key,
+        total_bill: item.total_bill,
+        total_sales: item.total_sales,
+        payment_link_company_id: item.payment_link_company_id,
+        status: item.status,
+        sync_status: 1,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        soft_delete: item.soft_delete,
+      ));
+    }
+  }
+}
+
+/*
   save order to database
 */
 getAllOrder() async {
+  Settlement? settlement;
   final prefs = await SharedPreferences.getInstance();
   final int? branch_id = prefs.getInt('branch_id');
   final String? user = prefs.getString('user');
@@ -757,6 +940,10 @@ getAllOrder() async {
   if (data['status'] == '1') {
     List responseJson = data['order'];
     for (var i = 0; i < responseJson.length; i++) {
+      if(responseJson[i]['settlement_key'] != ''){
+        Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(responseJson[i]['settlement_key']);
+        settlement = settlementData;
+      }
       Order data = await PosDatabase.instance.insertOrder(Order(
         order_id: responseJson[i]['order_id'],
         order_number: responseJson[i]['order_number'],
@@ -779,17 +966,18 @@ getAllOrder() async {
         order_key: responseJson[i]['order_key'],
         refund_sqlite_id: '',
         refund_key: responseJson[i]['refund_key'],
+        settlement_sqlite_id: settlement != null ? settlement.settlement_sqlite_id.toString() : '',
+        settlement_key: responseJson[i]['settlement_key'],
         sync_status: 1,
         created_at: responseJson[i]['created_at'],
         updated_at: responseJson[i]['updated_at'],
         soft_delete: responseJson[i]['soft_delete']
       ));
     }
+    getAllOrderPromotionDetail();
+    getAllOrderTaxDetail();
+    getAllRefund();
   }
-  getAllOrderPromotionDetail();
-  getAllOrderTaxDetail();
-  getAllRefund();
-
 }
 
 /*
@@ -874,13 +1062,18 @@ getAllOrderCache() async {
     List responseJson = data['order'];
     for (var i = 0; i < responseJson.length; i++) {
       OrderCache cloudData = OrderCache.fromJson(responseJson[i]);
-      if(cloudData.table_use_key != ''){
+      if(cloudData.table_use_key != '' && cloudData.table_use_key != null){
         TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(cloudData.table_use_key!);
         tableUseLocalId = tableUseData!.table_use_sqlite_id.toString();
+      } else {
+        tableUseLocalId = '';
       }
-      if(cloudData.order_key != ''){
+
+      if(cloudData.order_key != '' && cloudData.order_key != null){
         Order orderData = await PosDatabase.instance.readOrderSqliteID(cloudData.order_key!);
         orderLocalId = orderData.order_sqlite_id.toString();
+      } else {
+        orderLocalId = '';
       }
       OrderCache data = await PosDatabase.instance.insertOrderCache(OrderCache(
         order_cache_id: cloudData.order_cache_id,
@@ -888,12 +1081,12 @@ getAllOrderCache() async {
         company_id: cloudData.company_id,
         branch_id: cloudData.branch_id,
         order_detail_id: '',
-        table_use_sqlite_id: cloudData.table_use_key != '' ? tableUseLocalId : '',
-        table_use_key: cloudData.table_use_key != '' ? cloudData.table_use_key : '',
+        table_use_sqlite_id: tableUseLocalId,
+        table_use_key: cloudData.table_use_key != '' && cloudData.table_use_key != null ? cloudData.table_use_key : '',
         batch_id: cloudData.batch_id,
         dining_id: cloudData.dining_id,
-        order_sqlite_id: cloudData.order_key != '' ? orderLocalId : '',
-        order_key: cloudData.order_key != '' ? cloudData.order_key : '',
+        order_sqlite_id: orderLocalId,
+        order_key: cloudData.order_key != '' && cloudData.order_key != null ? cloudData.order_key : '',
         order_by: cloudData.order_by != '' ? cloudData.order_by : '',
         order_by_user_id: cloudData.order_by_user_id,
         cancel_by: cloudData.cancel_by != '' ? cloudData.cancel_by : '',
@@ -902,6 +1095,7 @@ getAllOrderCache() async {
         total_amount: cloudData.total_amount != '' ? cloudData.total_amount : '',
         qr_order: cloudData.qr_order,
         qr_order_table_sqlite_id: '',
+        qr_order_table_id: responseJson[i]['table_id'],
         accepted: cloudData.accepted,
         sync_status: 1,
         created_at: cloudData.created_at,
@@ -921,8 +1115,7 @@ getAllOrderDetail() async {
   final int? branch_id = prefs.getInt('branch_id');
   final String? user = prefs.getString('user');
   Map userObject = json.decode(user!);
-  Map data = await Domain()
-      .getAllOrderDetail(userObject['company_id'], branch_id.toString());
+  Map data = await Domain().getAllOrderDetail(userObject['company_id'], branch_id.toString());
   if (data['status'] == '1') {
     List responseJson = data['order'];
     for (var i = 0; i < responseJson.length; i++) {
@@ -955,6 +1148,46 @@ getAllOrderDetail() async {
       ));
     }
     getAllOrderModifierDetail();
+    getAllOrderDetailCancel();
+  }
+}
+
+/*
+  save order detail cancel to database
+*/
+getAllOrderDetailCancel() async {
+  Settlement? settlement;
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  final String? user = prefs.getString('user');
+  Map userObject = json.decode(user!);
+  Map data = await Domain().getAllOrderDetailCancel(
+      userObject['company_id'], branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['order'];
+    for (var i = 0; i < responseJson.length; i++) {
+      if(responseJson[i]['settlement_key'] != ''){
+        Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(responseJson[i]['settlement_key']);
+        settlement = settlementData;
+      }
+      OrderDetail detailData = await PosDatabase.instance.readOrderDetailSqliteID(responseJson[i]['order_detail_key']);
+      OrderDetailCancel data = await PosDatabase.instance.insertOrderDetailCancel(OrderDetailCancel(
+        order_detail_cancel_id: responseJson[i]['order_detail_cancel_id'],
+        order_detail_cancel_key: responseJson[i]['order_detail_cancel_key'],
+        order_detail_sqlite_id: detailData.order_detail_sqlite_id.toString(),
+        order_detail_key: responseJson[i]['order_detail_key'],
+        quantity: responseJson[i]['quantity'],
+        cancel_by: responseJson[i]['cancel_by'],
+        cancel_by_user_id: responseJson[i]['cancel_by_user_id'],
+        settlement_sqlite_id: settlement != null ? settlement.settlement_sqlite_id.toString() : '',
+        settlement_key: responseJson[i]['settlement_key'],
+        status: responseJson[i]['status'],
+        sync_status: 1,
+        created_at: responseJson[i]['created_at'],
+        updated_at: responseJson[i]['updated_at'],
+        soft_delete: responseJson[i]['soft_delete'],
+      ));
+    }
   }
 }
 
@@ -1011,78 +1244,6 @@ getSale() async {
 }
 
 /*
-  save settlement to database
-*/
-getSettlement() async {
-  final prefs = await SharedPreferences.getInstance();
-  final int? branch_id = prefs.getInt('branch_id');
-  final String? user = prefs.getString('user');
-  Map userObject = json.decode(user!);
-  Map data = await Domain().getSettlement(userObject['company_id'], branch_id.toString());
-  if (data['status'] == '1') {
-    List responseJson = data['settlement'];
-    for (var i = 0; i < responseJson.length; i++) {
-      Settlement item = Settlement.fromJson(responseJson[i]);
-      Settlement data = await PosDatabase.instance.insertSettlement(Settlement(
-        settlement_id: item.settlement_id,
-        settlement_key: item.settlement_key,
-        company_id: item.company_id,
-        branch_id: item.branch_id,
-        total_bill: item.total_bill,
-        total_sales: item.total_sales,
-        total_refund_bill: item.total_refund_bill,
-        total_refund_amount: item.total_refund_amount,
-        total_discount: item.total_discount,
-        total_cancellation: item.total_cancellation,
-        total_tax: item.total_tax,
-        settlement_by_user_id: item.settlement_by_user_id,
-        settlement_by: item.settlement_by,
-        status: item.status,
-        sync_status: 1,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        soft_delete: item.soft_delete,
-      ));
-    }
-    getSettlementLinkPayment();
-  }
-}
-
-/*
-  save settlement link payment to database
-*/
-getSettlementLinkPayment() async {
-  final prefs = await SharedPreferences.getInstance();
-  final int? branch_id = prefs.getInt('branch_id');
-  final String? user = prefs.getString('user');
-  Map userObject = json.decode(user!);
-  Map data = await Domain().getSettlementLinkPayment(userObject['company_id'], branch_id.toString());
-  if (data['status'] == '1') {
-    List responseJson = data['settlement'];
-    for (var i = 0; i < responseJson.length; i++) {
-      SettlementLinkPayment item = SettlementLinkPayment.fromJson(responseJson[i]);
-      Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(item.settlement_key!);
-      SettlementLinkPayment data = await PosDatabase.instance.insertSettlementLinkPayment(SettlementLinkPayment(
-        settlement_link_payment_id: item.settlement_link_payment_id,
-        settlement_link_payment_key: item.settlement_link_payment_key,
-        company_id: item.company_id,
-        branch_id: item.branch_id,
-        settlement_sqlite_id: settlementData.settlement_sqlite_id.toString(),
-        settlement_key: item.settlement_key,
-        total_bill: item.total_bill,
-        total_sales: item.total_sales,
-        payment_link_company_id: item.payment_link_company_id,
-        status: item.status,
-        sync_status: 1,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        soft_delete: item.soft_delete,
-      ));
-    }
-  }
-}
-
-/*
   save cash record to database
 */
 getCashRecord() async {
@@ -1114,9 +1275,6 @@ getCashRecord() async {
     }
   }
 }
-
-
-
 
 /*
   create folder to save product image
@@ -1165,4 +1323,5 @@ downloadProductImage(String path) async {
     }
   }
 }
+
 

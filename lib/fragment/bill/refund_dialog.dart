@@ -32,7 +32,10 @@ class _RefundDialogState extends State<RefundDialog> {
   final adminPosPinController = TextEditingController();
   String refundLocalId = '';
   String refundKey = '';
+  String? refund_value, order_value, cash_record_value;
   bool _submitted = false;
+  bool isButtonDisabled = false;
+
 
   String? get errorPassword {
     final text = adminPosPinController.value.text;
@@ -45,6 +48,10 @@ class _RefundDialogState extends State<RefundDialog> {
   void _submit(BuildContext context) async {
     setState(() => _submitted = true);
     if (errorPassword == null) {
+      // Disable the button after it has been pressed
+      setState(() {
+        isButtonDisabled = true;
+      });
       await readAdminData(adminPosPinController.text);
       Navigator.of(context).pop();
       Navigator.of(context).pop();
@@ -58,7 +65,6 @@ class _RefundDialogState extends State<RefundDialog> {
       context: context,
       builder: (BuildContext context) => Center(
         child: SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
           child: AlertDialog(
             title: Text('Enter Current User PIN'),
             content: SizedBox(
@@ -96,14 +102,18 @@ class _RefundDialogState extends State<RefundDialog> {
             actions: <Widget>[
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: () {
+                onPressed: isButtonDisabled ? null : () {
+                  // Disable the button after it has been pressed
+                  setState(() {
+                    isButtonDisabled = true;
+                  });
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
                 },
               ),
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                onPressed: () async {
+                onPressed: isButtonDisabled ? null : () async {
                   _submit(context);
                 },
               ),
@@ -132,8 +142,8 @@ class _RefundDialogState extends State<RefundDialog> {
           ),
           TextButton(
             child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-            onPressed: () async {
-              await showSecondDialog(context, color);
+            onPressed: () {
+              showSecondDialog(context, color);
             },
           ),
         ],
@@ -149,11 +159,8 @@ class _RefundDialogState extends State<RefundDialog> {
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
         if(userData.user_id == userObject['user_id']){
-          print('user found ${userData.name}');
           //create refund record
-          await createRefund(userData);
-          await updateOrderPaymentStatus();
-          createRefundedCashRecord(userData);
+          await callRefund(userData);
           widget.callBack();
         } else {
           Fluttertoast.showToast(
@@ -166,6 +173,13 @@ class _RefundDialogState extends State<RefundDialog> {
     } catch (e) {
       print('delete error ${e}');
     }
+  }
+
+  callRefund(userData) async {
+    await createRefund(userData);
+    await updateOrderPaymentStatus();
+    await createRefundedCashRecord(userData);
+    syncAllToCloud();
   }
 
   generateRefundKey(Refund refund) async  {
@@ -223,8 +237,9 @@ class _RefundDialogState extends State<RefundDialog> {
     Refund updatedData = await insertRefundKey(data, dateTime);
     refundKey = updatedData.refund_key!;
     _value.add(jsonEncode(updatedData));
+    refund_value = _value.toString();
     //sync to cloud
-    syncRefundToCloud(_value.toString());
+    //syncRefundToCloud(_value.toString());
   }
 
   syncRefundToCloud(String value) async {
@@ -255,9 +270,9 @@ class _RefundDialogState extends State<RefundDialog> {
       Order orderData = await PosDatabase.instance.readSpecificOrder(_orderObject.order_sqlite_id!);
       _value.add(jsonEncode(orderData));
     }
-    print('refund value: ${_value.toString()}');
+    order_value = _value.toString();
     //sync to cloud
-    syncUpdatedOrderToCloud(_value.toString());
+    //syncUpdatedOrderToCloud(_value.toString());
   }
 
   syncUpdatedOrderToCloud(String value) async {
@@ -326,8 +341,9 @@ class _RefundDialogState extends State<RefundDialog> {
     CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
     CashRecord updatedData = await insertCashRecordKey(data, dateTime);
     _value.add(jsonEncode(updatedData));
+    cash_record_value = _value.toString();
     //sync to cloud
-    syncCashRecordToCloud(_value.toString());
+    //syncCashRecordToCloud(_value.toString());
   }
 
   syncCashRecordToCloud(String value) async {
@@ -338,6 +354,38 @@ class _RefundDialogState extends State<RefundDialog> {
         List responseJson = response['data'];
         for (var i = 0; i < responseJson.length; i++) {
           int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+        }
+      }
+    }
+  }
+
+  syncAllToCloud() async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map data = await Domain().syncLocalUpdateToCloud(
+        refund_value: this.refund_value,
+        order_value: this.order_value,
+        cash_record_value: this.cash_record_value
+      );
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        for (int i = 0; i < responseJson.length; i++) {
+          switch(responseJson[i]['table_name']){
+            case 'tb_refund': {
+              await PosDatabase.instance.updateRefundSyncStatusFromCloud(responseJson[i]['refund_key']);
+            }
+            break;
+            case 'tb_order': {
+              await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+            }
+            break;
+            case 'tb_cash_record': {
+              await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+            }
+            break;
+            default:
+              return;
+          }
         }
       }
     }

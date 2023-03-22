@@ -398,7 +398,6 @@ class _ReportPageState extends State<ReportPage> {
   }
   preload(){
     print('preload called');
-    views.clear();
     views.addAll([
       Container(
         child: ReportOverview(),

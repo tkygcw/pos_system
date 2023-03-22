@@ -3,11 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/qr_order/adjust_stock_dialog.dart';
+import 'package:pos_system/main.dart';
+import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
+import 'package:pos_system/object/table.dart';
 
+import '../../database/domain.dart';
 import '../../page/progress_bar.dart';
 import '../../translation/AppLocalizations.dart';
 import '../settlement/pos_pin_dialog.dart';
@@ -41,8 +45,7 @@ class _QrMainPageState extends State<QrMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:
-      StreamBuilder(
+      body: StreamBuilder(
           stream: controller.stream, builder: (context, snapshot) {
           preload();
           return Container(
@@ -50,21 +53,26 @@ class _QrMainPageState extends State<QrMainPage> {
             child: Container(
               margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
               alignment: Alignment.topLeft,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Stack(
                 children: [
                   Container(
                     margin: EdgeInsets.only(bottom: 20),
                     child: Text('Qr Order', style: TextStyle(fontSize: 25)),
                   ),
+                  qrOrderCacheList.isNotEmpty ?
                   ListView.builder(
+                      padding: EdgeInsets.only(top: 50),
                       shrinkWrap: true,
                       itemCount: qrOrderCacheList.length,
                       itemBuilder: (BuildContext context, int index){
                         return Card(
                           elevation: 5,
                           child: ListTile(
-                            title: Text('id: ${qrOrderCacheList[index].customer_id}'),
+                            title: qrOrderCacheList[index].dining_id == '1' ?
+                            Text('Table No: ${qrOrderCacheList[index].table_number}')
+                                : qrOrderCacheList[index].dining_id == '2' ?
+                            Text('Take Away')
+                                : Text('Delivery'),
                             subtitle: Text('Amount: ${qrOrderCacheList[index].total_amount}'),
                             leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.qr_code, color: Colors.grey,)),
                             trailing: Text('#${qrOrderCacheList[index].batch_id}'),
@@ -72,31 +80,21 @@ class _QrMainPageState extends State<QrMainPage> {
                               await checkOrderDetail(qrOrderCacheList[index].order_cache_sqlite_id!);
                               //pop stock adjust dialog
                               openAdjustStockDialog(orderDetailList, qrOrderCacheList[index].order_cache_sqlite_id!, qrOrderCacheList[index].qr_order_table_sqlite_id!);
-                              // if(hasNoStockProduct){
-                              //
-                              // } else {
-                              //   //check is table in use or not
-                              //   ///if table is not in use then =>
-                              //   // generate table use record & key
-                              //   // generate table use detail
-                              //   //update into order cache
-                              //   //update pos table status
-                              //   /// else =>
-                              //   //get the order cache based on table use detail sqlite id with table id
-                              //   // get table use key & table use sqlite insert into table order cache
-                              //   // create table use detail
-                              // }
-                              //check stock
-                              //get all item compare stock
-                              //if no stock add to one list
-                              //pop dialog box show all no stock product
-                              //if cancel just pop dialog
-                              //
                             },
                           ),
                         );
                       }
                   )
+                      :
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.qr_code_2, size: 40.0),
+                        Text('NO ORDER', style: TextStyle(fontSize: 24)),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -134,45 +132,57 @@ class _QrMainPageState extends State<QrMainPage> {
   }
 
   preload() async {
-    print('keep called');
     await getAllNotAcceptedQrOrder();
-    if (!controller.isClosed) {
-      controller.sink.add('refresh');
-    }
-    // setState(() {
-    //   _isLoaded = true;
-    // });
   }
 
   checkOrderDetail(int orderCacheLocalId) async {
-    // orderDetailList = [];
-    // noStockOrderDetailList = [];
-    // hasNoStockProduct == false;
     List<OrderDetail> detailData = await PosDatabase.instance.readAllOrderDetailByOrderCache(orderCacheLocalId);
     orderDetailList = detailData;
     for(int i = 0; i < orderDetailList.length; i++){
       List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
       List<OrderModifierDetail> modDetailData = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[i].order_detail_sqlite_id.toString());
 
-      print('mod data: ${modDetailData}');
       orderDetailList[i].orderModifierDetail = modDetailData;
-      print('data: ${ orderDetailList[i].orderModifierDetail = modDetailData}');
-      orderDetailList[i].available_stock = data[0].stock_quantity!;
+      if(data[0].stock_type == '2'){
+        orderDetailList[i].available_stock = data[0].stock_quantity!;
+      } else {
+        orderDetailList[i].available_stock = data[0].daily_limit_amount!;
+      }
       orderDetailList[i].isRemove = false;
-      //noStockOrderDetailList.add(orderDetailList[i]);
-     // if(int.parse(orderDetailList[i].quantity!) > int.parse(data[0].stock_quantity!)){
-     //
-     //   hasNoStockProduct = true;
-     // }
     }
   }
-
-
+  
+  updateQrOrderTableLocalId(int orderCacheId, String tableLocalId)async {
+    OrderCache orderCache = OrderCache(
+      order_cache_sqlite_id: orderCacheId,
+      qr_order_table_sqlite_id: tableLocalId
+    );
+    int data = await PosDatabase.instance.updateOrderCacheTableLocalId(orderCache);
+  }
 
   getAllNotAcceptedQrOrder() async {
     List<OrderCache> data = await PosDatabase.instance.readNotAcceptedQROrderCache();
     qrOrderCacheList = data;
-    //controller.sink.add('1');
-    print('order cache list: ${qrOrderCacheList.length}');
+    if(qrOrderCacheList.isNotEmpty){
+      for(int i = 0; i < qrOrderCacheList.length; i++){
+        if(qrOrderCacheList[i].qr_order_table_id != ''){
+          PosTable tableData = await PosDatabase.instance.readTableByCloudId(qrOrderCacheList[i].qr_order_table_id!);
+          await updateQrOrderTableLocalId(qrOrderCacheList[i].order_cache_sqlite_id!, tableData.table_sqlite_id.toString());
+        } else {
+          qrOrderCacheList[i].table_number = '';
+        }
+        //callUpdateCloud(qrOrderCacheList[i].order_cache_key!);
+      }
+    }
+    if (!controller.isClosed) {
+      controller.sink.add('refresh');
+    }
+  }
+
+  callUpdateCloud(String key) async {
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map response = await Domain().updateCloudOrderCacheSyncStatus(key);
+    }
   }
 }

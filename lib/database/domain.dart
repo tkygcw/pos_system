@@ -30,6 +30,7 @@ class Domain {
   static Uri sync_record = Uri.parse(domain + 'mobile-api/sync/index.php');
   static Uri sync_to_cloud = Uri.parse(domain + 'mobile-api/sync_to_cloud/index.php');
   static Uri qr_order_sync = Uri.parse(domain + 'mobile-api/qr_order_sync/index.php');
+  static Uri printer = Uri.parse(domain + 'mobile-api/printer/index.php');
 
   /*
   * login
@@ -156,6 +157,20 @@ class Domain {
 /*
   --------------------Sync part----------------------------------------------------------------------------------------------------------------------------------------------
 */
+  /*
+  * clear sync record
+  * */
+  clearAllSyncRecord(branch_id) async {
+    try {
+      var response = await http.post(Domain.sync_record, body: {
+        'clear_sync_status': '1',
+        'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
 
   /*
   * get all sync_record
@@ -166,12 +181,13 @@ class Domain {
         'sync': '1',
         'branch_id': branch_id,
       });
-      print('domain call:${response}');
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
+
 
   /*
   * update all cloud sync_record
@@ -186,6 +202,78 @@ class Domain {
       print('domain call:${response}');
       return jsonDecode(response.body);
     } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync all local update to cloud
+  * */
+  syncLocalUpdateToCloud(
+      {order_value,
+        order_tax_value,
+        order_promotion_value,
+        table_use_value,
+        table_use_detail_value,
+        order_cache_value,
+        order_detail_value,
+        order_modifier_value,
+        cash_record_value,
+        transfer_owner_value,
+        refund_value,
+        branch_link_product_value,
+        settlement_value,
+        settlement_link_payment_value,
+        order_detail_cancel_value,
+        printer_value,
+        printer_link_category_value,
+        printer_link_category_delete_value,
+        table_value,
+      }) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'all_local_update': '1',
+        'tb_order_create': order_value != null ? order_value : [].toString(),
+        'tb_order_tax_detail_create': order_tax_value != null ? order_tax_value: [].toString(),
+        'tb_order_promotion_detail_create': order_promotion_value != null ? order_promotion_value: [].toString(),
+        'tb_table_use_create': table_use_value != null ? table_use_value: [].toString(),
+        'tb_table_use_detail_create': table_use_detail_value != null ? table_use_detail_value : [].toString(),
+        'tb_order_cache_create': order_cache_value != null ? order_cache_value : [].toString(),
+        'tb_order_detail_create': order_detail_value != null ? order_detail_value : [].toString(),
+        'tb_order_modifier_detail_create': order_modifier_value != null ? order_modifier_value : [].toString(),
+        'tb_cash_record_create': cash_record_value != null ? cash_record_value : [].toString(),
+        'tb_transfer_owner_create': transfer_owner_value != null ? transfer_owner_value : [].toString(),
+        'tb_refund_create': refund_value != null ? refund_value : [].toString(),
+        'tb_branch_link_product_sync': branch_link_product_value != null ? branch_link_product_value : [].toString(),
+        'tb_settlement_create': settlement_value != null ? settlement_value : [].toString(),
+        'tb_settlement_link_payment_create': settlement_link_payment_value != null ? settlement_link_payment_value : [].toString(),
+        'tb_order_detail_cancel_create': order_detail_cancel_value != null ? order_detail_cancel_value : [].toString(),
+        'tb_printer_create': printer_value != null ? printer_value : [].toString(),
+        'tb_printer_link_category_sync': printer_link_category_value != null ? printer_link_category_value : [].toString(),
+        'tb_printer_link_category_delete': printer_link_category_delete_value != null ? printer_link_category_delete_value : [].toString(),
+        'tb_table_sync': table_value != null ? table_value : [].toString()
+      });
+      print('response: ${jsonDecode(response.body)}');
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync printer to cloud
+  * */
+  SyncPrinterToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_printer_create': '1',
+        'details': detail,
+      });
+
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
       Fluttertoast.showToast(msg: error.toString());
     }
   }
@@ -614,6 +702,22 @@ class Domain {
         'company_id': company_id
       });
 
+      return jsonDecode(response.body);
+    } catch (error) {
+      print('domain error: ${error}');
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync order from cloud (Qr order)
+  * */
+  updateCloudOrderCacheSyncStatus(String order_cache_key) async {
+    try {
+      var response = await http.post(Domain.qr_order_sync, body: {
+        'tb_order_cache_sync_update': '1',
+        'order_cache_key': order_cache_key,
+      });
       return jsonDecode(response.body);
     } catch (error) {
       print('domain error: ${error}');
@@ -1609,6 +1713,22 @@ class Domain {
   }
 
   /*
+  * get all order detail cancel
+  * */
+  getAllOrderDetailCancel(company_id, branch_id) async {
+    try {
+      var response = await http.post(Domain.order, body: {
+        'getAllOrderDetailCancel': '1',
+        'company_id': company_id,
+        'branch_id': branch_id
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * insert order modifier detail
   * */
   insertOrderModifierDetail(order_detail_id, mod_item_id, mod_group_id) async {
@@ -1682,12 +1802,38 @@ class Domain {
   }
 
   /*
-  * get settlement link payment
+  * get cash record
   * */
   getCashRecord(company_id, branch_id) async {
     try {
       var response = await http.post(Domain.cash_record,
           body: {'getAllCashRecord': '1', 'company_id': company_id, 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get printer
+  * */
+  getPrinter(branch_id) async {
+    try {
+      var response = await http.post(Domain.printer,
+          body: {'getAllPrinter': '1', 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get printer
+  * */
+  getPrinterCategory(branch_id) async {
+    try {
+      var response = await http.post(Domain.printer,
+          body: {'getAllPrinterLinkCategory': '1', 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());

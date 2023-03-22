@@ -101,6 +101,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
 
           );
         } else {
+          ///mobile layout
           return Scaffold(
             resizeToAvoidBottomInset: true,
             floatingActionButton: FloatingActionButton(
@@ -151,17 +152,18 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                       ),
                     );
                   }
-              ) : Stack(
-                alignment: Alignment.center,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.receipt, size: 36.0),
-                      Text('NO LAYOUT', style: TextStyle(fontSize: 24)),
-                    ],
-                  ),
-                ]
+              ) : Center(
+                child: Stack(
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.receipt, size: 36.0),
+                        Text('NO LAYOUT', style: TextStyle(fontSize: 24)),
+                      ],
+                    ),
+                  ]
+                ),
               ),
             ) : CustomProgressBar(),
 

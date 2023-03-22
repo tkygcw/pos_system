@@ -74,4 +74,9 @@ class BranchLinkTax {
     BranchLinkTaxFields.updated_at: updated_at,
     BranchLinkTaxFields.soft_delete: soft_delete,
   };
+
+  Map tableJson () => {
+    'name': tax_name,
+    'total_amount': total_amount.toStringAsFixed(2)
+  };
 }

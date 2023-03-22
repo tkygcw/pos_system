@@ -1,11 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
-import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:provider/provider.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import '../../notifier/theme_color.dart';
 import '../../object/report_class.dart';
@@ -262,7 +260,7 @@ class _ProductReportState extends State<ProductReport> {
       for(int i = 0; i < categoryData.length; i++){
         ReportObject object = await ReportObject().getAllPaidOrderDetailWithCategory(categoryData[i].category_sqlite_id!, currentStDate: currentStDate, currentEdDate: currentEdDate);
         categoryData[i].categoryOrderDetailList = object.dateOrderDetail!;
-        print('date detail data: ${categoryData[i].categoryOrderDetailList.length}');
+        print(jsonEncode(categoryData[i].tableJson()));
         _dataRow.addAll([
           DataRow(
             color: MaterialStateColor.resolveWith((states) {return Colors.grey;},),

@@ -9,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/receipt_layout.dart';
+import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/table.dart';
 
 import '../database/pos_database.dart';
@@ -29,68 +30,63 @@ class PrintReceipt{
     try {
       for (int i = 0; i < printerList.length; i++) {
         if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
-          List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-          for (int j = 0; j < data.length; j++) {
-            if (data[j].category_sqlite_id == '-1') {
-              var printerDetail = jsonDecode(printerList[i].value!);
-              if (printerList[i].type == 0) {
-                if (printerList[i].paper_size == 0) {
-                  //print 80mm
-                  var data = Uint8List.fromList(
-                      await ReceiptLayout().printReceipt80mm(true, orderId, selectedTableList));
-                  bool? isConnected = await flutterUsbPrinter.connect(
-                      int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-                  if (isConnected == true) {
-                    await flutterUsbPrinter.write(data);
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-                  }
-                } else {
-                  //print 58mm
-                  var data = Uint8List.fromList(
-                      await ReceiptLayout().printReceipt58mm(true, orderId, selectedTableList));
-                  bool? isConnected = await flutterUsbPrinter.connect(
-                      int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-                  if (isConnected == true) {
-                    await flutterUsbPrinter.write(data);
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-                  }
-                }
+          var printerDetail = jsonDecode(printerList[i].value!);
+          if (printerList[i].type == 0) {
+            if (printerList[i].paper_size == 0) {
+              //print 80mm
+              var data = Uint8List.fromList(
+                  await ReceiptLayout().printReceipt80mm(true, orderId, selectedTableList));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
               } else {
-                if (printerList[i].paper_size == 0) {
-                  //print LAN 80mm
-                  final profile = await CapabilityProfile.load();
-                  final printer = NetworkPrinter(PaperSize.mm80, profile);
-                  final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+              }
+            } else {
+              //print 58mm
+              var data = Uint8List.fromList(
+                  await ReceiptLayout().printReceipt58mm(true, orderId, selectedTableList));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+              }
+            }
+          } else {
+            if (printerList[i].paper_size == 0) {
+              //print LAN 80mm
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm80, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
-                  if (res == PosPrintResult.success) {
-                    await ReceiptLayout().printReceipt80mm(false, orderId, selectedTableList, value: printer);
-                    printer.disconnect();
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-                  }
-                } else {
-                  //print LAN 58mm
-                  final profile = await CapabilityProfile.load();
-                  final printer = NetworkPrinter(PaperSize.mm58, profile);
-                  final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().printReceipt80mm(false, orderId, selectedTableList, value: printer);
+                printer.disconnect();
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+              }
+            } else {
+              //print LAN 58mm
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm58, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
-                  if (res == PosPrintResult.success) {
-                    await ReceiptLayout().printReceipt58mm(false, orderId, selectedTableList,value: printer);
-                    printer.disconnect();
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-                  }
-                }
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().printReceipt58mm(false, orderId, selectedTableList,value: printer);
+                printer.disconnect();
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
               }
             }
           }
@@ -108,64 +104,59 @@ class PrintReceipt{
     try {
       for (int i = 0; i < printerList.length; i++) {
         if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
-          List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-          for (int j = 0; j < data.length; j++) {
-            if (data[j].category_sqlite_id == '-1') {
-              var printerDetail = jsonDecode(printerList[i].value!);
-              if (printerList[i].type == 0) {
-                if (printerList[i].paper_size == 0) {
-                  var data = Uint8List.fromList(
-                      await ReceiptLayout().printReceipt80mm(true, localOrderId, cart.selectedTable, isRefund: cart.cartNotifierItem[0].isRefund));
-                  bool? isConnected = await flutterUsbPrinter.connect(
-                      int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-                  if (isConnected == true) {
-                    await flutterUsbPrinter.write(data);
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-                  }
-                } else {
-                  var data = Uint8List.fromList(
-                      await ReceiptLayout().printReceipt58mm(true, localOrderId, cart.selectedTable, isRefund: cart.cartNotifierItem[0].isRefund));
-                  bool? isConnected = await flutterUsbPrinter.connect(
-                      int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-                  if (isConnected == true) {
-                    await flutterUsbPrinter.write(data);
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-                  }
-                }
+          var printerDetail = jsonDecode(printerList[i].value!);
+          if (printerList[i].type == 0) {
+            if (printerList[i].paper_size == 0) {
+              var data = Uint8List.fromList(
+                  await ReceiptLayout().printReceipt80mm(true, localOrderId, cart.selectedTable, isRefund: cart.cartNotifierItem[0].isRefund));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
               } else {
-                //print LAN 80mm
-                if (printerList[i].paper_size == 0) {
-                  final profile = await CapabilityProfile.load();
-                  final printer = NetworkPrinter(PaperSize.mm80, profile);
-                  final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-                  if (res == PosPrintResult.success) {
-                    await ReceiptLayout().printReceipt80mm(false, localOrderId, cart.selectedTable, value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
-                    printer.disconnect();
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-                  }
-                } else {
-                  //print LAN 58mm
-                  final profile = await CapabilityProfile.load();
-                  final printer = NetworkPrinter(PaperSize.mm58, profile);
-                  final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-                  if (res == PosPrintResult.success) {
-                    await ReceiptLayout().printReceipt58mm(false, localOrderId, cart.selectedTable,value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
-                    printer.disconnect();
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-                  }
-                }
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+              }
+            } else {
+              var data = Uint8List.fromList(
+                  await ReceiptLayout().printReceipt58mm(true, localOrderId, cart.selectedTable, isRefund: cart.cartNotifierItem[0].isRefund));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+              }
+            }
+          } else {
+            //print LAN 80mm
+            if (printerList[i].paper_size == 0) {
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm80, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().printReceipt80mm(false, localOrderId, cart.selectedTable, value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
+                printer.disconnect();
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+              }
+            } else {
+              //print LAN 58mm
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm58, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().printReceipt58mm(false, localOrderId, cart.selectedTable,value: printer, isRefund: cart.cartNotifierItem[0].isRefund);
+                printer.disconnect();
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
               }
             }
           }
@@ -179,67 +170,63 @@ class PrintReceipt{
     }
   }
 
-  printCheckList(List<Printer> printerList, context) async {
+  printCheckList(List<Printer> printerList, int orderCacheLocalId, context) async {
+    print('check list call');
     try {
       for (int i = 0; i < printerList.length; i++) {
         if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
-          List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-          for (int j = 0; j < data.length; j++) {
-            if (data[j].category_sqlite_id == '-1') {
-              var printerDetail = jsonDecode(printerList[i].value!);
-              if (printerList[i].type == 0) {
-                //print USB 80mm
-                if (printerList[i].paper_size == 0) {
-                  var data = Uint8List.fromList(await ReceiptLayout().printCheckList80mm(true));
-                  bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-                  if (isConnected == true) {
-                    await flutterUsbPrinter.write(data);
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-                  }
-                } else {
-                  //print 58mm
-                  var data = Uint8List.fromList(await ReceiptLayout().printCheckList58mm(true));
-                  bool? isConnected = await flutterUsbPrinter.connect(
-                      int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-                  if (isConnected == true) {
-                    await flutterUsbPrinter.write(data);
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-                  }
-                }
+          var printerDetail = jsonDecode(printerList[i].value!);
+          if (printerList[i].type == 0) {
+            //print USB 80mm
+            if (printerList[i].paper_size == 0) {
+              var data = Uint8List.fromList(await ReceiptLayout().printCheckList80mm(true, orderCacheLocalId));
+              bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
               } else {
-                if (printerList[i].paper_size == 0) {
-                  //print LAN 80mm paper
-                  final profile = await CapabilityProfile.load();
-                  final printer = NetworkPrinter(PaperSize.mm80, profile);
-                  final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-                  if (res == PosPrintResult.success) {
-                    await ReceiptLayout().printCheckList80mm(false, value: printer);
-                    printer.disconnect();
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-                  }
-                } else {
-                  //print LAN 58mm paper
-                  final profile = await CapabilityProfile.load();
-                  final printer = NetworkPrinter(PaperSize.mm58, profile);
-                  final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-                  if (res == PosPrintResult.success) {
-                    await ReceiptLayout().printCheckList58mm(false, value: printer);
-                    printer.disconnect();
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-                  }
-                }
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+              }
+            } else {
+              //print 58mm
+              var data = Uint8List.fromList(await ReceiptLayout().printCheckList58mm(true, orderCacheLocalId));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+              }
+            }
+          } else {
+            if (printerList[i].paper_size == 0) {
+              //print LAN 80mm paper
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm80, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().printCheckList80mm(false, orderCacheLocalId, value: printer);
+                printer.disconnect();
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+              }
+            } else {
+              //print LAN 58mm paper
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm58, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().printCheckList58mm(false, orderCacheLocalId, value: printer);
+                printer.disconnect();
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
               }
             }
           }
@@ -253,7 +240,7 @@ class PrintReceipt{
     }
   }
 
-  printKitchenList(List<Printer> printerList, context, CartModel cart) async {
+  printKitchenList(List<Printer> printerList, context, CartModel cart, int orderCacheLocalId) async {
     try{
       for (int i = 0; i < printerList.length; i++) {
         if(printerList[i].printer_status == 1 && printerList[i].is_counter == 0){
@@ -274,7 +261,7 @@ class PrintReceipt{
 
                     if (res == PosPrintResult.success) {
                       await ReceiptLayout()
-                          .printKitchenList80mm(false, cart.cartNotifierItem[k], value: printer);
+                          .printKitchenList80mm(false, cart.cartNotifierItem[k], orderCacheLocalId, value: printer);
                       printer.disconnect();
                     } else {
                       Fluttertoast.showToast(
@@ -289,7 +276,7 @@ class PrintReceipt{
 
                     if (res == PosPrintResult.success) {
                       await ReceiptLayout()
-                          .printKitchenList58mm(false, cart.cartNotifierItem[k], value: printer);
+                          .printKitchenList58mm(false, cart.cartNotifierItem[k], orderCacheLocalId, value: printer);
                       printer.disconnect();
                     } else {
                       Fluttertoast.showToast(
@@ -301,7 +288,7 @@ class PrintReceipt{
                   //print USB
                   if (printerList[i].paper_size == 0) {
                     var data = Uint8List.fromList(
-                        await ReceiptLayout().printKitchenList80mm(true, cart.cartNotifierItem[k]));
+                        await ReceiptLayout().printKitchenList80mm(true, cart.cartNotifierItem[k], orderCacheLocalId));
                     bool? isConnected = await flutterUsbPrinter.connect(
                         int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                     if (isConnected == true) {
@@ -314,7 +301,93 @@ class PrintReceipt{
                   } else {
                     //print 58mm
                     var data = Uint8List.fromList(
-                        await ReceiptLayout().printKitchenList58mm(true, cart.cartNotifierItem[k]));
+                        await ReceiptLayout().printKitchenList58mm(true, cart.cartNotifierItem[k], orderCacheLocalId));
+                    bool? isConnected = await flutterUsbPrinter.connect(
+                        int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+                    if (isConnected == true) {
+                      await flutterUsbPrinter.write(data);
+                    } else {
+                      Fluttertoast.showToast(
+                          backgroundColor: Colors.red,
+                          msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (e){
+      print('Printer Connection Error: ${e}');
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printing_error')}");
+    }
+  }
+
+  printQrKitchenList(List<Printer> printerList, context, int orderCacheLocalId, {orderDetailList}) async {
+    try{
+      for (int i = 0; i < printerList.length; i++) {
+        if(printerList[i].printer_status == 1 && printerList[i].is_counter == 0){
+          List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
+          for (int j = 0; j < data.length; j++) {
+            for (int k = 0; k < orderDetailList.length; k++) {
+              //check printer category
+              if (orderDetailList[k].category_sqlite_id == data[j].category_sqlite_id && orderDetailList[k].status == 0) {
+                var printerDetail = jsonDecode(printerList[i].value!);
+                //check printer type
+                if (printerList[i].type == 1) {
+                  //check paper size
+                  if (printerList[i].paper_size == 0) {
+                    //print LAN
+                    final profile = await CapabilityProfile.load();
+                    final printer = NetworkPrinter(PaperSize.mm80, profile);
+                    final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+
+                    if (res == PosPrintResult.success) {
+                      await ReceiptLayout()
+                          .printQrKitchenList80mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
+                      printer.disconnect();
+                    } else {
+                      Fluttertoast.showToast(
+                          backgroundColor: Colors.red,
+                          msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+                    }
+                  } else {
+                    //print LAN 58mm
+                    final profile = await CapabilityProfile.load();
+                    final printer = NetworkPrinter(PaperSize.mm58, profile);
+                    final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+
+                    if (res == PosPrintResult.success) {
+                      await ReceiptLayout()
+                          .printQrKitchenList58mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
+                      printer.disconnect();
+                    } else {
+                      Fluttertoast.showToast(
+                          backgroundColor: Colors.red,
+                          msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+                    }
+                  }
+                } else {
+                  //print USB
+                  if (printerList[i].paper_size == 0) {
+                    var data = Uint8List.fromList(
+                        await ReceiptLayout().printQrKitchenList80mm(true, orderDetailList[k], orderCacheLocalId));
+                    bool? isConnected = await flutterUsbPrinter.connect(
+                        int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+                    if (isConnected == true) {
+                      await flutterUsbPrinter.write(data);
+                    } else {
+                      Fluttertoast.showToast(
+                          backgroundColor: Colors.red,
+                          msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+                    }
+                  } else {
+                    //print 58mm
+                    var data = Uint8List.fromList(
+                        await ReceiptLayout().printQrKitchenList58mm(true, orderDetailList[k], orderCacheLocalId));
                     bool? isConnected = await flutterUsbPrinter.connect(
                         int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                     if (isConnected == true) {
@@ -343,59 +416,54 @@ class PrintReceipt{
     try {
       for (int i = 0; i < printerList.length; i++) {
         if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
-          List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-          for (int j = 0; j < data.length; j++) {
-            if (data[j].category_sqlite_id == '-1') {
-              var printerDetail = jsonDecode(printerList[i].value!);
-              if (printerList[i].type == 0) {
-                if(printerList[i].paper_size == 0){
-                  var data = Uint8List.fromList(await ReceiptLayout().printDeleteItemList80mm(true, orderCacheId, dateTime));
-                  bool? isConnected = await flutterUsbPrinter.connect(
-                      int.parse(printerDetail['vendorId']),
-                      int.parse(printerDetail['productId']));
-                  if (isConnected == true) {
-                    await flutterUsbPrinter.write(data);
-                  } else {
-                    print('not connected');
-                  }
-                } else {
-                  var data = Uint8List.fromList(await ReceiptLayout().printDeleteItemList58mm(true, orderCacheId, dateTime));
-                  bool? isConnected = await flutterUsbPrinter.connect(
-                      int.parse(printerDetail['vendorId']),
-                      int.parse(printerDetail['productId']));
-                  if (isConnected == true) {
-                    await flutterUsbPrinter.write(data);
-                  } else {
-                    print('not connected');
-                  }
-                }
+          var printerDetail = jsonDecode(printerList[i].value!);
+          if (printerList[i].type == 0) {
+            if(printerList[i].paper_size == 0){
+              var data = Uint8List.fromList(await ReceiptLayout().printDeleteItemList80mm(true, orderCacheId, dateTime));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']),
+                  int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
               } else {
-                //check paper size (print LAN)
-                if(printerList[i].paper_size == 0){
-                  //print LAN
-                  final profile = await CapabilityProfile.load();
-                  final printer = NetworkPrinter(PaperSize.mm80, profile);
-                  final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+                print('not connected');
+              }
+            } else {
+              var data = Uint8List.fromList(await ReceiptLayout().printDeleteItemList58mm(true, orderCacheId, dateTime));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']),
+                  int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              } else {
+                print('not connected');
+              }
+            }
+          } else {
+            //check paper size (print LAN)
+            if(printerList[i].paper_size == 0){
+              //print LAN
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm80, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
-                  if (res == PosPrintResult.success) {
-                    await ReceiptLayout().printDeleteItemList80mm(false, orderCacheId, dateTime, value: printer);
-                    printer.disconnect();
-                  } else {
-                    print('not connected');
-                  }
-                } else {
-                  //print LAN
-                  final profile = await CapabilityProfile.load();
-                  final printer = NetworkPrinter(PaperSize.mm58, profile);
-                  final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().printDeleteItemList80mm(false, orderCacheId, dateTime, value: printer);
+                printer.disconnect();
+              } else {
+                print('not connected');
+              }
+            } else {
+              //print LAN
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm58, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
-                  if (res == PosPrintResult.success) {
-                    await ReceiptLayout().printDeleteItemList58mm(false, orderCacheId, dateTime, value: printer);
-                    printer.disconnect();
-                  } else {
-                    print('not connected');
-                  }
-                }
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().printDeleteItemList58mm(false, orderCacheId, dateTime, value: printer);
+                printer.disconnect();
+              } else {
+                print('not connected');
               }
             }
           }
@@ -475,70 +543,65 @@ class PrintReceipt{
     }
   }
 
-  printSettlementList(List<Printer> printerList, String dateTime, context) async {
+  printSettlementList(List<Printer> printerList, String dateTime, context, Settlement settlement) async {
     try {
       for (int i = 0; i < printerList.length; i++) {
         if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
-          List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-          for (int j = 0; j < data.length; j++) {
-            if (data[j].category_sqlite_id == '-1') {
-              var printerDetail = jsonDecode(printerList[i].value!);
-              if (printerList[i].type == 0) {
-                if(printerList[i].paper_size == 0){
-                  //print USB 80mm
-                  var data = Uint8List.fromList(await ReceiptLayout().printSettlementList80mm(true, dateTime));
-                  bool? isConnected = await flutterUsbPrinter.connect(
-                      int.parse(printerDetail['vendorId']),
-                      int.parse(printerDetail['productId']));
-                  if (isConnected == true) {
-                    await flutterUsbPrinter.write(data);
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-                  }
-                } else {
-                  //print USB 58mm
-                  var data = Uint8List.fromList(await ReceiptLayout().printSettlementList58mm(true, dateTime));
-                  bool? isConnected = await flutterUsbPrinter.connect(
-                      int.parse(printerDetail['vendorId']),
-                      int.parse(printerDetail['productId']));
-                  if (isConnected == true) {
-                    await flutterUsbPrinter.write(data);
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-                  }
-                }
+          var printerDetail = jsonDecode(printerList[i].value!);
+          if (printerList[i].type == 0) {
+            if(printerList[i].paper_size == 0){
+              //print USB 80mm
+              var data = Uint8List.fromList(await ReceiptLayout().printSettlementList80mm(true, dateTime, settlement));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']),
+                  int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
               } else {
-                if(printerList[i].paper_size == 0){
-                  //print LAN 80mm
-                  final profile = await CapabilityProfile.load();
-                  final printer = NetworkPrinter(PaperSize.mm80, profile);
-                  final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-                  if (res == PosPrintResult.success) {
-                    await ReceiptLayout().printSettlementList80mm(false, dateTime, value: printer);
-                    printer.disconnect();
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-                  }
-                } else {
-                  //print LAN 58mm
-                  final profile = await CapabilityProfile.load();
-                  final printer = NetworkPrinter(PaperSize.mm58, profile);
-                  final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-                  if (res == PosPrintResult.success) {
-                    await ReceiptLayout().printSettlementList58mm(false, dateTime, value: printer);
-                    printer.disconnect();
-                  } else {
-                    Fluttertoast.showToast(
-                        backgroundColor: Colors.red,
-                        msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-                  }
-                }
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+              }
+            } else {
+              //print USB 58mm
+              var data = Uint8List.fromList(await ReceiptLayout().printSettlementList58mm(true, dateTime));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']),
+                  int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+              }
+            }
+          } else {
+            if(printerList[i].paper_size == 0){
+              //print LAN 80mm
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm80, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().printSettlementList80mm(false, dateTime, settlement, value: printer);
+                printer.disconnect();
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+              }
+            } else {
+              //print LAN 58mm
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm58, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().printSettlementList58mm(false, dateTime, value: printer);
+                printer.disconnect();
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
               }
             }
           }

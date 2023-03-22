@@ -103,4 +103,15 @@ class PaymentLinkCompany{
     PaymentLinkCompanyFields.updated_at: updated_at,
     PaymentLinkCompanyFields.soft_delete: soft_delete,
   };
+
+  Map tableJson() => {
+    PaymentLinkCompanyFields.payment_link_company_id: payment_link_company_id,
+    PaymentLinkCompanyFields.payment_type_id: payment_type_id,
+    PaymentLinkCompanyFields.company_id: company_id,
+    PaymentLinkCompanyFields.name: name,
+    PaymentLinkCompanyFields.type: type,
+    PaymentLinkCompanyFields.ipay_code: ipay_code,
+    'total_bill': total_bill.toString(),
+    'total_amount': totalAmount.toStringAsFixed(2)
+  };
 }

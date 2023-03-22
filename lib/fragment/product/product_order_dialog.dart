@@ -35,7 +35,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   String branchLinkProduct_id = '';
   String basePrice = '';
   String finalPrice = '';
-  int simpleIntInput = 1;
+  int simpleIntInput = 1, pressed = 0;
   String modifierItemPrice = '';
   List<VariantGroup>  variantGroup = [];
   List<ModifierGroup> modifierGroup = [];
@@ -46,6 +46,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   bool isLoaded = false;
   bool hasPromo = false;
   bool hasStock = false;
+  bool isButtonDisabled = false;
 
   @override
   void initState() {
@@ -176,8 +177,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                                   buttonColor: color.backgroundColor,
                                   value: simpleIntInput,
                                   onChanged: (value) => setState(() =>
-                                  simpleIntInput =
-                                      int.parse(value.replaceAll(',', ''))))
+                                  simpleIntInput = int.parse(value.replaceAll(',', ''))))
                             ],
                           ),
                           Column(
@@ -217,27 +217,37 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                     TextButton(
                       child: Text(
                           '${AppLocalizations.of(context)?.translate('close')}'),
-                      onPressed: () {
+                      onPressed: isButtonDisabled ? null : () {
                         Navigator.of(context).pop();
+
+                        // Disable the button after it has been pressed
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
                       },
                     ),
                     TextButton(
                       child: Text(
                           '${AppLocalizations.of(context)?.translate('add')}'),
-                      onPressed: () async {
+                      onPressed: isButtonDisabled ? null : () async {
                         await getBranchLinkProductItem(widget.productDetail!);
                         if(hasStock){
                           if(cart.selectedOption == 'Dine in'){
                             if(cart.selectedTable.isNotEmpty){
+                              // Disable the button after it has been pressed
+                              setState(() {
+                                isButtonDisabled = true;
+                              });
                               await addToCart(cart);
                               Navigator.of(context).pop();
                             } else {
                               openChooseTableDialog(cart);
-                              // Fluttertoast.showToast(
-                              //     backgroundColor: Colors.red,
-                              //     msg: "make sure cart table is selected");
                             }
                           } else {
+                            // Disable the button after it has been pressed
+                            setState(() {
+                              isButtonDisabled = true;
+                            });
                             await addToCart(cart);
                             Navigator.of(context).pop();
                           }
@@ -357,27 +367,36 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                     TextButton(
                       child: Text(
                           '${AppLocalizations.of(context)?.translate('close')}'),
-                      onPressed: () {
+                      onPressed: isButtonDisabled ? null : () {
+                        // Disable the button after it has been pressed
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
                         Navigator.of(context).pop();
                       },
                     ),
                     TextButton(
                       child: Text(
                           '${AppLocalizations.of(context)?.translate('add')}'),
-                      onPressed: () async {
+                      onPressed: isButtonDisabled ? null : () async {
                         await getBranchLinkProductItem(widget.productDetail!);
-                        if(hasStock){
+                        if(hasStock == true){
                           if(cart.selectedOption == 'Dine in'){
                             if(cart.selectedTable.isNotEmpty){
+                              // Disable the button after it has been pressed
+                              setState(() {
+                                isButtonDisabled = true;
+                              });
                               await addToCart(cart);
                               Navigator.of(context).pop();
                             } else {
                               openChooseTableDialog(cart);
-                              // Fluttertoast.showToast(
-                              //     backgroundColor: Colors.red,
-                              //     msg: "make sure cart table is selected");
                             }
                           } else {
+                            // Disable the button after it has been pressed
+                            setState(() {
+                              isButtonDisabled = true;
+                            });
                             await addToCart(cart);
                             Navigator.of(context).pop();
                           }
@@ -534,11 +553,20 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
         branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
         print('branch link product id: ${branchLinkProduct_id}');
         print('stock: ${data[0].stock_quantity}');
-        if(int.parse(data[0].stock_quantity!) > 0 ){
-          hasStock = true;
+        if(data[0].stock_type == '2'){
+          if(int.parse(data[0].stock_quantity!) > 0  && simpleIntInput < int.parse(data[0].stock_quantity!)){
+            hasStock = true;
+          } else {
+            hasStock = false;
+          }
+        } else {
+          if(int.parse(data[0].daily_limit_amount!) > 0  && simpleIntInput <= int.parse(data[0].daily_limit_amount!)){
+            hasStock = true;
+          } else {
+            hasStock = false;
+          }
         }
       }
-
       return branchLinkProduct_id;
     }catch(e){
       Fluttertoast.showToast(msg: 'Make sure stock is restock');
@@ -559,7 +587,8 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
           if (group.variant_item_sqlite_id == group.child[i].variant_item_sqlite_id) {
             group.child[i].isSelected = true;
             if (variant == '') {
-              variant = group.child[i].name!;
+              variant = group.child[i].name!.trim();
+              print('variant: ${variant}abc');
               if(variantGroup.length == 1){
                 List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant);
                 productVariant = data[0].product_variant_sqlite_id.toString();

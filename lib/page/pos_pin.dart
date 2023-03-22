@@ -223,7 +223,6 @@ class _PosPinPageState extends State<PosPinPage> {
     final prefs = await SharedPreferences.getInstance();
     final String? lastUser = prefs.getString('pos_pin_user');
     bool isNewUser = false;
-    print('last user: ${lastUser}');
     //CashRecord? cashRecord = await PosDatabase.instance.readLastCashRecord();
     if(lastUser != null){
       Map userObject = json.decode(lastUser);
@@ -288,7 +287,6 @@ class _PosPinPageState extends State<PosPinPage> {
     TransferOwner createRecord = await PosDatabase.instance.insertSqliteTransferOwner(object);
     TransferOwner _keyInsert = await insertTransferOwnerKey(createRecord, dateTime);
     _value.add(jsonEncode(_keyInsert));
-    print('value: ${_value.toString()}');
     syncToCloud(_value.toString());
 
   }
@@ -297,11 +295,18 @@ class _PosPinPageState extends State<PosPinPage> {
     //check is host reachable
     bool _hasInternetAccess = await Domain().isHostReachable();
     if(_hasInternetAccess){
-      Map response = await Domain().SyncTransferOwnerToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int updateStatus = await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
+      Map data = await Domain().syncLocalUpdateToCloud(
+          transfer_owner_value: value
+      );
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
       }
+      // Map response = await Domain().SyncTransferOwnerToCloud(value);
+      // if (response['status'] == '1') {
+      //   List responseJson = response['data'];
+      //   int updateStatus = await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
+      // }
     }
   }
 

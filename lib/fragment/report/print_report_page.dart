@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/pdf_format.dart';
 import 'package:printing/printing.dart';
@@ -15,6 +16,7 @@ import 'dart:io';
 
 import '../../notifier/report_notifier.dart';
 import '../../object/table.dart';
+import '../../translation/AppLocalizations.dart';
 
 class PrintReportPage extends StatefulWidget {
   final int? currentPage;
@@ -34,6 +36,7 @@ class _PrintReportPageState extends State<PrintReportPage> {
   @override
   void initState() {
     super.initState();
+    print('current page: ${widget.currentPage}');
     if(widget.currentPage == -1){
       generateUrl();
     }
@@ -44,20 +47,52 @@ class _PrintReportPageState extends State<PrintReportPage> {
         return Scaffold(
           body: PdfPreview(
             build: (format) {
-              if(widget.currentPage == 0){
-                return ReportFormat().generateOverviewReportPdf(format, 'Overview Report', reportModel);
-              } else if(widget.currentPage == -1){
-                return ReportFormat().generateQrPdf(format, posTableList);
-              }
-              else {
-                return ReportFormat().generateReportPdf(format, 'Report');
+              switch(widget.currentPage){
+                case -1 :
+                  return ReportFormat().generateQrPdf(format, posTableList);
+                case 0:
+                  return ReportFormat().generateOverviewReportPdf(format, 'Overview', reportModel);
+                case 1:
+                  return ReportFormat().generateDailySalesPdf(format, 'Daily Sales Report', reportModel);
+                case 2:
+                  //generate category report
+                  return ReportFormat().generateReportPdf(format, 'Report');
+                case 3:
+                  //generate category report
+                  return ReportFormat().generateReportPdf(format, 'Report');
+                case 4:
+                  //generate modifier report
+                  return ReportFormat().generateReportPdf(format, 'Report');
+                case 5:
+                  //generate cancel report
+                  return ReportFormat().generateReportPdf(format, 'Report');
+                case 6:
+                  //generate cancel modifier report
+                  return ReportFormat().generateReportPdf(format, 'Report');
+                case 7:
+                  //generate dining report
+                  return ReportFormat().generateDiningReport(format, 'Dining Report');
+                case 8:
+                  //generate payment report
+                  return ReportFormat().generateReportPdf(format, 'Report');
+                case 9:
+                  //generate refund report
+                  return ReportFormat().generateReportPdf(format, 'Report');
+                default:
+                  // generate transfer report
+                  return ReportFormat().generateReportPdf(format, 'Report');
               }
             },
             canDebug: false,
-            previewPageMargin: EdgeInsets.all(100),
+            previewPageMargin: EdgeInsets.all(10),
             pdfFileName: generateFileName(),
             maxPageWidth: MediaQuery.of(context).size.width/2,
             initialPageFormat: PdfPageFormat.a4,
+            onPrintError: (context, error) {
+              Fluttertoast.showToast(
+                  backgroundColor: Colors.red,
+                  msg: "${AppLocalizations.of(context)?.translate('printing_error')}");
+            },
           ),
         );
       }
@@ -72,7 +107,7 @@ class _PrintReportPageState extends State<PrintReportPage> {
     Map branchObject = json.decode(branch!);
     posTableList = widget.tableList!;
     for(int i = 0; i < posTableList.length; i++){
-      var url = 'https://pos.lkmng.com/${branchObject['branch_url']}/${posTableList[i].table_url}';
+      var url = 'https://pos-qr.lkmng.com/${branchObject['branch_url']}/${posTableList[i].table_url}';
       posTableList[i].qrOrderUrl = url;
     }
     //widget.callBack!();
