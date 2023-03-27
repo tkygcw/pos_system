@@ -61,7 +61,6 @@ dependencies:
   checkbox_grouped: ^1.8.2
   collection: ^1.17.0
   flutter_native_image: ^0.0.6+1
-  #esc_pos_printer: ^4.1.0
   esc_pos_printer:
     git:
       url: https://github.com/tkygcw/esc_pos_printer.git
