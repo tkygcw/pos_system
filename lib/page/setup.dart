@@ -40,9 +40,9 @@ class _SetupPageState extends State<SetupPage> {
   }
 
   getToken() async {
-    // token = await FirebaseMessaging.instance.getToken();
-    // print('token: ${token}');
-    token = 'testing';
+    token = await FirebaseMessaging.instance.getToken();
+    print('token: ${token}');
+    //token = 'testing';
   }
 
   @override

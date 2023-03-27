@@ -1,10 +1,11 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:imin/imin.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/cart_product.dart';
@@ -24,6 +25,7 @@ import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image/image.dart' as img;
 
 import 'branch_link_product.dart';
 import 'modifier_group.dart';
@@ -166,6 +168,7 @@ class ReceiptLayout{
           bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
         } else if(paidOrder!.payment_status == 2) {
           bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+        } else if(receipt!.header_image_status == 1 && paidOrder!.payment_status == 1){
         }
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
@@ -251,7 +254,7 @@ class ReceiptLayout{
               PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
             ]);
           }
-          bytes += generator.emptyLines(1);
+          // bytes += generator.emptyLines(1);
         }
         bytes += generator.hr();
         bytes += generator.reset();
@@ -363,6 +366,10 @@ class ReceiptLayout{
       await callOrderTaxPromoDetail();
       await callPaidOrderDetail(orderId);
     }
+    final ByteData data = await rootBundle.load('drawable/logo1.jpg');
+    final Uint8List bytes = data.buffer.asUint8List();
+    final image = img.decodeImage(bytes);
+    print('image byte: ${image}');
 
     if(_isLoad = true){
       var generator;
@@ -375,6 +382,7 @@ class ReceiptLayout{
 
       List<int> bytes = [];
       try {
+        bytes += generator.image(image);
         if(receipt!.header_text_status == 1 && paidOrder!.payment_status == 1){
           bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
         } else if(paidOrder!.payment_status == 2) {
@@ -459,13 +467,11 @@ class ReceiptLayout{
           bytes += generator.reset();
           if (orderDetailList[i].remark != '') {
             bytes += generator.row([
+              PosColumn(text: '**${orderDetailList[i].remark}', width: 6, containsChinese: true),
               PosColumn(text: '', width: 2),
-              PosColumn(text: '**${orderDetailList[i].remark}', width: 8, containsChinese: true),
-              PosColumn(text: '', width: 2),
+              PosColumn(text: '', width: 4),
             ]);
           }
-          bytes += generator.feed(1);
-          bytes += generator.emptyLines(1);
         }
         bytes += generator.hr();
         bytes += generator.reset();
@@ -527,9 +533,10 @@ class ReceiptLayout{
           PosColumn(text: '${this.paidOrder!.payment_change}', width: 4),
         ]);
         bytes += generator.reset();
+        bytes += generator.emptyLines(1);
         //footer
         if(receipt!.footer_text_status == 1 && paidOrder!.payment_status == 1){
-          bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, height: PosTextSize.size3, width: PosTextSize.size3, align: PosAlign.center));
+          bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, height: PosTextSize.size2, width: PosTextSize.size2, align: PosAlign.center));
         } else if (paidOrder!.payment_status == 2) {
           bytes += generator.hr();
           bytes += generator.text('refund by:', styles: PosStyles(align: PosAlign.center));
@@ -701,8 +708,8 @@ class ReceiptLayout{
           PosColumn(
               text: '${orderDetailList[i].productName}',
               width: 10,
-              containsChinese: true,
-              styles: PosStyles(height: PosTextSize.size2, width: PosTextSize.size1, fontType: PosFontType.fontB)),
+              containsChinese: true),
+
         ]);
         bytes += generator.reset();
         if(orderDetailList[i].has_variant == '1'){
@@ -1820,28 +1827,30 @@ class ReceiptLayout{
               styles: PosStyles(align: PosAlign.right)),
         ]);
         bytes += generator.hr();
-        bytes += generator.text('Charges overview', styles: PosStyles(align: PosAlign.left, bold: true));
-        bytes += generator.hr();
-        bytes += generator.reset();
-        for(int j = 0; j < orderTaxList.length; j++){
-          bytes += generator.row([
-            PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
-            PosColumn(
-                text: '${orderTaxList[j].tax_name}',
-                width: 8,
-                containsChinese: true,
-                styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
-            PosColumn(
-                text: '${orderTaxList[j].total_tax_amount!.toStringAsFixed(2)}',
-                width: 2,
-                styles: PosStyles(align: PosAlign.right)),
-            PosColumn(
-                text: '',
-                width: 1,
-                styles: PosStyles(align: PosAlign.right)),
-          ]);
+        if(orderTaxList.isNotEmpty){
+          bytes += generator.text('Charges overview', styles: PosStyles(align: PosAlign.left, bold: true));
+          bytes += generator.hr();
+          bytes += generator.reset();
+          for(int j = 0; j < orderTaxList.length; j++){
+            bytes += generator.row([
+              PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
+              PosColumn(
+                  text: '${orderTaxList[j].tax_name}',
+                  width: 8,
+                  containsChinese: true,
+                  styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+              PosColumn(
+                  text: '${orderTaxList[j].total_tax_amount!.toStringAsFixed(2)}',
+                  width: 2,
+                  styles: PosStyles(align: PosAlign.right)),
+              PosColumn(
+                  text: '',
+                  width: 1,
+                  styles: PosStyles(align: PosAlign.right)),
+            ]);
+          }
+          bytes += generator.hr();
         }
-        bytes += generator.hr();
         bytes += generator.text('Dining overview', styles: PosStyles(align: PosAlign.left, bold: true));
         bytes += generator.hr();
         bytes += generator.reset();
@@ -1879,7 +1888,7 @@ class ReceiptLayout{
 */
   printSettlementList58mm(bool isUSB, String settlementDateTime, Settlement settlement, {value}) async {
     await getAllTodayOrderOverview(settlement);
-    await getBranchLinkDiningOption();
+    // await getBranchLinkDiningOption();
     await readPaymentLinkCompany(settlementDateTime, settlement);
     await calculateCashDrawerAmount(settlementDateTime, settlement);
     if(_isLoad == true){
@@ -1897,183 +1906,195 @@ class ReceiptLayout{
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
 
-        bytes += generator.text('Settlement By', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('${settlement_By}', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('Settlement Time', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('${settlementDateTime}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Settlement By: ${settlement.settlement_by}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Settlement Time: ${settlementDateTime}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.hr();
         bytes += generator.reset();
         /*
     *
     * body
     *
-    * */
+    * */bytes += generator.text('Payment Overview', styles: PosStyles(align: PosAlign.left, bold: true));
         bytes += generator.hr();
+        bytes += generator.reset();
         bytes += generator.row([
-          PosColumn(text: 'Payment Type', width: 3, styles: PosStyles(bold: true)),
-          PosColumn(text: '', width: 6, styles: PosStyles(bold: true)),
-          PosColumn(text: 'Amount', width: 3, styles: PosStyles(bold: true)),
+          PosColumn(text: 'Payment Type', width: 8, styles: PosStyles(bold: true)),
+          PosColumn(text: 'Amount', width: 4, styles: PosStyles(bold: true)),
         ]);
         bytes += generator.hr();
         //Payment link company
         for(int i = 0; i < paymentList.length; i++){
-          bytes += generator.reset();
           bytes += generator.row([
             PosColumn(
                 text: '${paymentList[i].name}',
-                width: 9,
-                containsChinese: true,
-                styles: PosStyles(height: PosTextSize.size1, width: PosTextSize.size1)),
+                width: 8,
+                containsChinese: true),
             PosColumn(
-                text: '${paymentList[i].totalAmount.toStringAsFixed(2)}', width: 3),
+                text: '${paymentList[i].totalAmount.toStringAsFixed(2)}',
+                width: 4)
           ]);
 
         }
         bytes += generator.hr();
-        bytes += generator.reset();
+        bytes += generator.text('Counter Overview', styles: PosStyles(align: PosAlign.left, bold: true));
+        bytes += generator.hr();
         //Opening balance
         bytes += generator.row([
           PosColumn(
               text: 'Opening Balance',
-              width: 9,
-              containsChinese: true,
-              styles: PosStyles(height: PosTextSize.size1, width: PosTextSize.size1)),
+              width: 8,
+              containsChinese: true),
           PosColumn(
-              text: '${totalOpeningCash.toStringAsFixed(2)}', width: 3),
+              text: '${totalOpeningCash.toStringAsFixed(2)}',
+              width: 4)
         ]);
         //cash in
         bytes += generator.row([
           PosColumn(
               text: 'Cash In',
-              width: 9,
-              containsChinese: true,
-              styles: PosStyles(height: PosTextSize.size1, width: PosTextSize.size1)),
+              width: 8,
+              containsChinese: true),
           PosColumn(
-              text: '${totalCashIn.toStringAsFixed(2)}', width: 3),
+              text: '${totalCashIn.toStringAsFixed(2)}',
+              width: 4),
         ]);
         //cash out
         bytes += generator.row([
           PosColumn(
               text: 'Cash Out',
-              width: 9,
-              containsChinese: true,
-              styles: PosStyles(height: PosTextSize.size1, width: PosTextSize.size1)),
+              width: 8,
+              containsChinese: true),
           PosColumn(
-              text: '-${totalCashOut.toStringAsFixed(2)}', width: 3)
+              text: '-${totalCashOut.toStringAsFixed(2)}',
+              width: 4)
         ]);
-        // expected total cash drawer
+        bytes += generator.hr();
+        bytes += generator.reset();
+        // Expected total cash drawer
         bytes += generator.row([
           PosColumn(
-              text: 'Expect Cash Drawer',
-              width: 9,
-              containsChinese: true,
-              styles: PosStyles(height: PosTextSize.size1, width: PosTextSize.size1)),
-          PosColumn(text: '${totalCashBalance.toStringAsFixed(2)}', width: 3)
+              text: 'Expect Total Cash Drawer',
+              width: 8,
+              containsChinese: true),
+          PosColumn(
+              text: '${totalCashBalance.toStringAsFixed(2)}',
+              width: 4)
         ]);
-        //current total cash drawer
+        //total cash drawer
         bytes += generator.row([
           PosColumn(
               text: 'Total Cash Drawer',
-              width: 9,
-              containsChinese: true,
-              styles: PosStyles(height: PosTextSize.size1, width: PosTextSize.size1)),
-          PosColumn(text: '${totalCashBalance.toStringAsFixed(2)}', width: 3)
+              width: 8,
+              containsChinese: true),
+          PosColumn(
+              text: '${totalCashBalance.toStringAsFixed(2)}',
+              width: 4)
         ]);
-        //Order overview
         bytes += generator.hr();
-        bytes += generator.text('Order Overview', styles: PosStyles(bold: true));
+        bytes += generator.text('Order Overview', styles: PosStyles(align: PosAlign.left, bold: true));
         bytes += generator.hr();
         bytes += generator.reset();
         bytes += generator.row([
           PosColumn(
               text: 'Bills',
-              width: 9,
+              width: 8,
               containsChinese: true),
           PosColumn(
-              text: '${reportObject!.dateOrderList!.length}',
-              width: 3),
+              text: '${settlement.total_bill}',
+              width: 4)
         ]);
         bytes += generator.row([
           PosColumn(
               text: 'Sales',
-              width: 9,
+              width: 8,
               containsChinese: true),
           PosColumn(
-              text: '${reportObject!.totalSales!.toStringAsFixed(2)}',
-              width: 3),
+              text: '${settlement.total_sales}',
+              width: 4)
         ]);
         bytes += generator.row([
           PosColumn(
-              text: 'Refund bill',
-              width: 9,
+              text: 'Refund Bill',
+              width: 8,
               containsChinese: true),
           PosColumn(
-              text: '${'${reportObject!.dateRefundOrderList!.length}'}',
-              width: 3),
+              text: '${'${settlement.total_refund_bill}'}',
+              width: 4)
         ]);
         bytes += generator.row([
           PosColumn(
               text: 'Refund Amount',
-              width: 9,
+              width: 8,
               containsChinese: true),
           PosColumn(
-              text: '${'${reportObject!.totalRefundAmount!.toStringAsFixed(2)}'}',
-              width: 3),
+              text: '${'${settlement.total_refund_amount}'}',
+              width: 4)
         ]);
         bytes += generator.row([
           PosColumn(
               text: 'Discount Amount',
-              width: 9,
+              width: 8,
               containsChinese: true),
           PosColumn(
-              text: '${'${reportObject!.totalPromotionAmount!.toStringAsFixed(2)}'}',
-              width: 3),
+              text: '${'${settlement.total_discount}'}',
+              width: 4)
         ]);
         bytes += generator.row([
           PosColumn(
               text: 'Item Cancelled',
-              width: 9,
+              width: 8,
               containsChinese: true),
           PosColumn(
-              text: '${'${reportObject!.dateOrderDetailCancelList![0].total_item}'}',
-              width: 3),
+              text: '${settlement.total_cancellation}',
+              width: 4)
         ]);
         bytes += generator.hr();
-        bytes += generator.text('Charges Overview', styles: PosStyles(bold: true));
-        bytes += generator.hr();
-        bytes += generator.reset();
-        for(int j = 0; j < reportObject!.branchTaxList!.length; j++){
-          bytes += generator.row([
-            PosColumn(
-                text: '${reportObject!.branchTaxList![j].tax_name}',
-                width: 9,
-                containsChinese: true),
-            PosColumn(
-                text: '${reportObject!.branchTaxList![j].total_amount.toStringAsFixed(2)}',
-                width: 3),
-          ]);
+        if(orderTaxList.isNotEmpty){
+          bytes += generator.text('Charges overview', styles: PosStyles(align: PosAlign.left, bold: true));
+          bytes += generator.hr();
+          bytes += generator.reset();
+          for(int j = 0; j < orderTaxList.length; j++){
+            bytes += generator.row([
+              PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
+              PosColumn(
+                  text: '${orderTaxList[j].tax_name}',
+                  width: 8,
+                  containsChinese: true,
+                  styles: PosStyles(align: PosAlign.left)),
+              PosColumn(
+                  text: '${orderTaxList[j].total_tax_amount!.toStringAsFixed(2)}',
+                  width: 2,
+                  styles: PosStyles(align: PosAlign.right)),
+              PosColumn(
+                  text: '',
+                  width: 1,
+                  styles: PosStyles(align: PosAlign.right)),
+            ]);
+          }
+          bytes += generator.hr();
         }
-        bytes += generator.hr();
-        bytes += generator.text('Dining Overview', styles: PosStyles(bold: true));
-        bytes += generator.hr();
-        bytes += generator.reset();
-        for(int k = 0; k < branchLinkDiningList.length; k++){
-          bytes += generator.row([
-            PosColumn(
-                text: '${branchLinkDiningList[k].name}',
-                width: 9,
-                containsChinese: true),
-            PosColumn(
-                text: '${branchLinkDiningList[k].total_bill}',
-                width: 3),
-          ]);
+        if(orderList.isNotEmpty){
+          bytes += generator.text('Dining overview', styles: PosStyles(align: PosAlign.left, bold: true));
+          bytes += generator.hr();
+          bytes += generator.reset();
+          for(int k = 0; k < orderList.length; k++){
+            bytes += generator.row([
+              PosColumn(
+                  text: '${orderList[k].dining_name}',
+                  width: 8,
+                  containsChinese: true),
+              PosColumn(
+                  text: '${orderList[k].gross_sales!.toStringAsFixed(2)}',
+                  width: 4),
+            ]);
+          }
         }
-
         //final part
         bytes += generator.feed(1);
         bytes += generator.cut(mode: PosCutMode.partial);
         return bytes;
       } catch (e) {
-        print('layout error: $e');
+        print('settlement print error: $e');
         return null;
       }
     }
@@ -2235,17 +2256,15 @@ class ReceiptLayout{
     //   // List<OrderCache> data = await PosDatabase.instance.readBranchLatestOrderCache(branch_id!);
     //   // orderCache = data[0];
     // }
-    if(orderCache!.dining_id == '1') {
-      List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCache!.order_cache_sqlite_id.toString());
-      if(!detailData.contains(detailData)){
-        orderDetailList = List.from(detailData);
-      }
-      List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllTableUseDetail(orderCache!.table_use_sqlite_id!);
-      for(int i = 0; i < detailData2.length; i++){
-        List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(detailData2[i].table_sqlite_id!);
-        if(!tableList.contains(tableData)){
-          tableList.add(tableData[0]);
-        }
+    List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCache!.order_cache_sqlite_id.toString());
+    if(!detailData.contains(detailData)){
+      orderDetailList = List.from(detailData);
+    }
+    List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllTableUseDetail(orderCache!.table_use_sqlite_id!);
+    for(int i = 0; i < detailData2.length; i++){
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(detailData2[i].table_sqlite_id!);
+      if(!tableList.contains(tableData)){
+        tableList.add(tableData[0]);
       }
     }
     _isLoad = true;

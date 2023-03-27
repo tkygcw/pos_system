@@ -2813,7 +2813,7 @@ class PosDatabase {
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.accepted, a.qr_order_table_id, a.qr_order_table_sqlite_id, a.qr_order, a.total_amount, '
             'a.customer_id, a.cancel_by_user_id, a.cancel_by, '
             'a.order_by_user_id, a.order_by, a.order_key, a.order_sqlite_id, a.dining_id, a.batch_id, a.table_use_key, a.table_use_sqlite_id, a.order_detail_id, a.branch_id, '
-            'a.company_id, a.order_cache_key, a.order_cache_id, a.order_cache sqlite_id,  '
+            'a.company_id, a.order_cache_key, a.order_cache_id, a.order_cache_sqlite_id, '
             'b.name AS name FROM $tableOrderCache AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.order_cache_sqlite_id = ? AND b.soft_delete = ?',
         [order_cache_sqlite_id, '']);
     return OrderCache.fromJson(result.first);

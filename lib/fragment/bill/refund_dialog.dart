@@ -333,6 +333,7 @@ class _RefundDialogState extends State<RefundDialog> {
         payment_type_id: widget.order.payment_type,
         type: 4,
         user_id: user.user_id.toString(),
+        settlement_key: '',
         settlement_date: '',
         sync_status: 0,
         created_at: dateTime,

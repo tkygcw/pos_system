@@ -41,22 +41,22 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     readAllCategories();
-    if (widget.cartModel.selectedOption == 'Dine in') {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.cartModel.initialLoad();
-        showDialog(
-            barrierDismissible: false,
-            context: context,
-            builder: (BuildContext context) {
-              return WillPopScope(
-                  child: CartDialog(
-                    selectedTableList: widget.cartModel.selectedTable,
-                  ),
-                  onWillPop: () async => true);
-              //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
-            });
-      });
-    }
+    // if (widget.cartModel.selectedOption == 'Dine in') {
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     widget.cartModel.initialLoad();
+    //     showDialog(
+    //         barrierDismissible: false,
+    //         context: context,
+    //         builder: (BuildContext context) {
+    //           return WillPopScope(
+    //               child: CartDialog(
+    //                 selectedTableList: widget.cartModel.selectedTable,
+    //               ),
+    //               onWillPop: () async => true);
+    //           //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
+    //         });
+    //   });
+    // }
     // _tabController = TabController(length: 0, vsync: this);
   }
 

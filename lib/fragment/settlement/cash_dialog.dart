@@ -421,6 +421,7 @@ class _CashDialogState extends State<CashDialog> {
           payment_type_id: '',
           type: widget.isNewDay ? 0 : type,
           user_id: userObject['user_id'].toString(),
+          settlement_key: '',
           settlement_date: '',
           sync_status: 0,
           created_at: dateTime,
