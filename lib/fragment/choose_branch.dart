@@ -34,7 +34,7 @@ class _ChooseBranchState extends State<ChooseBranch> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Container(
-        color: color.backgroundColor,
+        color: Colors.transparent,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

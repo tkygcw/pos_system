@@ -98,11 +98,11 @@ Future<void> onResume(RemoteMessage message) async {
 Future<void> main() async {
   //firebase method
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(channel);
-
-  FirebaseMessaging.onMessage.listen(showFlutterNotification);
+  // await Firebase.initializeApp();
+  // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  // await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(channel);
+  //
+  // FirebaseMessaging.onMessage.listen(showFlutterNotification);
 
   // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
   //   RemoteNotification? notification = message.notification;

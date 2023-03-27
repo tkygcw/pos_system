@@ -1,4 +1,3 @@
-
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +10,8 @@ import '../../object/device.dart';
 class DeviceRegister extends StatefulWidget {
   final Function(Device) callBack;
   final Branch? selectedBranch;
-  const DeviceRegister({Key? key,required this.callBack, this.selectedBranch}) : super(key: key);
+
+  const DeviceRegister({Key? key, required this.callBack, this.selectedBranch}) : super(key: key);
 
   @override
   _DeviceRegisterState createState() => _DeviceRegisterState();
@@ -20,6 +20,7 @@ class DeviceRegister extends StatefulWidget {
 class _DeviceRegisterState extends State<DeviceRegister> {
   Device? selectedValue;
   List<Device> list = [];
+
   @override
   void initState() {
     // selectedValue = widget.preSelectBranch as Branch;
@@ -35,7 +36,7 @@ class _DeviceRegisterState extends State<DeviceRegister> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Container(
-        color: color.backgroundColor,
+        color: Colors.transparent,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -81,8 +82,7 @@ class _DeviceRegisterState extends State<DeviceRegister> {
                           ),
                           // dropdownMaxHeight: 200,
                           iconEnabledColor: color.backgroundColor,
-                          buttonPadding:
-                          const EdgeInsets.only(left: 14, right: 14),
+                          buttonPadding: const EdgeInsets.only(left: 14, right: 14),
                           buttonHeight: 55,
                           isExpanded: true,
                           dropdownMaxHeight: 200,
@@ -99,28 +99,28 @@ class _DeviceRegisterState extends State<DeviceRegister> {
                           ),
                           items: list
                               .map((device) => DropdownMenuItem<Device>(
-                            value: device,
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.store,
-                                  size: 25,
-                                  color: color.backgroundColor,
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    device.name!,
-                                    style: const TextStyle(
-                                      fontSize: 14,
+                                    value: device,
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.store,
+                                          size: 25,
+                                          color: color.backgroundColor,
+                                        ),
+                                        SizedBox(
+                                          width: 10,
+                                        ),
+                                        Expanded(
+                                          child: Text(
+                                            device.name!,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ))
+                                  ))
                               .toList(),
                           value: selectedValue,
                           onChanged: (value) {
@@ -147,12 +147,9 @@ class _DeviceRegisterState extends State<DeviceRegister> {
     if (data['status'] == '1') {
       setState(() {
         List responseJson = data['device'];
-        list.addAll(responseJson
-            .map((jsonObject) => Device.fromJson(jsonObject))
-            .toList());
+        list.addAll(responseJson.map((jsonObject) => Device.fromJson(jsonObject)).toList());
       });
-    }
-    else{
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Colors.red,

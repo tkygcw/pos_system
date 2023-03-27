@@ -40,8 +40,9 @@ class _SetupPageState extends State<SetupPage> {
   }
 
   getToken() async {
-    token = await FirebaseMessaging.instance.getToken();
-    print('token: ${token}');
+    // token = await FirebaseMessaging.instance.getToken();
+    // print('token: ${token}');
+    token = 'testing';
   }
 
   @override
@@ -49,17 +50,28 @@ class _SetupPageState extends State<SetupPage> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Scaffold(
         backgroundColor: color.backgroundColor,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              buildCards(),
-              Container(
-                child: buildButtons(),
+        body: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("drawable/login_background.jpg"),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: Container(
+            color: Colors.black26,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  buildCards(),
+                  Container(
+                    child: buildButtons(),
+                  ),
+                  backToLoginButton(),
+                ],
               ),
-              backToLoginButton(),
-            ],
+            ),
           ),
         ),
       );

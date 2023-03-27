@@ -13,7 +13,6 @@ import '../../object/product.dart';
 import '../../page/progress_bar.dart';
 import '../product/edit_product.dart';
 
-
 class FoodSetting extends StatefulWidget {
   const FoodSetting({Key? key}) : super(key: key);
 
@@ -28,6 +27,8 @@ class _FoodSettingState extends State<FoodSetting> {
   List<Product> specificProduct = [];
   String? companyID = '';
   bool isLoading = true;
+
+  String imagePath = '';
 
   @override
   void initState() {
@@ -93,12 +94,11 @@ class _FoodSettingState extends State<FoodSetting> {
                                         ))
                                     .toList(),
                                 // Customize the selected item
-                                selectedItemBuilder: (BuildContext context) =>
-                                    categoryList
-                                        .map((e) => Center(
-                                              child: Text(e),
-                                            ))
-                                        .toList(),
+                                selectedItemBuilder: (BuildContext context) => categoryList
+                                    .map((e) => Center(
+                                          child: Text(e),
+                                        ))
+                                    .toList(),
                               ),
                             ),
                           ),
@@ -110,14 +110,12 @@ class _FoodSettingState extends State<FoodSetting> {
                                 searchProduct(value);
                               },
                               decoration: InputDecoration(
-                                contentPadding:
-                                    EdgeInsets.fromLTRB(10, 10, 10, 10),
+                                contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 isDense: true,
                                 border: InputBorder.none,
                                 labelText: 'Search',
                                 focusedBorder: OutlineInputBorder(
-                                  borderSide: const BorderSide(
-                                      color: Colors.grey, width: 2.0),
+                                  borderSide: const BorderSide(color: Colors.grey, width: 2.0),
                                   borderRadius: BorderRadius.circular(25.0),
                                 ),
                               ),
@@ -131,46 +129,34 @@ class _FoodSettingState extends State<FoodSetting> {
                                 padding: const EdgeInsets.all(10),
                                 shrinkWrap: true,
                                 crossAxisCount: 6,
-                                children: List.generate(
-                                    allProduct
-                                        .length, //this is the total number of cards
+                                children: List.generate(allProduct.length, //this is the total number of cards
                                     (index) {
                                   return Card(
                                     child: Container(
-                                      decoration: (allProduct[index]
-                                                  .graphic_type ==
-                                              '2'
+                                      decoration: (allProduct[index].graphic_type == '2'
                                           ? BoxDecoration(
                                               image: DecorationImage(
-                                                  image: FileImage(File(
-                                                      'data/user/0/com.example.pos_system/files/assets/' +
-                                                          companyID! +
-                                                          '/' +
-                                                          allProduct[index]
-                                                              .image!)),
+                                                  image: FileImage(File('data/user/0/com.example.pos_system/files/assets/' +
+                                                      companyID! +
+                                                      '/' +
+                                                      allProduct[index].image!)),
                                                   fit: BoxFit.cover))
-                                          : BoxDecoration(
-                                              color: HexColor(
-                                                  allProduct[index].color!))),
+                                          : BoxDecoration(color: HexColor(allProduct[index].color!))),
                                       child: InkWell(
                                         splashColor: Colors.blue.withAlpha(30),
                                         onTap: () {
-                                          openEditProductDialog(
-                                              allProduct[index]);
+                                          openEditProductDialog(allProduct[index]);
                                         },
                                         child: Stack(
                                           alignment: Alignment.bottomLeft,
                                           children: [
                                             Container(
-                                              color:
-                                                  Colors.black.withOpacity(0.5),
+                                              color: Colors.black.withOpacity(0.5),
                                               height: 30,
                                               width: 200,
                                               alignment: Alignment.center,
                                               child: Text(
-                                                allProduct[index].SKU! +
-                                                    ' ' +
-                                                    allProduct[index].name!,
+                                                allProduct[index].SKU! + ' ' + allProduct[index].name!,
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   color: Colors.white,
@@ -224,7 +210,7 @@ class _FoodSettingState extends State<FoodSetting> {
       categoryList.add('All Categories');
     }
     List<Categories> data = await PosDatabase.instance.readAllCategories();
-    if(categoryList.length <= 1){
+    if (categoryList.length <= 1) {
       for (int i = 0; i < data.length; i++) {
         categoryList.add(data[i].name!);
       }
@@ -244,6 +230,7 @@ class _FoodSettingState extends State<FoodSetting> {
   readCompanyID() async {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
+    imagePath = prefs.getString('local_path')!;
     Map userObject = json.decode(user!);
     companyID = userObject['company_id'];
   }
@@ -268,22 +255,15 @@ class _FoodSettingState extends State<FoodSetting> {
         padding: const EdgeInsets.all(10),
         shrinkWrap: true,
         crossAxisCount: 6,
-        children: List.generate(
-            specificProduct.length, //this is the total number of cards
+        children: List.generate(specificProduct.length, //this is the total number of cards
             (index) {
+          print(imagePath + '/' + specificProduct[index].image!);
           return Card(
             child: Container(
               decoration: (specificProduct[index].graphic_type == '2'
                   ? BoxDecoration(
-                      image: DecorationImage(
-                          image: FileImage(File(
-                              'data/user/0/com.example.pos_system/files/assets/' +
-                                  companyID! +
-                                  '/' +
-                                  specificProduct[index].image!)),
-                          fit: BoxFit.cover))
-                  : BoxDecoration(
-                      color: HexColor(specificProduct[index].color!))),
+                      image: DecorationImage(image: FileImage(File(imagePath + '/' + specificProduct[index].image!)), fit: BoxFit.cover))
+                  : BoxDecoration(color: HexColor(specificProduct[index].color!))),
               child: InkWell(
                 splashColor: Colors.blue.withAlpha(30),
                 onTap: () {
@@ -298,9 +278,7 @@ class _FoodSettingState extends State<FoodSetting> {
                       width: 200,
                       alignment: Alignment.center,
                       child: Text(
-                        specificProduct[index].SKU! +
-                            ' ' +
-                            specificProduct[index].name!,
+                        specificProduct[index].SKU! + ' ' + specificProduct[index].name!,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
