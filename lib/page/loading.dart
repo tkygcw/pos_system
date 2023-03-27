@@ -1266,6 +1266,7 @@ getCashRecord() async {
         type: responseJson[i]['type'],
         amount: responseJson[i]['amount'],
         user_id: responseJson[i]['user_id'],
+        settlement_key: responseJson[i]['settlement_key'],
         settlement_date: responseJson[i]['settlement_date'],
         sync_status: 1,
         created_at: responseJson[i]['created_at'],

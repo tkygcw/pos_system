@@ -497,6 +497,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
             payment_type_id: orderData[0].payment_type,
             type: 3,
             user_id: userObject['user_id'].toString(),
+            settlement_key: '',
             settlement_date: '',
             sync_status: 0,
             created_at: dateTime,

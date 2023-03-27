@@ -564,7 +564,7 @@ class PrintReceipt{
               }
             } else {
               //print USB 58mm
-              var data = Uint8List.fromList(await ReceiptLayout().printSettlementList58mm(true, dateTime));
+              var data = Uint8List.fromList(await ReceiptLayout().printSettlementList58mm(true, dateTime, settlement));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']),
                   int.parse(printerDetail['productId']));
@@ -596,7 +596,7 @@ class PrintReceipt{
               final printer = NetworkPrinter(PaperSize.mm58, profile);
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
               if (res == PosPrintResult.success) {
-                await ReceiptLayout().printSettlementList58mm(false, dateTime, value: printer);
+                await ReceiptLayout().printSettlementList58mm(false, dateTime, settlement, value: printer);
                 printer.disconnect();
               } else {
                 Fluttertoast.showToast(

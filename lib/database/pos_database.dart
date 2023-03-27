@@ -569,6 +569,7 @@ class PosDatabase {
           ${CashRecordFields.type} $integerType,
           ${CashRecordFields.amount} $textType,
           ${CashRecordFields.user_id} $textType,
+          ${CashRecordFields.settlement_key} $textType,
           ${CashRecordFields.settlement_date} $textType,
           ${CashRecordFields.sync_status} $integerType,
           ${CashRecordFields.created_at} $textType,
@@ -1691,8 +1692,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
       'INSERT INTO $tableCashRecord(cash_record_id, cash_record_key, company_id, branch_id, remark, '
-          'payment_name, payment_type_id, type, amount, user_id, settlement_date, sync_status, created_at, updated_at, soft_delete) '
-          'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          'payment_name, payment_type_id, type, amount, user_id, settlement_key, settlement_date, sync_status, created_at, updated_at, soft_delete) '
+          'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         data.cash_record_id,
         data.cash_record_key,
@@ -1704,6 +1705,7 @@ class PosDatabase {
         data.type,
         data.amount,
         data.user_id,
+        data.settlement_key,
         data.settlement_date,
         data.sync_status,
         data.created_at,
@@ -2808,8 +2810,12 @@ class PosDatabase {
   Future<OrderCache> readSpecificOrderCacheByLocalId(int order_cache_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableOrderCache WHERE order_cache_sqlite_id = ?',
-        [order_cache_sqlite_id]);
+        'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.accepted, a.qr_order_table_id, a.qr_order_table_sqlite_id, a.qr_order, a.total_amount, '
+            'a.customer_id, a.cancel_by_user_id, a.cancel_by, '
+            'a.order_by_user_id, a.order_by, a.order_key, a.order_sqlite_id, a.dining_id, a.batch_id, a.table_use_key, a.table_use_sqlite_id, a.order_detail_id, a.branch_id, '
+            'a.company_id, a.order_cache_key, a.order_cache_id, a.order_cache sqlite_id,  '
+            'b.name AS name FROM $tableOrderCache AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.order_cache_sqlite_id = ? AND b.soft_delete = ?',
+        [order_cache_sqlite_id, '']);
     return OrderCache.fromJson(result.first);
   }
 
@@ -3176,12 +3182,11 @@ class PosDatabase {
 /*
   read specific settlement cash record
 */
-  Future<List<CashRecord>> readSpecificSettlementCashRecord(
-      String branch_id, String dateTime) async {
+  Future<List<CashRecord>> readSpecificSettlementCashRecord(String branch_id, String dateTime, String settlement_key) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date = ? AND a.branch_id = ? AND b.soft_delete = ?',
-        ['', dateTime, branch_id, '']);
+        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_key = ? AND a.branch_id = ? AND b.soft_delete = ?',
+        ['', settlement_key, branch_id, '']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
 
@@ -3831,6 +3836,148 @@ class PosDatabase {
 /*
   --------------------Settlement part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  get all settlement order tax detail based on settlement id
+*/
+  Future<List<Order>> readAllSettlementOrderBySettlementKey(String settlement_key) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT *, (SELECT SUM(a.final_amount + 0.0) FROM $tableOrder AS a WHERE a.settlement_key = ? AND a.refund_key = ? AND a.dining_id = dining_id) AS gross_sales '
+            'FROM $tableOrder '
+            'WHERE soft_delete = ? AND refund_key = ? AND settlement_key = ? GROUP BY dining_id ',
+        [settlement_key, '', '', '', settlement_key]
+    );
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  get all settlement order tax detail based on settlement id
+*/
+  Future<List<OrderTaxDetail>> readAllSettlementOrderTaxDetailBySettlementKey(String settlement_key) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT c.*, (SELECT SUM(a.tax_amount + 0.0) FROM $tableOrderTaxDetail AS a JOIN $tableOrder AS b ON a.order_key = b.order_key WHERE b.settlement_key = ? AND a.tax_id = c.tax_id AND b.refund_key = ?) AS total_tax_amount '
+            'FROM $tableOrderTaxDetail AS c JOIN $tableOrder AS d ON c.order_key = d.order_key '
+            'WHERE c.soft_delete = ? AND d.soft_delete = ? AND d.settlement_key = ? AND d.refund_key = ? GROUP BY c.tax_name ',
+        [settlement_key, '', '', '', settlement_key, '']
+    );
+    return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
+  }
+
+
+
+/*
+  update settlement order detail cancel
+*/
+  Future<int> updateOrderDetailCancelSettlement(OrderDetailCancel data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderDetailCancel SET updated_at = ?, sync_status = ?, settlement_key = ?, settlement_sqlite_id = ? '
+            'WHERE order_detail_cancel_sqlite_id = ? ',
+        [
+          data.updated_at,
+          data.sync_status,
+          data.settlement_key,
+          data.settlement_sqlite_id,
+          data.order_detail_cancel_sqlite_id
+        ]
+    );
+  }
+
+/*
+  get not yet settlement order detail cancel
+*/
+  Future<List<OrderDetailCancel>> readAllNotSettlementOrderDetailCancel() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderDetailCancel WHERE soft_delete = ? AND settlement_key = ? ',
+        ['', '']
+    );
+    return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
+  }
+
+/*
+  update settlement order
+*/
+  Future<int> updateOrderSettlement(Order data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+      'UPDATE $tableOrder SET updated_at = ?, sync_status = ?, settlement_key = ?, settlement_sqlite_id = ? WHERE order_sqlite_id = ? ',
+      [
+        data.updated_at,
+        data.sync_status,
+        data.settlement_key,
+        data.settlement_sqlite_id,
+        data.order_sqlite_id
+      ]
+    );
+  }
+
+/*
+  get settlement order promotion detail
+*/
+  Future<List<OrderPromotionDetail>> readAllNotSettlementOrderPromotionDetail() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT c.*, (SELECT SUM(promotion_amount + 0.0) FROM $tableOrderPromotionDetail AS a JOIN $tableOrder AS b ON a.order_key = b.order_key WHERE b.settlement_key = ? AND b.refund_key = ? ) '
+            'AS total_promotion_amount FROM $tableOrderPromotionDetail AS c JOIN $tableOrder AS d ON c.order_key = d.order_key '
+            'WHERE c.soft_delete = ? AND d.soft_delete = ? AND d.settlement_key = ? AND d.refund_key = ? ',
+        ['', '', '', '', '', '']
+    );
+    return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
+  }
+
+/*
+  get settlement order tax detail
+*/
+  Future<List<OrderTaxDetail>> readAllNotSettlementOrderTaxDetail() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT c.*, (SELECT SUM(a.tax_amount + 0.0) FROM $tableOrderTaxDetail AS a JOIN $tableOrder AS b ON a.order_key = b.order_key WHERE b.settlement_key = ? AND b.refund_key = ?) AS total_tax_amount '
+            'FROM $tableOrderTaxDetail AS c JOIN $tableOrder AS d ON c.order_key = d.order_key '
+            'WHERE c.soft_delete = ? AND d.soft_delete = ? AND d.settlement_key = ? AND d.refund_key = ? ',
+        ['', '', '', '', '', '']
+    );
+    return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
+  }
+
+/*
+  get not yet settlement order
+*/
+  Future<List<Order>> readAllNotSettlementOrder() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrder WHERE soft_delete = ? AND settlement_key = ? ',
+        ['', '']
+    );
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  get not yet settlement order
+*/
+  Future<List<Order>> readAllNotSettlementPaidOrder() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT *, (SELECT SUM(final_amount + 0.0) FROM $tableOrder WHERE settlement_key = ? AND refund_key = ?) AS gross_sales FROM $tableOrder WHERE soft_delete = ? AND refund_key = ? AND settlement_key = ? ',
+        ['', '', '', '', '']
+    );
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  get not yet settlement refund
+*/
+  Future<List<Order>> readAllNotSettlementRefundedOrder() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT *, (SELECT SUM(final_amount + 0.0) FROM $tableOrder WHERE refund_key != ? AND settlement_key = ?) AS gross_sales FROM $tableOrder '
+            'WHERE soft_delete = ? AND refund_key != ? AND settlement_key = ? ',
+        ['', '', '', '', '']
+    );
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
 
 /*
   read specific settlement link payment by payment link company id
@@ -4825,9 +4972,10 @@ class PosDatabase {
   Future<int> updateCashRecord(CashRecord data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableCashRecord SET settlement_date = ?, sync_status = ?, updated_at = ? WHERE cash_record_sqlite_id = ?',
+        'UPDATE $tableCashRecord SET settlement_date = ?, settlement_key = ?, sync_status = ?, updated_at = ? WHERE cash_record_sqlite_id = ?',
         [
           data.settlement_date,
+          data.settlement_key,
           data.sync_status,
           data.updated_at,
           data.cash_record_sqlite_id

@@ -38,7 +38,7 @@ class ReceiptLayout{
   OrderCache? orderCache;
   Order? paidOrder;
   ReportObject? reportObject;
-  List<Order> dateOrderList = [];
+  List<Order> dateOrderList = [], orderList = [];
   List<OrderCache> paidOrderCacheList = [], orderCacheList = [];
   List<OrderTaxDetail> orderTaxList = [];
   List<OrderPromotionDetail> orderPromotionList = [];
@@ -1573,10 +1573,10 @@ class ReceiptLayout{
   Settlement layout 80mm
 */
   printSettlementList80mm(bool isUSB, String settlementDateTime, Settlement settlement, {value}) async {
-    await getAllTodayOrderOverview();
-    await getBranchLinkDiningOption();
-    await readPaymentLinkCompany(settlementDateTime);
-    await calculateCashDrawerAmount(settlementDateTime);
+    await getAllTodayOrderOverview(settlement);
+    // await getBranchLinkDiningOption();
+    await readPaymentLinkCompany(settlementDateTime, settlement);
+    await calculateCashDrawerAmount(settlementDateTime, settlement);
     if(_isLoad == true){
       var generator;
       if (isUSB) {
@@ -1592,7 +1592,7 @@ class ReceiptLayout{
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
 
-        bytes += generator.text('Settlement By: ${settlement_By}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Settlement By: ${settlement.settlement_by}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Settlement Time: ${settlementDateTime}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.hr();
         bytes += generator.reset();
@@ -1731,7 +1731,7 @@ class ReceiptLayout{
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
           PosColumn(
-              text: '${reportObject!.dateOrderList!.length}',
+              text: '${settlement.total_bill}',
               width: 2,
               styles: PosStyles(align: PosAlign.right)),
           PosColumn(
@@ -1747,7 +1747,7 @@ class ReceiptLayout{
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
           PosColumn(
-              text: '${reportObject!.totalSales!.toStringAsFixed(2)}',
+              text: '${settlement.total_sales}',
               width: 2,
               styles: PosStyles(align: PosAlign.right)),
           PosColumn(
@@ -1763,7 +1763,7 @@ class ReceiptLayout{
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
           PosColumn(
-              text: '${'${reportObject!.dateRefundOrderList!.length}'}',
+              text: '${'${settlement.total_refund_bill}'}',
               width: 2,
               styles: PosStyles(align: PosAlign.right)),
           PosColumn(
@@ -1779,7 +1779,7 @@ class ReceiptLayout{
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
           PosColumn(
-              text: '${'${reportObject!.totalRefundAmount!.toStringAsFixed(2)}'}',
+              text: '${'${settlement.total_refund_amount}'}',
               width: 2,
               styles: PosStyles(align: PosAlign.right)),
           PosColumn(
@@ -1795,7 +1795,7 @@ class ReceiptLayout{
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
           PosColumn(
-              text: '${'${reportObject!.totalPromotionAmount!.toStringAsFixed(2)}'}',
+              text: '${'${settlement.total_discount}'}',
               width: 2,
               styles: PosStyles(align: PosAlign.right)),
           PosColumn(
@@ -1811,7 +1811,7 @@ class ReceiptLayout{
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
           PosColumn(
-              text: '${'${reportObject!.dateOrderDetailCancelList![0].total_item}'}',
+              text: '${settlement.total_cancellation}',
               width: 2,
               styles: PosStyles(align: PosAlign.right)),
           PosColumn(
@@ -1823,16 +1823,16 @@ class ReceiptLayout{
         bytes += generator.text('Charges overview', styles: PosStyles(align: PosAlign.left, bold: true));
         bytes += generator.hr();
         bytes += generator.reset();
-        for(int j = 0; j < reportObject!.branchTaxList!.length; j++){
+        for(int j = 0; j < orderTaxList.length; j++){
           bytes += generator.row([
             PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
             PosColumn(
-                text: '${reportObject!.branchTaxList![j].tax_name}',
+                text: '${orderTaxList[j].tax_name}',
                 width: 8,
                 containsChinese: true,
                 styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
             PosColumn(
-                text: '${reportObject!.branchTaxList![j].total_amount.toStringAsFixed(2)}',
+                text: '${orderTaxList[j].total_tax_amount!.toStringAsFixed(2)}',
                 width: 2,
                 styles: PosStyles(align: PosAlign.right)),
             PosColumn(
@@ -1845,16 +1845,16 @@ class ReceiptLayout{
         bytes += generator.text('Dining overview', styles: PosStyles(align: PosAlign.left, bold: true));
         bytes += generator.hr();
         bytes += generator.reset();
-        for(int k = 0; k < branchLinkDiningList.length; k++){
+        for(int k = 0; k < orderList.length; k++){
           bytes += generator.row([
             PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
             PosColumn(
-                text: '${branchLinkDiningList[k].name}',
+                text: '${orderList[k].dining_name}',
                 width: 8,
                 containsChinese: true,
                 styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
             PosColumn(
-                text: '${branchLinkDiningList[k].total_bill}',
+                text: '${orderList[k].gross_sales}',
                 width: 2,
                 styles: PosStyles(align: PosAlign.right)),
             PosColumn(
@@ -1868,7 +1868,7 @@ class ReceiptLayout{
         bytes += generator.cut(mode: PosCutMode.partial);
         return bytes;
       } catch (e) {
-        print('layout error: $e');
+        print('settlement print error: $e');
         return null;
       }
     }
@@ -1877,11 +1877,11 @@ class ReceiptLayout{
 /*
   Settlement layout 58mm
 */
-  printSettlementList58mm(bool isUSB, String settlementDateTime, {value}) async {
-    await getAllTodayOrderOverview();
+  printSettlementList58mm(bool isUSB, String settlementDateTime, Settlement settlement, {value}) async {
+    await getAllTodayOrderOverview(settlement);
     await getBranchLinkDiningOption();
-    await readPaymentLinkCompany(settlementDateTime);
-    await calculateCashDrawerAmount(settlementDateTime);
+    await readPaymentLinkCompany(settlementDateTime, settlement);
+    await calculateCashDrawerAmount(settlementDateTime, settlement);
     if(_isLoad == true){
       var generator;
       if (isUSB) {
@@ -2235,15 +2235,17 @@ class ReceiptLayout{
     //   // List<OrderCache> data = await PosDatabase.instance.readBranchLatestOrderCache(branch_id!);
     //   // orderCache = data[0];
     // }
-    List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCache!.order_cache_sqlite_id.toString());
-    if(!detailData.contains(detailData)){
-      orderDetailList = List.from(detailData);
-    }
-    List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllTableUseDetail(orderCache!.table_use_sqlite_id!);
-    for(int i = 0; i < detailData2.length; i++){
-      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(detailData2[i].table_sqlite_id!);
-      if(!tableList.contains(tableData)){
-        tableList.add(tableData[0]);
+    if(orderCache!.dining_id == '1') {
+      List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCache!.order_cache_sqlite_id.toString());
+      if(!detailData.contains(detailData)){
+        orderDetailList = List.from(detailData);
+      }
+      List<TableUseDetail> detailData2 = await PosDatabase.instance.readAllTableUseDetail(orderCache!.table_use_sqlite_id!);
+      for(int i = 0; i < detailData2.length; i++){
+        List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(detailData2[i].table_sqlite_id!);
+        if(!tableList.contains(tableData)){
+          tableList.add(tableData[0]);
+        }
       }
     }
     _isLoad = true;
@@ -2343,7 +2345,7 @@ class ReceiptLayout{
 /*
   read all payment link company
 */
-  readPaymentLinkCompany(String dateTime) async {
+  readPaymentLinkCompany(String dateTime, Settlement settlement) async {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);
@@ -2354,13 +2356,13 @@ class ReceiptLayout{
     if(data.isNotEmpty){
       paymentList = List.from(data);
     }
-    await calculateTotalAmount(dateTime);
+    await calculateTotalAmount(dateTime, settlement);
   }
 
 /*
   calculate each payment link company total amount
 */
-  calculateTotalAmount(String dateTime) async {
+  calculateTotalAmount(String dateTime, Settlement settlement) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
@@ -2368,7 +2370,7 @@ class ReceiptLayout{
       for (int j = 0; j < paymentList.length; j++) {
         double total = 0.0;
         double totalRefund = 0.0;
-        List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime);
+        List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime, settlement.settlement_key!);
 
         for(int i = 0; i < data.length; i++){
           if(data[i].type == 3 && data[i].payment_type_id == paymentList[j].payment_type_id){
@@ -2389,7 +2391,7 @@ class ReceiptLayout{
 /*
   calculate cash drawer
 */
-  calculateCashDrawerAmount(String dateTime) async {
+  calculateCashDrawerAmount(String dateTime, Settlement settlement) async {
     double _cashTotal = 0.0;
     double _cashRefund = 0.0;
     _isLoad = false;
@@ -2398,7 +2400,7 @@ class ReceiptLayout{
     // double totalCashIn = 0.0;
     // double totalCashOut = 0.0;
     try{
-      List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime);
+      List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime, settlement.settlement_key!);
       for (int i = 0; i < data.length; i++) {
         if (data[i].type == 1 && data[i].payment_type_id == '') {
           totalCashIn += double.parse(data[i].amount!);
@@ -2423,22 +2425,28 @@ class ReceiptLayout{
 /*
   settlement part
 */
-  getAllTodayOrderOverview() async {
-    String currentStDate = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
-    ReportObject object = await ReportObject().getAllPaidOrder(currentStDate: currentStDate, currentEdDate: currentStDate);
-    ReportObject object2 = await ReportObject().getTotalCancelledItem(currentStDate: currentStDate, currentEdDate: currentStDate);
-    ReportObject object3 = await ReportObject().getAllRefundOrder(currentStDate: currentStDate, currentEdDate: currentStDate);
-    ReportObject object4 = await ReportObject().getAllPaidOrderPromotionDetail(currentStDate: currentStDate, currentEdDate: currentStDate);
-    ReportObject object5 = await ReportObject().getAllPaidOrderTaxDetail(currentStDate: currentStDate, currentEdDate: currentStDate);
-    reportObject = ReportObject(
-        totalSales: object.totalSales,
-        dateOrderList: object.dateOrderList,
-        dateOrderDetailCancelList: object2.dateOrderDetailCancelList,
-        totalRefundAmount: object3.totalRefundAmount,
-        dateRefundOrderList: object3.dateRefundOrderList,
-        totalPromotionAmount: object4.totalPromotionAmount,
-        branchTaxList: object5.branchTaxList
-    );
+  getAllTodayOrderOverview(Settlement settlement) async {
+    List<OrderTaxDetail> data = await PosDatabase.instance.readAllSettlementOrderTaxDetailBySettlementKey(settlement.settlement_key!);
+    List<Order> orderData = await PosDatabase.instance.readAllSettlementOrderBySettlementKey(settlement.settlement_key!);
+    orderTaxList = data;
+    orderList = orderData;
+
+
+    // String currentStDate = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
+    // ReportObject object = await ReportObject().getAllPaidOrder(currentStDate: currentStDate, currentEdDate: currentStDate);
+    // ReportObject object2 = await ReportObject().getTotalCancelledItem(currentStDate: currentStDate, currentEdDate: currentStDate);
+    // ReportObject object3 = await ReportObject().getAllRefundOrder(currentStDate: currentStDate, currentEdDate: currentStDate);
+    // ReportObject object4 = await ReportObject().getAllPaidOrderPromotionDetail(currentStDate: currentStDate, currentEdDate: currentStDate);
+    // ReportObject object5 = await ReportObject().getAllPaidOrderTaxDetail(currentStDate: currentStDate, currentEdDate: currentStDate);
+    // reportObject = ReportObject(
+    //     totalSales: object.totalSales,
+    //     dateOrderList: object.dateOrderList,
+    //     dateOrderDetailCancelList: object2.dateOrderDetailCancelList,
+    //     totalRefundAmount: object3.totalRefundAmount,
+    //     dateRefundOrderList: object3.dateRefundOrderList,
+    //     totalPromotionAmount: object4.totalPromotionAmount,
+    //     branchTaxList: object5.branchTaxList
+    // );
   }
 
 /*

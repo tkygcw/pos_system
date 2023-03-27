@@ -13,6 +13,7 @@ class CashRecordFields {
     type,
     amount,
     user_id,
+    settlement_key,
     settlement_date,
     sync_status,
     created_at,
@@ -31,6 +32,7 @@ class CashRecordFields {
   static String type = 'type';
   static String amount = 'amount';
   static String user_id = 'user_id';
+  static String settlement_key = 'settlement_key';
   static String settlement_date = 'settlement_date';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
@@ -50,6 +52,7 @@ class CashRecord {
   int? type;
   String? amount;
   String? user_id;
+  String? settlement_key;
   String? settlement_date;
   int? sync_status;
   String? created_at;
@@ -69,6 +72,7 @@ class CashRecord {
       this.type,
       this.amount,
       this.user_id,
+      this.settlement_key,
       this.settlement_date,
       this.sync_status,
       this.created_at,
@@ -88,6 +92,7 @@ class CashRecord {
     int? type,
     String? amount,
     String? user_id,
+    String? settlement_key,
     String? settlement_date,
     int? sync_status,
     String? created_at,
@@ -106,6 +111,7 @@ class CashRecord {
           type: type ?? this.type,
           amount: amount ?? this.amount,
           user_id: user_id ?? this.user_id,
+          settlement_key: settlement_key ?? this.settlement_key,
           settlement_date: settlement_date ?? this.settlement_date,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
@@ -124,6 +130,7 @@ class CashRecord {
       type: json[CashRecordFields.type] as int?,
       amount: json[CashRecordFields.amount] as String?,
       user_id: json[CashRecordFields.user_id] as String?,
+      settlement_key: json[CashRecordFields.settlement_key] as String?,
       settlement_date: json[CashRecordFields.settlement_date] as String?,
       sync_status: json[CashRecordFields.sync_status] as int?,
       created_at: json[CashRecordFields.created_at] as String?,
@@ -143,6 +150,7 @@ class CashRecord {
     CashRecordFields.type: type,
     CashRecordFields.amount: amount,
     CashRecordFields.user_id: user_id,
+    CashRecordFields.settlement_key: settlement_key,
     CashRecordFields.settlement_date: settlement_date,
     CashRecordFields.sync_status: sync_status,
     CashRecordFields.created_at: created_at,
