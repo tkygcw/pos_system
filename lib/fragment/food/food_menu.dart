@@ -14,11 +14,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/colorCode.dart';
-import '../../object/print_receipt.dart';
-import '../../object/printer.dart';
 
 class FoodMenu extends StatefulWidget {
   final CartModel cartModel;
+
   const FoodMenu({Key? key, required this.cartModel}) : super(key: key);
 
   @override
@@ -36,22 +35,26 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   TextEditingController searchController = new TextEditingController();
   bool isLoading = true;
 
+  String imagePath = '';
+
   @override
   void initState() {
     super.initState();
     readAllCategories();
-    if(widget.cartModel.selectedOption == 'Dine in'){
+    if (widget.cartModel.selectedOption == 'Dine in') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.cartModel.initialLoad();
         showDialog(
-            barrierDismissible: false, context: context, builder: (BuildContext context) {
-          return WillPopScope(
-              child: CartDialog(
-                selectedTableList: widget.cartModel.selectedTable,
-              ),
-              onWillPop: () async => true);
-          //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
-        });
+            barrierDismissible: false,
+            context: context,
+            builder: (BuildContext context) {
+              return WillPopScope(
+                  child: CartDialog(
+                    selectedTableList: widget.cartModel.selectedTable,
+                  ),
+                  onWillPop: () async => true);
+              //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
+            });
       });
     }
     // _tabController = TabController(length: 0, vsync: this);
@@ -70,65 +73,61 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
       return isLoading
           ? CustomProgressBar()
           : Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: Container(
-          child: Column(children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(11, 8, 11, 4),
-              child: Row(
-                children: [
-                  Expanded(
-                      child: Text(
-                        "Menu",
-                        style: TextStyle(
-                            fontSize: 25, color: color.backgroundColor),
-                      )),
-                  SizedBox(width: MediaQuery.of(context).size.height > 500 ? 400 : 0),
-                  Expanded(
-                    child: TextField(
-                      onChanged: (value) {
-                        _tabController.index = 0;
-                        setState(() {
-                          searchProduct(value);
-                        });
-                      },
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        isDense: true,
-                        border: InputBorder.none,
-                        labelText: 'Search ',
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
-                              color: Colors.grey, width: 2.0),
-                          borderRadius: BorderRadius.circular(25.0),
-                        ),
-                      ),
+              resizeToAvoidBottomInset: false,
+              body: Container(
+                child: Column(children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(11, 8, 11, 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: Text(
+                          "Menu",
+                          style: TextStyle(fontSize: 25, color: color.backgroundColor),
+                        )),
+                        SizedBox(width: MediaQuery.of(context).size.height > 500 ? 400 : 0),
+                        Expanded(
+                          child: TextField(
+                            onChanged: (value) {
+                              _tabController.index = 0;
+                              setState(() {
+                                searchProduct(value);
+                              });
+                            },
+                            controller: searchController,
+                            decoration: InputDecoration(
+                              isDense: true,
+                              border: InputBorder.none,
+                              labelText: 'Search ',
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(color: Colors.grey, width: 2.0),
+                                borderRadius: BorderRadius.circular(25.0),
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
                     ),
-                  )
-                ],
-              ),
-            ),
-            SizedBox(height: 10),
-            TabBar(
-              isScrollable: true,
-              unselectedLabelColor: Colors.black,
-              labelColor: color.buttonColor,
-              indicatorColor: color.buttonColor,
-              tabs: categoryTab,
-              controller: _tabController,
-              indicatorSize: TabBarIndicatorSize.tab,
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: TabBarView(
+                  ),
+                  SizedBox(height: 10),
+                  TabBar(
+                    isScrollable: true,
+                    unselectedLabelColor: Colors.black,
+                    labelColor: color.buttonColor,
+                    indicatorColor: color.buttonColor,
+                    tabs: categoryTab,
                     controller: _tabController,
-                    children: categoryTabContent),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TabBarView(controller: _tabController, children: categoryTabContent),
+                    ),
+                  ),
+                ]),
               ),
-            ),
-          ]),
-        ),
-      );
+            );
     });
   }
 
@@ -160,7 +159,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   readAllCategories() async {
-    await readCompanyID();
+    await getPreferences();
     List<Categories> data = await PosDatabase.instance.readAllCategories();
     categoryTab.add(Tab(
       text: 'All Category',
@@ -183,14 +182,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
               return Card(
                 child: Container(
                   decoration: (data[index].graphic_type == '2'
-                      ? BoxDecoration(
-                      image: DecorationImage(
-                          image: FileImage(File(
-                              'data/user/0/com.example.pos_system/files/assets/' +
-                                  companyID +
-                                  '/' +
-                                  data[index].image!)),
-                          fit: BoxFit.cover))
+                      ? BoxDecoration(image: DecorationImage(image: FileImage(File(imagePath + '/' + data[index].image!)), fit: BoxFit.cover))
                       : BoxDecoration(color: HexColor(data[index].color!))),
                   child: InkWell(
                     splashColor: Colors.blue.withAlpha(30),
@@ -201,12 +193,15 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                       alignment: Alignment.bottomLeft,
                       children: [
                         Container(
+                          height: 50,
+                          padding: EdgeInsets.fromLTRB(5, 2, 5, 2),
                           color: Colors.black.withOpacity(0.5),
-                          height: 30,
                           width: 200,
                           alignment: Alignment.center,
                           child: Text(
                             data[index].SKU! + ' ' + data[index].name!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -221,8 +216,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
               );
             })));
       } else {
-        List<Product> data =
-        await PosDatabase.instance.readSpecificProduct(categoryList[i]);
+        List<Product> data = await PosDatabase.instance.readSpecificProduct(categoryList[i]);
         categoryTabContent.add(GridView.count(
             shrinkWrap: true,
             crossAxisCount: 5,
@@ -230,14 +224,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
               return Card(
                 child: Container(
                   decoration: (data[index].graphic_type == '2'
-                      ? BoxDecoration(
-                      image: DecorationImage(
-                          image: FileImage(File(
-                              'data/user/0/com.example.pos_system/files/assets/' +
-                                  companyID +
-                                  '/' +
-                                  data[index].image!)),
-                          fit: BoxFit.cover))
+                      ? BoxDecoration(image: DecorationImage(image: FileImage(File(imagePath + '/' + data[index].image!)), fit: BoxFit.cover))
                       : BoxDecoration(color: HexColor(data[index].color!))),
                   child: InkWell(
                     splashColor: Colors.blue.withAlpha(30),
@@ -249,11 +236,14 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                       children: [
                         Container(
                           color: Colors.black.withOpacity(0.5),
-                          height: 30,
+                          padding: EdgeInsets.fromLTRB(5, 2, 5, 2),
+                          height: 50,
                           width: 200,
                           alignment: Alignment.center,
                           child: Text(
                             data[index].SKU! + ' ' + data[index].name!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -273,9 +263,11 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     _tabController = TabController(length: categoryTab.length, vsync: this);
   }
 
-  readCompanyID() async {
+  getPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
+    imagePath = prefs.getString('local_path')!;
+
     Map userObject = json.decode(user!);
     companyID = userObject['company_id'];
   }
@@ -286,54 +278,48 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     insertProduct(hha);
     insertProduct(hha);
     insertProduct(hha);
-
   }
 
-  insertProduct(List<Product> data){
-    categoryTabContent.add(
-        GridView.count(
-            shrinkWrap: true,
-            crossAxisCount: 5,
-            children: List.generate(data.length, (index) {
-              return Card(
-                child: Container(
-                  decoration: (data[index].graphic_type == '2'
-                      ? BoxDecoration(
+  insertProduct(List<Product> data) {
+    categoryTabContent.add(GridView.count(
+        shrinkWrap: true,
+        crossAxisCount: 5,
+        children: List.generate(data.length, (index) {
+          return Card(
+            child: Container(
+              decoration: (data[index].graphic_type == '2'
+                  ? BoxDecoration(
                       image: DecorationImage(
-                          image: FileImage(File(
-                              'data/user/0/com.example.pos_system/files/assets/' +
-                                  companyID +
-                                  '/' +
-                                  data[index].image!)),
+                          image: FileImage(File(imagePath + '/' + data[index].image!)),
                           fit: BoxFit.cover))
-                      : BoxDecoration(color: HexColor(data[index].color!))),
-                  child: InkWell(
-                    splashColor: Colors.blue.withAlpha(30),
-                    onTap: () {
-                      openProductOrderDialog(data[index]);
-                    },
-                    child: Stack(
-                      alignment: Alignment.bottomLeft,
-                      children: [
-                        Container(
-                          color: Colors.black.withOpacity(0.5),
-                          height: 30,
-                          width: 200,
-                          alignment: Alignment.center,
-                          child: Text(
-                            data[index].SKU! + ' ' + data[index].name!,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 13,
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
+                  : BoxDecoration(color: HexColor(data[index].color!))),
+              child: InkWell(
+                splashColor: Colors.blue.withAlpha(30),
+                onTap: () {
+                  openProductOrderDialog(data[index]);
+                },
+                child: Stack(
+                  alignment: Alignment.bottomLeft,
+                  children: [
+                    Container(
+                      color: Colors.black.withOpacity(0.5),
+                      height: 30,
+                      width: 200,
+                      alignment: Alignment.center,
+                      child: Text(
+                        data[index].SKU! + ' ' + data[index].name!,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 13,
+                        ),
+                      ),
+                    )
+                  ],
                 ),
-              );
-            })));
+              ),
+            ),
+          );
+        })));
   }
 }

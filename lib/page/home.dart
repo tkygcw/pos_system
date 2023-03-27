@@ -1,21 +1,24 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+
+import 'package:http/http.dart' as http;
 
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/fragment/bill/bill.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
-import 'package:pos_system/fragment/display_order/display_order.dart';
 import 'package:pos_system/fragment/order/order.dart';
 import 'package:pos_system/fragment/product/product.dart';
 import 'package:pos_system/fragment/report/report_page.dart';
 import 'package:pos_system/fragment/setting/setting.dart';
 import 'package:pos_system/fragment/settlement/settlement_page.dart';
 import 'package:pos_system/fragment/table/table.dart';
-import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
+import 'package:pos_system/object/product.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -29,7 +32,7 @@ import '../object/qr_order.dart';
 import '../object/sync_record.dart';
 import '../object/sync_to_cloud.dart';
 import '../object/user.dart';
-
+//11
 class HomePage extends StatefulWidget {
   final User? user;
   final bool isNewDay;
@@ -53,7 +56,7 @@ class _HomePageState extends State<HomePage> {
     // TODO: implement initState
     super.initState();
     print('init called');
-    startTimers(notificationModel);
+    //startTimers(notificationModel);
     _items = _generateItems;
     currentPage = 'menu';
     getRoleName();
@@ -71,8 +74,54 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<String> get _localPath async {
+    final directory = await getApplicationSupportDirectory();
+    return directory.path;
+  }
+
+  _createProductImgFolder() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    final folderName = userObject['company_id'];
+    final path = await _localPath;
+    final pathImg = Directory("$path/assets/$folderName");
+    pathImg.create();
+    //downloadProductImage(pathImg.path);
+    if(File(pathImg.path + '/20230314143909741.jpeg').existsSync()){
+      print('file existed');
+    }
+    else{
+      print('file no found');
+    }
+  }
+
+  downloadProductImage(String path) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    Map data = await Domain().getAllProduct(userObject['company_id']);
+    String url = '';
+    String name = '';
+    if (data['status'] == '1') {
+      List responseJson = data['product'];
+      for (var i = 0; i < responseJson.length; i++) {
+        Product data = Product.fromJson(responseJson[i]);
+        name = data.image!;
+        if (data.image != '') {
+          url = 'https://pos.lkmng.com/api/gallery/' + userObject['company_id'] + '/' + name;
+          final response = await http.get(Uri.parse(url));
+          var localPath = path + '/' + name;
+          final imageFile = File(localPath);
+          await imageFile.writeAsBytes(response.bodyBytes);
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    _createProductImgFolder();
     var size = MediaQuery.of(context).size;
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<NotificationModel>(builder: (context, NotificationModel notificationModel, child) {

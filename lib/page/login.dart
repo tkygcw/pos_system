@@ -21,11 +21,10 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   @override
-  void initState()  {
+  void initState() {
     // TODO: implement initState
     super.initState();
     loginCheck();
-
   }
 
   Duration get loginTime => Duration(milliseconds: 2250);
@@ -71,38 +70,47 @@ class _LoginPageState extends State<LoginPage> {
           child: Theme(
             data: Theme.of(context).copyWith(
               colorScheme: ThemeData().colorScheme.copyWith(
-                    primary: color.backgroundColor,
+                    primary: Colors.black26,
                   ),
             ),
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
-              child: FlutterLogin(
-                title: 'BillionPOS',
-                navigateBackAfterRecovery: true,
-                messages: LoginMessages(
-                  recoverPasswordButton: "SEND",
-                  recoverPasswordIntro: "Reset Password Send",
-                  recoverPasswordDescription:
-                      "We will send an reset password link to this email.Please check your mail.",
-                  recoverPasswordSuccess: 'Password reset successfully',
+            child: Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage("drawable/login_background.jpg"),
+                  fit: BoxFit.cover,
                 ),
-                scrollable: false,
-                logo: File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg').existsSync() == false ? NetworkImage(
-                    "https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg") : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
-                onLogin: _authUser,
-                onSubmitAnimationCompleted: () {
-                  Navigator.of(context).pushReplacement(MaterialPageRoute(
-                    builder: (context) => SetupPage(),
-                  ));
-                },
-                theme: LoginTheme(
-                    primaryColor: color.backgroundColor,
-                    accentColor: Colors.white,
-                    inputTheme: InputDecorationTheme(
-                      filled: true,
-                      fillColor: Colors.grey.shade200,
-                    )),
-                onRecoverPassword: _recoverPassword,
+              ),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
+                child: FlutterLogin(
+                  title: 'BillionPOS',
+                  navigateBackAfterRecovery: true,
+                  messages: LoginMessages(
+                    recoverPasswordButton: "SEND",
+                    recoverPasswordIntro: "Reset Password Send",
+                    recoverPasswordDescription: "We will send an reset password link to this email.Please check your mail.",
+                    recoverPasswordSuccess: 'Password reset successfully',
+                  ),
+                  scrollable: false,
+                  logo: File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg').existsSync() == false
+                      ? NetworkImage("https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg")
+                      : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
+                  onLogin: _authUser,
+                  onSubmitAnimationCompleted: () {
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      builder: (context) => SetupPage(),
+                    ));
+                  },
+                  theme: LoginTheme(
+                      primaryColor: Colors.black26,
+                      accentColor: Colors.white,
+                      buttonTheme: LoginButtonTheme(backgroundColor: Colors.black),
+                      inputTheme: InputDecorationTheme(
+                        filled: true,
+                        fillColor: Colors.grey.shade200,
+                      )),
+                  onRecoverPassword: _recoverPassword,
+                ),
               ),
             ),
           ),
@@ -111,15 +119,15 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  loginCheck() async{
+  loginCheck() async {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
     final int? branch_id = prefs.getInt('branch_id');
     final int? device_id = prefs.getInt('device_id');
-    if(user != '' && user !=null && branch_id != '' && branch_id !=null && device_id != '' && device_id !=null ){
-      Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (context) => PosPinPage(),
-      ));
+    if (user != '' && user != null && branch_id != '' && branch_id != null && device_id != '' && device_id != null) {
+      // Navigator.of(context).pushReplacement(MaterialPageRoute(
+      //   builder: (context) => PosPinPage(),
+      // ));
     }
   }
 
@@ -136,9 +144,10 @@ class _LoginPageState extends State<LoginPage> {
   _createDir() async {
     final path = await _localDirectory;
 
-      path.create();
-      _createOtherImgFolder();
+    path.create();
+    _createOtherImgFolder();
   }
+
   _createOtherImgFolder() async {
     final folderName = 'img';
     final path = await _localPath;
@@ -152,28 +161,31 @@ class _LoginPageState extends State<LoginPage> {
     downloadFourSeat(pathImg.path);
     downloadSixSeat(pathImg.path);
   }
-  downloadOtherImage(String path) async{
+
+  downloadOtherImage(String path) async {
     final String url = 'https://pos.lkmng.com/asset/output-onlinegiftools.gif';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/output-onlinegiftools.gif';
     final imageFile = File(localPath);
     await imageFile.writeAsBytes(response.bodyBytes);
   }
-  downloadLogo(String path) async{
+
+  downloadLogo(String path) async {
     final String url = 'https://pos.lkmng.com/asset/logo1.jpg';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/logo1.jpg';
     final imageFile = File(localPath);
     await imageFile.writeAsBytes(response.bodyBytes);
   }
+
   downloadDuitNowLogo(String path) async {
     final String url = 'https://pos.lkmng.com/asset/duitNow.jpg';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/duitNow.jpg';
     final imageFile = File(localPath);
     await imageFile.writeAsBytes(response.bodyBytes);
-
   }
+
   downloadTNGLogo(String path) async {
     final String url = 'https://pos.lkmng.com/asset/TNG.jpg';
     final response = await http.get(Uri.parse(url));
@@ -182,7 +194,7 @@ class _LoginPageState extends State<LoginPage> {
     await imageFile.writeAsBytes(response.bodyBytes);
   }
 
-  downloadTwoSeat(String path) async{
+  downloadTwoSeat(String path) async {
     final String url = 'https://pos.lkmng.com/asset/two-seat.jpg';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/two-seat.jpg';
@@ -190,7 +202,7 @@ class _LoginPageState extends State<LoginPage> {
     await imageFile.writeAsBytes(response.bodyBytes);
   }
 
-  downloadFourSeat(String path) async{
+  downloadFourSeat(String path) async {
     final String url = 'https://pos.lkmng.com/asset/four-seat.jpg';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/four-seat.jpg';
@@ -198,12 +210,11 @@ class _LoginPageState extends State<LoginPage> {
     await imageFile.writeAsBytes(response.bodyBytes);
   }
 
-  downloadSixSeat(String path) async{
+  downloadSixSeat(String path) async {
     final String url = 'https://pos.lkmng.com/asset/six-seat.jpg';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/six-seat.jpg';
     final imageFile = File(localPath);
     await imageFile.writeAsBytes(response.bodyBytes);
   }
-
 }

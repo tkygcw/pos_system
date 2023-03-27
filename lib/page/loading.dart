@@ -42,6 +42,7 @@ import 'package:pos_system/object/user.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:pos_system/page/pos_pin.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../database/domain.dart';
@@ -100,15 +101,13 @@ class _LoadingPageState extends State<LoadingPage> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Scaffold(
         backgroundColor: color.backgroundColor,
-        body: Center(
-            child: Image.file(File(
-                'data/user/0/com.example.pos_system/files/assets/img/output-onlinegiftools.gif'))),
+        body: CustomProgressBar(),
       );
     });
   }
 
   createReceiptLayout() async {
-    try{
+    try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
@@ -131,12 +130,9 @@ class _LoadingPageState extends State<LoadingPage> {
           sync_status: 0,
           created_at: dateTime,
           updated_at: '',
-          soft_delete: ''
-      ));
-    }catch(e){
-      Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: "Fail to add receipt layout, Please try again $e");
+          soft_delete: ''));
+    } catch (e) {
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Fail to add receipt layout, Please try again $e");
       print('$e');
     }
   }
@@ -156,25 +152,24 @@ class _LoadingPageState extends State<LoadingPage> {
     Map data = await Domain().getPrinter(branch_id.toString());
     if (data['status'] == '1') {
       List responseJson = data['printer'];
-      for(var i = 0; i < responseJson.length; i++){
+      for (var i = 0; i < responseJson.length; i++) {
         Printer printerItem = Printer.fromJson(responseJson[i]);
         Printer data = await PosDatabase.instance.insertPrinter(Printer(
-          printer_id: printerItem.printer_id,
-          printer_key: printerItem.printer_key,
-          branch_id: printerItem.branch_id,
-          company_id: printerItem.company_id,
-          printer_link_category_id: '',
-          value: printerItem.value,
-          type: printerItem.type,
-          printer_label: printerItem.printer_label,
-          paper_size: printerItem.paper_size,
-          printer_status: printerItem.printer_status,
-          is_counter: printerItem.is_counter,
-          sync_status: 1,
-          created_at: printerItem.created_at,
-          updated_at: printerItem.updated_at,
-          soft_delete: printerItem.soft_delete
-        ));
+            printer_id: printerItem.printer_id,
+            printer_key: printerItem.printer_key,
+            branch_id: printerItem.branch_id,
+            company_id: printerItem.company_id,
+            printer_link_category_id: '',
+            value: printerItem.value,
+            type: printerItem.type,
+            printer_label: printerItem.printer_label,
+            paper_size: printerItem.paper_size,
+            printer_status: printerItem.printer_status,
+            is_counter: printerItem.is_counter,
+            sync_status: 1,
+            created_at: printerItem.created_at,
+            updated_at: printerItem.updated_at,
+            soft_delete: printerItem.soft_delete));
       }
     }
   }
@@ -190,8 +185,7 @@ class _LoadingPageState extends State<LoadingPage> {
     if (data['status'] == '1') {
       List responseJson = data['user'];
       for (var i = 0; i < responseJson.length; i++) {
-        User user = await PosDatabase.instance
-            .insertUser(User.fromJson(responseJson[i]));
+        User user = await PosDatabase.instance.insertUser(User.fromJson(responseJson[i]));
         // if (user != '') {
         //   Navigator.of(context).pushReplacement(MaterialPageRoute(
         //     builder: (context) => PosPinPage(),
@@ -211,8 +205,7 @@ class _LoadingPageState extends State<LoadingPage> {
     if (data['status'] == '1') {
       List responseJson = data['user'];
       for (var i = 0; i < responseJson.length; i++) {
-        BranchLinkUser data = await PosDatabase.instance
-            .insertBranchLinkUser(BranchLinkUser.fromJson(responseJson[i]));
+        BranchLinkUser data = await PosDatabase.instance.insertBranchLinkUser(BranchLinkUser.fromJson(responseJson[i]));
       }
     }
   }
@@ -291,8 +284,7 @@ getAllCategory() async {
   if (data['status'] == '1') {
     List responseJson = data['categories'];
     for (var i = 0; i < responseJson.length; i++) {
-      Categories data = await PosDatabase.instance
-          .insertCategories(Categories.fromJson(responseJson[i]));
+      Categories data = await PosDatabase.instance.insertCategories(Categories.fromJson(responseJson[i]));
     }
     getAllProduct();
     getAllPrinterLinkCategory();
@@ -302,13 +294,13 @@ getAllCategory() async {
 /*
   save printer category to database
 */
-getAllPrinterLinkCategory() async{
+getAllPrinterLinkCategory() async {
   final prefs = await SharedPreferences.getInstance();
   final int? branch_id = prefs.getInt('branch_id');
   Map data = await Domain().getPrinterCategory(branch_id.toString());
   if (data['status'] == '1') {
     List responseJson = data['printer'];
-    for(var i = 0; i < responseJson.length; i++){
+    for (var i = 0; i < responseJson.length; i++) {
       PrinterLinkCategory item = PrinterLinkCategory.fromJson(responseJson[i]);
       Printer printer = await PosDatabase.instance.readPrinterSqliteID(item.printer_key!);
       Categories? categories = await PosDatabase.instance.readCategorySqliteID(item.category_id!);
@@ -344,7 +336,7 @@ getAllProduct() async {
       Product data = await PosDatabase.instance.insertProduct(Product(
           product_id: productItem.product_id,
           category_id: productItem.category_id,
-          category_sqlite_id: categoryData != null ? categoryData.category_sqlite_id.toString(): '0' ,
+          category_sqlite_id: categoryData != null ? categoryData.category_sqlite_id.toString() : '0',
           company_id: productItem.company_id,
           name: productItem.name,
           price: productItem.price,
@@ -362,8 +354,7 @@ getAllProduct() async {
           sync_status: 2,
           created_at: productItem.created_at,
           updated_at: productItem.updated_at,
-          soft_delete: productItem.soft_delete
-      ));
+          soft_delete: productItem.soft_delete));
     }
     getModifierLinkProduct();
     getVariantGroup();
@@ -382,8 +373,7 @@ getAllDiningOption() async {
   if (data['status'] == '1') {
     List responseJson = data['dining_option'];
     for (var i = 0; i < responseJson.length; i++) {
-      DiningOption data = await PosDatabase.instance
-          .insertDiningOption(DiningOption.fromJson(responseJson[i]));
+      DiningOption data = await PosDatabase.instance.insertDiningOption(DiningOption.fromJson(responseJson[i]));
     }
   }
 }
@@ -398,8 +388,7 @@ getBranchLinkDiningOption() async {
   if (data['status'] == '1') {
     List responseJson = data['dining_option'];
     for (var i = 0; i < responseJson.length; i++) {
-      BranchLinkDining data = await PosDatabase.instance
-          .insertBranchLinkDining(BranchLinkDining.fromJson(responseJson[i]));
+      BranchLinkDining data = await PosDatabase.instance.insertBranchLinkDining(BranchLinkDining.fromJson(responseJson[i]));
     }
   }
 }
@@ -415,8 +404,7 @@ getAllTax() async {
   if (data['status'] == '1') {
     List responseJson = data['tax'];
     for (var i = 0; i < responseJson.length; i++) {
-      Tax data =
-          await PosDatabase.instance.insertTax(Tax.fromJson(responseJson[i]));
+      Tax data = await PosDatabase.instance.insertTax(Tax.fromJson(responseJson[i]));
     }
   }
 }
@@ -431,8 +419,7 @@ getBranchLinkTax() async {
   if (data['status'] == '1') {
     List responseJson = data['tax'];
     for (var i = 0; i < responseJson.length; i++) {
-      BranchLinkTax data = await PosDatabase.instance
-          .insertBranchLinkTax(BranchLinkTax.fromJson(responseJson[i]));
+      BranchLinkTax data = await PosDatabase.instance.insertBranchLinkTax(BranchLinkTax.fromJson(responseJson[i]));
     }
   }
 }
@@ -447,8 +434,7 @@ getTaxLinkDining() async {
   if (data['status'] == '1') {
     List responseJson = data['tax'];
     for (var i = 0; i < responseJson.length; i++) {
-      TaxLinkDining data = await PosDatabase.instance
-          .insertTaxLinkDining(TaxLinkDining.fromJson(responseJson[i]));
+      TaxLinkDining data = await PosDatabase.instance.insertTaxLinkDining(TaxLinkDining.fromJson(responseJson[i]));
     }
   }
 }
@@ -464,8 +450,7 @@ getAllPromotion() async {
   if (data['status'] == '1') {
     List responseJson = data['promotion'];
     for (var i = 0; i < responseJson.length; i++) {
-      Promotion data = await PosDatabase.instance
-          .insertPromotion(Promotion.fromJson(responseJson[i]));
+      Promotion data = await PosDatabase.instance.insertPromotion(Promotion.fromJson(responseJson[i]));
     }
   }
 }
@@ -496,8 +481,7 @@ getAllCustomer() async {
   if (data['status'] == '1') {
     List responseJson = data['customer'];
     for (var i = 0; i < responseJson.length; i++) {
-      Customer data = await PosDatabase.instance
-          .insertCustomer(Customer.fromJson(responseJson[i]));
+      Customer data = await PosDatabase.instance.insertCustomer(Customer.fromJson(responseJson[i]));
     }
   }
 }
@@ -510,13 +494,11 @@ getAllBill() async {
   final String? user = prefs.getString('user');
   final int? branch_id = prefs.getInt('branch_id');
   Map userObject = json.decode(user!);
-  Map data =
-      await Domain().getAllBill(userObject['company_id'], branch_id.toString());
+  Map data = await Domain().getAllBill(userObject['company_id'], branch_id.toString());
   if (data['status'] == '1') {
     List responseJson = data['bill'];
     for (var i = 0; i < responseJson.length; i++) {
-      Bill data =
-          await PosDatabase.instance.insertBill(Bill.fromJson(responseJson[i]));
+      Bill data = await PosDatabase.instance.insertBill(Bill.fromJson(responseJson[i]));
     }
   }
 }
@@ -532,9 +514,7 @@ getPaymentLinkCompany() async {
   if (data['status'] == '1') {
     List responseJson = data['payment'];
     for (var i = 0; i < responseJson.length; i++) {
-      PaymentLinkCompany data = await PosDatabase.instance
-          .insertPaymentLinkCompany(
-              PaymentLinkCompany.fromJson(responseJson[i]));
+      PaymentLinkCompany data = await PosDatabase.instance.insertPaymentLinkCompany(PaymentLinkCompany.fromJson(responseJson[i]));
     }
   }
 }
@@ -578,10 +558,7 @@ getAllRefund() async {
   save refund local id into order
 */
 updateOrderRefundSqliteId(String refundLocalId, int orderLocalId) async {
-  Order order = Order(
-    refund_sqlite_id: refundLocalId,
-    order_sqlite_id: orderLocalId
-  );
+  Order order = Order(refund_sqlite_id: refundLocalId, order_sqlite_id: orderLocalId);
   int data = await PosDatabase.instance.updateOrderRefundSqliteId(order);
 }
 
@@ -596,8 +573,7 @@ getModifierGroup() async {
   if (data['status'] == '1') {
     List responseJson = data['modifier'];
     for (var i = 0; i < responseJson.length; i++) {
-      ModifierGroup data = await PosDatabase.instance
-          .insertModifierGroup(ModifierGroup.fromJson(responseJson[i]));
+      ModifierGroup data = await PosDatabase.instance.insertModifierGroup(ModifierGroup.fromJson(responseJson[i]));
     }
   }
 }
@@ -613,8 +589,7 @@ getModifierItem() async {
   if (data['status'] == '1') {
     List responseJson = data['modifier'];
     for (var i = 0; i < responseJson.length; i++) {
-      ModifierItem data = await PosDatabase.instance
-          .insertModifierItem(ModifierItem.fromJson(responseJson[i]));
+      ModifierItem data = await PosDatabase.instance.insertModifierItem(ModifierItem.fromJson(responseJson[i]));
     }
   }
 }
@@ -629,9 +604,7 @@ getBranchLinkModifier() async {
   if (data['status'] == '1') {
     List responseJson = data['modifier'];
     for (var i = 0; i < responseJson.length; i++) {
-      BranchLinkModifier data = await PosDatabase.instance
-          .insertBranchLinkModifier(
-              BranchLinkModifier.fromJson(responseJson[i]));
+      BranchLinkModifier data = await PosDatabase.instance.insertBranchLinkModifier(BranchLinkModifier.fromJson(responseJson[i]));
     }
   }
 }
@@ -650,24 +623,23 @@ getBranchLinkProduct() async {
       Product? productData = await PosDatabase.instance.readProductSqliteID(branchLinkProductData.product_id!);
       ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(branchLinkProductData.product_variant_id!);
       BranchLinkProduct data = await PosDatabase.instance.insertBranchLinkProduct(BranchLinkProduct(
-        branch_link_product_id: branchLinkProductData.branch_link_product_id,
-        branch_id: branchLinkProductData.branch_id,
-        product_sqlite_id: productData!.product_sqlite_id.toString(),
-        product_id: branchLinkProductData.product_id,
+          branch_link_product_id: branchLinkProductData.branch_link_product_id,
+          branch_id: branchLinkProductData.branch_id,
+          product_sqlite_id: productData!.product_sqlite_id.toString(),
+          product_id: branchLinkProductData.product_id,
           has_variant: branchLinkProductData.has_variant,
-        product_variant_sqlite_id: productVariantData != null ? productVariantData.product_variant_sqlite_id.toString(): '0',
-        product_variant_id: branchLinkProductData.product_variant_id,
-        b_SKU: branchLinkProductData.b_SKU,
-        price: branchLinkProductData.price,
-        stock_type: branchLinkProductData.stock_type,
-        daily_limit: branchLinkProductData.daily_limit,
-        daily_limit_amount: branchLinkProductData.daily_limit_amount,
-        stock_quantity: branchLinkProductData.stock_quantity,
-        sync_status: 1,
-        created_at: branchLinkProductData.created_at,
-        updated_at: branchLinkProductData.updated_at,
-        soft_delete: branchLinkProductData.soft_delete
-      ));
+          product_variant_sqlite_id: productVariantData != null ? productVariantData.product_variant_sqlite_id.toString() : '0',
+          product_variant_id: branchLinkProductData.product_variant_id,
+          b_SKU: branchLinkProductData.b_SKU,
+          price: branchLinkProductData.price,
+          stock_type: branchLinkProductData.stock_type,
+          daily_limit: branchLinkProductData.daily_limit,
+          daily_limit_amount: branchLinkProductData.daily_limit_amount,
+          stock_quantity: branchLinkProductData.stock_quantity,
+          sync_status: 1,
+          created_at: branchLinkProductData.created_at,
+          updated_at: branchLinkProductData.updated_at,
+          soft_delete: branchLinkProductData.soft_delete));
     }
     getAllTableUse();
   }
@@ -728,8 +700,7 @@ getAllTableUseDetail() async {
           sync_status: 1,
           created_at: item.created_at,
           updated_at: item.updated_at,
-          soft_delete: item.soft_delete
-      ));
+          soft_delete: item.soft_delete));
     }
   }
 }
@@ -742,15 +713,13 @@ getModifierLinkProduct() async {
   final int? branch_id = prefs.getInt('branch_id');
   final String? user = prefs.getString('user');
   Map userObject = json.decode(user!);
-  Map data = await Domain()
-      .getModifierLinkProduct(userObject['company_id'], branch_id.toString());
+  Map data = await Domain().getModifierLinkProduct(userObject['company_id'], branch_id.toString());
   if (data['status'] == '1') {
     List responseJson = data['product'];
     for (var i = 0; i < responseJson.length; i++) {
       ModifierLinkProduct modData = ModifierLinkProduct.fromJson(responseJson[i]);
       Product? productData = await PosDatabase.instance.readProductSqliteID(modData.product_id!);
-      ModifierLinkProduct data = await PosDatabase.instance
-          .insertModifierLinkProduct(ModifierLinkProduct(
+      ModifierLinkProduct data = await PosDatabase.instance.insertModifierLinkProduct(ModifierLinkProduct(
         modifier_link_product_id: modData.modifier_link_product_id,
         mod_group_id: modData.mod_group_id,
         product_id: modData.product_id,
@@ -777,9 +746,7 @@ getVariantGroup() async {
     for (var i = 0; i < responseJson.length; i++) {
       VariantGroup variantData = VariantGroup.fromJson(responseJson[i]);
       Product? productData = await PosDatabase.instance.readProductSqliteID(variantData.product_id!);
-      VariantGroup data = await PosDatabase.instance
-          .insertVariantGroup(
-        VariantGroup(
+      VariantGroup data = await PosDatabase.instance.insertVariantGroup(VariantGroup(
           child: [],
           variant_group_id: variantData.variant_group_id,
           product_id: variantData.product_id,
@@ -788,13 +755,10 @@ getVariantGroup() async {
           sync_status: 2,
           created_at: variantData.created_at,
           updated_at: variantData.updated_at,
-          soft_delete: variantData.soft_delete
-        )
-      );
+          soft_delete: variantData.soft_delete));
     }
     getVariantItem();
   }
-
 }
 
 /*
@@ -810,17 +774,15 @@ getVariantItem() async {
     for (var i = 0; i < responseJson.length; i++) {
       VariantItem variantItemData = VariantItem.fromJson(responseJson[i]);
       VariantGroup? variantGroupData = await PosDatabase.instance.readVariantGroupSqliteID(variantItemData.variant_group_id!);
-      VariantItem data = await PosDatabase.instance
-          .insertVariantItem( VariantItem(
-        variant_item_id: variantItemData.variant_item_id,
-        variant_group_id: variantItemData.variant_group_id,
-        variant_group_sqlite_id: variantGroupData != null ? variantGroupData.variant_group_sqlite_id.toString(): '0',
-        name: variantItemData.name,
-        sync_status: 2,
-        created_at: variantItemData.created_at,
-        updated_at: variantItemData.updated_at,
-        soft_delete: variantItemData.soft_delete
-      ));
+      VariantItem data = await PosDatabase.instance.insertVariantItem(VariantItem(
+          variant_item_id: variantItemData.variant_item_id,
+          variant_group_id: variantItemData.variant_group_id,
+          variant_group_sqlite_id: variantGroupData != null ? variantGroupData.variant_group_sqlite_id.toString() : '0',
+          name: variantItemData.name,
+          sync_status: 2,
+          created_at: variantItemData.created_at,
+          updated_at: variantItemData.updated_at,
+          soft_delete: variantItemData.soft_delete));
     }
     getBranchLinkProduct();
   } else {
@@ -841,23 +803,21 @@ getProductVariant() async {
     for (var i = 0; i < responseJson.length; i++) {
       ProductVariant productVariantItem = ProductVariant.fromJson(responseJson[i]);
       Product? productData = await PosDatabase.instance.readProductSqliteID(productVariantItem.product_id!);
-      ProductVariant data = await PosDatabase.instance
-          .insertProductVariant(ProductVariant(
-           product_variant_id: productVariantItem.product_variant_id,
-           product_sqlite_id: productData!.product_sqlite_id.toString(),
-           product_id: productVariantItem.product_id,
-           variant_name: productVariantItem.variant_name,
-           SKU: productVariantItem.SKU,
-           price: productVariantItem.price,
-           stock_type: productVariantItem.stock_type,
-           daily_limit: productVariantItem.daily_limit,
-           daily_limit_amount: productVariantItem.daily_limit_amount,
-           stock_quantity: productVariantItem.stock_quantity,
-           sync_status: 2,
-           created_at: productVariantItem.created_at,
-           updated_at: productVariantItem.updated_at,
-           soft_delete: productVariantItem.soft_delete
-      ));
+      ProductVariant data = await PosDatabase.instance.insertProductVariant(ProductVariant(
+          product_variant_id: productVariantItem.product_variant_id,
+          product_sqlite_id: productData!.product_sqlite_id.toString(),
+          product_id: productVariantItem.product_id,
+          variant_name: productVariantItem.variant_name,
+          SKU: productVariantItem.SKU,
+          price: productVariantItem.price,
+          stock_type: productVariantItem.stock_type,
+          daily_limit: productVariantItem.daily_limit,
+          daily_limit_amount: productVariantItem.daily_limit_amount,
+          stock_quantity: productVariantItem.stock_quantity,
+          sync_status: 2,
+          created_at: productVariantItem.created_at,
+          updated_at: productVariantItem.updated_at,
+          soft_delete: productVariantItem.soft_delete));
     }
     getProductVariantDetail();
   }
@@ -877,8 +837,7 @@ getProductVariantDetail() async {
       ProductVariantDetail productVariantDetailItem = ProductVariantDetail.fromJson(responseJson[i]);
       ProductVariant? productVariantData = await PosDatabase.instance.readProductVariantSqliteID(productVariantDetailItem.product_variant_id!);
       VariantItem? variantItemData = await PosDatabase.instance.readVariantItemSqliteID(productVariantDetailItem.variant_item_id!);
-      ProductVariantDetail data = await PosDatabase.instance
-          .insertProductVariantDetail(ProductVariantDetail(
+      ProductVariantDetail data = await PosDatabase.instance.insertProductVariantDetail(ProductVariantDetail(
           product_variant_detail_id: productVariantDetailItem.product_variant_detail_id,
           product_variant_id: productVariantDetailItem.product_variant_id,
           product_variant_sqlite_id: productVariantData!.product_variant_sqlite_id.toString(),
@@ -887,8 +846,7 @@ getProductVariantDetail() async {
           sync_status: 2,
           created_at: productVariantDetailItem.created_at,
           updated_at: productVariantDetailItem.updated_at,
-          soft_delete: productVariantDetailItem.soft_delete
-      ));
+          soft_delete: productVariantDetailItem.soft_delete));
     }
   }
 }
@@ -940,39 +898,38 @@ getAllOrder() async {
   if (data['status'] == '1') {
     List responseJson = data['order'];
     for (var i = 0; i < responseJson.length; i++) {
-      if(responseJson[i]['settlement_key'] != ''){
+      if (responseJson[i]['settlement_key'] != '') {
         Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(responseJson[i]['settlement_key']);
         settlement = settlementData;
       }
       Order data = await PosDatabase.instance.insertOrder(Order(
-        order_id: responseJson[i]['order_id'],
-        order_number: responseJson[i]['order_number'],
-        company_id: responseJson[i]['company_id'],
-        customer_id: responseJson[i]['customer_id'],
-        dining_id: responseJson[i]['dining_id'],
-        dining_name: responseJson[i]['dining_name'],
-        branch_link_promotion_id: responseJson[i]['branch_link_promotion_id'],
-        payment_link_company_id: responseJson[i]['payment_link_company_id'],
-        branch_id: responseJson[i]['branch_id'],
-        branch_link_tax_id: responseJson[i]['branch_link_tax_id'],
-        subtotal: responseJson[i]['subtotal'],
-        amount: responseJson[i]['amount'],
-        rounding: responseJson[i]['rounding'],
-        final_amount: responseJson[i]['final_amount'],
-        close_by: responseJson[i]['close_by'],
-        payment_status: responseJson[i]['payment_status'],
-        payment_received: responseJson[i]['payment_received'],
-        payment_change: responseJson[i]['payment_change'],
-        order_key: responseJson[i]['order_key'],
-        refund_sqlite_id: '',
-        refund_key: responseJson[i]['refund_key'],
-        settlement_sqlite_id: settlement != null ? settlement.settlement_sqlite_id.toString() : '',
-        settlement_key: responseJson[i]['settlement_key'],
-        sync_status: 1,
-        created_at: responseJson[i]['created_at'],
-        updated_at: responseJson[i]['updated_at'],
-        soft_delete: responseJson[i]['soft_delete']
-      ));
+          order_id: responseJson[i]['order_id'],
+          order_number: responseJson[i]['order_number'],
+          company_id: responseJson[i]['company_id'],
+          customer_id: responseJson[i]['customer_id'],
+          dining_id: responseJson[i]['dining_id'],
+          dining_name: responseJson[i]['dining_name'],
+          branch_link_promotion_id: responseJson[i]['branch_link_promotion_id'],
+          payment_link_company_id: responseJson[i]['payment_link_company_id'],
+          branch_id: responseJson[i]['branch_id'],
+          branch_link_tax_id: responseJson[i]['branch_link_tax_id'],
+          subtotal: responseJson[i]['subtotal'],
+          amount: responseJson[i]['amount'],
+          rounding: responseJson[i]['rounding'],
+          final_amount: responseJson[i]['final_amount'],
+          close_by: responseJson[i]['close_by'],
+          payment_status: responseJson[i]['payment_status'],
+          payment_received: responseJson[i]['payment_received'],
+          payment_change: responseJson[i]['payment_change'],
+          order_key: responseJson[i]['order_key'],
+          refund_sqlite_id: '',
+          refund_key: responseJson[i]['refund_key'],
+          settlement_sqlite_id: settlement != null ? settlement.settlement_sqlite_id.toString() : '',
+          settlement_key: responseJson[i]['settlement_key'],
+          sync_status: 1,
+          created_at: responseJson[i]['created_at'],
+          updated_at: responseJson[i]['updated_at'],
+          soft_delete: responseJson[i]['soft_delete']));
     }
     getAllOrderPromotionDetail();
     getAllOrderTaxDetail();
@@ -983,7 +940,7 @@ getAllOrder() async {
 /*
   save order promotion detail to database
 */
-getAllOrderPromotionDetail() async{
+getAllOrderPromotionDetail() async {
   final prefs = await SharedPreferences.getInstance();
   final int? branch_id = prefs.getInt('branch_id');
   final String? user = prefs.getString('user');
@@ -995,7 +952,7 @@ getAllOrderPromotionDetail() async{
       Order orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
       OrderPromotionDetail data = await PosDatabase.instance.insertOrderPromotionDetail(OrderPromotionDetail(
         order_promotion_detail_id: responseJson[i]['order_promotion_detail_id'],
-        order_promotion_detail_key:  responseJson[i]['order_promotion_detail_key'],
+        order_promotion_detail_key: responseJson[i]['order_promotion_detail_key'],
         order_sqlite_id: orderData.order_sqlite_id.toString(),
         order_id: orderData.order_id.toString(),
         order_key: responseJson[i]['order_key'],
@@ -1018,7 +975,7 @@ getAllOrderPromotionDetail() async{
 /*
   save order tax detail to database
 */
-getAllOrderTaxDetail() async{
+getAllOrderTaxDetail() async {
   final prefs = await SharedPreferences.getInstance();
   final int? branch_id = prefs.getInt('branch_id');
   final String? user = prefs.getString('user');
@@ -1062,14 +1019,14 @@ getAllOrderCache() async {
     List responseJson = data['order'];
     for (var i = 0; i < responseJson.length; i++) {
       OrderCache cloudData = OrderCache.fromJson(responseJson[i]);
-      if(cloudData.table_use_key != '' && cloudData.table_use_key != null){
+      if (cloudData.table_use_key != '' && cloudData.table_use_key != null) {
         TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(cloudData.table_use_key!);
         tableUseLocalId = tableUseData!.table_use_sqlite_id.toString();
       } else {
         tableUseLocalId = '';
       }
 
-      if(cloudData.order_key != '' && cloudData.order_key != null){
+      if (cloudData.order_key != '' && cloudData.order_key != null) {
         Order orderData = await PosDatabase.instance.readOrderSqliteID(cloudData.order_key!);
         orderLocalId = orderData.order_sqlite_id.toString();
       } else {
@@ -1090,7 +1047,7 @@ getAllOrderCache() async {
         order_by: cloudData.order_by != '' ? cloudData.order_by : '',
         order_by_user_id: cloudData.order_by_user_id,
         cancel_by: cloudData.cancel_by != '' ? cloudData.cancel_by : '',
-        cancel_by_user_id: cloudData.cancel_by_user_id != '' ? cloudData.cancel_by_user_id: '',
+        cancel_by_user_id: cloudData.cancel_by_user_id != '' ? cloudData.cancel_by_user_id : '',
         customer_id: cloudData.customer_id,
         total_amount: cloudData.total_amount != '' ? cloudData.total_amount : '',
         qr_order: cloudData.qr_order,
@@ -1122,30 +1079,30 @@ getAllOrderDetail() async {
       //OrderDetail item = OrderDetail.fromJson(responseJson[i]);
       OrderCache cacheData = await PosDatabase.instance.readOrderCacheSqliteID(responseJson[i]['order_cache_key']);
       Categories? categoriesData = await PosDatabase.instance.readCategorySqliteID(responseJson[i]['category_id'].toString());
-      BranchLinkProduct branchLinkProductData = await PosDatabase.instance.readBranchLinkProductSqliteID(responseJson[i]['branch_link_product_id'].toString());
+      BranchLinkProduct branchLinkProductData =
+          await PosDatabase.instance.readBranchLinkProductSqliteID(responseJson[i]['branch_link_product_id'].toString());
       OrderDetail data = await PosDatabase.instance.insertOrderDetail(OrderDetail(
-        order_detail_id: responseJson[i]['order_detail_id'],
-        order_detail_key: responseJson[i]['order_detail_key'].toString(),
-        order_cache_sqlite_id: cacheData.order_cache_sqlite_id.toString(),
-        order_cache_key: responseJson[i]['order_cache_key'],
-        branch_link_product_sqlite_id: branchLinkProductData.branch_link_product_sqlite_id.toString(),
-        category_sqlite_id: categoriesData != null ? categoriesData.category_sqlite_id.toString() : '0',
-        productName: responseJson[i]['product_name'],
-        has_variant: responseJson[i]['has_variant'],
-        product_variant_name: responseJson[i]['product_variant_name'],
-        price: responseJson[i]['price'],
-        original_price: responseJson[i]['original_price'],
-        quantity: responseJson[i]['quantity'],
-        remark: responseJson[i]['remark'],
-        account: responseJson[i]['account'],
-        cancel_by: responseJson[i]['cancel_by'],
-        cancel_by_user_id: responseJson[i]['cancel_by_user_id'],
-        status: responseJson[i]['status'],
-        sync_status: 1,
-        created_at: responseJson[i]['created_at'],
-        updated_at: responseJson[i]['updated_at'],
-        soft_delete: responseJson[i]['soft_delete']
-      ));
+          order_detail_id: responseJson[i]['order_detail_id'],
+          order_detail_key: responseJson[i]['order_detail_key'].toString(),
+          order_cache_sqlite_id: cacheData.order_cache_sqlite_id.toString(),
+          order_cache_key: responseJson[i]['order_cache_key'],
+          branch_link_product_sqlite_id: branchLinkProductData.branch_link_product_sqlite_id.toString(),
+          category_sqlite_id: categoriesData != null ? categoriesData.category_sqlite_id.toString() : '0',
+          productName: responseJson[i]['product_name'],
+          has_variant: responseJson[i]['has_variant'],
+          product_variant_name: responseJson[i]['product_variant_name'],
+          price: responseJson[i]['price'],
+          original_price: responseJson[i]['original_price'],
+          quantity: responseJson[i]['quantity'],
+          remark: responseJson[i]['remark'],
+          account: responseJson[i]['account'],
+          cancel_by: responseJson[i]['cancel_by'],
+          cancel_by_user_id: responseJson[i]['cancel_by_user_id'],
+          status: responseJson[i]['status'],
+          sync_status: 1,
+          created_at: responseJson[i]['created_at'],
+          updated_at: responseJson[i]['updated_at'],
+          soft_delete: responseJson[i]['soft_delete']));
     }
     getAllOrderModifierDetail();
     getAllOrderDetailCancel();
@@ -1161,12 +1118,11 @@ getAllOrderDetailCancel() async {
   final int? branch_id = prefs.getInt('branch_id');
   final String? user = prefs.getString('user');
   Map userObject = json.decode(user!);
-  Map data = await Domain().getAllOrderDetailCancel(
-      userObject['company_id'], branch_id.toString());
+  Map data = await Domain().getAllOrderDetailCancel(userObject['company_id'], branch_id.toString());
   if (data['status'] == '1') {
     List responseJson = data['order'];
     for (var i = 0; i < responseJson.length; i++) {
-      if(responseJson[i]['settlement_key'] != ''){
+      if (responseJson[i]['settlement_key'] != '') {
         Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(responseJson[i]['settlement_key']);
         settlement = settlementData;
       }
@@ -1199,27 +1155,25 @@ getAllOrderModifierDetail() async {
   final int? branch_id = prefs.getInt('branch_id');
   final String? user = prefs.getString('user');
   Map userObject = json.decode(user!);
-  Map data = await Domain().getAllOrderModifierDetail(
-      userObject['company_id'], branch_id.toString());
+  Map data = await Domain().getAllOrderModifierDetail(userObject['company_id'], branch_id.toString());
   if (data['status'] == '1') {
     List responseJson = data['order'];
     for (var i = 0; i < responseJson.length; i++) {
       OrderDetail detailData = await PosDatabase.instance.readOrderDetailSqliteID(responseJson[i]['order_detail_key']);
       OrderModifierDetail data = await PosDatabase.instance.insertOrderModifierDetail(OrderModifierDetail(
-        order_modifier_detail_id: responseJson[i]['order_modifier_detail_id'],
-        order_modifier_detail_key: responseJson[i]['order_modifier_detail_key'],
-        order_detail_key: responseJson[i]['order_detail_key'],
-        order_detail_sqlite_id: detailData.order_detail_sqlite_id.toString(),
-        order_detail_id: '0',
-        mod_item_id: responseJson[i]['mod_item_id'],
-        mod_name: responseJson[i]['name'],
-        mod_price: responseJson[i]['price'],
-        mod_group_id: responseJson[i]['mod_group_id'],
-        sync_status: 1,
-        created_at: responseJson[i]['created_at'],
-        updated_at: responseJson[i]['updated_at'],
-        soft_delete: responseJson[i]['soft_delete']
-      ));
+          order_modifier_detail_id: responseJson[i]['order_modifier_detail_id'],
+          order_modifier_detail_key: responseJson[i]['order_modifier_detail_key'],
+          order_detail_key: responseJson[i]['order_detail_key'],
+          order_detail_sqlite_id: detailData.order_detail_sqlite_id.toString(),
+          order_detail_id: '0',
+          mod_item_id: responseJson[i]['mod_item_id'],
+          mod_name: responseJson[i]['name'],
+          mod_price: responseJson[i]['price'],
+          mod_group_id: responseJson[i]['mod_group_id'],
+          sync_status: 1,
+          created_at: responseJson[i]['created_at'],
+          updated_at: responseJson[i]['updated_at'],
+          soft_delete: responseJson[i]['soft_delete']));
     }
   }
 }
@@ -1232,13 +1186,11 @@ getSale() async {
   final int? branch_id = prefs.getInt('branch_id');
   final String? user = prefs.getString('user');
   Map userObject = json.decode(user!);
-  Map data =
-      await Domain().getSale(userObject['company_id'], branch_id.toString());
+  Map data = await Domain().getSale(userObject['company_id'], branch_id.toString());
   if (data['status'] == '1') {
     List responseJson = data['sale'];
     for (var i = 0; i < responseJson.length; i++) {
-      Sale data =
-          await PosDatabase.instance.insertSale(Sale.fromJson(responseJson[i]));
+      Sale data = await PosDatabase.instance.insertSale(Sale.fromJson(responseJson[i]));
     }
   }
 }
@@ -1288,10 +1240,13 @@ _createProductImgFolder() async {
   final prefs = await SharedPreferences.getInstance();
   final String? user = prefs.getString('user');
   Map userObject = json.decode(user!);
+
   final folderName = userObject['company_id'];
-  final path = await _localPath;
-  final pathImg = Directory("$path/assets/$folderName");
-  pathImg.create();
+  final directory = await _localPath;
+  final path = '$directory/assets/$folderName';
+  final pathImg = Directory(path);
+  await prefs.setString('local_path', path);
+
   downloadProductImage(pathImg.path);
 }
 
@@ -1311,10 +1266,7 @@ downloadProductImage(String path) async {
       Product data = Product.fromJson(responseJson[i]);
       name = data.image!;
       if (data.image != '') {
-        url = 'https://pos.lkmng.com/api/gallery/' +
-            userObject['company_id'] +
-            '/' +
-            name;
+        url = 'https://pos.lkmng.com/api/gallery/' + userObject['company_id'] + '/' + name;
         final response = await http.get(Uri.parse(url));
         var localPath = path + '/' + name;
         final imageFile = File(localPath);
@@ -1323,5 +1275,3 @@ downloadProductImage(String path) async {
     }
   }
 }
-
-

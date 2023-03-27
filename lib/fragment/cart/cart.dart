@@ -68,7 +68,8 @@ class _CartPageState extends State<CartPage> {
   List<OrderTaxDetail> orderTaxList = [];
   List<OrderPromotionDetail> orderPromotionList = [];
   int diningOptionID = 0, simpleIntInput = 0;
-  double total = 0.0, newOrderSubtotal = 0.0,
+  double total = 0.0,
+      newOrderSubtotal = 0.0,
       promo = 0.0,
       selectedPromo = 0.0,
       selectedPromoAmount = 0.0,
@@ -82,9 +83,21 @@ class _CartPageState extends State<CartPage> {
       rounding = 0.0,
       paymentReceived = 0.0,
       paymentChange = 0.0;
-  String selectedPromoRate = '', promoName = '', promoRate = '', localTableUseId = '', orderCacheId = '',
-      allPromo = '', finalAmount = '', localOrderId = '';
-  String? table_use_value, table_use_detail_value, order_cache_value, order_detail_value, order_modifier_detail_value, table_value, branch_link_product_value;
+  String selectedPromoRate = '',
+      promoName = '',
+      promoRate = '',
+      localTableUseId = '',
+      orderCacheId = '',
+      allPromo = '',
+      finalAmount = '',
+      localOrderId = '';
+  String? table_use_value,
+      table_use_detail_value,
+      order_cache_value,
+      order_detail_value,
+      order_modifier_detail_value,
+      table_value,
+      branch_link_product_value;
   String? orderCacheKey;
   String? orderDetailKey;
   String? tableUseKey;
@@ -119,10 +132,7 @@ class _CartPageState extends State<CartPage> {
       return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Consumer<CartModel>(builder: (context, CartModel cart, child) {
-          widget.currentPage == 'menu' ||
-                  widget.currentPage == 'table' ||
-                  widget.currentPage == 'qr_order' ||
-                  widget.currentPage == 'other_order'
+          widget.currentPage == 'menu' || widget.currentPage == 'table' || widget.currentPage == 'qr_order' || widget.currentPage == 'other_order'
               ? getSubTotal(cart)
               : getReceiptPaymentDetail(cart);
           return Scaffold(
@@ -131,9 +141,7 @@ class _CartPageState extends State<CartPage> {
               automaticallyImplyLeading: false,
               title: Row(
                 children: [
-                  MediaQuery.of(context).size.height > 500
-                      ? Text('Bill', style: TextStyle(fontSize: 20, color: Colors.black))
-                      : SizedBox.shrink(),
+                  MediaQuery.of(context).size.height > 500 ? Text('Bill', style: TextStyle(fontSize: 20, color: Colors.black)) : SizedBox.shrink(),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -145,9 +153,7 @@ class _CartPageState extends State<CartPage> {
               backgroundColor: Colors.white,
               actions: [
                 Visibility(
-                  visible: cart.selectedOption == 'Dine in' && widget.currentPage == 'menu'
-                      ? true
-                      : false,
+                  visible: cart.selectedOption == 'Dine in' && widget.currentPage == 'menu' ? true : false,
                   child: IconButton(
                     tooltip: 'table',
                     icon: const Icon(
@@ -213,51 +219,41 @@ class _CartPageState extends State<CartPage> {
                     ),
                     child: Column(
                       children: [
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(10, 8, 14, 0),
-                          child: Column(children: [
-                            DropdownButton<String>(
-                              onChanged: widget.currentPage == 'menu' ?
-                                  cart.cartNotifierItem.isEmpty ?
-                                  (value) {
-                                      setState(() {
-                                        cart.selectedOption = value!;
-                                      });
-                                    }
-                                    : cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status != 1 ?
-                                      (value) {
-                                      setState(() {
-                                        cart.selectedOption = value!;
-                                      });
-                                    }
-                                  : null
-                                  : null,
-                              value: cart.selectedOption,
-                              // Hide the default underline
-                              underline: Container(),
-                              icon: Visibility(
-                                visible: widget.currentPage == 'menu' ? true : false,
-                                child: Icon(
-                                  Icons.arrow_drop_down,
-                                  color: color.backgroundColor,
-                                ),
+                        Container(
+                          height: 100,
+                          child: GridView(
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                childAspectRatio: 1.5,
                               ),
-                              isExpanded: true,
-                              // The list of options
-                              items: diningList
-                                  .map((e) => DropdownMenuItem(
-                                        child: Container(
-                                          alignment: Alignment.centerLeft,
-                                          child: Text(e, style: TextStyle(fontSize: 18)),
-                                        ),
-                                        value: e,
-                                      ))
-                                  .toList(),
-                              // Customize the selected item
-                              selectedItemBuilder: (BuildContext context) =>
-                                  diningList.map((e) => Center(child: Text(e))).toList(),
-                            ),
-                          ]),
+                              children: List.generate(diningList.length, (index) {
+                                return InkWell(
+                                  onTap: () {
+                                    widget.currentPage == 'menu'
+                                        ? cart.cartNotifierItem.isEmpty
+                                            ? setState(() {
+                                                cart.selectedOption = diningList[index];
+                                              })
+                                            : cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status != 1
+                                                ? setState(() {
+                                                    cart.selectedOption = diningList[index];
+                                                  })
+                                                : null
+                                        : null;
+                                  },
+                                  child: Container(
+                                      color: cart.selectedOption == diningList[index] ? Colors.black : Colors.black12,
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        diningList[index],
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            color: cart.selectedOption == diningList[index] ? Colors.white : Colors.black87,
+                                            fontSize: 16),
+                                      )),
+                                );
+                              })),
                         ),
                         Expanded(
                           child: Container(
@@ -279,14 +275,13 @@ class _CartPageState extends State<CartPage> {
                                     ),
                                     key: ValueKey(cart.cartNotifierItem[index].name),
                                     direction: widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
-                                               widget.currentPage == 'table' ||
-                                               widget.currentPage == 'other_order'
+                                            widget.currentPage == 'table' ||
+                                            widget.currentPage == 'other_order'
                                         ? DismissDirection.startToEnd
                                         : DismissDirection.none,
                                     confirmDismiss: (direction) async {
                                       if (direction == DismissDirection.startToEnd) {
-                                        await openRemoveCartItemDialog(
-                                            cart.cartNotifierItem[index], widget.currentPage);
+                                        await openRemoveCartItemDialog(cart.cartNotifierItem[index], widget.currentPage);
                                       }
                                       return null;
                                     },
@@ -301,18 +296,14 @@ class _CartPageState extends State<CartPage> {
                                               text: cart.cartNotifierItem[index].name + '\n',
                                               style: TextStyle(
                                                   fontSize: 14,
-                                                  color: cart.cartNotifierItem[index].status == 1
-                                                      ? font
-                                                      : cart.cartNotifierItem[index].refColor,
+                                                  color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
                                                   fontWeight: FontWeight.bold),
                                             ),
                                             TextSpan(
                                                 text: "RM" + cart.cartNotifierItem[index].price,
                                                 style: TextStyle(
                                                   fontSize: 13,
-                                                  color: cart.cartNotifierItem[index].status == 1
-                                                      ? font
-                                                      : cart.cartNotifierItem[index].refColor,
+                                                  color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
                                                 )),
                                           ],
                                         ),
@@ -327,22 +318,19 @@ class _CartPageState extends State<CartPage> {
                                           child: Row(
                                             children: [
                                               Visibility(
-                                                visible:
-                                                    widget.currentPage == 'menu' ? true : false,
+                                                visible: widget.currentPage == 'menu' ? true : false,
                                                 child: IconButton(
                                                     hoverColor: Colors.transparent,
                                                     icon: Icon(Icons.remove),
                                                     onPressed: () {
                                                       cart.cartNotifierItem[index].quantity != 1
-                                                          ? setState(() => cart
-                                                              .cartNotifierItem[index].quantity--)
+                                                          ? setState(() => cart.cartNotifierItem[index].quantity--)
                                                           : null;
                                                     }),
                                               ),
                                               Text(
                                                 cart.cartNotifierItem[index].quantity.toString(),
-                                                style: TextStyle(
-                                                    color: cart.cartNotifierItem[index].refColor),
+                                                style: TextStyle(color: cart.cartNotifierItem[index].refColor),
                                               ),
                                               widget.currentPage == 'menu'
                                                   ? IconButton(
@@ -354,9 +342,7 @@ class _CartPageState extends State<CartPage> {
                                                             cart.cartNotifierItem[index].quantity++;
                                                           });
                                                         } else {
-                                                          Fluttertoast.showToast(
-                                                              backgroundColor: Colors.red,
-                                                              msg: "order already placed!");
+                                                          Fluttertoast.showToast(backgroundColor: Colors.red, msg: "order already placed!");
                                                         }
                                                         controller.add('refresh');
                                                       })
@@ -383,15 +369,14 @@ class _CartPageState extends State<CartPage> {
                           height: cart.selectedOption == 'Dine in' && MediaQuery.of(context).size.height > 500
                               ? 160
                               : MediaQuery.of(context).size.height > 500
-                              ? null
-                              : 25,
+                                  ? null
+                                  : 25,
                           child: ListView(
                             physics: ClampingScrollPhysics(),
                             children: [
                               ListTile(
                                 title: Text("Subtotal", style: TextStyle(fontSize: 14)),
-                                trailing: Text('${total.toStringAsFixed(2)}',
-                                    style: TextStyle(fontSize: 14)),
+                                trailing: Text('${total.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
                                 visualDensity: VisualDensity(vertical: -4),
                                 dense: true,
                               ),
@@ -402,8 +387,7 @@ class _CartPageState extends State<CartPage> {
                                     scrollDirection: Axis.horizontal,
                                     child: Row(
                                       children: [
-                                        Text('${allPromo} (${selectedPromoRate})',
-                                            style: TextStyle(fontSize: 14)),
+                                        Text('${allPromo} (${selectedPromoRate})', style: TextStyle(fontSize: 14)),
                                         IconButton(
                                           padding: EdgeInsets.only(left: 10),
                                           constraints: BoxConstraints(),
@@ -419,8 +403,7 @@ class _CartPageState extends State<CartPage> {
                                       ],
                                     ),
                                   ),
-                                  trailing: Text('-${selectedPromo.toStringAsFixed(2)}',
-                                      style: TextStyle(fontSize: 14)),
+                                  trailing: Text('-${selectedPromo.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
                                   visualDensity: VisualDensity(vertical: -4),
                                   dense: true,
                                 ),
@@ -433,13 +416,11 @@ class _CartPageState extends State<CartPage> {
                                       itemCount: autoApplyPromotionList.length,
                                       itemBuilder: (context, index) {
                                         return ListTile(
-                                            title: Text(
-                                                '${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
+                                            title: Text('${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
                                                 style: TextStyle(fontSize: 14)),
                                             visualDensity: VisualDensity(vertical: -4),
                                             dense: true,
-                                            trailing: Text(
-                                                '-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
+                                            trailing: Text('-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
                                                 style: TextStyle(fontSize: 14)));
                                       })),
                               Visibility(
@@ -450,14 +431,11 @@ class _CartPageState extends State<CartPage> {
                                     itemCount: orderPromotionList.length,
                                     itemBuilder: (context, index) {
                                       return ListTile(
-                                          title: Text(
-                                              '${orderPromotionList[index].promotion_name} (${orderPromotionList[index].rate})',
+                                          title: Text('${orderPromotionList[index].promotion_name} (${orderPromotionList[index].rate})',
                                               style: TextStyle(fontSize: 14)),
                                           visualDensity: VisualDensity(vertical: -4),
                                           dense: true,
-                                          trailing: Text(
-                                              '-${orderPromotionList[index].promotion_amount}',
-                                              style: TextStyle(fontSize: 14)));
+                                          trailing: Text('-${orderPromotionList[index].promotion_amount}', style: TextStyle(fontSize: 14)));
                                     }),
                               ),
                               Visibility(
@@ -473,12 +451,8 @@ class _CartPageState extends State<CartPage> {
                                     itemCount: taxRateList.length,
                                     itemBuilder: (context, index) {
                                       return ListTile(
-                                        title: Text(
-                                            '${taxRateList[index].name}(${taxRateList[index].tax_rate}%)',
-                                            style: TextStyle(fontSize: 14)),
-                                        trailing: Text(
-                                            '${taxRateList[index].tax_amount?.toStringAsFixed(2)}',
-                                            style: TextStyle(fontSize: 14)),
+                                        title: Text('${taxRateList[index].name}(${taxRateList[index].tax_rate}%)', style: TextStyle(fontSize: 14)),
+                                        trailing: Text('${taxRateList[index].tax_amount?.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
                                         //Text(''),
                                         visualDensity: VisualDensity(vertical: -4),
                                         dense: true,
@@ -493,11 +467,8 @@ class _CartPageState extends State<CartPage> {
                                     itemCount: orderTaxList.length,
                                     itemBuilder: (context, index) {
                                       return ListTile(
-                                        title: Text(
-                                            '${orderTaxList[index].tax_name}(${orderTaxList[index].rate}%)',
-                                            style: TextStyle(fontSize: 14)),
-                                        trailing: Text('${orderTaxList[index].tax_amount}',
-                                            style: TextStyle(fontSize: 14)),
+                                        title: Text('${orderTaxList[index].tax_name}(${orderTaxList[index].rate}%)', style: TextStyle(fontSize: 14)),
+                                        trailing: Text('${orderTaxList[index].tax_amount}', style: TextStyle(fontSize: 14)),
                                         //Text(''),
                                         visualDensity: VisualDensity(vertical: -4),
                                         dense: true,
@@ -506,24 +477,20 @@ class _CartPageState extends State<CartPage> {
                               ),
                               ListTile(
                                 title: Text("Amount", style: TextStyle(fontSize: 14)),
-                                trailing: Text('${totalAmount.toStringAsFixed(2)}',
-                                    style: TextStyle(fontSize: 14)),
+                                trailing: Text('${totalAmount.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
                                 visualDensity: VisualDensity(vertical: -4),
                                 dense: true,
                               ),
                               ListTile(
                                 title: Text("Rounding", style: TextStyle(fontSize: 14)),
-                                trailing: Text('${rounding.toStringAsFixed(2)}',
-                                    style: TextStyle(fontSize: 14)),
+                                trailing: Text('${rounding.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
                                 visualDensity: VisualDensity(vertical: -4),
                                 dense: true,
                               ),
                               ListTile(
                                 visualDensity: VisualDensity(vertical: -4),
-                                title: Text("Final Amount",
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                trailing: Text("${finalAmount}",
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                title: Text("Final Amount", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                                 dense: true,
                               ),
                               Visibility(
@@ -533,10 +500,8 @@ class _CartPageState extends State<CartPage> {
                                       Container(
                                         child: ListTile(
                                           visualDensity: VisualDensity(vertical: -4),
-                                          title: Text("Payment received",
-                                              style: TextStyle(fontSize: 14)),
-                                          trailing: Text("${paymentReceived.toStringAsFixed(2)}",
-                                              style: TextStyle(fontSize: 14)),
+                                          title: Text("Payment received", style: TextStyle(fontSize: 14)),
+                                          trailing: Text("${paymentReceived.toStringAsFixed(2)}", style: TextStyle(fontSize: 14)),
                                           dense: true,
                                         ),
                                       ),
@@ -544,8 +509,7 @@ class _CartPageState extends State<CartPage> {
                                         child: ListTile(
                                           visualDensity: VisualDensity(vertical: -4),
                                           title: Text("Change", style: TextStyle(fontSize: 14)),
-                                          trailing: Text("${paymentChange.toStringAsFixed(2)}",
-                                              style: TextStyle(fontSize: 14)),
+                                          trailing: Text("${paymentChange.toStringAsFixed(2)}", style: TextStyle(fontSize: 14)),
                                           dense: true,
                                         ),
                                       )
@@ -566,8 +530,7 @@ class _CartPageState extends State<CartPage> {
                         SizedBox(height: 10),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Consumer<ConnectivityChangeNotifier>(
-                              builder: (context, ConnectivityChangeNotifier connectivity, child) {
+                          child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
                             return Row(
                               children: [
                                 Expanded(
@@ -585,11 +548,7 @@ class _CartPageState extends State<CartPage> {
                                             context: context,
                                             builder: (BuildContext context) {
                                               return WillPopScope(
-                                                  child: CashDialog(
-                                                      isCashIn: true,
-                                                      callBack: () {},
-                                                      isCashOut: false,
-                                                      isNewDay: true),
+                                                  child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true),
                                                   onWillPop: () async => false);
                                             });
                                         _isSettlement = false;
@@ -602,22 +561,19 @@ class _CartPageState extends State<CartPage> {
                                               await callAddOrderCache(cart, connectivity);
                                               await PrintReceipt().printCheckList(printerList, int.parse(this.orderCacheId), context);
                                               await PrintReceipt().printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
-                                            } else if(cart.cartNotifierItem[0].status == 0) {
+                                            } else if (cart.cartNotifierItem[0].status == 0) {
                                               await callCreateNewOrder(cart, connectivity);
                                               await PrintReceipt().printCheckList(printerList, int.parse(this.orderCacheId), context);
                                               await PrintReceipt().printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
                                             } else {
-                                              Fluttertoast.showToast(
-                                                  backgroundColor: Colors.red,
-                                                  msg: "Cannot replace same order");
+                                              Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Cannot replace same order");
                                             }
                                             cart.removeAllCartItem();
                                             cart.removeAllTable();
                                             Navigator.of(context).pop();
                                           } else {
                                             Fluttertoast.showToast(
-                                                backgroundColor: Colors.red,
-                                                msg: "make sure cart is not empty and table is selected");
+                                                backgroundColor: Colors.red, msg: "make sure cart is not empty and table is selected");
                                           }
                                         } else {
                                           // not dine in call
@@ -630,8 +586,7 @@ class _CartPageState extends State<CartPage> {
                                             cart.selectedTable.clear();
                                           } else {
                                             Fluttertoast.showToast(
-                                                backgroundColor: Colors.red,
-                                                msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                           }
                                         }
                                       }
@@ -640,14 +595,10 @@ class _CartPageState extends State<CartPage> {
                                         if (cart.selectedTable.length > 1) {
                                           if (await confirm(
                                             context,
-                                            title: Text(
-                                                '${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
-                                            content: Text(
-                                                '${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
-                                            textOK: Text(
-                                                '${AppLocalizations.of(context)?.translate('yes')}'),
-                                            textCancel: Text(
-                                                '${AppLocalizations.of(context)?.translate('no')}'),
+                                            title: Text('${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
+                                            content: Text('${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
+                                            textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                            textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
                                           )) {
                                             paymentAddToCart(cart);
                                             return openPaymentSelect();
@@ -658,9 +609,7 @@ class _CartPageState extends State<CartPage> {
                                         }
                                       } else {
                                         Fluttertoast.showToast(
-                                            backgroundColor: Colors.red,
-                                            msg:
-                                            "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                            backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                       }
                                     } else if (widget.currentPage == 'other_order') {
                                       if (cart.cartNotifierItem.isNotEmpty) {
@@ -668,9 +617,7 @@ class _CartPageState extends State<CartPage> {
                                         openPaymentSelect();
                                       } else {
                                         Fluttertoast.showToast(
-                                            backgroundColor: Colors.red,
-                                            msg:
-                                            "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                            backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                       }
                                     } else {
                                       if (cart.cartNotifierItem.isNotEmpty) {
@@ -679,8 +626,7 @@ class _CartPageState extends State<CartPage> {
                                         cart.changInit(true);
                                       } else {
                                         Fluttertoast.showToast(
-                                            backgroundColor: Colors.red,
-                                            msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                            backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                       }
                                     }
                                   },
@@ -691,9 +637,7 @@ class _CartPageState extends State<CartPage> {
                                           : Text('Print Receipt'),
                                 )),
                                 Visibility(
-                                  visible: cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status == 1
-                                            ? false
-                                            : false,
+                                  visible: cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status == 1 ? false : false,
                                   child: Expanded(
                                     child: Row(
                                       children: [
@@ -730,29 +674,16 @@ class _CartPageState extends State<CartPage> {
     });
   }
 
-  paymentAddToCart(CartModel cart){
-    var value = cartPaymentDetail(
-        '',
-        total,
-        totalAmount,
-        rounding,
-        finalAmount,
-        0.0,
-        0.0,
-        [],
-        [],
-        promotionList: autoApplyPromotionList,
-        manualPromo: cart.selectedPromotion,
-        taxList: taxRateList,
-        dining_name: cart.selectedOption
-    );
+  paymentAddToCart(CartModel cart) {
+    var value = cartPaymentDetail('', total, totalAmount, rounding, finalAmount, 0.0, 0.0, [], [],
+        promotionList: autoApplyPromotionList, manualPromo: cart.selectedPromotion, taxList: taxRateList, dining_name: cart.selectedOption);
 
     cart.addPaymentDetail(value);
   }
 
-  checkCartItem(CartModel cart){
-    for(int i = 0; i < cart.cartNotifierItem.length; i++){
-      if(cart.cartNotifierItem[i].status == 0){
+  checkCartItem(CartModel cart) {
+    for (int i = 0; i < cart.cartNotifierItem.length; i++) {
+      if (cart.cartNotifierItem[i].status == 0) {
         hasNewItem = true;
       } else {
         hasNewItem = false;
@@ -779,12 +710,7 @@ class _CartPageState extends State<CartPage> {
       for (int j = 0; j < group.modifierChild.length; j++) {
         if (group.modifierChild[j].isChecked!) {
           modifier.add(group.modifierChild[j].name! + '\n');
-          result = modifier
-              .toString()
-              .replaceAll('[', '')
-              .replaceAll(']', '')
-              .replaceAll(',', '+')
-              .replaceFirst('', '+ ');
+          result = modifier.toString().replaceAll('[', '').replaceAll(']', '').replaceAll(',', '+').replaceFirst('', '+ ');
         }
       }
     }
@@ -802,13 +728,7 @@ class _CartPageState extends State<CartPage> {
       for (int j = 0; j < group.child.length; j++) {
         if (group.child[j].isSelected!) {
           variant.add(group.child[j].name! + '\n');
-          result = variant
-              .toString()
-              .replaceAll('[', '')
-              .replaceAll(']', '')
-              .replaceAll(',', '+')
-              .replaceAll('|', '\n+')
-              .replaceFirst('', '+ ');
+          result = variant.toString().replaceAll('[', '').replaceAll(']', '').replaceAll(',', '+').replaceAll('|', '\n+').replaceFirst('', '+ ');
         }
       }
     }
@@ -959,15 +879,21 @@ class _CartPageState extends State<CartPage> {
     controller.add('refresh');
   }
 
-  promotionDateTimeChecking({cache_created_at, sDate, eDate, sTime, eTime,}){
+  promotionDateTimeChecking({
+    cache_created_at,
+    sDate,
+    eDate,
+    sTime,
+    eTime,
+  }) {
     // String stime = "20:00";
     // String etime = '22:19';
     DateTime currentDateTime = DateTime.now();
     bool inTime = false;
 
-    try{
-      if(cache_created_at == null) {
-        if(sDate != null && eDate != null && sTime != null && eTime != null) {
+    try {
+      if (cache_created_at == null) {
+        if (sDate != null && eDate != null && sTime != null && eTime != null) {
           //parse date
           DateTime parsedStartDate = DateTime.parse(sDate);
           DateTime parsedEndDate = DateTime.parse(eDate);
@@ -1002,9 +928,7 @@ class _CartPageState extends State<CartPage> {
           } else {
             inTime = false;
           }
-
-        }
-        else if(sDate != null && eDate != null) {
+        } else if (sDate != null && eDate != null) {
           DateTime parsedStartDate = DateTime.parse(sDate);
           DateTime parsedEndDate = DateTime.parse(eDate);
 
@@ -1013,12 +937,10 @@ class _CartPageState extends State<CartPage> {
 
           if (startDateComparison >= 0 && endDateComparison <= 0) {
             inTime = true;
-
           } else {
             inTime = false;
           }
-        }
-        else if (sTime != null && eTime != null){
+        } else if (sTime != null && eTime != null) {
           DateTime startTime = new DateFormat("HH:mm").parse(sTime);
           DateTime endTime = new DateFormat("HH:mm").parse(eTime);
 
@@ -1043,7 +965,7 @@ class _CartPageState extends State<CartPage> {
         }
       } else {
         //compare with order cache created date time
-        if(sDate != null && eDate != null && sTime != null && eTime != null) {
+        if (sDate != null && eDate != null && sTime != null && eTime != null) {
           //parse date
           DateTime parsedCacheDate = DateTime.parse(cache_created_at);
           DateTime parsedStartDate = DateTime.parse(sDate);
@@ -1075,17 +997,13 @@ class _CartPageState extends State<CartPage> {
           if (startDateComparison >= 0 && endDateComparison <= 0) {
             if (startTimeComparison >= 0 && endTimeComparison <= 0) {
               inTime = true;
-
             } else {
               inTime = false;
-
             }
           } else {
             inTime = false;
-
           }
-
-        } else if(sDate != null && eDate != null) {
+        } else if (sDate != null && eDate != null) {
           DateTime parsedCacheDate = DateTime.parse(cache_created_at);
           DateTime parsedStartDate = DateTime.parse(sDate);
           DateTime parsedEndDate = DateTime.parse(eDate);
@@ -1095,12 +1013,10 @@ class _CartPageState extends State<CartPage> {
 
           if (startDateComparison >= 0 && endDateComparison <= 0) {
             inTime = true;
-
           } else {
             inTime = false;
-
           }
-        } else if (sTime != null && eTime != null){
+        } else if (sTime != null && eTime != null) {
           DateTime cacheDate = DateTime.parse(cache_created_at);
 
           String formatDate = new DateFormat("HH:mm").format(cacheDate);
@@ -1129,10 +1045,9 @@ class _CartPageState extends State<CartPage> {
             inTime = false;
           }
         }
-
       }
       return inTime;
-    } catch(e){
+    } catch (e) {
       print('error caught:$e');
       return;
     }
@@ -1144,16 +1059,14 @@ class _CartPageState extends State<CartPage> {
       autoApplyPromotionList = [];
       promoName = '';
       hasPromo = false;
-      if(cart.cartNotifierItem.isNotEmpty){
+      if (cart.cartNotifierItem.isNotEmpty) {
         //loop promotion list get promotion
         for (int j = 0; j < promotionList.length; j++) {
           promotionList[j].promoAmount = 0.0;
           //check is the promotion auto apply
           if (promotionList[j].auto_apply == '1') {
-
             //check is promotion all day & all time
-            if(promotionList[j].all_day == '1' && promotionList[j].all_time == '1'){
-
+            if (promotionList[j].all_day == '1' && promotionList[j].all_time == '1') {
               if (promotionList[j].specific_category == '1') {
                 //Auto apply specific category promotion
                 for (int m = 0; m < cart.cartNotifierItem.length; m++) {
@@ -1181,12 +1094,15 @@ class _CartPageState extends State<CartPage> {
                   autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
                 }
               }
-            }
-            else {
-              if(promotionList[j].all_day == '0' && promotionList[j].all_time == '0'){
-                if(cart.cartNotifierItem[0].status == 0){
-                  if(promotionDateTimeChecking(sDate: promotionList[j].sdate, eDate: promotionList[j].edate,
-                      sTime: promotionList[j].stime, eTime: promotionList[j].etime) == true){
+            } else {
+              if (promotionList[j].all_day == '0' && promotionList[j].all_time == '0') {
+                if (cart.cartNotifierItem[0].status == 0) {
+                  if (promotionDateTimeChecking(
+                          sDate: promotionList[j].sdate,
+                          eDate: promotionList[j].edate,
+                          sTime: promotionList[j].stime,
+                          eTime: promotionList[j].etime) ==
+                      true) {
                     if (promotionList[j].specific_category == '1') {
                       //Auto apply specific category promotion
                       for (int m = 0; m < cart.cartNotifierItem.length; m++) {
@@ -1216,9 +1132,13 @@ class _CartPageState extends State<CartPage> {
                     }
                   }
                 } else {
-                  if(promotionDateTimeChecking(sDate: promotionList[j].sdate, eDate: promotionList[j].edate,
-                      sTime: promotionList[j].stime, eTime: promotionList[j].etime,
-                      cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) == true){
+                  if (promotionDateTimeChecking(
+                          sDate: promotionList[j].sdate,
+                          eDate: promotionList[j].edate,
+                          sTime: promotionList[j].stime,
+                          eTime: promotionList[j].etime,
+                          cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) ==
+                      true) {
                     if (promotionList[j].specific_category == '1') {
                       //Auto apply specific category promotion
                       for (int m = 0; m < cart.cartNotifierItem.length; m++) {
@@ -1248,11 +1168,10 @@ class _CartPageState extends State<CartPage> {
                     }
                   }
                 }
-              }
-              else if (promotionList[j].all_day == '0' && promotionList[j].all_time == '1'){
+              } else if (promotionList[j].all_day == '0' && promotionList[j].all_time == '1') {
                 //check cart item status and promotion time
-                if(cart.cartNotifierItem[0].status == 0){
-                  if(promotionDateTimeChecking(sDate: promotionList[j].sdate, eDate: promotionList[j].edate) == true){
+                if (cart.cartNotifierItem[0].status == 0) {
+                  if (promotionDateTimeChecking(sDate: promotionList[j].sdate, eDate: promotionList[j].edate) == true) {
                     if (promotionList[j].specific_category == '1') {
                       //Auto apply specific category promotion
                       for (int m = 0; m < cart.cartNotifierItem.length; m++) {
@@ -1282,8 +1201,11 @@ class _CartPageState extends State<CartPage> {
                     }
                   }
                 } else {
-                  if(promotionDateTimeChecking(sDate: promotionList[j].sdate, eDate: promotionList[j].edate,
-                      cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) == true){
+                  if (promotionDateTimeChecking(
+                          sDate: promotionList[j].sdate,
+                          eDate: promotionList[j].edate,
+                          cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) ==
+                      true) {
                     if (promotionList[j].specific_category == '1') {
                       //Auto apply specific category promotion
                       for (int m = 0; m < cart.cartNotifierItem.length; m++) {
@@ -1313,10 +1235,10 @@ class _CartPageState extends State<CartPage> {
                     }
                   }
                 }
-              } else if (promotionList[j].all_time == '0' && promotionList[j].all_day == '1'){
+              } else if (promotionList[j].all_time == '0' && promotionList[j].all_day == '1') {
                 //check cart item status and promotion time
-                if(cart.cartNotifierItem[0].status == 0){
-                  if(promotionDateTimeChecking(sTime: promotionList[j].stime, eTime: promotionList[j].etime) == true){
+                if (cart.cartNotifierItem[0].status == 0) {
+                  if (promotionDateTimeChecking(sTime: promotionList[j].stime, eTime: promotionList[j].etime) == true) {
                     if (promotionList[j].specific_category == '1') {
                       //Auto apply specific category promotion
                       for (int m = 0; m < cart.cartNotifierItem.length; m++) {
@@ -1346,8 +1268,11 @@ class _CartPageState extends State<CartPage> {
                     }
                   }
                 } else {
-                  if(promotionDateTimeChecking(sTime: promotionList[j].stime, eTime: promotionList[j].etime,
-                      cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) == true){
+                  if (promotionDateTimeChecking(
+                          sTime: promotionList[j].stime,
+                          eTime: promotionList[j].etime,
+                          cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) ==
+                      true) {
                     if (promotionList[j].specific_category == '1') {
                       //Auto apply specific category promotion
                       for (int m = 0; m < cart.cartNotifierItem.length; m++) {
@@ -1382,7 +1307,6 @@ class _CartPageState extends State<CartPage> {
           }
         }
       }
-
     } catch (error) {
       print('Promotion error $error');
       promo = 0.0;
@@ -1402,9 +1326,7 @@ class _CartPageState extends State<CartPage> {
           promoRate = 'RM' + promotion.amount!;
           promotion.promoRate = promoRate;
         } else {
-          promo +=
-              (double.parse(cart.cartNotifierItem[i].price) * cart.cartNotifierItem[i].quantity) *
-                  (double.parse(promotion.amount!) / 100);
+          promo += (double.parse(cart.cartNotifierItem[i].price) * cart.cartNotifierItem[i].quantity) * (double.parse(promotion.amount!) / 100);
           promotion.promoAmount = promo;
           promoRate = promotion.amount! + '%';
           promotion.promoRate = promoRate;
@@ -1429,8 +1351,7 @@ class _CartPageState extends State<CartPage> {
         promoRate = 'RM' + promotion.amount!;
         promotion.promoRate = promoRate;
       } else {
-        promo += (double.parse(cartItem.price) * cartItem.quantity) *
-            (double.parse(promotion.amount!) / 100);
+        promo += (double.parse(cartItem.price) * cartItem.quantity) * (double.parse(promotion.amount!) / 100);
         promotion.promoAmount = promotion.promoAmount! + promo;
         promoRate = promotion.amount! + '%';
         promotion.promoRate = promoRate;
@@ -1453,8 +1374,7 @@ class _CartPageState extends State<CartPage> {
       diningOptionID = data[0].dining_id!;
 
       //get dining tax
-      List<Tax> taxData =
-          await PosDatabase.instance.readTax(branch_id.toString(), diningOptionID.toString());
+      List<Tax> taxData = await PosDatabase.instance.readTax(branch_id.toString(), diningOptionID.toString());
       if (taxData.length > 0) {
         taxRateList = List.from(taxData);
       } else {
@@ -1503,16 +1423,14 @@ class _CartPageState extends State<CartPage> {
 */
   getSubTotal(CartModel cart) async {
     try {
-      widget.currentPage == 'table' || widget.currentPage == 'qr_order'
-          ? cart.selectedOption = 'Dine in'
-          : null;
+      widget.currentPage == 'table' || widget.currentPage == 'qr_order' ? cart.selectedOption = 'Dine in' : null;
       total = 0.0;
       newOrderSubtotal = 0.0;
       promo = 0.0;
       promoAmount = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
         total += (double.parse((cart.cartNotifierItem[i].price)) * cart.cartNotifierItem[i].quantity);
-        if(cart.cartNotifierItem[i].status == 0){
+        if (cart.cartNotifierItem[i].status == 0) {
           newOrderSubtotal += (double.parse((cart.cartNotifierItem[i].price)) * cart.cartNotifierItem[i].quantity);
         }
       }
@@ -1526,7 +1444,7 @@ class _CartPageState extends State<CartPage> {
     getRounding();
     getAllTotal();
     checkCartItem(cart);
-    if(cart.myCount == 0){
+    if (cart.myCount == 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         setState(() {
           _scrollDown();
@@ -1567,8 +1485,7 @@ class _CartPageState extends State<CartPage> {
 
   getRounding() {
     double _round = 0.0;
-    _round =
-        double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
+    _round = double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
     if (_round.toStringAsFixed(2) != '0.05' && _round.toStringAsFixed(2) != '-0.05') {
       rounding = _round;
     } else {
@@ -1640,7 +1557,7 @@ class _CartPageState extends State<CartPage> {
             child: Opacity(
               opacity: a1.value,
               child: CartDialog(
-                  selectedTableList: cartModel.selectedTable,
+                selectedTableList: cartModel.selectedTable,
               ),
             ),
           );
@@ -1759,13 +1676,11 @@ class _CartPageState extends State<CartPage> {
   readAllBranchLinkDiningOption() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    List<BranchLinkDining> data =
-        await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
+    List<BranchLinkDining> data = await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
     for (int i = 0; i < data.length; i++) {
       diningList.add(data[i].name!);
       branchLinkDiningIdList.add(data[i].dining_id!);
     }
-
     controller.add('refresh');
   }
 
@@ -1783,7 +1698,7 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  resetValue(){
+  resetValue() {
     this.table_use_value = [].toString();
     this.table_use_detail_value = [].toString();
     this.order_cache_value = [].toString();
@@ -1962,8 +1877,7 @@ class _CartPageState extends State<CartPage> {
       }
     } catch (e) {
       print(e);
-      Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000), msg: "Create table id error: ${e}");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Create table id error: ${e}");
     }
   }
 
@@ -1984,9 +1898,7 @@ class _CartPageState extends State<CartPage> {
   generateTableUseKey(TableUse tableUse) async {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
-    var bytes = tableUse.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
-        tableUse.table_use_sqlite_id.toString() +
-        device_id.toString();
+    var bytes = tableUse.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + tableUse.table_use_sqlite_id.toString() + device_id.toString();
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
@@ -1994,11 +1906,8 @@ class _CartPageState extends State<CartPage> {
     TableUse? _tbUseList;
     tableUseKey = await generateTableUseKey(tableUse);
     if (tableUseKey != null) {
-      TableUse tableUseObject = TableUse(
-          table_use_key: tableUseKey,
-          sync_status: 0,
-          updated_at: dateTime,
-          table_use_sqlite_id: tableUse.table_use_sqlite_id);
+      TableUse tableUseObject =
+          TableUse(table_use_key: tableUseKey, sync_status: 0, updated_at: dateTime, table_use_sqlite_id: tableUse.table_use_sqlite_id);
       int tableUseData = await PosDatabase.instance.updateTableUseUniqueKey(tableUseObject);
       if (tableUseData == 1) {
         TableUse data = await PosDatabase.instance.readSpecificTableUseIdByLocalId(tableUseObject.table_use_sqlite_id!);
@@ -2042,19 +1951,18 @@ class _CartPageState extends State<CartPage> {
     try {
       for (int i = 0; i < cart.selectedTable.length; i++) {
         //create table use detail
-        TableUseDetail tableUseDetailData = await PosDatabase.instance.insertSqliteTableUseDetail(
-            TableUseDetail(
-                table_use_detail_id: 0,
-                table_use_detail_key: '',
-                table_use_sqlite_id: localTableUseId,
-                table_use_key: tableUseKey,
-                table_sqlite_id: cart.selectedTable[i].table_sqlite_id.toString(),
-                table_id: cart.selectedTable[i].table_id.toString(),
-                status: 0,
-                sync_status: 0,
-                created_at: dateTime,
-                updated_at: '',
-                soft_delete: ''));
+        TableUseDetail tableUseDetailData = await PosDatabase.instance.insertSqliteTableUseDetail(TableUseDetail(
+            table_use_detail_id: 0,
+            table_use_detail_key: '',
+            table_use_sqlite_id: localTableUseId,
+            table_use_key: tableUseKey,
+            table_sqlite_id: cart.selectedTable[i].table_sqlite_id.toString(),
+            table_id: cart.selectedTable[i].table_id.toString(),
+            status: 0,
+            sync_status: 0,
+            created_at: dateTime,
+            updated_at: '',
+            soft_delete: ''));
         TableUseDetail updatedDetail = await insertTableUseDetailKey(tableUseDetailData, dateTime);
         _value.add(jsonEncode(updatedDetail));
       }
@@ -2063,8 +1971,7 @@ class _CartPageState extends State<CartPage> {
       //syncTableUseDetailToCloud(_value.toString());
     } catch (e) {
       print(e);
-      Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000), msg: "Create table detail error: ${e}");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Create table detail error: ${e}");
     }
   }
 
@@ -2119,7 +2026,7 @@ class _CartPageState extends State<CartPage> {
             order_detail_id: '',
             table_use_sqlite_id: cart.selectedOption == 'Dine in' ? _tableUseId : '',
             table_use_key: cart.selectedOption == 'Dine in' ? _tableUse[0].table_use_key : '',
-            batch_id:  batch.toString().padLeft(6, '0'),
+            batch_id: batch.toString().padLeft(6, '0'),
             dining_id: this.diningOptionID.toString(),
             order_sqlite_id: '',
             order_key: '',
@@ -2150,8 +2057,7 @@ class _CartPageState extends State<CartPage> {
       }
     } catch (e) {
       print('error: ${e}');
-      Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000), msg: "Create order cache error: ${e}");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Create order cache error: ${e}");
     }
   }
 
@@ -2171,9 +2077,7 @@ class _CartPageState extends State<CartPage> {
   generateOrderCacheKey(OrderCache orderCache) async {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
-    var bytes = orderCache.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
-        orderCache.order_cache_sqlite_id.toString() +
-        device_id.toString();
+    var bytes = orderCache.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + orderCache.order_cache_sqlite_id.toString() + device_id.toString();
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
@@ -2181,15 +2085,11 @@ class _CartPageState extends State<CartPage> {
     OrderCache? data;
     orderCacheKey = await generateOrderCacheKey(orderCache);
     if (orderCacheKey != null) {
-      OrderCache orderCacheObject = OrderCache(
-          order_cache_key: orderCacheKey,
-          sync_status: 0,
-          updated_at: dateTime,
-          order_cache_sqlite_id: orderCache.order_cache_sqlite_id);
+      OrderCache orderCacheObject =
+          OrderCache(order_cache_key: orderCacheKey, sync_status: 0, updated_at: dateTime, order_cache_sqlite_id: orderCache.order_cache_sqlite_id);
       int cacheUniqueKey = await PosDatabase.instance.updateOrderCacheUniqueKey(orderCacheObject);
       if (cacheUniqueKey == 1) {
-        OrderCache orderCacheData = await PosDatabase.instance
-            .readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
+        OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
         if (orderCacheData.sync_status == 0) {
           data = orderCacheData;
         }
@@ -2222,7 +2122,7 @@ class _CartPageState extends State<CartPage> {
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
       var response = await Domain().SyncTableUseToCloud(tableUseValue);
-      if(response != null){
+      if (response != null) {
         if (response['status'] == '1') {
           List responseJson = response['data'];
           int updatedTableUse = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
@@ -2266,7 +2166,8 @@ class _CartPageState extends State<CartPage> {
             updated_at: '',
             soft_delete: '');
         OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(object);
-        BranchLinkProduct branchLinkProductData = await updateProductStock(orderDetailData.branch_link_product_sqlite_id.toString(), int.parse(orderDetailData.quantity!), dateTime);
+        BranchLinkProduct branchLinkProductData =
+            await updateProductStock(orderDetailData.branch_link_product_sqlite_id.toString(), int.parse(orderDetailData.quantity!), dateTime);
         _branchLinkProductValue.add(jsonEncode(branchLinkProductData.toJson()));
         branch_link_product_value = _branchLinkProductValue.toString();
         //insert order detail key
@@ -2280,24 +2181,22 @@ class _CartPageState extends State<CartPage> {
             for (int m = 0; m < group.modifierChild.length; m++) {
               if (group.modifierChild[m].isChecked!) {
                 _hasModifier = true;
-                OrderModifierDetail orderModifierDetailData = await PosDatabase.instance
-                    .insertSqliteOrderModifierDetail(OrderModifierDetail(
-                        order_modifier_detail_id: 0,
-                        order_modifier_detail_key: '',
-                        order_detail_sqlite_id: orderDetailData.order_detail_sqlite_id.toString(),
-                        order_detail_id: '0',
-                        order_detail_key: await orderDetailKey,
-                        mod_item_id: group.modifierChild[m].mod_item_id.toString(),
-                        mod_name: group.modifierChild[m].name,
-                        mod_price: group.modifierChild[m].price,
-                        mod_group_id: group.mod_group_id.toString(),
-                        sync_status: 0,
-                        created_at: dateTime,
-                        updated_at: '',
-                        soft_delete: ''));
+                OrderModifierDetail orderModifierDetailData = await PosDatabase.instance.insertSqliteOrderModifierDetail(OrderModifierDetail(
+                    order_modifier_detail_id: 0,
+                    order_modifier_detail_key: '',
+                    order_detail_sqlite_id: orderDetailData.order_detail_sqlite_id.toString(),
+                    order_detail_id: '0',
+                    order_detail_key: await orderDetailKey,
+                    mod_item_id: group.modifierChild[m].mod_item_id.toString(),
+                    mod_name: group.modifierChild[m].name,
+                    mod_price: group.modifierChild[m].price,
+                    mod_group_id: group.mod_group_id.toString(),
+                    sync_status: 0,
+                    created_at: dateTime,
+                    updated_at: '',
+                    soft_delete: ''));
                 //insert unique key
-                OrderModifierDetail updatedOrderModifierDetail =
-                    await insertOrderModifierDetailKey(orderModifierDetailData, dateTime);
+                OrderModifierDetail updatedOrderModifierDetail = await insertOrderModifierDetailKey(orderModifierDetailData, dateTime);
                 if (updatedOrderModifierDetail.order_modifier_detail_key != '' && connectivity.isConnect) {
                   _orderModifierValue.add(jsonEncode(updatedOrderModifierDetail));
                   order_modifier_detail_value = _orderModifierValue.toString();
@@ -2308,7 +2207,7 @@ class _CartPageState extends State<CartPage> {
         }
       }
     }
-    if(this.timeOutDetected == false){
+    if (this.timeOutDetected == false) {
       // syncOrderDetailToCloud(_orderDetailValue.toString());
       // syncBranchLinkProductStock(_branchLinkProductValue.toString());
       // if (_hasModifier) {
@@ -2321,14 +2220,13 @@ class _CartPageState extends State<CartPage> {
     int _totalStockQty = 0, updateStock = 0;
     BranchLinkProduct? object;
     List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-    if(checkData[0].stock_type == '2'){
+    if (checkData[0].stock_type == '2') {
       _totalStockQty = int.parse(checkData[0].stock_quantity!) - quantity;
       object = BranchLinkProduct(
           updated_at: dateTime,
           sync_status: 2,
           stock_quantity: _totalStockQty.toString(),
-          branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
-      );
+          branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
       updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
     } else {
       _totalStockQty = int.parse(checkData[0].daily_limit_amount!) - quantity;
@@ -2336,12 +2234,11 @@ class _CartPageState extends State<CartPage> {
           updated_at: dateTime,
           sync_status: 2,
           daily_limit_amount: _totalStockQty.toString(),
-          branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
-      );
+          branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
       updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimitAmount(object);
     }
     //return updated value
-    if(updateStock == 1){
+    if (updateStock == 1) {
       List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
       return updatedData[0];
     }
@@ -2349,7 +2246,7 @@ class _CartPageState extends State<CartPage> {
 
   syncBranchLinkProductStock(String value) async {
     bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess) {
+    if (_hasInternetAccess) {
       Map orderDetailResponse = await Domain().SyncBranchLinkProductToCloud(value);
       if (orderDetailResponse['status'] == '1') {
         List responseJson = orderDetailResponse['data'];
@@ -2395,10 +2292,10 @@ class _CartPageState extends State<CartPage> {
           updated_at: dateTime,
           sync_status: orderModifierDetail.sync_status == 0 ? 0 : 2,
           order_modifier_detail_sqlite_id: orderModifierDetail.order_modifier_detail_sqlite_id);
-      int updateUniqueKey =
-          await PosDatabase.instance.updateOrderModifierDetailUniqueKey(orderModifierDetailData);
+      int updateUniqueKey = await PosDatabase.instance.updateOrderModifierDetailUniqueKey(orderModifierDetailData);
       if (updateUniqueKey == 1) {
-        OrderModifierDetail data = await PosDatabase.instance.readSpecificOrderModifierDetailByLocalId(orderModifierDetailData.order_modifier_detail_sqlite_id!);
+        OrderModifierDetail data =
+            await PosDatabase.instance.readSpecificOrderModifierDetailByLocalId(orderModifierDetailData.order_modifier_detail_sqlite_id!);
         detailData = data;
       }
     }
@@ -2407,23 +2304,19 @@ class _CartPageState extends State<CartPage> {
 
   insertOrderDetailKey(OrderDetail orderDetail, String dateTime) async {
     OrderDetail? detailData;
-    try{
+    try {
       orderDetailKey = await generateOrderDetailKey(orderDetail);
       if (orderDetailKey != null) {
         OrderDetail orderDetailObject = OrderDetail(
-            order_detail_key: orderDetailKey,
-            sync_status: 0,
-            updated_at: dateTime,
-            order_detail_sqlite_id: orderDetail.order_detail_sqlite_id);
-        int updateUniqueKey =
-        await PosDatabase.instance.updateOrderDetailUniqueKey(orderDetailObject);
+            order_detail_key: orderDetailKey, sync_status: 0, updated_at: dateTime, order_detail_sqlite_id: orderDetail.order_detail_sqlite_id);
+        int updateUniqueKey = await PosDatabase.instance.updateOrderDetailUniqueKey(orderDetailObject);
         if (updateUniqueKey == 1) {
           OrderDetail data = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
           detailData = data;
         }
       }
       return detailData;
-    }catch (e){
+    } catch (e) {
       print('insert order detail key error: ${e}');
       return;
     }
@@ -2432,9 +2325,7 @@ class _CartPageState extends State<CartPage> {
   generateOrderDetailKey(OrderDetail orderDetail) async {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
-    var bytes = orderDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
-        orderDetail.order_detail_sqlite_id.toString() +
-        device_id.toString();
+    var bytes = orderDetail.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + orderDetail.order_detail_sqlite_id.toString() + device_id.toString();
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
@@ -2472,7 +2363,7 @@ class _CartPageState extends State<CartPage> {
           }
         }
       }
-      if(this.timeOutDetected == false){
+      if (this.timeOutDetected == false) {
         //syncUpdatedTableToCloud(_value.toString());
       }
     } catch (e) {
@@ -2504,44 +2395,51 @@ class _CartPageState extends State<CartPage> {
           order_detail_value: this.order_detail_value,
           branch_link_product_value: this.branch_link_product_value,
           order_modifier_value: this.order_modifier_detail_value,
-          table_value: this.table_value
-      );
+          table_value: this.table_value);
       if (data['status'] == '1') {
         print('success');
         List responseJson = data['data'];
-        for(int i = 0; i < responseJson.length; i++){
-          switch(responseJson[i]['table_name']){
-            case 'tb_table_use': {
-              await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
-            }
-            break;
-            case 'tb_table_use_detail': {
-              await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-            }
-            break;
-            case 'tb_order_cache': {
-              await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
-            }
-            break;
-            case 'tb_order_detail': {
-              await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
-            }
-            break;
-            case 'tb_order_modifier_detail': {
-              await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
-            }
-            break;
-            case 'tb_branch_link_product': {
-              await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-            }
-            break;
-            case 'tb_table': {
-              await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-            }
-            break;
-            default: {
-              return;
-            }
+        for (int i = 0; i < responseJson.length; i++) {
+          switch (responseJson[i]['table_name']) {
+            case 'tb_table_use':
+              {
+                await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+              }
+              break;
+            case 'tb_table_use_detail':
+              {
+                await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+              }
+              break;
+            case 'tb_order_cache':
+              {
+                await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+              }
+              break;
+            case 'tb_order_detail':
+              {
+                await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+              }
+              break;
+            case 'tb_order_modifier_detail':
+              {
+                await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
+              }
+              break;
+            case 'tb_branch_link_product':
+              {
+                await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+              }
+              break;
+            case 'tb_table':
+              {
+                await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+              }
+              break;
+            default:
+              {
+                return;
+              }
           }
         }
       }
