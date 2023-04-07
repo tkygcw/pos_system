@@ -327,9 +327,9 @@ class _CartPageState extends State<CartPage> {
                                                     hoverColor: Colors.transparent,
                                                     icon: Icon(Icons.remove),
                                                     onPressed: () {
-                                                      cart.cartNotifierItem[index].quantity != 1
+                                                      cart.cartNotifierItem[index].quantity != 1 && cart.cartNotifierItem[index].status == 0
                                                           ? setState(() => cart.cartNotifierItem[index].quantity--)
-                                                          : null;
+                                                          : Fluttertoast.showToast(backgroundColor: Colors.red, msg: "order already placed!");
                                                     }),
                                               ),
                                               Text(

@@ -250,35 +250,35 @@ class ReportFormat {
                       children: [
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
-                          child: pw.Text('Date', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Date', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Date'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
-                          child: pw.Text('Total Bills', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Total Bills', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Bills'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
-                          child: pw.Text('Total Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Total Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Sales'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
-                          child: pw.Text('Total Refund Bills', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Total Refund Bills', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Refund Bills'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
-                          child: pw.Text('Total Refund Amount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Total Refund Amount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Refund Amount'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
-                          child: pw.Text('Total Discount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Total Discount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Discount'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
-                          child: pw.Text('Total Tax', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Total Tax', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Tax'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
-                          child: pw.Text('Total Cancellation', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Total Cancellation', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Cancellation'))),
                         ),
                       ]
                   ),
@@ -287,35 +287,36 @@ class ReportFormat {
                         children: [
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].created_at}'),
+                            child: pw.Text('${valueList[j].created_at}', 
+                                style: pw.TextStyle(font: getFontFormat(valueList[j].created_at))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].all_bill}'),
+                            child: pw.Text('${valueList[j].all_bill}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_bill))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].all_sales?.toStringAsFixed(2)}'),
+                            child: pw.Text('${valueList[j].all_sales?.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_sales?.toStringAsFixed(2)))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].all_refund_bill}'),
+                            child: pw.Text('${valueList[j].all_refund_bill}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_refund_bill))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].all_refund_amount?.toStringAsFixed(2)}'),
+                            child: pw.Text('${valueList[j].all_refund_amount?.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_refund_amount?.toStringAsFixed(2)))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].all_discount?.toStringAsFixed(2)}'),
+                            child: pw.Text('${valueList[j].all_discount?.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_discount?.toStringAsFixed(2)))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].all_tax_amount?.toStringAsFixed(2)}'),
+                            child: pw.Text('${valueList[j].all_tax_amount?.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_tax_amount?.toStringAsFixed(2)))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].all_cancellation}'),
+                            child: pw.Text('${valueList[j].all_cancellation}', style: pw.TextStyle(font: getFontFormat(valueList[j].all_cancellation))),
                           ),
                         ]
                     ),
@@ -347,12 +348,12 @@ class ReportFormat {
                     children: [
                       pw.Padding(
                         padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
-                        child: pw.Text('Date', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                        child: pw.Text('Date', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Date'))),
                       ),
                       for(int i = 0; i < paymentHeader.length; i++)
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                          child: pw.Text('${paymentHeader[i].name}', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('${paymentHeader[i].name}', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat(paymentHeader[i].name))),
                         ),
                     ]
                   ),
@@ -361,12 +362,13 @@ class ReportFormat {
                       children: [
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                          child: pw.Text('${valueList[j].created_at}'),
+                          child: pw.Text('${valueList[j].created_at}', style: pw.TextStyle(font: getFontFormat(valueList[j].created_at))),
                         ),
                         for(int i = 0; i < valueList[j].settlementPayment.length; i++)
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].settlementPayment[i].all_payment_sales?.toStringAsFixed(2)}'),
+                            child: pw.Text('${valueList[j].settlementPayment[i].all_payment_sales?.toStringAsFixed(2)}', 
+                                style: pw.TextStyle(font: getFontFormat(valueList[j].settlementPayment[i].all_payment_sales?.toStringAsFixed(2)))),
                           ),
                       ]
                   ),
@@ -689,12 +691,7 @@ class ReportFormat {
 
   Future<Uint8List> generateCancelProductReportPdf(PdfPageFormat format, String title, ReportModel reportModel) async {
     List valueList = reportModel.reportValue2;
-    const tableHeaders2 = ['Name', 'Amount'];
-    var sales = jsonDecode(reportModel.reportValue[0]);
-    var payment = jsonDecode(reportModel.reportValue[1]);
-    var settlementPayment = jsonDecode(reportModel.reportValue[2]);
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
-    final font = await PdfGoogleFonts.nunitoExtraLight();
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -711,21 +708,6 @@ class ReportFormat {
             ),
         ],
       );
-    }
-    // Define a function to generate the child rows
-    List<pw.TableRow> _generateChildRows(List<List<String>> rowsData) {
-      return [
-        for (final rowData in rowsData)
-          pw.TableRow(
-            children: [
-              for (final item in rowData)
-                pw.Padding(
-                  padding: pw.EdgeInsets.all(5),
-                  child: pw.Text(item),
-                ),
-            ],
-          ),
-      ];
     }
 
     pdf.addPage(
@@ -757,23 +739,23 @@ class ReportFormat {
                       children: [
                         pw.Padding(
                           padding: pw.EdgeInsets.all(10),
-                          child: pw.Text('Product', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Product', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Variant', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Variant', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Quantity', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Quantity', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Net Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Net Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
                         ),
                       ]
                   ),
@@ -783,27 +765,32 @@ class ReportFormat {
                           children: [
                             pw.Padding(
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('${valueList[j].categoryOrderDetailList[i].productName}'),
+                              child: pw.Text('${valueList[j].categoryOrderDetailList[i].productName}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[i].productName))),
                             ),
                             pw.Padding(
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
                               child: valueList[j].categoryOrderDetailList[i].product_variant_name != ''
                                   ?
-                              pw.Text('${valueList[j].categoryOrderDetailList[i].product_variant_name}')
+                              pw.Text('${valueList[j].categoryOrderDetailList[i].product_variant_name}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[i].product_variant_name)))
                                   :
-                              pw.Text('-'),
+                              pw.Text('-', style: pw.TextStyle(font: getFontFormat('-'))),
                             ),
                             pw.Padding(
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('${valueList[j].categoryOrderDetailList[i].item_sum}'),
+                              child: pw.Text('${valueList[j].categoryOrderDetailList[i].item_sum}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[i].item_sum))),
                             ),
                             pw.Padding(
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('${valueList[j].categoryOrderDetailList[i].double_price!.toStringAsFixed(2)}'),
+                              child: pw.Text('${valueList[j].categoryOrderDetailList[i].double_price!.toStringAsFixed(2)}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[i].double_price!.toStringAsFixed(2)))),
                             ),
                             pw.Padding(
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('${valueList[j].categoryOrderDetailList[i].gross_price!.toStringAsFixed(2)}'),
+                              child: pw.Text('${valueList[j].categoryOrderDetailList[i].gross_price!.toStringAsFixed(2)}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[i].gross_price!.toStringAsFixed(2)))),
                             ),
                           ]
                       ),
@@ -853,15 +840,15 @@ class ReportFormat {
                       children: [
                         pw.Padding(
                           padding: pw.EdgeInsets.all(10),
-                          child: pw.Text('Modifier', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Modifier', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Modifier'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Quantity', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Quantity', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Modifier'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Net Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Net Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Modifier'))),
                         ),
                       ]
                   ),
@@ -871,15 +858,18 @@ class ReportFormat {
                           children: [
                             pw.Padding(
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('${valueList[j].modDetailList[i].mod_name}'),
+                              child: pw.Text('${valueList[j].modDetailList[i].mod_name}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].modDetailList[i].mod_name))),
                             ),
                             pw.Padding(
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('${valueList[j].modDetailList[i].item_sum}'),
+                              child: pw.Text('${valueList[j].modDetailList[i].item_sum}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].modDetailList[i].item_sum))),
                             ),
                             pw.Padding(
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('${valueList[j].modDetailList[i].net_sales!.toStringAsFixed(2)}'),
+                              child: pw.Text('${valueList[j].modDetailList[i].net_sales!.toStringAsFixed(2)}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].modDetailList[i].net_sales!.toStringAsFixed(2)))),
                             ),
                           ]
                       ),
@@ -894,7 +884,6 @@ class ReportFormat {
   Future<Uint8List> generateDiningReport(PdfPageFormat format, String title, ReportModel reportModel) async {
     List valueList = reportModel.reportValue2;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
-    final font = await PdfGoogleFonts.nunitoExtraLight();
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -928,19 +917,19 @@ class ReportFormat {
                       children: [
                         pw.Padding(
                           padding: pw.EdgeInsets.all(10),
-                          child: pw.Text('Dining Option', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Dining Option', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Dining Option'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Quantity', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Quantity', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Quantity'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Net Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Net Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Net Sales'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Gross Sales'))),
                         ),
                       ]
                   ),
@@ -949,19 +938,19 @@ class ReportFormat {
                         children: [
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].dining_name}'),
+                            child: pw.Text('${valueList[j].dining_name}', style: pw.TextStyle(font: getFontFormat(valueList[j].dining_name))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].item_sum}'),
+                            child: pw.Text('${valueList[j].item_sum}', style: pw.TextStyle(font: getFontFormat(valueList[j].item_sum))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].net_sales.toStringAsFixed(2)}'),
+                            child: pw.Text('${valueList[j].net_sales.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].net_sales.toStringAsFixed(2)))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].gross_sales.toStringAsFixed(2)}'),
+                            child: pw.Text('${valueList[j].gross_sales.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].gross_sales.toStringAsFixed(2)))),
                           ),
                         ]
                     ),
@@ -977,7 +966,6 @@ class ReportFormat {
   Future<Uint8List> generatePaymentReport(PdfPageFormat format, String title, ReportModel reportModel) async {
     List valueList = reportModel.reportValue2;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
-    final font = await PdfGoogleFonts.nunitoExtraLight();
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -1011,19 +999,19 @@ class ReportFormat {
                       children: [
                         pw.Padding(
                           padding: pw.EdgeInsets.all(10),
-                          child: pw.Text('Payment Type', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Payment Type', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Payment Type'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Quantity', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Quantity', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Quantity'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Net Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Net Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Net Sales'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Gross Sales'))),
                         ),
                       ]
                   ),
@@ -1032,19 +1020,19 @@ class ReportFormat {
                         children: [
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].payment_name}'),
+                            child: pw.Text('${valueList[j].payment_name}', style: pw.TextStyle(font: getFontFormat(valueList[j].payment_name))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].item_sum}'),
+                            child: pw.Text('${valueList[j].item_sum}', style: pw.TextStyle(font: getFontFormat(valueList[j].item_sum))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].net_sales.toStringAsFixed(2)}'),
+                            child: pw.Text('${valueList[j].net_sales.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].net_sales.toStringAsFixed(2)))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].gross_sales.toStringAsFixed(2)}'),
+                            child: pw.Text('${valueList[j].gross_sales.toStringAsFixed(2)}', style: pw.TextStyle(font: getFontFormat(valueList[j].gross_sales.toStringAsFixed(2)))),
                           ),
                         ]
                     ),
@@ -1061,7 +1049,6 @@ class ReportFormat {
     List valueList = reportModel.reportValue2;
     List headerList = reportModel.headerValue;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
-    final font = await PdfGoogleFonts.nunitoExtraLight();
     final imageByteData = await rootBundle.load('drawable/logo.png');
     // Convert ByteData to Uint8List
     final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
@@ -1095,31 +1082,31 @@ class ReportFormat {
                       children: [
                         pw.Padding(
                           padding: pw.EdgeInsets.all(10),
-                          child: pw.Text('Receipt No', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Receipt No', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Receipt'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Subtotal', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Subtotal', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Receipt'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Amount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Amount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Receipt'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Rounding', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Rounding', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Receipt'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Final Amount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Final Amount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Receipt'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Refund By', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Refund By', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Receipt'))),
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                          child: pw.Text('Refund At', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                          child: pw.Text('Refund At', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Receipt'))),
                         ),
                       ]
                   ),
@@ -1128,31 +1115,31 @@ class ReportFormat {
                         children: [
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].bill_no}'),
+                            child: pw.Text('${valueList[j].bill_no}', style: pw.TextStyle(font: getFontFormat(valueList[j].bill_no))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].subtotal}'),
+                            child: pw.Text('${valueList[j].subtotal}', style: pw.TextStyle(font: getFontFormat(valueList[j].subtotal))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('-${valueList[j].amount}'),
+                            child: pw.Text('${valueList[j].amount}', style: pw.TextStyle(font: getFontFormat(valueList[j].amount))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('-${valueList[j].rounding}'),
+                            child: pw.Text('${valueList[j].rounding}', style: pw.TextStyle(font: getFontFormat(valueList[j].rounding))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('-${valueList[j].final_amount}'),
+                            child: pw.Text('${valueList[j].final_amount}', style: pw.TextStyle(font: getFontFormat(valueList[j].final_amount))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].refund_by}'),
+                            child: pw.Text('${valueList[j].refund_by}', style: pw.TextStyle(font: getFontFormat(valueList[j].refund_by))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].refund_at}'),
+                            child: pw.Text('${valueList[j].refund_at}', style: pw.TextStyle(font: getFontFormat(valueList[j].refund_at))),
                           ),
                         ]
                     ),
@@ -1185,16 +1172,17 @@ class ReportFormat {
                         children: [
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(10, 5, 10, 5),
-                            child: pw.Text('Receipt No', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                            child: pw.Text('Receipt No', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Receipt No'))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
-                            child: pw.Text('Total Discount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                            child: pw.Text('Total Discount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Discount'))),
                           ),
                           for(int i = 0; i < headerList.length; i++)
                             pw.Padding(
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('${headerList[i].tax_name}', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold)),
+                              child: pw.Text('${headerList[i].tax_name}',
+                                  style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat(headerList[i].tax_name))),
                             ),
                         ]
                       ),
@@ -1203,28 +1191,29 @@ class ReportFormat {
                           children: [
                             pw.Padding(
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('${valueList[j].bill_no}'),
+                              child: pw.Text('${valueList[j].bill_no}', style: pw.TextStyle(font: getFontFormat(valueList[j].bill_no))),
                             ),
                             valueList[j].promo_amount == null ?
                             pw.Padding(
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('-0.00'),
+                              child: pw.Text('-0.00', style: pw.TextStyle(font: getFontFormat('-0.00'))),
                             )
                                 :
                             pw.Padding(
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('-${valueList[j].promo_amount}'),
+                              child: pw.Text('-${valueList[j].promo_amount}', style: pw.TextStyle(font: getFontFormat(valueList[j].promo_amount))),
                             ),
                             if(valueList[j].taxDetailList.length == 0)
                               for(int i = 0; i < headerList.length; i++)
                                 pw.Padding(
                                   padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                                  child: pw.Text('0.00'))
+                                  child: pw.Text('0.00', style: pw.TextStyle(font: getFontFormat('0.00'))))
                             else
                             for(int i = 0; i < valueList[j].taxDetailList.length; i++)
                               pw.Padding(
                                 padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                                child: pw.Text('${valueList[j].taxDetailList[i].total_tax_amount!.toStringAsFixed(2)}'),
+                                child: pw.Text('${valueList[j].taxDetailList[i].total_tax_amount!.toStringAsFixed(2)}',
+                                    style: pw.TextStyle(font: getFontFormat(valueList[j].taxDetailList[i].total_tax_amount!.toStringAsFixed(2)))),
                               ),
 
                           ]
