@@ -45,6 +45,7 @@ import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:crypto/crypto.dart';
 import '../database/domain.dart';
 import '../notifier/theme_color.dart';
 import '../object/branch_link_user.dart';
@@ -86,9 +87,9 @@ class _LoadingPageState extends State<LoadingPage> {
     getBranchLinkModifier();
     getSale();
     getCashRecord();
-    getAllPrinter();
     clearCloudSyncRecord();
     createReceiptLayout();
+    createDeviceLogin();
 
     // Go to Page2 after 5s.
     Timer(Duration(seconds: 5), () {
@@ -105,6 +106,27 @@ class _LoadingPageState extends State<LoadingPage> {
       );
     });
   }
+
+  /*
+  create device login
+*/
+  createDeviceLogin() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+
+    var value = md5.convert(utf8.encode(dateTime)).toString();
+
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      Map response = await Domain().insertDeviceLogin(device_id.toString(), value);
+      if(response['status'] == '1'){
+        await prefs.setString('login_value', value);
+      }
+    }
+  }
+
 
   createReceiptLayout() async {
     try {
@@ -141,37 +163,6 @@ class _LoadingPageState extends State<LoadingPage> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     Map data = await Domain().clearAllSyncRecord(branch_id.toString());
-  }
-
-/*
-  save printer to local database
-*/
-  getAllPrinter() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    Map data = await Domain().getPrinter(branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['printer'];
-      for (var i = 0; i < responseJson.length; i++) {
-        Printer printerItem = Printer.fromJson(responseJson[i]);
-        Printer data = await PosDatabase.instance.insertPrinter(Printer(
-            printer_id: printerItem.printer_id,
-            printer_key: printerItem.printer_key,
-            branch_id: printerItem.branch_id,
-            company_id: printerItem.company_id,
-            printer_link_category_id: '',
-            value: printerItem.value,
-            type: printerItem.type,
-            printer_label: printerItem.printer_label,
-            paper_size: printerItem.paper_size,
-            printer_status: printerItem.printer_status,
-            is_counter: printerItem.is_counter,
-            sync_status: 1,
-            created_at: printerItem.created_at,
-            updated_at: printerItem.updated_at,
-            soft_delete: printerItem.soft_delete));
-      }
-    }
   }
 
 /*
@@ -271,22 +262,54 @@ class _LoadingPageState extends State<LoadingPage> {
       getAllCategory();
     }
   }
-}
 
 /*
   save categories to database
 */
-getAllCategory() async {
-  final prefs = await SharedPreferences.getInstance();
-  final String? user = prefs.getString('user');
-  Map userObject = json.decode(user!);
-  Map data = await Domain().getAllCategory(userObject['company_id']);
-  if (data['status'] == '1') {
-    List responseJson = data['categories'];
-    for (var i = 0; i < responseJson.length; i++) {
-      Categories data = await PosDatabase.instance.insertCategories(Categories.fromJson(responseJson[i]));
+  getAllCategory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    Map data = await Domain().getAllCategory(userObject['company_id']);
+    if (data['status'] == '1') {
+      List responseJson = data['categories'];
+      for (var i = 0; i < responseJson.length; i++) {
+        Categories data = await PosDatabase.instance.insertCategories(Categories.fromJson(responseJson[i]));
+      }
+      getAllProduct();
+      getAllPrinter();
     }
-    getAllProduct();
+  }
+}
+
+/*
+  save printer to local database
+*/
+getAllPrinter() async {
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  Map data = await Domain().getPrinter(branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['printer'];
+    for (var i = 0; i < responseJson.length; i++) {
+      Printer printerItem = Printer.fromJson(responseJson[i]);
+      Printer data = await PosDatabase.instance.insertPrinter(Printer(
+          printer_id: printerItem.printer_id,
+          printer_key: printerItem.printer_key,
+          branch_id: printerItem.branch_id,
+          company_id: printerItem.company_id,
+          printer_link_category_id: '',
+          value: printerItem.value,
+          type: printerItem.type,
+          printer_label: printerItem.printer_label,
+          paper_size: printerItem.paper_size,
+          printer_status: printerItem.printer_status,
+          is_counter: printerItem.is_counter,
+          sync_status: 1,
+          created_at: printerItem.created_at,
+          updated_at: printerItem.updated_at,
+          soft_delete: printerItem.soft_delete));
+    }
     getAllPrinterLinkCategory();
   }
 }
@@ -642,6 +665,8 @@ getBranchLinkProduct() async {
           soft_delete: branchLinkProductData.soft_delete));
     }
     getAllTableUse();
+  } else {
+    getAllTableUse();
   }
 }
 
@@ -669,6 +694,9 @@ getAllTableUse() async {
         soft_delete: item.soft_delete,
       ));
     }
+    getAllOrderCache();
+    getAllTableUseDetail();
+  } else {
     getAllOrderCache();
     getAllTableUseDetail();
   }
@@ -794,6 +822,7 @@ getVariantItem() async {
   save product variant to database
 */
 getProductVariant() async {
+  print('product variant loading called');
   final prefs = await SharedPreferences.getInstance();
   final String? user = prefs.getString('user');
   Map userObject = json.decode(user!);
@@ -827,6 +856,7 @@ getProductVariant() async {
   save product variant detail to database
 */
 getProductVariantDetail() async {
+  print('product variant detail loading called');
   final prefs = await SharedPreferences.getInstance();
   final String? user = prefs.getString('user');
   Map userObject = json.decode(user!);
@@ -1009,6 +1039,7 @@ getAllOrderTaxDetail() async {
   save order cache to database
 */
 getAllOrderCache() async {
+  print('sync order cache loading called!!!');
   String tableUseLocalId = '', orderLocalId = '';
   final prefs = await SharedPreferences.getInstance();
   final int? branch_id = prefs.getInt('branch_id');
@@ -1246,8 +1277,9 @@ _createProductImgFolder() async {
   final directory = await _localPath;
   final path = '$directory/assets/$folderName';
   final pathImg = Directory(path);
+  pathImg.create();
   await prefs.setString('local_path', path);
-
+  print('image path: ${pathImg.path}');
   downloadProductImage(pathImg.path);
 }
 

@@ -19,6 +19,7 @@ class PaymentReport extends StatefulWidget {
 
 class _PaymentReportState extends State<PaymentReport> {
   List<DataRow> _dataRow = [];
+  List<Order> paymentList = [];
   String currentStDate = '';
   String currentEdDate = '';
   bool isLoaded = false;
@@ -226,6 +227,7 @@ class _PaymentReportState extends State<PaymentReport> {
     this.currentStDate = reportModel.startDateTime;
     this.currentEdDate = reportModel.endDateTime;
     await getAllPaidPayment();
+    reportModel.addOtherValue(valueList: paymentList);
     if(mounted){
       setState(() {
         isLoaded = true;
@@ -235,7 +237,6 @@ class _PaymentReportState extends State<PaymentReport> {
 
   getAllPaidPayment() async {
     _dataRow.clear();
-    List<Order> paymentList = [];
     ReportObject object = await ReportObject().getAllPaymentData(currentStDate: currentStDate, currentEdDate: currentEdDate);
     paymentList = object.datePayment!;
     //print('modifier data: ${modifierData.length}');

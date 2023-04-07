@@ -152,12 +152,13 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                     borderRadius: BorderRadius.circular(4.0)),
                                 margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
                                 child: ListTile(
+                                  contentPadding: EdgeInsets.all(10),
                                   title: Text('RM${paidOrderList[index].final_amount}'),
                                   leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.receipt, color: Colors.grey,)),
                                   subtitle: paidOrderList[index].payment_status == 1
-                                      ? Text('close by: ${paidOrderList[index].close_by}')
-                                      : Text('refund by: ${paidOrderList[index].refund_by}'),
-                                  trailing: Text('Order: ${paidOrderList[index].generateOrderNumber()}'),
+                                      ? Text('Close By: ${paidOrderList[index].close_by}\nClose At: ${paidOrderList[index].created_at}')
+                                      : Text('Refund By: ${paidOrderList[index].refund_by}\nRefund At: ${paidOrderList[index].refund_at}'),
+                                  trailing: Text('Receipt No: ${paidOrderList[index].generateOrderNumber()}'),
                                   onTap: () async {
                                     if(paidOrderList[index].isSelected == false){
                                       //reset other selected order
@@ -296,8 +297,8 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                   title: Text('RM${paidOrderList[index].final_amount}'),
                                   leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.receipt, color: Colors.grey,)),
                                   subtitle: paidOrderList[index].payment_status == 1
-                                      ? Text('close by: ${paidOrderList[index].close_by}')
-                                      : Text('refund by: ${paidOrderList[index].refund_by}'),
+                                      ? Text('Close By: ${paidOrderList[index].close_by}\nClose At: ${paidOrderList[index].created_at}')
+                                      : Text('Refund By: ${paidOrderList[index].refund_by}\nRefund At: ${paidOrderList[index].refund_at}'),
                                   trailing: Text('Order: #${paidOrderList[index].order_number}'),
                                   onTap: () async {
                                     if(paidOrderList[index].isSelected == false){
@@ -621,7 +622,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
       }
     } else {
       List<Order> data = await PosDatabase.instance.readAllRefundOrder();
-      if(data.length > 0){
+      if(data.isNotEmpty){
         paidOrderList = List.from(data);
       }
     }

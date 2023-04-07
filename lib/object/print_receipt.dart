@@ -8,6 +8,7 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/printer_link_category.dart';
+import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/receipt_layout.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/table.dart';
@@ -24,6 +25,35 @@ class PrintReceipt{
     List<Printer> data = await PosDatabase.instance.readAllBranchPrinter();
     printerList = List.from(data);
     return printerList;
+  }
+
+  cashDrawer(context, {required printerList}) async {
+    try{
+      if(printerList.isNotEmpty){
+        for (int i = 0; i < printerList.length; i++) {
+          if(printerList[i].printer_status == 1 && printerList[i].is_counter == 1){
+            if (printerList[i].type == 0) {
+              ReceiptLayout().openCashDrawer(isUSB: true);
+            } else {
+              var printerDetail = jsonDecode(printerList[i].value!);
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm80, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().openCashDrawer(isUSB: false, value: printer);
+                printer.disconnect();
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+              }
+            }
+          }
+        }
+      }
+    }catch(e){
+      print('Open Cash Drawer Error: ${e}');
+    }
   }
 
   printPaymentReceiptList(List<Printer> printerList, String orderId, List<PosTable> selectedTableList, context) async {

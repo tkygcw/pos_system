@@ -21,6 +21,7 @@ import 'package:side_navigation/side_navigation.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
+import '../../page/pos_pin.dart';
 import '../../translation/AppLocalizations.dart';
 import '../test_dual_screen/test_display.dart';
 
@@ -51,18 +52,18 @@ class _SettingMenuState extends State<SettingMenu> {
     Container(
       child: FeaturesSetting(),
     ),
-    Container(
-      child: TestCategorySync(),
-    ),
-    Container(
-      child: SecondDisplayTest(),
-    ),
-    Container(
-      child: TestPrint(),
-    ),
-    Container(
-      child: TestQrcode(),
-    )
+    // Container(
+    //   child: TestCategorySync(),
+    // ),
+    // Container(
+    //   child: SecondDisplayTest(),
+    // ),
+    // Container(
+    //   child: TestPrint(),
+    // ),
+    // Container(
+    //   child: TestQrcode(),
+    // )
   ];
   int selectedIndex = 0;
 
@@ -71,6 +72,26 @@ class _SettingMenuState extends State<SettingMenu> {
     super.initState();
     getLoginUserInfo();
     checkCashRecord();
+  }
+
+  toPosPinPage(){
+    //String cashDrawer = calcCashDrawer();
+    print('to pos pin call him');
+    // Navigator.push(context,
+    //   PageTransition(type: PageTransitionType.fade, child: PosPinPage(cashBalance: cashDrawer),
+    //   ),
+    // );
+    Navigator.of(context).pushAndRemoveUntil(
+      // the new route
+      MaterialPageRoute(
+        builder: (BuildContext context) => PosPinPage(),
+      ),
+
+      // this function should return true when we're done removing routes
+      // but because we want to remove all other screens, we make it
+      // always return false
+          (Route route) => false,
+    );
   }
 
   @override
@@ -101,22 +122,19 @@ class _SettingMenuState extends State<SettingMenu> {
                             Text("${userEmail}"),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                primary: color.backgroundColor,
+                                backgroundColor: color.backgroundColor,
                               ),
                               onPressed: () {
-                                if(this.cashRecordList.length == 0){
-                                  openLogoutDialog();
+                                if(this.cashRecordList.isEmpty){
+                                  toPosPinPage();
                                 } else {
-                                  if(this.count == 0){
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Colors.red,
-                                        msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}");
-                                    this.count++;
-                                  }
+                                  Fluttertoast.showToast(
+                                      backgroundColor: Colors.red,
+                                      msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}");
                                 }
 
                               },
-                              child: Text('Logout'),
+                              child: Text('Close Counter'),
                             ),
                           ],
                         )),
@@ -146,22 +164,22 @@ class _SettingMenuState extends State<SettingMenu> {
                         icon: Icons.settings,
                         label: 'App-Device setting',
                       ),
-                      SideNavigationBarItem(
-                        icon: Icons.list,
-                        label: 'Test sync (temp)',
-                      ),
-                      SideNavigationBarItem(
-                        icon: Icons.list,
-                        label: 'Test second screen (temp)',
-                      ),
-                      SideNavigationBarItem(
-                        icon: Icons.list,
-                        label: 'Test report print (temp)',
-                      ),
-                      SideNavigationBarItem(
-                        icon: Icons.list,
-                        label: 'Test qr code (temp)',
-                      ),
+                      // SideNavigationBarItem(
+                      //   icon: Icons.list,
+                      //   label: 'Test sync (temp)',
+                      // ),
+                      // SideNavigationBarItem(
+                      //   icon: Icons.list,
+                      //   label: 'Test second screen (temp)',
+                      // ),
+                      // SideNavigationBarItem(
+                      //   icon: Icons.list,
+                      //   label: 'Test report print (temp)',
+                      // ),
+                      // SideNavigationBarItem(
+                      //   icon: Icons.list,
+                      //   label: 'Test qr code (temp)',
+                      // ),
                     ],
                     onTap: (index) {
                       setState(() {
@@ -208,19 +226,16 @@ class _SettingMenuState extends State<SettingMenu> {
                                   primary: color.backgroundColor,
                                 ),
                                 onPressed: () {
-                                  if(this.cashRecordList.length == 0){
-                                    openLogoutDialog();
+                                  if(this.cashRecordList.isEmpty){
+                                    toPosPinPage();
                                   } else {
-                                    if(this.count == 0){
-                                      Fluttertoast.showToast(
-                                          backgroundColor: Colors.red,
-                                          msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}");
-                                      this.count++;
-                                    }
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Colors.red,
+                                        msg: "${AppLocalizations.of(context)?.translate('log_out_settlement')}");
                                   }
 
                                 },
-                                child: Text('Logout'),
+                                child: Text('Close Counter'),
                               ),
                             ],
                           )),
@@ -324,9 +339,7 @@ class _SettingMenuState extends State<SettingMenu> {
   }
 
   checkCashRecord() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord(branch_id.toString());
+    List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord();
     cashRecordList = List.from(data);
     setState(() {
       this.isLoaded = true;

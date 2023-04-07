@@ -8,6 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/print_receipt.dart';
+import '../../object/printer.dart';
 import '../../object/user.dart';
 import '../../translation/AppLocalizations.dart';
 
@@ -20,15 +22,25 @@ class CashBoxDialog extends StatefulWidget {
 
 class _CashBoxDialogState extends State<CashBoxDialog> {
   final adminPosPinController = TextEditingController();
+  List<Printer> printerList = [];
   bool _submitted = false;
   bool isButtonDisabled = false;
 
+  @override
+  void initState() {
+    super.initState();
+    readAllPrinters();
+  }
 
   @override
   void dispose() {
     // TODO: implement dispose
     super.dispose();
     adminPosPinController.dispose();
+  }
+
+  readAllPrinters() async {
+    printerList = await PrintReceipt().readAllPrinters();
   }
 
   String? get errorPassword {
@@ -47,7 +59,6 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
         isButtonDisabled = true;
       });
       await readAdminData(adminPosPinController.text);
-      return;
     }
   }
 
@@ -72,6 +83,7 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
+                        obscureText: true,
                         keyboardType: TextInputType.number,
                         controller: adminPosPinController,
                         decoration: InputDecoration(
@@ -124,13 +136,20 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
         if(userData.user_id == userObject['user_id']){
+          await PrintReceipt().cashDrawer(context, printerList: this.printerList);
           closeDialog(context);
-          ReceiptLayout().openCashDrawer();
+          //ReceiptLayout().openCashDrawer();
         } else {
+          setState(() {
+            isButtonDisabled = false;
+          });
           Fluttertoast.showToast(
               backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('pin_not_match')}");
         }
       } else {
+        setState(() {
+          isButtonDisabled = false;
+        });
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");
       }

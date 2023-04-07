@@ -43,6 +43,7 @@ import '../../object/printer.dart';
 import '../../object/table.dart';
 import '../../object/tax.dart';
 import '../../translation/AppLocalizations.dart';
+import '../logout_dialog.dart';
 import '../settlement/cash_dialog.dart';
 import '../payment/payment_select_dialog.dart';
 
@@ -103,7 +104,7 @@ class _CartPageState extends State<CartPage> {
   String? tableUseKey;
   String? orderModifierDetailKey;
   String? tableUseDetailKey;
-  bool hasPromo = false, hasSelectedPromo = false, _isSettlement = false, hasNewItem = false, timeOutDetected = false;
+  bool hasPromo = false, hasSelectedPromo = false, _isSettlement = false, hasNewItem = false, timeOutDetected = false, isLogOut = false;
   Color font = Colors.black45;
   int myCount = 0;
 
@@ -220,8 +221,11 @@ class _CartPageState extends State<CartPage> {
                     child: Column(
                       children: [
                         Container(
-                          height: 100,
+                          margin: EdgeInsets.only(bottom: 10),
+                          height: 70,
                           child: GridView(
+                              physics: NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
                               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 3,
                                 childAspectRatio: 1.5,
@@ -242,14 +246,14 @@ class _CartPageState extends State<CartPage> {
                                         : null;
                                   },
                                   child: Container(
-                                      color: cart.selectedOption == diningList[index] ? Colors.black : Colors.black12,
+                                      color: cart.selectedOption == diningList[index] ? color.buttonColor : color.backgroundColor,
                                       alignment: Alignment.center,
                                       child: Text(
                                         diningList[index],
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                             fontWeight: FontWeight.w600,
-                                            color: cart.selectedOption == diningList[index] ? Colors.white : Colors.black87,
+                                            color: cart.selectedOption == diningList[index] ? color.iconColor : Colors.white,
                                             fontSize: 16),
                                       )),
                                 );
@@ -559,12 +563,8 @@ class _CartPageState extends State<CartPage> {
                                             print('has new item ${hasNewItem}');
                                             if (cart.cartNotifierItem[0].status == 1 && hasNewItem == true) {
                                               await callAddOrderCache(cart, connectivity);
-                                              await PrintReceipt().printCheckList(printerList, int.parse(this.orderCacheId), context);
-                                              await PrintReceipt().printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
                                             } else if (cart.cartNotifierItem[0].status == 0) {
                                               await callCreateNewOrder(cart, connectivity);
-                                              await PrintReceipt().printCheckList(printerList, int.parse(this.orderCacheId), context);
-                                              await PrintReceipt().printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
                                             } else {
                                               Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Cannot replace same order");
                                             }
@@ -580,8 +580,6 @@ class _CartPageState extends State<CartPage> {
                                           cart.removeAllTable();
                                           if (cart.cartNotifierItem.isNotEmpty) {
                                             await callCreateNewNotDineOrder(cart, connectivity);
-                                            await PrintReceipt().printCheckList(printerList, int.parse(this.orderCacheId), context);
-                                            await PrintReceipt().printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
                                             cart.removeAllCartItem();
                                             cart.selectedTable.clear();
                                           } else {
@@ -1371,17 +1369,19 @@ class _CartPageState extends State<CartPage> {
     try {
       //get dining option data
       List<DiningOption> data = await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
-      diningOptionID = data[0].dining_id!;
+      if(data.isNotEmpty){
+        diningOptionID = data[0].dining_id!;
 
-      //get dining tax
-      List<Tax> taxData = await PosDatabase.instance.readTax(branch_id.toString(), diningOptionID.toString());
-      if (taxData.length > 0) {
-        taxRateList = List.from(taxData);
-      } else {
-        taxRateList = [];
+        //get dining tax
+        List<Tax> taxData = await PosDatabase.instance.readTax(branch_id.toString(), diningOptionID.toString());
+        if (taxData.isNotEmpty) {
+          taxRateList = List.from(taxData);
+        } else {
+          taxRateList = [];
+        }
       }
     } catch (error) {
-      print('get dining tax error: $error');
+      print('get dining tax in cart error: $error');
     }
     if (!controller.isClosed) {
       controller.sink.add('refresh');
@@ -1662,10 +1662,30 @@ class _CartPageState extends State<CartPage> {
         });
   }
 
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
   checkCashRecord() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord(branch_id.toString());
+    List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord();
     if (data.length <= 0) {
       _isSettlement = true;
     } else {
@@ -1715,7 +1735,13 @@ class _CartPageState extends State<CartPage> {
     resetValue();
     await createOrderCache(cart, connectivity);
     await createOrderDetail(cart, connectivity);
-    syncAllToCloud();
+    await syncAllToCloud();
+    if(this.isLogOut == true){
+      openLogOutDialog();
+      return;
+    }
+    await PrintReceipt().printCheckList(printerList, int.parse(this.orderCacheId), context);
+    await PrintReceipt().printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
   }
 
 /*
@@ -1728,7 +1754,13 @@ class _CartPageState extends State<CartPage> {
     await createOrderCache(cart, connectivity);
     await createOrderDetail(cart, connectivity);
     await updatePosTable(cart, connectivity);
-    syncAllToCloud();
+    await syncAllToCloud();
+    if(this.isLogOut == true){
+      openLogOutDialog();
+      return;
+    }
+    await PrintReceipt().printCheckList(printerList, int.parse(this.orderCacheId), context);
+    await PrintReceipt().printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
   }
 
 /*
@@ -1738,7 +1770,13 @@ class _CartPageState extends State<CartPage> {
     resetValue();
     await createOrderCache(cart, connectivity);
     await createOrderDetail(cart, connectivity);
-    syncAllToCloud();
+    await syncAllToCloud();
+    if(this.isLogOut == true){
+      openLogOutDialog();
+      return;
+    }
+    await PrintReceipt().printCheckList(printerList, int.parse(this.orderCacheId), context);
+    await PrintReceipt().printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
   }
 
   randomColor() {
@@ -2386,9 +2424,14 @@ class _CartPageState extends State<CartPage> {
   }
 
   syncAllToCloud() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
       Map data = await Domain().syncLocalUpdateToCloud(
+          device_id: device_id.toString(),
+          value: login_value,
           table_use_value: this.table_use_value,
           table_use_detail_value: this.table_use_detail_value,
           order_cache_value: this.order_cache_value,
@@ -2442,6 +2485,8 @@ class _CartPageState extends State<CartPage> {
               }
           }
         }
+      }else if(data['status'] == '7'){
+        this.isLogOut = true;
       }
     }
   }

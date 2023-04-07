@@ -17,6 +17,7 @@ import '../../object/order_cache.dart';
 import '../../object/order_detail.dart';
 import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
+import '../logout_dialog.dart';
 
 class AdjustStockDialog extends StatefulWidget {
   final int orderCacheLocalId;
@@ -42,7 +43,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   String localTableUseId = '', tableUseKey = '', tableUseDetailKey = '';
   String? table_use_value, table_use_detail_value, order_cache_value, order_detail_value, order_modifier_detail_value, table_value, branch_link_product_value;
   bool hasNoStockProduct = false, tableInUsed = false;
-  bool isButtonDisabled = false;
+  bool isButtonDisabled = false, isLogOut = false;
 
   @override
   void initState() {
@@ -53,6 +54,29 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   readAllPrinters() async {
     printerList = await PrintReceipt().readAllPrinters();
   }
+
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
@@ -136,7 +160,10 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                     visible: widget.orderDetailList[index].product_variant_name != '' ? true : false,
                                     child: Text("(${widget.orderDetailList[index].product_variant_name})"),
                                   ),
-                                  Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
+                                  Visibility(
+                                      visible: getOrderDetailModifier(widget.orderDetailList[index]) != '' ? true : false,
+                                      child: Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
+                                  ),
                                   widget.orderDetailList[index].remark != '' ?
                                   Text("*${widget.orderDetailList[index].remark}"): Text('')
 
@@ -223,13 +250,12 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
             ),
             TextButton(
               child: Text('Reject'),
-              onPressed: isButtonDisabled ? null : () {
+              onPressed: isButtonDisabled ? null : () async {
                 // Disable the button after it has been pressed
                 setState(() {
                   isButtonDisabled = true;
                 });
-                rejectOrder(widget.orderCacheLocalId);
-                Navigator.of(context).pop();
+                await callRejectOrder();
               },
             ),
             TextButton(
@@ -253,13 +279,23 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                     if(tableInUsed == true){
                       await updateOrderCache();
                       await updateProductStock();
-                      syncAllToCloud();
+                      await syncAllToCloud();
+                      if(this.isLogOut == true){
+                        openLogOutDialog();
+                        return;
+                      }
+                      widget.callBack;
                       await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
                       await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                     } else {
                       await callNewOrder();
                       await updateProductStock();
-                      syncAllToCloud();
+                      await syncAllToCloud();
+                      if(this.isLogOut == true){
+                        openLogOutDialog();
+                        return;
+                      }
+                      widget.callBack;
                       await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
                       await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                     }
@@ -350,7 +386,10 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                 CrossAxisAlignment.start,
                                 children: [
                                   Text("+${widget.orderDetailList[index].product_variant_name}"),
-                                  Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
+                                  Visibility(
+                                    visible: getOrderDetailModifier(widget.orderDetailList[index]) != '' ? true : false,
+                                    child: Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
+                                  ),
                                   widget.orderDetailList[index].remark != '' ?
                                   Text("*${widget.orderDetailList[index].remark}"): Text('')
 
@@ -437,13 +476,12 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
             ),
             TextButton(
               child: const Text('Reject'),
-              onPressed: isButtonDisabled ? null : () {
+              onPressed: isButtonDisabled ? null : () async {
                 // Disable the button after it has been pressed
                 setState(() {
                   isButtonDisabled = true;
                 });
-                rejectOrder(widget.orderCacheLocalId);
-                Navigator.of(context).pop();
+                await callRejectOrder();
               },
             ),
             TextButton(
@@ -467,13 +505,23 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                     if(tableInUsed == true){
                       await updateOrderCache();
                       await updateProductStock();
-                      syncAllToCloud();
+                      await syncAllToCloud();
+                      if(this.isLogOut == true){
+                        openLogOutDialog();
+                        return;
+                      }
+                      widget.callBack;
                       await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
                       await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                     } else {
                       await callNewOrder();
                       await updateProductStock();
-                      syncAllToCloud();
+                      await syncAllToCloud();
+                      if(this.isLogOut == true){
+                        openLogOutDialog();
+                        return;
+                      }
+                      widget.callBack;
                       await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
                       await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                     }
@@ -500,6 +548,17 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   callOtherOrder() async {
     await acceptOrder(widget.orderCacheLocalId);
     updateProductStock();
+  }
+
+  callRejectOrder() async {
+    await rejectOrder(widget.orderCacheLocalId);
+    await syncAllToCloud();
+    if(this.isLogOut == true){
+      openLogOutDialog();
+      return;
+    }
+    widget.callBack;
+    Navigator.of(context).pop();
   }
 
   updateProductStock() async {
@@ -921,6 +980,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   }
 
   acceptOrder(int orderCacheLocalId) async {
+    List<String> _value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
@@ -928,7 +988,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     Map userObject = json.decode(pos_user!);
     List<String> _orderCacheValue = [];
     try {
-      OrderCache orderCacheObject = OrderCache(
+      OrderCache orderCache = OrderCache(
           soft_delete: '',
           updated_at: dateTime,
           sync_status: 2,
@@ -937,14 +997,19 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           accepted: 0,
           order_cache_sqlite_id: orderCacheLocalId
       );
-      int acceptedOrderCache = await PosDatabase.instance.updateOrderCacheAccept(orderCacheObject);
-      widget.callBack;
+      int acceptedOrderCache = await PosDatabase.instance.updateOrderCacheAccept(orderCache);
+      if(acceptedOrderCache == 1){
+        OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);
+        _value.add(jsonEncode(updatedCache));
+        this.order_cache_value = _value.toString();
+      }
     } catch (e) {
       print('accept order cache error: ${e}');
     }
   }
 
   rejectOrder(int orderCacheLocalId) async {
+    List<String> _value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
@@ -952,7 +1017,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     Map userObject = json.decode(pos_user!);
     List<String> _orderCacheValue = [];
     try {
-      OrderCache orderCacheObject = OrderCache(
+      OrderCache orderCache = OrderCache(
           soft_delete: dateTime,
           updated_at: dateTime,
           order_by: '',
@@ -961,8 +1026,10 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           accepted: 2,
           order_cache_sqlite_id: orderCacheLocalId
       );
-      int rejectOrderCache = await PosDatabase.instance.updateOrderCacheAccept(orderCacheObject);
-      widget.callBack;
+      int rejectOrderCache = await PosDatabase.instance.updateOrderCacheAccept(orderCache);
+      OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);
+      _value.add(jsonEncode(updatedCache));
+      this.order_cache_value = _value.toString();
       //sync to cloud
       // if(deletedOrderCache == 1){
       //   OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
@@ -1000,9 +1067,14 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   }
 
   syncAllToCloud() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
       Map data = await Domain().syncLocalUpdateToCloud(
+          device_id: device_id.toString(),
+          value: login_value,
           table_use_value: this.table_use_value,
           table_use_detail_value: this.table_use_detail_value,
           order_cache_value: this.order_cache_value,
@@ -1048,6 +1120,8 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
             }
           }
         }
+      } else if (data['status'] == '7'){
+        this.isLogOut = true;
       }
     }
   }

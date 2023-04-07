@@ -20,6 +20,7 @@ class DiningReport extends StatefulWidget {
 
 class _DiningReportState extends State<DiningReport> {
   List<DataRow> _dataRow = [];
+  List<Order> diningList = [];
   String currentStDate = '';
   String currentEdDate = '';
   bool isLoaded = false;
@@ -216,6 +217,7 @@ class _DiningReportState extends State<DiningReport> {
     this.currentStDate = reportModel.startDateTime;
     this.currentEdDate = reportModel.endDateTime;
     await getAllPaidDining();
+    reportModel.addOtherValue(valueList: diningList);
     if(mounted){
       setState(() {
         isLoaded = true;
@@ -225,7 +227,6 @@ class _DiningReportState extends State<DiningReport> {
 
   getAllPaidDining() async {
     _dataRow.clear();
-    List<Order> diningList = [];
     ReportObject object = await ReportObject().getAllPaidDiningData(currentStDate: currentStDate, currentEdDate: currentEdDate);
     diningList = object.dateDining!;
     //print('dining data: ${modifierData.length}');

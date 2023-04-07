@@ -128,7 +128,7 @@ class _FoodSettingState extends State<FoodSetting> {
                             ? GridView.count(
                                 padding: const EdgeInsets.all(10),
                                 shrinkWrap: true,
-                                crossAxisCount: 6,
+                                crossAxisCount: 5,
                                 children: List.generate(allProduct.length, //this is the total number of cards
                                     (index) {
                                   return Card(
@@ -152,11 +152,14 @@ class _FoodSettingState extends State<FoodSetting> {
                                           children: [
                                             Container(
                                               color: Colors.black.withOpacity(0.5),
-                                              height: 30,
+                                              padding: EdgeInsets.fromLTRB(5, 2, 5, 2),
+                                              height: 50,
                                               width: 200,
                                               alignment: Alignment.center,
                                               child: Text(
                                                 allProduct[index].SKU! + ' ' + allProduct[index].name!,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   color: Colors.white,

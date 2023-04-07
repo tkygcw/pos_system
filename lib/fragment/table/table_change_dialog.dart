@@ -21,6 +21,7 @@ import '../../object/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../object/receipt_layout.dart';
 import '../../translation/AppLocalizations.dart';
+import '../logout_dialog.dart';
 
 class TableChangeDialog extends StatefulWidget {
   final PosTable object;
@@ -39,7 +40,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   List<OrderCache> orderCacheList = [];
   List<Printer> printerList = [];
   String? table_use_value, table_use_detail_value, order_cache_value, table_value;
-  bool _submitted = false;
+  bool _submitted = false, isLogOut = false;
 
   @override
   void initState() {
@@ -58,6 +59,28 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
 
   readAllPrinters() async {
     printerList = await PrintReceipt().readAllPrinters();
+  }
+
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   String? get errorTableNo {
@@ -268,7 +291,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(tableNoController.text);
       List<TableUseDetail> NewUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableData[0].table_sqlite_id!);
       //check new table is in use or not
-      if(NewUseDetailData.length > 0){
+      if(NewUseDetailData.isNotEmpty){
         await callChangeToTableInUse(NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
         await updatePosTable(NewUseDetailData[0].table_use_detail_key!, dateTime);
 
@@ -276,7 +299,13 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
         await changeToUnusedTable(widget.object.table_sqlite_id!, tableData[0].table_sqlite_id.toString(), tableData[0].table_id.toString(), dateTime);
         await updatePosTable(NowUseDetailData[0].table_use_detail_key!, dateTime);
       }
-      syncAllToCloud();
+      await syncAllToCloud();
+      if(this.isLogOut == true){
+        openLogOutDialog();
+        return;
+      }
+      widget.callBack();
+      Navigator.of(context).pop();
     } catch(e){
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
@@ -327,8 +356,6 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     //sync to cloud
     //syncUpdatedTableToCloud(_value.toString());
     await _printChangeTableList(lastTable: lastTable[0].number, newTable: newTable[0].number);
-    widget.callBack();
-    Navigator.of(context).pop();
   }
 
   syncUpdatedTableToCloud(String value) async {
@@ -410,11 +437,10 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     }
   }
 
-  void _submit(BuildContext context) {
+  void _submit(BuildContext context) async {
     setState(() => _submitted = true);
     if (errorTableNo == null) {
-      updateTable();
-
+      await updateTable();
     }
   }
 
@@ -472,9 +498,14 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   }
 
   syncAllToCloud() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
       Map data = await Domain().syncLocalUpdateToCloud(
+          device_id: device_id.toString(),
+          value: login_value,
           table_use_value: this.table_use_value,
           table_use_detail_value: this.table_use_detail_value,
           order_cache_value: this.order_cache_value,
@@ -505,6 +536,8 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
             }
           }
         }
+      } else if(data['status'] == '7'){
+        this.isLogOut = true;
       }
     }
   }

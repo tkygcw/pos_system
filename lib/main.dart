@@ -46,6 +46,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 }
 
 void showFlutterNotification(RemoteMessage message) {
+  print('notification received!!!');
   RemoteNotification? notification = message.notification;
   AndroidNotification? android = message.notification?.android;
   if (notification != null && android != null) {
@@ -104,41 +105,41 @@ Future<void> main() async {
 
   FirebaseMessaging.onMessage.listen(showFlutterNotification);
 
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    RemoteNotification? notification = message.notification;
-    AndroidNotification? android = message.notification?.android;
-    if (notification != null && android != null) {
-      print('title: ${message.data['type']}');
-      if (message.data['type'] == '0') {
-        flutterLocalNotificationsPlugin.show(
-            notification.hashCode,
-            notification.title,
-            notification.body,
-            NotificationDetails(
-              android: AndroidNotificationDetails(
-                channel.id,
-                channel.name,
-                channelDescription: channel.description,
-                color: Colors.red,
-                // TODO add a proper drawable resource to android, for now using
-                //      one that already exists in example app.
-                icon: "@mipmap/ic_launcher",
-              ),
-            ));
-        QrOrder().getQrOrder();
-        hasNotification = true;
-        notificationModel.setNotification(hasNotification);
-      } else {
-        hasNotification = true;
-        Fluttertoast.showToast(
-            backgroundColor: Colors.green,
-            msg:
-            "Cloud db change! sync from cloud");
-        print('Notification not show, but received: ${notification.title}');
-        SyncRecord().syncFromCloud();
-      }
-    }
-  });
+  // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  //   RemoteNotification? notification = message.notification;
+  //   AndroidNotification? android = message.notification?.android;
+  //   if (notification != null && android != null) {
+  //     print('title: ${message.data['type']}');
+  //     if (message.data['type'] == '0') {
+  //       flutterLocalNotificationsPlugin.show(
+  //           notification.hashCode,
+  //           notification.title,
+  //           notification.body,
+  //           NotificationDetails(
+  //             android: AndroidNotificationDetails(
+  //               channel.id,
+  //               channel.name,
+  //               channelDescription: channel.description,
+  //               color: Colors.red,
+  //               // TODO add a proper drawable resource to android, for now using
+  //               //      one that already exists in example app.
+  //               icon: "@mipmap/ic_launcher",
+  //             ),
+  //           ));
+  //       QrOrder().getQrOrder();
+  //       hasNotification = true;
+  //       notificationModel.setNotification(hasNotification);
+  //     } else {
+  //       hasNotification = true;
+  //       Fluttertoast.showToast(
+  //           backgroundColor: Colors.green,
+  //           msg:
+  //           "Cloud db change! sync from cloud");
+  //       print('Notification not show, but received: ${notification.title}');
+  //       SyncRecord().syncFromCloud();
+  //     }
+  //   }
+  // });
 
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
     // Resume the app and call onResume
@@ -288,7 +289,7 @@ class MyApp extends StatelessWidget {
                 titleTextStyle: TextStyle(color: Colors.black),
                 iconTheme: IconThemeData(color: Colors.orange), //
               ),
-              primarySwatch: Colors.deepOrange,
+              primarySwatch: Colors.teal,
               inputDecorationTheme: InputDecorationTheme(
                 focusColor: Colors.black,
                 labelStyle: TextStyle(

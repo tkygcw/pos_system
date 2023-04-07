@@ -18,6 +18,7 @@ class CancellationReport extends StatefulWidget {
 
 class _CancellationReportState extends State<CancellationReport> {
   List<DataRow> _dataRow = [];
+  List<Categories> categoryData = [];
   String currentStDate = '';
   String currentEdDate = '';
   bool isLoaded = false;
@@ -263,6 +264,7 @@ class _CancellationReportState extends State<CancellationReport> {
     this.currentStDate = reportModel.startDateTime;
     this.currentEdDate = reportModel.endDateTime;
     await getAllCancelItemData();
+    reportModel.addOtherValue(valueList: categoryData);
     if(mounted){
       setState(() {
         isLoaded = true;
@@ -272,7 +274,6 @@ class _CancellationReportState extends State<CancellationReport> {
 
   getAllCancelItemData() async {
     _dataRow.clear();
-    List<Categories> categoryData = [];
     ReportObject object = await ReportObject().getAllCancelItemCategory(currentStDate: currentStDate, currentEdDate: currentEdDate);
     categoryData = object.dateCategory!;
     print('date category data: ${categoryData.length}');

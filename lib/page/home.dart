@@ -25,8 +25,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../database/domain.dart';
 import '../database/pos_database.dart';
 import '../fragment/display_order/other_order.dart';
+import '../fragment/logout_dialog.dart';
 import '../fragment/qr_order/qr_order_page.dart';
+import '../fragment/report/init_report_page.dart';
 import '../fragment/settlement/cash_dialog.dart';
+import '../main.dart';
 import '../object/branch.dart';
 import '../object/qr_order.dart';
 import '../object/sync_record.dart';
@@ -74,54 +77,30 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<String> get _localPath async {
-    final directory = await getApplicationSupportDirectory();
-    return directory.path;
-  }
-
-  _createProductImgFolder() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? user = prefs.getString('user');
-    Map userObject = json.decode(user!);
-    final folderName = userObject['company_id'];
-    final path = await _localPath;
-    final pathImg = Directory("$path/assets/$folderName");
-    pathImg.create();
-    //downloadProductImage(pathImg.path);
-    if(File(pathImg.path + '/20230314143909741.jpeg').existsSync()){
-      print('file existed');
-    }
-    else{
-      print('file no found');
-    }
-  }
-
-  downloadProductImage(String path) async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? user = prefs.getString('user');
-    Map userObject = json.decode(user!);
-    Map data = await Domain().getAllProduct(userObject['company_id']);
-    String url = '';
-    String name = '';
-    if (data['status'] == '1') {
-      List responseJson = data['product'];
-      for (var i = 0; i < responseJson.length; i++) {
-        Product data = Product.fromJson(responseJson[i]);
-        name = data.image!;
-        if (data.image != '') {
-          url = 'https://pos.lkmng.com/api/gallery/' + userObject['company_id'] + '/' + name;
-          final response = await http.get(Uri.parse(url));
-          var localPath = path + '/' + name;
-          final imageFile = File(localPath);
-          await imageFile.writeAsBytes(response.bodyBytes);
-        }
-      }
-    }
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   @override
   Widget build(BuildContext context) {
-    _createProductImgFolder();
     var size = MediaQuery.of(context).size;
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<NotificationModel>(builder: (context, NotificationModel notificationModel, child) {
@@ -154,10 +133,10 @@ class _HomePageState extends State<HomePage> {
                         fontSize: 17,
                         fontStyle: FontStyle.italic,
                         fontWeight: FontWeight.bold),
-                    toggleTitleStyle:
-                    TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    toggleTitleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     selectedIconColor: color.iconColor,
                     selectedIconBox: color.buttonColor,
+                    unselectedIconColor: Colors.white,
                     body: Row(
                       children: [
                         Expanded(
@@ -218,7 +197,7 @@ class _HomePageState extends State<HomePage> {
         onPressed: () => setState(() => currentPage = 'bill'),
       ),
       CollapsibleItem(
-        text: 'Settlement',
+        text: 'Counter',
         icon: Icons.point_of_sale,
         onPressed: () => setState(() => currentPage = 'settlement'),
       ),
@@ -255,7 +234,7 @@ class _HomePageState extends State<HomePage> {
       case 'other_order':
         return OtherOrderPage();
       case 'report':
-        return ReportPage();
+        return InitReportPage();
       case 'settlement':
         return SettlementPage();
       default:
@@ -288,8 +267,16 @@ class _HomePageState extends State<HomePage> {
 
   startTimers(NotificationModel notificationModel) {
     int timerCount = 0;
+    notificationModel.resetTimer();
     Timer.periodic(Duration(seconds: 15), (timer) async {
+      print('home timer called');
       bool _status = notificationModel.notificationStatus;
+      bool stopTimer = notificationModel.stopTimer;
+      if(stopTimer == true){
+        print('timer cancelled called');
+        timer.cancel();
+        return;
+      }
       if(_status == true){
         print('timer reset');
         timerCount = 0;
@@ -298,13 +285,43 @@ class _HomePageState extends State<HomePage> {
       if(_hasInternetAccess){
         if (timerCount == 0) {
           //sync to cloud
-          SyncToCloud().syncAllToCloud();
+          print('sync to cloud');
+          var isLogOut = await SyncToCloud().syncAllToCloud();
+          if(isLogOut == true){
+            openLogOutDialog();
+            return;
+          }
           //SyncToCloud().syncToCloud();
         } else {
           //qr order sync
+          print('qr order sync');
           QrOrder().getQrOrder();
           //sync from cloud
-          SyncRecord().syncFromCloud();
+          //print('sync from cloud');
+          var syncStatus = await SyncRecord().syncFromCloud();
+          print('is log out: ${syncStatus}');
+          if(syncStatus == true){
+            openLogOutDialog();
+            return;
+          } else if(syncStatus == false) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                duration: Duration(minutes: 5),
+                backgroundColor: Colors.green,
+                content: const Text('Content change !!!'),
+                action: SnackBarAction(
+                  label: 'Refresh',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    setState(() {
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    });
+                    // Code to execute.
+                  },
+                ),
+              ),
+            );
+          }
         }
         //add timer and reset hasNotification
         timerCount++;

@@ -19,6 +19,7 @@ class CancelModifierReport extends StatefulWidget {
 
 class _CancelModifierReportState extends State<CancelModifierReport> {
   List<DataRow> _dataRow = [];
+  List<ModifierGroup> modGroupData = [];
   String currentStDate = '';
   String currentEdDate = '';
   bool isLoaded = false;
@@ -200,6 +201,7 @@ class _CancelModifierReportState extends State<CancelModifierReport> {
     this.currentStDate = reportModel.startDateTime;
     this.currentEdDate = reportModel.endDateTime;
     await getAllCancelledModifier();
+    reportModel.addOtherValue(valueList: modGroupData);
     if(mounted){
       setState(() {
         isLoaded = true;
@@ -209,7 +211,6 @@ class _CancelModifierReportState extends State<CancelModifierReport> {
 
   getAllCancelledModifier() async {
     _dataRow.clear();
-    List<ModifierGroup> modGroupData = [];
     //List<OrderModifierDetail> modifierData = [];
     ReportObject object = await ReportObject().getAllCancelledModifierGroup(currentStDate: currentStDate, currentEdDate: currentEdDate);
     modGroupData = object.dateModifierGroup!;

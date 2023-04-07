@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:provider/provider.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import '../../notifier/report_notifier.dart';
 import '../../notifier/theme_color.dart';
@@ -22,6 +20,7 @@ class RefundReport extends StatefulWidget {
 class _RefundReportState extends State<RefundReport> {
   List<DataRow> _dataRow = [];
   List<BranchLinkTax> taxList = [];
+  List<Order> orderList = [];
   String currentStDate = '';
   String currentEdDate = '';
   bool isLoaded = false;
@@ -314,6 +313,7 @@ class _RefundReportState extends State<RefundReport> {
     this.currentEdDate = reportModel.endDateTime;
     await getAllBranchLinkTax();
     await getAllRefundOrder();
+    reportModel.addOtherValue(headerValue: taxList, valueList: orderList);
     if(mounted){
       setState(() {
         isLoaded = true;
@@ -328,7 +328,6 @@ class _RefundReportState extends State<RefundReport> {
 
   getAllRefundOrder() async {
     _dataRow.clear();
-    List<Order> orderList = [];
     List<OrderTaxDetail> temp = [];
     ReportObject object = await ReportObject().getAllRefundedOrder(currentStDate: currentStDate, currentEdDate: currentEdDate);
     orderList = object.dateRefundOrderList!;
@@ -337,7 +336,7 @@ class _RefundReportState extends State<RefundReport> {
         ReportObject object = await ReportObject().getAllTaxDetail(orderList[i].order_sqlite_id!, currentStDate: currentStDate, currentEdDate: currentEdDate);
         orderList[i].taxDetailList = object.dateTaxDetail!;
         // print(' tax length');
-        orderList[i].taxDetailList .isNotEmpty ?
+        orderList[i].taxDetailList.isNotEmpty ?
         _dataRow.addAll([
           DataRow(
             cells: <DataCell>[
@@ -345,6 +344,9 @@ class _RefundReportState extends State<RefundReport> {
                 Text('${orderList[i].bill_no}'),
               ),
               DataCell(Text('${orderList[i].subtotal}')),
+              orderList[i].promo_amount == null ?
+              DataCell(Text('-0.00'))
+                  :
               DataCell(Text('-${orderList[i].promo_amount?.toStringAsFixed(2)}')),
               for(int j = 0; j < orderList[i].taxDetailList.length; j++)
                 DataCell(Text('${orderList[i].taxDetailList[j].total_tax_amount!.toStringAsFixed(2)}')) ,
@@ -355,7 +357,8 @@ class _RefundReportState extends State<RefundReport> {
               DataCell(Text('${orderList[i].refund_at}')),
             ],
           ),
-        ]) :
+        ])
+            :
         _dataRow.addAll([
           DataRow(
             cells: <DataCell>[
@@ -363,9 +366,12 @@ class _RefundReportState extends State<RefundReport> {
                 Text('${orderList[i].bill_no}'),
               ),
               DataCell(Text('${orderList[i].subtotal}')),
+              orderList[i].promo_amount == null ?
+              DataCell(Text('-0.00'))
+                  :
               DataCell(Text('-${orderList[i].promo_amount?.toStringAsFixed(2)}')),
-              DataCell(Text('0.00')),
-              DataCell(Text('0.00')),
+              for(int i = 0; i < taxList.length; i++)
+                DataCell(Text('0.00')),
               DataCell(Text('${orderList[i].amount}')),
               DataCell(Text('${orderList[i].rounding}')),
               DataCell(Text('${orderList[i].final_amount}')),

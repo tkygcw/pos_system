@@ -20,6 +20,7 @@ class ModifierReport extends StatefulWidget {
 
 class _ModifierReportState extends State<ModifierReport> {
   List<DataRow> _dataRow = [];
+  List<ModifierGroup> modGroupData = [];
   String currentStDate = '';
   String currentEdDate = '';
   bool isLoaded = false;
@@ -208,6 +209,7 @@ class _ModifierReportState extends State<ModifierReport> {
     this.currentStDate = reportModel.startDateTime;
     this.currentEdDate = reportModel.endDateTime;
     await getAllPaidModifier();
+    reportModel.addOtherValue(valueList: modGroupData);
     setState(() {
       isLoaded = true;
     });
@@ -215,7 +217,6 @@ class _ModifierReportState extends State<ModifierReport> {
 
   getAllPaidModifier() async {
     _dataRow.clear();
-    List<ModifierGroup> modGroupData = [];
     //List<OrderModifierDetail> modifierData = [];
     ReportObject object = await ReportObject().getAllPaidModifierGroup(currentStDate: currentStDate, currentEdDate: currentEdDate);
     modGroupData = object.dateModifierGroup!;

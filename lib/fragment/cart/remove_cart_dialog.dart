@@ -11,7 +11,6 @@ import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/print_receipt.dart';
 import 'package:provider/provider.dart';
-import 'package:quantity_input/quantity_input.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
@@ -29,6 +28,7 @@ import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
 import '../../object/user.dart';
 import '../../translation/AppLocalizations.dart';
+import '../logout_dialog.dart';
 
 class CartRemoveDialog extends StatefulWidget {
   final cartProductItem? cartItem;
@@ -53,7 +53,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   List<TableUseDetail> cartTableUseDetail = [];
   OrderDetail? orderDetail;
   String? table_use_value, table_use_detail_value, branch_link_product_value, order_cache_value, order_detail_value, order_detail_cancel_value, table_value;
-  bool _isLoaded = false;
+  bool _isLoaded = false, isLogOut = false;
   int simpleIntInput = 1;
 
 
@@ -90,8 +90,10 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     setState(() => _submitted = true);
     if (errorPassword == null && _isLoaded == true) {
       await readAdminData(adminPosPinController.text, cart, connectivity);
-      Navigator.of(context).pop();
-      Navigator.of(context).pop();
+      if(this.isLogOut == false){
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
+      }
       return;
     }
   }
@@ -118,6 +120,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
+                        obscureText: true,
                         controller: adminPosPinController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
@@ -235,6 +238,28 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     });
   }
 
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
   readCartItemInfo() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -304,15 +329,22 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
             }
           }
           table_value = _posTableValue.toString();
-          tableModel.changeContent(true);
-          if(connectivity.isConnect){
-            //sync to cloud
-            syncAllToCloud();
-            //syncUpdatedPosTableToCloud(_posTableValue.toString());
+          //sync to cloud
+          await syncAllToCloud();
+          if(this.isLogOut == true){
+            openLogOutDialog();
+            return;
           }
+          await PrintReceipt().printDeleteList(printerList, widget.cartItem!.orderCacheId!, dateTime);
+          await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.orderCacheId!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
+          tableModel.changeContent(true);
           cart.removeAllTable();
           cart.removeAllCartItem();
           cart.removePromotion();
+          // if(connectivity.isConnect){
+          //
+          //   //syncUpdatedPosTableToCloud(_posTableValue.toString());
+          // }
           Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: "delete successful");
 
         } else {
@@ -343,8 +375,6 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     if(data == 1){
       OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
       await updateProductStock(orderDetailObject.branch_link_product_sqlite_id!, 1, dateTime);
-      await PrintReceipt().printDeleteList(printerList, widget.cartItem!.orderCacheId!, dateTime);
-      await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.orderCacheId!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
       _value.add(jsonEncode(detailData.syncJson()));
     }
     // order_detail_value = _value.toString();
@@ -597,16 +627,16 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     }
   }
 
-  syncOrderCacheToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().SyncOrderCacheToCloud(value);
-      if(response['status'] == '1'){
-        List responseJson = response['data'];
-        int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[0]['order_cache_key']);
-      }
-    }
-  }
+  // syncOrderCacheToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().SyncOrderCacheToCloud(value);
+  //     if(response['status'] == '1'){
+  //       List responseJson = response['data'];
+  //       int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[0]['order_cache_key']);
+  //     }
+  //   }
+  // }
 
   deleteCurrentTableUseDetail(String currentTableUseId, String dateTime, ConnectivityChangeNotifier connectivity) async {
     print('current table use id: ${currentTableUseId}');
@@ -686,9 +716,14 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   }
 
   syncAllToCloud() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
       Map data = await Domain().syncLocalUpdateToCloud(
+        device_id: device_id.toString(),
+        value: login_value,
         table_use_value: this.table_use_value,
         table_use_detail_value: this.table_use_detail_value,
         order_cache_value: this.order_cache_value,
@@ -735,6 +770,8 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
             }
           }
         }
+      } else if(data['status'] == '7'){
+        this.isLogOut = true;
       }
     }
   }

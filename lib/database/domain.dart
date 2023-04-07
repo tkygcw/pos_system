@@ -1,6 +1,4 @@
-import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
@@ -9,6 +7,7 @@ class Domain {
   static Uri login = Uri.parse(domain + 'mobile-api/login/index.php');
   static Uri branch = Uri.parse(domain + 'mobile-api/branch/index.php');
   static Uri device = Uri.parse(domain + 'mobile-api/device/index.php');
+  static Uri device_login = Uri.parse(domain + 'mobile-api/device_login/index.php');
   static Uri user = Uri.parse(domain + 'mobile-api/user/index.php');
   static Uri table = Uri.parse(domain + 'mobile-api/table/index.php');
   static Uri dining_option = Uri.parse(domain + 'mobile-api/dining_option/index.php');
@@ -124,6 +123,22 @@ class Domain {
   }
 
   /*
+  * insert device login
+  * */
+  insertDeviceLogin(deviceId, value) async {
+    try {
+      var response = await http.post(Domain.device_login, body: {
+        'addDeviceLogin': '1',
+        'device_id': deviceId,
+        'value': value.toString(),
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get all table_use
   * */
   insertTableUse(branch_id, card_color) async {
@@ -175,11 +190,13 @@ class Domain {
   /*
   * get all sync_record
   * */
-  getAllSyncRecord(branch_id) async {
+  getAllSyncRecord(branch_id, device_id, value) async {
     try {
       var response = await http.post(Domain.sync_record, body: {
         'sync': '1',
         'branch_id': branch_id,
+        'device_id': device_id,
+        'value': value
       });
       return jsonDecode(response.body);
     } catch (error) {
@@ -199,9 +216,27 @@ class Domain {
         'branch_id': branch_id,
         'sync_list': sync_list
       });
-      print('domain call:${response}');
+      print('domain call:${response.body}');
       return jsonDecode(response.body);
     } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+
+  /*
+  * check device login
+  * */
+  checkDeviceLogin({required device_id, required value}) async{
+    try{
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'getAllDeviceLogin': '1',
+        'device_id': device_id,
+        'value': value,
+      });
+      return jsonDecode(response.body);
+    } catch(error){
+      print('error: ${error}');
       Fluttertoast.showToast(msg: error.toString());
     }
   }
@@ -210,7 +245,9 @@ class Domain {
   * sync all local update to cloud
   * */
   syncLocalUpdateToCloud(
-      {order_value,
+      {device_id,
+        value,
+        order_value,
         order_tax_value,
         order_promotion_value,
         table_use_value,
@@ -233,6 +270,8 @@ class Domain {
     try {
       var response = await http.post(Domain.sync_to_cloud, body: {
         'all_local_update': '1',
+        'device_id': device_id,
+        'value': value,
         'tb_order_create': order_value != null ? order_value : [].toString(),
         'tb_order_tax_detail_create': order_tax_value != null ? order_tax_value: [].toString(),
         'tb_order_promotion_detail_create': order_promotion_value != null ? order_promotion_value: [].toString(),
@@ -1126,8 +1165,7 @@ class Domain {
   * */
   getAllProduct(company_id) async {
     try {
-      var response =
-          await http.post(Domain.product, body: {'getAllProduct': '1', 'company_id': company_id});
+      var response = await http.post(Domain.product, body: {'getAllProduct': '1', 'company_id': company_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());

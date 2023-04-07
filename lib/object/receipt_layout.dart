@@ -61,8 +61,16 @@ class ReceiptLayout{
 /*
   open cash drawer function
 */
-  void openCashDrawer () {
-    Imin.openDrawer();
+  openCashDrawer ({required isUSB, value}) async {
+    var generator;
+    if (isUSB) {
+      return Imin.openDrawer();
+    } else {
+      generator = value;
+      List<int> bytes = [];
+      bytes += generator.drawer();
+      return bytes;
+    }
   }
 
 
@@ -153,6 +161,9 @@ class ReceiptLayout{
       await callOrderTaxPromoDetail();
       await callPaidOrderDetail(orderId);
     }
+    // final ByteData data = await rootBundle.load('drawable/logo2.png');
+    // final Uint8List bytes = data.buffer.asUint8List();
+    // final decodedImage = img.decodeImage(bytes);
     if(_isLoad = true){
       var generator;
       if (isUSB) {
@@ -164,6 +175,7 @@ class ReceiptLayout{
 
       List<int> bytes = [];
       try {
+        //bytes += generator.image(decodedImage);
         if(receipt!.header_text_status == 1 && paidOrder!.payment_status == 1){
           bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
         } else if(paidOrder!.payment_status == 2) {
@@ -366,10 +378,10 @@ class ReceiptLayout{
       await callOrderTaxPromoDetail();
       await callPaidOrderDetail(orderId);
     }
-    final ByteData data = await rootBundle.load('drawable/logo1.jpg');
-    final Uint8List bytes = data.buffer.asUint8List();
-    final image = img.decodeImage(bytes);
-    print('image byte: ${image}');
+    // final ByteData data = await rootBundle.load('drawable/logo1.jpg');
+    // final Uint8List bytes = data.buffer.asUint8List();
+    // final image = img.decodeImage(bytes);
+    // print('image byte: ${image}');
 
     if(_isLoad = true){
       var generator;
@@ -382,7 +394,7 @@ class ReceiptLayout{
 
       List<int> bytes = [];
       try {
-        bytes += generator.image(image);
+        //bytes += generator.image(image);
         if(receipt!.header_text_status == 1 && paidOrder!.payment_status == 1){
           bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
         } else if(paidOrder!.payment_status == 2) {
@@ -610,7 +622,7 @@ class ReceiptLayout{
               text: '${orderDetailList[i].productName}',
               width: 8,
               containsChinese: true,
-              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+              styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1)),
           PosColumn(text: '', width: 2),
         ]);
         bytes += generator.reset();
@@ -626,8 +638,7 @@ class ReceiptLayout{
             //modifier
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}', width: 8, styles: PosStyles(align: PosAlign.left)),
-              PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}', width: 10, styles: PosStyles(align: PosAlign.left)),
             ]);
           }
         }
@@ -708,7 +719,9 @@ class ReceiptLayout{
           PosColumn(
               text: '${orderDetailList[i].productName}',
               width: 10,
-              containsChinese: true),
+              containsChinese: true,
+              styles: PosStyles(bold: true)
+          ),
 
         ]);
         bytes += generator.reset();
@@ -1105,7 +1118,7 @@ class ReceiptLayout{
               if (group.child[j].isSelected!) {
                 bytes += generator.row([
                   PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.left)),
-                  PosColumn(text: '-${group.child[j].name!}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+                  PosColumn(text: '(${group.child[j].name!})', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
                   PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
                 ]);
               }

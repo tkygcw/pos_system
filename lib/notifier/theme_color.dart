@@ -10,13 +10,13 @@ class ThemeColor extends ChangeNotifier {
   }
 
 //default color first login
-  Color backgroundColor = Color(0xff030303);
+  Color backgroundColor = Color(0xff0d5060);
 
   // Color _buttonColor = Color(0xfff06292);
-  Color buttonColor = Color(0xff736d6d);
+  Color buttonColor = Color(0xff39817d);
 
   // Color _iconColor = Color(0xffffd54f);
-  Color iconColor = Color(0xffffffff);
+  Color iconColor = Color(0xffa1ffcf);
 
 
 

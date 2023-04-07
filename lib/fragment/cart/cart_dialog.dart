@@ -1,10 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:esc_pos_printer/esc_pos_printer.dart';
-import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -28,11 +25,9 @@ import '../../object/order_detail.dart';
 import '../../object/order_modifier_detail.dart';
 import '../../object/print_receipt.dart';
 import '../../object/printer.dart';
-import '../../object/printer_link_category.dart';
 import '../../object/product.dart';
 import '../../object/product_variant.dart';
 import '../../object/product_variant_detail.dart';
-import '../../object/receipt_layout.dart';
 import '../../object/table.dart';
 import '../../object/table_use_detail.dart';
 import '../../object/variant_group.dart';
@@ -65,6 +60,7 @@ class _CartDialogState extends State<CartDialog> {
   double priceServeTax = 0.0;
   bool isLoad = false;
   bool isFinish = false;
+  bool isButtonDisabled = false;
   Color cardColor = Colors.white;
 
   @override
@@ -155,7 +151,7 @@ class _CartDialogState extends State<CartDialog> {
                                 crossAxisSpacing: 10,
                                 mainAxisSpacing: 10,
                                 crossAxisCount: MediaQuery.of(context).size.height > 500 ? 4 :3,
-                                children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, index))).values.toList(),
+                                children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, color, index))).values.toList(),
                                 onReorder: (int oldIndex, int newIndex) {
                                   if(oldIndex != newIndex){
                                     showSecondDialog(context, color, oldIndex, newIndex, cart);
@@ -171,9 +167,11 @@ class _CartDialogState extends State<CartDialog> {
                   TextButton(
                     child: Text(
                         '${AppLocalizations.of(context)?.translate('close')}'),
-                    onPressed: () {
+                    onPressed: isButtonDisabled
+                        ? null
+                        : () {
                       Navigator.of(context).pop();
-                    },
+                      },
                   ),
                 ],
               );
@@ -182,7 +180,7 @@ class _CartDialogState extends State<CartDialog> {
     });
   }
 
-  Widget tableItem(CartModel cart, index) {
+  Widget tableItem(CartModel cart, ThemeColor color, index) {
     return Container(
       key: Key(index.toString()),
       child: Column(children: [
@@ -191,7 +189,7 @@ class _CartDialogState extends State<CartDialog> {
             elevation: 5,
             shape: tableList[index].isSelected
                 ? new RoundedRectangleBorder(
-                    side: new BorderSide(color: Colors.blue, width: 3.0),
+                    side: new BorderSide(color: color.backgroundColor, width: 3.0),
                     borderRadius: BorderRadius.circular(4.0))
                 : new RoundedRectangleBorder(
                     side: new BorderSide(color: Colors.white, width: 3.0),
@@ -314,30 +312,70 @@ class _CartDialogState extends State<CartDialog> {
                           )
                         : Expanded(child: Text('')),
                     Container(
-                      margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(0, 2, 0, 2) : null,
+                      //margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(0, 2, 0, 2) : null,
                       height: MediaQuery.of(context).size.height < 500 ?
                               80: MediaQuery.of(context).size.height / 9,
                       child: Stack(
-                        alignment: Alignment.bottomLeft,
                         children: [
-                          Ink.image(
-                            image: tableList[index].seats == '2'
-                                ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/two-seat.jpg'))
-                            // NetworkImage(
-                            //         "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
-                                : tableList[index].seats == '4'
-                                ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/four-seat.jpg'))
-                            // NetworkImage(
-                            //             "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
-                                : tableList[index].seats == '6'
-                                ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/six-seat.jpg'))
-                            // NetworkImage(
-                            //                 "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
-                                : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/duitNow.jpg')),
-                            // NetworkImage(
-                            //                 "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
-                            fit: BoxFit.cover,
+                          tableList[index].seats == '2'
+                              ?
+                          Container(
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: AssetImage("drawable/two-seat.jpg"),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          )
+                              :
+                          tableList[index].seats == '4'
+                              ?
+                          Container(
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: AssetImage("drawable/four-seat.jpg"),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          )
+                              :
+                          tableList[index].seats == '6'
+                              ?
+                          Container(
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: AssetImage("drawable/six-seat.jpg"),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          )
+                              :
+                          Container(
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: AssetImage("drawable/logo.jpg"),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
+                          // Ink.image(
+                          //   image: tableList[index].seats == '2'
+                          //       ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/two-seat.jpg'))
+                          //   // NetworkImage(
+                          //   //         "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
+                          //       : tableList[index].seats == '4'
+                          //       ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/four-seat.jpg'))
+                          //   // NetworkImage(
+                          //   //             "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
+                          //       : tableList[index].seats == '6'
+                          //       ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/six-seat.jpg'))
+                          //   // NetworkImage(
+                          //   //                 "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
+                          //       : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/duitNow.jpg')),
+                          //   // NetworkImage(
+                          //   //                 "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                          //   fit: BoxFit.cover,
+                          // ),
                           // Ink.image(
                           //   image: tableList[index].seats == '2'
                           //       ? NetworkImage(

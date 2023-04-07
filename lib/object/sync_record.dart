@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/product.dart';
@@ -10,6 +11,7 @@ import 'package:pos_system/object/user.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 import '../database/domain.dart';
 import '../database/pos_database.dart';
@@ -29,25 +31,28 @@ class SyncRecord {
 
   syncFromCloud() async {
     print("sync from cloud call");
-    checkAllSyncRecord();
+    return await checkAllSyncRecord();
   }
 
   checkAllSyncRecord() async {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
     final String? branch = prefs.getString('branch');
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
     if(user != null){
       Map userObject = json.decode(user);
       Map branchObject = json.decode(branch!);
-      Map data = await Domain().getAllSyncRecord('${branchObject['branch_id']}');
+      Map data = await Domain().getAllSyncRecord('${branchObject['branchID']}', device_id.toString(), login_value.toString());
       List<int> syncRecordIdList = [];
       if (data['status'] == '1') {
+        print('status 1 called!');
         List responseJson = data['data'];
-
         for (var i = 0; i < responseJson.length; i++) {
           switch(responseJson[i]['type']){
             case '0':
               bool status = await callProductQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+              print('product status: ${status}');
               if(status == true){
                 syncRecordIdList.add(responseJson[i]['id']);
               }
@@ -172,7 +177,10 @@ class SyncRecord {
         }
         print('sync record length: ${syncRecordIdList.length}');
         //update sync record
-        Map updateResponse = await Domain().updateAllCloudSyncRecord('5', syncRecordIdList.toString());
+        Map updateResponse = await Domain().updateAllCloudSyncRecord('${branchObject['branchID']}', syncRecordIdList.toString());
+        return false;
+      } else if (data['status'] == '7'){
+        return true;
       }
     }
   }
@@ -667,6 +675,9 @@ class SyncRecord {
         updated_at: productItem.updated_at,
         soft_delete: productItem.soft_delete
     );
+    if(productObject.image != ''){
+      await downloadProductImage();
+    }
     if(method == '0'){
       //create
       Product productData = await PosDatabase.instance.insertProduct(productObject);
@@ -681,5 +692,32 @@ class SyncRecord {
       }
     }
     return isComplete;
+  }
+
+  /*
+  download product image
+*/
+  downloadProductImage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? user = prefs.getString('user');
+    final String? path = prefs.getString('local_path');
+    Map userObject = json.decode(user!);
+    Map data = await Domain().getAllProduct(userObject['company_id']);
+    String url = '';
+    String name = '';
+    if (data['status'] == '1') {
+      List responseJson = data['product'];
+      for (var i = 0; i < responseJson.length; i++) {
+        Product data = Product.fromJson(responseJson[i]);
+        name = data.image!;
+        if (data.image != '') {
+          url = 'https://pos.lkmng.com/api/gallery/' + userObject['company_id'] + '/' + name;
+          final response = await http.get(Uri.parse(url));
+          var localPath = path! + '/' + name;
+          final imageFile = File(localPath);
+          await imageFile.writeAsBytes(response.bodyBytes);
+        }
+      }
+    }
   }
 }

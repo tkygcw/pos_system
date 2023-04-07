@@ -24,6 +24,7 @@ class QrOrder {
 
     Map response = await Domain().SyncQrOrderFromCloud(branch_id.toString(), logInUser['company_id'].toString());
     if (response['status'] == '1') {
+      print('get qr order length: ${response['data'].length}');
       for(int i = 0; i < response['data'].length; i++){
         //PosTable tableData = await PosDatabase.instance.readTableByCloudId(response['data'][i]['table_id']);
         OrderCache orderCache = OrderCache(

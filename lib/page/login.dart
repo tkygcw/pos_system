@@ -83,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
               child: Padding(
                 padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
                 child: FlutterLogin(
-                  title: 'ChannelPOS',
+                  title: 'OptimyPOS',
                   navigateBackAfterRecovery: true,
                   messages: LoginMessages(
                     recoverPasswordButton: "SEND",
@@ -92,9 +92,10 @@ class _LoginPageState extends State<LoginPage> {
                     recoverPasswordSuccess: 'Password reset successfully',
                   ),
                   scrollable: false,
-                  logo: File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg').existsSync() == false
-                      ? NetworkImage("https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg")
-                      : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
+                  logo: NetworkImage('https://pos.lkmng.com/asset/logo.png'),
+                  // File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg').existsSync() == false
+                  //     ? NetworkImage("https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg")
+                  //     : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
                   onLogin: _authUser,
                   onSubmitAnimationCompleted: () {
                     Navigator.of(context).pushReplacement(MaterialPageRoute(
@@ -104,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
                   theme: LoginTheme(
                       primaryColor: Colors.black26,
                       accentColor: Colors.white,
-                      buttonTheme: LoginButtonTheme(backgroundColor: Colors.black),
+                      buttonTheme: LoginButtonTheme(backgroundColor: Colors.teal),
                       inputTheme: InputDecorationTheme(
                         filled: true,
                         fillColor: Colors.grey.shade200,
@@ -125,9 +126,9 @@ class _LoginPageState extends State<LoginPage> {
     final int? branch_id = prefs.getInt('branch_id');
     final int? device_id = prefs.getInt('device_id');
     if (user != '' && user != null && branch_id != '' && branch_id != null && device_id != '' && device_id != null) {
-      // Navigator.of(context).pushReplacement(MaterialPageRoute(
-      //   builder: (context) => PosPinPage(),
-      // ));
+      Navigator.of(context).pushReplacement(MaterialPageRoute(
+        builder: (context) => PosPinPage(),
+      ));
     }
   }
 

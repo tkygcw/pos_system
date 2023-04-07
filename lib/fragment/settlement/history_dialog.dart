@@ -40,7 +40,7 @@ class _HistoryDialogState extends State<HistoryDialog> {
       return LayoutBuilder(builder: (context, constraints) {
         if(constraints.maxWidth > 800){
           return AlertDialog(
-            title: Text('Settlement History'),
+            title: Text('Cash Record History'),
             content: isLoaded ?
             Container(
               height: MediaQuery.of(context).size.height / 2,
@@ -114,6 +114,7 @@ class _HistoryDialogState extends State<HistoryDialog> {
                         itemCount: cashRecordList.length,
                         itemBuilder: (context, index) {
                           return ListTile(
+                            isThreeLine: true,
                             leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
                                 ? Icon(Icons.payments_sharp)
                                 : cashRecordList[index].payment_type_id == '2'
@@ -123,12 +124,12 @@ class _HistoryDialogState extends State<HistoryDialog> {
                                 '${cashRecordList[index].remark}'),
                             subtitle: cashRecordList[index].type == 1
                                 ? Text(
-                                'Cash in by: ${cashRecordList[index].userName}')
+                                'Cash in by: ${cashRecordList[index].userName}\nDate Time: ${cashRecordList[index].created_at}')
                                 : cashRecordList[index].type == 2
                                 ? Text(
-                                'Cash-out by: ${cashRecordList[index].userName}')
+                                'Cash-out by: ${cashRecordList[index].userName}\nDate Time: ${cashRecordList[index].created_at}')
                                 : Text(
-                                'close By: ${cashRecordList[index].userName}'),
+                                'Close By: ${cashRecordList[index].userName}\nDate Time: ${cashRecordList[index].created_at}'),
                             trailing: cashRecordList[index].type == 2 || cashRecordList[index].type == 4
                                 ? Text(
                                 '-${cashRecordList[index].amount}',

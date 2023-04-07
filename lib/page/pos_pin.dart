@@ -195,10 +195,8 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   settlementCheck(User user) async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
     bool isNewDay = false;
-    List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord(branch_id.toString());
+    List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord();
     if (data.length > 0) {
       if (await settlementUserCheck(user.user_id.toString()) == true) {
         await _printCashBalanceList();

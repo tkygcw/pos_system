@@ -12,6 +12,7 @@ import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/transfer_owner.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/domain.dart';
 import '../database/pos_database.dart';
@@ -49,9 +50,14 @@ class SyncToCloud {
 
   syncAllToCloud() async {
     await getAllValue();
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
       Map data = await Domain().syncLocalUpdateToCloud(
+          device_id: device_id.toString(),
+          value: login_value,
           table_use_value: this.table_use_value,
           table_use_detail_value: this.table_use_detail_value,
           order_cache_value: this.order_cache_value,
@@ -152,6 +158,9 @@ class SyncToCloud {
             }
           }
         }
+        return false;
+      } else if (data['status'] == '7'){
+        return true;
       }
     }
   }

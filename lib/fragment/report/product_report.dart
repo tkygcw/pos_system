@@ -18,6 +18,7 @@ class ProductReport extends StatefulWidget {
 
 class _ProductReportState extends State<ProductReport> {
   List<DataRow> _dataRow = [];
+  List<Categories> categoryData = [];
   String currentStDate = '';
   String currentEdDate = '';
   bool isLoaded = false;
@@ -243,6 +244,7 @@ class _ProductReportState extends State<ProductReport> {
     this.currentStDate = reportModel.startDateTime;
     this.currentEdDate = reportModel.endDateTime;
     await getAllProductWithOrder();
+    reportModel.addOtherValue(valueList: categoryData);
     if(mounted){
       setState(() {
         isLoaded = true;
@@ -252,7 +254,6 @@ class _ProductReportState extends State<ProductReport> {
 
   getAllProductWithOrder() async {
     _dataRow.clear();
-    List<Categories> categoryData = [];
     ReportObject object = await ReportObject().getAllPaidCategory(currentStDate: currentStDate, currentEdDate: currentEdDate);
     categoryData = object.dateCategory!;
     print('date category data: ${categoryData.length}');
@@ -260,7 +261,6 @@ class _ProductReportState extends State<ProductReport> {
       for(int i = 0; i < categoryData.length; i++){
         ReportObject object = await ReportObject().getAllPaidOrderDetailWithCategory(categoryData[i].category_sqlite_id!, currentStDate: currentStDate, currentEdDate: currentEdDate);
         categoryData[i].categoryOrderDetailList = object.dateOrderDetail!;
-        print(jsonEncode(categoryData[i].tableJson()));
         _dataRow.addAll([
           DataRow(
             color: MaterialStateColor.resolveWith((states) {return Colors.grey;},),

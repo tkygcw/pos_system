@@ -23,6 +23,7 @@ import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/categories.dart';
 import '../../translation/AppLocalizations.dart';
+import '../logout_dialog.dart';
 
 class PrinterDialog extends StatefulWidget {
   final Function() callBack;
@@ -49,7 +50,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
   bool _isUpdate = false;
   bool isLoad = false;
   bool _isCashier = false;
-  bool _isActive = true;
+  bool _isActive = true, isLogOut = false;
 
   @override
   void initState() {
@@ -101,7 +102,11 @@ class _PrinterDialogState extends State<PrinterDialog> {
           await callUpdatePrinter(selectedCategories, widget.printerObject!);
         }
         if(this.printer!.type == 1){
-          syncAllToCloud();
+          await syncAllToCloud();
+          if(this.isLogOut == true){
+            openLogOutDialog();
+            return;
+          }
         }
       } else {
         Fluttertoast.showToast(
@@ -975,24 +980,25 @@ class _PrinterDialogState extends State<PrinterDialog> {
       List<String> _value = [];
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
+      if(allCategories.isNotEmpty){
+        for (int i = 0; i < allCategories.length; i++) {
+          if (allCategories[i].isChecked == true) {
+            Categories? categories = await PosDatabase.instance.readSpecificCategoryById(allCategories[i].category_sqlite_id.toString());
+            PrinterLinkCategory data = await PosDatabase.instance.insertSqlitePrinterLinkCategory(PrinterLinkCategory(
+                printer_link_category_id: 0,
+                printer_link_category_key: '',
+                printer_sqlite_id: printer.printer_sqlite_id.toString(),
+                printer_key: printer.printer_key,
+                category_sqlite_id: allCategories[i].category_sqlite_id.toString(),
+                category_id: categories != null ? categories.category_id.toString() : '0',
+                sync_status: this.printer!.type == 1 ? 0 : this.printer!.type ==  0 ? 1 : 2,
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
 
-      for (int i = 0; i < allCategories.length; i++) {
-        if (allCategories[i].isChecked == true) {
-          Categories? categories = await PosDatabase.instance.readSpecificCategoryById(allCategories[i].category_sqlite_id.toString());
-          PrinterLinkCategory data = await PosDatabase.instance.insertSqlitePrinterLinkCategory(PrinterLinkCategory(
-              printer_link_category_id: 0,
-              printer_link_category_key: '',
-              printer_sqlite_id: printer.printer_sqlite_id.toString(),
-              printer_key: printer.printer_key,
-              category_sqlite_id: allCategories[i].category_sqlite_id.toString(),
-              category_id: categories != null ? categories.category_id.toString() : '0',
-              sync_status: this.printer!.type == 1 ? 0 : this.printer!.type ==  0 ? 1 : 2,
-              created_at: dateTime,
-              updated_at: '',
-              soft_delete: ''));
-
-          PrinterLinkCategory updatedData = await insertPrinterCategoryKey(data, dateTime);
-          _value.add(jsonEncode(updatedData));
+            PrinterLinkCategory updatedData = await insertPrinterCategoryKey(data, dateTime);
+            _value.add(jsonEncode(updatedData));
+          }
         }
       }
       this.printer_category_value = _value.toString();
@@ -1136,10 +1142,37 @@ class _PrinterDialogState extends State<PrinterDialog> {
     });
   }
 
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
   syncAllToCloud() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
       Map data = await Domain().syncLocalUpdateToCloud(
+        device_id: device_id.toString(),
+        value: login_value,
         printer_value: this.printer_value,
         printer_link_category_value: this.printer_category_value,
         printer_link_category_delete_value: this.printer_category_delete_value
@@ -1160,6 +1193,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
               return;
           }
         }
+      } else if (data['status'] == '7'){
+        this.isLogOut = true;
       }
     }
   }

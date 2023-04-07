@@ -43,9 +43,11 @@ import '../../object/order_cache.dart';
 import '../../object/product.dart';
 import '../../object/product_variant.dart';
 import '../../object/product_variant_detail.dart';
+import '../../object/qr_order.dart';
 import '../../object/user.dart';
 import '../../object/variant_group.dart';
 import '../../object/variant_item.dart';
+import '../logout_dialog.dart';
 
 
 class TestCategorySync extends StatefulWidget {
@@ -69,7 +71,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
   Timer? timer;
   DisplayManager displayManager = DisplayManager();
   List<Display?> displays = [];
-  bool isLoaded = false;
+  bool isLoaded = false, isLogOut = false;
 
 
   @override
@@ -101,7 +103,10 @@ class _TestCategorySyncState extends State<TestCategorySync> {
         child: Column(
           children: [
             ElevatedButton(
-                onPressed: () async  => await checkAllSyncRecord(),  //await displayManager.showSecondaryDisplay(displayId: 1, routerName: "presentation"),
+                onPressed: () {
+                  QrOrder().getQrOrder();
+                 //openLogOutDialog();
+                },  //await displayManager.showSecondaryDisplay(displayId: 1, routerName: "presentation"),
                 child: Text('current screen height/width: ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
             ElevatedButton(
                 onPressed: () {
@@ -118,6 +123,49 @@ class _TestCategorySyncState extends State<TestCategorySync> {
         ),
       ) : CustomProgressBar(),
     );
+  }
+
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
+  syncCashRecordToCloud(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      print('value: ${login_value.toString()}');
+      Map data = await Domain().syncLocalUpdateToCloud(
+          device_id: device_id.toString(),
+          value: login_value.toString(),
+          cash_record_value: value
+      );
+      if (data['status'] == '1') {
+        List responseJson = data['data'];
+        await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+      } else if(data['status'] == '7'){
+        this.isLogOut = true;
+      }
+    }
   }
 
 /*
@@ -740,144 +788,144 @@ class _TestCategorySyncState extends State<TestCategorySync> {
 /*
   save dining option to database
 */
-  checkAllSyncRecord() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? user = prefs.getString('user');
-    Map userObject = json.decode(user!);
-    Map data = await Domain().getAllSyncRecord('5');
-    List<int> syncRecordIdList = [];
-    if (data['status'] == '1') {
-      List responseJson = data['data'];
-
-      for (var i = 0; i < responseJson.length; i++) {
-        switch(responseJson[i]['type']){
-          case '0':
-            bool status = await callProductQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '1':
-            bool status = await callCategoryQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '2':
-            bool status = await callModifierLinkProductQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '3':
-            bool status = await callVariantGroupQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '4':
-            bool status = await callVariantItemQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '5':
-            bool status = await callProductVariantQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '6':
-            bool status = await callProductVariantDetailQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '7':
-            bool status = await callBranchLinkProductQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '8':
-            bool status = await callModifierGroupQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '9':
-            bool status = await callModifierItemQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '10':
-            bool status = await callBranchLinkModifierQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '11':
-            bool status = await callUserQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '12':
-            bool status = await callBranchLinkUserQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '13':
-            bool status = await callCustomerQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '14':
-            print('14 called');
-            bool status = await callPaymentLinkCompanyQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case'15':
-            bool status = await callTaxQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '16':
-            bool status = await callBranchLinkTax(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '17':
-            bool status = await callTaxLinkDining(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '18':
-            bool status = await callDiningOptionQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-          case '19':
-            bool status = await callBranchLinkDiningQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-            if(status == true){
-              syncRecordIdList.add(responseJson[i]['id']);
-            }
-            break;
-        }
-      }
-      //update sync record
-      Map updateResponse = await Domain().updateAllCloudSyncRecord('5', syncRecordIdList.toString());
-    }
-  }
+  // checkAllSyncRecord() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final String? user = prefs.getString('user');
+  //   Map userObject = json.decode(user!);
+  //   Map data = await Domain().getAllSyncRecord('5');
+  //   List<int> syncRecordIdList = [];
+  //   if (data['status'] == '1') {
+  //     List responseJson = data['data'];
+  //
+  //     for (var i = 0; i < responseJson.length; i++) {
+  //       switch(responseJson[i]['type']){
+  //         case '0':
+  //           bool status = await callProductQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '1':
+  //           bool status = await callCategoryQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '2':
+  //           bool status = await callModifierLinkProductQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '3':
+  //           bool status = await callVariantGroupQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '4':
+  //           bool status = await callVariantItemQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '5':
+  //           bool status = await callProductVariantQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '6':
+  //           bool status = await callProductVariantDetailQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '7':
+  //           bool status = await callBranchLinkProductQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '8':
+  //           bool status = await callModifierGroupQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '9':
+  //           bool status = await callModifierItemQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '10':
+  //           bool status = await callBranchLinkModifierQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '11':
+  //           bool status = await callUserQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '12':
+  //           bool status = await callBranchLinkUserQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '13':
+  //           bool status = await callCustomerQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '14':
+  //           print('14 called');
+  //           bool status = await callPaymentLinkCompanyQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case'15':
+  //           bool status = await callTaxQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '16':
+  //           bool status = await callBranchLinkTax(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '17':
+  //           bool status = await callTaxLinkDining(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '18':
+  //           bool status = await callDiningOptionQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //         case '19':
+  //           bool status = await callBranchLinkDiningQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+  //           if(status == true){
+  //             syncRecordIdList.add(responseJson[i]['id']);
+  //           }
+  //           break;
+  //       }
+  //     }
+  //     //update sync record
+  //     Map updateResponse = await Domain().updateAllCloudSyncRecord('5', syncRecordIdList.toString());
+  //   }
+  // }
 
   callBranchLinkDiningQuery({data, method}) async {
     bool isComplete = false;

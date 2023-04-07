@@ -26,6 +26,7 @@ import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
 import '../../object/user.dart';
 import '../../translation/AppLocalizations.dart';
+import '../logout_dialog.dart';
 
 class AdjustQuantityDialog extends StatefulWidget {
   final cartProductItem cartItem;
@@ -47,6 +48,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   List<TableUseDetail> cartTableUseDetail = [];
   String? table_use_value, table_use_detail_value, branch_link_product_value, order_cache_value, order_detail_value, order_detail_cancel_value, table_value;
   OrderDetail? orderDetail;
+  bool isLogOut = false;
   bool _isLoaded = false;
   bool _submitted = false;
 
@@ -80,9 +82,11 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     setState(() => _submitted = true);
     if (errorPassword == null) {
       await readAdminData(adminPosPinController.text, cart);
-      Navigator.of(context).pop();
-      Navigator.of(context).pop();
-      Navigator.of(context).pop();
+      if(this.isLogOut == false){
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
+      }
       return;
     }
   }
@@ -105,6 +109,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
+                        obscureText: true,
                         controller: adminPosPinController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
@@ -236,6 +241,28 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     _isLoaded = true;
   }
 
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
   readAdminData(String pin, CartModel cart) async {
     List<String> _posTableValue = [];
     try {
@@ -299,16 +326,24 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                 }
                 table_value = _posTableValue.toString();
               }
-              tableModel.changeContent(true);
+              // tableModel.changeContent(true);
             }
           } else {
             await createOrderDetailCancel(userData, dateTime, cart);
             await updateOrderDetailQuantity(dateTime, cart);
-            tableModel.changeContent(true);
             print('update order detail quantity & create order detail cancel');
           }
           //sync to cloud
-          syncAllToCloud();
+          await syncAllToCloud();
+          print('is log out: ${this.isLogOut}');
+          if(this.isLogOut == true){
+            openLogOutDialog();
+            return;
+          } else {
+            await PrintReceipt().printDeleteList(printerList, widget.cartItem.orderCacheId!, dateTime);
+            await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem.orderCacheId!, widget.cartItem.category_sqlite_id!, dateTime, cart);
+            tableModel.changeContent(true);
+          }
           //syncUpdatedPosTableToCloud(_posTableValue.toString());
           //print cancel receipt
           //await _printDeleteList(widget.cartItem!.orderCacheId!, dateTime);
@@ -414,8 +449,6 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
       await updateOrderCacheSubtotal(detailData.order_cache_sqlite_id!, detailData.price, simpleIntInput, dateTime);
       await updateProductStock(widget.cartItem.branchProduct_id, simpleIntInput, dateTime);
-      await PrintReceipt().printDeleteList(printerList, widget.cartItem.orderCacheId!, dateTime);
-      await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem.orderCacheId!, widget.cartItem.category_sqlite_id!, dateTime, cart);
       _value.add(jsonEncode(detailData.syncJson()));
     }
     order_detail_value = _value.toString();
@@ -678,11 +711,15 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   }
 
   syncAllToCloud() async {
-    print('sync all called');
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
       print('branch link product value in sync: ${this.branch_link_product_value}');
       Map data = await Domain().syncLocalUpdateToCloud(
+          device_id: device_id.toString(),
+          value: login_value,
           table_use_value: this.table_use_value,
           table_use_detail_value: this.table_use_detail_value,
           order_cache_value: this.order_cache_value,
@@ -729,6 +766,8 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
             }
           }
         }
+      } else if(data['status'] == '7'){
+        this.isLogOut = true;
       }
     }
   }

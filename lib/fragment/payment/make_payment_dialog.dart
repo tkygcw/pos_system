@@ -15,6 +15,7 @@ import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
+import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/receipt_layout.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
@@ -30,10 +31,12 @@ import '../../object/branch_link_dining_option.dart';
 import '../../object/cart_product.dart';
 import '../../object/dining_option.dart';
 import '../../object/modifier_group.dart';
+import '../../object/print_receipt.dart';
 import '../../object/promotion.dart';
 import '../../object/table.dart';
 import '../../object/tax.dart';
 import '../../object/variant_group.dart';
+import '../logout_dialog.dart';
 
 
 class MakePayment extends StatefulWidget {
@@ -61,13 +64,14 @@ class _MakePaymentState extends State<MakePayment> {
   List<Promotion> appliedPromotionList = [];
   List<String> orderCacheIdList = [];
   List<PosTable> selectedTableList = [];
+  List<Printer> printerList = [];
   List<Order> orderList = [];
   List<Tax> taxList = [];
   bool scanning=false;
   bool isopen=false;
   bool chipSelected = false;
   bool hasSelectedPromo = false;
-  bool hasPromo = true;
+  bool hasPromo = true, isLogOut = false;
   int taxRate = 0;
   int diningOptionID = 0;
   int count = 0;
@@ -131,6 +135,7 @@ class _MakePaymentState extends State<MakePayment> {
   void initState() {
     super.initState();
     streamController = StreamController();
+    readAllPrinters();
     readAllBranchLinkDiningOption();
     readBranchPref();
     readSpecificPaymentMethod();
@@ -155,8 +160,34 @@ class _MakePaymentState extends State<MakePayment> {
     }
   }
 
+  readAllPrinters() async {
+    printerList = await PrintReceipt().readAllPrinters();
+  }
+
   closeDialog(BuildContext context) {
     return Navigator.of(context).pop(true);
+  }
+
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   @override
@@ -477,8 +508,11 @@ class _MakePaymentState extends State<MakePayment> {
                                                     onPressed: () async {
                                                       if(inputController.text.isNotEmpty && double.parse(inputController.text) >= double.parse(finalAmount)){
                                                         await callCreateOrder(inputController.text, connectivity, orderChange: change);
-                                                        openPaymentSuccessDialog(widget.dining_id);
-                                                        ReceiptLayout().openCashDrawer();
+                                                        if(this.isLogOut == true){
+                                                          openLogOutDialog();
+                                                          return;
+                                                        }
+                                                        openPaymentSuccessDialog(widget.dining_id, isCashMethod: true);
                                                       } else if(inputController.text.isEmpty) {
                                                         Fluttertoast.showToast(
                                                             backgroundColor: Color(0xFFFF0000),
@@ -533,8 +567,9 @@ class _MakePaymentState extends State<MakePayment> {
                                           child:
                                           ///***If you have exported images you must have to copy those images in assets/images directory.
                                           Image(
-                                            image: FileImage(File(
-                                                'data/user/0/com.example.pos_system/files/assets/img/duitNow.jpg'))
+                                            image: AssetImage("drawable/duitNow.jpg")
+                                            // FileImage(File(
+                                            //     'data/user/0/com.example.pos_system/files/assets/img/duitNow.jpg'))
                                           ),
                                         ),
                                       ),
@@ -551,7 +586,11 @@ class _MakePaymentState extends State<MakePayment> {
                                             ),
                                             onPressed: () async {
                                               await callCreateOrder(finalAmount, connectivity);
-                                              openPaymentSuccessDialog(widget.dining_id);
+                                              if(this.isLogOut == true){
+                                                openLogOutDialog();
+                                                return;
+                                              }
+                                              openPaymentSuccessDialog(widget.dining_id, isCashMethod: false);
                                             }, child: Text("Received payment",style:TextStyle(fontSize: 25)),
                                           );
                                       }),
@@ -569,8 +608,9 @@ class _MakePaymentState extends State<MakePayment> {
                                             ClipRRect(
                                               borderRadius: BorderRadius.circular(16.0),
                                               child: Image(
-                                                image: FileImage(File(
-                                                    'data/user/0/com.example.pos_system/files/assets/img/TNG.jpg')),
+                                                image: AssetImage("drawable/TNG.jpg"),
+                                                // FileImage(File(
+                                                //     'data/user/0/com.example.pos_system/files/assets/img/TNG.jpg')),
                                                 height: MediaQuery.of(context).size.height/2,
                                                 width: MediaQuery.of(context).size.width/2,
                                               ),
@@ -603,6 +643,10 @@ class _MakePaymentState extends State<MakePayment> {
                                                   //await controller?.resumeCamera();
                                                   await controller?.scannedDataStream;
                                                   await callCreateOrder(finalAmount, connectivity);
+                                                  if(this.isLogOut == true){
+                                                    openLogOutDialog();
+                                                    return;
+                                                  }
 
                                                 }, child: Text(scanning==false?"Start Scan":"Scanning...",style:TextStyle(fontSize: 25)),
                                               );
@@ -885,8 +929,12 @@ class _MakePaymentState extends State<MakePayment> {
                                                           onPressed: () async {
                                                             if(double.parse(inputController.text) >= double.parse(finalAmount)){
                                                               await callCreateOrder(inputController.text, connectivity, orderChange: change);
-                                                              openPaymentSuccessDialog(widget.dining_id);
-                                                              ReceiptLayout().openCashDrawer();
+                                                              if(this.isLogOut == true){
+                                                                openLogOutDialog();
+                                                                return;
+                                                              }
+                                                              openPaymentSuccessDialog(widget.dining_id, isCashMethod: true);
+                                                              await PrintReceipt().cashDrawer(context, printerList: this.printerList);
                                                             } else {
                                                               Fluttertoast.showToast(
                                                                   backgroundColor: Color(0xFFFF0000),
@@ -948,7 +996,11 @@ class _MakePaymentState extends State<MakePayment> {
                                             style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.green)),
                                             onPressed: () async {
                                               await callCreateOrder(finalAmount, connectivity);
-                                              openPaymentSuccessDialog(widget.dining_id);
+                                              if(this.isLogOut == true){
+                                                openLogOutDialog();
+                                                return;
+                                              }
+                                              openPaymentSuccessDialog(widget.dining_id, isCashMethod: false);
                                             }, child: Text("Received payment",style:TextStyle(fontSize: 20)),
                                           );
                                         }),
@@ -995,7 +1047,10 @@ class _MakePaymentState extends State<MakePayment> {
                                                 //await controller?.resumeCamera();
                                                 await controller?.scannedDataStream;
                                                 await callCreateOrder(finalAmount, connectivity);
-
+                                                if(this.isLogOut == true){
+                                                  openLogOutDialog();
+                                                  return;
+                                                }
                                               }, child: Text("Start Scan",style:TextStyle(fontSize: 20)),
                                             );
                                           }),
@@ -1080,9 +1135,14 @@ class _MakePaymentState extends State<MakePayment> {
       });
       p1.pauseCamera();
 
+      await checkDeviceLogin();
+      if(this.isLogOut == true){
+        openLogOutDialog();
+        return;
+      }
       var api = await paymentApi();
       if(api == 0){
-        openPaymentSuccessDialog(widget.dining_id);
+        openPaymentSuccessDialog(widget.dining_id, isCashMethod: false);
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "${api}");
@@ -1102,7 +1162,7 @@ class _MakePaymentState extends State<MakePayment> {
 //     double eval = exp.evaluate(EvaluationType.REAL, cm);
 //     answer = eval.toString();
 //   }
-  Future<Future<Object?>> openPaymentSuccessDialog(String dining_id) async {
+  Future<Future<Object?>> openPaymentSuccessDialog(String dining_id, {required isCashMethod}) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -1112,6 +1172,7 @@ class _MakePaymentState extends State<MakePayment> {
             child: Opacity(
               opacity: a1.value,
               child: PaymentSuccessDialog(
+                isCashMethod: isCashMethod,
                 dining_id: dining_id,
                 orderCacheIdList: orderCacheIdList,
                 selectedTableList: selectedTableList,
@@ -1677,7 +1738,7 @@ class _MakePaymentState extends State<MakePayment> {
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',
-            soft_delete: ''
+            soft_delete: dateTime
         );
         Order data = await PosDatabase.instance.insertSqliteOrder(orderObject);
         print('data: ${data}');
@@ -1693,7 +1754,7 @@ class _MakePaymentState extends State<MakePayment> {
       print('create order error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Create order cache error: ${e}");
+          msg: "Create order error: ${e}");
     }
   }
 
@@ -1918,9 +1979,14 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   syncAllToCloud() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
       Map data = await Domain().syncLocalUpdateToCloud(
+        device_id: device_id.toString(),
+        value: login_value,
         order_value:  this.order_value,
         order_promotion_value: this.order_promotion_value,
         order_tax_value: this.order_tax_value
@@ -1946,6 +2012,23 @@ class _MakePaymentState extends State<MakePayment> {
             }
           }
         }
+      } else if(data['status'] == '7'){
+        this.isLogOut = true;
+      }
+    }
+  }
+
+  checkDeviceLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if (_hasInternetAccess) {
+      Map data = await Domain().checkDeviceLogin(device_id: device_id.toString(), value: login_value);
+      if(data['status'] == '1'){
+        this.isLogOut = false;
+      } else if(data['status'] == '7') {
+        this.isLogOut = true;
       }
     }
   }
@@ -1964,8 +2047,8 @@ class _MakePaymentState extends State<MakePayment> {
         'MYR',
         'ipay',
         branchObject['name'],
-        'jacksonleow6@gmail.com',
-        '0127583579',
+        branchObject['email'],
+        branchObject['phone'],
         'taylor',
         result!.code!,
         '',

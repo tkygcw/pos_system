@@ -18,6 +18,7 @@ class CategoryReport extends StatefulWidget {
 
 class _CategoryReportState extends State<CategoryReport> {
   List<DataRow> _dataRow = [];
+  List<Categories> categoryData = [];
   String currentStDate = '';
   String currentEdDate = '';
   bool isLoaded = false;
@@ -225,6 +226,7 @@ class _CategoryReportState extends State<CategoryReport> {
     this.currentStDate = reportModel.startDateTime;
     this.currentEdDate = reportModel.endDateTime;
     await getAllCategory();
+    reportModel.addOtherValue(valueList: categoryData);
     if(mounted){
       setState(() {
         isLoaded = true;
@@ -234,7 +236,6 @@ class _CategoryReportState extends State<CategoryReport> {
 
   getAllCategory() async {
     _dataRow.clear();
-    List<Categories> categoryData = [];
     ReportObject object = await ReportObject().getAllPaidCategory(currentStDate: currentStDate, currentEdDate: currentEdDate);
     categoryData = object.dateCategory!;
     if(categoryData.isNotEmpty){

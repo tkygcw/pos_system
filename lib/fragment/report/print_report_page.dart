@@ -30,12 +30,14 @@ class PrintReportPage extends StatefulWidget {
 
 class _PrintReportPageState extends State<PrintReportPage> {
   DateFormat dateFormat = DateFormat("yyyy-MM-dd");
+  ReportFormat reportFormat = new ReportFormat();
   List<PosTable> posTableList = [];
 
 
   @override
   void initState() {
     super.initState();
+    reportFormat.presetTextFormat();
     print('current page: ${widget.currentPage}');
     if(widget.currentPage == -1){
       generateUrl();
@@ -51,36 +53,36 @@ class _PrintReportPageState extends State<PrintReportPage> {
                 case -1 :
                   return ReportFormat().generateQrPdf(format, posTableList);
                 case 0:
-                  return ReportFormat().generateOverviewReportPdf(format, 'Overview', reportModel);
+                  return reportFormat.generateOverviewReportPdf(format, 'Overview', reportModel);
                 case 1:
-                  return ReportFormat().generateDailySalesPdf(format, 'Daily Sales Report', reportModel);
+                  return reportFormat.generateDailySalesPdf(format, 'Daily Sales Report', reportModel);
                 case 2:
                   //generate category report
-                  return ReportFormat().generateReportPdf(format, 'Report');
+                  return reportFormat.generateProductReportPdf(format, 'Product Report', reportModel);
                 case 3:
                   //generate category report
-                  return ReportFormat().generateReportPdf(format, 'Report');
+                  return reportFormat.generateCategoryReportPdf(format, 'Category Report', reportModel);
                 case 4:
                   //generate modifier report
-                  return ReportFormat().generateReportPdf(format, 'Report');
+                  return reportFormat.generateModifierReportPdf(format, 'Modifier Report', reportModel);
                 case 5:
                   //generate cancel report
-                  return ReportFormat().generateReportPdf(format, 'Report');
+                  return reportFormat.generateCancelProductReportPdf(format, 'Cancellation Report', reportModel);
                 case 6:
                   //generate cancel modifier report
-                  return ReportFormat().generateReportPdf(format, 'Report');
+                  return reportFormat.generateCancelModifierReportPdf(format, 'Cancel Modifier Report', reportModel);
                 case 7:
                   //generate dining report
-                  return ReportFormat().generateDiningReport(format, 'Dining Report');
+                  return reportFormat.generateDiningReport(format, 'Dining Report', reportModel);
                 case 8:
                   //generate payment report
-                  return ReportFormat().generateReportPdf(format, 'Report');
+                  return reportFormat.generatePaymentReport(format, 'Payment Report', reportModel);
                 case 9:
                   //generate refund report
-                  return ReportFormat().generateReportPdf(format, 'Report');
+                  return reportFormat.generateRefundReport(format, 'Refund Report', reportModel);
                 default:
                   // generate transfer report
-                  return ReportFormat().generateReportPdf(format, 'Report');
+                  return reportFormat.generateReportPdf(format, 'Report');
               }
             },
             canDebug: false,

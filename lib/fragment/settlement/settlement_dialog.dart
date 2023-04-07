@@ -26,6 +26,7 @@ import '../../object/refund.dart';
 import '../../object/report_class.dart';
 import '../../object/user.dart';
 import '../../translation/AppLocalizations.dart';
+import '../logout_dialog.dart';
 
 class SettlementDialog extends StatefulWidget {
   final List<CashRecord> cashRecordList;
@@ -43,7 +44,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
   String currentEdDate = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
   double totalSales = 0.0, totalRefundAmount = 0.0, totalPromotionAmount = 0.0, totalTax = 0.0;
   int totalBill = 0, totalRefundBill = 0, totalCancelItem = 0;
-  List<Order> dateOrderList = [], dateRefundList = [];
+  List<Order> dateOrderList = [], dateRefundList = [], orderList = [];
   List<OrderPromotionDetail> datePromotionDetail = [];
   List<OrderDetailCancel> dateOrderDetailCancel = [];
   List<OrderTaxDetail> dateTaxList = [];
@@ -54,7 +55,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
   Settlement? settlement;
   bool _submitted = false;
   bool _isLoaded = false;
-  bool isButtonDisabled = false;
+  bool isButtonDisabled = false, isLogOut = false;
 
 
   @override
@@ -87,10 +88,34 @@ class _SettlementDialogState extends State<SettlementDialog> {
         isButtonDisabled = true;
       });
       await readAdminData(adminPosPinController.text, connectivity);
-      Navigator.of(context).pop();
-      widget.callBack();
+      if(this.isLogOut == false){
+        Navigator.of(context).pop();
+        widget.callBack();
+      }
       return;
     }
+  }
+
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   closeDialog(BuildContext context) {
@@ -113,6 +138,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
+                        obscureText: true,
                         controller: adminPosPinController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
@@ -198,7 +224,6 @@ class _SettlementDialogState extends State<SettlementDialog> {
       if (userData.length > 0) {
         await callSettlement(dateTime, connectivity);
         //print settlement list
-        await PrintReceipt().printSettlementList(printerList, dateTime, context, this.settlement!);
         // List<Settlement> settlementData = await PosDatabase.instance.readAllSettlement();
         // if(settlementData.isNotEmpty){
         //   if(widget.cashRecordList[0].created_at!.substring(0, 10) != settlementData[0].created_at!.substring(0, 10)){
@@ -239,7 +264,12 @@ class _SettlementDialogState extends State<SettlementDialog> {
     await updateTodaySettlementOrder(dateTime);
     await updateTodaySettlementOrderDetailCancel(dateTime);
     await updateAllCashRecordSettlement(dateTime, connectivity);
-    syncAllToCloud();
+    await syncAllToCloud();
+    if(this.isLogOut == true){
+      openLogOutDialog();
+      return;
+    }
+    await PrintReceipt().printSettlementList(printerList, dateTime, context, this.settlement!);
   }
 
   generateSettlementKey(Settlement settlement) async  {
@@ -567,6 +597,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
     List<OrderPromotionDetail> orderPromotion = await PosDatabase.instance.readAllNotSettlementOrderPromotionDetail();
     List<OrderDetailCancel> orderCancelData = await PosDatabase.instance.readAllNotSettlementOrderDetailCancel();
     if(orderData.isNotEmpty){
+      this.orderList = orderData;
       this.totalBill = orderData.length;
       this.totalSales = orderData[0].gross_sales!;
     }
@@ -594,11 +625,11 @@ class _SettlementDialogState extends State<SettlementDialog> {
     if (data.isNotEmpty) {
       paymentList = data;
       for(int j = 0 ; j < paymentList.length; j++){
-        for(int i = 0; i < dateOrderList.length; i++){
-          if(dateOrderList[i].payment_status != 2){
-            if(paymentList[j].payment_link_company_id == int.parse(dateOrderList[i].payment_link_company_id!)){
+        for(int i = 0; i < orderList.length; i++){
+          if(orderList[i].payment_status != 2){
+            if(paymentList[j].payment_link_company_id == int.parse(orderList[i].payment_link_company_id!)){
               paymentList[j].total_bill ++;
-              paymentList[j].totalAmount += double.parse(dateOrderList[i].final_amount!);
+              paymentList[j].totalAmount += double.parse(orderList[i].final_amount!);
             }
           }
         }
@@ -645,9 +676,14 @@ class _SettlementDialogState extends State<SettlementDialog> {
   }
 
   syncAllToCloud() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
       Map data = await Domain().syncLocalUpdateToCloud(
+        device_id: device_id.toString(),
+        value: login_value,
         settlement_value: this.settlement_value,
         settlement_link_payment_value: this.settlement_link_payment_value,
         order_value: this.order_value,
@@ -682,6 +718,8 @@ class _SettlementDialogState extends State<SettlementDialog> {
               return;
           }
         }
+      }else if(data['status'] == '7'){
+        this.isLogOut = true;
       }
     }
   }

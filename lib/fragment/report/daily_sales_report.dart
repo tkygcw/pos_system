@@ -34,6 +34,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
   String _range = '';
   bool isLoaded = false;
   List<String> settlementStringList = [], paymentStringList = [], settlementPaymentStringList = [];
+  List<Settlement> settlementList = [];
 
 
   @override
@@ -314,10 +315,12 @@ class _DailySalesReportState extends State<DailySalesReport> {
   preload(ReportModel reportModel) async {
     await getTotalSales();
     await getAllPaymentLinkCompany();
-    reportModel.addOtherReportValue(value1: settlementStringList.toString(), value2: paymentStringList.toString(), value3: settlementPaymentStringList.toString());
-    setState(() {
-      isLoaded = true;
-    });
+    reportModel.addOtherValue(headerValue: paymentLinkCompanyList, valueList: settlementList);
+    if(mounted){
+      setState(() {
+        isLoaded = true;
+      });
+    }
   }
 
   getAllPaymentLinkCompany() async {
@@ -335,7 +338,6 @@ class _DailySalesReportState extends State<DailySalesReport> {
 
   getTotalSales() async {
     _dataRow.clear();
-    List<Settlement> settlementList = [];
     List<SettlementLinkPayment> settlementLinkPaymentList = [];
     ReportObject object = await ReportObject().getAllSettlement();
     settlementList = object.dateSettlementList!;
@@ -343,27 +345,30 @@ class _DailySalesReportState extends State<DailySalesReport> {
     if(settlementList.isNotEmpty){
       for(int i = 0; i < settlementList.length; i++){
         settlementStringList.add(jsonEncode(settlementList[i]));
-        ReportObject object = await ReportObject().getAllSettlementPaymentDetail(settlementList[i].settlement_sqlite_id!);
+        print('settlement key: ${settlementList[i].settlement_key}');
+        ReportObject object = await ReportObject().getAllSettlementPaymentDetail(settlementList[i].created_at!);
         settlementLinkPaymentList = object.dateSettlementPaymentList!;
-        for(int k = 0; k < settlementLinkPaymentList.length; k++){
-          settlementPaymentStringList.add(jsonEncode(settlementLinkPaymentList[k]));
-        }
+        //add settlement payment into settlement object
+        settlementList[i].settlementPayment = settlementLinkPaymentList;
         print('settlement payment length: ${settlementLinkPaymentList.length}');
+        DateTime dataDate = DateTime.parse(settlementList[i].created_at!);
+        String stringDate = new DateFormat("dd-MM-yyyy").format(dataDate);
+        settlementList[i].created_at = stringDate;
         _dataRow.addAll([
           DataRow(
             cells: <DataCell>[
               DataCell(
                 Text('${settlementList[i].created_at}'),
               ),
-              DataCell(Text('${settlementList[i].total_bill}')),
-              DataCell(Text('${settlementList[i].total_sales}')),
-              DataCell(Text('${settlementList[i].total_refund_bill}')),
-              DataCell(Text('${settlementList[i].total_refund_amount}')),
-              DataCell(Text('${settlementList[i].total_discount}')),
-              DataCell(Text('${settlementList[i].total_tax}')),
-              DataCell(Text('${settlementList[i].total_cancellation}')),
+              DataCell(Text('${settlementList[i].all_bill}')),
+              DataCell(Text('${settlementList[i].all_sales?.toStringAsFixed(2)}')),
+              DataCell(Text('${settlementList[i].all_refund_bill}')),
+              DataCell(Text('${settlementList[i].all_refund_amount?.toStringAsFixed(2)}')),
+              DataCell(Text('${settlementList[i].all_discount?.toStringAsFixed(2)}')),
+              DataCell(Text('${settlementList[i].all_tax_amount?.toStringAsFixed(2)}')),
+              DataCell(Text('${settlementList[i].all_cancellation}')),
               for(int j = 0; j < settlementLinkPaymentList.length; j++)
-                DataCell(Text('${settlementLinkPaymentList[j].total_sales}')),
+                DataCell(Text('${settlementLinkPaymentList[j].all_payment_sales?.toStringAsFixed(2)}')),
 
             ],
           ),

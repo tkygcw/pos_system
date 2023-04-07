@@ -45,8 +45,7 @@ class _QrMainPageState extends State<QrMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: StreamBuilder(
-          stream: controller.stream, builder: (context, snapshot) {
+      body: StreamBuilder(stream: controller.stream, builder: (context, snapshot) {
           preload();
           return Container(
             padding:  EdgeInsets.all(20),
@@ -68,14 +67,16 @@ class _QrMainPageState extends State<QrMainPage> {
                         return Card(
                           elevation: 5,
                           child: ListTile(
+                            contentPadding: EdgeInsets.all(10),
+                            //isThreeLine: true,
                             title: qrOrderCacheList[index].dining_id == '1' ?
-                            Text('Table No: ${qrOrderCacheList[index].table_number}')
+                            Text('Table No: ${qrOrderCacheList[index].table_number}', style: TextStyle(fontSize: 18))
                                 : qrOrderCacheList[index].dining_id == '2' ?
                             Text('Take Away')
                                 : Text('Delivery'),
-                            subtitle: Text('Amount: ${qrOrderCacheList[index].total_amount}'),
+                            subtitle: Text('Amount: ${qrOrderCacheList[index].total_amount}\nOrder At: ${qrOrderCacheList[index].created_at}'),
                             leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.qr_code, color: Colors.grey,)),
-                            trailing: Text('#${qrOrderCacheList[index].batch_id}'),
+                            trailing: Text('#${qrOrderCacheList[index].batch_id}', style: TextStyle(fontSize: 18)),
                             onTap: () async  {
                               await checkOrderDetail(qrOrderCacheList[index].order_cache_sqlite_id!);
                               //pop stock adjust dialog

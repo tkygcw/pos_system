@@ -52,6 +52,7 @@ class SettlementLinkPayment{
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  double? all_payment_sales;
 
   SettlementLinkPayment(
       {this.settlement_link_payment_sqlite_id,
@@ -68,7 +69,9 @@ class SettlementLinkPayment{
         this.sync_status,
         this.created_at,
         this.updated_at,
-        this.soft_delete});
+        this.soft_delete,
+        this.all_payment_sales
+      });
 
   SettlementLinkPayment copy({
     int? settlement_link_payment_sqlite_id,
@@ -120,6 +123,7 @@ class SettlementLinkPayment{
     created_at: json[SettlementLinkPaymentFields.created_at] as String?,
     updated_at: json[SettlementLinkPaymentFields.updated_at] as String?,
     soft_delete: json[SettlementLinkPaymentFields.soft_delete] as String?,
+    all_payment_sales: json['all_payment_sales'] as double?
   );
 
   Map<String, Object?> toJson() => {

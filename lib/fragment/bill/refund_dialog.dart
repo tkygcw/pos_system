@@ -16,6 +16,7 @@ import '../../object/order.dart';
 import '../../object/order_cache.dart';
 import '../../object/user.dart';
 import '../../translation/AppLocalizations.dart';
+import '../logout_dialog.dart';
 
 class RefundDialog extends StatefulWidget {
   final Order order;
@@ -34,7 +35,7 @@ class _RefundDialogState extends State<RefundDialog> {
   String refundKey = '';
   String? refund_value, order_value, cash_record_value;
   bool _submitted = false;
-  bool isButtonDisabled = false;
+  bool isButtonDisabled = false, isLogOut = false;
 
 
   String? get errorPassword {
@@ -53,10 +54,34 @@ class _RefundDialogState extends State<RefundDialog> {
         isButtonDisabled = true;
       });
       await readAdminData(adminPosPinController.text);
-      Navigator.of(context).pop();
-      Navigator.of(context).pop();
+      if(this.isLogOut == false){
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
+      }
       return;
     }
+  }
+
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   Future showSecondDialog(BuildContext context, ThemeColor color) {
@@ -76,6 +101,7 @@ class _RefundDialogState extends State<RefundDialog> {
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
+                        obscureText: true,
                         controller: adminPosPinController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
@@ -161,7 +187,6 @@ class _RefundDialogState extends State<RefundDialog> {
         if(userData.user_id == userObject['user_id']){
           //create refund record
           await callRefund(userData);
-          widget.callBack();
         } else {
           Fluttertoast.showToast(
               backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
@@ -179,7 +204,12 @@ class _RefundDialogState extends State<RefundDialog> {
     await createRefund(userData);
     await updateOrderPaymentStatus();
     await createRefundedCashRecord(userData);
-    syncAllToCloud();
+    await syncAllToCloud();
+    if(this.isLogOut == true){
+      openLogOutDialog();
+      return;
+    }
+    widget.callBack();
   }
 
   generateRefundKey(Refund refund) async  {
@@ -361,9 +391,14 @@ class _RefundDialogState extends State<RefundDialog> {
   }
 
   syncAllToCloud() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
       Map data = await Domain().syncLocalUpdateToCloud(
+        device_id: device_id.toString(),
+        value: login_value,
         refund_value: this.refund_value,
         order_value: this.order_value,
         cash_record_value: this.cash_record_value
@@ -388,6 +423,8 @@ class _RefundDialogState extends State<RefundDialog> {
               return;
           }
         }
+      } else if(data['status'] == '7'){
+        this.isLogOut = true;
       }
     }
   }

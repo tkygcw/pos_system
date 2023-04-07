@@ -65,9 +65,9 @@ class ReportObject{
       this.dateSettlementPaymentList,
       this.dateOrderDetailCancelList});
 
-  getAllSettlementPaymentDetail(int settlement_sqlite_id) async {
+  getAllSettlementPaymentDetail(String settlement_key) async {
     dateSettlementPaymentList = [];
-    List<SettlementLinkPayment> settlementData = await PosDatabase.instance.readSpecificSettlementLinkPayment(settlement_sqlite_id);
+    List<SettlementLinkPayment> settlementData = await PosDatabase.instance.readSpecificSettlementLinkPayment(settlement_key);
     settlementPaymentList = settlementData;
     if (settlementPaymentList.isNotEmpty) {
       for (int i = 0; i < settlementPaymentList.length; i++) {
@@ -84,9 +84,9 @@ class ReportObject{
     settlementList = settlementData;
     if (settlementList.isNotEmpty) {
       for (int i = 0; i < settlementList.length; i++) {
-        DateTime dataDate = DateTime.parse(settlementList[i].created_at!);
-        String stringDate = new DateFormat("dd-MM-yyyy").format(dataDate);
-        settlementList[i].created_at = stringDate;
+        // DateTime dataDate = DateTime.parse(settlementList[i].created_at!);
+        // String stringDate = new DateFormat("dd-MM-yyyy").format(dataDate);
+        // settlementList[i].created_at = stringDate;
         dateSettlementList!.add(settlementList[i]);
       }
     }
@@ -549,7 +549,7 @@ class ReportObject{
 
       }
       for (int j = 0; j < dateOrderList!.length; j++) {
-        if(dateOrderList![j].payment_status != 2){
+        if(dateOrderList![j].payment_status == 1){
           sumAllOrderTotal(dateOrderList![j].final_amount!);
         }
       }

@@ -66,7 +66,7 @@ class _SettlementPageState extends State<SettlementPage> {
                             child: Row(
                               children: [
                                 Text(
-                                  "Settlement",
+                                  "Counter",
                                   style: TextStyle(fontSize: 25),
                                 ),
                                 Spacer(),
@@ -124,31 +124,24 @@ class _SettlementPageState extends State<SettlementPage> {
                           child: Row(
                             children: [
                               ElevatedButton(
-                                  child: Text('Cash-in'),
+                                  child: Text('Cash-In'),
                                   onPressed: () {
                                     openCashDialog(true, false);
                                   },
                                   style: ElevatedButton.styleFrom(
-                                      primary: color.backgroundColor)),
+                                      backgroundColor: color.backgroundColor)),
                               Container(
                                 height: 30,
                                 child: VerticalDivider(
                                     color: Colors.grey, thickness: 1),
                               ),
                               ElevatedButton(
-                                child: Text('Cash-out'),
+                                child: Text('Cash-Out'),
                                 onPressed: () {
-                                  if(cashRecordList.length > 0){
-                                    openCashOutDialog();
-                                    // openCashDialog(false, true);
-                                  } else {
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Color(0xFFFF0000),
-                                        msg: "No record");
-                                  }
+                                  openCashOutDialog();
                                 },
                                 style: ElevatedButton.styleFrom(
-                                    primary: color.buttonColor),
+                                    backgroundColor: color.buttonColor),
                               ),
                               Container(
                                 height: 30,
@@ -176,7 +169,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
-                                    primary: color.backgroundColor),
+                                    backgroundColor: color.backgroundColor),
                               ),
                               Container(
                                 height: 30,
@@ -184,12 +177,12 @@ class _SettlementPageState extends State<SettlementPage> {
                                     color: Colors.grey, thickness: 1),
                               ),
                               ElevatedButton(
-                                child: Text('Settlement history'),
+                                child: Text('Cash Record History'),
                                 onPressed: () {
                                   openSettlementHistoryDialog();
                                 },
                                 style: ElevatedButton.styleFrom(
-                                    primary: color.buttonColor),
+                                    backgroundColor: color.buttonColor),
                               ),
                               Container(
                                 height: 30,
@@ -197,7 +190,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                     color: Colors.grey, thickness: 1),
                               ),
                               ElevatedButton(
-                                child: Text('Transfer ownership'),
+                                child: Text('Transfer Ownership'),
                                 onPressed: () async {
 
                                   if (await confirm(
@@ -216,7 +209,7 @@ class _SettlementPageState extends State<SettlementPage> {
 
                                 },
                                 style: ElevatedButton.styleFrom(
-                                    primary: color.backgroundColor),
+                                    backgroundColor: color.backgroundColor),
                               ),
                               Container(
                                 height: 30,
@@ -229,7 +222,12 @@ class _SettlementPageState extends State<SettlementPage> {
                                   openCashBoxDialog();
                                 },
                                 style: ElevatedButton.styleFrom(
-                                    primary: color.buttonColor),
+                                    backgroundColor: color.buttonColor),
+                              ),
+                              Container(
+                                height: 30,
+                                child: VerticalDivider(
+                                    color: Colors.grey, thickness: 1),
                               ),
                             ],
                           ),
@@ -247,30 +245,33 @@ class _SettlementPageState extends State<SettlementPage> {
                                 itemCount: cashRecordList.length,
                                 itemBuilder: (context, index) {
                                   return ListTile(
+                                    contentPadding: EdgeInsets.all(10),
                                     leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
-                                        ? Icon(Icons.payments_sharp)
+                                        ? CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.payments, color: Colors.grey,))
                                         : cashRecordList[index].payment_type_id == '2'
-                                        ? Icon(Icons.credit_card_rounded)
-                                        : Icon(Icons.wifi),
+                                        ? CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.qr_code_rounded, color: Colors.grey,))
+                                        : CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.wifi, color: Colors.grey,)),
                                     title: Text(
                                         '${cashRecordList[index].remark}'),
                                     subtitle: cashRecordList[index].type == 1 || cashRecordList[index].type == 0
                                         ? Text(
-                                        'Cash in by: ${cashRecordList[index].userName}')
+                                        'Cash in by: ${cashRecordList[index].userName}\nIn At: ${cashRecordList[index].created_at}')
                                         : cashRecordList[index].type == 2
                                         ? Text(
-                                        'Cash-out by: ${cashRecordList[index].userName}')
+                                        'Cash-out by: ${cashRecordList[index].userName}\nOut At: ${cashRecordList[index].created_at}')
                                         : cashRecordList[index].type == 3
-                                        ? Text('Close by: ${cashRecordList[index].userName}')
-                                        : Text('Refund by: ${cashRecordList[index].userName}'),
+                                        ? Text('Close by: ${cashRecordList[index].userName}\nClose At: ${cashRecordList[index].created_at}')
+                                        : Text('Refund by: ${cashRecordList[index].userName}\nRefund At: ${cashRecordList[index].created_at}'),
                                     trailing: cashRecordList[index].type == 2 || cashRecordList[index].type == 4
                                         ? Text(
                                         '-${cashRecordList[index].amount}',
                                         style: TextStyle(
+                                            fontSize: 16,
                                             color: Colors.red))
                                         : Text(
                                         '+${cashRecordList[index].amount}',
                                         style: TextStyle(
+                                            fontSize: 16,
                                             color: Colors.green)),
                                     onLongPress: () async {
                                       if(cashRecordList[index].type != 0 && cashRecordList[index].type != 3){
@@ -345,7 +346,7 @@ class _SettlementPageState extends State<SettlementPage> {
                             child: Row(
                               children: [
                                 Text(
-                                  "Settlement",
+                                  "Counter",
                                   style: TextStyle(fontSize: 25),
                                 ),
                                 Spacer(),
@@ -410,7 +411,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                       openCashDialog(true, false);
                                     },
                                     style: ElevatedButton.styleFrom(
-                                        primary: color.backgroundColor)),
+                                        backgroundColor: color.backgroundColor)),
                                 Container(
                                   height: 30,
                                   child: VerticalDivider(
@@ -429,7 +430,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
-                                      primary: color.buttonColor),
+                                      backgroundColor: color.buttonColor),
                                 ),
                                 Container(
                                   height: 30,
@@ -439,21 +440,26 @@ class _SettlementPageState extends State<SettlementPage> {
                                 ElevatedButton(
                                   child: Text('Settlement'),
                                   onPressed: () {
-                                    if(cashRecordList.length > 1){
+                                    if(cashRecordList.length > 1 && unpaidOrderCacheList.isEmpty){
                                       openSettlementDialog(cashRecordList);
-                                    } else if(cashRecordList.length == 1){
-                                      Fluttertoast.showToast(
-                                          backgroundColor: Color(0xFFFF0000),
-                                          msg: "Cannot do settlement with only opening cash");
-                                    } else  {
+                                    } else if(cashRecordList.isEmpty) {
                                       Fluttertoast.showToast(
                                           backgroundColor: Color(0xFFFF0000),
                                           msg: "No record");
+                                    } else if(unpaidOrderCacheList.isNotEmpty){
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Color(0xFFFF0000),
+                                          msg: "Still have order not yet paid");
+                                    }
+                                    else if(cashRecordList.length == 1){
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Color(0xFFFF0000),
+                                          msg: "Cannot do settlement with opening balance");
                                     }
 
                                   },
                                   style: ElevatedButton.styleFrom(
-                                      primary: color.backgroundColor),
+                                      backgroundColor: color.backgroundColor),
                                 ),
                                 Container(
                                   height: 30,
@@ -461,12 +467,12 @@ class _SettlementPageState extends State<SettlementPage> {
                                       color: Colors.grey, thickness: 1),
                                 ),
                                 ElevatedButton(
-                                  child: Text('Settlement history'),
+                                  child: Text('Settlement History'),
                                   onPressed: () {
                                     openSettlementHistoryDialog();
                                   },
                                   style: ElevatedButton.styleFrom(
-                                      primary: color.buttonColor),
+                                      backgroundColor: color.buttonColor),
                                 ),
                                 Container(
                                   height: 30,
@@ -474,12 +480,12 @@ class _SettlementPageState extends State<SettlementPage> {
                                       color: Colors.grey, thickness: 1),
                                 ),
                                 ElevatedButton(
-                                  child: Text('Transfer ownership'),
+                                  child: Text('Transfer Ownership'),
                                   onPressed: () async {
                                     openPosPinDialog();
                                   },
                                   style: ElevatedButton.styleFrom(
-                                      primary: color.backgroundColor),
+                                      backgroundColor: color.backgroundColor),
                                 ),
                                 Container(
                                   height: 30,
@@ -487,12 +493,12 @@ class _SettlementPageState extends State<SettlementPage> {
                                       color: Colors.grey, thickness: 1),
                                 ),
                                 ElevatedButton(
-                                  child: Text('Open cash drawer'),
+                                  child: Text('Open Cash Drawer'),
                                   onPressed: () {
                                     openCashBoxDialog();
                                   },
                                   style: ElevatedButton.styleFrom(
-                                      primary: color.buttonColor),
+                                      backgroundColor: color.buttonColor),
                                 ),
                               ],
                             ),
@@ -514,31 +520,34 @@ class _SettlementPageState extends State<SettlementPage> {
                                   itemCount: cashRecordList.length,
                                   itemBuilder: (context, index) {
                                     return ListTile(
+                                      isThreeLine: true,
                                       leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
-                                          ? Icon(Icons.payments_sharp)
+                                          ? CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.payments, color: Colors.grey))
                                           : cashRecordList[index].payment_type_id == '2'
-                                          ? Icon(Icons.credit_card_rounded)
-                                          : Icon(Icons.wifi),
+                                          ? CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.qr_code_rounded, color: Colors.grey))
+                                          : CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.wifi, color: Colors.grey)),
                                       title: Text(
                                           '${cashRecordList[index].remark}'),
                                       subtitle: cashRecordList[index].type == 1 || cashRecordList[index].type == 0
                                           ? Text(
-                                          'Cash in by: ${cashRecordList[index].userName}')
+                                          'Cash in by: ${cashRecordList[index].userName}\nIn At: ${cashRecordList[index].created_at}')
                                           : cashRecordList[index].type == 2
                                           ? Text(
-                                          'Cash-out by: ${cashRecordList[index].userName}')
+                                          'Cash-out by: ${cashRecordList[index].userName}\nOut At: ${cashRecordList[index].created_at}')
                                           : cashRecordList[index].type == 3
                                           ? Text(
-                                          'Close by: ${cashRecordList[index].userName}')
-                                          : Text('Refund by: ${cashRecordList[index].userName}'),
+                                          'Close by: ${cashRecordList[index].userName}\nClose At: ${cashRecordList[index].created_at}')
+                                          : Text('Refund by: ${cashRecordList[index].userName}\nRefund At: ${cashRecordList[index].created_at}'),
                                       trailing: cashRecordList[index].type == 2 || cashRecordList[index].type == 4
                                           ? Text(
                                           '-${cashRecordList[index].amount}',
                                           style: TextStyle(
+                                              fontSize: 16,
                                               color: Colors.red))
                                           : Text(
                                           '+${cashRecordList[index].amount}',
                                           style: TextStyle(
+                                              fontSize: 16,
                                               color: Colors.green)),
                                       onLongPress: () async {
                                         if(cashRecordList[index].type != 0 && cashRecordList[index].type != 3){
@@ -784,9 +793,7 @@ class _SettlementPageState extends State<SettlementPage> {
   readCashRecord() async {
     isLoad = false;
     cashRecordList = [];
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord(branch_id.toString());
+    List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord();
     if (selectedPayment == 'All/Cash Drawer') {
       cashRecordList = data;
     } else if (selectedPayment == 'Cash') {
@@ -866,9 +873,20 @@ class _SettlementPageState extends State<SettlementPage> {
   toPosPinPage(){
     String cashDrawer = calcCashDrawer();
     print('to pos pin call him');
-    Navigator.push(context,
-      PageTransition(type: PageTransitionType.fade, child: PosPinPage(cashBalance: cashDrawer),
+    // Navigator.push(context,
+    //   PageTransition(type: PageTransitionType.fade, child: PosPinPage(cashBalance: cashDrawer),
+    //   ),
+    // );
+    Navigator.of(context).pushAndRemoveUntil(
+      // the new route
+      MaterialPageRoute(
+        builder: (BuildContext context) => PosPinPage(cashBalance: cashDrawer),
       ),
+
+      // this function should return true when we're done removing routes
+      // but because we want to remove all other screens, we make it
+      // always return false
+          (Route route) => false,
     );
   }
 

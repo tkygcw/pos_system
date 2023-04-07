@@ -23,11 +23,11 @@
   "would you like to remove?": "Would you like to remove?",
   "settlement_desc": "All today cash record will remove, You can check history on settlement history",
   "refund_desc": "Are you sure to refund this order?",
-  "logout-Desc": "All this app data will be deleted permanently. This includes all files, setting, database etc.",
   "password_required": "Password is required",
   "password_incorrect":"Password incorrect",
   "user_not_found": "User Not Found",
   "pin_not_match": "user pin not match",
+  "ok": "Ok",
   "yes": "Yes",
   "no": "No",
   "incorrect_password": "incorrect password",
@@ -52,5 +52,12 @@
   "remove_cash_record_error": "Cannot remove opening balance",
   "remove_printer": "Confirm remove printer?",
   "remove_layout": "Confirm remove layout?",
-  "remove_cash_record": "Confirm remove cash record?"
+  "remove_cash_record": "Confirm remove cash record?",
+  "detect_multiple_login": "Multi device login",
+  "log-out_reset-pos": "Log Out-Reset Pos",
+  "logout_desc": "This device is force to logout, because multiple log in on this account is detected",
+  "logout-desc2": "All the app data will be deleted permanently. This includes all files, setting, database etc.",
+  "open_cash_drawer": "Open Cash Drawer",
+  "print_receipt": "Print Receipt",
+  "change": "Change"
 }

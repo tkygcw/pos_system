@@ -154,7 +154,7 @@ class _TableMenuState extends State<TableMenu> {
                                   shape: tableList[index].isSelected
                                       ? new RoundedRectangleBorder(
                                           side: new BorderSide(
-                                              color: Colors.blue, width: 3.0),
+                                              color: color.backgroundColor, width: 3.0),
                                           borderRadius:
                                               BorderRadius.circular(4.0))
                                       : new RoundedRectangleBorder(
@@ -224,17 +224,18 @@ class _TableMenuState extends State<TableMenu> {
                                       margin:
                                           MediaQuery.of(context).size.height > 500 ? EdgeInsets.all(2) : EdgeInsets.all(0),
                                       child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          tableList[index].group != null && MediaQuery.of(context).size.height > 500
-                                              ? Expanded(
-                                                  child: Text(
-                                                  "Group: ${tableList[index].group}",
-                                                  style:
-                                                      TextStyle(fontSize: 18),
-                                                ))
-                                              : MediaQuery.of(context).size.height > 500
-                                                  ? Expanded(child: Text(''))
-                                                  : Container(height: 10),
+                                          // tableList[index].group != null && MediaQuery.of(context).size.height > 500
+                                          //     ? Expanded(
+                                          //         child: Text(
+                                          //         "Group: ${tableList[index].group}",
+                                          //         style:
+                                          //             TextStyle(fontSize: 18),
+                                          //       ))
+                                          //     : MediaQuery.of(context).size.height > 500
+                                          //         ? Expanded(child: Text(''))
+                                          //         : Container(height: 10),
                                           Container(
                                             margin: MediaQuery.of(context).size.height > 500
                                                 ? EdgeInsets.fromLTRB(0, 5, 0, 5)
@@ -242,43 +243,88 @@ class _TableMenuState extends State<TableMenu> {
                                             height: MediaQuery.of(context).size.height < 500
                                                 ? 100
                                                 : MediaQuery.of(context).size.height < 700
-                                                    ? MediaQuery.of(context).size.height / 6.5
-                                                    : MediaQuery.of(context).size.height / 6,
+                                                ? MediaQuery.of(context).size.height / 6.5
+                                                    : MediaQuery.of(context).size.height / 5.5,
                                             child: Stack(
                                               children: [
-                                                Ink.image(
-                                                  image: tableList[index].seats == '2'
-                                                      ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/two-seat.jpg'))
-                                                  // NetworkImage(
-                                                  //         "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
-                                                      : tableList[index].seats == '4'
-                                                          ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/four-seat.jpg'))
-                                                  // NetworkImage(
-                                                  //             "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
-                                                          : tableList[index].seats == '6'
-                                                              ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/six-seat.jpg'))
-                                                  // NetworkImage(
-                                                  //                 "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
-                                                              : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/duitNow.jpg')),
-                                                  // NetworkImage(
-                                                  //                 "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
-                                                  fit: BoxFit.cover,
+                                                Visibility(
+                                                  visible: tableList[index].group != null && MediaQuery.of(context).size.height > 500  ? true : false,
+                                                  child: Container(
+                                                      alignment: Alignment.topCenter,
+                                                      child: Text(
+                                                        "Group: ${tableList[index].group}",
+                                                        style:
+                                                        TextStyle(fontSize: 18),
+                                                      )),
                                                 ),
+                                                tableList[index].seats == '2'
+                                                    ?
+                                                Container(
+                                                  alignment: Alignment.center,
+
+                                                  child: Image.asset("drawable/two-seat.jpg")
+                                                )
+                                                    :
+                                                tableList[index].seats == '4'
+                                                    ?
+                                                Container(
+                                                    alignment: Alignment.center,
+                                                    child: Image.asset("drawable/four-seat.jpg")
+                                                )
+                                                    :
+                                                tableList[index].seats == '6'
+                                                    ?
+                                                Container(
+                                                    alignment: Alignment.center,
+                                                    child: Image.asset("drawable/six-seat.jpg")
+                                                )
+                                                    :
+                                                Container(
+                                                    alignment: Alignment.center,
+                                                    child: Image.asset("drawable/logo.jpg")
+                                                ),
+                                                // Ink.image(
+                                                //   image: tableList[index].seats == '2'
+                                                //       ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/two-seat.jpg'))
+                                                //   // NetworkImage(
+                                                //   //         "https://www.hometown.in/media/cms/icon/Two-Seater-Dining-Sets.png")
+                                                //       : tableList[index].seats == '4'
+                                                //           ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/four-seat.jpg'))
+                                                //   // NetworkImage(
+                                                //   //             "https://www.hometown.in/media/cms/icon/Four-Seater-Dining-Sets.png")
+                                                //           : tableList[index].seats == '6'
+                                                //               ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/six-seat.jpg'))
+                                                //   // NetworkImage(
+                                                //   //                 "https://www.hometown.in/media/cms/icon/Six-Seater-Dining-Sets.png")
+                                                //               : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/duitNow.jpg')),
+                                                //   // NetworkImage(
+                                                //   //                 "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
+                                                //   fit: BoxFit.cover,
+                                                // ),
                                                 Container(
                                                     alignment: Alignment.center,
                                                     child: Text("#" + tableList[index].number!)),
+                                                Visibility(
+                                                  visible: MediaQuery.of(context).size.height > 500 ? true : false,
+                                                  child: Container(
+                                                      alignment: Alignment.bottomCenter,
+                                                      child: Text(
+                                                          "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
+                                                          style: TextStyle(fontSize: 18))),
+                                                ),
+
                                               ],
                                             ),
                                           ),
                                           MediaQuery.of(context).size.height > 500 ? Container(height: 10) : Container(),
-                                          tableList[index].status == 1 ?
-                                          Expanded(
-                                              child: Text(
-                                                "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
-                                                style: TextStyle(fontSize: 18)),
-                                          ) :
-                                              Expanded
-                                                (child: Text(''))
+                                          // tableList[index].status == 1 ?
+                                          // Expanded(
+                                          //     child: Text(
+                                          //       "RM ${tableList[index].total_Amount.toStringAsFixed(2)}",
+                                          //       style: TextStyle(fontSize: 18)),
+                                          // ) :
+                                          //     Expanded
+                                          //       (child: Text(''))
                                         ],
                                       ),
                                     ),

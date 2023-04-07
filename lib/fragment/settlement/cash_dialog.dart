@@ -15,7 +15,10 @@ import 'package:crypto/crypto.dart';
 import '../../database/domain.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/app_setting.dart';
+import '../../object/print_receipt.dart';
+import '../../object/printer.dart';
 import '../../translation/AppLocalizations.dart';
+import '../logout_dialog.dart';
 
 class CashDialog extends StatefulWidget {
   final bool isCashIn;
@@ -31,15 +34,17 @@ class CashDialog extends StatefulWidget {
 class _CashDialogState extends State<CashDialog> {
   final remarkController = TextEditingController();
   final amountController = TextEditingController();
+  List<Printer> printerList = [];
   List<AppSetting> appSettingList = [];
   String amount = '';
   bool _isLoad = false;
   bool _submitted = false;
-  bool isButtonDisabled = false;
+  bool isButtonDisabled = false, isLogOut = false;
 
   @override
   void initState() {
     super.initState();
+    readAllPrinters();
     readLastSettlement();
     getAllAppSetting();
   }
@@ -50,6 +55,10 @@ class _CashDialogState extends State<CashDialog> {
     super.dispose();
     remarkController.dispose();
     amountController.dispose();
+  }
+
+  readAllPrinters() async {
+    printerList = await PrintReceipt().readAllPrinters();
   }
 
   String? get errorRemark {
@@ -415,7 +424,7 @@ class _CashDialogState extends State<CashDialog> {
           cash_record_key: '',
           company_id: logInUser['company_id'].toString(),
           branch_id: branch_id.toString(),
-          remark: widget.isNewDay ? 'opening balance' : remarkController.text,
+          remark: widget.isNewDay ? 'Opening Balance' : remarkController.text,
           amount: amountController.text,
           payment_name: '',
           payment_type_id: '',
@@ -435,15 +444,18 @@ class _CashDialogState extends State<CashDialog> {
       //sync to cloud
       print('cash record value: ${_value.toString()}');
       await syncCashRecordToCloud(_value.toString());
-
-      closeDialog(context);
-      widget.callBack();
-      if(widget.isNewDay){
-        if(appSettingList.length > 0 && appSettingList[0].open_cash_drawer == 1){
-          ReceiptLayout().openCashDrawer();
-        }
+      if(this.isLogOut == true){
+        openLogOutDialog();
       } else {
-        ReceiptLayout().openCashDrawer();
+        closeDialog(context);
+        widget.callBack();
+        if(widget.isNewDay){
+          if(appSettingList.length > 0 && appSettingList[0].open_cash_drawer == 1){
+            await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+          }
+        } else {
+          await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+        }
       }
     }catch(e){
       print('cash record error: ${e}');
@@ -452,16 +464,45 @@ class _CashDialogState extends State<CashDialog> {
           msg: "Create cash record error: ${e}");
     }
   }
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
 
   syncCashRecordToCloud(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
     bool _hasInternetAccess = await Domain().isHostReachable();
     if(_hasInternetAccess){
+      print('value: ${login_value.toString()}');
       Map data = await Domain().syncLocalUpdateToCloud(
+        device_id: device_id.toString(),
+        value: login_value.toString(),
         cash_record_value: value
       );
       if (data['status'] == '1') {
         List responseJson = data['data'];
         await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+      } else if(data['status'] == '7'){
+        this.isLogOut = true;
       }
     }
   }

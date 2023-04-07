@@ -42,12 +42,7 @@ class _PosPinDialogState extends State<PosPinDialog> {
   _submit(BuildContext context) async  {
     setState(() => _submitted = true);
     if (errorPassword == null) {
-      // Disable the button after it has been pressed
-      setState(() {
-        isButtonDisabled = true;
-      });
       await readAdminData(adminPosPinController.text);
-      return;
     }
   }
 
@@ -74,6 +69,7 @@ class _PosPinDialogState extends State<PosPinDialog> {
                         return Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: TextField(
+                            obscureText: true,
                             keyboardType: TextInputType.number,
                             controller: adminPosPinController,
                             decoration: InputDecoration(
@@ -129,6 +125,10 @@ class _PosPinDialogState extends State<PosPinDialog> {
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
         if(userData.user_id == userObject['user_id']){
+          // Disable the button after it has been pressed
+          setState(() {
+            isButtonDisabled = true;
+          });
           closeDialog(context);
           widget.callBack();
         } else {

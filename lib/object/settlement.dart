@@ -1,3 +1,5 @@
+import 'package:pos_system/object/settlement_link_payment.dart';
+
 String? tableSettlement = 'tb_settlement';
 
 class SettlementFields {
@@ -64,6 +66,14 @@ class Settlement{
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  int? all_bill;
+  double? all_sales;
+  int? all_refund_bill;
+  double? all_refund_amount;
+  double? all_discount;
+  double? all_tax_amount;
+  int? all_cancellation;
+  List<SettlementLinkPayment>? settlementPayment;
 
   Settlement(
       {this.settlement_sqlite_id,
@@ -84,7 +94,16 @@ class Settlement{
         this.sync_status,
         this.created_at,
         this.updated_at,
-        this.soft_delete});
+        this.soft_delete,
+        this.all_bill,
+        this.all_sales,
+        this.all_refund_bill,
+        this.all_refund_amount,
+        this.all_discount,
+        this.all_tax_amount,
+        this.all_cancellation,
+        this.settlementPayment
+      });
 
   Settlement copy({
     int? settlement_sqlite_id,
@@ -148,6 +167,14 @@ class Settlement{
     created_at: json[SettlementFields.created_at] as String?,
     updated_at: json[SettlementFields.updated_at] as String?,
     soft_delete: json[SettlementFields.soft_delete] as String?,
+    all_bill: json['all_bill'] as int?,
+    all_sales: json['all_sales'] as double?,
+    all_refund_bill: json['all_refund_bill'] as int?,
+    all_refund_amount: json['all_refund_amount'] as double?,
+    all_discount: json['all_discount'] as double?,
+    all_tax_amount: json['all_tax_amount'] as double?,
+    all_cancellation: json['all_cancellation'] as int?
+
   );
 
   Map<String, Object?> toJson() => {

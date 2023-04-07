@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/categories.dart';
@@ -14,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/colorCode.dart';
+import '../cart/cart_dialog.dart';
 
 class FoodMenu extends StatefulWidget {
   final CartModel cartModel;
@@ -41,22 +41,22 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     readAllCategories();
-    // if (widget.cartModel.selectedOption == 'Dine in') {
-    //   WidgetsBinding.instance.addPostFrameCallback((_) {
-    //     widget.cartModel.initialLoad();
-    //     showDialog(
-    //         barrierDismissible: false,
-    //         context: context,
-    //         builder: (BuildContext context) {
-    //           return WillPopScope(
-    //               child: CartDialog(
-    //                 selectedTableList: widget.cartModel.selectedTable,
-    //               ),
-    //               onWillPop: () async => true);
-    //           //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
-    //         });
-    //   });
-    // }
+    if (widget.cartModel.selectedOption == 'Dine in') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.cartModel.initialLoad();
+        // showDialog(
+        //     barrierDismissible: false,
+        //     context: context,
+        //     builder: (BuildContext context) {
+        //       return WillPopScope(
+        //           child: CartDialog(
+        //             selectedTableList: widget.cartModel.selectedTable,
+        //           ),
+        //           onWillPop: () async => true);
+        //       //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
+        //     });
+      });
+    }
     // _tabController = TabController(length: 0, vsync: this);
   }
 
@@ -149,6 +149,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
         barrierDismissible: false,
         context: context,
         pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
           return null!;
         });
   }
@@ -219,6 +220,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
         List<Product> data = await PosDatabase.instance.readSpecificProduct(categoryList[i]);
         categoryTabContent.add(GridView.count(
             shrinkWrap: true,
+            padding: const EdgeInsets.all(10),
             crossAxisCount: 5,
             children: List.generate(data.length, (index) {
               return Card(
