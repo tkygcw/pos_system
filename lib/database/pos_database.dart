@@ -5657,11 +5657,11 @@ class PosDatabase {
   /*
   Soft-delete change table table use detail by table id
 */
-  Future<int> deleteTableUseDetailByTableId(TableUseDetail data) async {
+  Future<int> deleteTableUseDetailByKey(TableUseDetail data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableTableUseDetail SET sync_status = ?, status = ? WHERE table_sqlite_id = ?',
-        [data.sync_status, data.status, data.table_sqlite_id]);
+        'UPDATE $tableTableUseDetail SET sync_status = ?, status = ? WHERE table_use_detail_key = ?',
+        [data.sync_status, data.status, data.table_use_detail_key]);
   }
 
 /*

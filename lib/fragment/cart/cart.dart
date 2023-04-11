@@ -2384,10 +2384,11 @@ class _CartPageState extends State<CartPage> {
 
       for (int i = 0; i < cart.selectedTable.length; i++) {
         List<PosTable> result = await PosDatabase.instance.checkPosTableStatus(cart.selectedTable[i].table_sqlite_id!);
+        List<TableUseDetail> tableUseDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
         if (result[0].status == 0) {
           PosTable posTableData = PosTable(
               table_sqlite_id: cart.selectedTable[i].table_sqlite_id,
-              table_use_detail_key: tableUseDetailKey,
+              table_use_detail_key: tableUseDetail[0].table_use_detail_key,
               table_use_key: tableUseKey,
               status: 1,
               updated_at: dateTime);
@@ -2396,11 +2397,11 @@ class _CartPageState extends State<CartPage> {
             List<PosTable> posTable = await PosDatabase.instance.readSpecificTable(posTableData.table_sqlite_id.toString());
             if (posTable[0].sync_status == 2) {
               _value.add(jsonEncode(posTable[0]));
-              table_value = _value.toString();
             }
           }
         }
       }
+      table_value = _value.toString();
       if (this.timeOutDetected == false) {
         //syncUpdatedTableToCloud(_value.toString());
       }

@@ -136,10 +136,7 @@ class _FoodSettingState extends State<FoodSetting> {
                                       decoration: (allProduct[index].graphic_type == '2'
                                           ? BoxDecoration(
                                               image: DecorationImage(
-                                                  image: FileImage(File('data/user/0/com.example.pos_system/files/assets/' +
-                                                      companyID! +
-                                                      '/' +
-                                                      allProduct[index].image!)),
+                                                  image: FileImage(File(imagePath + '/' + allProduct[index].image!)),
                                                   fit: BoxFit.cover))
                                           : BoxDecoration(color: HexColor(allProduct[index].color!))),
                                       child: InkWell(

@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import '../database/domain.dart';
 import '../database/pos_database.dart';
+import '../fragment/logout_dialog.dart';
 import '../notifier/theme_color.dart';
 import '../object/cash_record.dart';
 import '../object/print_receipt.dart';
@@ -38,6 +39,7 @@ class PosPinPage extends StatefulWidget {
 class _PosPinPageState extends State<PosPinPage> {
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   List<Printer> printerList = [];
+  bool isLogOut = false;
 
   @override
   void initState() {
@@ -47,6 +49,28 @@ class _PosPinPageState extends State<PosPinPage> {
       DeviceOrientation.landscapeRight,
     ]);
     readAllPrinters();
+  }
+
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   @override
@@ -164,6 +188,10 @@ class _PosPinPageState extends State<PosPinPage> {
     print(user);
     if (user != '' && user != null) {
       if (await settlementCheck(user) == true) {
+        if(this.isLogOut == true){
+          openLogOutDialog();
+          return;
+        }
         print('pop a start cash dialog');
         Navigator.push(
           context,
@@ -176,6 +204,10 @@ class _PosPinPageState extends State<PosPinPage> {
           ),
         );
       } else {
+        if(this.isLogOut == true){
+          openLogOutDialog();
+          return;
+        }
         Navigator.push(
           context,
           PageTransition(
@@ -222,7 +254,7 @@ class _PosPinPageState extends State<PosPinPage> {
         isNewUser = false;
       } else {
         isNewUser = true;
-        createTransferOwnerRecord(fromUser: userObject['user_id'].toString(), toUser: user_id);
+        await createTransferOwnerRecord(fromUser: userObject['user_id'].toString(), toUser: user_id);
       }
     } else {
       isNewUser = true;
@@ -275,17 +307,26 @@ class _PosPinPageState extends State<PosPinPage> {
     TransferOwner createRecord = await PosDatabase.instance.insertSqliteTransferOwner(object);
     TransferOwner _keyInsert = await insertTransferOwnerKey(createRecord, dateTime);
     _value.add(jsonEncode(_keyInsert));
-    syncToCloud(_value.toString());
+    await syncToCloud(_value.toString());
   }
 
   syncToCloud(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? device_id = prefs.getInt('device_id');
+    final String? login_value = prefs.getString('login_value');
     //check is host reachable
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
-      Map data = await Domain().syncLocalUpdateToCloud(transfer_owner_value: value);
+      Map data = await Domain().syncLocalUpdateToCloud(
+          device_id: device_id.toString(),
+          value: login_value,
+          transfer_owner_value: value
+      );
       if (data['status'] == '1') {
         List responseJson = data['data'];
         await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
+      } else if (data['status'] == '7') {
+        this.isLogOut = true;
       }
       // Map response = await Domain().SyncTransferOwnerToCloud(value);
       // if (response['status'] == '1') {

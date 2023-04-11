@@ -59,7 +59,7 @@ class _HomePageState extends State<HomePage> {
     // TODO: implement initState
     super.initState();
     print('init called');
-    //startTimers(notificationModel);
+    startTimers(notificationModel);
     _items = _generateItems;
     currentPage = 'menu';
     getRoleName();
@@ -120,7 +120,7 @@ class _HomePageState extends State<HomePage> {
                     // maxWidth: 80,
                     isCollapsed: true,
                     items: _items,
-                    avatarImg: FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
+                    avatarImg: AssetImage("drawable/logo.png"),
                     title: widget.user!.name! +
                         "\n" +
                         (branchName ?? '') +

@@ -69,33 +69,8 @@ class _LoadingPageState extends State<LoadingPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _createProductImgFolder();
-    getAllUser();
-    getAllSettlement();
-    getBranchLinkUser();
-    getAllDiningOption();
-    getBranchLinkDiningOption();
-    getAllTax();
-    getBranchLinkTax();
-    getTaxLinkDining();
-    getAllPromotion();
-    getBranchLinkPromotion();
-    getAllCustomer();
-    getAllBill();
-    getPaymentLinkCompany();
-    getModifierGroup();
-    getModifierItem();
-    getBranchLinkModifier();
-    getSale();
-    getCashRecord();
-    clearCloudSyncRecord();
-    createReceiptLayout();
-    createDeviceLogin();
+    startLoad();
 
-    // Go to Page2 after 5s.
-    Timer(Duration(seconds: 5), () {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
-    });
   }
 
   @override
@@ -108,7 +83,36 @@ class _LoadingPageState extends State<LoadingPage> {
     });
   }
 
-  /*
+  startLoad() async {
+    await _createProductImgFolder();
+    await getAllUser();
+    await getAllSettlement();
+    await getBranchLinkUser();
+    await getAllDiningOption();
+    await getBranchLinkDiningOption();
+    await getAllTax();
+    await getBranchLinkTax();
+    await getTaxLinkDining();
+    await getAllPromotion();
+    await getBranchLinkPromotion();
+    await getAllCustomer();
+    await getAllBill();
+    await getPaymentLinkCompany();
+    await getModifierGroup();
+    await getModifierItem();
+    await getBranchLinkModifier();
+    await getSale();
+    await getCashRecord();
+    await clearCloudSyncRecord();
+    await createReceiptLayout();
+    await createDeviceLogin();
+    // Go to Page2 after 5s.
+    Timer(Duration(seconds: 1), () {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
+    });
+  }
+
+/*
   create device login
 */
   createDeviceLogin() async {
@@ -258,8 +262,10 @@ class _LoadingPageState extends State<LoadingPage> {
         PosTable table = await PosDatabase.instance.insertPosTable(PosTable.fromJson(responseJson[i]));
       }
       getAllCategory();
+      getAllTableUse();
     } else {
       getAllCategory();
+      getAllTableUse();
     }
   }
 
@@ -664,9 +670,9 @@ getBranchLinkProduct() async {
           updated_at: branchLinkProductData.updated_at,
           soft_delete: branchLinkProductData.soft_delete));
     }
-    getAllTableUse();
+    getAllOrderCache();
   } else {
-    getAllTableUse();
+    getAllOrderCache();
   }
 }
 
@@ -694,10 +700,6 @@ getAllTableUse() async {
         soft_delete: item.soft_delete,
       ));
     }
-    getAllOrderCache();
-    getAllTableUseDetail();
-  } else {
-    getAllOrderCache();
     getAllTableUseDetail();
   }
 }
