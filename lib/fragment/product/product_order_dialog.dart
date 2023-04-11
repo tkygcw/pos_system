@@ -37,7 +37,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   String finalPrice = '';
   int simpleIntInput = 1, pressed = 0;
   String modifierItemPrice = '';
-  List<VariantGroup>  variantGroup = [];
+  List<VariantGroup> variantGroup = [];
   List<ModifierGroup> modifierGroup = [];
   final remarkController = TextEditingController();
   final quantityController = TextEditingController();
@@ -75,192 +75,208 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     );
   }
 
-  Widget modifierGroupLayout(ModifierGroup modifierGroup, CartModel cart ) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(modifierGroup.name!,
-              style: TextStyle(fontWeight: FontWeight.bold)),
-          for (int i = 0; i < modifierGroup.modifierChild.length; i++)
-            CheckboxListTile(
-              title: Row(
-                children: [
-                  Text('${modifierGroup.modifierChild[i].name!}'),
-                  Text(' (+RM ${modifierGroup.modifierChild[i].price})', style: TextStyle(fontSize: 12),)
-                ],
-              ),
-              value: modifierGroup.modifierChild[i].isChecked,
-              onChanged: modifierGroup.modifierChild[i].mod_status! == '2' ? null : (isChecked) {
-                setState(() {
-                  modifierGroup.modifierChild[i].isChecked = isChecked!;
-                  print(
-                      'flavour ${modifierGroup.modifierChild[i].name},'
+  Widget modifierGroupLayout(ModifierGroup modifierGroup, CartModel cart) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(modifierGroup.name!, style: TextStyle(fontWeight: FontWeight.bold)),
+        for (int i = 0; i < modifierGroup.modifierChild.length; i++)
+          CheckboxListTile(
+            title: Row(
+              children: [
+                Text('${modifierGroup.modifierChild[i].name!}'),
+                Text(
+                  ' (+RM ${modifierGroup.modifierChild[i].price})',
+                  style: TextStyle(fontSize: 12),
+                )
+              ],
+            ),
+            value: modifierGroup.modifierChild[i].isChecked,
+            onChanged: modifierGroup.modifierChild[i].mod_status! == '2'
+                ? null
+                : (isChecked) {
+                    setState(() {
+                      modifierGroup.modifierChild[i].isChecked = isChecked!;
+                      print('flavour ${modifierGroup.modifierChild[i].name},'
                           'is check ${modifierGroup.modifierChild[i].isChecked}, ${modifierGroup.modifierChild[i].mod_status}');
-                });
-              },
-              controlAffinity: ListTileControlAffinity.trailing,
-            )
-        ],
-      );
-
+                    });
+                  },
+            controlAffinity: ListTileControlAffinity.trailing,
+          )
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
-        return LayoutBuilder(builder: (context,  constraints) {
-          if(constraints.maxWidth > 800){
-            return this.isLoaded ?
-            Center(
-              child: SingleChildScrollView(
-                child: AlertDialog(
-                  title: Row(
-                    children: [
-                      Container(
-                        constraints: BoxConstraints(
-                          maxWidth: 300
-                        ),
-                        child: Text(widget.productDetail!.name!,
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            )),
-                      ),
-                      Spacer(),
-                      Text("RM ${widget.productDetail!.price!}",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          )),
-                    ],
-                  ),
-                  content: Container(
-                    constraints: BoxConstraints(
-                      maxHeight: MediaQuery.of(context).size.height > 500 ? 500.0 : MediaQuery.of(context).size.height / 2.5,
-                    ),
-                    height: MediaQuery.of(context).size.height > 500 ? 500.0 : MediaQuery.of(context).size.height / 2.5, // Change as per your requirement
-                    width: MediaQuery.of(context).size.width / 3,
+        return LayoutBuilder(builder: (context, constraints) {
+          if (constraints.maxWidth > 800) {
+            return this.isLoaded
+                ? Center(
                     child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (int i = 0; i < variantGroup.length; i++)
-                            variantGroupLayout(variantGroup[i]),
-                          for (int j = 0; j < modifierGroup.length; j++)
-                            modifierGroupLayout(modifierGroup[j],cart),
-                          Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Quantity",
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              QuantityInput(
-                                  inputWidth: 273,
-                                  decoration: InputDecoration(
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: color.backgroundColor),
-                                    ),
-                                  ),
-                                  buttonColor: color.backgroundColor,
-                                  value: simpleIntInput,
-                                  onChanged: (value) => setState(() =>
-                                  simpleIntInput = int.parse(value.replaceAll(',', ''))))
-                            ],
+                      child: AlertDialog(
+                        title: Row(
+                          children: [
+                            Container(
+                              constraints: BoxConstraints(maxWidth: 300),
+                              child: Text(widget.productDetail!.name!,
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  )),
+                            ),
+                            Spacer(),
+                            Text("RM ${widget.productDetail!.price!}",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                )),
+                          ],
+                        ),
+                        content: Container(
+                          constraints: BoxConstraints(
+                            maxHeight: MediaQuery.of(context).size.height > 500 ? 500.0 : MediaQuery.of(context).size.height / 2.5,
                           ),
-                          Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
+                          height: MediaQuery.of(context).size.height > 500
+                              ? 500.0
+                              : MediaQuery.of(context).size.height / 2.5, // Change as per your requirement
+                          width: MediaQuery.of(context).size.width / 3,
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                for (int i = 0; i < variantGroup.length; i++) variantGroupLayout(variantGroup[i]),
+                                for (int j = 0; j < modifierGroup.length; j++) modifierGroupLayout(modifierGroup[j], cart),
+                                Column(
                                   children: [
-                                    Text(
-                                      "Remark",
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Quantity",
+                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
                                     ),
+                                    QuantityInput(
+                                        inputWidth: 273,
+                                        decoration: InputDecoration(
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(color: color.backgroundColor),
+                                          ),
+                                        ),
+                                        buttonColor: color.backgroundColor,
+                                        value: simpleIntInput,
+                                        onChanged: (value) => setState(() => simpleIntInput = int.parse(value.replaceAll(',', ''))))
                                   ],
                                 ),
+                                Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Remark",
+                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    TextField(
+                                      controller: remarkController,
+                                      decoration: InputDecoration(
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: color.backgroundColor),
+                                        ),
+                                      ),
+                                      keyboardType: TextInputType.multiline,
+                                      maxLines: null,
+                                    )
+                                  ],
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                        actions: <Widget>[
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width / 4,
+                            height: MediaQuery.of(context).size.height / 12,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: color.backgroundColor,
                               ),
-                              TextField(
-                                controller: remarkController,
-                                decoration: InputDecoration(
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide:
-                                    BorderSide(color: color.backgroundColor),
-                                  ),
-                                ),
-                                keyboardType: TextInputType.multiline,
-                                maxLines: null,
-                              )
-                            ],
-                          )
+                              child: Text(
+                                'Close',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: isButtonDisabled
+                                  ? null
+                                  : () {
+                                      Navigator.of(context).pop();
+
+                                      // Disable the button after it has been pressed
+                                      setState(() {
+                                        isButtonDisabled = true;
+                                      });
+                                    },
+                            ),
+                          ),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width / 4,
+                            height: MediaQuery.of(context).size.height / 12,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: color.buttonColor,
+                              ),
+                              child: Text(
+                                'ADD',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: isButtonDisabled
+                                  ? null
+                                  : () async {
+                                      await getBranchLinkProductItem(widget.productDetail!);
+                                      if (hasStock) {
+                                        if (cart.selectedOption == 'Dine in') {
+                                          if (cart.selectedTable.isNotEmpty) {
+                                            // Disable the button after it has been pressed
+                                            setState(() {
+                                              isButtonDisabled = true;
+                                            });
+                                            await addToCart(cart);
+                                            Navigator.of(context).pop();
+                                          } else {
+                                            openChooseTableDialog(cart);
+                                          }
+                                        } else {
+                                          // Disable the button after it has been pressed
+                                          setState(() {
+                                            isButtonDisabled = true;
+                                          });
+                                          await addToCart(cart);
+                                          Navigator.of(context).pop();
+                                        }
+                                      } else {
+                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Product variant sold out!");
+                                      }
+                                    },
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                  actions: <Widget>[
-                    TextButton(
-                      child: Text(
-                          '${AppLocalizations.of(context)?.translate('close')}'),
-                      onPressed: isButtonDisabled ? null : () {
-                        Navigator.of(context).pop();
-
-                        // Disable the button after it has been pressed
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                      },
-                    ),
-                    TextButton(
-                      child: Text(
-                          '${AppLocalizations.of(context)?.translate('add')}'),
-                      onPressed: isButtonDisabled ? null : () async {
-                        await getBranchLinkProductItem(widget.productDetail!);
-                        if(hasStock){
-                          if(cart.selectedOption == 'Dine in'){
-                            if(cart.selectedTable.isNotEmpty){
-                              // Disable the button after it has been pressed
-                              setState(() {
-                                isButtonDisabled = true;
-                              });
-                              await addToCart(cart);
-                              Navigator.of(context).pop();
-                            } else {
-                              openChooseTableDialog(cart);
-                            }
-                          } else {
-                            // Disable the button after it has been pressed
-                            setState(() {
-                              isButtonDisabled = true;
-                            });
-                            await addToCart(cart);
-                            Navigator.of(context).pop();
-                          }
-                        } else {
-                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Product variant sold out!");
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ) : CustomProgressBar();
-          }else {
+                  )
+                : CustomProgressBar();
+          } else {
             ///mobile layout
             return Center(
               child: SingleChildScrollView(
@@ -269,9 +285,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                   title: Row(
                     children: [
                       Container(
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width/2
-                        ),
+                        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
                         child: Text(widget.productDetail!.name!,
                             style: TextStyle(
                               fontSize: 20,
@@ -286,124 +300,117 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                           )),
                     ],
                   ),
-                  content: this.isLoaded ?
-                  Container(
-                    height: MediaQuery.of(context).size.height / 2.5, // Change as per your requirement
-                    width: MediaQuery.of(context).size.width/1.5,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          for (int i = 0; i < variantGroup.length; i++)
-                            variantGroupLayout(variantGroup[i]),
-                          for (int j = 0; j < modifierGroup.length; j++)
-                            modifierGroupLayout(modifierGroup[j],cart),
-                          Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
+                  content: this.isLoaded
+                      ? Container(
+                          height: MediaQuery.of(context).size.height / 2.5, // Change as per your requirement
+                          width: MediaQuery.of(context).size.width / 1.5,
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                for (int i = 0; i < variantGroup.length; i++) variantGroupLayout(variantGroup[i]),
+                                for (int j = 0; j < modifierGroup.length; j++) modifierGroupLayout(modifierGroup[j], cart),
+                                Column(
                                   children: [
-                                    Text(
-                                      "Quantity",
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Quantity",
+                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
                                     ),
+                                    QuantityInput(
+                                        inputWidth: 273,
+                                        decoration: InputDecoration(
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(color: color.backgroundColor),
+                                          ),
+                                        ),
+                                        buttonColor: color.backgroundColor,
+                                        value: simpleIntInput,
+                                        onChanged: (value) => setState(() => simpleIntInput = int.parse(value.replaceAll(',', ''))))
                                   ],
                                 ),
-                              ),
-                              QuantityInput(
-                                  inputWidth: 273,
-                                  decoration: InputDecoration(
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: color.backgroundColor),
+                                Column(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Remark",
+                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  buttonColor: color.backgroundColor,
-                                  value: simpleIntInput,
-                                  onChanged: (value) => setState(() =>
-                                  simpleIntInput =
-                                      int.parse(value.replaceAll(',', ''))))
-                            ],
+                                    TextField(
+                                      controller: remarkController,
+                                      decoration: InputDecoration(
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: color.backgroundColor),
+                                        ),
+                                      ),
+                                      keyboardType: TextInputType.multiline,
+                                      maxLines: null,
+                                    )
+                                  ],
+                                )
+                              ],
+                            ),
                           ),
-                          Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Remark",
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              TextField(
-                                controller: remarkController,
-                                decoration: InputDecoration(
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide:
-                                    BorderSide(color: color.backgroundColor),
-                                  ),
-                                ),
-                                keyboardType: TextInputType.multiline,
-                                maxLines: null,
-                              )
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                  ) : CustomProgressBar(),
+                        )
+                      : CustomProgressBar(),
                   actions: <Widget>[
                     TextButton(
-                      child: Text(
-                          '${AppLocalizations.of(context)?.translate('close')}'),
-                      onPressed: isButtonDisabled ? null : () {
-                        // Disable the button after it has been pressed
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                    TextButton(
-                      child: Text(
-                          '${AppLocalizations.of(context)?.translate('add')}'),
-                      onPressed: isButtonDisabled ? null : () async {
-                        await getBranchLinkProductItem(widget.productDetail!);
-                        if(hasStock == true){
-                          if(cart.selectedOption == 'Dine in'){
-                            if(cart.selectedTable.isNotEmpty){
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: isButtonDisabled
+                          ? null
+                          : () {
                               // Disable the button after it has been pressed
                               setState(() {
                                 isButtonDisabled = true;
                               });
-                              await addToCart(cart);
                               Navigator.of(context).pop();
-                            } else {
-                              openChooseTableDialog(cart);
-                            }
-                          } else {
-                            // Disable the button after it has been pressed
-                            setState(() {
-                              isButtonDisabled = true;
-                            });
-                            await addToCart(cart);
-                            Navigator.of(context).pop();
-                          }
-                        } else {
-                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Product variant sold out!");
-                        }
-                      },
+                            },
+                    ),
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                      onPressed: isButtonDisabled
+                          ? null
+                          : () async {
+                              await getBranchLinkProductItem(widget.productDetail!);
+                              if (hasStock == true) {
+                                if (cart.selectedOption == 'Dine in') {
+                                  if (cart.selectedTable.isNotEmpty) {
+                                    // Disable the button after it has been pressed
+                                    setState(() {
+                                      isButtonDisabled = true;
+                                    });
+                                    await addToCart(cart);
+                                    Navigator.of(context).pop();
+                                  } else {
+                                    openChooseTableDialog(cart);
+                                  }
+                                } else {
+                                  // Disable the button after it has been pressed
+                                  setState(() {
+                                    isButtonDisabled = true;
+                                  });
+                                  await addToCart(cart);
+                                  Navigator.of(context).pop();
+                                }
+                              } else {
+                                Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Product variant sold out!");
+                              }
+                            },
                     ),
                   ],
                 ),
@@ -420,10 +427,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     List<VariantGroup> data = await PosDatabase.instance.readProductVariantGroup(productID);
     for (int i = 0; i < data.length; i++) {
       variantGroup.add(VariantGroup(
-          variant_group_sqlite_id:  data[i].variant_group_sqlite_id,
-          variant_group_id: data[i].variant_group_id,
-          child: [],
-          name: data[i].name));
+          variant_group_sqlite_id: data[i].variant_group_sqlite_id, variant_group_id: data[i].variant_group_id, child: [], name: data[i].name));
 
       //loop variant child based on variant group id
       List<VariantItem> itemData = await PosDatabase.instance.readProductVariantItem(data[i].variant_group_sqlite_id!);
@@ -450,10 +454,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     List<ModifierGroup> data = await PosDatabase.instance.readProductModifierGroupName(productID);
 
     for (int i = 0; i < data.length; i++) {
-      modifierGroup.add(ModifierGroup(
-          modifierChild: [],
-          name: data[i].name,
-          mod_group_id: data[i].mod_group_id));
+      modifierGroup.add(ModifierGroup(modifierChild: [], name: data[i].name, mod_group_id: data[i].mod_group_id));
 
       List<ModifierItem> itemData = await PosDatabase.instance.readProductModifierItem(data[i].mod_group_id!);
       List<ModifierItem> modItemChild = [];
@@ -513,7 +514,8 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
           }
         }
       } else {
-        List<BranchLinkProduct> productVariant = await PosDatabase.instance.checkProductVariant(await getProductVariant(productId!), productId.toString());
+        List<BranchLinkProduct> productVariant =
+            await PosDatabase.instance.checkProductVariant(await getProductVariant(productId!), productId.toString());
         basePrice = productVariant[0].price!;
         finalPrice = basePrice;
 
@@ -539,28 +541,30 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
 
   getBranchLinkProductItem(Product product) async {
     branchLinkProduct_id = '';
-    try{
+    try {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      if(product.has_variant == 0){
-        List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
+      if (product.has_variant == 0) {
+        List<BranchLinkProduct> data1 =
+            await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
         branchLinkProduct_id = data1[0].branch_link_product_sqlite_id.toString();
-        if(int.parse(data1[0].stock_quantity!) > 0 ){
+        if (int.parse(data1[0].stock_quantity!) > 0) {
           hasStock = true;
         }
       } else {
-        List<BranchLinkProduct> data = await PosDatabase.instance.checkProductVariant(await getProductVariant(product.product_sqlite_id!), product.product_sqlite_id.toString());
+        List<BranchLinkProduct> data =
+            await PosDatabase.instance.checkProductVariant(await getProductVariant(product.product_sqlite_id!), product.product_sqlite_id.toString());
         branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
         print('branch link product id: ${branchLinkProduct_id}');
         print('stock: ${data[0].stock_quantity}');
-        if(data[0].stock_type == '2'){
-          if(int.parse(data[0].stock_quantity!) > 0  && simpleIntInput < int.parse(data[0].stock_quantity!)){
+        if (data[0].stock_type == '2') {
+          if (int.parse(data[0].stock_quantity!) > 0 && simpleIntInput < int.parse(data[0].stock_quantity!)) {
             hasStock = true;
           } else {
             hasStock = false;
           }
         } else {
-          if(int.parse(data[0].daily_limit_amount!) > 0  && simpleIntInput <= int.parse(data[0].daily_limit_amount!)){
+          if (int.parse(data[0].daily_limit_amount!) > 0 && simpleIntInput <= int.parse(data[0].daily_limit_amount!)) {
             hasStock = true;
           } else {
             hasStock = false;
@@ -568,10 +572,9 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
         }
       }
       return branchLinkProduct_id;
-    }catch(e){
+    } catch (e) {
       Fluttertoast.showToast(msg: 'Make sure stock is restock');
     }
-
   }
 
   getProductVariant(int product_id) async {
@@ -589,26 +592,26 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
             if (variant == '') {
               variant = group.child[i].name!.trim();
               print('variant: ${variant}abc');
-              if(variantGroup.length == 1){
+              if (variantGroup.length == 1) {
                 List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant);
                 productVariant = data[0].product_variant_sqlite_id.toString();
                 break;
               }
-            } else if(variant2 == '') {
+            } else if (variant2 == '') {
               print('variant 2 called');
               variant2 = variant + " | " + group.child[i].name!;
               print('variant2: ${variant2}');
-              if(variantGroup.length == 2){
+              if (variantGroup.length == 2) {
                 List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant2);
                 productVariant = data[0].product_variant_sqlite_id.toString();
                 break;
               }
-            } else if (variant3 == ''){
+            } else if (variant3 == '') {
               print('variant2 in variant3: ${variant2}');
               variant3 = variant2 + " | " + group.child[i].name!;
               print('variant3: ${variant3}');
               print('product id: ${product_id}');
-              if(variantGroup.length == 3){
+              if (variantGroup.length == 3) {
                 List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant3);
                 productVariant = data[0].product_variant_sqlite_id.toString();
                 break;
@@ -675,8 +678,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
         null,
         Colors.black,
         category_sqlite_id: widget.productDetail!.category_sqlite_id,
-        base_price: basePrice
-    );
+        base_price: basePrice);
     print('base price: ${value.base_price}');
     print('price: ${value.price}');
     cart.addItem(value);

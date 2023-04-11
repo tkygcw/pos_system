@@ -43,6 +43,7 @@ import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/utils/notification_plugin.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -119,14 +120,13 @@ class _LoadingPageState extends State<LoadingPage> {
     var value = md5.convert(utf8.encode(dateTime)).toString();
 
     bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess){
+    if (_hasInternetAccess) {
       Map response = await Domain().insertDeviceLogin(device_id.toString(), value);
-      if(response['status'] == '1'){
+      if (response['status'] == '1') {
         await prefs.setString('login_value', value);
       }
     }
   }
-
 
   createReceiptLayout() async {
     try {

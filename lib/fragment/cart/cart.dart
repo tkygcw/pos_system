@@ -228,7 +228,7 @@ class _CartPageState extends State<CartPage> {
                               shrinkWrap: true,
                               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 3,
-                                childAspectRatio: 1.5,
+                                childAspectRatio: 1.8,
                               ),
                               children: List.generate(diningList.length, (index) {
                                 return InkWell(

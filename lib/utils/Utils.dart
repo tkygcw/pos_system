@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../translation/AppLocalizations.dart';
 
@@ -35,6 +36,14 @@ class Utils {
     }
   }
 
+  static String convertTo2Dec(value) {
+    try {
+      return double.parse(value).toStringAsFixed(2);
+    } catch ($e) {
+      return '0.00';
+    }
+  }
+
   static MaterialColor white = const MaterialColor(
     0xFFFFFFFF,
     const <int, Color>{
@@ -50,4 +59,14 @@ class Utils {
       900: const Color(0xFFFFFFFF),
     },
   );
+
+  static formatDate(date) {
+    try {
+      final dateFormat = DateFormat("dd/MM/yy hh:mm a");
+      DateTime todayDate = DateTime.parse(date);
+      return dateFormat.format(todayDate).toString();
+    } catch (e) {
+      return '';
+    }
+  }
 }

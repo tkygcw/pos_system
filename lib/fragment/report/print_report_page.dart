@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/object/pdf_format.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
@@ -102,14 +103,16 @@ class _PrintReportPageState extends State<PrintReportPage> {
   }
 
   generateUrl() async {
-    final logoFile = FileImage(File('/data/data/com.example.pos_system/files/assets/img/logo1.jpg'));
-    final logoImage = await flutterImageProvider(logoFile);
+    // final logoFile = FileImage(File('/data/data/com.example.pos_system/files/assets/img/logo1.jpg'));
+    // final logoFile = FileImage(File('drawable/logo.png'));
+    // final logoImage = await flutterImageProvider(logoFile);
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
     posTableList = widget.tableList!;
     for(int i = 0; i < posTableList.length; i++){
-      var url = 'https://pos-qr.lkmng.com/${branchObject['branch_url']}/${posTableList[i].table_url}';
+      var url = '${Domain.domain}${branchObject['branch_url']}/${posTableList[i].table_url}';
+      print(url);
       posTableList[i].qrOrderUrl = url;
     }
     //widget.callBack!();

@@ -12,10 +12,9 @@ import 'package:pos_system/fragment/test_dual_screen/test_display.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
-import 'package:pos_system/object/cart_product.dart';
+import 'package:pos_system/object/notification.dart';
 import 'package:pos_system/object/qr_order.dart';
 import 'package:pos_system/object/sync_record.dart';
-import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/translation/appLanguage.dart';
@@ -23,12 +22,12 @@ import 'package:presentation_displays/display.dart';
 import 'package:presentation_displays/displays_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'database/domain.dart';
 import 'notifier/cart_notifier.dart';
 import 'notifier/connectivity_change_notifier.dart';
 import 'notifier/printer_notifier.dart';
 import 'notifier/theme_color.dart';
 import 'page/loading.dart';
+import 'utils/notification_plugin.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
@@ -39,44 +38,39 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     default:
       return MaterialPageRoute(
           builder: (_) => Scaffold(
-            body: Center(
-                child: Text('No route defined for ${settings.name}')),
-          ));
+                body: Center(child: Text('No route defined for ${settings.name}')),
+              ));
   }
 }
 
 void showFlutterNotification(RemoteMessage message) {
-  print('notification received!!!');
   RemoteNotification? notification = message.notification;
   AndroidNotification? android = message.notification?.android;
   if (notification != null && android != null) {
     print('title: ${message.data['type']}');
-    if(message.data['type'] == '0'){
-      flutterLocalNotificationsPlugin.show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
-          NotificationDetails(
-            android: AndroidNotificationDetails(
-              channel.id,
-              channel.name,
-              channelDescription: channel.description,
-              color: Colors.red,
-              // TODO add a proper drawable resource to android, for now using
-              //      one that already exists in example app.
-              icon: "@mipmap/ic_launcher",
-            ),
-          ));
+    if (message.data['type'] == '0') {
+      // flutterLocalNotificationsPlugin.show(
+      //     notification.hashCode,
+      //     notification.title,
+      //     notification.body,
+      //     NotificationDetails(
+      //       android: AndroidNotificationDetails(
+      //         channel.id,
+      //         channel.name,
+      //         channelDescription: channel.description,
+      //         color: Colors.red,
+      //         // TODO add a proper drawable resource to android, for now using
+      //         //      one that already exists in example app.
+      //         icon: "@mipmap/ic_launcher",
+      //       ),
+      //     ));
       QrOrder().getQrOrder();
       hasNotification = true;
       notificationModel.setNotification(hasNotification);
     } else {
       hasNotification = true;
       notificationModel.setNotification(hasNotification);
-      Fluttertoast.showToast(
-          backgroundColor: Colors.green,
-          msg:
-          "Cloud db change! sync from cloud");
+      Fluttertoast.showToast(backgroundColor: Colors.green, msg: "Cloud db change! sync from cloud");
       print('Notification not show, but received: ${notification.title}');
       SyncRecord().syncFromCloud();
     }
@@ -101,59 +95,23 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(channel);
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
 
   FirebaseMessaging.onMessage.listen(showFlutterNotification);
-
-  // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-  //   RemoteNotification? notification = message.notification;
-  //   AndroidNotification? android = message.notification?.android;
-  //   if (notification != null && android != null) {
-  //     print('title: ${message.data['type']}');
-  //     if (message.data['type'] == '0') {
-  //       flutterLocalNotificationsPlugin.show(
-  //           notification.hashCode,
-  //           notification.title,
-  //           notification.body,
-  //           NotificationDetails(
-  //             android: AndroidNotificationDetails(
-  //               channel.id,
-  //               channel.name,
-  //               channelDescription: channel.description,
-  //               color: Colors.red,
-  //               // TODO add a proper drawable resource to android, for now using
-  //               //      one that already exists in example app.
-  //               icon: "@mipmap/ic_launcher",
-  //             ),
-  //           ));
-  //       QrOrder().getQrOrder();
-  //       hasNotification = true;
-  //       notificationModel.setNotification(hasNotification);
-  //     } else {
-  //       hasNotification = true;
-  //       Fluttertoast.showToast(
-  //           backgroundColor: Colors.green,
-  //           msg:
-  //           "Cloud db change! sync from cloud");
-  //       print('Notification not show, but received: ${notification.title}');
-  //       SyncRecord().syncFromCloud();
-  //     }
-  //   }
-  // });
 
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
     // Resume the app and call onResume
     onResume(message);
   });
 
+  setupNotificationChannel();
 
   //device detect
   final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
   if (screenWidth < 500) {
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown
-    ]);
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   } else {
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
@@ -163,7 +121,6 @@ Future<void> main() async {
 
   //sync
   //startTimers();
-
 
   //second screen test(init second screen)
   //initSecondScreen();
@@ -175,12 +132,18 @@ Future<void> main() async {
   AppLanguage appLanguage = AppLanguage();
   //create default app color
   await appLanguage.fetchLocale();
-  runApp(
-      ChangeNotifierProvider.value(
-        value: notificationModel,
-        child: MyApp(appLanguage: appLanguage),
-      )
-  );
+  runApp(ChangeNotifierProvider.value(
+    value: notificationModel,
+    child: MyApp(appLanguage: appLanguage),
+  ));
+}
+
+setupNotificationChannel() {
+  List<CustomNotificationChannel> channels = [
+    CustomNotificationChannel(
+        channelId: 2, channelName: 'Order', title: 'Order', message: 'New Order Received!', description: 'New Order Received!', sound: 'notification')
+  ];
+  NotificationPlugin(channels);
 }
 
 final NotificationModel notificationModel = NotificationModel();
@@ -240,7 +203,6 @@ class MyApp extends StatelessWidget {
       statusBarColor: Colors.transparent,
     ));
 
-
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AppLanguage>(
@@ -255,7 +217,7 @@ class MyApp extends StatelessWidget {
           create: (_) => ThemeColor(),
         ),
         ChangeNotifierProvider(
-            create: (_) => CartModel(),
+          create: (_) => CartModel(),
         ),
         ChangeNotifierProvider(
           create: (_) => PrinterModel(),
@@ -307,10 +269,7 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
               )),
-          routes: {
-            '/loading': (context) => LoadingPage(),
-            '/': (context) => LoginPage()
-          },
+          routes: {'/loading': (context) => LoadingPage(), '/': (context) => LoginPage()},
         );
       }),
     );
@@ -323,7 +282,7 @@ initSecondScreen() async {
   final values = await displayManager.getDisplays();
   displays.clear();
   displays.addAll(values!);
-  if(displays.length > 1){
+  if (displays.length > 1) {
     await displayManager.showSecondaryDisplay(displayId: 1, routerName: "/init");
   }
   print('display list = ${displays.length}');

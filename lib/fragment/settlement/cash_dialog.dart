@@ -25,6 +25,7 @@ class CashDialog extends StatefulWidget {
   final bool isCashOut;
   final bool isNewDay;
   final Function() callBack;
+
   const CashDialog({Key? key, required this.isCashIn, required this.callBack, required this.isCashOut, required this.isNewDay}) : super(key: key);
 
   @override
@@ -87,7 +88,7 @@ class _CashDialogState extends State<CashDialog> {
       if (widget.isCashIn) {
         print('cash in');
         createCashRecord(1, connectivity);
-      } else if(widget.isCashOut) {
+      } else if (widget.isCashOut) {
         print('cash-out');
         createCashRecord(2, connectivity);
       } else {
@@ -108,9 +109,13 @@ class _CashDialogState extends State<CashDialog> {
           child: SingleChildScrollView(
             physics: NeverScrollableScrollPhysics(),
             child: LayoutBuilder(builder: (context, constraints) {
-              if(constraints.maxWidth > 800){
+              if (constraints.maxWidth > 800) {
                 return AlertDialog(
-                  title: widget.isNewDay ? Text('Opening Balance') : widget.isCashIn ? Text('Cash-in') :  Text('Cash-out'),
+                  title: widget.isNewDay
+                      ? Text('Opening Balance')
+                      : widget.isCashIn
+                          ? Text('Cash-in')
+                          : Text('Cash-out'),
                   content: Container(
                     height: widget.isNewDay ? MediaQuery.of(context).size.height / 6 : MediaQuery.of(context).size.height / 4,
                     width: widget.isNewDay ? MediaQuery.of(context).size.height / 2 : MediaQuery.of(context).size.width / 4,
@@ -122,7 +127,7 @@ class _CashDialogState extends State<CashDialog> {
                             child: Visibility(
                               visible: widget.isNewDay ? false : true,
                               child: ValueListenableBuilder(
-                                // Note: pass _controller to the animation argument
+                                  // Note: pass _controller to the animation argument
                                   valueListenable: remarkController,
                                   builder: (context, TextEditingValue value, __) {
                                     return SizedBox(
@@ -134,17 +139,14 @@ class _CashDialogState extends State<CashDialog> {
                                           decoration: InputDecoration(
                                             errorText: _submitted
                                                 ? errorRemark == null
-                                                ? errorRemark
-                                                : AppLocalizations.of(context)
-                                                ?.translate(errorRemark!)
+                                                    ? errorRemark
+                                                    : AppLocalizations.of(context)?.translate(errorRemark!)
                                                 : null,
                                             border: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: color.backgroundColor),
+                                              borderSide: BorderSide(color: color.backgroundColor),
                                             ),
                                             focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: color.backgroundColor),
+                                              borderSide: BorderSide(color: color.backgroundColor),
                                             ),
                                             labelText: 'Remark',
                                           ),
@@ -156,7 +158,7 @@ class _CashDialogState extends State<CashDialog> {
                           ),
                           Container(
                             child: ValueListenableBuilder(
-                              // Note: pass _controller to the animation argument
+                                // Note: pass _controller to the animation argument
                                 valueListenable: amountController,
                                 builder: (context, TextEditingValue value, __) {
                                   return SizedBox(
@@ -164,23 +166,22 @@ class _CashDialogState extends State<CashDialog> {
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: TextField(
-                                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                                        ],
                                         keyboardType: TextInputType.number,
                                         controller: amountController,
                                         decoration: InputDecoration(
                                           errorText: _submitted
                                               ? errorAmount == null
-                                              ? errorAmount
-                                              : AppLocalizations.of(context)
-                                              ?.translate(errorAmount!)
+                                                  ? errorAmount
+                                                  : AppLocalizations.of(context)?.translate(errorAmount!)
                                               : null,
                                           border: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: color.backgroundColor),
+                                            borderSide: BorderSide(color: color.backgroundColor),
                                           ),
                                           focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: color.backgroundColor),
+                                            borderSide: BorderSide(color: color.backgroundColor),
                                           ),
                                           labelText: 'Amount',
                                         ),
@@ -189,51 +190,57 @@ class _CashDialogState extends State<CashDialog> {
                                   );
                                 }),
                           ),
-                          widget.isNewDay && _isLoad && this.amount != '' ?
-                          Container(
-                              margin: EdgeInsets.only(left: 10),
-                              alignment: Alignment.topLeft,
-                              height: MediaQuery.of(context).size.height / 18,
-                              child: Row(
-                                children: [
-                                  Container(
-                                      child: Text('Last settlement opening balance: ${amount}')
-                                  ),
-                                  Spacer(),
-                                  Container(
-                                      child: ElevatedButton(
+                          widget.isNewDay && _isLoad && this.amount != ''
+                              ? Container(
+                                  margin: EdgeInsets.only(left: 10),
+                                  alignment: Alignment.topLeft,
+                                  height: MediaQuery.of(context).size.height / 18,
+                                  child: Row(
+                                    children: [
+                                      Container(child: Text('Last settlement opening balance: ${amount}')),
+                                      Spacer(),
+                                      Container(
+                                          child: ElevatedButton(
                                         child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                                        onPressed: (){
+                                        onPressed: () {
                                           amountController.text = amount;
                                         },
                                         style: ElevatedButton.styleFrom(primary: color.backgroundColor),
-                                      )
-                                  )
-                                ],
-                              )
-                          ) :
-                          Container()
+                                      ))
+                                    ],
+                                  ))
+                              : Container()
                         ],
                       ),
                     ),
                   ),
                   actions: [
-                    widget.isNewDay ? Container() :
-                    TextButton(
-                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                      onPressed: isButtonDisabled ? null : (){
-                        // Disable the button after it has been pressed
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                        Navigator.of(context).pop();
-                      },
-                    ),
+                    widget.isNewDay
+                        ? Container()
+                        : TextButton(
+                            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                            onPressed: isButtonDisabled
+                                ? null
+                                : () {
+                                    // Disable the button after it has been pressed
+                                    setState(() {
+                                      isButtonDisabled = true;
+                                    });
+                                    Navigator.of(context).pop();
+                                  },
+                          ),
                     TextButton(
                       child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                      onPressed: isButtonDisabled ? null : (){
-                        _submit(context, connectivity);
-                      },
+                      onPressed: isButtonDisabled
+                          ? null
+                          : () {
+                              try {
+                                double.parse(amountController.text);
+                                _submit(context, connectivity);
+                              } catch (e) {
+                                Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Invalid Input!");
+                              }
+                            },
                     )
                   ],
                 );
@@ -241,7 +248,11 @@ class _CashDialogState extends State<CashDialog> {
                 ///mobile layout
                 return SingleChildScrollView(
                   child: AlertDialog(
-                    title: widget.isNewDay ? Text('Opening Balance') : widget.isCashIn ? Text('Cash-in') :  Text('Cash-out'),
+                    title: widget.isNewDay
+                        ? Text('Opening Balance')
+                        : widget.isCashIn
+                            ? Text('Cash-in')
+                            : Text('Cash-out'),
                     content: Container(
                       height: widget.isNewDay ? MediaQuery.of(context).size.height / 3 : 150,
                       width: widget.isNewDay ? MediaQuery.of(context).size.height / 1 : MediaQuery.of(context).size.width / 2,
@@ -254,7 +265,7 @@ class _CashDialogState extends State<CashDialog> {
                               child: Visibility(
                                 visible: widget.isNewDay ? false : true,
                                 child: ValueListenableBuilder(
-                                  // Note: pass _controller to the animation argument
+                                    // Note: pass _controller to the animation argument
                                     valueListenable: remarkController,
                                     builder: (context, TextEditingValue value, __) {
                                       return Padding(
@@ -265,17 +276,14 @@ class _CashDialogState extends State<CashDialog> {
                                           decoration: InputDecoration(
                                             errorText: _submitted
                                                 ? errorRemark == null
-                                                ? errorRemark
-                                                : AppLocalizations.of(context)
-                                                ?.translate(errorRemark!)
+                                                    ? errorRemark
+                                                    : AppLocalizations.of(context)?.translate(errorRemark!)
                                                 : null,
                                             border: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: color.backgroundColor),
+                                              borderSide: BorderSide(color: color.backgroundColor),
                                             ),
                                             focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: color.backgroundColor),
+                                              borderSide: BorderSide(color: color.backgroundColor),
                                             ),
                                             labelText: 'Remark',
                                           ),
@@ -286,7 +294,7 @@ class _CashDialogState extends State<CashDialog> {
                             ),
                             Container(
                               child: ValueListenableBuilder(
-                                // Note: pass _controller to the animation argument
+                                  // Note: pass _controller to the animation argument
                                   valueListenable: amountController,
                                   builder: (context, TextEditingValue value, __) {
                                     return Padding(
@@ -298,17 +306,14 @@ class _CashDialogState extends State<CashDialog> {
                                         decoration: InputDecoration(
                                           errorText: _submitted
                                               ? errorAmount == null
-                                              ? errorAmount
-                                              : AppLocalizations.of(context)
-                                              ?.translate(errorAmount!)
+                                                  ? errorAmount
+                                                  : AppLocalizations.of(context)?.translate(errorAmount!)
                                               : null,
                                           border: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: color.backgroundColor),
+                                            borderSide: BorderSide(color: color.backgroundColor),
                                           ),
                                           focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: color.backgroundColor),
+                                            borderSide: BorderSide(color: color.backgroundColor),
                                           ),
                                           labelText: 'Amount',
                                         ),
@@ -324,51 +329,51 @@ class _CashDialogState extends State<CashDialog> {
                                   height: MediaQuery.of(context).size.height / 9,
                                   child: Row(
                                     children: [
-                                      Container(
-                                          child: Text('Last settlement opening balance: ${amount}')
-                                      ),
+                                      Container(child: Text('Last settlement opening balance: ${amount}')),
                                       Spacer(),
                                       Container(
                                           child: ElevatedButton(
-                                            child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                                            onPressed: (){
-                                              amountController.text = amount;
-                                            },
-                                            style: ElevatedButton.styleFrom(primary: color.backgroundColor),
-                                          )
-                                      )
+                                        child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                                        onPressed: () {
+                                          amountController.text = amount;
+                                        },
+                                        style: ElevatedButton.styleFrom(primary: color.backgroundColor),
+                                      ))
                                     ],
-                                  )
-                              ),
+                                  )),
                             )
                           ],
                         ),
                       ),
                     ),
                     actions: [
-                      widget.isNewDay ? Container() :
-                      TextButton(
-                        child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                        onPressed: isButtonDisabled ? null : (){
-                          // Disable the button after it has been pressed
-                          setState(() {
-                            isButtonDisabled = true;
-                          });
-                          Navigator.of(context).pop();
-                        },
-                      ),
+                      widget.isNewDay
+                          ? Container()
+                          : TextButton(
+                              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                              onPressed: isButtonDisabled
+                                  ? null
+                                  : () {
+                                      // Disable the button after it has been pressed
+                                      setState(() {
+                                        isButtonDisabled = true;
+                                      });
+                                      Navigator.of(context).pop();
+                                    },
+                            ),
                       TextButton(
                         child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                        onPressed: isButtonDisabled ? null : (){
-                          _submit(context, connectivity);
-                        },
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () {
+                                _submit(context, connectivity);
+                              },
                       )
                     ],
                   ),
                 );
               }
-            }
-            ),
+            }),
           ),
         );
       });
@@ -379,10 +384,10 @@ class _CashDialogState extends State<CashDialog> {
   ----------------DB Query part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
-  generateCashRecordKey(CashRecord cashRecord) async  {
+  generateCashRecordKey(CashRecord cashRecord) async {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
-    var bytes  = cashRecord.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') + cashRecord.cash_record_sqlite_id.toString() + device_id.toString();
+    var bytes = cashRecord.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + cashRecord.cash_record_sqlite_id.toString() + device_id.toString();
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
@@ -391,15 +396,11 @@ class _CashDialogState extends State<CashDialog> {
     int _status = 0;
     String? _key;
     _key = await generateCashRecordKey(cashRecord);
-    if(_key != null){
-      CashRecord cashRecordObject = CashRecord(
-          cash_record_key: _key,
-          updated_at: dateTime,
-          cash_record_sqlite_id: cashRecord.cash_record_sqlite_id
-      );
+    if (_key != null) {
+      CashRecord cashRecordObject = CashRecord(cash_record_key: _key, updated_at: dateTime, cash_record_sqlite_id: cashRecord.cash_record_sqlite_id);
       int data = await PosDatabase.instance.updateCashRecordUniqueKey(cashRecordObject);
-      if(data == 1){
-         _record = await PosDatabase.instance.readSpecificCashRecord(cashRecordObject.cash_record_sqlite_id!);
+      if (data == 1) {
+        _record = await PosDatabase.instance.readSpecificCashRecord(cashRecordObject.cash_record_sqlite_id!);
       }
     }
 
@@ -407,7 +408,7 @@ class _CashDialogState extends State<CashDialog> {
   }
 
   createCashRecord(int type, ConnectivityChangeNotifier connectivity) async {
-    try{
+    try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       List<String> _value = [];
@@ -435,8 +436,7 @@ class _CashDialogState extends State<CashDialog> {
           sync_status: 0,
           created_at: dateTime,
           updated_at: '',
-          soft_delete: ''
-      );
+          soft_delete: '');
 
       CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
       CashRecord updatedData = await insertCashRecordKey(data, dateTime);
@@ -444,26 +444,25 @@ class _CashDialogState extends State<CashDialog> {
       //sync to cloud
       print('cash record value: ${_value.toString()}');
       await syncCashRecordToCloud(_value.toString());
-      if(this.isLogOut == true){
+      if (this.isLogOut == true) {
         openLogOutDialog();
       } else {
         closeDialog(context);
         widget.callBack();
-        if(widget.isNewDay){
-          if(appSettingList.length > 0 && appSettingList[0].open_cash_drawer == 1){
+        if (widget.isNewDay) {
+          if (appSettingList.length > 0 && appSettingList[0].open_cash_drawer == 1) {
             await PrintReceipt().cashDrawer(context, printerList: this.printerList);
           }
         } else {
           await PrintReceipt().cashDrawer(context, printerList: this.printerList);
         }
       }
-    }catch(e){
+    } catch (e) {
       print('cash record error: ${e}');
-      Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: "Create cash record error: ${e}");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Create cash record error: ${e}");
     }
   }
+
   Future<Future<Object?>> openLogOutDialog() async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
@@ -491,17 +490,13 @@ class _CashDialogState extends State<CashDialog> {
     final int? device_id = prefs.getInt('device_id');
     final String? login_value = prefs.getString('login_value');
     bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess){
+    if (_hasInternetAccess) {
       print('value: ${login_value.toString()}');
-      Map data = await Domain().syncLocalUpdateToCloud(
-        device_id: device_id.toString(),
-        value: login_value.toString(),
-        cash_record_value: value
-      );
+      Map data = await Domain().syncLocalUpdateToCloud(device_id: device_id.toString(), value: login_value.toString(), cash_record_value: value);
       if (data['status'] == '1') {
         List responseJson = data['data'];
         await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
-      } else if(data['status'] == '7'){
+      } else if (data['status'] == '7') {
         this.isLogOut = true;
       }
     }
@@ -509,7 +504,7 @@ class _CashDialogState extends State<CashDialog> {
 
   getAllAppSetting() async {
     List<AppSetting> data = await PosDatabase.instance.readAllAppSetting();
-    if(data.length > 0){
+    if (data.length > 0) {
       appSettingList = List.from(data);
     }
   }
@@ -519,13 +514,12 @@ class _CashDialogState extends State<CashDialog> {
     final int? branch_id = prefs.getInt('branch_id');
 
     List<CashRecord> data = await PosDatabase.instance.readSpecificLatestSettlementCashRecord(branch_id.toString());
-    if(data.length > 0){
+    if (data.length > 0) {
       amount = data[0].amount!;
     }
 
     setState(() {
       _isLoad = true;
     });
-
   }
 }

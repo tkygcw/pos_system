@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0
+version: 1.0.0+4
 
 environment:
   sdk: ">=2.16.2 <3.0.0"
@@ -85,23 +85,33 @@ dependencies:
   syncfusion_flutter_datepicker: ^20.4.54
   device_info_plus: ^8.1.0
   syncfusion_flutter_pdf: ^20.4.54
-  pdf: ^3.9.0
-  printing: ^5.10.1
+  pdf: ^3.10.1
+  printing: ^5.10.3
   qr_flutter:
     git:
       url: https://github.com/theyakka/qr.flutter.git
   file: 6.1.4
   barcode_scan2: ^4.2.4
+  rxdart: ^0.27.7
+
 
 dependency_overrides:
   image_picker_android: 0.8.6+6
   intl: 0.18.0
-  image: 4.0.02
+  image: 4.0.15
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons:
+    git:
+      url: https://github.com/fluttercommunity/flutter_launcher_icons.git
+      ref: 26fedcee4b0e6f7a85f65f1fb48834a21f57e970
 
+flutter_icons:
+  image_path: "drawable/logo.png"
+  android: true
+  ios: true
 
 
 # For information on the generic Dart part of this file, see the
