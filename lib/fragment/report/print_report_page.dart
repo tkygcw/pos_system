@@ -9,11 +9,9 @@ import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/object/pdf_format.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io';
 
 import '../../notifier/report_notifier.dart';
 import '../../object/table.dart';
@@ -47,55 +45,66 @@ class _PrintReportPageState extends State<PrintReportPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child) {
-        return Scaffold(
-          body: PdfPreview(
-            build: (format) {
-              switch(widget.currentPage){
-                case -1 :
-                  return ReportFormat().generateQrPdf(format, posTableList);
-                case 0:
-                  return reportFormat.generateOverviewReportPdf(format, 'Overview', reportModel);
-                case 1:
-                  return reportFormat.generateDailySalesPdf(format, 'Daily Sales Report', reportModel);
-                case 2:
-                  //generate category report
-                  return reportFormat.generateProductReportPdf(format, 'Product Report', reportModel);
-                case 3:
-                  //generate category report
-                  return reportFormat.generateCategoryReportPdf(format, 'Category Report', reportModel);
-                case 4:
-                  //generate modifier report
-                  return reportFormat.generateModifierReportPdf(format, 'Modifier Report', reportModel);
-                case 5:
-                  //generate cancel report
-                  return reportFormat.generateCancelProductReportPdf(format, 'Cancellation Report', reportModel);
-                case 6:
-                  //generate cancel modifier report
-                  return reportFormat.generateCancelModifierReportPdf(format, 'Cancel Modifier Report', reportModel);
-                case 7:
-                  //generate dining report
-                  return reportFormat.generateDiningReport(format, 'Dining Report', reportModel);
-                case 8:
-                  //generate payment report
-                  return reportFormat.generatePaymentReport(format, 'Payment Report', reportModel);
-                case 9:
-                  //generate refund report
-                  return reportFormat.generateRefundReport(format, 'Refund Report', reportModel);
-                default:
-                  // generate transfer report
-                  return reportFormat.generateReportPdf(format, 'Report');
-              }
-            },
-            canDebug: false,
-            previewPageMargin: EdgeInsets.all(10),
-            pdfFileName: generateFileName(),
-            maxPageWidth: MediaQuery.of(context).size.width/2,
-            initialPageFormat: PdfPageFormat.a4,
-            onPrintError: (context, error) {
-              Fluttertoast.showToast(
-                  backgroundColor: Colors.red,
-                  msg: "${AppLocalizations.of(context)?.translate('printing_error')}");
-            },
+        return WillPopScope(
+          onWillPop: () async {
+            for(int i = 0; i < posTableList.length; i++){
+              setState(() {
+                posTableList[i].isSelected = false;
+                widget.callBack!();
+              });
+            }
+            return true;
+          },
+          child: Scaffold(
+            body: PdfPreview(
+              build: (format) {
+                switch(widget.currentPage){
+                  case -1 :
+                    return ReportFormat().generateQrPdf(format, posTableList);
+                  case 0:
+                    return reportFormat.generateOverviewReportPdf(format, 'Overview', reportModel);
+                  case 1:
+                    return reportFormat.generateDailySalesPdf(format, 'Daily Sales Report', reportModel);
+                  case 2:
+                    //generate category report
+                    return reportFormat.generateProductReportPdf(format, 'Product Report', reportModel);
+                  case 3:
+                    //generate category report
+                    return reportFormat.generateCategoryReportPdf(format, 'Category Report', reportModel);
+                  case 4:
+                    //generate modifier report
+                    return reportFormat.generateModifierReportPdf(format, 'Modifier Report', reportModel);
+                  case 5:
+                    //generate cancel report
+                    return reportFormat.generateCancelProductReportPdf(format, 'Cancellation Report', reportModel);
+                  case 6:
+                    //generate cancel modifier report
+                    return reportFormat.generateCancelModifierReportPdf(format, 'Cancel Modifier Report', reportModel);
+                  case 7:
+                    //generate dining report
+                    return reportFormat.generateDiningReport(format, 'Dining Report', reportModel);
+                  case 8:
+                    //generate payment report
+                    return reportFormat.generatePaymentReport(format, 'Payment Report', reportModel);
+                  case 9:
+                    //generate refund report
+                    return reportFormat.generateRefundReport(format, 'Refund Report', reportModel);
+                  default:
+                    // generate transfer report
+                    return reportFormat.generateReportPdf(format, 'Report');
+                }
+              },
+              canDebug: false,
+              previewPageMargin: EdgeInsets.all(10),
+              pdfFileName: generateFileName(),
+              maxPageWidth: MediaQuery.of(context).size.width/2,
+              initialPageFormat: PdfPageFormat.a4,
+              onPrintError: (context, error) {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('printing_error')}");
+              },
+            ),
           ),
         );
       }
@@ -111,8 +120,7 @@ class _PrintReportPageState extends State<PrintReportPage> {
     Map branchObject = json.decode(branch!);
     posTableList = widget.tableList!;
     for(int i = 0; i < posTableList.length; i++){
-      var url = '${Domain.domain}${branchObject['branch_url']}/${posTableList[i].table_url}';
-      print(url);
+      var url = '${Domain.qr_domain}${branchObject['branch_url']}/${posTableList[i].table_url}';
       posTableList[i].qrOrderUrl = url;
     }
     //widget.callBack!();

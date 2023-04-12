@@ -221,8 +221,8 @@ class _CartPageState extends State<CartPage> {
                     child: Column(
                       children: [
                         Container(
-                          margin: EdgeInsets.only(bottom: 10),
-                          height: 70,
+                          margin:  MediaQuery.of(context).size.height > 500 ? EdgeInsets.only(bottom: 10) : EdgeInsets.zero,
+                          height: MediaQuery.of(context).size.height > 500 ? 70 : 50,
                           child: GridView(
                               physics: NeverScrollableScrollPhysics(),
                               shrinkWrap: true,
@@ -261,7 +261,7 @@ class _CartPageState extends State<CartPage> {
                         ),
                         Expanded(
                           child: Container(
-                            height: 350,
+                            height: MediaQuery.of(context).size.height > 500 ? 350 : 250,
                             child: ListView.builder(
                                 controller: _scrollController,
                                 shrinkWrap: true,
@@ -329,7 +329,9 @@ class _CartPageState extends State<CartPage> {
                                                     onPressed: () {
                                                       cart.cartNotifierItem[index].quantity != 1 && cart.cartNotifierItem[index].status == 0
                                                           ? setState(() => cart.cartNotifierItem[index].quantity--)
-                                                          : Fluttertoast.showToast(backgroundColor: Colors.red, msg: "order already placed!");
+                                                          : cart.cartNotifierItem[index].status != 0
+                                                          ? Fluttertoast.showToast(backgroundColor: Colors.red, msg: "order already placed!")
+                                                          : cart.removeItem(cart.cartNotifierItem[index]);
                                                     }),
                                               ),
                                               Text(

@@ -59,5 +59,6 @@
   "logout-desc2": "All the app data will be deleted permanently. This includes all files, setting, database etc.",
   "open_cash_drawer": "Open Cash Drawer",
   "print_receipt": "Print Receipt",
-  "change": "Change"
+  "change": "Change",
+  "close_counter_warn": "Settlement done, Please proceed to close counter"
 }

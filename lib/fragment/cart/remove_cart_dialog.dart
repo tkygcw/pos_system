@@ -197,11 +197,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
             return AlertDialog(
               title: Text('Confirm remove item ?'),
               content: Container(
-                child: Row(
-                  children: [
-                    Text('${widget.cartItem!.name} ${AppLocalizations.of(context)?.translate('confirm_delete')}')
-                  ],
-                ),
+                child: Text('${widget.cartItem!.name} ${AppLocalizations.of(context)?.translate('confirm_delete')}'),
               ),
               actions: <Widget>[
                 TextButton(

@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/colorCode.dart';
+import '../../object/search_delegate.dart';
 import '../cart/cart_dialog.dart';
 
 class FoodMenu extends StatefulWidget {
@@ -44,17 +45,6 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     if (widget.cartModel.selectedOption == 'Dine in') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.cartModel.initialLoad();
-        // showDialog(
-        //     barrierDismissible: false,
-        //     context: context,
-        //     builder: (BuildContext context) {
-        //       return WillPopScope(
-        //           child: CartDialog(
-        //             selectedTableList: widget.cartModel.selectedTable,
-        //           ),
-        //           onWillPop: () async => true);
-        //       //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
-        //     });
       });
     }
     // _tabController = TabController(length: 0, vsync: this);
@@ -85,27 +75,31 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                           "Menu",
                           style: TextStyle(fontSize: 25, color: color.backgroundColor),
                         )),
-                        SizedBox(width: MediaQuery.of(context).size.height > 500 ? 400 : 0),
-                        Expanded(
-                          child: TextField(
-                            onChanged: (value) {
-                              _tabController.index = 0;
-                              setState(() {
-                                searchProduct(value);
-                              });
+                        Spacer(),
+                        IconButton(
+                            onPressed: (){
+                              showSearch(context: context, delegate: ProductSearchDelegate(productList: allProduct, imagePath: imagePath));
                             },
-                            controller: searchController,
-                            decoration: InputDecoration(
-                              isDense: true,
-                              border: InputBorder.none,
-                              labelText: 'Search ',
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(color: Colors.grey, width: 2.0),
-                                borderRadius: BorderRadius.circular(25.0),
-                              ),
-                            ),
-                          ),
-                        )
+                            icon: Icon(Icons.search))
+                        // Expanded(
+                        //   child:
+                        //   // TextField(
+                        //   //   onChanged: (value) {
+                        //   //     _tabController.index = 0;
+                        //   //     searchProduct(value);
+                        //   //   },
+                        //   //   controller: searchController,
+                        //   //   decoration: InputDecoration(
+                        //   //     isDense: true,
+                        //   //     border: InputBorder.none,
+                        //   //     labelText: 'Search ',
+                        //   //     focusedBorder: OutlineInputBorder(
+                        //   //       borderSide: const BorderSide(color: Colors.grey, width: 2.0),
+                        //   //       borderRadius: BorderRadius.circular(25.0),
+                        //   //     ),
+                        //   //   ),
+                        //   // ),
+                        // )
                       ],
                     ),
                   ),
@@ -176,6 +170,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     for (int i = 0; i < categoryList.length; i++) {
       if (categoryList[i] == 'All Category') {
         List<Product> data = await PosDatabase.instance.readAllProduct();
+        allProduct = data;
         categoryTabContent.add(GridView.count(
             shrinkWrap: true,
             crossAxisCount: 5,
@@ -275,11 +270,15 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   searchProduct(String text) async {
+    print('search product called');
     List<Product> hha = await PosDatabase.instance.searchProduct(text);
-    categoryTabContent.clear();
-    insertProduct(hha);
-    insertProduct(hha);
-    insertProduct(hha);
+    print('product length: ${hha.length}');
+    setState(() {
+      categoryTabContent.clear();
+      insertProduct(hha);
+      insertProduct(hha);
+      insertProduct(hha);
+    });
   }
 
   insertProduct(List<Product> data) {
@@ -305,11 +304,14 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                   children: [
                     Container(
                       color: Colors.black.withOpacity(0.5),
-                      height: 30,
+                      padding: EdgeInsets.fromLTRB(5, 2, 5, 2),
+                      height: 50,
                       width: 200,
                       alignment: Alignment.center,
                       child: Text(
                         data[index].SKU! + ' ' + data[index].name!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,

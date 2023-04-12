@@ -115,7 +115,8 @@ class _ReportPageState extends State<ReportPage> {
                                       _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
                                       _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
                                       setState(() {
-
+                                        reportModel.setDateTime(this.currentStDate, this.currentEdDate);
+                                        reportModel.resetLoad();
                                       });
                                       return true;
                                     },

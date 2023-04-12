@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/refund.dart';
@@ -102,6 +103,7 @@ class _RefundDialogState extends State<RefundDialog> {
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
                         obscureText: true,
+                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
                         controller: adminPosPinController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(

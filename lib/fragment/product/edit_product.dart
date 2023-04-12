@@ -82,6 +82,9 @@ class _EditProductDialogState extends State<EditProductDialog> {
   List<Map> variantList = [];
   List<Map> productVariantList = [];
 
+  String imagePath = '';
+  String? companyID = '';
+
   Future getImage(ImageSource source) async {
     try {
       final ImagePicker _picker = ImagePicker();
@@ -133,6 +136,14 @@ class _EditProductDialogState extends State<EditProductDialog> {
     stockQuantityController.dispose();
     priceController.dispose();
     skuController.dispose();
+  }
+
+  readCompanyID() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? user = prefs.getString('user');
+    imagePath = prefs.getString('local_path')!;
+    Map userObject = json.decode(user!);
+    companyID = userObject['company_id'];
   }
 
   String? get errorNameText {
@@ -362,6 +373,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
   }
 
   setAllDefaultProduct() async {
+    await readCompanyID();
     await readAllCategories();
     await readProductModifier();
     await readVariantGroupAndItem();
@@ -407,10 +419,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
       productColor = widget.product!.color!;
     } else {
       selectGraphic = 'Image';
-      this.image = File('data/user/0/com.example.pos_system/files/assets/' +
-          userObject['company_id'] +
-          '/' +
-          widget.product!.image!);
+      this.image = File(imagePath + '/' + widget.product!.image!);
     }
 
     if (widget.product!.available == 1) {

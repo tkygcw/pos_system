@@ -30,6 +30,7 @@ class _ProductPageState extends State<ProductPage> {
       return Padding(
         padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
         child: Scaffold(
+          resizeToAvoidBottomInset: false,
           appBar: AppBar(
             automaticallyImplyLeading: false,
             title: Text('Food',

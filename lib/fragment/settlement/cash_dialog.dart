@@ -205,7 +205,7 @@ class _CashDialogState extends State<CashDialog> {
                                         onPressed: () {
                                           amountController.text = amount;
                                         },
-                                        style: ElevatedButton.styleFrom(primary: color.backgroundColor),
+                                        style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                       ))
                                     ],
                                   ))
@@ -416,6 +416,7 @@ class _CashDialogState extends State<CashDialog> {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
       final String? pos_user = prefs.getString('pos_pin_user');
+      print('pos user: ${pos_user.toString()}');
       final String? login_user = prefs.getString('user');
       Map userObject = json.decode(pos_user!);
       Map logInUser = json.decode(login_user!);
@@ -458,6 +459,9 @@ class _CashDialogState extends State<CashDialog> {
         }
       }
     } catch (e) {
+      setState(() {
+        this.isButtonDisabled = false;
+      });
       print('cash record error: ${e}');
       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Create cash record error: ${e}");
     }

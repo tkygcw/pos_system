@@ -148,8 +148,13 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                for (int i = 0; i < variantGroup.length; i++) variantGroupLayout(variantGroup[i]),
-                                for (int j = 0; j < modifierGroup.length; j++) modifierGroupLayout(modifierGroup[j], cart),
+                                for (int i = 0; i < variantGroup.length; i++)
+                                  variantGroupLayout(variantGroup[i]),
+                                for (int j = 0; j < modifierGroup.length; j++)
+                                  Visibility(
+                                    visible: modifierGroup[j].modifierChild.isNotEmpty ? true : false,
+                                    child: modifierGroupLayout(modifierGroup[j], cart),
+                                  ),
                                 Column(
                                   children: [
                                     Padding(
@@ -166,6 +171,10 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                                     ),
                                     QuantityInput(
                                         inputWidth: 273,
+                                        type: QuantityInputType.int,
+                                        minValue: 1,
+                                        acceptsZero: false,
+                                        acceptsNegatives: false,
                                         decoration: InputDecoration(
                                           focusedBorder: OutlineInputBorder(
                                             borderSide: BorderSide(color: color.backgroundColor),
@@ -247,15 +256,19 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                                       await getBranchLinkProductItem(widget.productDetail!);
                                       if (hasStock) {
                                         if (cart.selectedOption == 'Dine in') {
-                                          if (cart.selectedTable.isNotEmpty) {
-                                            // Disable the button after it has been pressed
-                                            setState(() {
-                                              isButtonDisabled = true;
-                                            });
-                                            await addToCart(cart);
-                                            Navigator.of(context).pop();
+                                          if(simpleIntInput > 0){
+                                            if (cart.selectedTable.isNotEmpty) {
+                                              // Disable the button after it has been pressed
+                                              setState(() {
+                                                isButtonDisabled = true;
+                                              });
+                                              await addToCart(cart);
+                                              Navigator.of(context).pop();
+                                            } else {
+                                              openChooseTableDialog(cart);
+                                            }
                                           } else {
-                                            openChooseTableDialog(cart);
+                                            Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Invalid qty input");
                                           }
                                         } else {
                                           // Disable the button after it has been pressed
@@ -310,7 +323,11 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 for (int i = 0; i < variantGroup.length; i++) variantGroupLayout(variantGroup[i]),
-                                for (int j = 0; j < modifierGroup.length; j++) modifierGroupLayout(modifierGroup[j], cart),
+                                for (int j = 0; j < modifierGroup.length; j++)
+                                  Visibility(
+                                    visible: modifierGroup[j].modifierChild.isNotEmpty ? true : false,
+                                    child: modifierGroupLayout(modifierGroup[j], cart),
+                                  ),
                                 Column(
                                   children: [
                                     Padding(
@@ -327,6 +344,9 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                                     ),
                                     QuantityInput(
                                         inputWidth: 273,
+                                        acceptsNegatives: false,
+                                        acceptsZero: false,
+                                        minValue: 1,
                                         decoration: InputDecoration(
                                           focusedBorder: OutlineInputBorder(
                                             borderSide: BorderSide(color: color.backgroundColor),

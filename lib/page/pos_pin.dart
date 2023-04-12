@@ -134,11 +134,11 @@ class _PosPinPageState extends State<PosPinPage> {
                     child: Theme(
                       data: Theme.of(context).copyWith(
                           textTheme: TextTheme(
-                        bodyText2: TextStyle(color: Colors.white),
+                        bodyMedium: TextStyle(color: Colors.white),
                       )),
                       child: SingleChildScrollView(
                           child: Container(
-                        height: 600,
+                        height: 500,
                         child: PinAuthentication(
                           pinTheme: PinTheme(
                             shape: PinCodeFieldShape.box,
@@ -219,7 +219,6 @@ class _PosPinPageState extends State<PosPinPage> {
           ),
         );
       }
-      await prefs.setString("pos_pin_user", jsonEncode(user));
     } else {
       Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Wrong pin. Please insert valid pin");
 
@@ -227,17 +226,21 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   settlementCheck(User user) async {
+    final prefs = await SharedPreferences.getInstance();
     bool isNewDay = false;
     List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord();
-    if (data.length > 0) {
+    if (data.isNotEmpty) {
       if (await settlementUserCheck(user.user_id.toString()) == true) {
-        await _printCashBalanceList();
+        await prefs.setString("pos_pin_user", jsonEncode(user));
+        await PrintReceipt().printCashBalanceList(printerList, context, cashBalance: widget.cashBalance!);  //_printCashBalanceList();
         isNewDay = false;
         print('print a cash balance receipt');
       } else {
+        await prefs.setString("pos_pin_user", jsonEncode(user));
         isNewDay = false;
       }
     } else {
+      await prefs.setString("pos_pin_user", jsonEncode(user));
       isNewDay = true;
     }
     return isNewDay;
