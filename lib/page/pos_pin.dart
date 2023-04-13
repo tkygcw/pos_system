@@ -138,17 +138,17 @@ class _PosPinPageState extends State<PosPinPage> {
                       )),
                       child: SingleChildScrollView(
                           child: Container(
-                        height: 500,
-                        child: PinAuthentication(
-                          pinTheme: PinTheme(
-                            shape: PinCodeFieldShape.box,
-                            selectedFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
-                            inactiveFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
-                            borderRadius: BorderRadius.circular(5),
-                            backgroundColor: color.backgroundColor,
-                            keysColor: Colors.white,
-                            activeFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
-                          ),
+                            height: MediaQuery.of(context).size.height * 1.5,
+                            child: PinAuthentication(
+                              pinTheme: PinTheme(
+                              shape: PinCodeFieldShape.box,
+                              selectedFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                              inactiveFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                              borderRadius: BorderRadius.circular(5),
+                              backgroundColor: color.backgroundColor,
+                              keysColor: Colors.white,
+                              activeFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                            ),
                           onChanged: (v) {},
                           onCompleted: (v) {
                             if (v.length == 6) {
@@ -232,7 +232,7 @@ class _PosPinPageState extends State<PosPinPage> {
     if (data.isNotEmpty) {
       if (await settlementUserCheck(user.user_id.toString()) == true) {
         await prefs.setString("pos_pin_user", jsonEncode(user));
-        await PrintReceipt().printCashBalanceList(printerList, context, cashBalance: widget.cashBalance!);  //_printCashBalanceList();
+        await PrintReceipt().printCashBalanceList(printerList, context, cashBalance: widget.cashBalance);  //_printCashBalanceList();
         isNewDay = false;
         print('print a cash balance receipt');
       } else {

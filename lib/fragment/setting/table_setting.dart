@@ -38,6 +38,7 @@ class _TableSettingState extends State<TableSetting> {
         if(constraints.maxWidth > 800) {
           return Scaffold(
             resizeToAvoidBottomInset: false,
+            floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
             floatingActionButton: FloatingActionButton(
               backgroundColor: color.backgroundColor,
               onPressed: () {
@@ -117,7 +118,9 @@ class _TableSettingState extends State<TableSetting> {
           ///mobile view
           return Scaffold(
             resizeToAvoidBottomInset: false,
+            floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
             floatingActionButton: FloatingActionButton(
+              elevation: 5,
               backgroundColor: color.backgroundColor,
               onPressed: () {
                 if(checkedTable.isNotEmpty){

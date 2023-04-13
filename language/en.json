@@ -30,6 +30,8 @@
   "ok": "Ok",
   "yes": "Yes",
   "no": "No",
+  "update": "Update",
+  "test_print": "Test Print",
   "incorrect_password": "incorrect password",
   "quantity_required": "insert quantity",
   "quantity_exceed": "quantity exceeded",

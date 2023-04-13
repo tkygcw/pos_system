@@ -729,8 +729,7 @@ class ReceiptLayout{
         if(orderDetailList[i].has_variant == '1'){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '(${orderDetailList[i].product_variant_name})', containsChinese: true, width: 8),
-            PosColumn(text: '', width: 2),
+            PosColumn(text: '(${Utils.formatProductVariant(orderDetailList[i].product_variant_name!)})', containsChinese: true, width: 10),
           ]);
         }
         await getPaidOrderModifierDetail(orderDetailList[i]);
@@ -739,8 +738,7 @@ class ReceiptLayout{
             //modifier
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}', width: 8),
-              PosColumn(text: '', width: 2),
+              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}', width: 10),
             ]);
           }
         }
@@ -1417,15 +1415,14 @@ class ReceiptLayout{
                 text: '${orderDetailList[i].productName}',
                 width: 8,
                 containsChinese: true,
-                styles: PosStyles(height: PosTextSize.size2, width: PosTextSize.size1)),
+                styles: PosStyles(height: PosTextSize.size1, width: PosTextSize.size1, bold: true)),
             PosColumn(text: '', width: 2),
             PosColumn(text: 'x${orderDetailList[i].item_cancel}', width: 2, styles: PosStyles(bold: true)),
           ]);
           bytes += generator.reset();
           if(orderDetailList[i].has_variant == '1'){
             bytes += generator.row([
-              PosColumn(text: '', width: 2),
-              PosColumn(text: '(${orderDetailList[i].product_variant_name})', width: 8, containsChinese: true),
+              PosColumn(text: '(${Utils.formatProductVariant(orderDetailList[i].product_variant_name!)})', width: 10, containsChinese: true),
               PosColumn(text: '', width: 2),
             ]);
           }

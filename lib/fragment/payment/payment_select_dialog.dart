@@ -53,6 +53,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                               },
                               child: Card(
                                 elevation: 5,
+                                color: Colors.black,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16.0),
                                 ),
@@ -66,8 +67,9 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                         borderRadius: BorderRadius.circular(16.0),
                                         child:///***If you have exported images you must have to copy those images in assets/images directory.
                                         Image(
-                                          image: NetworkImage(
-                                              "https://image.freepik.com/free-photo/close-up-people-training-with-ball_23-2149049821.jpg"),
+                                          image: AssetImage("drawable/payment_method.png"),
+                                          // NetworkImage(
+                                          //     "https://image.freepik.com/free-photo/close-up-people-training-with-ball_23-2149049821.jpg"),
                                           height: MediaQuery.of(context).size.height,
                                           width: MediaQuery.of(context).size.width,
                                           fit: BoxFit.cover,
@@ -81,7 +83,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                           fontWeight: FontWeight.w700,
                                           fontStyle: FontStyle.normal,
                                           fontSize: 16,
-                                          color: Color(0xffffffff),
+                                          color: Colors.white,
                                         ),
                                       ),
                                     ],

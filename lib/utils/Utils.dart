@@ -69,4 +69,14 @@ class Utils {
       return '';
     }
   }
+
+  static formatProductVariant(String variant){
+    try{
+      String result = '';
+      result = variant.toString().replaceAll("|", ",").trim();
+      return result;
+    } catch(e){
+      return '';
+    }
+  }
 }

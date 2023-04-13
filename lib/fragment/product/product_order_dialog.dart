@@ -293,7 +293,6 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
             ///mobile layout
             return Center(
               child: SingleChildScrollView(
-                physics: NeverScrollableScrollPhysics(),
                 child: AlertDialog(
                   title: Row(
                     children: [
@@ -389,48 +388,64 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                         )
                       : CustomProgressBar(),
                   actions: <Widget>[
-                    TextButton(
-                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                      onPressed: isButtonDisabled
-                          ? null
-                          : () {
-                              // Disable the button after it has been pressed
-                              setState(() {
-                                isButtonDisabled = true;
-                              });
-                              Navigator.of(context).pop();
-                            },
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width / 2.5,
+                      height: MediaQuery.of(context).size.height / 10,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                        child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () {
+                                // Disable the button after it has been pressed
+                                setState(() {
+                                  isButtonDisabled = true;
+                                });
+                                Navigator.of(context).pop();
+                              },
+                      ),
                     ),
-                    TextButton(
-                      child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                      onPressed: isButtonDisabled
-                          ? null
-                          : () async {
-                              await getBranchLinkProductItem(widget.productDetail!);
-                              if (hasStock == true) {
-                                if (cart.selectedOption == 'Dine in') {
-                                  if (cart.selectedTable.isNotEmpty) {
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width / 2.5,
+                      height: MediaQuery.of(context).size.height / 10,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color.buttonColor,
+                        ),
+                        child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () async {
+                                await getBranchLinkProductItem(widget.productDetail!);
+                                if (hasStock == true) {
+                                  if (cart.selectedOption == 'Dine in') {
+                                    if(simpleIntInput > 0){
+                                      if (cart.selectedTable.isNotEmpty) {
+                                        // Disable the button after it has been pressed
+                                        setState(() {
+                                          isButtonDisabled = true;
+                                        });
+                                        await addToCart(cart);
+                                        Navigator.of(context).pop();
+                                      } else {
+                                        openChooseTableDialog(cart);
+                                      }
+                                    } else {
+                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Invalid qty input");
+                                    }
+                                  } else {
                                     // Disable the button after it has been pressed
                                     setState(() {
                                       isButtonDisabled = true;
                                     });
                                     await addToCart(cart);
                                     Navigator.of(context).pop();
-                                  } else {
-                                    openChooseTableDialog(cart);
                                   }
                                 } else {
-                                  // Disable the button after it has been pressed
-                                  setState(() {
-                                    isButtonDisabled = true;
-                                  });
-                                  await addToCart(cart);
-                                  Navigator.of(context).pop();
+                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Product variant sold out!");
                                 }
-                              } else {
-                                Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Product variant sold out!");
-                              }
-                            },
+                              },
+                      ),
                     ),
                   ],
                 ),

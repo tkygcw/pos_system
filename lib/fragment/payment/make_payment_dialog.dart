@@ -2075,6 +2075,8 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   signature256(var merchant_key, var merchant_code, var refNo, var amount, var currency, var xFields, var barcodeNo, var TerminalId ){
+    // var ipayAmount = double.parse(amount) * 100;
+    // print('ipay amount: ${ipayAmount.toStringAsFixed(0)}');
     var signature = utf8.encode(merchant_key + merchant_code + refNo + amount + currency + xFields + barcodeNo + TerminalId);
     String value = sha256.convert(signature).toString();
     return value;

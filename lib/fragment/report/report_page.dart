@@ -263,73 +263,93 @@ class _ReportPageState extends State<ReportPage> {
                   automaticallyImplyLeading: false,
                   title: Row(
                     children: [
-                      Text('Report',
-                          style: TextStyle(fontSize: 25, color: Colors.black)),
+                      Text('Report', style: TextStyle(fontSize: 25, color: Colors.black)),
                       Spacer(),
-                      Container(
-                        child: IconButton(
-                          icon: Icon(Icons.print),
-                          color: color.backgroundColor,
-                          onPressed: (){
-                            Navigator.push(
-                              context,
-                              PageTransition(
-                                type: PageTransitionType.bottomToTop,
-                                child: PrintReportPage(currentPage: this.currentPage,),
-                              ),
-                            );
-                          },
+                      Visibility(
+                        visible: this.currentPage != 10 ? true : false,
+                        child: Container(
+                          child: IconButton(
+                            icon: Icon(Icons.print),
+                            color: color.backgroundColor,
+                            onPressed: (){
+                              Navigator.push(
+                                context,
+                                PageTransition(
+                                  type: PageTransitionType.bottomToTop,
+                                  child: PrintReportPage(currentPage: this.currentPage,),
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
-                      Container(
-                          margin: EdgeInsets.only(right: 10),
-                          child: IconButton(
-                            onPressed: () {
-                              showDialog(context: context, builder: (BuildContext context) {
-                                return AlertDialog(
-                                  contentPadding: EdgeInsets.zero,
-                                  content: Container(
-                                    height: MediaQuery.of(context).size.height,
-                                    width: MediaQuery.of(context).size.width,
-                                    child: Container(
-                                      child: Card(
-                                        child: SfDateRangePicker(
-                                          controller: _dateRangePickerController,
-                                          selectionMode: DateRangePickerSelectionMode.range,
-                                          allowViewNavigation: false,
-                                          onSelectionChanged: _onSelectionChanged,
-                                          maxDate: DateTime.now(),
-                                          showActionButtons: true,
-                                          onSubmit: (object) {
-                                            _controller = _range != '' ?
-                                            new TextEditingController(text: '${_range}')
-                                                :
-                                            new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
-                                            setState(() {
-                                              reportModel.setDateTime(this.currentStDate, this.currentEdDate);
-                                              reportModel.resetLoad();
-                                            });
-                                            Navigator.of(context).pop();
-                                          },
-                                          onCancel: (){
-                                            Navigator.of(context).pop();
-                                          },
+                      Visibility(
+                        visible: this.currentPage != 1 ? true : false,
+                        child: Container(
+                            margin: EdgeInsets.only(right: 10),
+                            child: IconButton(
+                              onPressed: () {
+                                showDialog(context: context, builder: (BuildContext context) {
+                                  return WillPopScope(
+                                    onWillPop: ()  async  {
+                                      dateTimeNow = dateFormat.format(DateTime.now());
+                                      _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                      _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
+                                      setState(() {
+                                        reportModel.setDateTime(this.currentStDate, this.currentEdDate);
+                                        reportModel.resetLoad();
+                                      });
+                                      return true;
+                                    },
+                                    child: AlertDialog(
+                                      contentPadding: EdgeInsets.zero,
+                                      content: Container(
+                                        height: MediaQuery.of(context).size.height,
+                                        width: MediaQuery.of(context).size.width,
+                                        child: Container(
+                                          child: Card(
+                                            child: SfDateRangePicker(
+                                              controller: _dateRangePickerController,
+                                              selectionMode: DateRangePickerSelectionMode.range,
+                                              allowViewNavigation: false,
+                                              onSelectionChanged: _onSelectionChanged,
+                                              maxDate: DateTime.now(),
+                                              showActionButtons: true,
+                                              onSubmit: (object) {
+                                                _controller = _range != '' ?
+                                                new TextEditingController(text: '${_range}')
+                                                    :
+                                                new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                                setState(() {
+                                                  reportModel.setDateTime(this.currentStDate, this.currentEdDate);
+                                                  reportModel.resetLoad();
+                                                });
+                                                Navigator.of(context).pop();
+                                              },
+                                              onCancel: (){
+                                                Navigator.of(context).pop();
+                                              },
 
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              });
-                            },
-                            icon: Icon(Icons.calendar_month),
-                            color: color.backgroundColor,
-                          )),
-                      Container(
-                        width: 200,
-                        child: TextField(
-                          controller: _controller,
-                          enabled: false,
+                                  );
+                                });
+                              },
+                              icon: Icon(Icons.calendar_month),
+                              color: color.backgroundColor,
+                            )),
+                      ),
+                      Visibility(
+                        visible: this.currentPage != 1 ? true : false,
+                        child: Container(
+                          width: 200,
+                          child: TextField(
+                            controller: _controller,
+                            enabled: false,
+                          ),
                         ),
                       ),
                     ],
