@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -905,6 +906,16 @@ class _SettlementPageState extends State<SettlementPage> {
   ----------------Other function part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
+  setScreenLayout() {
+    final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
+    if (screenWidth < 500) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown
+      ]);
+    }
+  }
+
   toPosPinPage() {
     String cashDrawer = calcCashDrawer();
     print('to pos pin call him');
@@ -912,6 +923,7 @@ class _SettlementPageState extends State<SettlementPage> {
     //   PageTransition(type: PageTransitionType.fade, child: PosPinPage(cashBalance: cashDrawer),
     //   ),
     // );
+    setScreenLayout();
     Navigator.of(context).pushAndRemoveUntil(
       // the new route
       MaterialPageRoute(

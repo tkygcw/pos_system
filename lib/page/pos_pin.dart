@@ -1,8 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
-
-import 'package:esc_pos_printer/esc_pos_printer.dart';
-import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
@@ -44,12 +40,20 @@ class _PosPinPageState extends State<PosPinPage> {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
     readAllPrinters();
   }
+
+  @override
+  dispose() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    super.dispose();
+  }
+
 
   Future<Future<Object?>> openLogOutDialog() async {
     return showGeneralDialog(
@@ -138,10 +142,12 @@ class _PosPinPageState extends State<PosPinPage> {
                       )),
                       child: SingleChildScrollView(
                           child: Container(
-                            height: MediaQuery.of(context).size.height * 1.5,
+                            height: MediaQuery.of(context).size.height,
                             child: PinAuthentication(
                               pinTheme: PinTheme(
                               shape: PinCodeFieldShape.box,
+                              fieldOuterPadding: EdgeInsets.zero,
+                              fieldWidth: 40,
                               selectedFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
                               inactiveFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
                               borderRadius: BorderRadius.circular(5),
@@ -185,7 +191,6 @@ class _PosPinPageState extends State<PosPinPage> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     User? user = await PosDatabase.instance.verifyPosPin(pos_pin, branch_id.toString());
-    print(user);
     if (user != '' && user != null) {
       if (await settlementCheck(user) == true) {
         if(this.isLogOut == true){
@@ -226,13 +231,20 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   settlementCheck(User user) async {
+    print('cash balance: ${widget.cashBalance}');
     final prefs = await SharedPreferences.getInstance();
     bool isNewDay = false;
+    double totalCashBalance = 0.0;
     List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord();
     if (data.isNotEmpty) {
-      if (await settlementUserCheck(user.user_id.toString()) == true) {
+      if(widget.cashBalance == null){
+        for(int i = 0; i < data.length; i++){
+          totalCashBalance += double.parse(data[i].amount!);
+        }
+      }
+      if (await settlementUserCheck(user.user_id.toString(), totalCashBalance: totalCashBalance.toStringAsFixed(2)) == true) {
         await prefs.setString("pos_pin_user", jsonEncode(user));
-        await PrintReceipt().printCashBalanceList(printerList, context, cashBalance: widget.cashBalance);  //_printCashBalanceList();
+        await PrintReceipt().printCashBalanceList(printerList, context, cashBalance: widget.cashBalance != null ? widget.cashBalance : totalCashBalance.toStringAsFixed(2));  //_printCashBalanceList();
         isNewDay = false;
         print('print a cash balance receipt');
       } else {
@@ -246,11 +258,12 @@ class _PosPinPageState extends State<PosPinPage> {
     return isNewDay;
   }
 
-  settlementUserCheck(String user_id) async {
+  settlementUserCheck(String user_id, {totalCashBalance}) async {
     final prefs = await SharedPreferences.getInstance();
     final String? lastUser = prefs.getString('pos_pin_user');
     bool isNewUser = false;
-    //CashRecord? cashRecord = await PosDatabase.instance.readLastCashRecord();
+    CashRecord? cashRecord = await PosDatabase.instance.readLastCashRecord();
+    print('last user: ${lastUser}');
     if (lastUser != null) {
       Map userObject = json.decode(lastUser);
       if (userObject['user_id'].toString() == user_id) {
@@ -260,7 +273,12 @@ class _PosPinPageState extends State<PosPinPage> {
         await createTransferOwnerRecord(fromUser: userObject['user_id'].toString(), toUser: user_id);
       }
     } else {
-      isNewUser = true;
+      if(cashRecord!.user_id != user_id){
+        isNewUser = true;
+        await createTransferOwnerRecord(fromUser: cashRecord.user_id, toUser: user_id, totalCashBalance: totalCashBalance);
+      } else {
+        isNewUser = false;
+      }
     }
 
     return isNewUser;
@@ -287,7 +305,7 @@ class _PosPinPageState extends State<PosPinPage> {
     return updatedRecord;
   }
 
-  createTransferOwnerRecord({fromUser, toUser}) async {
+  createTransferOwnerRecord({fromUser, toUser, totalCashBalance}) async {
     print('user changed!');
     List<String> _value = [];
     final prefs = await SharedPreferences.getInstance();
@@ -302,7 +320,7 @@ class _PosPinPageState extends State<PosPinPage> {
         device_id: device_id.toString(),
         transfer_from_user_id: fromUser,
         transfer_to_user_id: toUser,
-        cash_balance: widget.cashBalance,
+        cash_balance: widget.cashBalance != null ? widget.cashBalance : totalCashBalance,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -342,66 +360,5 @@ class _PosPinPageState extends State<PosPinPage> {
 /*
   -------------------Printing part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
-  _printCashBalanceList() async {
-    try {
-      for (int i = 0; i < printerList.length; i++) {
-        List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
-        for (int j = 0; j < data.length; j++) {
-          if (data[j].category_sqlite_id == '-1') {
-            var printerDetail = jsonDecode(printerList[i].value!);
-            if (printerList[i].type == 0) {
-              if (printerList[i].paper_size == 0) {
-                //print usb 80mm
-                var data = Uint8List.fromList(await ReceiptLayout().printCashBalanceList80mm(true, widget.cashBalance!));
-                bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-                if (isConnected == true) {
-                  await flutterUsbPrinter.write(data);
-                } else {
-                  Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-                }
-              } else {
-                //print usb 58mm
-                var data = Uint8List.fromList(await ReceiptLayout().printCashBalanceList58mm(true, widget.cashBalance!));
-                bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-                if (isConnected == true) {
-                  await flutterUsbPrinter.write(data);
-                } else {
-                  Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-                }
-              }
-            } else {
-              //print LAN
-              if (printerList[i].paper_size == 0) {
-                //print 80mm
-                final profile = await CapabilityProfile.load();
-                final printer = NetworkPrinter(PaperSize.mm80, profile);
-                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-                if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printCashBalanceList80mm(false, widget.cashBalance!, value: printer);
-                  printer.disconnect();
-                } else {
-                  Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-                }
-              } else {
-                //print 58mm
-                final profile = await CapabilityProfile.load();
-                final printer = NetworkPrinter(PaperSize.mm58, profile);
-                final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-                if (res == PosPrintResult.success) {
-                  await ReceiptLayout().printCashBalanceList58mm(false, widget.cashBalance!, value: printer);
-                  printer.disconnect();
-                } else {
-                  Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-                }
-              }
-            }
-          }
-        }
-      }
-    } catch (e) {
-      print(e);
-      print('Printer Connection Error');
-      //response = 'Failed to get platform version.';
-    }
-  }
+
 }

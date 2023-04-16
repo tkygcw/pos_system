@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
@@ -59,6 +60,7 @@ class _HomePageState extends State<HomePage> {
     // TODO: implement initState
     super.initState();
     print('init called');
+    setScreenLayout();
     startTimers(notificationModel);
     _items = _generateItems;
     currentPage = 'menu';
@@ -74,6 +76,27 @@ class _HomePageState extends State<HomePage> {
             //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
         });
       });
+    }
+  }
+
+  @override
+  dispose() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    super.dispose();
+  }
+
+  setScreenLayout() {
+    final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
+    if (screenWidth < 500) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
     }
   }
 
@@ -141,9 +164,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Expanded(
                           flex: 3,
-                          child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connection, child) {
-                            return _body(size, context);
-                          }),
+                          child: _body(size, context),
                         ),
                         //cart page
                         Visibility(

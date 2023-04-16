@@ -5106,6 +5106,16 @@ class PosDatabase {
   }
 
 /*
+  update qr order cache
+*/
+  Future<int> updateQrOrderCache(OrderCache data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableOrderCache SET table_use_sqlite_id = ?, table_use_key = ?, total_amount = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+        [data.table_use_sqlite_id, data.table_use_key, data.total_amount, data.sync_status, data.updated_at, data.order_cache_sqlite_id]);
+  }
+
+/*
   update order detail quantity
 */
   Future<int> updateOrderDetailQuantity(OrderDetail data) async {

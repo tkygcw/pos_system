@@ -952,7 +952,6 @@ class _PrinterDialogState extends State<PrinterDialog> {
             selectedCategories[0].isChecked = true;
           } else if(data[i].category_sqlite_id == '0'){
             selectedCategories.add(Categories(category_sqlite_id: 0, name: 'other/uncategorized'));
-            selectedCategories[0].isChecked = true;
           }
           else {
             Categories? catData = await PosDatabase.instance.readSpecificCategoryById(data[i].category_sqlite_id!);
@@ -980,6 +979,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
       String dateTime = dateFormat.format(DateTime.now());
       if(allCategories.isNotEmpty){
         for (int i = 0; i < allCategories.length; i++) {
+          if(allCategories[i].category_sqlite_id == 0){
+            allCategories[i].isChecked = true;
+          }
           if (allCategories[i].isChecked == true) {
             Categories? categories = await PosDatabase.instance.readSpecificCategoryById(allCategories[i].category_sqlite_id.toString());
             PrinterLinkCategory data = await PosDatabase.instance.insertSqlitePrinterLinkCategory(PrinterLinkCategory(

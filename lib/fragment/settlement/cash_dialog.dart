@@ -215,32 +215,64 @@ class _CashDialogState extends State<CashDialog> {
                     ),
                   ),
                   actions: [
-                    widget.isNewDay
-                        ? Container()
-                        : TextButton(
-                            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                            onPressed: isButtonDisabled
-                                ? null
-                                : () {
-                                    // Disable the button after it has been pressed
-                                    setState(() {
-                                      isButtonDisabled = true;
-                                    });
-                                    Navigator.of(context).pop();
-                                  },
-                          ),
-                    TextButton(
-                      child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                      onPressed: isButtonDisabled
-                          ? null
-                          : () {
-                              try {
-                                double.parse(amountController.text);
-                                _submit(context, connectivity);
-                              } catch (e) {
-                                Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Invalid Input!");
-                              }
-                            },
+                    Visibility(
+                      visible: widget.isNewDay ? false : true,
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width / 5,
+                        height: MediaQuery.of(context).size.height / 12,
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                                onPressed: isButtonDisabled
+                                    ? null
+                                    : () {
+                                        // Disable the button after it has been pressed
+                                        setState(() {
+                                          isButtonDisabled = true;
+                                        });
+                                        Navigator.of(context).pop();
+                                      },
+                            ),
+                      ),
+                    ),
+                    widget.isNewDay ?
+                    Center(
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width / 7,
+                        height: MediaQuery.of(context).size.height / 12,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                          child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                          onPressed: isButtonDisabled
+                              ? null
+                              : () {
+                            try {
+                              double.parse(amountController.text);
+                              _submit(context, connectivity);
+                            } catch (e) {
+                              Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Invalid Input!");
+                            }
+                          },
+                        ),
+                      ),
+                    ) :
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width / 5,
+                      height: MediaQuery.of(context).size.height / 12,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                        child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () {
+                                try {
+                                  double.parse(amountController.text);
+                                  _submit(context, connectivity);
+                                } catch (e) {
+                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Invalid Input!");
+                                }
+                              },
+                      ),
                     )
                   ],
                 );

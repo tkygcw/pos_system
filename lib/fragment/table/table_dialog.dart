@@ -349,23 +349,33 @@ class _TableDialogState extends State<TableDialog> {
               ),
             ),
             actions: <Widget>[
-              TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: isButtonDisabled ? null : () {
-                  // Disable the button after it has been pressed
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  Navigator.of(context).pop();
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 5,
+                height: MediaQuery.of(context).size.height / 12,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                  child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                  onPressed: isButtonDisabled ? null : () {
+                    // Disable the button after it has been pressed
+                    setState(() {
+                      isButtonDisabled = true;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
               ),
-              TextButton(
-                child: widget.object.table_id == null
-                    ? Text('${AppLocalizations.of(context)?.translate('add')}')
-                    : Text("Submit"),
-                onPressed: isButtonDisabled ? null : () async {
-                  _submit(context);
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 5,
+                height: MediaQuery.of(context).size.height / 12,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                  child: widget.object.table_id == null
+                      ? Text('${AppLocalizations.of(context)?.translate('add')}')
+                      : Text("Submit"),
+                  onPressed: isButtonDisabled ? null : () async {
+                    _submit(context);
+                  },
+                ),
               ),
             ],
           ),

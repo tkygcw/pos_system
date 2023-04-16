@@ -100,6 +100,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
               : CustomProgressBar(),
         ); 
       } else {
+        ///mobile view
         return Center(
           child: SingleChildScrollView(
             physics: NeverScrollableScrollPhysics(),
@@ -141,8 +142,9 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                             borderRadius: BorderRadius.circular(16.0),
                                             child:///***If you have exported images you must have to copy those images in assets/images directory.
                                             Image(
-                                              image: NetworkImage(
-                                                  "https://image.freepik.com/free-photo/close-up-people-training-with-ball_23-2149049821.jpg"),
+                                              image: AssetImage("drawable/payment_method.png"),
+                                              // NetworkImage(
+                                              //     "https://image.freepik.com/free-photo/close-up-people-training-with-ball_23-2149049821.jpg"),
                                               height: MediaQuery.of(context).size.height,
                                               width: MediaQuery.of(context).size.width,
                                               fit: BoxFit.cover,

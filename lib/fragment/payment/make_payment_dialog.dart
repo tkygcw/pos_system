@@ -499,46 +499,53 @@ class _MakePaymentState extends State<MakePayment> {
                                         )
                                       ),
                                       Container(
+                                        margin: EdgeInsets.only(top: 10),
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
                                             Container(
                                               child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
-                                                return ElevatedButton(
-                                                    onPressed: () async {
-                                                      if(inputController.text.isNotEmpty && double.parse(inputController.text) >= double.parse(finalAmount)){
-                                                        await callCreateOrder(inputController.text, connectivity, orderChange: change);
-                                                        if(this.isLogOut == true){
-                                                          openLogOutDialog();
-                                                          return;
+                                                return SizedBox(
+                                                  height: MediaQuery.of(context).size.height / 12,
+                                                  width: MediaQuery.of(context).size.width / 7,
+                                                  child: ElevatedButton(
+                                                      onPressed: () async {
+                                                        if(inputController.text.isNotEmpty && double.parse(inputController.text) >= double.parse(finalAmount)){
+                                                          await callCreateOrder(inputController.text, connectivity, orderChange: change);
+                                                          if(this.isLogOut == true){
+                                                            openLogOutDialog();
+                                                            return;
+                                                          }
+                                                          openPaymentSuccessDialog(widget.dining_id, isCashMethod: true);
+                                                        } else if(inputController.text.isEmpty) {
+                                                          Fluttertoast.showToast(
+                                                              backgroundColor: Color(0xFFFF0000),
+                                                              msg: "Please enter an amount");
+                                                          setState(() {
+                                                            inputController.clear();
+                                                          });
+                                                        } else {
+                                                          Fluttertoast.showToast(
+                                                              backgroundColor: Color(0xFFFF0000),
+                                                              msg: "Insufficient balance");
+                                                          setState(() {
+                                                            inputController.clear();
+                                                          });
                                                         }
-                                                        openPaymentSuccessDialog(widget.dining_id, isCashMethod: true);
-                                                      } else if(inputController.text.isEmpty) {
-                                                        Fluttertoast.showToast(
-                                                            backgroundColor: Color(0xFFFF0000),
-                                                            msg: "Please enter an amount");
-                                                        setState(() {
-                                                          inputController.clear();
-                                                        });
-                                                      } else {
-                                                        Fluttertoast.showToast(
-                                                            backgroundColor: Color(0xFFFF0000),
-                                                            msg: "Insufficient balance");
-                                                        setState(() {
-                                                          inputController.clear();
-                                                        });
-                                                      }
-                                                    },
-                                                    style: ElevatedButton.styleFrom(
-                                                        primary: color.backgroundColor,
-                                                        elevation: 5,
-                                                    ),
-                                                    child: Text('Pay'));
+                                                      },
+                                                      style: ElevatedButton.styleFrom(
+                                                          primary: color.backgroundColor,
+                                                          elevation: 5,
+                                                      ),
+                                                      child: Text('Pay')),
+                                                );
                                               }),
 
                                             ),
                                             SizedBox(width: 10,),
-                                            Container(
+                                            SizedBox(
+                                              height: MediaQuery.of(context).size.height / 12,
+                                              width: MediaQuery.of(context).size.width / 7,
                                               child: ElevatedButton(
                                                   onPressed: () async {
                                                     inputController.clear();
@@ -632,10 +639,9 @@ class _MakePaymentState extends State<MakePayment> {
                                           flex:2,
                                           child: Container(
                                             alignment: Alignment.center,
-                                            height: 60,
                                             child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
                                               return ElevatedButton(
-                                                style: ButtonStyle(backgroundColor: MaterialStateProperty.all(color.backgroundColor) ),
+                                                style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                                                 onPressed: () async {
                                                   setState(() {
                                                     scanning = true;
