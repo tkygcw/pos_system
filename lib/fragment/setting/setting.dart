@@ -265,18 +265,18 @@ class _SettingMenuState extends State<SettingMenu> {
                           icon: Icons.settings,
                           label: 'App-Device setting',
                         ),
-                        SideNavigationBarItem(
-                          icon: Icons.list,
-                          label: 'Test sync (temp)',
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.list,
-                          label: 'Test second screen (temp)',
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.list,
-                          label: 'Test report print (temp)',
-                        ),
+                        // SideNavigationBarItem(
+                        //   icon: Icons.list,
+                        //   label: 'Test sync (temp)',
+                        // ),
+                        // SideNavigationBarItem(
+                        //   icon: Icons.list,
+                        //   label: 'Test second screen (temp)',
+                        // ),
+                        // SideNavigationBarItem(
+                        //   icon: Icons.list,
+                        //   label: 'Test report print (temp)',
+                        // ),
                       ],
                       onTap: (index) {
                         setState(() {

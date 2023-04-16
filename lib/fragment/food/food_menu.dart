@@ -81,25 +81,6 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                               showSearch(context: context, delegate: ProductSearchDelegate(productList: allProduct, imagePath: imagePath));
                             },
                             icon: Icon(Icons.search))
-                        // Expanded(
-                        //   child:
-                        //   // TextField(
-                        //   //   onChanged: (value) {
-                        //   //     _tabController.index = 0;
-                        //   //     searchProduct(value);
-                        //   //   },
-                        //   //   controller: searchController,
-                        //   //   decoration: InputDecoration(
-                        //   //     isDense: true,
-                        //   //     border: InputBorder.none,
-                        //   //     labelText: 'Search ',
-                        //   //     focusedBorder: OutlineInputBorder(
-                        //   //       borderSide: const BorderSide(color: Colors.grey, width: 2.0),
-                        //   //       borderRadius: BorderRadius.circular(25.0),
-                        //   //     ),
-                        //   //   ),
-                        //   // ),
-                        // )
                       ],
                     ),
                   ),

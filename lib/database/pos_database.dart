@@ -2516,6 +2516,17 @@ class PosDatabase {
   }
 
 /*
+  search table
+*/
+  Future<List<PosTable>> searchTable(String text) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePosTable WHERE soft_delete = ? AND (number LIKE ? OR seats LIKE ?) ORDER BY number DESC ',
+        ['', '%' + text + '%', '%' + text + '%']);
+    return result.map((json) => PosTable.fromJson(json)).toList();
+  }
+
+/*
   search paid receipt
 */
   Future<List<Order>> searchPaidReceipt(String text) async {

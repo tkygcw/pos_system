@@ -184,6 +184,7 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                   endIndent: 20,
                 ),
                 ListTile(
+                  isThreeLine: true,
                   title: Text('Auto open cash drawer'),
                   subtitle: Text('Auto open cash drawer after insert opening balance'),
                   trailing: Switch(
@@ -240,13 +241,19 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                   indent: 20,
                   endIndent: 20,
                 ),
-                ListTile(
-                  title: Text('Log Out', style: TextStyle(color: Colors.red)),
-                  subtitle: Text('Reset Pos', style: TextStyle(color: Colors.red)),
-                  trailing: Icon(Icons.logout, color: Colors.red),
-                  onTap: () {
-                    openLogoutDialog();
-                  },
+                Padding(
+                  padding: EdgeInsets.all(15),
+                  child: Card(
+                    color: Colors.redAccent,
+                    child: ListTile(
+                      title: Text('Log Out', style: TextStyle(color: Colors.white)),
+                      subtitle: Text('Reset Pos', style: TextStyle(color: Colors.white)),
+                      trailing: Icon(Icons.logout, color: Colors.white),
+                      onTap: () {
+                        openLogoutDialog();
+                      },
+                    ),
+                  ),
                 ),
               ],
             ),

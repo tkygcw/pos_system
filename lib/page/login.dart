@@ -1,14 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/page/pos_pin.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/page/setup.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../fragment/logout_dialog.dart';
+import '../fragment/network_dialog.dart';
 import '../notifier/theme_color.dart';
 import 'package:flutter_login/flutter_login.dart';
 
@@ -20,6 +22,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  bool isLoaded = false;
   @override
   void initState() {
     // TODO: implement initState
@@ -66,7 +69,8 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Scaffold(
-        body: Container(
+        body: isLoaded ?
+        Container(
           child: Theme(
             data: Theme.of(context).copyWith(
               colorScheme: ThemeData().colorScheme.copyWith(
@@ -92,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
                     recoverPasswordSuccess: 'Password reset successfully',
                   ),
                   scrollable: false,
-                  logo: NetworkImage('https://pos.lkmng.com/asset/logo.png'),
+                  logo: NetworkImage('${Domain.domain}asset/logo.png'),
                   // File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg').existsSync() == false
                   //     ? NetworkImage("https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg")
                   //     : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
@@ -115,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-        ),
+        ): CustomProgressBar()
       );
     });
   }
@@ -130,6 +134,38 @@ class _LoginPageState extends State<LoginPage> {
         builder: (context) => PosPinPage(),
       ));
     }
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(!_hasInternetAccess){
+      openLogOutDialog();
+      return;
+    }
+    setState(() {
+      isLoaded = true;
+    });
+  }
+
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: NetworkDialog(
+                callback: () => loginCheck(),
+              ),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   Future<String> get _localPath async {
@@ -164,7 +200,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   downloadOtherImage(String path) async {
-    final String url = 'https://pos.lkmng.com/asset/output-onlinegiftools.gif';
+    final String url = '${Domain.domain}asset/output-onlinegiftools.gif';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/output-onlinegiftools.gif';
     final imageFile = File(localPath);
@@ -172,7 +208,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   downloadLogo(String path) async {
-    final String url = 'https://pos.lkmng.com/asset/logo1.jpg';
+    final String url = '${Domain.domain}asset/logo1.jpg';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/logo1.jpg';
     final imageFile = File(localPath);
@@ -180,7 +216,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   downloadDuitNowLogo(String path) async {
-    final String url = 'https://pos.lkmng.com/asset/duitNow.jpg';
+    final String url = '${Domain.domain}asset/duitNow.jpg';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/duitNow.jpg';
     final imageFile = File(localPath);
@@ -188,7 +224,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   downloadTNGLogo(String path) async {
-    final String url = 'https://pos.lkmng.com/asset/TNG.jpg';
+    final String url = '${Domain.domain}asset/TNG.jpg';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/TNG.jpg';
     final imageFile = File(localPath);
@@ -196,7 +232,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   downloadTwoSeat(String path) async {
-    final String url = 'https://pos.lkmng.com/asset/two-seat.jpg';
+    final String url = '${Domain.domain}asset/two-seat.jpg';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/two-seat.jpg';
     final imageFile = File(localPath);
@@ -204,7 +240,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   downloadFourSeat(String path) async {
-    final String url = 'https://pos.lkmng.com/asset/four-seat.jpg';
+    final String url = '${Domain.domain}asset/four-seat.jpg';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/four-seat.jpg';
     final imageFile = File(localPath);
@@ -212,7 +248,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   downloadSixSeat(String path) async {
-    final String url = 'https://pos.lkmng.com/asset/six-seat.jpg';
+    final String url = '${Domain.domain}asset/six-seat.jpg';
     final response = await http.get(Uri.parse(url));
     var localPath = path + '/six-seat.jpg';
     final imageFile = File(localPath);

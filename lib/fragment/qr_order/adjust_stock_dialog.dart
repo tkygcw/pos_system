@@ -8,6 +8,7 @@ import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/print_receipt.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -63,6 +64,12 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
 
   readAllPrinters() async {
     printerList = await PrintReceipt().readAllPrinters();
+  }
+
+  formatProductVariant(String variant) {
+    String result = '';
+    result = variant.toString().replaceAll("|", ",");
+    return result;
   }
 
   Future<Future<Object?>> openLogOutDialog() async {
@@ -158,7 +165,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                   children: [
                                     Visibility(
                                       visible: widget.orderDetailList[index].product_variant_name != '' ? true : false,
-                                      child: Text("(${widget.orderDetailList[index].product_variant_name})"),
+                                      child: Text("(${Utils.formatProductVariant(widget.orderDetailList[index].product_variant_name!)})"),
                                     ),
                                     Visibility(
                                       visible: getOrderDetailModifier(widget.orderDetailList[index]) != '' ? true : false,
@@ -362,8 +369,8 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
               ),
             ),
             content: Container(
-              height: MediaQuery.of(context).size.height / 2,
-              width: MediaQuery.of(context).size.width / 2,
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
               child: ListView.builder(
                   itemCount: widget.orderDetailList.length,
                   shrinkWrap: true,
@@ -397,7 +404,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                         elevation: 5,
                         child: Container(
                           margin: EdgeInsets.all(10),
-                          height: 85.0,
+                          height: MediaQuery.of(context).size.height / 4,
                           child: Column(children: [
                             Expanded(
                               child: ListTile(
@@ -408,7 +415,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                     children: <TextSpan>[
                                       TextSpan(
                                           text: "${widget.orderDetailList[index].productName}" + "\n",
-                                          style: TextStyle(fontSize: 18, color: Colors.black)),
+                                          style: TextStyle(fontSize: 14, color: Colors.black)),
                                       TextSpan(
                                           text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
                                     ],
@@ -417,7 +424,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text("+${widget.orderDetailList[index].product_variant_name}"),
+                                    Visibility(
+                                      visible: widget.orderDetailList[index].product_variant_name != '' ? true : false,
+                                      child: Text("+${widget.orderDetailList[index].product_variant_name}"),
+                                    ),
+                                    //modifier
                                     Visibility(
                                       visible: getOrderDetailModifier(widget.orderDetailList[index]) != '' ? true : false,
                                       child: Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
@@ -435,10 +446,14 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                     child: Column(
                                       children: [
                                         Row(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
                                           children: [
                                             IconButton(
                                                 hoverColor: Colors.transparent,
-                                                icon: Icon(Icons.remove),
+                                                icon: Icon(
+                                                  Icons.remove,
+                                                  size: 40,
+                                                ),
                                                 onPressed: () {
                                                   print('qty remove');
                                                   int qty = int.parse(widget.orderDetailList[index].quantity!);
@@ -455,13 +470,19 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                                     });
                                                   }
                                                 }),
-                                            Text(
-                                              '${widget.orderDetailList[index].quantity}',
-                                              style: TextStyle(color: Colors.black),
+                                            Padding(
+                                              padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                              child: Text(
+                                                '${widget.orderDetailList[index].quantity}',
+                                                style: TextStyle(color: Colors.black, fontSize: 30),
+                                              ),
                                             ),
                                             IconButton(
                                                 hoverColor: Colors.transparent,
-                                                icon: Icon(Icons.add),
+                                                icon: Icon(
+                                                  Icons.add,
+                                                  size: 40,
+                                                ),
                                                 onPressed: () {
                                                   if (int.parse(widget.orderDetailList[index].quantity!) <
                                                       int.parse(widget.orderDetailList[index].available_stock!)) {
@@ -490,81 +511,102 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                   }),
             ),
             actions: <Widget>[
-              TextButton(
-                child: Text('Close'),
-                onPressed: isButtonDisabled
-                    ? null
-                    : () {
-                        // Disable the button after it has been pressed
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                        Navigator.of(context).pop();
-                      },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 3.6,
+                height: MediaQuery.of(context).size.height / 8,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color.backgroundColor,
+                  ),
+                  child: Text('Close'),
+                  onPressed: isButtonDisabled
+                      ? null
+                      : () {
+                          // Disable the button after it has been pressed
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
+                          Navigator.of(context).pop();
+                        },
+                ),
               ),
-              TextButton(
-                child: const Text('Reject'),
-                onPressed: isButtonDisabled
-                    ? null
-                    : () async {
-                        // Disable the button after it has been pressed
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                        await callRejectOrder();
-                      },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 3.6,
+                height: MediaQuery.of(context).size.height / 8,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                  ),
+                  child: const Text('Reject'),
+                  onPressed: isButtonDisabled
+                      ? null
+                      : () async {
+                          // Disable the button after it has been pressed
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
+                          await callRejectOrder();
+                        },
+                ),
               ),
-              TextButton(
-                child: Text('Add'),
-                onPressed: isButtonDisabled
-                    ? null
-                    : widget.orderDetailList.isNotEmpty
-                        ? () async {
-                            await checkOrderDetailStock();
-                            if (hasNoStockProduct) {
-                              Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Contain out of stock product");
-                            } else {
-                              // Disable the button after it has been pressed
-                              setState(() {
-                                isButtonDisabled = true;
-                              });
-                              if (removeDetailList.isNotEmpty) {
-                                await removeOrderDetail();
-                              }
-                              if (widget.tableLocalId != '') {
-                                await checkTable();
-                                if (tableInUsed == true) {
-                                  await updateOrderCache();
-                                  await updateProductStock();
-                                  await syncAllToCloud();
-                                  if (this.isLogOut == true) {
-                                    openLogOutDialog();
-                                    return;
-                                  }
-                                  widget.callBack;
-                                  await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
-                                  await PrintReceipt()
-                                      .printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
-                                } else {
-                                  await callNewOrder();
-                                  await updateProductStock();
-                                  await syncAllToCloud();
-                                  if (this.isLogOut == true) {
-                                    openLogOutDialog();
-                                    return;
-                                  }
-                                  widget.callBack;
-                                  await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
-                                  await PrintReceipt()
-                                      .printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
-                                }
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 3.6,
+                height: MediaQuery.of(context).size.height / 8,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color.buttonColor,
+                  ),
+                  child: Text('Add'),
+                  onPressed: isButtonDisabled
+                      ? null
+                      : widget.orderDetailList.isNotEmpty
+                          ? () async {
+                              await checkOrderDetailStock();
+                              if (hasNoStockProduct) {
+                                Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Contain out of stock product");
                               } else {
-                                callOtherOrder();
+                                // Disable the button after it has been pressed
+                                setState(() {
+                                  isButtonDisabled = true;
+                                });
+                                if (removeDetailList.isNotEmpty) {
+                                  await removeOrderDetail();
+                                }
+                                if (widget.tableLocalId != '') {
+                                  await checkTable();
+                                  if (tableInUsed == true) {
+                                    await updateOrderCache();
+                                    await updateProductStock();
+                                    await syncAllToCloud();
+                                    if (this.isLogOut == true) {
+                                      openLogOutDialog();
+                                      return;
+                                    }
+                                    widget.callBack;
+                                    await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                                    await PrintReceipt()
+                                        .printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                                  } else {
+                                    await callNewOrder();
+                                    await updateProductStock();
+                                    await syncAllToCloud();
+                                    if (this.isLogOut == true) {
+                                      openLogOutDialog();
+                                      return;
+                                    }
+                                    widget.callBack;
+                                    await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                                    await PrintReceipt()
+                                        .printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                                  }
+                                } else {
+                                  callOtherOrder();
+                                }
+                                Navigator.of(context).pop();
                               }
-                              Navigator.of(context).pop();
                             }
-                          }
-                        : null,
+                          : null,
+                ),
               ),
             ],
           );

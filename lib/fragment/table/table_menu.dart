@@ -81,6 +81,13 @@ class _TableMenuState extends State<TableMenu> {
     }
   }
 
+  searchTable(String text) async {
+    List<PosTable> data = await PosDatabase.instance.searchTable(text);
+    setState(() {
+      tableList = data;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
@@ -108,7 +115,7 @@ class _TableMenuState extends State<TableMenu> {
                                       const EdgeInsets.fromLTRB(18, 0, 0, 0),
                                   child: ElevatedButton.icon(
                                       style: ElevatedButton.styleFrom(
-                                          primary: color.backgroundColor),
+                                          backgroundColor: color.backgroundColor),
                                       onPressed: () {
                                         openAddTableDialog(PosTable());
                                       },
@@ -116,21 +123,21 @@ class _TableMenuState extends State<TableMenu> {
                                       label: Text("Table")),
                                 ),
                                 SizedBox(
-                                    width:
-                                        MediaQuery.of(context).size.height > 500
-                                            ? 500
-                                            : 50),
+                                    width: MediaQuery.of(context).size.height > 500
+                                        ? 500
+                                        : 50),
                                 Expanded(
                                   child: TextField(
+                                    onChanged: (value) {
+                                      searchTable(value);
+                                    },
                                     decoration: InputDecoration(
                                       isDense: true,
                                       border: InputBorder.none,
                                       labelText: 'Search',
                                       focusedBorder: OutlineInputBorder(
-                                        borderSide: const BorderSide(
-                                            color: Colors.grey, width: 2.0),
-                                        borderRadius:
-                                            BorderRadius.circular(25.0),
+                                        borderSide: const BorderSide(color: Colors.grey, width: 2.0),
+                                        borderRadius: BorderRadius.circular(25.0),
                                       ),
                                     ),
                                   ),

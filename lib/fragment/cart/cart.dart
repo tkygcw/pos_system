@@ -236,10 +236,12 @@ class _CartPageState extends State<CartPage> {
                                     widget.currentPage == 'menu'
                                         ? cart.cartNotifierItem.isEmpty
                                             ? setState(() {
+                                                cart.removeAllTable();
                                                 cart.selectedOption = diningList[index];
                                               })
                                             : cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status != 1
                                                 ? setState(() {
+                                                    cart.removeAllTable();
                                                     cart.selectedOption = diningList[index];
                                                   })
                                                 : null
