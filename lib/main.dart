@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -47,7 +46,7 @@ void showFlutterNotification(RemoteMessage message) {
   RemoteNotification? notification = message.notification;
   AndroidNotification? android = message.notification?.android;
   if (notification != null && android != null) {
-    print('title: ${message.data['type']}');
+    print('title: ${message.data.toString()}');
     if (message.data['type'] == '0') {
       // flutterLocalNotificationsPlugin.show(
       //     notification.hashCode,
