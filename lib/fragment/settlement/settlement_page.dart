@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -52,66 +53,64 @@ class _SettlementPageState extends State<SettlementPage> {
       return LayoutBuilder(builder: (context, constraints) {
         if (constraints.maxWidth > 800) {
           return Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              elevation: 0,
+              title: Text(
+                "Counter",
+                style: TextStyle(fontSize: 25),
+              ),
+              actions: [
+                Container(
+                  margin: EdgeInsets.only(right: 10),
+                  width: MediaQuery.of(context).size.height / 3,
+                  child: DropdownButton<String>(
+                    onChanged: (String? value) {
+                      setState(() {
+                        selectedPayment = value!;
+                        readCashRecord();
+                      });
+                      //getCashRecord();
+                    },
+                    menuMaxHeight: 300,
+                    value: selectedPayment,
+                    // Hide the default underline
+                    underline: Container(),
+                    icon: Icon(
+                      Icons.arrow_drop_down,
+                      color: color.backgroundColor,
+                    ),
+                    isExpanded: true,
+                    // The list of options
+                    items: paymentNameList
+                        .map((e) => DropdownMenuItem(
+                      value: e,
+                      child: Container(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          e,
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    ))
+                        .toList(),
+                    // Customize the selected item
+                    selectedItemBuilder: (BuildContext context) => paymentNameList
+                        .map((e) => Center(
+                      child: Text(e),
+                    ))
+                        .toList(),
+                  ),
+                ),
+              ],
+            ),
             body: isLoad
                 ? Container(
                     child: Padding(
-                      padding: EdgeInsets.all(20),
+                      padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
-                            Container(
-                                margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                                alignment: Alignment.topLeft,
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      "Counter",
-                                      style: TextStyle(fontSize: 25),
-                                    ),
-                                    Spacer(),
-                                    Container(
-                                      margin: EdgeInsets.only(right: 10),
-                                      width: MediaQuery.of(context).size.height / 3,
-                                      child: DropdownButton<String>(
-                                        onChanged: (String? value) {
-                                          setState(() {
-                                            selectedPayment = value!;
-                                            readCashRecord();
-                                          });
-                                          //getCashRecord();
-                                        },
-                                        menuMaxHeight: 300,
-                                        value: selectedPayment,
-                                        // Hide the default underline
-                                        underline: Container(),
-                                        icon: Icon(
-                                          Icons.arrow_drop_down,
-                                          color: color.backgroundColor,
-                                        ),
-                                        isExpanded: true,
-                                        // The list of options
-                                        items: paymentNameList
-                                            .map((e) => DropdownMenuItem(
-                                                  value: e,
-                                                  child: Container(
-                                                    alignment: Alignment.centerLeft,
-                                                    child: Text(
-                                                      e,
-                                                      style: TextStyle(fontSize: 18),
-                                                    ),
-                                                  ),
-                                                ))
-                                            .toList(),
-                                        // Customize the selected item
-                                        selectedItemBuilder: (BuildContext context) => paymentNameList
-                                            .map((e) => Center(
-                                                  child: Text(e),
-                                                ))
-                                            .toList(),
-                                      ),
-                                    ),
-                                  ],
-                                )),
                             Divider(
                               height: 10,
                               color: Colors.grey,
@@ -905,6 +904,16 @@ class _SettlementPageState extends State<SettlementPage> {
   ----------------Other function part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
+  setScreenLayout() {
+    final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
+    if (screenWidth < 500) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown
+      ]);
+    }
+  }
+
   toPosPinPage() {
     String cashDrawer = calcCashDrawer();
     print('to pos pin call him');
@@ -912,6 +921,7 @@ class _SettlementPageState extends State<SettlementPage> {
     //   PageTransition(type: PageTransitionType.fade, child: PosPinPage(cashBalance: cashDrawer),
     //   ),
     // );
+    setScreenLayout();
     Navigator.of(context).pushAndRemoveUntil(
       // the new route
       MaterialPageRoute(

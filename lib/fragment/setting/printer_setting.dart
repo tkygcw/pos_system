@@ -55,7 +55,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
             ),
             body: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: printerList.length > 0 ?
+              child: printerList.isNotEmpty ?
               ListView.builder(
                   shrinkWrap: true,
                   itemCount: printerList.length,
@@ -63,9 +63,15 @@ class _PrinterSettingState extends State<PrinterSetting> {
                     return Card(
                       elevation: 5,
                       child: ListTile(
+                        isThreeLine: true,
+                        //contentPadding: EdgeInsets.all(10),
                         leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.print, color: Colors.grey,)),
-                        title:Text("${printerList[index].printer_label}"),
-                        subtitle: printerList[index].type == 0 ? Text("Type: USB") : Text('Type: LAN'),
+                        title:Text("${printerList[index].printer_label}", style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold)),
+                        subtitle: printerList[index].type == 0
+                            ?
+                        Text("Type: USB")
+                            :
+                        Text('Type: LAN\nIP: ${jsonDecode(printerList[index].value!)} '),
                         trailing: Container(
                           child: FittedBox(
                             child: printerList[index].type == 0 ? Icon(Icons.usb) : Icon(Icons.wifi),
@@ -130,9 +136,10 @@ class _PrinterSettingState extends State<PrinterSetting> {
                     return Card(
                       elevation: 5,
                       child: ListTile(
+                        contentPadding: EdgeInsets.all(10),
                         leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.print, color: Colors.grey,)),
-                        title:Text("${printerList[index].printer_label}"),
-                        subtitle: printerList[index].type == 0 ? Text("Type: USB") : Text('Type: LAN'),
+                        title:Text("${printerList[index].printer_label}", style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold)),
+                        subtitle: printerList[index].type == 0 ? Text("Type: USB") : Text('Type: LAN\nIP: ${jsonDecode(printerList[index].value!)} '),
                         trailing: Container(
                           child: FittedBox(
                             child: printerList[index].type == 0 ? Icon(Icons.usb) : Icon(Icons.wifi),

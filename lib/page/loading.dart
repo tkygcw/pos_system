@@ -716,9 +716,7 @@ getAllTableUseDetail() async {
     for (var i = 0; i < responseJson.length; i++) {
       TableUseDetail item = TableUseDetail.fromJson(responseJson[i]);
       TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(item.table_use_key!);
-      print('table id: ${item.table_id}');
       PosTable tableData = await PosDatabase.instance.readTableByCloudId(item.table_id.toString());
-      //TableUseDetail user = await PosDatabase.instance.insertSqliteTableUseDetail(TableUseDetail.fromJson(responseJson[i]));
       TableUseDetail user = await PosDatabase.instance.insertTableUseDetail(TableUseDetail(
           table_use_detail_id: item.table_use_detail_id,
           table_use_detail_key: item.table_use_detail_key,

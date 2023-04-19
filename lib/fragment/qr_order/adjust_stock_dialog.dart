@@ -43,6 +43,7 @@ class AdjustStockDialog extends StatefulWidget {
 }
 
 class _AdjustStockDialogState extends State<AdjustStockDialog> {
+  DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   List<OrderDetail> orderDetailList = [], noStockOrderDetailList = [], removeDetailList = [];
   List<Printer> printerList = [];
   String localTableUseId = '', tableUseKey = '', tableUseDetailKey = '';
@@ -50,9 +51,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       table_use_detail_value,
       order_cache_value,
       order_detail_value,
+      delete_order_detail_value,
       order_modifier_detail_value,
       table_value,
       branch_link_product_value;
+  double newSubtotal = 0.0;
   bool hasNoStockProduct = false, tableInUsed = false;
   bool isButtonDisabled = false, isLogOut = false;
 
@@ -323,6 +326,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                 if (widget.tableLocalId != '') {
                                   await checkTable();
                                   if (tableInUsed == true) {
+                                    await updateOrderDetail();
                                     await updateOrderCache();
                                     await updateProductStock();
                                     await syncAllToCloud();
@@ -332,8 +336,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                     }
                                     widget.callBack;
                                     await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
-                                    await PrintReceipt()
-                                        .printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                                    await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                                   } else {
                                     await callNewOrder();
                                     await updateProductStock();
@@ -575,6 +578,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                 if (widget.tableLocalId != '') {
                                   await checkTable();
                                   if (tableInUsed == true) {
+                                    await updateOrderDetail();
                                     await updateOrderCache();
                                     await updateProductStock();
                                     await syncAllToCloud();
@@ -618,8 +622,9 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   callNewOrder() async {
     await createTableUseID();
     await createTableUseDetail();
-    updateOrderCache();
-    updatePosTable();
+    await updateOrderDetail();
+    await updateOrderCache();
+    await updatePosTable();
   }
 
   callOtherOrder() async {
@@ -737,30 +742,47 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     OrderCache orderCache = OrderCache(
         updated_at: dateTime,
         sync_status: 2,
+        total_amount: newSubtotal.toStringAsFixed(2),
         table_use_key: this.tableUseKey,
         table_use_sqlite_id: this.localTableUseId,
         order_cache_sqlite_id: widget.orderCacheLocalId);
-    int status = await PosDatabase.instance.updateOrderCacheTableUseId(orderCache);
+    int status = await PosDatabase.instance.updateQrOrderCache(orderCache);
     if (status == 1) {
       await acceptOrder(orderCache.order_cache_sqlite_id!);
       OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);
       _value.add(jsonEncode(updatedCache));
       this.order_cache_value = _value.toString();
-      //syncOrderCacheToCloud(updatedCache);
     }
   }
-
-  syncOrderCacheToCloud(OrderCache updatedCache) async {
-    List<String> _orderCacheValue = [];
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      _orderCacheValue.add(jsonEncode(updatedCache));
-      print('order cache value: ${_orderCacheValue.toString()}');
-      Map response = await Domain().SyncOrderCacheToCloud(_orderCacheValue.toString());
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int orderCacheData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[0]['order_cache_key']);
+  
+  updateOrderDetail() async {
+    try{
+      List<String> _value = [];
+      newSubtotal = 0.0;
+      String dateTime = dateFormat.format(DateTime.now());
+      List<OrderDetail> _orderDetail = widget.orderDetailList;
+      for(int i = 0; i < _orderDetail.length; i++){
+        OrderDetail orderDetailObj = OrderDetail(
+            updated_at: dateTime,
+            sync_status: 2,
+            price: _orderDetail[i].price,
+            quantity: _orderDetail[i].quantity,
+            order_detail_key: _orderDetail[i].order_detail_key,
+            order_detail_sqlite_id: _orderDetail[i].order_detail_sqlite_id
+        );
+        print('order detail${i}: ${orderDetailObj.quantity}');
+        newSubtotal += double.parse(orderDetailObj.price!) * int.parse(orderDetailObj.quantity!);
+        //update order detail
+        int status = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObj);
+        if(status == 1){
+          OrderDetail data = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObj.order_detail_sqlite_id!);
+          _value.add(jsonEncode(data.syncJson()));
+        }
       }
+      this.order_detail_value = _value.toString();
+    } catch(e){
+      print('qr update order detail error: ${e}');
+      return;
     }
   }
 
@@ -978,6 +1000,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           status: 2,
           cancel_by: '',
           cancel_by_user_id: '',
+          order_detail_key: removeDetailList[i].order_detail_key,
           order_detail_sqlite_id: removeDetailList[i].order_detail_sqlite_id,
           branch_link_product_sqlite_id: removeDetailList[i].branch_link_product_sqlite_id);
       int deleteOrderDetail = await PosDatabase.instance.updateOrderDetailStatus(orderDetail);
@@ -986,7 +1009,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         value.add(jsonEncode(data.syncJson()));
       }
     }
-    this.order_detail_value = value.toString();
+    this.delete_order_detail_value = value.toString();
     //syncOrderDetailToCloud(value.toString());
   }
 
@@ -1115,7 +1138,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   getOrderDetailModifier(OrderDetail orderDetail) {
     List<String> modifier = [];
     String result = '';
-    print('mod length: ${orderDetail.orderModifierDetail.length}');
     for (int j = 0; j < orderDetail.orderModifierDetail.length; j++) {
       modifier.add(orderDetail.orderModifierDetail[j].mod_name!);
       result = modifier.toString().replaceAll('[', '').replaceAll(']', '').replaceAll(',', '+').replaceFirst('', '+');
@@ -1137,6 +1159,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           table_use_detail_value: this.table_use_detail_value,
           order_cache_value: this.order_cache_value,
           order_detail_value: this.order_detail_value,
+          order_detail_delete_value: this.delete_order_detail_value,
           branch_link_product_value: this.branch_link_product_value,
           order_modifier_value: this.order_modifier_detail_value,
           table_value: this.table_value);

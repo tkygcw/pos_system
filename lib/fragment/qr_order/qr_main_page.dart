@@ -9,8 +9,10 @@ import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/utils/Utils.dart';
+import 'package:provider/provider.dart';
 
 import '../../database/domain.dart';
+import '../../notifier/theme_color.dart';
 
 class QrMainPage extends StatefulWidget {
   const QrMainPage({Key? key}) : super(key: key);
@@ -40,83 +42,78 @@ class _QrMainPageState extends State<QrMainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: StreamBuilder(
-            stream: controller.stream,
-            builder: (context, snapshot) {
-              preload();
-              return Container(
-                padding: EdgeInsets.all(20),
-                child: Container(
-                  margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                  alignment: Alignment.topLeft,
-                  child: Stack(
-                    children: [
-                      Container(
-                        margin: EdgeInsets.only(bottom: 20),
-                        child: Text('Qr Order', style: TextStyle(fontSize: 25)),
-                      ),
-                      qrOrderCacheList.isNotEmpty
-                          ? ListView.builder(
-                              padding: EdgeInsets.only(top: 50),
-                              shrinkWrap: true,
-                              itemCount: qrOrderCacheList.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                return Card(
-                                  elevation: 5,
-                                  child: ListTile(
-                                    contentPadding: EdgeInsets.all(10),
-                                    //isThreeLine: true,
-                                    title: qrOrderCacheList[index].dining_id == '1'
-                                        ? Text('Table No: ${qrOrderCacheList[index].table_number}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
-                                        : qrOrderCacheList[index].dining_id == '2'
-                                            ? Text('Take Away')
-                                            : Text('Delivery'),
-                                    subtitle: RichText(
-                                      text: TextSpan(
-                                        style: TextStyle(color: Colors.black, fontSize: 16),
-                                        children: <TextSpan>[
-                                          TextSpan(
-                                              text: 'Date: ${Utils.formatDate(qrOrderCacheList[index].created_at)}',
-                                              style: TextStyle(color: Colors.blueGrey, fontSize: 14)),
-                                          TextSpan(text: '\n'),
-                                          TextSpan(
-                                            text: 'Amount: ${Utils.convertTo2Dec(qrOrderCacheList[index].total_amount)}',
-                                            style: TextStyle(color: Colors.black87, fontSize: 14),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    leading: CircleAvatar(
-                                        backgroundColor: Colors.grey.shade200,
-                                        child: Icon(
-                                          Icons.qr_code,
-                                          color: Colors.grey,
-                                        )),
-                                    trailing: Text('#${qrOrderCacheList[index].batch_id}', style: TextStyle(fontSize: 18)),
-                                    onTap: () async {
-                                      await checkOrderDetail(qrOrderCacheList[index].order_cache_sqlite_id!);
-                                      //pop stock adjust dialog
-                                      openAdjustStockDialog(orderDetailList, qrOrderCacheList[index].order_cache_sqlite_id!,
-                                          qrOrderCacheList[index].qr_order_table_sqlite_id!);
-                                    },
+    return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
+      return Scaffold(
+          appBar: AppBar(
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            title: Text("Qr order", style: TextStyle(fontSize: 25, color: color.backgroundColor)),
+          ),
+          body: StreamBuilder(
+              stream: controller.stream,
+              builder: (context, snapshot) {
+                preload();
+                return Container(
+                  padding: EdgeInsets.all(10),
+                  child: qrOrderCacheList.isNotEmpty
+                      ? ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: qrOrderCacheList.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return Card(
+                          elevation: 5,
+                          child: ListTile(
+                            contentPadding: EdgeInsets.all(10),
+                            //isThreeLine: true,
+                            title: qrOrderCacheList[index].dining_id == '1'
+                                ? Text('Table No: ${qrOrderCacheList[index].table_number}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
+                                : qrOrderCacheList[index].dining_id == '2'
+                                ? Text('Take Away')
+                                : Text('Delivery'),
+                            subtitle: RichText(
+                              text: TextSpan(
+                                style: TextStyle(color: Colors.black, fontSize: 16),
+                                children: <TextSpan>[
+                                  TextSpan(
+                                      text: 'Date: ${Utils.formatDate(qrOrderCacheList[index].created_at)}',
+                                      style: TextStyle(color: Colors.blueGrey, fontSize: 14)),
+                                  TextSpan(text: '\n'),
+                                  TextSpan(
+                                    text: 'Amount: ${Utils.convertTo2Dec(qrOrderCacheList[index].total_amount)}',
+                                    style: TextStyle(color: Colors.black87, fontSize: 14),
                                   ),
-                                );
-                              })
-                          : Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.qr_code_2, size: 40.0),
-                                  Text('NO ORDER', style: TextStyle(fontSize: 24)),
                                 ],
                               ),
                             ),
-                    ],
+                            leading: CircleAvatar(
+                                backgroundColor: Colors.grey.shade200,
+                                child: Icon(
+                                  Icons.qr_code,
+                                  color: Colors.grey,
+                                )),
+                            trailing: Text('#${qrOrderCacheList[index].batch_id}', style: TextStyle(fontSize: 18)),
+                            onTap: () async {
+                              await checkOrderDetail(qrOrderCacheList[index].order_cache_sqlite_id!);
+                              //pop stock adjust dialog
+                              openAdjustStockDialog(orderDetailList, qrOrderCacheList[index].order_cache_sqlite_id!,
+                                  qrOrderCacheList[index].qr_order_table_sqlite_id!);
+                            },
+                          ),
+                        );
+                      })
+                      :
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.qr_code_2, size: 40.0),
+                        Text('NO ORDER', style: TextStyle(fontSize: 24)),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }));
+                );
+              }));
+    });
   }
 
   openAdjustStockDialog(List<OrderDetail> orderDetail, int localId, String tableLocalId) async {

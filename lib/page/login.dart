@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -27,6 +29,17 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    setScreenLayout();
+  }
+
+  setScreenLayout() {
+    final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
+    if (screenWidth < 500) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown
+      ]);
+    }
     loginCheck();
   }
 
@@ -74,8 +87,8 @@ class _LoginPageState extends State<LoginPage> {
           child: Theme(
             data: Theme.of(context).copyWith(
               colorScheme: ThemeData().colorScheme.copyWith(
-                    primary: Colors.black26,
-                  ),
+                primary: Colors.black26,
+              ),
             ),
             child: Container(
               decoration: BoxDecoration(
@@ -84,38 +97,35 @@ class _LoginPageState extends State<LoginPage> {
                   fit: BoxFit.cover,
                 ),
               ),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(0, 20, 0, 0),
-                child: FlutterLogin(
-                  title: 'OptimyPOS',
-                  navigateBackAfterRecovery: true,
-                  messages: LoginMessages(
-                    recoverPasswordButton: "SEND",
-                    recoverPasswordIntro: "Reset Password Send",
-                    recoverPasswordDescription: "We will send an reset password link to this email.Please check your mail.",
-                    recoverPasswordSuccess: 'Password reset successfully',
-                  ),
-                  scrollable: false,
-                  logo: NetworkImage('${Domain.domain}asset/logo.png'),
-                  // File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg').existsSync() == false
-                  //     ? NetworkImage("https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg")
-                  //     : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
-                  onLogin: _authUser,
-                  onSubmitAnimationCompleted: () {
-                    Navigator.of(context).pushReplacement(MaterialPageRoute(
-                      builder: (context) => SetupPage(),
-                    ));
-                  },
-                  theme: LoginTheme(
-                      primaryColor: Colors.black26,
-                      accentColor: Colors.white,
-                      buttonTheme: LoginButtonTheme(backgroundColor: Colors.teal),
-                      inputTheme: InputDecorationTheme(
-                        filled: true,
-                        fillColor: Colors.grey.shade200,
-                      )),
-                  onRecoverPassword: _recoverPassword,
+              child: FlutterLogin(
+                title: 'Optimy POS',
+                navigateBackAfterRecovery: true,
+                messages: LoginMessages(
+                  recoverPasswordButton: "SEND",
+                  recoverPasswordIntro: "Reset Password Send",
+                  recoverPasswordDescription: "We will send an reset password link to this email.Please check your mail.",
+                  recoverPasswordSuccess: 'Password reset successfully',
                 ),
+                scrollable: false,
+                logo: NetworkImage('${Domain.domain}asset/logo.png'),
+                // File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg').existsSync() == false
+                //     ? NetworkImage("https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg")
+                //     : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
+                onLogin: _authUser,
+                onSubmitAnimationCompleted: () {
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(
+                    builder: (context) => SetupPage(),
+                  ));
+                },
+                theme: LoginTheme(
+                    primaryColor: Colors.black26,
+                    accentColor: Colors.white,
+                    buttonTheme: LoginButtonTheme(backgroundColor: Colors.teal),
+                    inputTheme: InputDecorationTheme(
+                      filled: true,
+                      fillColor: Colors.grey.shade200,
+                    )),
+                onRecoverPassword: _recoverPassword,
               ),
             ),
           ),
@@ -139,9 +149,13 @@ class _LoginPageState extends State<LoginPage> {
       openLogOutDialog();
       return;
     }
-    setState(() {
-      isLoaded = true;
-    });
+    if(mounted){
+      Timer(Duration(seconds: 3), () {
+        setState(() {
+          isLoaded = true;
+        });
+      });
+    }
   }
 
   Future<Future<Object?>> openLogOutDialog() async {

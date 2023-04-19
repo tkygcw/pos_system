@@ -314,10 +314,9 @@ class _CartPageState extends State<CartPage> {
                                           ],
                                         ),
                                       ),
-                                      subtitle: Text(
-                                          getVariant(cart.cartNotifierItem[index]) +
-                                              getModifier(cart.cartNotifierItem[index]) +
-                                              getRemark(cart.cartNotifierItem[index]),
+                                      subtitle: Text(getVariant(cart.cartNotifierItem[index]) +
+                                          getModifier(cart.cartNotifierItem[index]) +
+                                          getRemark(cart.cartNotifierItem[index]),
                                           style: TextStyle(fontSize: 10)),
                                       trailing: Container(
                                         child: FittedBox(
@@ -745,7 +744,7 @@ class _CartPageState extends State<CartPage> {
       for (int j = 0; j < group.child.length; j++) {
         if (group.child[j].isSelected!) {
           variant.add(group.child[j].name!);
-          result = variant.toString().replaceAll('[', '').replaceAll(']', '');
+          result = variant.toString().replaceAll('[', '').replaceAll(']', '').replaceAll(",", " |");
         }
       }
     }

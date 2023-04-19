@@ -48,6 +48,8 @@ class PrintReceipt{
                     msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
               }
             }
+          } else {
+            ReceiptLayout().openCashDrawer(isUSB: true);
           }
         }
       }
@@ -290,8 +292,7 @@ class PrintReceipt{
                     final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
                     if (res == PosPrintResult.success) {
-                      await ReceiptLayout()
-                          .printKitchenList80mm(false, cart.cartNotifierItem[k], orderCacheLocalId, value: printer);
+                      await ReceiptLayout().printKitchenList80mm(false, cart.cartNotifierItem[k], orderCacheLocalId, value: printer);
                       printer.disconnect();
                     } else {
                       Fluttertoast.showToast(
@@ -305,8 +306,7 @@ class PrintReceipt{
                     final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
 
                     if (res == PosPrintResult.success) {
-                      await ReceiptLayout()
-                          .printKitchenList58mm(false, cart.cartNotifierItem[k], orderCacheLocalId, value: printer);
+                      await ReceiptLayout().printKitchenList58mm(false, cart.cartNotifierItem[k], orderCacheLocalId, value: printer);
                       printer.disconnect();
                     } else {
                       Fluttertoast.showToast(
