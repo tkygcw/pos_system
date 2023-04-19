@@ -63,43 +63,42 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
       return isLoading
           ? CustomProgressBar()
           : Scaffold(
+              appBar: AppBar(
+                automaticallyImplyLeading: false,
+                elevation: 0,
+                title: Text(
+                  "Menu",
+                  style: TextStyle(fontSize: 25, color: color.backgroundColor),
+                ),
+                actions: [
+                  IconButton(
+                      color: color.buttonColor,
+                      onPressed: (){
+                        showSearch(context: context, delegate: ProductSearchDelegate(productList: allProduct, imagePath: imagePath));
+                      },
+                      icon: Icon(Icons.search),
+                  )
+                ],
+              ),
               resizeToAvoidBottomInset: false,
               body: Container(
-                child: Column(children: [
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(11, 8, 11, 4),
-                    child: Row(
-                      children: [
-                        Expanded(
-                            child: Text(
-                          "Menu",
-                          style: TextStyle(fontSize: 25, color: color.backgroundColor),
-                        )),
-                        Spacer(),
-                        IconButton(
-                            onPressed: (){
-                              showSearch(context: context, delegate: ProductSearchDelegate(productList: allProduct, imagePath: imagePath));
-                            },
-                            icon: Icon(Icons.search))
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  TabBar(
-                    isScrollable: true,
-                    unselectedLabelColor: Colors.black,
-                    labelColor: color.buttonColor,
-                    indicatorColor: color.buttonColor,
-                    tabs: categoryTab,
-                    controller: _tabController,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: TabBarView(controller: _tabController, children: categoryTabContent),
-                    ),
-                  ),
+                child: Column(
+                    children: [
+                      TabBar(
+                        isScrollable: true,
+                        unselectedLabelColor: Colors.black,
+                        labelColor: color.buttonColor,
+                        indicatorColor: color.buttonColor,
+                        tabs: categoryTab,
+                        controller: _tabController,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: TabBarView(controller: _tabController, children: categoryTabContent),
+                        ),
+                      ),
                 ]),
               ),
             );

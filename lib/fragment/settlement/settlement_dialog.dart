@@ -128,7 +128,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
       builder: (BuildContext context) => Center(
         child: SingleChildScrollView(
           child: AlertDialog(
-            title: Text('Enter Admin PIN'),
+            title: Text('Enter Current User PIN'),
             content: SizedBox(
               height: 100.0,
               width: 350.0,
@@ -219,10 +219,23 @@ class _SettlementDialogState extends State<SettlementDialog> {
 
   readAdminData(String pin, ConnectivityChangeNotifier connectivity) async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? pos_user = prefs.getString('pos_pin_user');
+      Map userObject = json.decode(pos_user!);
       String dateTime = dateFormat.format(DateTime.now());
-      List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
-      if (userData.length > 0) {
-        await callSettlement(dateTime, connectivity);
+      User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
+      if (userData != null) {
+        if(userData.user_id == userObject['user_id']){
+          if(userData.role == 0 || userData.role == 2){
+            await callSettlement(dateTime, connectivity);
+          } else {
+            Fluttertoast.showToast(
+                backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('settlement_role_error')}");
+          }
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('pin_not_match')}");
+        }
         //print settlement list
         // List<Settlement> settlementData = await PosDatabase.instance.readAllSettlement();
         // if(settlementData.isNotEmpty){
@@ -249,10 +262,11 @@ class _SettlementDialogState extends State<SettlementDialog> {
         // }
       } else {
         Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
+            backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");
       }
     } catch (e) {
       print('user checking error ${e}');
+      return;
     }
   }
 

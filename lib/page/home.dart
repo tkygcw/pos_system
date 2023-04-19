@@ -1,25 +1,18 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/fragment/bill/bill.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/order/order.dart';
 import 'package:pos_system/fragment/product/product.dart';
-import 'package:pos_system/fragment/report/report_page.dart';
 import 'package:pos_system/fragment/setting/setting.dart';
 import 'package:pos_system/fragment/settlement/settlement_page.dart';
 import 'package:pos_system/fragment/table/table.dart';
-import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
-import 'package:pos_system/object/product.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -304,6 +297,7 @@ class _HomePageState extends State<HomePage> {
       }
       bool _hasInternetAccess = await Domain().isHostReachable();
       if(_hasInternetAccess){
+        print('timer count: ${timerCount}');
         if (timerCount == 0) {
           //sync to cloud
           print('sync to cloud');
@@ -318,7 +312,6 @@ class _HomePageState extends State<HomePage> {
           print('qr order sync');
           QrOrder().getQrOrder();
           //sync from cloud
-          //print('sync from cloud');
           var syncStatus = await SyncRecord().syncFromCloud();
           print('is log out: ${syncStatus}');
           if(syncStatus == true){

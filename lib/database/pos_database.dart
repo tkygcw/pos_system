@@ -3030,7 +3030,7 @@ class PosDatabase {
         'SELECT * FROM $tableUser WHERE soft_delete = ? AND pos_pin = ?',
         ['', pin]);
     if(result.isNotEmpty){
-      return User?.fromJson(result.first);
+      return User.fromJson(result.first);
     } else {
       return null;
     }
@@ -3731,11 +3731,13 @@ class PosDatabase {
 /*
   read all transfer record
 */
-  Future<List<TransferOwner>> readAllTransferOwner() async {
+  Future<List<TransferOwner>> readAllTransferOwner(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name AS name1, c.name AS name2 FROM $tableTransferOwner AS a JOIN $tableUser AS b ON a.transfer_from_user_id = b.user_id JOIN $tableUser AS c ON a.transfer_to_user_id = c.user_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ?',
-        ['', '', '']
+        'SELECT a.*, b.name AS name1, c.name AS name2 FROM $tableTransferOwner AS a JOIN $tableUser AS b ON a.transfer_from_user_id = b.user_id '
+            'JOIN $tableUser AS c ON a.transfer_to_user_id = c.user_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? '
+            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? ORDER BY a.created_at DESC',
+        ['', '', '', date1, date2]
     );
     return result.map((json) => TransferOwner.fromJson(json)).toList();
   }

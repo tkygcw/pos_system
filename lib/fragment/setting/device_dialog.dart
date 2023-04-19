@@ -153,16 +153,15 @@ class _DeviceDialogState extends State<DeviceDialog> {
         isLoad = true;
       });
     }
-
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Consumer<PrinterModel>(
-          builder: (context, PrinterModel printerModel, child) {
+      return Consumer<PrinterModel>(builder: (context, PrinterModel printerModel, child) {
         return AlertDialog(
           insetPadding: EdgeInsets.all(0),
+          actionsPadding: EdgeInsets.zero,
           title: Text('Device list'),
           content: isLoad
               ? SizedBox(
@@ -174,13 +173,13 @@ class _DeviceDialogState extends State<DeviceDialog> {
                           children: _buildList(devices, printerModel),
                         )
                       : ListView.builder(
+                          //shrinkWrap: true,
                           itemCount: ips.length,
                           itemBuilder: (context, index) {
                             return Card(
                               elevation: 5,
                               child: ListTile(
                                 onTap: () {
-
                                   widget.callBack(jsonEncode(ips[index]));
                                   // printerModel
                                   //     .addPrinter(jsonEncode(ips[index]));

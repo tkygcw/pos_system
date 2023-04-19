@@ -5,6 +5,7 @@ import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
+import 'package:pos_system/object/transfer_owner.dart';
 
 import '../database/pos_database.dart';
 import 'branch_link_dining_option.dart';
@@ -45,6 +46,7 @@ class ReportObject{
   List<SettlementLinkPayment> settlementPaymentList = [];
   List<SettlementLinkPayment>? dateSettlementPaymentList = [];
   List<OrderDetailCancel>? dateOrderDetailCancelList = [];
+  List<TransferOwner>? dateTransferList = [];
 
   ReportObject(
       {this.totalSales,
@@ -63,7 +65,24 @@ class ReportObject{
       this.datePayment,
       this.dateSettlementList,
       this.dateSettlementPaymentList,
-      this.dateOrderDetailCancelList});
+      this.dateOrderDetailCancelList,
+      this.dateTransferList});
+
+  getAllTransferRecord({currentStDate, currentEdDate}) async {
+    dateTransferList = [];
+    DateTime _startDate = DateTime.parse(currentStDate);
+    DateTime _endDate = DateTime.parse(currentEdDate);
+    DateTime addEndDate = addDays(date: _endDate);
+    String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+    String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+    List<TransferOwner> data = await PosDatabase.instance.readAllTransferOwner(stringStDate, stringEdDate);
+    print('data: ${data.length}');
+    for(int i = 0; i < data.length; i++){
+      dateTransferList!.add(data[i]);
+    }
+    ReportObject value = ReportObject(dateTransferList: dateTransferList);
+    return value;
+  }
 
   getAllSettlementPaymentDetail(String settlement_key) async {
     dateSettlementPaymentList = [];

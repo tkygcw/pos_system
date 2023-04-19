@@ -123,139 +123,134 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
               getOrderList(model: tableModel);
             }
               return Scaffold(
+                appBar: AppBar(
+                  automaticallyImplyLeading: false,
+                  elevation: 0,
+                  title: Text("Other Order", style: TextStyle(fontSize: 25)),
+                  actions: [
+                    Container(
+                      width: MediaQuery.of(context).size.height / 3,
+                      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                      child: DropdownButton<String>(
+                        onChanged: (String? value) {
+                          setState(() {
+                            selectDiningOption = value!;
+                          });
+                          getOrderList();
+                        },
+                        menuMaxHeight: 300,
+                        value: selectDiningOption,
+                        // Hide the default underline
+                        underline: Container(),
+                        icon: Icon(
+                          Icons.arrow_drop_down,
+                          color: color.backgroundColor,
+                        ),
+                        isExpanded: true,
+                        // The list of options
+                        items: list
+                            .map((e) => DropdownMenuItem(
+                          value: e,
+                          child: Container(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              e,
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          ),
+                        ))
+                            .toList(),
+                        // Customize the selected item
+                        selectedItemBuilder: (BuildContext context) => list
+                            .map((e) => Center(
+                          child: Text(e),
+                        ))
+                            .toList(),
+                      ),
+                    ),
+                  ],
+                ),
                 resizeToAvoidBottomInset: false,
                 body: Container(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              "Other Order",
-                              style: TextStyle(fontSize: 25),
-                            ),
-                            Spacer(),
-                            Container(
-                              width: MediaQuery.of(context).size.height / 3,
-                              padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                              child: DropdownButton<String>(
-                                onChanged: (String? value) {
-                                  setState(() {
-                                    selectDiningOption = value!;
-                                  });
-                                  getOrderList();
-                                },
-                                menuMaxHeight: 300,
-                                value: selectDiningOption,
-                                // Hide the default underline
-                                underline: Container(),
-                                icon: Icon(
-                                  Icons.arrow_drop_down,
-                                  color: color.backgroundColor,
-                                ),
-                                isExpanded: true,
-                                // The list of options
-                                items: list
-                                    .map((e) => DropdownMenuItem(
-                                          value: e,
-                                          child: Container(
-                                            alignment: Alignment.centerLeft,
-                                            child: Text(
-                                              e,
-                                              style: TextStyle(fontSize: 18),
+                  padding: EdgeInsets.all(10),
+                  child: orderCacheList.isNotEmpty
+                      ?
+                  ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: orderCacheList.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return Card(
+                          elevation: 5,
+                          shape: orderCacheList[index].is_selected
+                              ? new RoundedRectangleBorder(
+                              side: new BorderSide(
+                                  color: color.backgroundColor, width: 3.0),
+                              borderRadius: BorderRadius.circular(4.0))
+                              : new RoundedRectangleBorder(
+                              side: new BorderSide(
+                                  color: Colors.white, width: 3.0),
+                              borderRadius: BorderRadius.circular(4.0)),
+                          child: InkWell(
+                            onTap: () async {
+                              if(orderCacheList[index].is_selected == false){
+                                //reset other selected order
+                                for(int i = 0; i < orderCacheList.length; i++){
+                                  orderCacheList[i].is_selected = false;
+                                  cart.initialLoad();
+                                }
+                                orderCacheList[index].is_selected = true;
+                                await getOrderDetail(orderCacheList[index]);
+                                await addToCart(cart, orderCacheList[index]);
+
+
+                              } else if(orderCacheList[index].is_selected == true) {
+                                orderCacheList[index].is_selected = false;
+                                cart.initialLoad();
+                              }
+                              //openViewOrderDialog(orderCacheList[index]);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: ListTile(
+                                  leading:
+                                      orderCacheList[index].dining_id == '2'
+                                          ? Icon(
+                                              Icons.fastfood_sharp,
+                                              color: color.backgroundColor,
+                                              size: 30.0,
+                                            )
+                                          : Icon(
+                                              Icons.delivery_dining,
+                                              color: color.backgroundColor,
+                                              size: 30.0,
                                             ),
-                                          ),
-                                        ))
-                                    .toList(),
-                                // Customize the selected item
-                                selectedItemBuilder: (BuildContext context) => list
-                                    .map((e) => Center(
-                                          child: Text(e),
-                                        ))
-                                    .toList(),
-                              ),
-                            ),
-                          ],
-                        ),
-                        orderCacheList.length != 0 ?Expanded(
-                          child: ListView.builder(
-                              itemCount: orderCacheList.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                return Card(
-                                  elevation: 5,
-                                  shape: orderCacheList[index].is_selected
-                                      ? new RoundedRectangleBorder(
-                                      side: new BorderSide(
-                                          color: color.backgroundColor, width: 3.0),
-                                      borderRadius: BorderRadius.circular(4.0))
-                                      : new RoundedRectangleBorder(
-                                      side: new BorderSide(
-                                          color: Colors.white, width: 3.0),
-                                      borderRadius: BorderRadius.circular(4.0)),
-                                  child: InkWell(
-                                    onTap: () async {
-                                      if(orderCacheList[index].is_selected == false){
-                                        //reset other selected order
-                                        for(int i = 0; i < orderCacheList.length; i++){
-                                          orderCacheList[i].is_selected = false;
-                                          cart.initialLoad();
-                                        }
-                                        orderCacheList[index].is_selected = true;
-                                        await getOrderDetail(orderCacheList[index]);
-                                        await addToCart(cart, orderCacheList[index]);
-
-
-                                      } else if(orderCacheList[index].is_selected == true) {
-                                        orderCacheList[index].is_selected = false;
-                                        cart.initialLoad();
-                                      }
-                                      //openViewOrderDialog(orderCacheList[index]);
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: ListTile(
-                                          leading:
-                                              orderCacheList[index].dining_id == '2'
-                                                  ? Icon(
-                                                      Icons.fastfood_sharp,
-                                                      color: color.backgroundColor,
-                                                      size: 30.0,
-                                                    )
-                                                  : Icon(
-                                                      Icons.delivery_dining,
-                                                      color: color.backgroundColor,
-                                                      size: 30.0,
-                                                    ),
-                                          trailing: Text(
-                                            '#'+orderCacheList[index].batch_id.toString(),
-                                            style: TextStyle(fontSize: 20),
-                                          ),
-                                          subtitle: Text('Order by: ' +
-                                            orderCacheList[index].order_by!,
-                                            style: TextStyle(fontSize: 16),
-                                          ),
-                                          title: Text(
-                                            orderCacheList[index].total_amount!,
-                                            style: TextStyle(fontSize: 20),
-                                          )),
-                                    ),
+                                  trailing: Text(
+                                    '#'+orderCacheList[index].batch_id.toString(),
+                                    style: TextStyle(fontSize: 20),
                                   ),
-                                );
-                              }),
-                        ): Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.list,
-                                color: Colors.grey,
-                                size: 36.0,
-                              ),
-                              Text("No Order", style: TextStyle(fontSize: 24),),
-                            ],
+                                  subtitle: Text('Order by: ' +
+                                    orderCacheList[index].order_by!,
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  title: Text(
+                                    orderCacheList[index].total_amount!,
+                                    style: TextStyle(fontSize: 20),
+                                  )),
+                            ),
                           ),
+                        );
+                      })
+                      :
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.list,
+                          color: Colors.grey,
+                          size: 36.0,
                         ),
+                        Text("No Order", style: TextStyle(fontSize: 24),),
                       ],
                     ),
                   ),

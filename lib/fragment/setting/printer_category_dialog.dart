@@ -81,7 +81,7 @@ class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
     categoryList = List.from(data);
     categoryList.add(Categories(
       category_sqlite_id: 0,
-      name: 'other/uncategorized'
+      name: 'Other/uncategorized'
     ));
 
     for (int i = 0; i < categoryList.length; i++) {

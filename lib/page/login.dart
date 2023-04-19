@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/services.dart';
@@ -149,8 +150,10 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
     if(mounted){
-      setState(() {
-        isLoaded = true;
+      Timer(Duration(seconds: 3), () {
+        setState(() {
+          isLoaded = true;
+        });
       });
     }
   }

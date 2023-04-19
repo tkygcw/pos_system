@@ -101,7 +101,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
             child: LayoutBuilder(builder: (context, constraints) {
               if (constraints.maxWidth > 800) {
                 return AlertDialog(
-                  contentPadding: EdgeInsets.zero,
+                  //contentPadding: EdgeInsets.zero,
                   title: Text('Payment success'),
                   content: isLoaded
                       ? Container(
@@ -122,10 +122,10 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                 children: [
                                   Container(
                                     width: MediaQuery.of(context).size.width / 7,
+                                    height: MediaQuery.of(context).size.height / 12,
                                     child: ElevatedButton(
                                         style: ElevatedButton.styleFrom(
-                                            padding: EdgeInsets.all(25),
-                                            backgroundColor: color.backgroundColor),
+                                            backgroundColor: color.buttonColor),
                                         onPressed: isButtonDisabled ? null : () async {
                                           // Disable the button after it has been pressed
                                           setState(() {
@@ -147,13 +147,14 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                         child: Text('${AppLocalizations.of(context)?.translate('print_receipt')}', style: TextStyle(fontSize: 15), textAlign: TextAlign.center)
                                     ),
                                   ),
-                                  SizedBox(width: 15),
                                   Visibility(
                                     visible: widget.isCashMethod == true ? true : false,
                                     child: Container(
+                                      width: MediaQuery.of(context).size.width / 7,
+                                      height: MediaQuery.of(context).size.height / 12,
+                                      margin: EdgeInsets.only(left: 15),
                                       child: ElevatedButton(
                                           style: ElevatedButton.styleFrom(
-                                            padding: EdgeInsets.all(25),
                                             backgroundColor: color.buttonColor,
                                           ),
                                           onPressed: () {
@@ -166,12 +167,12 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 10,),
+                              SizedBox(height: 15),
                               SizedBox(
-                                width: MediaQuery.of(context).size.width / 5,
+                                width: MediaQuery.of(context).size.width / 7,
                                 height: MediaQuery.of(context).size.height / 12,
                                 child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                     onPressed: isButtonDisabled ? null : (){
                                       // Disable the button after it has been pressed
                                       setState(() {

@@ -72,166 +72,165 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
         return LayoutBuilder(builder: (context, constraints) {
           if (constraints.maxWidth > 800) {
             return Scaffold(
+                appBar: AppBar(
+                  primary: false,
+                  elevation: 0,
+                  automaticallyImplyLeading: false,
+                  title: Text(
+                    "Receipt",
+                    style: TextStyle(fontSize: 25),
+                  ),
+                  actions: [
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      width: MediaQuery.of(context).size.width / 5,
+                      child: TextField(
+                        maxLines: 1,
+                        onChanged: (value) {
+                          searchPaidOrders(value);
+                        },
+                        decoration: InputDecoration(
+                          isDense: true,
+                          border: InputBorder.none,
+                          labelText: 'Search',
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(color: Colors.grey, width: 2.0),
+                            borderRadius: BorderRadius.circular(25.0),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width / 5,
+                      child: DropdownButton<String>(
+                        onChanged: (String? value) {
+                          setState(() {
+                            selectedOption = value!;
+                            getOrder();
+                            cart.initialLoad();
+                            //readCashRecord();
+                          });
+                          //getCashRecord();
+                        },
+                        menuMaxHeight: 300,
+                        value: selectedOption,
+                        // Hide the default underline
+                        underline: Container(),
+                        icon: Icon(
+                          Icons.arrow_drop_down,
+                          color: color.backgroundColor,
+                        ),
+                        isExpanded: true,
+                        // The list of options
+                        items: optionList
+                            .map((e) => DropdownMenuItem(
+                          value: e,
+                          child: Container(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              e,
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          ),
+                        ))
+                            .toList(),
+                        // Customize the selected item
+                        selectedItemBuilder: (BuildContext context) => optionList.map((e) => Center(child: Text(e))).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+                resizeToAvoidBottomInset: false,
                 body: _isLoaded
                     ? Container(
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.fromLTRB(11, 15, 11, 4),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    "Receipt",
-                                    style: TextStyle(fontSize: 25),
-                                  ),
-                                  SizedBox(width: MediaQuery.of(context).size.height > 500 ? 500 : 80),
-                                  Expanded(
-                                    child: TextField(
-                                      onChanged: (value) {
-                                        searchPaidOrders(value);
-                                      },
-                                      decoration: InputDecoration(
-                                        isDense: true,
-                                        border: InputBorder.none,
-                                        labelText: 'Search',
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(color: Colors.grey, width: 2.0),
-                                          borderRadius: BorderRadius.circular(25.0),
-                                        ),
+                        child: paidOrderList.isNotEmpty
+                            ? ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: paidOrderList.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return Card(
+                                    elevation: 5,
+                                    shape: paidOrderList[index].isSelected
+                                        ? new RoundedRectangleBorder(
+                                            side: new BorderSide(color: color.backgroundColor, width: 3.0),
+                                            borderRadius: BorderRadius.circular(4.0))
+                                        : new RoundedRectangleBorder(
+                                            side: new BorderSide(color: Colors.white, width: 3.0), borderRadius: BorderRadius.circular(4.0)),
+                                    margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+                                    child: ListTile(
+                                      contentPadding: EdgeInsets.all(10),
+                                      title: Text(
+                                        'RM${paidOrderList[index].final_amount}',
+                                        style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold),
                                       ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: DropdownButton<String>(
-                                      onChanged: (String? value) {
-                                        setState(() {
-                                          selectedOption = value!;
-                                          getOrder();
-                                          cart.initialLoad();
-                                          //readCashRecord();
-                                        });
-                                        //getCashRecord();
-                                      },
-                                      menuMaxHeight: 300,
-                                      value: selectedOption,
-                                      // Hide the default underline
-                                      underline: Container(),
-                                      icon: Icon(
-                                        Icons.arrow_drop_down,
-                                        color: color.backgroundColor,
-                                      ),
-                                      isExpanded: true,
-                                      // The list of options
-                                      items: optionList
-                                          .map((e) => DropdownMenuItem(
-                                                value: e,
-                                                child: Container(
-                                                  alignment: Alignment.centerLeft,
-                                                  child: Text(
-                                                    e,
-                                                    style: TextStyle(fontSize: 18),
+                                      leading: CircleAvatar(
+                                          backgroundColor: Colors.grey.shade200,
+                                          child: Icon(
+                                            Icons.receipt,
+                                            color: Colors.grey,
+                                          )),
+                                      subtitle: paidOrderList[index].payment_status == 1
+                                          ? RichText(
+                                              text: TextSpan(
+                                                style: TextStyle(color: Colors.black, fontSize: 16),
+                                                children: <TextSpan>[
+                                                  TextSpan(
+                                                    text: 'Date: ${Utils.formatDate(paidOrderList[index].created_at)}',
+                                                    style: TextStyle(color: Colors.black87, fontSize: 14),
                                                   ),
-                                                ),
-                                              ))
-                                          .toList(),
-                                      // Customize the selected item
-                                      selectedItemBuilder: (BuildContext context) => optionList.map((e) => Center(child: Text(e))).toList(),
+                                                  TextSpan(text: '\n'),
+                                                  TextSpan(
+                                                      text: 'Close By: ${paidOrderList[index].close_by}',
+                                                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                                ],
+                                              ),
+                                            )
+                                          : Text('Refund By: ${paidOrderList[index].refund_by}\nRefund At: ${paidOrderList[index].refund_at}'),
+                                      trailing: Text('Receipt No: ${paidOrderList[index].generateOrderNumber()}'),
+                                      onTap: () async {
+                                        if (paidOrderList[index].isSelected == false) {
+                                          //reset other selected order
+                                          for (int i = 0; i < paidOrderList.length; i++) {
+                                            paidOrderList[i].isSelected = false;
+                                            cart.initialLoad();
+                                          }
+                                          paidOrderList[index].isSelected = true;
+                                          await getOrderDetail(paidOrderList[index]);
+                                          //check is order refunded or not
+                                          if (paidOrderList[index].payment_status == 1) {
+                                            await addToCart(cart, orderCacheList, false);
+                                          } else {
+                                            await addToCart(cart, orderCacheList, true);
+                                          }
+                                          await callReadOrderTaxPromoDetail(paidOrderList[index]);
+                                          if (_readComplete == true) {
+                                            await paymentAddToCart(paidOrderList[index], cart);
+                                          }
+                                        } else if (paidOrderList[index].isSelected == true) {
+                                          paidOrderList[index].isSelected = false;
+                                          cart.initialLoad();
+                                        }
+                                      },
+                                      onLongPress: paidOrderList[index].payment_status == 1
+                                          ? () {
+                                              openRefundDialog(paidOrderList[index], orderCacheList);
+                                              print('refund bill');
+                                            }
+                                          : null,
                                     ),
-                                  ),
-                                ],
+                                  );
+                                })
+                            : Container(
+                                alignment: Alignment.center,
+                                height: MediaQuery.of(context).size.height / 1.7,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.receipt_long, size: 36.0),
+                                    Text('NO RECORD', style: TextStyle(fontSize: 24)),
+                                  ],
+                                ),
                               ),
-                            ),
-                            Expanded(
-                              child: paidOrderList.length > 0
-                                  ? ListView.builder(
-                                      itemCount: paidOrderList.length,
-                                      itemBuilder: (BuildContext context, int index) {
-                                        return Card(
-                                          elevation: 5,
-                                          shape: paidOrderList[index].isSelected
-                                              ? new RoundedRectangleBorder(
-                                                  side: new BorderSide(color: color.backgroundColor, width: 3.0),
-                                                  borderRadius: BorderRadius.circular(4.0))
-                                              : new RoundedRectangleBorder(
-                                                  side: new BorderSide(color: Colors.white, width: 3.0), borderRadius: BorderRadius.circular(4.0)),
-                                          margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-                                          child: ListTile(
-                                            contentPadding: EdgeInsets.all(10),
-                                            title: Text(
-                                              'RM${paidOrderList[index].final_amount}',
-                                              style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold),
-                                            ),
-                                            leading: CircleAvatar(
-                                                backgroundColor: Colors.grey.shade200,
-                                                child: Icon(
-                                                  Icons.receipt,
-                                                  color: Colors.grey,
-                                                )),
-                                            subtitle: paidOrderList[index].payment_status == 1
-                                                ? RichText(
-                                                    text: TextSpan(
-                                                      style: TextStyle(color: Colors.black, fontSize: 16),
-                                                      children: <TextSpan>[
-                                                        TextSpan(
-                                                          text: 'Date: ${Utils.formatDate(paidOrderList[index].created_at)}',
-                                                          style: TextStyle(color: Colors.black87, fontSize: 14),
-                                                        ),
-                                                        TextSpan(text: '\n'),
-                                                        TextSpan(
-                                                            text: 'Close By: ${paidOrderList[index].close_by}',
-                                                            style: TextStyle(color: Colors.grey, fontSize: 12)),
-                                                      ],
-                                                    ),
-                                                  )
-                                                : Text('Refund By: ${paidOrderList[index].refund_by}\nRefund At: ${paidOrderList[index].refund_at}'),
-                                            trailing: Text('Receipt No: ${paidOrderList[index].generateOrderNumber()}'),
-                                            onTap: () async {
-                                              if (paidOrderList[index].isSelected == false) {
-                                                //reset other selected order
-                                                for (int i = 0; i < paidOrderList.length; i++) {
-                                                  paidOrderList[i].isSelected = false;
-                                                  cart.initialLoad();
-                                                }
-                                                paidOrderList[index].isSelected = true;
-                                                await getOrderDetail(paidOrderList[index]);
-                                                //check is order refunded or not
-                                                if (paidOrderList[index].payment_status == 1) {
-                                                  await addToCart(cart, orderCacheList, false);
-                                                } else {
-                                                  await addToCart(cart, orderCacheList, true);
-                                                }
-                                                await callReadOrderTaxPromoDetail(paidOrderList[index]);
-                                                if (_readComplete == true) {
-                                                  await paymentAddToCart(paidOrderList[index], cart);
-                                                }
-                                              } else if (paidOrderList[index].isSelected == true) {
-                                                paidOrderList[index].isSelected = false;
-                                                cart.initialLoad();
-                                              }
-                                            },
-                                            onLongPress: paidOrderList[index].payment_status == 1
-                                                ? () {
-                                                    openRefundDialog(paidOrderList[index], orderCacheList);
-                                                    print('refund bill');
-                                                  }
-                                                : null,
-                                          ),
-                                        );
-                                      })
-                                  : Container(
-                                      alignment: Alignment.center,
-                                      height: MediaQuery.of(context).size.height / 1.7,
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.receipt_long, size: 36.0),
-                                          Text('NO RECORD', style: TextStyle(fontSize: 24)),
-                                        ],
-                                      ),
-                                    ),
-                            )
-                          ],
-                        ),
                       )
                     : CustomProgressBar());
           } else {
@@ -321,7 +320,8 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                                   side: new BorderSide(color: Colors.white, width: 3.0), borderRadius: BorderRadius.circular(4.0)),
                                           margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
                                           child: ListTile(
-                                            title: Text('RM${paidOrderList[index].final_amount}'),
+                                            isThreeLine: true,
+                                            title: Text('RM${paidOrderList[index].final_amount}', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),),
                                             leading: CircleAvatar(
                                                 backgroundColor: Colors.grey.shade200,
                                                 child: Icon(
@@ -329,7 +329,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                                   color: Colors.grey,
                                                 )),
                                             subtitle: paidOrderList[index].payment_status == 1
-                                                ? Text('Close By: ${paidOrderList[index].close_by}\nClose At: ${paidOrderList[index].created_at}')
+                                                ? Text('Close By: ${paidOrderList[index].close_by}\nClose At: ${Utils.formatDate(paidOrderList[index].created_at)}')
                                                 : Text('Refund By: ${paidOrderList[index].refund_by}\nRefund At: ${paidOrderList[index].refund_at}'),
                                             trailing: Text('Order: #${paidOrderList[index].order_number}'),
                                             onTap: () async {

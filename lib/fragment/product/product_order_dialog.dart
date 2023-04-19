@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';
@@ -314,7 +313,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                   ),
                   content: this.isLoaded
                       ? Container(
-                          height: MediaQuery.of(context).size.height / 2.5, // Change as per your requirement
+                          height: MediaQuery.of(context).size.height, // Change as per your requirement
                           width: MediaQuery.of(context).size.width / 1.5,
                           child: SingleChildScrollView(
                             child: Column(

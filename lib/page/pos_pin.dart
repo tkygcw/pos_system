@@ -14,6 +14,7 @@ import 'package:crypto/crypto.dart';
 import '../database/domain.dart';
 import '../database/pos_database.dart';
 import '../fragment/logout_dialog.dart';
+import '../fragment/setting/printer_dialog.dart';
 import '../notifier/theme_color.dart';
 import '../object/cash_record.dart';
 import '../object/print_receipt.dart';
@@ -33,6 +34,7 @@ class PosPinPage extends StatefulWidget {
 }
 
 class _PosPinPageState extends State<PosPinPage> {
+  var devices;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   List<Printer> printerList = [];
   bool isLogOut = false;
@@ -40,7 +42,8 @@ class _PosPinPageState extends State<PosPinPage> {
   @override
   void initState() {
     super.initState();
-    readAllPrinters();
+    //readAllPrinters();
+    preload();
   }
 
   @override
@@ -52,6 +55,31 @@ class _PosPinPageState extends State<PosPinPage> {
       DeviceOrientation.portraitDown,
     ]);
     super.dispose();
+  }
+
+  Future<Future<Object?>> openPrinterDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: PrinterDialog(
+                  devices: devices,
+                  callBack: () => readAllPrinters(),
+                )
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
 
@@ -75,6 +103,24 @@ class _PosPinPageState extends State<PosPinPage> {
           // ignore: null_check_always_fails
           return null!;
         });
+  }
+
+  preload() async {
+    await readAllPrinters();
+    await _getDevicelist();
+  }
+
+  _getDevicelist() async {
+    List<Map<String, dynamic>> results = [];
+    results = await FlutterUsbPrinter.getUSBDeviceList();
+    if(results.isNotEmpty){
+      devices = jsonEncode(results[0]);
+      openPrinterDialog();
+    }
+  }
+
+  readAllPrinters() async {
+    printerList = await PrintReceipt().readAllPrinters();
   }
 
   @override
@@ -179,9 +225,7 @@ class _PosPinPageState extends State<PosPinPage> {
   -------------------DB Query part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
-  readAllPrinters() async {
-    printerList = await PrintReceipt().readAllPrinters();
-  }
+
 
 /*
   -------------------Pos pin checking part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -271,7 +271,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                           setState(() {
                             isButtonDisabled = true;
                           });
-                          print('detail qty: ${widget.orderDetailList[1].quantity}');
                           Navigator.of(context).pop();
                         },
                 ),

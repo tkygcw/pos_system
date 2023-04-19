@@ -28,8 +28,9 @@ import '../logout_dialog.dart';
 class PrinterDialog extends StatefulWidget {
   final Function() callBack;
   final Printer? printerObject;
+  final devices;
 
-  const PrinterDialog({Key? key, required this.callBack, this.printerObject})
+  const PrinterDialog({Key? key, required this.callBack, this.printerObject, this.devices})
       : super(key: key);
 
   @override
@@ -46,11 +47,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
   String? printer_value, printer_category_value, printer_category_delete_value;
   int? _typeStatus = 0;
   int? _paperSize = 0;
-  bool _submitted = false;
-  bool _isUpdate = false;
+  bool _submitted = false, _isUpdate = false, _isCashier = false, _isActive = true, isLogOut = false;
   bool isLoad = false;
-  bool _isCashier = false;
-  bool _isActive = true, isLogOut = false;
 
   @override
   void initState() {
@@ -64,6 +62,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
       printerValue.add(widget.printerObject!.value!);
       widget.printerObject!.is_counter == 1 ? _isCashier = true : _isCashier = false;
       widget.printerObject!.printer_status == 1 ? _isActive = true : _isActive = false;
+    } else if (widget.devices != null){
+      printerValue.add(widget.devices);
+      isLoad = true;
     } else {
       _isUpdate = false;
       isLoad = true;
@@ -88,6 +89,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
 
   void _submit(BuildContext context) async {
     setState(() => _submitted = true);
+    print('submit status: ${errorPrinterLabel}');
     if (errorPrinterLabel == null) {
       if (printerValue.isNotEmpty) {
         if (_isUpdate == false) {
@@ -113,9 +115,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
             backgroundColor: Color(0xFFFF0000),
             msg: "Make sure printer and category is selected");
       }
+      widget.callBack();
+      closeDialog(context);
     }
-    widget.callBack();
-    closeDialog(context);
   }
 
   closeDialog(BuildContext context) {
@@ -132,8 +134,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
               physics: NeverScrollableScrollPhysics(),
               child: AlertDialog(
                 title: _isUpdate ? Text('Edit printer') : Text('Add printer'),
-                content: isLoad
-                    ? Container(
+                content: isLoad ?
+                Container(
                   height: MediaQuery.of(context).size.height / 1.5,
                   width: MediaQuery.of(context).size.width / 2.5,
                   child: SingleChildScrollView(
@@ -452,12 +454,13 @@ class _PrinterDialogState extends State<PrinterDialog> {
           ///mobile layout
           return Center(
             child: SingleChildScrollView(
-              physics: NeverScrollableScrollPhysics(),
+              physics: ClampingScrollPhysics(),
               child: AlertDialog(
-                title: _isUpdate ? Text('Edit printer') : Text('Add printer'),
+                actionsPadding: EdgeInsets.zero,
+                title: _isUpdate ? Text('Edit Printer') : Text('Add Printer'),
                 content: isLoad ?
                 Container(
-                  height: MediaQuery.of(context).size.height / 2.4,
+                  height: MediaQuery.of(context).size.height / 2,
                   width: MediaQuery.of(context).size.width,
                   child: SingleChildScrollView(
                     child: Column(
@@ -944,16 +947,16 @@ class _PrinterDialogState extends State<PrinterDialog> {
   readPrinterCategory() async {
     try {
       List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(widget.printerObject!.printer_sqlite_id!);
+      if(widget.printerObject!.is_counter == 1){
+        _isCashier = true;
+        selectedCategories.add(Categories(category_sqlite_id: -1));
+        selectedCategories[0].isChecked = true;
+      }
       if (data.length > 0) {
         for (int i = 0; i < data.length; i++) {
-          if(data[i].category_sqlite_id == '-1'){
-            _isCashier = true;
-            selectedCategories.add(Categories(category_sqlite_id: -1));
-            selectedCategories[0].isChecked = true;
-          } else if(data[i].category_sqlite_id == '0'){
-            selectedCategories.add(Categories(category_sqlite_id: 0, name: 'other/uncategorized'));
-          }
-          else {
+          if(data[i].category_sqlite_id == '0'){
+            selectedCategories.add(Categories(category_sqlite_id: 0, name: 'Other/uncategorized'));
+          } else {
             Categories? catData = await PosDatabase.instance.readSpecificCategoryById(data[i].category_sqlite_id!);
             if (!selectedCategories.contains(catData)) {
               catData!.isChecked = true;
@@ -1072,7 +1075,6 @@ class _PrinterDialogState extends State<PrinterDialog> {
 /*
   -------------------Dialog part---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
-
 
   Future<Future<Object?>> openAddDeviceDialog(int printerType) async {
     return showGeneralDialog(
@@ -1250,7 +1252,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
         await ReceiptLayout().testTicket80mm(false, value: printer);
         printer.disconnect();
       } else {
-        print('not connected');
+        Fluttertoast.showToast(
+            backgroundColor: Color(0xFFFF0000),
+            msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
       }
     }
 
