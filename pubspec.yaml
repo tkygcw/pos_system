@@ -93,6 +93,7 @@ dependencies:
   file: 6.1.4
   barcode_scan2: ^4.2.4
   rxdart: ^0.27.7
+  assets_audio_player: ^3.0.6
 
 
 dependency_overrides:
@@ -129,6 +130,7 @@ flutter:
   assets:
     - language/
     - drawable/
+    - audio/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

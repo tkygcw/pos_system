@@ -23,7 +23,6 @@ import '../fragment/logout_dialog.dart';
 import '../fragment/qr_order/qr_order_page.dart';
 import '../fragment/report/init_report_page.dart';
 import '../fragment/settlement/cash_dialog.dart';
-import '../main.dart';
 import '../object/branch.dart';
 import '../object/qr_order.dart';
 import '../object/sync_record.dart';

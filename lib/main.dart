@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -43,30 +44,18 @@ Route<dynamic> generateRoute(RouteSettings settings) {
 }
 
 void showFlutterNotification(RemoteMessage message) {
+  print('kosong');
   RemoteNotification? notification = message.notification;
   AndroidNotification? android = message.notification?.android;
   if (notification != null && android != null) {
     print('title: ${message.data.toString()}');
     if (message.data['type'] == '0') {
-      // flutterLocalNotificationsPlugin.show(
-      //     notification.hashCode,
-      //     notification.title,
-      //     notification.body,
-      //     NotificationDetails(
-      //       android: AndroidNotificationDetails(
-      //         channel.id,
-      //         channel.name,
-      //         channelDescription: channel.description,
-      //         color: Colors.red,
-      //         // TODO add a proper drawable resource to android, for now using
-      //         //      one that already exists in example app.
-      //         icon: "@mipmap/ic_launcher",
-      //       ),
-      //     ));
       QrOrder().getQrOrder();
-      hasNotification = true;
-      notificationModel.setNotification(hasNotification);
     } else {
+      final assetsAudioPlayer = AssetsAudioPlayer();
+      assetsAudioPlayer.open(
+        Audio("audio/notification.mp3"),
+      );
       hasNotification = true;
       notificationModel.setNotification(hasNotification);
       Fluttertoast.showToast(backgroundColor: Colors.green, msg: "Cloud db change! sync from cloud");
@@ -79,7 +68,7 @@ void showFlutterNotification(RemoteMessage message) {
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // If you're going to use other Firebase services in the background, such as Firestore,
   // make sure you call `initializeApp` before using other Firebase services.
-  await Firebase.initializeApp();
+  //await Firebase.initializeApp();
   print('Handling a background message ${message.messageId}');
   showFlutterNotification(message);
 }
