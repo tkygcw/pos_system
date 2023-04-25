@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
 
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/bill/bill.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/order/order.dart';
@@ -11,6 +14,7 @@ import 'package:pos_system/fragment/product/product.dart';
 import 'package:pos_system/fragment/setting/setting.dart';
 import 'package:pos_system/fragment/settlement/settlement_page.dart';
 import 'package:pos_system/fragment/table/table.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:provider/provider.dart';
@@ -28,10 +32,12 @@ import '../object/qr_order.dart';
 import '../object/sync_record.dart';
 import '../object/sync_to_cloud.dart';
 import '../object/user.dart';
+
 //11
 class HomePage extends StatefulWidget {
   final User? user;
   final bool isNewDay;
+
   const HomePage({Key? key, this.user, required this.isNewDay}) : super(key: key);
 
   @override
@@ -43,30 +49,32 @@ class _HomePageState extends State<HomePage> {
   late String currentPage;
   late String role;
   String? branchName;
-  Timer? timer;
+  Timer? timer, notificationTimer;
   bool hasNotification = false;
   int loaded = 0;
+  late ThemeColor themeColor;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     print('init called');
+    setupFirebaseMessaging();
     setScreenLayout();
     startTimers(notificationModel);
     _items = _generateItems;
     currentPage = 'menu';
     getRoleName();
     getBranchName();
-    if(widget.isNewDay){
+    if (widget.isNewDay) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         showDialog(
-            barrierDismissible: false, context: context, builder: (BuildContext context) {
-          return WillPopScope(
-              child: CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true),
-              onWillPop: () async => false);
-            //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
-        });
+            barrierDismissible: false,
+            context: context,
+            builder: (BuildContext context) {
+              return WillPopScope(child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true), onWillPop: () async => false);
+              //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
+            });
       });
     }
   }
@@ -79,6 +87,11 @@ class _HomePageState extends State<HomePage> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+
+    if (notificationTimer != null) {
+      notificationTimer!.cancel();
+    }
+
     super.dispose();
   }
 
@@ -118,8 +131,8 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
+      this.themeColor = color;
       return Consumer<NotificationModel>(builder: (context, NotificationModel notificationModel, child) {
-        //this.hasNotification = notificationModel.notificationStatus;
         return WillPopScope(
           onWillPop: () async => false,
           child: Scaffold(
@@ -136,18 +149,11 @@ class _HomePageState extends State<HomePage> {
                     isCollapsed: true,
                     items: _items,
                     avatarImg: AssetImage("drawable/logo.png"),
-                    title: widget.user!.name! +
-                        "\n" +
-                        (branchName ?? '') +
-                        " - " +
-                        role,
+                    title: widget.user!.name! + "\n" + (branchName ?? '') + " - " + role,
                     backgroundColor: color.backgroundColor,
                     selectedTextColor: color.iconColor,
                     textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
-                    titleStyle: TextStyle(
-                        fontSize: 17,
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.bold),
+                    titleStyle: TextStyle(fontSize: 17, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
                     toggleTitleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     selectedIconColor: color.iconColor,
                     selectedIconBox: color.buttonColor,
@@ -161,10 +167,10 @@ class _HomePageState extends State<HomePage> {
                         //cart page
                         Visibility(
                           visible: currentPage != 'product' &&
-                              currentPage != 'setting' &&
-                              currentPage != 'settlement' &&
-                              currentPage != 'qr_order' &&
-                              currentPage != 'report'
+                                  currentPage != 'setting' &&
+                                  currentPage != 'settlement' &&
+                                  currentPage != 'qr_order' &&
+                                  currentPage != 'report'
                               ? true
                               : false,
                           child: Expanded(
@@ -196,7 +202,7 @@ class _HomePageState extends State<HomePage> {
       ),
       CollapsibleItem(
         text: 'Qr Order',
-        icon: Icons.qr_code_2 ,
+        icon: Icons.qr_code_2,
         onPressed: () => setState(() => currentPage = 'qr_order'),
       ),
       CollapsibleItem(
@@ -270,8 +276,7 @@ class _HomePageState extends State<HomePage> {
   getBranchName() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    Branch? data =
-        await PosDatabase.instance.readBranchName(branch_id.toString());
+    Branch? data = await PosDatabase.instance.readBranchName(branch_id.toString());
     setState(() {
       branchName = data!.name!;
     });
@@ -285,23 +290,23 @@ class _HomePageState extends State<HomePage> {
       print('home timer called');
       bool _status = notificationModel.notificationStatus;
       bool stopTimer = notificationModel.stopTimer;
-      if(stopTimer == true){
+      if (stopTimer == true) {
         print('timer cancelled called');
         timer.cancel();
         return;
       }
-      if(_status == true){
+      if (_status == true) {
         print('timer reset');
         timerCount = 0;
       }
       bool _hasInternetAccess = await Domain().isHostReachable();
-      if(_hasInternetAccess){
+      if (_hasInternetAccess) {
         print('timer count: ${timerCount}');
         if (timerCount == 0) {
           //sync to cloud
           print('sync to cloud');
           var isLogOut = await SyncToCloud().syncAllToCloud();
-          if(isLogOut == true){
+          if (isLogOut == true) {
             openLogOutDialog();
             return;
           }
@@ -313,27 +318,27 @@ class _HomePageState extends State<HomePage> {
           //sync from cloud
           var syncStatus = await SyncRecord().syncFromCloud();
           print('is log out: ${syncStatus}');
-          if(syncStatus == true){
+          if (syncStatus == true) {
             openLogOutDialog();
             return;
-          } else if(syncStatus == false) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                duration: Duration(minutes: 5),
-                backgroundColor: Colors.green,
-                content: const Text('Content change !!!'),
-                action: SnackBarAction(
-                  label: 'Refresh',
-                  textColor: Colors.white,
-                  onPressed: () {
-                    setState(() {
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                    });
-                    // Code to execute.
-                  },
-                ),
-              ),
-            );
+          } else if (syncStatus == false) {
+            // ScaffoldMessenger.of(context).showSnackBar(
+            //   SnackBar(
+            //     duration: Duration(minutes: 5),
+            //     backgroundColor: Colors.green,
+            //     content: const Text('Content change !!!'),
+            //     action: SnackBarAction(
+            //       label: 'Refresh',
+            //       textColor: Colors.white,
+            //       onPressed: () {
+            //         setState(() {
+            //           ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            //         });
+            //         // Code to execute.
+            //       },
+            //     ),
+            //   ),
+            // );
           }
         }
         //add timer and reset hasNotification
@@ -348,4 +353,96 @@ class _HomePageState extends State<HomePage> {
     this.loaded = 1;
   }
 
+  /*
+  *
+  *   handle Push notification purpose
+  *
+  * */
+  Future<void> setupFirebaseMessaging() async {
+    // Update the iOS foreground notification presentation options to allow
+    // heads up notifications.
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      showFlutterNotification(context, message);
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
+      print('testing purpose on app open');
+    });
+
+    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+      if (message != null) {}
+    });
+  }
+
+  void showFlutterNotification(context, RemoteMessage message) {
+    RemoteNotification? notification = message.notification;
+    AndroidNotification? android = message.notification?.android;
+    if (notification != null && android != null) {
+      /*
+      * qr ordering come in
+      * */
+      if (message.data['type'] == '0') {
+        QrOrder().getQrOrder();
+        manageNotificationTimer();
+      }
+      /*
+      * sync request
+      * */
+      else {
+        hasNotification = true;
+        notificationModel.setNotification(hasNotification);
+        Fluttertoast.showToast(backgroundColor: Colors.green, msg: "Cloud db change! sync from cloud");
+        SyncRecord().syncFromCloud();
+      }
+    }
+  }
+
+  manageNotificationTimer() {
+    showSnackBar();
+    playSound();
+    //cancel previous timer if new order come in
+    if (notificationTimer != null && notificationTimer!.isActive) {
+      notificationTimer!.cancel();
+    }
+    //set timer when new order come in
+    int no = 1;
+    notificationTimer = Timer.periodic(Duration(seconds: 5), (timer) async {
+      if (no <= 5) {
+        showSnackBar();
+        playSound();
+      } else
+        timer.cancel();
+      no++;
+    });
+  }
+
+  showSnackBar() {
+    snackBarKey.currentState!.showSnackBar(SnackBar(
+      content: const Text('New order is received!'),
+      backgroundColor: themeColor.backgroundColor,
+      action: SnackBarAction(
+        textColor: themeColor.iconColor,
+        label: 'Check it now!',
+        onPressed: () {
+          setState(() {
+            currentPage = 'qr_order';
+            notificationTimer!.cancel();
+          });
+        },
+      ),
+    ));
+  }
+
+  playSound() {
+    final assetsAudioPlayer = AssetsAudioPlayer();
+    assetsAudioPlayer.open(
+      Audio("audio/notification.mp3"),
+    );
+  }
 }

@@ -5,7 +5,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/choose_branch.dart';
 import 'package:pos_system/fragment/device_register/device_register.dart';
 import 'package:pos_system/object/branch.dart';

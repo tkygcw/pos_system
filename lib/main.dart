@@ -1,20 +1,15 @@
 import 'dart:async';
 
-import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/test_dual_screen/test_display.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/notification.dart';
-import 'package:pos_system/object/qr_order.dart';
-import 'package:pos_system/object/sync_record.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/translation/appLanguage.dart';
@@ -28,6 +23,9 @@ import 'notifier/printer_notifier.dart';
 import 'notifier/theme_color.dart';
 import 'page/loading.dart';
 import 'utils/notification_plugin.dart';
+
+final NotificationModel notificationModel = NotificationModel();
+final snackBarKey = GlobalKey<ScaffoldMessengerState>();
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {
@@ -43,76 +41,17 @@ Route<dynamic> generateRoute(RouteSettings settings) {
   }
 }
 
-void showFlutterNotification(RemoteMessage message) {
-  print('kosong');
-  RemoteNotification? notification = message.notification;
-  AndroidNotification? android = message.notification?.android;
-  if (notification != null && android != null) {
-    print('title: ${message.data.toString()}');
-    if (message.data['type'] == '0') {
-      QrOrder().getQrOrder();
-    } else {
-      final assetsAudioPlayer = AssetsAudioPlayer();
-      assetsAudioPlayer.open(
-        Audio("audio/notification.mp3"),
-      );
-      hasNotification = true;
-      notificationModel.setNotification(hasNotification);
-      Fluttertoast.showToast(backgroundColor: Colors.green, msg: "Cloud db change! sync from cloud");
-      print('Notification not show, but received: ${notification.title}');
-      SyncRecord().syncFromCloud();
-    }
-  }
-}
-
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // If you're going to use other Firebase services in the background, such as Firestore,
-  // make sure you call `initializeApp` before using other Firebase services.
-  //await Firebase.initializeApp();
-  print('Handling a background message ${message.messageId}');
-  showFlutterNotification(message);
-}
-
-Future<void> onResume(RemoteMessage message) async {
-  // Show a notification
-  showFlutterNotification(message);
-}
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 
 Future<void> main() async {
   //firebase method
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(channel);
-
-  FirebaseMessaging.onMessage.listen(showFlutterNotification);
-
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    // Resume the app and call onResume
-    onResume(message);
-  });
-
   setupNotificationChannel();
 
   //device detect
-  final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
-  if (screenWidth < 500) {
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
-  } else {
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
-  }
-
-  //sync
-  //startTimers();
-
-  //second screen test(init second screen)
-  //initSecondScreen();
-
+  deviceDetect();
   //other method
   statusBarColor();
   WidgetsFlutterBinding.ensureInitialized();
@@ -126,6 +65,18 @@ Future<void> main() async {
   ));
 }
 
+deviceDetect() async {
+  final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
+  if (screenWidth < 500) {
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  } else {
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
+}
+
 setupNotificationChannel() {
   List<CustomNotificationChannel> channels = [
     CustomNotificationChannel(
@@ -134,48 +85,7 @@ setupNotificationChannel() {
   NotificationPlugin(channels);
 }
 
-final NotificationModel notificationModel = NotificationModel();
-
 bool hasNotification = false;
-
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-//Notification importance setting
-const AndroidNotificationChannel channel = AndroidNotificationChannel(
-  'high_importance_channel', // id
-  'High Importance Notifications', // title
-  description: 'This channel is used for important notifications.', // description
-  importance: Importance.max,
-);
-
-// startTimers() {
-//   int timerCount = 0;
-//
-//   Timer.periodic(Duration(seconds: 15), (timer) async {
-//     print('has notification: ${hasNotification}');
-//     if(hasNotification == true){
-//       print('timer reset');
-//       timerCount = 0;
-//     }
-//     bool _hasInternetAccess = await Domain().isHostReachable();
-//     if(_hasInternetAccess){
-//       if (timerCount == 0) {
-//         //sync to cloud
-//         SyncToCloud().syncToCloud();
-//       } else {
-//         //sync from cloud
-//         SyncRecord().syncFromCloud();
-//       }
-//       //add timer and reset hasNotification
-//       timerCount++;
-//       hasNotification = false;
-//       // reset the timer after two executions
-//       if (timerCount >= 2) {
-//         timerCount = 0;
-//       }
-//     }
-//   });
-// }
 
 class MyApp extends StatelessWidget {
   final AppLanguage appLanguage;
@@ -219,6 +129,7 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<AppLanguage>(builder: (context, model, child) {
         return MaterialApp(
+          scaffoldMessengerKey: snackBarKey,
           locale: model.appLocal,
           supportedLocales: [
             Locale('en', ''),
