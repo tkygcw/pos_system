@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
@@ -179,7 +178,7 @@ class _CartDialogState extends State<CartDialog> {
                               for (int i = 0; i < tableList.length; i++) {
                                 tableList[i].isSelected = false;
                               }
-                              cart.removeAllTable();
+                              cart.initialLoad();
                             });
                             //Navigator.of(context).pop();
                           },
@@ -225,6 +224,7 @@ class _CartDialogState extends State<CartDialog> {
                       onPressed: isButtonDisabled
                           ? null
                           : () {
+                              print('called');
                               Navigator.of(context).pop();
                             },
                     ),
@@ -250,7 +250,6 @@ class _CartDialogState extends State<CartDialog> {
                                 if (tableList[index].status == 1 && tableList[index].isSelected == true) {
                                   this.isLoad = false;
                                   await readSpecificTableDetail(tableList[index]);
-                                  addToCart(cart, tableList[index]);
                                   this.isLoad = true;
                                 }
                                 //if non-using table is selected
@@ -260,6 +259,9 @@ class _CartDialogState extends State<CartDialog> {
                                 } else {
                                   cart.removeSpecificTable(tableList[index]);
                                 }
+                              }
+                              if(orderDetailList.isNotEmpty){
+                                addToCart(cart);
                               }
                               Navigator.of(context).pop();
                             },
@@ -762,10 +764,11 @@ class _CartDialogState extends State<CartDialog> {
     return variantGroup;
   }
 
-  addToCart(CartModel cart, PosTable posTable) async {
+  addToCart(CartModel cart) async {
     var value;
     List<TableUseDetail> tableUseDetailList = [];
     cart.removeAllTable();
+    print('order detail length: ${orderDetailList.length}');
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
           orderDetailList[i].branch_link_product_sqlite_id!,

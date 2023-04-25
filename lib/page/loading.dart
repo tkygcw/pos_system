@@ -38,6 +38,7 @@ import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
+import 'package:pos_system/object/transfer_owner.dart';
 import 'package:pos_system/object/user.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
@@ -102,6 +103,7 @@ class _LoadingPageState extends State<LoadingPage> {
     await getBranchLinkModifier();
     await getSale();
     await getCashRecord();
+    await getTransferOwner();
     await clearCloudSyncRecord();
     await createReceiptLayout();
     await createDeviceLogin();
@@ -110,7 +112,6 @@ class _LoadingPageState extends State<LoadingPage> {
       Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
     });
   }
-
 /*
   create device login
 */
@@ -1258,6 +1259,35 @@ getCashRecord() async {
     }
   }
 }
+
+/*
+  save transfer owner to database
+*/
+getTransferOwner() async {
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  Map data = await Domain().getTransferOwner(branch_id.toString());
+  if(data['status'] == '1'){
+    List responseJson = data['data'];
+    for (var i = 0; i < responseJson.length; i++) {
+      TransferOwner data = await PosDatabase.instance.insertTransferOwner(
+          TransferOwner(
+            transfer_owner_key: responseJson[i]['transfer_owner_key'],
+            branch_id: responseJson[i]['branch_id'],
+            device_id: responseJson[i]['device_id'],
+            transfer_from_user_id: responseJson[i]['transfer_from_user_id'],
+            transfer_to_user_id: responseJson[i]['transfer_to_user_id'],
+            cash_balance: responseJson[i]['cash_balance'],
+            sync_status: 1,
+            created_at: responseJson[i]['created_at'],
+            updated_at: '',
+            soft_delete: '',
+          )
+      );
+    }
+  }
+}
+
 
 /*
   create folder to save product image

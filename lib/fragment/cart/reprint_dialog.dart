@@ -5,6 +5,7 @@ import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
+import 'package:pos_system/object/print_receipt.dart';
 
 import '../../database/pos_database.dart';
 import '../../notifier/cart_notifier.dart';
@@ -24,15 +25,16 @@ class ReprintDialog extends StatefulWidget {
 
 class _ReprintDialogState extends State<ReprintDialog> {
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
+  PrintReceipt printReceipt = PrintReceipt();
   bool _isChecked = false;
 
   void _submit(BuildContext context) async  {
-    if (_isChecked == false) {
-      //await _printCheckList();
-    } else {
-      // await _printCheckList();
-      // await _printKitchenList(widget.cart);
-    }
+    await printReceipt.reprintCheckList(widget.printerList, widget.cart, context);
+    // if (_isChecked == false) {
+    // } else {
+    //   // await _printCheckList();
+    //   // await _printKitchenList(widget.cart);
+    // }
     Navigator.of(context).pop();
   }
   @override
@@ -40,8 +42,8 @@ class _ReprintDialogState extends State<ReprintDialog> {
     return AlertDialog(
       title: Text('Confirm reprint check list?'),
       content: Container(
-        height: MediaQuery.of(context).size.height / 10,
-        width: MediaQuery.of(context).size.width / 3,
+        // height: MediaQuery.of(context).size.height / 10,
+        // width: MediaQuery.of(context).size.width / 3,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

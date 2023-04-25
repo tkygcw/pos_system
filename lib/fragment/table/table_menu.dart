@@ -82,10 +82,15 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   searchTable(String text) async {
+    isLoaded = false;
     List<PosTable> data = await PosDatabase.instance.searchTable(text);
-    setState(() {
-      tableList = data;
-    });
+    tableList = data;
+    await readAllTableGroup();
+    if(mounted){
+      setState(() {
+        isLoaded = true;
+      });
+    }
   }
 
   @override
@@ -286,10 +291,7 @@ class _TableMenuState extends State<TableMenu> {
                                                     child: Image.asset("drawable/six-seat.jpg")
                                                 )
                                                     :
-                                                Container(
-                                                    alignment: Alignment.center,
-                                                    child: Image.asset("drawable/logo.jpg")
-                                                ),
+                                                Container(),
                                                 // Ink.image(
                                                 //   image: tableList[index].seats == '2'
                                                 //       ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/two-seat.jpg'))
@@ -451,15 +453,17 @@ class _TableMenuState extends State<TableMenu> {
     final int? branch_id = prefs.getInt('branch_id');
 
     for (int i = 0; i < tableList.length; i++) {
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
-      if (tableUseDetailData.length > 0) {
+      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(tableList[i].table_sqlite_id!);
+      if (tableUseDetailData.isNotEmpty) {
         List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
-        tableList[i].group = data[0].table_use_sqlite_id;
-        tableList[i].card_color = data[0].card_color;
-        //tableList[i].total_Amount = double.parse(data[0].total_amount!);
+        if(data.isNotEmpty){
+          tableList[i].group = data[0].table_use_sqlite_id;
+          tableList[i].card_color = data[0].card_color;
+          //tableList[i].total_Amount = double.parse(data[0].total_amount!);
 
-        for(int j = 0; j < data.length; j++){
-          tableList[i].total_Amount += double.parse(data[j].total_amount!);
+          for(int j = 0; j < data.length; j++){
+            tableList[i].total_Amount += double.parse(data[j].total_amount!);
+          }
         }
       }
     }
@@ -472,8 +476,8 @@ class _TableMenuState extends State<TableMenu> {
     final int? branch_id = prefs.getInt('branch_id');
 
     //Get specific table use detail
-    List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(posTable.table_sqlite_id!);
-    if (tableUseDetailData.length > 0) {
+    List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(posTable.table_sqlite_id!);
+    if (tableUseDetailData.isNotEmpty) {
       //Get all order table cache
       List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
 

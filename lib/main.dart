@@ -146,7 +146,7 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
               appBarTheme: AppBarTheme(
-                backgroundColor: Colors.white,
+                backgroundColor: Colors.white24,
                 titleTextStyle: TextStyle(color: Colors.black),
                 iconTheme: IconThemeData(color: Colors.orange), //
               ),

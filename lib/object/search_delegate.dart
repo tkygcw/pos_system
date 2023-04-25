@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/product.dart';
 
 import '../fragment/product/product_order_dialog.dart';
@@ -19,13 +20,15 @@ class ProductSearchDelegate extends SearchDelegate{
   // ];
   String? imagePath;
   List<Product>? productList;
+  CartModel? cartModel;
 
   ProductSearchDelegate({
     this.productList,
-    this.imagePath
+    this.imagePath,
+    this.cartModel
   });
 
-  Future<Future<Object?>> openProductOrderDialog(Product product, BuildContext context) async {
+  Future<Future<Object?>> openProductOrderDialog(Product product, CartModel cartModel, BuildContext context) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -35,6 +38,7 @@ class ProductSearchDelegate extends SearchDelegate{
             child: Opacity(
                 opacity: a1.value,
                 child: ProductOrderDialog(
+                  cartModel: cartModel,
                   productDetail: product,
                 )),
           );
@@ -100,7 +104,7 @@ class ProductSearchDelegate extends SearchDelegate{
               child: Image.file(File(imagePath! + '/' + matchQuery[index].image!))),
           onTap: (){
             close(context, null);
-            openProductOrderDialog(matchQuery[index], context);
+            openProductOrderDialog(matchQuery[index], cartModel!, context);
           },
         );
       },
@@ -131,7 +135,7 @@ class ProductSearchDelegate extends SearchDelegate{
                 child: Image.file(File(imagePath! + '/' + matchQuery[index].image!))),
             onTap: () {
               close(context, null);
-              openProductOrderDialog(matchQuery[index], context);
+              openProductOrderDialog(matchQuery[index], cartModel!, context);
             },
           );
         },

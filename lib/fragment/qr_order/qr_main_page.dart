@@ -8,6 +8,7 @@ import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 
@@ -53,7 +54,9 @@ class _QrMainPageState extends State<QrMainPage> {
               stream: controller.stream,
               builder: (context, snapshot) {
                 preload();
-                return Container(
+                return _isLoaded
+                    ?
+                Container(
                   padding: EdgeInsets.all(10),
                   child: qrOrderCacheList.isNotEmpty
                       ? ListView.builder(
@@ -68,8 +71,8 @@ class _QrMainPageState extends State<QrMainPage> {
                             title: qrOrderCacheList[index].dining_id == '1'
                                 ? Text('Table No: ${qrOrderCacheList[index].table_number}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
                                 : qrOrderCacheList[index].dining_id == '2'
-                                ? Text('Take Away')
-                                : Text('Delivery'),
+                                ? Text('Take Away', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
+                                : Text('Delivery', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                             subtitle: RichText(
                               text: TextSpan(
                                 style: TextStyle(color: Colors.black, fontSize: 16),
@@ -111,7 +114,9 @@ class _QrMainPageState extends State<QrMainPage> {
                       ],
                     ),
                   ),
-                );
+                )
+                    :
+                CustomProgressBar();
               }));
     });
   }
@@ -185,6 +190,7 @@ class _QrMainPageState extends State<QrMainPage> {
         //callUpdateCloud(qrOrderCacheList[i].order_cache_key!);
       }
     }
+    _isLoaded = true;
     if (!controller.isClosed) {
       controller.sink.add('refresh');
     }

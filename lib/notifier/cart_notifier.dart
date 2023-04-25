@@ -15,6 +15,7 @@ class CartModel extends ChangeNotifier {
   Promotion? selectedPromotion ;
   List<PosTable> selectedTable = [];
   String selectedOption = 'Dine in';
+  String selectedOptionId = '';
   bool isInit = false;
   int myCount = 0;
   bool isChange = false;
@@ -24,6 +25,18 @@ class CartModel extends ChangeNotifier {
     removeAllCartItem();
     removePromotion();
     removePaymentDetail();
+    selectedOption = 'Dine in';
+    selectedOptionId = '1';
+    notifyListeners();
+  }
+
+  void notDineInInitLoad(){
+    removeAllTable();
+    removeAllCartItem();
+    removePromotion();
+    removePaymentDetail();
+    selectedOption = 'Take Away';
+    selectedOptionId = '2';
     notifyListeners();
   }
 

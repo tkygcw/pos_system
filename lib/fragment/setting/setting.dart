@@ -18,7 +18,9 @@ import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:side_navigation/side_navigation.dart';
+import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../main.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
 import '../../page/pos_pin.dart';
@@ -55,9 +57,9 @@ class _SettingMenuState extends State<SettingMenu> {
     // Container(
     //   child: TestCategorySync(),
     // ),
-    // Container(
-    //   child: SecondDisplayTest(),
-    // ),
+    Container(
+      child: SecondDisplayTest(),
+    ),
     // Container(
     //   child: TestPrint(),
     // ),
@@ -124,9 +126,17 @@ class _SettingMenuState extends State<SettingMenu> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: color.backgroundColor,
                               ),
-                              onPressed: () {
-                                if(this.cashRecordList.isEmpty){
-                                  toPosPinPage();
+                              onPressed: () async {
+                                bool _hasInternetAccess = await Domain().isHostReachable();
+                                if(this.cashRecordList.isNotEmpty){
+                                  if(_hasInternetAccess){
+                                    notificationModel.setTimer(true);
+                                    toPosPinPage();
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Colors.red,
+                                        msg: "${AppLocalizations.of(context)?.translate('check_internet_connection')}");
+                                  }
                                 } else {
                                   Fluttertoast.showToast(
                                       backgroundColor: Colors.red,
@@ -168,10 +178,10 @@ class _SettingMenuState extends State<SettingMenu> {
                       //   icon: Icons.list,
                       //   label: 'Test sync (temp)',
                       // ),
-                      // SideNavigationBarItem(
-                      //   icon: Icons.list,
-                      //   label: 'Test second screen (temp)',
-                      // ),
+                      SideNavigationBarItem(
+                        icon: Icons.list,
+                        label: 'Test second screen (temp)',
+                      ),
                       // SideNavigationBarItem(
                       //   icon: Icons.list,
                       //   label: 'Test report print (temp)',
@@ -223,11 +233,19 @@ class _SettingMenuState extends State<SettingMenu> {
                               Text("${userEmail}"),
                               ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  primary: color.backgroundColor,
+                                  backgroundColor: color.backgroundColor,
                                 ),
-                                onPressed: () {
-                                  if(this.cashRecordList.isEmpty){
-                                    toPosPinPage();
+                                onPressed: () async {
+                                  bool _hasInternetAccess = await Domain().isHostReachable();
+                                  if(this.cashRecordList.isNotEmpty){
+                                    if(_hasInternetAccess){
+                                      notificationModel.setTimer(true);
+                                      toPosPinPage();
+                                    } else {
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Colors.red,
+                                          msg: "${AppLocalizations.of(context)?.translate('check_internet_connection')}");
+                                    }
                                   } else {
                                     Fluttertoast.showToast(
                                         backgroundColor: Colors.red,

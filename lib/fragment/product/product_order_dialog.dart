@@ -9,6 +9,7 @@ import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import 'package:quantity_input/quantity_input.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,8 +24,9 @@ import '../cart/cart_dialog.dart';
 
 class ProductOrderDialog extends StatefulWidget {
   final Product? productDetail;
+  final CartModel cartModel;
 
-  const ProductOrderDialog({Key? key, this.productDetail}) : super(key: key);
+  const ProductOrderDialog({Key? key, this.productDetail, required this.cartModel}) : super(key: key);
 
   @override
   _ProductOrderDialogState createState() => _ProductOrderDialogState();
@@ -85,7 +87,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
               children: [
                 Text('${modifierGroup.modifierChild[i].name!}'),
                 Text(
-                  ' (+RM ${modifierGroup.modifierChild[i].price})',
+                  ' (+RM ${Utils.convertTo2Dec(modifierGroup.modifierChild[i].price)})',
                   style: TextStyle(fontSize: 12),
                 )
               ],
@@ -96,8 +98,8 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                 : (isChecked) {
                     setState(() {
                       modifierGroup.modifierChild[i].isChecked = isChecked!;
-                      print('flavour ${modifierGroup.modifierChild[i].name},'
-                          'is check ${modifierGroup.modifierChild[i].isChecked}, ${modifierGroup.modifierChild[i].mod_status}');
+                      // print('flavour ${modifierGroup.modifierChild[i].name},'
+                      //     'is check ${modifierGroup.modifierChild[i].isChecked}, ${modifierGroup.modifierChild[i].mod_status}');
                     });
                   },
             controlAffinity: ListTileControlAffinity.trailing,
@@ -127,7 +129,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                                   )),
                             ),
                             Spacer(),
-                            Text("RM ${widget.productDetail!.price!}",
+                            Text("RM ${Utils.convertTo2Dec(widget.productDetail!.price!)}",
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -151,7 +153,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                                   variantGroupLayout(variantGroup[i]),
                                 for (int j = 0; j < modifierGroup.length; j++)
                                   Visibility(
-                                    visible: modifierGroup[j].modifierChild.isNotEmpty ? true : false,
+                                    visible: modifierGroup[j].modifierChild.isNotEmpty && modifierGroup[j].dining_id == "" || modifierGroup[j].dining_id == cart.selectedOptionId ? true : false,
                                     child: modifierGroupLayout(modifierGroup[j], cart),
                                   ),
                                 Column(
@@ -304,7 +306,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                             )),
                       ),
                       Spacer(),
-                      Text("RM ${widget.productDetail!.price!}",
+                      Text("RM ${Utils.convertTo2Dec(widget.productDetail!.price!)}",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -323,7 +325,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                                 for (int i = 0; i < variantGroup.length; i++) variantGroupLayout(variantGroup[i]),
                                 for (int j = 0; j < modifierGroup.length; j++)
                                   Visibility(
-                                    visible: modifierGroup[j].modifierChild.isNotEmpty ? true : false,
+                                    visible: modifierGroup[j].modifierChild.isNotEmpty && modifierGroup[j].dining_id == "" || modifierGroup[j].dining_id == cart.selectedOptionId ? true : false,
                                     child: modifierGroupLayout(modifierGroup[j], cart),
                                   ),
                                 Column(
@@ -488,7 +490,13 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     List<ModifierGroup> data = await PosDatabase.instance.readProductModifierGroupName(productID);
 
     for (int i = 0; i < data.length; i++) {
-      modifierGroup.add(ModifierGroup(modifierChild: [], name: data[i].name, mod_group_id: data[i].mod_group_id));
+      modifierGroup.add(ModifierGroup(
+        modifierChild: [],
+        name: data[i].name,
+        mod_group_id: data[i].mod_group_id,
+        dining_id: data[i].dining_id,
+        compulsory: data[i].compulsory,
+      ));
 
       List<ModifierItem> itemData = await PosDatabase.instance.readProductModifierItem(data[i].mod_group_id!);
       List<ModifierItem> modItemChild = [];
@@ -500,6 +508,12 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
             mod_item_id: itemData[j].mod_item_id,
             mod_status: itemData[j].mod_status,
             isChecked: false));
+      }
+      if(modifierGroup[i].compulsory == '1' && modifierGroup[i].dining_id == widget.cartModel.selectedOptionId){
+        for(int k = 0; k < modItemChild.length; k++){
+          modItemChild[k].isChecked = true;
+        }
+        modifierGroup[i].modifierChild = modItemChild;
       }
       modifierGroup[i].modifierChild = modItemChild;
       readProductModifierItemPrice(modifierGroup[i]);

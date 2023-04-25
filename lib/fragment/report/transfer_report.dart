@@ -67,6 +67,8 @@ class _TransferRecordState extends State<TransferRecord> {
                           color: Colors.grey,
                         ),
                         SizedBox(height: 5),
+                        dateTransferOwnerList.isNotEmpty
+                            ?
                         Expanded(
                           child: ListView.builder(
                               shrinkWrap: true,
@@ -82,6 +84,17 @@ class _TransferRecordState extends State<TransferRecord> {
                                   ),
                                 );
                               }
+                          ),
+                        )
+                        :
+                        Center(
+                          heightFactor: 12,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(Icons.menu),
+                              Text('NO RECORD FOUND'),
+                            ],
                           ),
                         )
                       ],

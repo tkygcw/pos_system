@@ -1746,6 +1746,31 @@ class PosDatabase {
   }
 
 /*
+  insert cash record (from cloud)
+*/
+  Future<TransferOwner> insertTransferOwner(TransferOwner data) async {
+    final db = await instance.database;
+    final id = db.rawInsert(
+        'INSERT INTO $tableTransferOwner(transfer_owner_key, branch_id, device_id, transfer_from_user_id, transfer_to_user_id, '
+            'cash_balance, sync_status, created_at, updated_at, soft_delete) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          data.transfer_owner_key,
+          data.branch_id,
+          data.device_id,
+          data.transfer_from_user_id,
+          data.transfer_to_user_id,
+          data.cash_balance,
+          data.sync_status,
+          data.created_at,
+          data.updated_at,
+          data.soft_delete
+        ]
+    );
+    return data.copy(transfer_owner_sqlite_id: await id);
+  }
+
+/*
   add transfer owner record
 */
   Future<TransferOwner> insertSqliteTransferOwner(TransferOwner data) async {
@@ -2521,7 +2546,7 @@ class PosDatabase {
   Future<List<PosTable>> searchTable(String text) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tablePosTable WHERE soft_delete = ? AND (number LIKE ? OR seats LIKE ?) ORDER BY number DESC ',
+        'SELECT * FROM $tablePosTable WHERE soft_delete = ? AND (number LIKE ? OR seats LIKE ?) ORDER BY table_sqlite_id ',
         ['', '%' + text + '%', '%' + text + '%']);
     return result.map((json) => PosTable.fromJson(json)).toList();
   }
@@ -2587,7 +2612,8 @@ class PosDatabase {
   Future<List<ModifierGroup>> readProductModifierGroupName(int productID) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.* FROM $tableModifierGroup AS a JOIN $tableModifierLinkProduct AS b ON a.mod_group_id = b.mod_group_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.product_sqlite_id = ?',
+        'SELECT a.* FROM $tableModifierGroup AS a JOIN $tableModifierLinkProduct AS b ON a.mod_group_id = b.mod_group_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.product_sqlite_id = ?',
         ['', '', productID]);
     return result.map((json) => ModifierGroup.fromJson(json)).toList();
   }
@@ -2742,6 +2768,20 @@ class PosDatabase {
             'JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
             'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.table_sqlite_id = ? AND a.status = ?',
         ['', '', table_sqlite_id, 0]);
+
+    return result.map((json) => TableUseDetail.fromJson(json)).toList();
+  }
+
+/*
+  read specific use table detail based on table id (only table is in used)
+*/
+  Future<List<TableUseDetail>> readSpecificInUsedTableUseDetail(int table_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.table_id AS table_local_id FROM $tableTableUseDetail AS a '
+            'JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.table_sqlite_id = ? AND a.status = ? AND b.status = ?',
+        ['', '', table_sqlite_id, 0, 1]);
 
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
   }
@@ -3347,8 +3387,8 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id FROM $tableOrder AS a '
             'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-            'WHERE a.payment_status = ? AND a.soft_delete = ? AND b.soft_delete = ? ORDER BY a.created_at DESC',
-        [1, '', '']);
+            'WHERE a.payment_status = ? AND a.settlement_key = ? AND a.soft_delete = ? AND b.soft_delete = ? ORDER BY a.created_at DESC',
+        [1, '', '', '']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -3723,8 +3763,8 @@ class PosDatabase {
         'SELECT a.*, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a '
             'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
             'JOIN $tableRefund AS c ON a.refund_key = c.refund_key '
-            'WHERE a.payment_status = ? AND a.refund_key != ? AND a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? ORDER BY a.created_at DESC',
-        [2, '', '', '', '']);
+            'WHERE a.payment_status = ? AND a.refund_key != ? AND a.settlement_key = ? AND a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? ORDER BY a.created_at DESC',
+        [2, '', '', '', '', '']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
 
@@ -3745,11 +3785,11 @@ class PosDatabase {
 /*
   read specific transfer owner
 */
-  Future<TransferOwner> readSpecificTransferOwnerByLocalId(int transfer_owner_sqlite_id) async {
+  Future<TransferOwner> readSpecificTransferOwnerByLocalId(String transfer_owner_key) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-      'SELECT * FROM $tableTransferOwner WHERE soft_delete = ? AND transfer_owner_sqlite_id = ?',
-      ['', transfer_owner_sqlite_id]
+      'SELECT * FROM $tableTransferOwner WHERE soft_delete = ? AND transfer_owner_key = ?',
+      ['', transfer_owner_key]
     );
     return TransferOwner.fromJson(result.first);
   }

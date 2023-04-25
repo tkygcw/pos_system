@@ -92,31 +92,37 @@ class _PrinterDialogState extends State<PrinterDialog> {
     print('submit status: ${errorPrinterLabel}');
     if (errorPrinterLabel == null) {
       if (printerValue.isNotEmpty) {
-        if (_isUpdate == false) {
-          await callAddNewPrinter(printerValue, selectedCategories);
-          if(_typeStatus == 0){
-            var printerDetail = jsonDecode(printerValue[0]);
-            bool? isConnected = await flutterUsbPrinter.connect(
-                int.parse(printerDetail['vendorId']),
-                int.parse(printerDetail['productId']));
+        if(_isCashier != false || selectedCategories.isNotEmpty){
+          if (_isUpdate == false) {
+            await callAddNewPrinter(printerValue, selectedCategories);
+            if(_typeStatus == 0){
+              var printerDetail = jsonDecode(printerValue[0]);
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']),
+                  int.parse(printerDetail['productId']));
+            }
+          } else {
+            await callUpdatePrinter(selectedCategories, widget.printerObject!);
           }
-        } else {
-          await callUpdatePrinter(selectedCategories, widget.printerObject!);
-        }
-        if(this.printer!.type == 1){
-          await syncAllToCloud();
+          if(_typeStatus == 1){
+            await syncAllToCloud();
+          }
           if(this.isLogOut == true){
             openLogOutDialog();
             return;
           }
+          widget.callBack();
+          closeDialog(context);
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Color(0xFFFF0000),
+              msg: "Please set the printer setting or category");
         }
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000),
-            msg: "Make sure printer and category is selected");
+            msg: "Make sure printer is selected");
       }
-      widget.callBack();
-      closeDialog(context);
     }
   }
 
@@ -313,16 +319,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                   onChanged: (value){
                                     setState(() {
                                       _isCashier = value!;
-                                      if(_isCashier){
-                                        selectedCategories.clear();
-                                        selectedCategories.add(Categories(category_sqlite_id: -1));
-                                        selectedCategories[0].isChecked = true;
-                                      } else {
-                                        selectedCategories[0].isChecked = false;
-                                        selectedCategories.clear();
-                                      }
                                     });
-                                    print('selected category length: ${selectedCategories.length}');
                                   }
                               ),
                             )
@@ -331,56 +328,52 @@ class _PrinterDialogState extends State<PrinterDialog> {
                         SizedBox(
                           height: 10,
                         ),
-                        Visibility(
-                          visible: _isCashier ? false : true,
-                          child: Container(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Category',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blueGrey),
-                                ),
-                                SizedBox(height: 10),
-                                !_isCashier ?
-                                Wrap(
-                                    runSpacing: 5,
-                                    spacing: 10,
-                                    children: List<Widget>.generate(selectedCategories.length, (int index) {
-                                      return Chip(
-                                        label: Text('${selectedCategories[index].name}'),
-                                        avatar: CircleAvatar(
-                                          backgroundColor: color.backgroundColor,
-                                          child: Text(
-                                              '${selectedCategories[index].name![0]}',
-                                              style: TextStyle(color: color.iconColor)),
-                                        ),
-                                        elevation: 5,
-                                        onDeleted: () => setState(() {
-                                          selectedCategories.removeAt(index);
-                                        }),
-                                        deleteIconColor: Colors.red,
-                                        deleteIcon: Icon(Icons.close),
-                                        deleteButtonTooltipMessage: 'remove',
-                                      );
-                                    })
-                                ): Container(),
-                                Container(
-                                  alignment: Alignment.center,
-                                  child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                          primary: color.backgroundColor),
-                                      onPressed: () {
-                                        setState(() {
-                                          openCategoriesDialog();
-                                        });
-                                      },
-                                      child: Icon(Icons.add)),
-                                ),
-                              ],
-                            ),
+                        Container(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Category',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blueGrey),
+                              ),
+                              SizedBox(height: 10),
+                              Wrap(
+                                  runSpacing: 5,
+                                  spacing: 10,
+                                  children: List<Widget>.generate(selectedCategories.length, (int index) {
+                                    return Chip(
+                                      label: Text('${selectedCategories[index].name}'),
+                                      avatar: CircleAvatar(
+                                        backgroundColor: color.backgroundColor,
+                                        child: Text(
+                                            '${selectedCategories[index].name![0]}',
+                                            style: TextStyle(color: color.iconColor)),
+                                      ),
+                                      elevation: 5,
+                                      onDeleted: () => setState(() {
+                                        selectedCategories.removeAt(index);
+                                      }),
+                                      deleteIconColor: Colors.red,
+                                      deleteIcon: Icon(Icons.close),
+                                      deleteButtonTooltipMessage: 'remove',
+                                    );
+                                  })
+                              ),
+                              Container(
+                                alignment: Alignment.center,
+                                child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                        primary: color.backgroundColor),
+                                    onPressed: () {
+                                      setState(() {
+                                        openCategoriesDialog();
+                                      });
+                                    },
+                                    child: Icon(Icons.add)),
+                              ),
+                            ],
                           ),
                         ),
                         Text(
@@ -542,12 +535,12 @@ class _PrinterDialogState extends State<PrinterDialog> {
                           ],
                         ),
                         Visibility(
-                          visible: printerValue.length == 0 ? true : false,
+                          visible: printerValue.isEmpty ? true : false,
                           child: Container(
                             alignment: Alignment.center,
                             child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    primary: color.backgroundColor),
+                                    backgroundColor: color.backgroundColor),
                                 onPressed: () {
                                   setState(() {
                                     openAddDeviceDialog(_typeStatus!);
@@ -638,14 +631,6 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                   onChanged: (value){
                                     setState(() {
                                       _isCashier = value!;
-                                      if(_isCashier){
-                                        selectedCategories.clear();
-                                        selectedCategories.add(Categories(category_sqlite_id: -1));
-                                        selectedCategories[0].isChecked = true;
-                                      } else {
-                                        selectedCategories[0].isChecked = false;
-                                        selectedCategories.clear();
-                                      }
                                     });
                                     print('selected category length: ${selectedCategories.length}');
                                   }
@@ -656,56 +641,52 @@ class _PrinterDialogState extends State<PrinterDialog> {
                         SizedBox(
                           height: 10,
                         ),
-                        Visibility(
-                          visible: _isCashier ? false : true,
-                          child: Container(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Category',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blueGrey),
-                                ),
-                                SizedBox(height: 10),
-                                !_isCashier ?
-                                Wrap(
-                                    runSpacing: 5,
-                                    spacing: 10,
-                                    children: List<Widget>.generate(selectedCategories.length, (int index) {
-                                      return Chip(
-                                        label: Text('${selectedCategories[index].name}'),
-                                        avatar: CircleAvatar(
-                                          backgroundColor: color.backgroundColor,
-                                          child: Text(
-                                              '${selectedCategories[index].name![0]}',
-                                              style: TextStyle(color: color.iconColor)),
-                                        ),
-                                        elevation: 5,
-                                        onDeleted: () => setState(() {
-                                          selectedCategories.removeAt(index);
-                                        }),
-                                        deleteIconColor: Colors.red,
-                                        deleteIcon: Icon(Icons.close),
-                                        deleteButtonTooltipMessage: 'remove',
-                                      );
-                                    })
-                                ): Container(),
-                                Container(
-                                  alignment: Alignment.center,
-                                  child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                          primary: color.backgroundColor),
-                                      onPressed: () {
-                                        setState(() {
-                                          openCategoriesDialog();
-                                        });
-                                      },
-                                      child: Icon(Icons.add)),
-                                ),
-                              ],
-                            ),
+                        Container(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Category',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blueGrey),
+                              ),
+                              SizedBox(height: 10),
+                              Wrap(
+                                  runSpacing: 5,
+                                  spacing: 10,
+                                  children: List<Widget>.generate(selectedCategories.length, (int index) {
+                                    return Chip(
+                                      label: Text('${selectedCategories[index].name}'),
+                                      avatar: CircleAvatar(
+                                        backgroundColor: color.backgroundColor,
+                                        child: Text(
+                                            '${selectedCategories[index].name![0]}',
+                                            style: TextStyle(color: color.iconColor)),
+                                      ),
+                                      elevation: 5,
+                                      onDeleted: () => setState(() {
+                                        selectedCategories.removeAt(index);
+                                      }),
+                                      deleteIconColor: Colors.red,
+                                      deleteIcon: Icon(Icons.close),
+                                      deleteButtonTooltipMessage: 'remove',
+                                    );
+                                  })
+                              ),
+                              Container(
+                                alignment: Alignment.center,
+                                child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                        primary: color.backgroundColor),
+                                    onPressed: () {
+                                      setState(() {
+                                        openCategoriesDialog();
+                                      });
+                                    },
+                                    child: Icon(Icons.add)),
+                              ),
+                            ],
                           ),
                         ),
                         Text(
@@ -786,7 +767,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
 
   callAddNewPrinter(List<String> value, List<Categories> allCategories) async {
     await createPrinter(value);
-    if(printer!.is_counter != 1){
+    if(allCategories.isNotEmpty){
       await createPrinterCategory(allCategories);
     }
   }
@@ -794,7 +775,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
   callUpdatePrinter(List<Categories> allCategories, Printer printer) async {
     await updatePrinterInfo();
     await clearPrinterCategory(printer);
-    if(this.printer!.is_counter != 1){
+    if(allCategories.isNotEmpty){
       await updatePrinterCategory(allCategories, printer);
     }
   }
@@ -949,10 +930,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
       List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(widget.printerObject!.printer_sqlite_id!);
       if(widget.printerObject!.is_counter == 1){
         _isCashier = true;
-        selectedCategories.add(Categories(category_sqlite_id: -1));
-        selectedCategories[0].isChecked = true;
       }
-      if (data.length > 0) {
+      if (data.isNotEmpty) {
         for (int i = 0; i < data.length; i++) {
           if(data[i].category_sqlite_id == '0'){
             selectedCategories.add(Categories(category_sqlite_id: 0, name: 'Other/uncategorized'));

@@ -16,7 +16,6 @@ import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/printer.dart';
-import 'package:pos_system/object/receipt_layout.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -2049,7 +2048,7 @@ class _MakePaymentState extends State<MakePayment> {
         branchObject['ipay_merchant_key'],
         336,
         orderId!,
-        '1.00',
+        '1.00', //need to change to finalAmount
         'MYR',
         'ipay',
         branchObject['name'],
@@ -2065,7 +2064,7 @@ class _MakePaymentState extends State<MakePayment> {
           branchObject['ipay_merchant_key'],
           branchObject['ipay_merchant_code'],
           orderId!,
-          '100',
+          '1.00', //need to change to finalAmount
           'MYR',
           '',
           result!.code!,
@@ -2073,7 +2072,6 @@ class _MakePaymentState extends State<MakePayment> {
         )
     );
     if(response != null){
-      print('res: ${response}');
       return response;
     } else {
       return 0;
@@ -2081,9 +2079,9 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   signature256(var merchant_key, var merchant_code, var refNo, var amount, var currency, var xFields, var barcodeNo, var TerminalId ){
-    // var ipayAmount = double.parse(amount) * 100;
-    // print('ipay amount: ${ipayAmount.toStringAsFixed(0)}');
-    var signature = utf8.encode(merchant_key + merchant_code + refNo + amount + currency + xFields + barcodeNo + TerminalId);
+    var ipayAmount = double.parse(amount) * 100;
+    print("ipay amount: ${ipayAmount.toStringAsFixed(0)}");
+    var signature = utf8.encode(merchant_key + merchant_code + refNo + ipayAmount.toStringAsFixed(0) + currency + xFields + barcodeNo + TerminalId);
     String value = sha256.convert(signature).toString();
     return value;
   }

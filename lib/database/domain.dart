@@ -26,6 +26,7 @@ class Domain {
   static Uri sale = Uri.parse(domain + 'mobile-api/sale/index.php');
   static Uri settlement = Uri.parse(domain + 'mobile-api/settlement/index.php');
   static Uri table_use = Uri.parse(domain + 'mobile-api/table_use/index.php');
+  static Uri transfer_owner = Uri.parse(domain + 'mobile-api/transfer_owner/index.php');
   static Uri cash_record = Uri.parse(domain + 'mobile-api/cash_record/index.php');
   static Uri sync_record = Uri.parse(domain + 'mobile-api/sync/index.php');
   static Uri sync_to_cloud = Uri.parse(domain + 'mobile-api/sync_to_cloud/index.php');
@@ -162,6 +163,21 @@ class Domain {
     try {
       var response = await http.post(Domain.table_use, body: {
         'getAllTableUseDetail': '1',
+        'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get transfer owner
+  * */
+  getTransferOwner(branch_id) async {
+    try {
+      var response = await http.post(Domain.transfer_owner, body: {
+        'getTransferOwner': '1',
         'branch_id': branch_id,
       });
       return jsonDecode(response.body);

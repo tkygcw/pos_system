@@ -368,7 +368,7 @@ class _HomePageState extends State<HomePage> {
     );
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      showFlutterNotification(context, message);
+      showFlutterNotification(message);
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
@@ -380,7 +380,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void showFlutterNotification(context, RemoteMessage message) {
+  void showFlutterNotification(RemoteMessage message) {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
     if (notification != null && android != null) {
@@ -413,7 +413,7 @@ class _HomePageState extends State<HomePage> {
     //set timer when new order come in
     int no = 1;
     notificationTimer = Timer.periodic(Duration(seconds: 5), (timer) async {
-      if (no <= 5) {
+      if (no <= 3) {
         showSnackBar();
         playSound();
       } else

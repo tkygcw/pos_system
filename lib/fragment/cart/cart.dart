@@ -60,9 +60,11 @@ class _CartPageState extends State<CartPage> {
   final ScrollController _scrollController = ScrollController();
   late StreamController controller;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
+  PrintReceipt printReceipt = PrintReceipt();
   List<Printer> printerList = [];
   List<Promotion> promotionList = [], autoApplyPromotionList = [];
-  List<String> diningList = [], branchLinkDiningIdList = [];
+  List<BranchLinkDining> diningList = [];
+  List<String>  branchLinkDiningIdList = [];
   List<cartProductItem> sameCategoryItemList = [];
   List<TableUse> tableUseList = [];
   List<Tax> taxRateList = [];
@@ -237,25 +239,27 @@ class _CartPageState extends State<CartPage> {
                                         ? cart.cartNotifierItem.isEmpty
                                             ? setState(() {
                                                 cart.removeAllTable();
-                                                cart.selectedOption = diningList[index];
+                                                cart.selectedOption = diningList[index].name!;
+                                                cart.selectedOptionId = diningList[index].dining_id!;
                                               })
                                             : cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status != 1
                                                 ? setState(() {
                                                     cart.removeAllTable();
-                                                    cart.selectedOption = diningList[index];
+                                                    cart.selectedOption = diningList[index].name!;
+                                                    cart.selectedOptionId = diningList[index].dining_id!;
                                                   })
                                                 : null
                                         : null;
                                   },
                                   child: Container(
-                                      color: cart.selectedOption == diningList[index] ? color.buttonColor : color.backgroundColor,
+                                      color: cart.selectedOption == diningList[index].name! ? color.buttonColor : color.backgroundColor,
                                       alignment: Alignment.center,
                                       child: Text(
-                                        diningList[index],
+                                        diningList[index].name!,
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                             fontWeight: FontWeight.w600,
-                                            color: cart.selectedOption == diningList[index] ? color.iconColor : Colors.white,
+                                            color: cart.selectedOption == diningList[index].name! ? color.iconColor : Colors.white,
                                             fontSize: 16),
                                       )),
                                 );
@@ -373,8 +377,8 @@ class _CartPageState extends State<CartPage> {
                         ),
                         SizedBox(height: MediaQuery.of(context).size.height > 500 ? 10 : 5),
                         Container(
-                          height: cart.selectedOption == 'Dine in' && MediaQuery.of(context).size.height > 500
-                              ? 160
+                          height: widget.currentPage == 'menu' && widget.currentPage == 'table' && MediaQuery.of(context).size.height > 500
+                              ? 130
                               : MediaQuery.of(context).size.height > 500
                                   ? null
                                   : 25,
@@ -540,10 +544,9 @@ class _CartPageState extends State<CartPage> {
                           child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
                             return Row(
                               children: [
-                                Expanded(
-                                    child: ElevatedButton(
+                                Expanded(child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    primary: color.backgroundColor,
+                                    backgroundColor: color.backgroundColor,
                                     minimumSize: const Size.fromHeight(50), // NEW
                                   ),
                                   onPressed: () async {
@@ -622,7 +625,7 @@ class _CartPageState extends State<CartPage> {
                                       }
                                     } else {
                                       if (cart.cartNotifierItem.isNotEmpty) {
-                                        await PrintReceipt().printCartReceiptList(printerList, cart, this.localOrderId, context);
+                                        await printReceipt.printCartReceiptList(printerList, cart, this.localOrderId, context);
                                         cart.initialLoad();
                                         cart.changInit(true);
                                       } else {
@@ -631,35 +634,55 @@ class _CartPageState extends State<CartPage> {
                                       }
                                     }
                                   },
-                                  child: widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
+                                  child: MediaQuery.of(context).size.height > 500
+                                      ?
+                                  widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
                                       ? Text('Place Order\n (RM ${this.finalAmount})')
                                       : widget.currentPage == 'table' || widget.currentPage == 'other_order'
                                           ? Text('Make payment (RM ${this.finalAmount})')
-                                          : Text('Print Receipt'),
+                                          : Text('Print Receipt')
+                                      :
+                                  widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
+                                      ? Text('Place Order')
+                                      : widget.currentPage == 'table' || widget.currentPage == 'other_order'
+                                      ? Text('Make payment')
+                                      : Text('Print Receipt')
+
                                 )),
                                 Visibility(
-                                  visible: cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status == 1 ? false : false,
+                                  child: SizedBox(
+                                    width: 10,
+                                  ),
+                                  visible: widget.currentPage == "menu" || widget.currentPage == "table" && cart.cartNotifierItem.isNotEmpty ? true : false,
+                                ),
+                                Visibility(
+                                  visible: widget.currentPage == "menu" && cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status == 1 ? true : false,
                                   child: Expanded(
-                                    child: Row(
-                                      children: [
-                                        SizedBox(
-                                          width: 10,
-                                        ),
-                                        Expanded(
-                                            child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            primary: color.backgroundColor,
-                                            minimumSize: const Size.fromHeight(50), // NEW
-                                          ),
-                                          onPressed: () {
-                                            //openReprintDialog(printerList, cart);
-                                            print('reprint checklist');
-                                          },
-                                          child: Text('Print Check List'),
-                                        )),
-                                      ],
+                                    child: ElevatedButton(style: ElevatedButton.styleFrom(
+                                        backgroundColor: color.backgroundColor,
+                                        minimumSize: const Size.fromHeight(50),
+                                      ),
+                                      onPressed: () {
+                                        openReprintDialog(printerList, cart);
+                                        print('reprint checklist');
+                                      },
+                                      child: Text('Print Check List'),
                                     ),
                                   ),
+                                ),
+                                Visibility(
+                                    visible: widget.currentPage == "table" && cart.cartNotifierItem.isNotEmpty ? true : false,
+                                    child: Expanded(
+                                        child: ElevatedButton(style: ElevatedButton.styleFrom(
+                                          backgroundColor: color.backgroundColor,
+                                          minimumSize: const Size.fromHeight(50),
+                                        ),
+                                          onPressed: () async {
+                                            paymentAddToCart(cart);
+                                            await printReceipt.printReviewReceipt(printerList, cart.selectedTable, cart, context);
+                                          },
+                                          child: Text('Print Receipt'),
+                                    )),
                                 )
                               ],
                             );
@@ -693,7 +716,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   readAllPrinters() async {
-    printerList = await PrintReceipt().readAllPrinters();
+    printerList = await printReceipt.readAllPrinters();
   }
 
 /*
@@ -1701,7 +1724,7 @@ class _CartPageState extends State<CartPage> {
     final int? branch_id = prefs.getInt('branch_id');
     List<BranchLinkDining> data = await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
     for (int i = 0; i < data.length; i++) {
-      diningList.add(data[i].name!);
+      diningList.add(data[i]);
       branchLinkDiningIdList.add(data[i].dining_id!);
     }
     controller.add('refresh');
@@ -1743,8 +1766,8 @@ class _CartPageState extends State<CartPage> {
       openLogOutDialog();
       return;
     }
-    await PrintReceipt().printCheckList(printerList, int.parse(this.orderCacheId), context);
-    await PrintReceipt().printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
+    await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId), context);
+    await printReceipt.printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
   }
 
 /*
@@ -1762,8 +1785,8 @@ class _CartPageState extends State<CartPage> {
       openLogOutDialog();
       return;
     }
-    await PrintReceipt().printCheckList(printerList, int.parse(this.orderCacheId), context);
-    await PrintReceipt().printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
+    await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId), context);
+    await printReceipt.printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
   }
 
 /*
@@ -1778,8 +1801,8 @@ class _CartPageState extends State<CartPage> {
       openLogOutDialog();
       return;
     }
-    await PrintReceipt().printCheckList(printerList, int.parse(this.orderCacheId), context);
-    await PrintReceipt().printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
+    await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId), context);
+    await printReceipt.printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
   }
 
   randomColor() {

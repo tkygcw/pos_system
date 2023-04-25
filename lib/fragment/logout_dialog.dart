@@ -42,7 +42,7 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
                   ?
               Text('${AppLocalizations.of(context)?.translate('logout_desc')}')
                   :
-              Text('${AppLocalizations.of(context)?.translate('logout-desc2')}'),
+              Text('${AppLocalizations.of(context)?.translate('logout_desc2')}'),
             ),
             actions: [
               Visibility(

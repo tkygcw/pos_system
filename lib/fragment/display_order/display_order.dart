@@ -26,6 +26,7 @@ import '../../object/product_variant.dart';
 import '../../object/product_variant_detail.dart';
 import '../../object/variant_group.dart';
 import '../../object/variant_item.dart';
+import '../../utils/Utils.dart';
 
 class DisplayOrderPage extends StatefulWidget {
   final CartModel cartModel;
@@ -52,7 +53,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
     getDiningList();
     getOrderList();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.cartModel.initialLoad();
+      widget.cartModel.notDineInInitLoad();
     });
   }
 
@@ -196,7 +197,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                 //reset other selected order
                                 for(int i = 0; i < orderCacheList.length; i++){
                                   orderCacheList[i].is_selected = false;
-                                  cart.initialLoad();
+                                  cart.notDineInInitLoad();
                                 }
                                 orderCacheList[index].is_selected = true;
                                 await getOrderDetail(orderCacheList[index]);
@@ -205,7 +206,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
 
                               } else if(orderCacheList[index].is_selected == true) {
                                 orderCacheList[index].is_selected = false;
-                                cart.initialLoad();
+                                cart.notDineInInitLoad();
                               }
                               //openViewOrderDialog(orderCacheList[index]);
                             },
@@ -233,7 +234,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                     style: TextStyle(fontSize: 16),
                                   ),
                                   title: Text(
-                                    orderCacheList[index].total_amount!,
+                                    "${Utils.convertTo2Dec(orderCacheList[index].total_amount!,)}",
                                     style: TextStyle(fontSize: 20),
                                   )),
                             ),

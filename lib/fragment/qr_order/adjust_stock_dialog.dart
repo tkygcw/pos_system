@@ -347,11 +347,13 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                     }
                                     widget.callBack;
                                     await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
-                                    await PrintReceipt()
-                                        .printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                                    await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                                   }
                                 } else {
                                   callOtherOrder();
+                                  await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                                  await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+
                                 }
                                 Navigator.of(context).pop();
                               }
@@ -605,6 +607,8 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                   }
                                 } else {
                                   callOtherOrder();
+                                  await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                                  await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                                 }
                                 Navigator.of(context).pop();
                               }

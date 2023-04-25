@@ -42,11 +42,9 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     readAllCategories();
-    if (widget.cartModel.selectedOption == 'Dine in') {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.cartModel.initialLoad();
-      });
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.cartModel.initialLoad();
+    });
     // _tabController = TabController(length: 0, vsync: this);
   }
 
@@ -74,7 +72,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                   IconButton(
                       color: color.buttonColor,
                       onPressed: (){
-                        showSearch(context: context, delegate: ProductSearchDelegate(productList: allProduct, imagePath: imagePath));
+                        showSearch(context: context, delegate: ProductSearchDelegate(productList: allProduct, imagePath: imagePath, cartModel: widget.cartModel));
                       },
                       icon: Icon(Icons.search),
                   )
@@ -105,7 +103,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     });
   }
 
-  Future<Future<Object?>> openProductOrderDialog(Product product) async {
+  Future<Future<Object?>> openProductOrderDialog(Product product, CartModel cartModel) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -115,6 +113,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
             child: Opacity(
                 opacity: a1.value,
                 child: ProductOrderDialog(
+                  cartModel:  cartModel,
                   productDetail: product,
                 )),
           );
@@ -163,7 +162,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                   child: InkWell(
                     splashColor: Colors.blue.withAlpha(30),
                     onTap: () {
-                      openProductOrderDialog(data[index]);
+                      openProductOrderDialog(data[index], widget.cartModel);
                     },
                     child: Stack(
                       alignment: Alignment.bottomLeft,
@@ -206,7 +205,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                   child: InkWell(
                     splashColor: Colors.blue.withAlpha(30),
                     onTap: () {
-                      openProductOrderDialog(data[index]);
+                      openProductOrderDialog(data[index], widget.cartModel);
                     },
                     child: Stack(
                       alignment: Alignment.bottomLeft,
@@ -277,7 +276,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
               child: InkWell(
                 splashColor: Colors.blue.withAlpha(30),
                 onTap: () {
-                  openProductOrderDialog(data[index]);
+                  openProductOrderDialog(data[index], widget.cartModel);
                 },
                 child: Stack(
                   alignment: Alignment.bottomLeft,

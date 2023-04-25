@@ -204,7 +204,6 @@ class _TableSettingState extends State<TableSetting> {
     this.checkedTable.clear();
     List<PosTable> data = await PosDatabase.instance.readAllTable();
     tableList = data;
-    print('my table: ${tableList[0].table_url}');
     setState(() {
       _isLoad = true;
     });
