@@ -22,7 +22,6 @@ import '../../object/order.dart';
 import '../../object/order_tax_detail.dart';
 import '../../object/payment_link_company.dart';
 import '../../object/printer.dart';
-import '../../object/refund.dart';
 import '../../object/report_class.dart';
 import '../../object/user.dart';
 import '../../translation/AppLocalizations.dart';
@@ -626,7 +625,10 @@ class _SettlementDialogState extends State<SettlementDialog> {
       this.totalPromotionAmount = orderPromotion[0].total_promotion_amount!;
     }
     if(orderCancelData.isNotEmpty){
-      this.totalCancelItem = orderCancelData.length;
+      for(int i = 0; i < orderCancelData.length; i++){
+        this.totalCancelItem += int.parse(orderCancelData[i].quantity!);
+      }
+      //this.totalCancelItem = orderCancelData.length;
     }
     print('order promo: ${this.totalPromotionAmount}');
   }

@@ -15,13 +15,10 @@ import '../database/domain.dart';
 import '../database/pos_database.dart';
 import '../fragment/logout_dialog.dart';
 import '../fragment/setting/printer_dialog.dart';
-import '../main.dart';
 import '../notifier/theme_color.dart';
 import '../object/cash_record.dart';
 import '../object/print_receipt.dart';
 import '../object/printer.dart';
-import '../object/printer_link_category.dart';
-import '../object/receipt_layout.dart';
 import '../object/user.dart';
 import '../translation/AppLocalizations.dart';
 

@@ -17,6 +17,7 @@ import '../database/pos_database.dart';
 import '../notifier/theme_color.dart';
 import '../object/device.dart';
 import '../translation/AppLocalizations.dart';
+import 'device_check_dialog.dart';
 
 class SetupPage extends StatefulWidget {
   const SetupPage({Key? key}) : super(key: key);
@@ -35,6 +36,30 @@ class _SetupPageState extends State<SetupPage> {
   void initState() {
     super.initState();
     getToken();
+  }
+
+  Future<Future<Object?>> openConfirmDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: DeviceCheckDialog(
+                callBack: () => saveBranchAndDevice(),
+              )
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   getToken() async {
@@ -94,8 +119,7 @@ class _SetupPageState extends State<SetupPage> {
   Widget buildCards() => PageTransitionSwitcher(
         duration: Duration(milliseconds: 200),
         reverse: isFirstPage,
-        transitionBuilder: (child, animation, secondaryAnimation) =>
-            SharedAxisTransition(
+        transitionBuilder: (child, animation, secondaryAnimation) => SharedAxisTransition(
           fillColor: Colors.transparent,
           child: child,
           animation: animation,
@@ -204,22 +228,27 @@ class _SetupPageState extends State<SetupPage> {
           ),
         );
       } else {
-        saveBranchAndDevice();
+        //saveBranchAndDevice();
+        checkDeviceLogin();
       }
     }
   }
 
+  checkDeviceLogin() async {
+    Map response = await Domain().getDeviceLogin(selectedDevice!.deviceID!.toString());
+    if(response['status'] == '1'){
+      openConfirmDialog();
+    } else if (response['status'] == '2'){
+      saveBranchAndDevice();
+    }
+  }
 
   saveBranchAndDevice() async {
     // Obtain shared preferences.
-    final prefs = await SharedPreferences.getInstance();
     if(this.token != null){
-      await prefs.setInt('branch_id', selectedBranch!.branchID!);
-      await prefs.setInt('device_id', selectedDevice!.deviceID!);
-      await prefs.setString("branch", json.encode(selectedBranch!));
+      savePref();
       await PosDatabase.instance.insertBranch(selectedBranch!);
       await updateBranchToken();
-      //await createDeviceLogin();
     } else {
       Fluttertoast.showToast(msg: '${AppLocalizations.of(context)?.translate('fail_get_token')}');
       Navigator.of(context).pushAndRemoveUntil(
@@ -234,36 +263,14 @@ class _SetupPageState extends State<SetupPage> {
             (Route route) => false,
       );
     }
-
   }
 
-// /*
-//   create device login
-// */
-//   createDeviceLogin() async {
-//     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-//     String dateTime = dateFormat.format(DateTime.now());
-//     final prefs = await SharedPreferences.getInstance();
-//     final int? device_id = prefs.getInt('device_id');
-//
-//     var value = md5.convert(utf8.encode(dateTime)).toString();
-//
-//     bool _hasInternetAccess = await Domain().isHostReachable();
-//     if(_hasInternetAccess){
-//       Map response = await Domain().insertDeviceLogin(device_id.toString(), value);
-//       if(response['status'] == '1'){
-//         await prefs.setString('login_value', value);
-//       } else {
-//         Navigator.of(context).pushReplacement(MaterialPageRoute(
-//           builder: (context) => LoginPage(),
-//         ));
-//       }
-//     } else {
-//       Navigator.of(context).pushReplacement(MaterialPageRoute(
-//         builder: (context) => LoginPage(),
-//       ));
-//     }
-//   }
+  savePref() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('branch_id', selectedBranch!.branchID!);
+    await prefs.setInt('device_id', selectedDevice!.deviceID!);
+    await prefs.setString("branch", json.encode(selectedBranch!));
+  }
 
   updateBranchToken() async {
     try{

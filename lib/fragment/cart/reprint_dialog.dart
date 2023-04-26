@@ -42,7 +42,7 @@ class _ReprintDialogState extends State<ReprintDialog> {
     return AlertDialog(
       title: Text('Confirm reprint check list?'),
       content: Container(
-        // height: MediaQuery.of(context).size.height / 10,
+        height: 150,
         // width: MediaQuery.of(context).size.width / 3,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

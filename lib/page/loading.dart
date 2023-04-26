@@ -56,6 +56,7 @@ import '../object/receipt.dart';
 import '../object/table_use.dart';
 import '../object/table_use_detail.dart';
 import '../object/tax.dart';
+import 'login.dart';
 
 class LoadingPage extends StatefulWidget {
   const LoadingPage({Key? key}) : super(key: key);
@@ -70,7 +71,6 @@ class _LoadingPageState extends State<LoadingPage> {
     // TODO: implement initState
     super.initState();
     startLoad();
-
   }
 
   @override
@@ -84,29 +84,43 @@ class _LoadingPageState extends State<LoadingPage> {
   }
 
   startLoad() async {
-    await _createProductImgFolder();
-    await getAllUser();
-    await getAllSettlement();
-    await getBranchLinkUser();
-    await getAllDiningOption();
-    await getBranchLinkDiningOption();
-    await getAllTax();
-    await getBranchLinkTax();
-    await getTaxLinkDining();
-    await getAllPromotion();
-    await getBranchLinkPromotion();
-    await getAllCustomer();
-    await getAllBill();
-    await getPaymentLinkCompany();
-    await getModifierGroup();
-    await getModifierItem();
-    await getBranchLinkModifier();
-    await getSale();
-    await getCashRecord();
-    await getTransferOwner();
-    await clearCloudSyncRecord();
-    await createReceiptLayout();
-    await createDeviceLogin();
+    try{
+      await _createProductImgFolder();
+      await getAllUser();
+      await getAllSettlement();
+      await getBranchLinkUser();
+      await getAllDiningOption();
+      await getBranchLinkDiningOption();
+      await getAllTax();
+      await getBranchLinkTax();
+      await getTaxLinkDining();
+      await getAllPromotion();
+      await getBranchLinkPromotion();
+      await getAllCustomer();
+      await getAllBill();
+      await getPaymentLinkCompany();
+      await getModifierGroup();
+      await getModifierItem();
+      await getBranchLinkModifier();
+      await getSale();
+      await getCashRecord();
+      await getTransferOwner();
+      await clearCloudSyncRecord();
+      await createReceiptLayout();
+      await createDeviceLogin();
+    }catch(e){
+      Navigator.of(context).pushAndRemoveUntil(
+        // the new route
+        MaterialPageRoute(
+          builder: (BuildContext context) => LoginPage(),
+        ),
+
+        // this function should return true when we're done removing routes
+        // but because we want to remove all other screens, we make it
+        // always return false
+            (Route route) => false,
+      );
+    }
     // Go to Page2 after 5s.
     Timer(Duration(seconds: 1), () {
       Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));

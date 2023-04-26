@@ -1787,8 +1787,7 @@ class ReceiptLayout{
           bytes += generator.reset();
           if (orderDetailList[i].remark != '') {
             bytes += generator.row([
-              PosColumn(text: '', width: 2),
-              PosColumn(text: '**${orderDetailList[i].remark}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+              PosColumn(text: '**${orderDetailList[i].remark}', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
               PosColumn(text: '', width: 2),
             ]);
           }

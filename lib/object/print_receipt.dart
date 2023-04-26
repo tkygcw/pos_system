@@ -799,7 +799,7 @@ class PrintReceipt{
         }
       }
     } catch (e) {
-      print('Printer Connection Error');
+      print('Printer Connection Error: ${e}');
 
       //response = 'Failed to get platform version.';
     }

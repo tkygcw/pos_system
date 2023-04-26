@@ -2912,7 +2912,7 @@ class PosDatabase {
               'a.order_by, a.total_amount, a.customer_id, a.created_at, a.updated_at, a.soft_delete '
               'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
               'WHERE a.order_key = ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
-              'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND b.name != ?',
+              'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND b.name != ? ORDER BY a.order_cache_sqlite_id DESC ',
           ['', '', '', branch_id, company_id, 0, '', 'Dine in']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
@@ -3757,7 +3757,23 @@ class PosDatabase {
 /*
   read all refund order
 */
-  Future<List<Order>> readAllRefundOrder() async {
+  Future<List<Order>> readAllRefundOrder(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a '
+            'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+            'JOIN $tableRefund AS c ON a.refund_key = c.refund_key '
+            'WHERE a.payment_status = ? AND a.refund_key != ? AND a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? '
+            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? '
+            'ORDER BY a.created_at DESC',
+        [2, '', '', '', '', date1, date2]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read all refund order
+*/
+  Future<List<Order>> readAllNotSettlementRefundOrder() async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a '
@@ -3911,10 +3927,9 @@ class PosDatabase {
   Future<List<Order>> readAllSettlementOrderBySettlementKey(String settlement_key) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT *, (SELECT SUM(a.final_amount + 0.0) FROM $tableOrder AS a WHERE a.settlement_key = ? AND a.refund_key = ? AND a.dining_id = dining_id) AS gross_sales '
-            'FROM $tableOrder '
+        'SELECT *, SUM(final_amount + 0.0) AS gross_sales FROM $tableOrder '
             'WHERE soft_delete = ? AND refund_key = ? AND settlement_key = ? GROUP BY dining_id ',
-        [settlement_key, '', '', '', settlement_key]
+        ['', '', settlement_key]
     );
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4028,7 +4043,8 @@ class PosDatabase {
   Future<List<Order>> readAllNotSettlementPaidOrder() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT *, (SELECT SUM(final_amount + 0.0) FROM $tableOrder WHERE settlement_key = ? AND refund_key = ?) AS gross_sales FROM $tableOrder WHERE soft_delete = ? AND refund_key = ? AND settlement_key = ? ',
+        'SELECT *, (SELECT SUM(final_amount + 0.0) FROM $tableOrder WHERE settlement_key = ? AND refund_key = ?) AS gross_sales '
+            'FROM $tableOrder WHERE soft_delete = ? AND refund_key = ? AND settlement_key = ? ',
         ['', '', '', '', '']
     );
     return result.map((json) => Order.fromJson(json)).toList();

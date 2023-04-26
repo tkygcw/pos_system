@@ -62,38 +62,34 @@ class _PosPinDialogState extends State<PosPinDialog> {
             content: SizedBox(
               height: 100.0,
               width: 350.0,
-              child: Column(
-                children: [
-                  ValueListenableBuilder(
-                    // Note: pass _controller to the animation argument
-                      valueListenable: adminPosPinController,
-                      builder: (context, TextEditingValue value, __) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextField(
-                            obscureText: true,
-                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
-                            keyboardType: TextInputType.number,
-                            controller: adminPosPinController,
-                            decoration: InputDecoration(
-                              errorText: _submitted
-                                  ? errorPassword == null ? errorPassword : AppLocalizations.of(context)?.translate(errorPassword!)
-                                  : null,
-                              border: OutlineInputBorder(
-                                borderSide:
-                                BorderSide(color: color.backgroundColor),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                BorderSide(color: color.backgroundColor),
-                              ),
-                              labelText: 'PIN',
-                            ),
+              child: ValueListenableBuilder(
+                // Note: pass _controller to the animation argument
+                  valueListenable: adminPosPinController,
+                  builder: (context, TextEditingValue value, __) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextField(
+                        obscureText: true,
+                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
+                        keyboardType: TextInputType.number,
+                        controller: adminPosPinController,
+                        decoration: InputDecoration(
+                          errorText: _submitted
+                              ? errorPassword == null ? errorPassword : AppLocalizations.of(context)?.translate(errorPassword!)
+                              : null,
+                          border: OutlineInputBorder(
+                            borderSide:
+                            BorderSide(color: color.backgroundColor),
                           ),
-                        );
-                      }),
-                ],
-              ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide:
+                            BorderSide(color: color.backgroundColor),
+                          ),
+                          labelText: 'PIN',
+                        ),
+                      ),
+                    );
+                  }),
             ),
             actions: <Widget>[
               TextButton(

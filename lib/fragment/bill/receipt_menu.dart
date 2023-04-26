@@ -638,7 +638,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
         paidOrderList = List.from(data);
       }
     } else {
-      List<Order> data = await PosDatabase.instance.readAllRefundOrder();
+      List<Order> data = await PosDatabase.instance.readAllNotSettlementRefundOrder();
       if (data.isNotEmpty) {
         paidOrderList = List.from(data);
       }

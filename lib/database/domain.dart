@@ -125,6 +125,21 @@ class Domain {
   }
 
   /*
+  * get device login
+  * */
+  getDeviceLogin(device_id) async {
+    try {
+      var response = await http.post(Domain.device_login, body: {
+        'getAllDeviceLogin': '1',
+        'device_id': device_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * insert device login
   * */
   insertDeviceLogin(deviceId, value) async {
@@ -139,6 +154,23 @@ class Domain {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
+
+  /*
+  * device logout
+  * */
+  deviceLogout(deviceId) async {
+    try {
+      var response = await http.post(Domain.device_login, body: {
+        'deviceLogout': '1',
+        'device_id': deviceId,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+
 
   /*
   * get all table_use

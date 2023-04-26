@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/main.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,7 +22,18 @@ class LogoutConfirmDialog extends StatefulWidget {
 }
 
 class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
+  var prefs;
   bool isButtonDisabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    getPreferences();
+  }
+
+  getPreferences() async {
+    prefs = await SharedPreferences.getInstance();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +77,9 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
                   setState(() {
                     isButtonDisabled = true;
                   });
+                  if(widget.currentPage != null){
+                    deviceLogout();
+                  }
                   logout(cart);
                 },
               ),
@@ -75,8 +90,12 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
     });
   }
 
+  deviceLogout() async {
+    final int? device_id = prefs.getInt('device_id');
+    Map response = await Domain().deviceLogout(device_id.toString());
+  }
+
   logout(CartModel cart) async{
-    final prefs = await SharedPreferences.getInstance();
     notificationModel.setTimer(true);
     prefs.clear();
     deleteAllLocalRecord();

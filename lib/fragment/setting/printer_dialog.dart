@@ -64,6 +64,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       widget.printerObject!.printer_status == 1 ? _isActive = true : _isActive = false;
     } else if (widget.devices != null){
       printerValue.add(widget.devices);
+      _isCashier = true;
       isLoad = true;
     } else {
       _isUpdate = false;
@@ -103,6 +104,12 @@ class _PrinterDialogState extends State<PrinterDialog> {
             }
           } else {
             await callUpdatePrinter(selectedCategories, widget.printerObject!);
+            if(_typeStatus == 0){
+              var printerDetail = jsonDecode(printerValue[0]);
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']),
+                  int.parse(printerDetail['productId']));
+            }
           }
           if(_typeStatus == 1){
             await syncAllToCloud();

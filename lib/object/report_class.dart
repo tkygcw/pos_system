@@ -611,24 +611,29 @@ class ReportObject{
     dateRefundOrderList = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
+    //convert time to string
+    DateTime addEndDate = addDays(date: _endDate);
+    String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+    String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     this.totalSales = 0.0;
 
-    List<Order> orderData = await PosDatabase.instance.readAllRefundOrder();
+    List<Order> orderData = await PosDatabase.instance.readAllRefundOrder(stringStDate, stringEdDate);
     paidOrderList = orderData;
     if (paidOrderList.isNotEmpty) {
       for (int i = 0; i < paidOrderList.length; i++) {
-        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderList[i].created_at!);
-        if(currentStDate != currentEdDate){
-          if(convertDate.isAfter(_startDate)){
-            if(convertDate.isBefore(addDays(date: _endDate))){
-              dateRefundOrderList!.add(paidOrderList[i]);
-            }
-          }
-        } else {
-          if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
-            dateRefundOrderList!.add(paidOrderList[i]);
-          }
-        }
+        dateRefundOrderList!.add(paidOrderList[i]);
+        // DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderList[i].created_at!);
+        // if(currentStDate != currentEdDate){
+        //   if(convertDate.isAfter(_startDate)){
+        //     if(convertDate.isBefore(addDays(date: _endDate))){
+        //       dateRefundOrderList!.add(paidOrderList[i]);
+        //     }
+        //   }
+        // } else {
+        //   if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
+        //     dateRefundOrderList!.add(paidOrderList[i]);
+        //   }
+        // }
 
       }
       for (int j = 0; j < dateRefundOrderList!.length; j++) {
