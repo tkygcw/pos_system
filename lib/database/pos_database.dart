@@ -743,7 +743,7 @@ class PosDatabase {
   }
 
 /*
-  add product categories to sqlite
+  add pos table to sqlite(table page)
 */
   Future<PosTable> insertSyncPosTable(PosTable data) async {
     final db = await instance.database;
@@ -2362,12 +2362,11 @@ class PosDatabase {
 /*
   read Branch link promotion
 */
-  Future<List<BranchLinkPromotion>> readBranchLinkPromotion(
-      String branch_id) async {
+  Future<List<BranchLinkPromotion>> readBranchLinkPromotion() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableBranchLinkPromotion WHERE soft_delete = ? AND branch_id = ?',
-        ['', branch_id]);
+        'SELECT * FROM $tableBranchLinkPromotion WHERE soft_delete = ?',
+        ['']);
     // 'SELECT a.*, b.name FROM $tableBranchLinkPromotion AS a JOIN $tablePromotion AS b ON a.promotion_id = b.promotion_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ?',
     // ['', '', branch_id]);
 
@@ -4896,7 +4895,49 @@ class PosDatabase {
     );
   }
 
+/*
+  update promotion
+*/
+  Future<int> updatePromotion(Promotion data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+      'UPDATE $tablePromotion SET name = ?, amount = ?, specific_category = ?, category_id = ?, type = ?, '
+          'auto_apply = ?, all_day = ?, all_time = ?, sdate = ?, edate = ?, stime = ?, etime = ?, updated_at = ?, soft_delete = ? WHERE promotion_id = ? ',
+      [
+        data.name,
+        data.amount,
+        data.specific_category,
+        data.category_id,
+        data.type,
+        data.auto_apply,
+        data.all_day,
+        data.all_time,
+        data.sdate,
+        data.edate,
+        data.stime,
+        data.etime,
+        data.updated_at,
+        data.soft_delete,
+        data.promotion_id
+      ]
+    );
+  }
 
+/*
+  update promotion
+*/
+  Future<int> updateBranchLinkPromotion(BranchLinkPromotion data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableBranchLinkPromotion SET promotion_id = ?, updated_at = ?, soft_delete = ? WHERE branch_link_promotion_id = ? ',
+        [
+          data.promotion_id,
+          data.updated_at,
+          data.soft_delete,
+          data.branch_link_promotion_id
+        ]
+    );
+  }
 
 /*
   update App color
@@ -4924,6 +4965,23 @@ class PosDatabase {
         [
           data.open_cash_drawer,
           data.app_setting_sqlite_id
+        ]);
+  }
+
+/*
+  update Pos Table sync from cloud
+*/
+  Future<int> updatePosTableSyncRecord(PosTable data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tablePosTable SET table_url = ?, number = ?, seats = ?, updated_at = ?, soft_delete = ? WHERE table_id = ?',
+        [
+          data.table_url,
+          data.number,
+          data.seats,
+          data.updated_at,
+          data.soft_delete,
+          data.table_id
         ]);
   }
 

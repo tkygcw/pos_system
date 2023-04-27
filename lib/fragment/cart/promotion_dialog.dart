@@ -66,16 +66,46 @@ class _PromotionDialogState extends State<PromotionDialog> {
                               title: Text('${promotionList[index].name}'),
                               onTap: () {
                                 if(cart.cartNotifierItem.isNotEmpty){
-                                  if(promotionList[index].all_time == '0') {
-                                    checkOfferTime(promotionList[index]);
-                                    isActive == true ?
-                                    cart.addPromotion(promotionList[index]) :
-                                    Fluttertoast.showToast(
-                                        backgroundColor: Color(0xFFFF0000),
-                                        msg: "${AppLocalizations.of(context)?.translate('offer_ended')}");
-                                  }else{
-                                    cart.addPromotion(promotionList[index]);
+                                  if(promotionList[index].specific_category == '1'){
+                                    bool hasCategoryDiscount = cart.cartNotifierItem.any((item) => item.category_id == promotionList[index].category_id);
+                                    if(hasCategoryDiscount){
+                                      if(promotionList[index].all_time == '0') {
+                                        checkOfferTime(promotionList[index]);
+                                        isActive == true ?
+                                        cart.addPromotion(promotionList[index]) :
+                                        Fluttertoast.showToast(
+                                            backgroundColor: Color(0xFFFF0000),
+                                            msg: "${AppLocalizations.of(context)?.translate('offer_ended')}");
+                                      } else {
+                                        cart.addPromotion(promotionList[index]);
+                                      }
+                                    } else {
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Color(0xFFFF0000),
+                                          msg: "No Product match with promotion category");
+                                    }
+                                  } else {
+                                    if(promotionList[index].all_time == '0') {
+                                      checkOfferTime(promotionList[index]);
+                                      isActive == true ?
+                                      cart.addPromotion(promotionList[index]) :
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Color(0xFFFF0000),
+                                          msg: "${AppLocalizations.of(context)?.translate('offer_ended')}");
+                                    } else {
+                                      cart.addPromotion(promotionList[index]);
+                                    }
                                   }
+                                  // if(promotionList[index].all_time == '0') {
+                                  //   checkOfferTime(promotionList[index]);
+                                  //   isActive == true ?
+                                  //   cart.addPromotion(promotionList[index]) :
+                                  //   Fluttertoast.showToast(
+                                  //       backgroundColor: Color(0xFFFF0000),
+                                  //       msg: "${AppLocalizations.of(context)?.translate('offer_ended')}");
+                                  // }else{
+                                  //   cart.addPromotion(promotionList[index]);
+                                  // }
                                   Navigator.of(context).pop();
                                 }else{
                                   Fluttertoast.showToast(
@@ -136,9 +166,7 @@ class _PromotionDialogState extends State<PromotionDialog> {
   }
 
   void readAllPromotion() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion(branch_id.toString());
+    List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion();
     for (int i = 0; i < data.length; i++) {
       List<Promotion> result = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
       for (int j = 0; j < result.length; j++) {

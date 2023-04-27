@@ -172,8 +172,7 @@ class _CartPageState extends State<CartPage> {
                 Visibility(
                   visible: widget.currentPage == 'menu' ||
                           widget.currentPage == 'qr_order' ||
-                          widget.currentPage == 'bill' ||
-                          widget.currentPage == 'other_order'
+                          widget.currentPage == 'bill'
                       ? false
                       : true,
                   child: IconButton(
@@ -377,7 +376,7 @@ class _CartPageState extends State<CartPage> {
                         ),
                         SizedBox(height: MediaQuery.of(context).size.height > 500 ? 10 : 5),
                         Container(
-                          height: widget.currentPage == 'menu' && widget.currentPage == 'table' && MediaQuery.of(context).size.height > 500
+                          height: widget.currentPage == 'menu' || widget.currentPage == 'table' && MediaQuery.of(context).size.height > 500
                               ? 130
                               : MediaQuery.of(context).size.height > 500
                                   ? null
@@ -653,7 +652,7 @@ class _CartPageState extends State<CartPage> {
                                   child: SizedBox(
                                     width: 10,
                                   ),
-                                  visible: widget.currentPage == "menu" || widget.currentPage == "table" && cart.cartNotifierItem.isNotEmpty ? true : false,
+                                  visible: widget.currentPage == "menu" || widget.currentPage == "table" || widget.currentPage == "other_order" && cart.cartNotifierItem.isNotEmpty ? true : false,
                                 ),
                                 Visibility(
                                   visible: widget.currentPage == "menu" && cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status == 1 ? true : false,
@@ -671,7 +670,7 @@ class _CartPageState extends State<CartPage> {
                                   ),
                                 ),
                                 Visibility(
-                                    visible: widget.currentPage == "table" && cart.cartNotifierItem.isNotEmpty ? true : false,
+                                    visible: widget.currentPage == "table" || widget.currentPage == "other_order" && cart.cartNotifierItem.isNotEmpty ? true : false,
                                     child: Expanded(
                                         child: ElevatedButton(style: ElevatedButton.styleFrom(
                                           backgroundColor: color.backgroundColor,
@@ -1732,12 +1731,10 @@ class _CartPageState extends State<CartPage> {
 
   void getPromotionData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-      List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion(branch_id.toString());
+      List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion();
       for (int i = 0; i < data.length; i++) {
         List<Promotion> temp = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
-        if (temp.length > 0) promotionList.add(temp[0]);
+        if (temp.isNotEmpty) promotionList.add(temp[0]);
       }
     } catch (error) {
       print('promotion list error $error');

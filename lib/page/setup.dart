@@ -317,6 +317,7 @@ class _SetupPageState extends State<SetupPage> {
             (Route route) => false,
       );
     }
+    return;
 
   }
 }

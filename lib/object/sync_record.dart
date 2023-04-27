@@ -1,10 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:pos_system/object/branch.dart';
+import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/product_variant_detail.dart';
+import 'package:pos_system/object/promotion.dart';
+import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/tax.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/object/user.dart';
@@ -173,6 +177,24 @@ class SyncRecord {
                 syncRecordIdList.add(responseJson[i]['id']);
               }
               break;
+            case '20':
+              bool status = await callPosTableQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+              if(status == true){
+                syncRecordIdList.add(responseJson[i]['id']);
+              }
+              break;
+            case '21':
+              bool status = await callPromotionQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+              if(status == true){
+                syncRecordIdList.add(responseJson[i]['id']);
+              }
+              break;
+            case '22':
+              bool status = await callBranchLinkPromotionQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+              if(status == true){
+                syncRecordIdList.add(responseJson[i]['id']);
+              }
+              break;
           }
         }
         print('sync record length: ${syncRecordIdList.length}');
@@ -185,9 +207,77 @@ class SyncRecord {
     }
   }
 
+  callBranchLinkPromotionQuery({data, method}) async {
+    bool isComplete = false;
+    BranchLinkPromotion branchLinkPromotion = BranchLinkPromotion.fromJson(data[0]);
+    try{
+      if(method == '0'){
+        BranchLinkPromotion data = await PosDatabase.instance.insertBranchLinkPromotion(branchLinkPromotion);
+        if(data.created_at != ''){
+          isComplete = true;
+        }
+      }else {
+        int data = await PosDatabase.instance.updateBranchLinkPromotion(branchLinkPromotion);
+        if(data == 1){
+          isComplete = true;
+        }
+      }
+      return isComplete;
+
+    } catch(e){
+      return isComplete = false;
+    }
+
+  }
+
+  callPromotionQuery({data, method}) async {
+    bool isComplete = false;
+    Promotion promotion = Promotion.fromJson(data[0]);
+    try{
+      if(method == '0'){
+        Promotion data = await PosDatabase.instance.insertPromotion(promotion);
+        if(data.created_at != ''){
+          isComplete = true;
+        }
+      }else {
+        int data = await PosDatabase.instance.updatePromotion(promotion);
+        if(data == 1){
+          isComplete = true;
+        }
+      }
+      return isComplete;
+
+    } catch(e){
+      return isComplete = false;
+    }
+
+  }
+
+  callPosTableQuery({data, method}) async {
+    bool isComplete = false;
+    PosTable posTable = PosTable.fromJson(data[0]);
+    try{
+      if(method == '0'){
+        PosTable data = await PosDatabase.instance.insertPosTable(posTable);
+        if(data.created_at != ''){
+          isComplete = true;
+        }
+      }else {
+        int data = await PosDatabase.instance.updatePosTableSyncRecord(posTable);
+        if(data == 1){
+          isComplete = true;
+        }
+      }
+      return isComplete;
+    } catch(e){
+      return isComplete = false;
+    }
+
+  }
+
   callBranchLinkDiningQuery({data, method}) async {
     bool isComplete = false;
-    BranchLinkDining  diningData = BranchLinkDining.fromJson(data[0]);
+    BranchLinkDining diningData = BranchLinkDining.fromJson(data[0]);
     try{
       if(method == '0'){
         BranchLinkDining data = await PosDatabase.instance.insertBranchLinkDining(diningData);

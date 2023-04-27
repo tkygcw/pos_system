@@ -160,7 +160,7 @@ class _TableDialogState extends State<TableDialog> {
           table_sqlite_id: widget.object.table_sqlite_id,
           number: tableNoController.text,
           seats: seatController.text,
-          sync_status: 1,
+          sync_status: 2,
           updated_at: dateTime));
 /*
       --------------------------------sync to cloud----------------------------
@@ -172,7 +172,7 @@ class _TableDialogState extends State<TableDialog> {
         if (response['status'] == '1') {
           int syncData = await PosDatabase.instance.updateSyncPosTable(PosTable(
             table_id: widget.object.table_id,
-            sync_status: 2,
+            sync_status: 1,
             updated_at: dateTime,
             table_sqlite_id: widget.object.table_sqlite_id,
           ));
@@ -200,7 +200,7 @@ class _TableDialogState extends State<TableDialog> {
       String dateTime = dateFormat.format(DateTime.now());
       int data = await PosDatabase.instance.deletePosTable(PosTable(
           soft_delete: dateTime,
-          sync_status: 1,
+          sync_status: 2,
           table_sqlite_id: widget.object.table_sqlite_id));
 /*
       -------------------------------sync to cloud----------------------------
@@ -211,7 +211,7 @@ class _TableDialogState extends State<TableDialog> {
         if (response['status'] == '1') {
           int syncData = await PosDatabase.instance.updateSyncPosTable(PosTable(
             table_id: widget.object.table_id,
-            sync_status: 2,
+            sync_status: 1,
             updated_at: dateTime,
             table_sqlite_id: widget.object.table_sqlite_id,
           ));
