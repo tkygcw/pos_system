@@ -662,8 +662,13 @@ class _CartPageState extends State<CartPage> {
                                         minimumSize: const Size.fromHeight(50),
                                       ),
                                       onPressed: () {
-                                        openReprintDialog(printerList, cart);
-                                        print('reprint checklist');
+                                        bool hasNotPlacedOrder = cart.cartNotifierItem.any((item) => item.status == 0);
+                                        if(hasNotPlacedOrder){
+                                          Fluttertoast.showToast(
+                                              backgroundColor: Colors.red, msg: "Make sure all product is placed order!");
+                                        }else {
+                                          openReprintDialog(printerList, cart);
+                                        }
                                       },
                                       child: Text('Print Check List'),
                                     ),
@@ -1791,7 +1796,7 @@ class _CartPageState extends State<CartPage> {
 */
   callAddOrderCache(CartModel cart, ConnectivityChangeNotifier connectivity) async {
     resetValue();
-    await createOrderCache(cart, connectivity);
+    await createOrderCache(cart, connectivity, isAddOrder: true);
     await createOrderDetail(cart, connectivity);
     await syncAllToCloud();
     if(this.isLogOut == true){
@@ -2050,7 +2055,7 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  createOrderCache(CartModel cart, ConnectivityChangeNotifier connectivity) async {
+  createOrderCache(CartModel cart, ConnectivityChangeNotifier connectivity, {isAddOrder}) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
 
@@ -2063,7 +2068,11 @@ class _CartPageState extends State<CartPage> {
     String _tableUseId = '';
     int batch = 0;
     try {
-      batch = await batchChecking();
+      if(isAddOrder == null){
+        batch = await batchChecking();
+      } else {
+        batch = int.parse(cart.cartNotifierItem[0].first_cache_batch!);
+      }
       //check selected table is in use or not
       if (cart.selectedOption == 'Dine in') {
         for (int i = 0; i < cart.selectedTable.length; i++) {

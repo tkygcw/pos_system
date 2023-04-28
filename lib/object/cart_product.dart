@@ -24,6 +24,7 @@ class cartProductItem{
    String? base_price;
    String? first_cache_created_date_time;
    String? subtotal;
+   String? first_cache_batch;
 
    cartProductItem(
        String branchProduct_id,
@@ -43,7 +44,8 @@ class cartProductItem{
          this.isRefund,
          this.base_price,
          this.first_cache_created_date_time,
-         this.subtotal
+         this.subtotal,
+         this.first_cache_batch,
        })
    {
        this.branchProduct_id = branchProduct_id;

@@ -382,16 +382,16 @@ class PrintReceipt{
               }
             } else {
               //print 58mm
-              // var data = Uint8List.fromList(await ReceiptLayout().printCheckList58mm(true, orderCacheLocalId));
-              // bool? isConnected = await flutterUsbPrinter.connect(
-              //     int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-              // if (isConnected == true) {
-              //   await flutterUsbPrinter.write(data);
-              // } else {
-              //   Fluttertoast.showToast(
-              //       backgroundColor: Colors.red,
-              //       msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-              // }
+              var data = Uint8List.fromList(await ReceiptLayout().reprintCheckList58mm(true, cartModel));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+              }
             }
           }
           else {

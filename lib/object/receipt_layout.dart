@@ -1138,6 +1138,8 @@ class ReceiptLayout{
   reprint check list layout 80mm
 */
   reprintCheckList80mm(bool isUSB, CartModel cartModel, {value}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
     var generator;
     if (isUSB) {
       final profile = await CapabilityProfile.load();
@@ -1155,6 +1157,7 @@ class ReceiptLayout{
       for(int i = 0; i < cartModel.selectedTable.length; i++){
         bytes += generator.text('Table No: ${cartModel.selectedTable[i].number}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
       }
+      bytes += generator.text('Batch No: #${cartModel.cartNotifierItem[0].first_cache_batch}-${branch_id.toString().padLeft(3 ,'0')}');
       // bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
       bytes += generator.hr();
       bytes += generator.reset();
@@ -1216,13 +1219,16 @@ class ReceiptLayout{
   }
 
 /*
-  reprint check list layout 80mm
+  reprint check list layout 58mm
 */
   reprintCheckList58mm(bool isUSB, CartModel cartModel, {value}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+
     var generator;
     if (isUSB) {
       final profile = await CapabilityProfile.load();
-      generator = Generator(PaperSize.mm80, profile);
+      generator = Generator(PaperSize.mm58, profile);
     } else {
       generator = value;
     }
@@ -1236,6 +1242,8 @@ class ReceiptLayout{
       for(int i = 0; i < cartModel.selectedTable.length; i++){
         bytes += generator.text('Table No: ${cartModel.selectedTable[i].number}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
       }
+      bytes += generator.text('Batch No: #${cartModel.cartNotifierItem[0].first_cache_batch}-${branch_id.toString().padLeft(3 ,'0')}');
+      bytes += generator.text('Order time: ${Utils.formatDate(cartModel.cartNotifierItem[0].first_cache_created_date_time)}');
       // bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
       bytes += generator.hr();
       bytes += generator.reset();
@@ -1250,10 +1258,9 @@ class ReceiptLayout{
           PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
               text: '${cartModel.cartNotifierItem[i].name}',
-              width: 8,
+              width: 10,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1)),
-          PosColumn(text: '', width: 2),
         ]);
         bytes += generator.reset();
         if(cartModel.cartNotifierItem[i].variant.isNotEmpty){
@@ -2608,7 +2615,7 @@ class ReceiptLayout{
       bytes += generator.reset();
 
       bytes += generator.text('Printed At', styles: PosStyles(align: PosAlign.center));
-      bytes += generator.text('${dateTime}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('${Utils.formatDate(dateTime)}', styles: PosStyles(align: PosAlign.center));
       bytes += generator.reset();
       /*
     *
@@ -2650,7 +2657,7 @@ class ReceiptLayout{
       bytes += generator.reset();
 
       bytes += generator.text('Printed At', styles: PosStyles(align: PosAlign.center));
-      bytes += generator.text('${dateTime}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('${Utils.formatDate(dateTime)}', styles: PosStyles(align: PosAlign.center));
       bytes += generator.reset();
       /*
     *

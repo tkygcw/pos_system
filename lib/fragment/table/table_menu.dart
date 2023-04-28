@@ -177,7 +177,7 @@ class _TableMenuState extends State<TableMenu> {
                                   elevation: 5,
                                   child: InkWell(
                                     splashColor: Colors.blue.withAlpha(30),
-                                    onLongPress: () {
+                                    onDoubleTap: () {
                                       if (tableList[index].status != 1) {
                                         openAddTableDialog(tableList[index]);
                                       } else {

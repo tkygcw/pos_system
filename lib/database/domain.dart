@@ -3,8 +3,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
 class Domain {
-  static var domain = 'https://pos.lkmng.com/';
-  static var qr_domain = 'https://pos-qr.lkmng.com/';
+  static var domain = 'https://pos.optimy.com.my/';
+  static var backend_domain = 'https://api.optimy.com.my/';
+  static var qr_domain = 'https://qr.optimy.com.my/';
   static Uri login = Uri.parse(domain + 'mobile-api/login/index.php');
   static Uri branch = Uri.parse(domain + 'mobile-api/branch/index.php');
   static Uri device = Uri.parse(domain + 'mobile-api/device/index.php');
@@ -28,7 +29,7 @@ class Domain {
   static Uri table_use = Uri.parse(domain + 'mobile-api/table_use/index.php');
   static Uri transfer_owner = Uri.parse(domain + 'mobile-api/transfer_owner/index.php');
   static Uri cash_record = Uri.parse(domain + 'mobile-api/cash_record/index.php');
-  static Uri sync_record = Uri.parse(domain + 'mobile-api/sync/index.php');
+  static Uri sync_record = Uri.parse(backend_domain + 'mobile-api/sync/index.php');
   static Uri sync_to_cloud = Uri.parse(domain + 'mobile-api/sync_to_cloud/index.php');
   static Uri qr_order_sync = Uri.parse(domain + 'mobile-api/qr_order_sync/index.php');
   static Uri printer = Uri.parse(domain + 'mobile-api/printer/index.php');

@@ -323,7 +323,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
                             Container(
                               child: Checkbox(
                                   value: _isCashier,
-                                  onChanged: (value){
+                                  onChanged:  widget.devices != null
+                                      ? null
+                                      : (value){
                                     setState(() {
                                       _isCashier = value!;
                                     });
@@ -335,52 +337,55 @@ class _PrinterDialogState extends State<PrinterDialog> {
                         SizedBox(
                           height: 10,
                         ),
-                        Container(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Category',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blueGrey),
-                              ),
-                              SizedBox(height: 10),
-                              Wrap(
-                                  runSpacing: 5,
-                                  spacing: 10,
-                                  children: List<Widget>.generate(selectedCategories.length, (int index) {
-                                    return Chip(
-                                      label: Text('${selectedCategories[index].name}'),
-                                      avatar: CircleAvatar(
-                                        backgroundColor: color.backgroundColor,
-                                        child: Text(
-                                            '${selectedCategories[index].name![0]}',
-                                            style: TextStyle(color: color.iconColor)),
-                                      ),
-                                      elevation: 5,
-                                      onDeleted: () => setState(() {
-                                        selectedCategories.removeAt(index);
-                                      }),
-                                      deleteIconColor: Colors.red,
-                                      deleteIcon: Icon(Icons.close),
-                                      deleteButtonTooltipMessage: 'remove',
-                                    );
-                                  })
-                              ),
-                              Container(
-                                alignment: Alignment.center,
-                                child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                        primary: color.backgroundColor),
-                                    onPressed: () {
-                                      setState(() {
-                                        openCategoriesDialog();
-                                      });
-                                    },
-                                    child: Icon(Icons.add)),
-                              ),
-                            ],
+                        Visibility(
+                          visible: widget.devices == null ? true : false ,
+                          child: Container(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Category',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blueGrey),
+                                ),
+                                SizedBox(height: 10),
+                                Wrap(
+                                    runSpacing: 5,
+                                    spacing: 10,
+                                    children: List<Widget>.generate(selectedCategories.length, (int index) {
+                                      return Chip(
+                                        label: Text('${selectedCategories[index].name}'),
+                                        avatar: CircleAvatar(
+                                          backgroundColor: color.backgroundColor,
+                                          child: Text(
+                                              '${selectedCategories[index].name![0]}',
+                                              style: TextStyle(color: color.iconColor)),
+                                        ),
+                                        elevation: 5,
+                                        onDeleted: () => setState(() {
+                                          selectedCategories.removeAt(index);
+                                        }),
+                                        deleteIconColor: Colors.red,
+                                        deleteIcon: Icon(Icons.close),
+                                        deleteButtonTooltipMessage: 'remove',
+                                      );
+                                    })
+                                ),
+                                Container(
+                                  alignment: Alignment.center,
+                                  child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                          primary: color.backgroundColor),
+                                      onPressed: () {
+                                        setState(() {
+                                          openCategoriesDialog();
+                                        });
+                                      },
+                                      child: Icon(Icons.add)),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         Text(

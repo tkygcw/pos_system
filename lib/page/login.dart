@@ -143,6 +143,7 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.of(context).pushReplacement(MaterialPageRoute(
         builder: (context) => PosPinPage(),
       ));
+      return;
     }
     bool _hasInternetAccess = await Domain().isHostReachable();
     if(!_hasInternetAccess){

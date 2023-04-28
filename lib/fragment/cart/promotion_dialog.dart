@@ -25,7 +25,7 @@ class _PromotionDialogState extends State<PromotionDialog> {
   double dStartTime = 0.0;
   double dEndTime = 0.0;
   double dCurrentTime = 0.0;
-  bool isActive = false;
+  bool isActive = false, _isLoaded = false;
   TimeOfDay currentTime = TimeOfDay.now();
   late DateTime startDTime;
   late DateTime endDTime;
@@ -165,17 +165,36 @@ class _PromotionDialogState extends State<PromotionDialog> {
     dCurrentTime = currentTime.hour.toDouble() + (currentTime.minute.toDouble()/60);
   }
 
+  checkDate(Promotion promotion){
+    DateTime currentDateTime = DateTime.now();
+    DateTime parsedStartDate = DateTime.parse(promotion.sdate!);
+    DateTime parsedEndDate = DateTime.parse(promotion.edate!);
+
+    //compare date
+    int startDateComparison = currentDateTime.compareTo(parsedStartDate);
+    int endDateComparison = currentDateTime.compareTo(parsedEndDate);
+
+    if (startDateComparison >= 0 && endDateComparison <= 0) {
+      promotionList.add(promotion);
+    }
+  }
+
   void readAllPromotion() async {
     List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion();
     for (int i = 0; i < data.length; i++) {
       List<Promotion> result = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
       for (int j = 0; j < result.length; j++) {
         if (result[j].auto_apply == '0') {
-          setState(() {
+          if(result[j].all_day != '0'){
             promotionList.add(result[j]);
-          });
+          } else {
+            checkDate(result[j]);
+          }
         }
       }
+      setState(() {
+        _isLoaded = true;
+      });
     }
   }
 }

@@ -225,11 +225,11 @@ class _HomePageState extends State<HomePage> {
         icon: Icons.monetization_on,
         onPressed: () => setState(() => currentPage = 'report'),
       ),
-      CollapsibleItem(
-        text: 'Product',
-        icon: Icons.fastfood,
-        onPressed: () => setState(() => currentPage = 'product'),
-      ),
+      // CollapsibleItem(
+      //   text: 'Product',
+      //   icon: Icons.fastfood,
+      //   onPressed: () => setState(() => currentPage = 'product'),
+      // ),
       CollapsibleItem(
         text: 'Setting',
         icon: Icons.settings,
@@ -404,8 +404,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   manageNotificationTimer() {
-    showSnackBar();
-    playSound();
+    // showSnackBar();
+    // playSound();
     //cancel previous timer if new order come in
     if (notificationTimer != null && notificationTimer!.isActive) {
       notificationTimer!.cancel();
@@ -414,7 +414,24 @@ class _HomePageState extends State<HomePage> {
     int no = 1;
     notificationTimer = Timer.periodic(Duration(seconds: 5), (timer) async {
       if (no <= 3) {
-        showSnackBar();
+        //showSnackBar();
+        snackBarKey.currentState!.showSnackBar(SnackBar(
+          content: const Text('New order is received!'),
+          backgroundColor: themeColor.backgroundColor,
+          action: SnackBarAction(
+            textColor: themeColor.iconColor,
+            label: 'Check it now!',
+            onPressed: () {
+              if(mounted){
+                setState(() {
+                  currentPage = 'qr_order';
+                  notificationTimer!.cancel();
+                });
+              }
+              no = 3;
+            },
+          ),
+        ));
         playSound();
       } else
         timer.cancel();
@@ -430,10 +447,12 @@ class _HomePageState extends State<HomePage> {
         textColor: themeColor.iconColor,
         label: 'Check it now!',
         onPressed: () {
-          setState(() {
-            currentPage = 'qr_order';
-            notificationTimer!.cancel();
-          });
+          if(mounted){
+            setState(() {
+              currentPage = 'qr_order';
+              notificationTimer!.cancel();
+            });
+          }
         },
       ),
     ));

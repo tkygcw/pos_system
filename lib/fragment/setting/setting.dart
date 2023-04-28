@@ -178,10 +178,10 @@ class _SettingMenuState extends State<SettingMenu> {
                       //   icon: Icons.list,
                       //   label: 'Test sync (temp)',
                       // ),
-                      SideNavigationBarItem(
-                        icon: Icons.list,
-                        label: 'Test second screen (temp)',
-                      ),
+                      // SideNavigationBarItem(
+                      //   icon: Icons.list,
+                      //   label: 'Test second screen (temp)',
+                      // ),
                       // SideNavigationBarItem(
                       //   icon: Icons.list,
                       //   label: 'Test report print (temp)',

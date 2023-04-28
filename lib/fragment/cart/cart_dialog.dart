@@ -346,51 +346,46 @@ class _CartDialogState extends State<CartDialog> {
               child: Container(
                 margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.all(10) : null,
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     tableList[index].group != null && MediaQuery.of(context).size.height > 500
-                        ? Expanded(
-                            child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                child: Text(
-                                  "Group: ${tableList[index].group}",
-                                  style: TextStyle(fontSize: 18),
-                                ),
-                              ),
-                              Spacer(),
-                              Visibility(
-                                  child: tableList[index].isSelected
-                                      ? Container(
-                                          child: IconButton(
-                                          icon: Icon(Icons.close, size: 18),
-                                          constraints: BoxConstraints(),
-                                          padding: EdgeInsets.zero,
-                                          onPressed: () async {
-                                            sameGroupTbList = [];
-                                            for (int i = 0; i < tableList.length; i++) {
-                                              if (tableList[index].group == tableList[i].group) {
-                                                sameGroupTbList.add(tableList[i]);
-                                              }
-                                            }
-                                            if (sameGroupTbList.length > 1) {
-                                              await callRemoveTableQuery(tableList[index].table_sqlite_id!);
-                                              tableList[index].isSelected = false;
-                                              tableList[index].group = null;
-                                              cart.removeAllTable();
-                                              cart.removeAllCartItem();
-                                            } else {
-                                              Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Cannot remove this table");
-                                            }
-                                          },
-                                        ))
-                                      : SizedBox.shrink())
-                            ],
-                          ))
-                        : Expanded(child: Text('')),
+                        ? Row(
+                        children: [
+                          Text(
+                            "Group: ${tableList[index].group}",
+                            style: TextStyle(fontSize: 18),
+                          ),
+                          Spacer(),
+                          Visibility(
+                              visible: tableList[index].isSelected  ? true : false,
+                              child: IconButton(
+                                icon: Icon(Icons.close, size: 18),
+                                constraints: BoxConstraints(),
+                                padding: EdgeInsets.zero,
+                                onPressed: () async {
+                                  sameGroupTbList = [];
+                                  for (int i = 0; i < tableList.length; i++) {
+                                    if (tableList[index].group == tableList[i].group) {
+                                      sameGroupTbList.add(tableList[i]);
+                                    }
+                                  }
+                                  if (sameGroupTbList.length > 1) {
+                                    await callRemoveTableQuery(tableList[index].table_sqlite_id!);
+                                    tableList[index].isSelected = false;
+                                    tableList[index].group = null;
+                                    cart.removeAllTable();
+                                    cart.removeAllCartItem();
+                                  } else {
+                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Cannot remove this table");
+                                  }
+                                },
+                              ))
+                        ])
+                        : 
+                    Text(''),
                     Container(
                       //margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(0, 2, 0, 2) : null,
-                      height: MediaQuery.of(context).size.height < 500 ? 80 : MediaQuery.of(context).size.height / 9,
+                      height: 100,
                       child: Stack(
                         children: [
                           tableList[index].seats == '2'
@@ -464,9 +459,9 @@ class _CartDialogState extends State<CartDialog> {
                         ],
                       ),
                     ),
-                    Container(
-                      child: Text(''),
-                    )
+                    // Container(
+                    //   child: Text(''),
+                    // )
                     // tableList[index].status == 1
                     //     ? Expanded(
                     //       child: Container(
@@ -783,7 +778,9 @@ class _CartDialogState extends State<CartDialog> {
           null,
           Colors.black,
           category_sqlite_id: orderDetailList[i].category_sqlite_id,
-          first_cache_created_date_time: orderCacheList[0].created_at);
+          first_cache_created_date_time: orderCacheList.last.created_at,  //orderCacheList[0].created_at,
+          first_cache_batch: orderCacheList[0].batch_id
+      );
       cart.addItem(value);
     }
     print('first order cache: ${orderCacheList[0].order_cache_sqlite_id}');

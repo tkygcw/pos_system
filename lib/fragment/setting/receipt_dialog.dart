@@ -30,8 +30,8 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   String? footerDir;
   bool isLoad = false;
   bool _isUpdate = false;
-  bool logoImage = true;
-  bool footerImage = true;
+  bool logoImage = false;
+  bool footerImage = false;
   bool logoText = false;
   bool footerText = false;
   bool promoDetail = true;
@@ -521,44 +521,44 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                             flex: 1,
                             child: Column(
                               children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      alignment: Alignment.topLeft,
-                                      child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                    ),
-                                    Spacer(),
-                                    Container(
-                                      child: Switch(
-                                          value: logoImage,
-                                          activeColor: color.backgroundColor,
-                                          onChanged: !_isUpdate ?  (bool value){
-                                            setState(() {
-                                              logoImage = value;
-                                            });
-                                          }: null ),
-                                    )
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    Container(
-                                      alignment: Alignment.topLeft,
-                                      child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                    ),
-                                    Spacer(),
-                                    Container(
-                                      child: Switch(
-                                          value: footerImage,
-                                          activeColor: color.backgroundColor,
-                                          onChanged: !_isUpdate ? (bool value){
-                                            setState(() {
-                                              footerImage = value;
-                                            });
-                                          }: null),
-                                    )
-                                  ],
-                                ),
+                                // Row(
+                                //   children: [
+                                //     Container(
+                                //       alignment: Alignment.topLeft,
+                                //       child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                                //     ),
+                                //     Spacer(),
+                                //     Container(
+                                //       child: Switch(
+                                //           value: logoImage,
+                                //           activeColor: color.backgroundColor,
+                                //           onChanged: !_isUpdate ?  (bool value){
+                                //             setState(() {
+                                //               logoImage = value;
+                                //             });
+                                //           }: null ),
+                                //     )
+                                //   ],
+                                // ),
+                                // Row(
+                                //   children: [
+                                //     Container(
+                                //       alignment: Alignment.topLeft,
+                                //       child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                                //     ),
+                                //     Spacer(),
+                                //     Container(
+                                //       child: Switch(
+                                //           value: footerImage,
+                                //           activeColor: color.backgroundColor,
+                                //           onChanged: !_isUpdate ? (bool value){
+                                //             setState(() {
+                                //               footerImage = value;
+                                //             });
+                                //           }: null),
+                                //     )
+                                //   ],
+                                // ),
                                 Row(
                                   children: [
                                     Container(

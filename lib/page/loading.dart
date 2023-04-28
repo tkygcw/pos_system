@@ -152,16 +152,18 @@ class _LoadingPageState extends State<LoadingPage> {
       String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
+      final String? branch = prefs.getString('branch');
+      var branchObject = json.decode(branch!);
 
       Receipt data = await PosDatabase.instance.insertSqliteReceipt(Receipt(
           receipt_id: 0,
           branch_id: branch_id.toString(),
           company_id: '',
-          header_text: '',
+          header_text: branchObject['name'],
           footer_text: '',
           header_image: '',
           footer_image: '',
-          header_text_status: 0,
+          header_text_status: 1,
           footer_text_status: 0,
           header_image_status: 0,
           footer_image_status: 0,
@@ -1342,7 +1344,7 @@ downloadProductImage(String path) async {
       Product data = Product.fromJson(responseJson[i]);
       name = data.image!;
       if (data.image != '') {
-        url = '${Domain.domain}api/gallery/' + userObject['company_id'] + '/' + name;
+        url = '${Domain.backend_domain}api/gallery/' + userObject['company_id'] + '/' + name;
         final response = await http.get(Uri.parse(url));
         var localPath = path + '/' + name;
         final imageFile = File(localPath);

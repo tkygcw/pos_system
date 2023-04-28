@@ -801,7 +801,7 @@ class SyncRecord {
         Product data = Product.fromJson(responseJson[i]);
         name = data.image!;
         if (data.image != '') {
-          url = '${Domain.domain}api/gallery/' + userObject['company_id'] + '/' + name;
+          url = '${Domain.backend_domain}api/gallery/' + userObject['company_id'] + '/' + name;
           final response = await http.get(Uri.parse(url));
           var localPath = path! + '/' + name;
           final imageFile = File(localPath);

@@ -36,6 +36,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   String branchLinkProduct_id = '';
   String basePrice = '';
   String finalPrice = '';
+  String dialogPrice = '';
   int simpleIntInput = 1, pressed = 0;
   String modifierItemPrice = '';
   List<VariantGroup> variantGroup = [];
@@ -67,6 +68,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
             value: variantGroup.child[i].variant_item_sqlite_id,
             groupValue: variantGroup.variant_item_sqlite_id,
             onChanged: (ind) => setState(() {
+              print('ind: ${ind}');
               variantGroup.variant_item_sqlite_id = ind;
             }),
             title: Text(variantGroup.child[i].name!),
@@ -129,11 +131,11 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                                   )),
                             ),
                             Spacer(),
-                            Text("RM ${Utils.convertTo2Dec(widget.productDetail!.price!)}",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                )),
+                            // Text("RM ${Utils.convertTo2Dec(dialogPrice)}",
+                            //     style: TextStyle(
+                            //       fontSize: 16,
+                            //       fontWeight: FontWeight.bold,
+                            //     )),
                           ],
                         ),
                         content: Container(
@@ -306,11 +308,11 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                             )),
                       ),
                       Spacer(),
-                      Text("RM ${Utils.convertTo2Dec(widget.productDetail!.price!)}",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          )),
+                      // Text("RM ${Utils.convertTo2Dec(widget.productDetail!.price!)}",
+                      //     style: TextStyle(
+                      //       fontSize: 16,
+                      //       fontWeight: FontWeight.bold,
+                      //     )),
                     ],
                   ),
                   content: this.isLoaded
@@ -532,6 +534,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   productChecking() async {
     await readProductVariant(widget.productDetail!.product_sqlite_id!);
     await readProductModifier(widget.productDetail!.product_sqlite_id!);
+    await getProductPrice(widget.productDetail!.product_sqlite_id);
     setState(() {
       this.isLoaded = true;
     });
@@ -566,6 +569,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
             await PosDatabase.instance.checkProductVariant(await getProductVariant(productId!), productId.toString());
         basePrice = productVariant[0].price!;
         finalPrice = basePrice;
+        dialogPrice = basePrice;
 
         //loop has variant product modifier group
         for (int j = 0; j < modifierGroup.length; j++) {
