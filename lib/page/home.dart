@@ -343,7 +343,7 @@ class _HomePageState extends State<HomePage> {
         }
         //add timer and reset hasNotification
         timerCount++;
-        notificationModel.resetNotifier();
+        notificationModel.resetNotification();
         // reset the timer after two executions
         if (timerCount >= 2) {
           timerCount = 0;

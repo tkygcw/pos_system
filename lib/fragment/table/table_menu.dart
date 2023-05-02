@@ -6,6 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/table/table_change_dialog.dart';
 import 'package:pos_system/fragment/table/table_detail_dialog.dart';
 import 'package:pos_system/fragment/table/table_dialog.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/table.dart';
@@ -97,10 +98,19 @@ class _TableMenuState extends State<TableMenu> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
-        return Consumer<TableModel>(
-            builder: (context, TableModel tableModel, child) {
+        return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
           if (tableModel.isChange) {
             readAllTable(model: tableModel);
+          }
+          if(notificationModel.notificationStatus == true) {
+            print('notification refresh called!');
+            isLoaded = false;
+            notificationModel.resetNotification();
+            Future.delayed(const Duration(seconds: 1), () {
+              setState(() {
+                readAllTable(notification: true);
+              });
+            });
           }
           return Scaffold(
               body: isLoaded
@@ -429,8 +439,10 @@ class _TableMenuState extends State<TableMenu> {
     printerList = await PrintReceipt().readAllPrinters();
   }
 
-  readAllTable({model}) async {
-    isLoaded = false;
+  readAllTable({model, notification}) async {
+    if(notification == null){
+      isLoaded = false;
+    }
     if (model != null) {
       model.changeContent2(false);
     }

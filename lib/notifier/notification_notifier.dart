@@ -20,7 +20,7 @@ class NotificationModel extends ChangeNotifier {
     stopTimer = false;
   }
 
-  void resetNotifier(){
+  void resetNotification(){
     notificationStatus = false;
     notifyListeners();
   }

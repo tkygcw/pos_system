@@ -376,11 +376,15 @@ class _CartPageState extends State<CartPage> {
                         ),
                         SizedBox(height: MediaQuery.of(context).size.height > 500 ? 10 : 5),
                         Container(
-                          height: widget.currentPage == 'menu' || widget.currentPage == 'table' && MediaQuery.of(context).size.height > 500
-                              ? 130
-                              : MediaQuery.of(context).size.height > 500
-                                  ? null
-                                  : 25,
+                          height: MediaQuery.of(context).size.height > 500
+                              ?
+                          widget.currentPage == 'menu' || widget.currentPage == 'table' ? 130 : null
+                              : 25,
+                          // widget.currentPage == 'menu' || widget.currentPage == 'table' && MediaQuery.of(context).size.height > 500
+                          //     ? 130
+                          //     : MediaQuery.of(context).size.height > 500
+                          //         ? null
+                          //         : 25,
                           child: ListView(
                             physics: ClampingScrollPhysics(),
                             children: [
