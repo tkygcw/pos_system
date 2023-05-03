@@ -382,7 +382,7 @@ class _CartDialogState extends State<CartDialog> {
                               ))
                         ])
                         : 
-                    Text(''),
+                    SizedBox.shrink(),
                     Container(
                       //margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(0, 2, 0, 2) : null,
                       height: 100,
@@ -415,14 +415,7 @@ class _CartDialogState extends State<CartDialog> {
                                             ),
                                           ),
                                         )
-                                      : Container(
-                                          decoration: BoxDecoration(
-                                            image: DecorationImage(
-                                              image: AssetImage("drawable/logo.jpg"),
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
-                                        ),
+                                      : SizedBox.shrink(),
                           // Ink.image(
                           //   image: tableList[index].seats == '2'
                           //       ? FileImage(File('data/user/0/com.example.pos_system/files/assets/img/two-seat.jpg'))

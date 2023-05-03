@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/transfer_owner.dart';
 import 'package:pos_system/page/home.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +21,9 @@ import '../notifier/theme_color.dart';
 import '../object/cash_record.dart';
 import '../object/print_receipt.dart';
 import '../object/printer.dart';
+import '../object/qr_order.dart';
+import '../object/sync_record.dart';
+import '../object/sync_to_cloud.dart';
 import '../object/user.dart';
 import '../translation/AppLocalizations.dart';
 
@@ -56,7 +61,81 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   preload() async {
+    SyncRecord().syncFromCloud();
+    if(notificationModel.syncCountStarted == false){
+      startTimers();
+    }
     await readAllPrinters();
+  }
+
+  startTimers() {
+    int timerCount = 0;
+    notificationModel.setSyncCountAsStarted();
+    notificationModel.resetTimer();
+    Timer.periodic(Duration(seconds: 15), (timer) async {
+      print('home timer called');
+      bool _status = notificationModel.notificationStatus;
+      bool stopTimer = notificationModel.stopTimer;
+      if (stopTimer == true) {
+        print('timer cancelled called');
+        timer.cancel();
+        return;
+      }
+      if (_status == true) {
+        print('timer reset');
+        timerCount = 0;
+      }
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if (_hasInternetAccess) {
+        print('timer count: ${timerCount}');
+        if (timerCount == 0) {
+          //sync to cloud
+          print('sync to cloud');
+          var isLogOut = await SyncToCloud().syncAllToCloud();
+          if (isLogOut == true) {
+            openLogOutDialog();
+            return;
+          }
+          //SyncToCloud().syncToCloud();
+        } else {
+          //qr order sync
+          print('qr order sync');
+          QrOrder().getQrOrder();
+          //sync from cloud
+          var syncStatus = await SyncRecord().syncFromCloud();
+          print('is log out: ${syncStatus}');
+          if (syncStatus == true) {
+            openLogOutDialog();
+            return;
+          } else if (syncStatus == false) {
+            // ScaffoldMessenger.of(context).showSnackBar(
+            //   SnackBar(
+            //     duration: Duration(minutes: 5),
+            //     backgroundColor: Colors.green,
+            //     content: const Text('Content change !!!'),
+            //     action: SnackBarAction(
+            //       label: 'Refresh',
+            //       textColor: Colors.white,
+            //       onPressed: () {
+            //         setState(() {
+            //           ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            //         });
+            //         // Code to execute.
+            //       },
+            //     ),
+            //   ),
+            // );
+          }
+        }
+        //add timer and reset hasNotification
+        timerCount++;
+        notificationModel.resetNotification();
+        // reset the timer after two executions
+        if (timerCount >= 2) {
+          timerCount = 0;
+        }
+      }
+    });
   }
 
   Future<Future<Object?>> openPrinterDialog({devices}) async {

@@ -11,10 +11,10 @@ import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/pos_database.dart';
+import '../../main.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/colorCode.dart';
 import '../../object/search_delegate.dart';
-import '../cart/cart_dialog.dart';
 
 class FoodMenu extends StatefulWidget {
   final CartModel cartModel;
@@ -35,7 +35,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   List<Product> specificProduct = [];
   TextEditingController searchController = new TextEditingController();
   bool isLoading = true;
-
+  int loadCount = 0;
   String imagePath = '';
 
   @override
@@ -58,6 +58,18 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
+      if(notificationModel.notificationStatus == true && notificationModel.contentLoaded == false) {
+        print('notification refresh called!');
+        isLoading = true;
+        notificationModel.setContentLoaded();
+        Future.delayed(const Duration(seconds: 1), () {
+          if(mounted){
+            setState(() {
+              readAllCategories(hasNotification: true);
+            });
+          }
+        });
+      }
       return isLoading
           ? CustomProgressBar()
           : Scaffold(
@@ -132,7 +144,12 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     setState(() {});
   }
 
-  readAllCategories() async {
+  readAllCategories({hasNotification}) async {
+    if(hasNotification == true){
+      categoryTab.clear();
+      categoryList.clear();
+      categoryTabContent.clear();
+    }
     await getPreferences();
     List<Categories> data = await PosDatabase.instance.readAllCategories();
     categoryTab.add(Tab(
@@ -152,7 +169,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
         allProduct = data;
         categoryTabContent.add(GridView.count(
             shrinkWrap: true,
-            crossAxisCount: 5,
+            crossAxisCount: MediaQuery.of(context).size.height > 500 ? 5 : 3,
             children: List.generate(data.length, (index) {
               return Card(
                 child: Container(
@@ -195,7 +212,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
         categoryTabContent.add(GridView.count(
             shrinkWrap: true,
             padding: const EdgeInsets.all(10),
-            crossAxisCount: 5,
+            crossAxisCount: MediaQuery.of(context).size.height > 500 ? 5 : 3,
             children: List.generate(data.length, (index) {
               return Card(
                 child: Container(

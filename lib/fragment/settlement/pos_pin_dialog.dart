@@ -128,7 +128,7 @@ class _PosPinDialogState extends State<PosPinDialog> {
           setState(() {
             isButtonDisabled = true;
           });
-          notificationModel.setTimer(true);
+          // notificationModel.setTimer(true);
           closeDialog(context);
           widget.callBack();
         } else {

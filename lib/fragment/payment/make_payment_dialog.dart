@@ -42,7 +42,8 @@ class MakePayment extends StatefulWidget {
   final int type;
   final int payment_link_company_id;
   final String dining_id;
-  const MakePayment({Key? key, required this.type, required this.payment_link_company_id, required this.dining_id}) : super(key: key);
+  final String dining_name;
+  const MakePayment({Key? key, required this.type, required this.payment_link_company_id, required this.dining_id, required this.dining_name}) : super(key: key);
 
   @override
   State<MakePayment> createState() => _MakePaymentState();
@@ -515,7 +516,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                             openLogOutDialog();
                                                             return;
                                                           }
-                                                          openPaymentSuccessDialog(widget.dining_id, isCashMethod: true);
+                                                          openPaymentSuccessDialog(widget.dining_id, isCashMethod: true, diningName: widget.dining_name);
                                                         } else if(inputController.text.isEmpty) {
                                                           Fluttertoast.showToast(
                                                               backgroundColor: Color(0xFFFF0000),
@@ -533,7 +534,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                         }
                                                       },
                                                       style: ElevatedButton.styleFrom(
-                                                          primary: color.backgroundColor,
+                                                          backgroundColor: color.backgroundColor,
                                                           elevation: 5,
                                                       ),
                                                       child: Text('Pay')),
@@ -596,7 +597,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                 openLogOutDialog();
                                                 return;
                                               }
-                                              openPaymentSuccessDialog(widget.dining_id, isCashMethod: false);
+                                              openPaymentSuccessDialog(widget.dining_id, isCashMethod: false, diningName: widget.dining_name);
                                             }, child: Text("Received payment",style:TextStyle(fontSize: 25)),
                                           );
                                       }),
@@ -938,7 +939,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                 openLogOutDialog();
                                                                 return;
                                                               }
-                                                              openPaymentSuccessDialog(widget.dining_id, isCashMethod: true);
+                                                              openPaymentSuccessDialog(widget.dining_id, isCashMethod: true, diningName: widget.dining_name);
                                                               await PrintReceipt().cashDrawer(context, printerList: this.printerList);
                                                             } else {
                                                               Fluttertoast.showToast(
@@ -1005,7 +1006,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                 openLogOutDialog();
                                                 return;
                                               }
-                                              openPaymentSuccessDialog(widget.dining_id, isCashMethod: false);
+                                              openPaymentSuccessDialog(widget.dining_id, isCashMethod: false, diningName: widget.dining_name);
                                             }, child: Text("Received payment",style:TextStyle(fontSize: 20)),
                                           );
                                         }),
@@ -1147,7 +1148,7 @@ class _MakePaymentState extends State<MakePayment> {
       }
       var api = await paymentApi();
       if(api == 0){
-        openPaymentSuccessDialog(widget.dining_id, isCashMethod: false);
+        openPaymentSuccessDialog(widget.dining_id, isCashMethod: false, diningName: widget.dining_name);
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "${api}");
@@ -1167,7 +1168,7 @@ class _MakePaymentState extends State<MakePayment> {
 //     double eval = exp.evaluate(EvaluationType.REAL, cm);
 //     answer = eval.toString();
 //   }
-  Future<Future<Object?>> openPaymentSuccessDialog(String dining_id, {required isCashMethod}) async {
+  Future<Future<Object?>> openPaymentSuccessDialog(String dining_id, {required isCashMethod, required String diningName}) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -1185,6 +1186,7 @@ class _MakePaymentState extends State<MakePayment> {
                 orderId: orderId!,
                 orderKey: orderKey!,
                 change: change,
+                dining_name: diningName,
               ),
             ),
           );

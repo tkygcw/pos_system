@@ -587,10 +587,12 @@ class _CartPageState extends State<CartPage> {
                                         } else {
                                           // not dine in call
                                           cart.removeAllTable();
+                                          openLoadingDialogBox();
                                           if (cart.cartNotifierItem.isNotEmpty) {
                                             await callCreateNewNotDineOrder(cart, connectivity);
                                             cart.removeAllCartItem();
                                             cart.selectedTable.clear();
+                                            Navigator.of(context).pop();
                                           } else {
                                             Fluttertoast.showToast(
                                                 backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
@@ -608,11 +610,11 @@ class _CartPageState extends State<CartPage> {
                                             textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
                                           )) {
                                             paymentAddToCart(cart);
-                                            return openPaymentSelect();
+                                            return openPaymentSelect(cart);
                                           }
                                         } else {
                                           paymentAddToCart(cart);
-                                          openPaymentSelect();
+                                          openPaymentSelect(cart);
                                         }
                                       } else {
                                         Fluttertoast.showToast(
@@ -621,7 +623,7 @@ class _CartPageState extends State<CartPage> {
                                     } else if (widget.currentPage == 'other_order') {
                                       if (cart.cartNotifierItem.isNotEmpty) {
                                         paymentAddToCart(cart);
-                                        openPaymentSelect();
+                                        openPaymentSelect(cart);
                                       } else {
                                         Fluttertoast.showToast(
                                             backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
@@ -656,7 +658,12 @@ class _CartPageState extends State<CartPage> {
                                   child: SizedBox(
                                     width: 10,
                                   ),
-                                  visible: widget.currentPage == "menu" || widget.currentPage == "table" || widget.currentPage == "other_order" && cart.cartNotifierItem.isNotEmpty ? true : false,
+                                  visible:
+                                  widget.currentPage == "table"  || widget.currentPage == "other_order"
+                                      ? true
+                                      : widget.currentPage == "menu"
+                                      ? cart.cartNotifierItem.any((item) => item.status == 1) ? true : false
+                                      : false
                                 ),
                                 Visibility(
                                   visible: widget.currentPage == "menu" && cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status == 1 ? true : false,
@@ -679,7 +686,9 @@ class _CartPageState extends State<CartPage> {
                                   ),
                                 ),
                                 Visibility(
-                                    visible: widget.currentPage == "table" || widget.currentPage == "other_order" && cart.cartNotifierItem.isNotEmpty ? true : false,
+                                    visible: widget.currentPage == "table" || widget.currentPage == "other_order"
+                                        ? true : false,
+                                        // && cart.cartNotifierItem.isNotEmpty ? true : false,
                                     child: Expanded(
                                         child: ElevatedButton(style: ElevatedButton.styleFrom(
                                           backgroundColor: color.backgroundColor,
@@ -1674,7 +1683,7 @@ class _CartPageState extends State<CartPage> {
         });
   }
 
-  openPaymentSelect() async {
+  openPaymentSelect(CartModel cart) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -1683,7 +1692,7 @@ class _CartPageState extends State<CartPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: PaymentSelect(dining_id: diningOptionID.toString()),
+              child: PaymentSelect(dining_id: diningOptionID.toString(), dining_name: cart.selectedOption),
             ),
           );
         },

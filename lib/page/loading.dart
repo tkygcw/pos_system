@@ -300,6 +300,9 @@ class _LoadingPageState extends State<LoadingPage> {
       }
       getAllProduct();
       getAllPrinter();
+    } else {
+      getAllProduct();
+      getAllPrinter();
     }
   }
 }
@@ -373,6 +376,7 @@ getAllProduct() async {
   final String? user = prefs.getString('user');
   Map userObject = json.decode(user!);
   Map data = await Domain().getAllProduct(userObject['company_id']);
+  print('product status: ${data['status']}');
   if (data['status'] == '1') {
     List responseJson = data['product'];
     for (var i = 0; i < responseJson.length; i++) {
@@ -658,9 +662,11 @@ getBranchLinkModifier() async {
   save branch link product to database
 */
 getBranchLinkProduct() async {
+  print('branch link product called!!!');
   final prefs = await SharedPreferences.getInstance();
   final int? branch_id = prefs.getInt('branch_id');
   Map data = await Domain().getBranchLinkProduct(branch_id.toString());
+  print('branch link product status: ${data['status']}');
   if (data['status'] == '1') {
     List responseJson = data['product'];
     for (var i = 0; i < responseJson.length; i++) {
@@ -801,6 +807,8 @@ getVariantGroup() async {
           updated_at: variantData.updated_at,
           soft_delete: variantData.soft_delete));
     }
+    getVariantItem();
+  } else {
     getVariantItem();
   }
 }

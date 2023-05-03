@@ -97,6 +97,7 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
 
   logout(CartModel cart) async{
     notificationModel.setTimer(true);
+    notificationModel.resetSyncCount();
     prefs.clear();
     deleteAllLocalRecord();
     deleteDirectory();

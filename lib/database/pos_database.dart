@@ -1938,6 +1938,23 @@ class PosDatabase {
         ['', product_id]);
     if (maps.isNotEmpty) {
       return Product.fromJson(maps.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read product local id inc deleted
+*/
+  Future<Product?> readProductLocalId(String product_id) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery(
+        'SELECT * FROM $tableProduct WHERE product_id = ?',
+        [product_id]);
+    if (maps.isNotEmpty) {
+      return Product.fromJson(maps.first);
+    } else {
+      return null;
     }
   }
 
@@ -1971,6 +1988,8 @@ class PosDatabase {
         ['', product_variant_id]);
     if (maps.isNotEmpty) {
       return ProductVariant.fromJson(maps.first);
+    } else {
+      return null;
     }
   }
 

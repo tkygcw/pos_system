@@ -107,9 +107,11 @@ class _TableMenuState extends State<TableMenu> {
             isLoaded = false;
             notificationModel.resetNotification();
             Future.delayed(const Duration(seconds: 1), () {
-              setState(() {
-                readAllTable(notification: true);
-              });
+              if(mounted){
+                setState(() {
+                  readAllTable(notification: true);
+                });
+              }
             });
           }
           return Scaffold(

@@ -8,7 +8,8 @@ import 'make_payment_dialog.dart';
 
 class PaymentSelect extends StatefulWidget {
   final String? dining_id;
-  const PaymentSelect({Key? key, required this.dining_id}) : super(key: key);
+  final String dining_name;
+  const PaymentSelect({Key? key, required this.dining_id, required this.dining_name}) : super(key: key);
 
   @override
   State<PaymentSelect> createState() => _PaymentSelectState();
@@ -48,7 +49,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                             return GestureDetector(
                               onTap: () {
                                 //Navigator.of(context, rootNavigator: true).pop();
-                                openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!);
+                                openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name);
 
                               },
                               child: Card(
@@ -63,18 +64,18 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                   child: Stack(
                                     alignment: Alignment.center,
                                     children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(16.0),
-                                        child:///***If you have exported images you must have to copy those images in assets/images directory.
-                                        Image(
-                                          image: AssetImage("drawable/payment_method.png"),
-                                          // NetworkImage(
-                                          //     "https://image.freepik.com/free-photo/close-up-people-training-with-ball_23-2149049821.jpg"),
-                                          height: MediaQuery.of(context).size.height,
-                                          width: MediaQuery.of(context).size.width,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
+                                      // ClipRRect(
+                                      //   borderRadius: BorderRadius.circular(16.0),
+                                      //   child:///***If you have exported images you must have to copy those images in assets/images directory.
+                                      //   Image(
+                                      //     image: AssetImage("drawable/payment_method.png"),
+                                      //     // NetworkImage(
+                                      //     //     "https://image.freepik.com/free-photo/close-up-people-training-with-ball_23-2149049821.jpg"),
+                                      //     height: MediaQuery.of(context).size.height,
+                                      //     width: MediaQuery.of(context).size.width,
+                                      //     fit: BoxFit.cover,
+                                      //   ),
+                                      // ),
                                       Text(
                                         '${PaymentLists[index].name}',
                                         textAlign: TextAlign.start,
@@ -83,7 +84,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                           fontWeight: FontWeight.w700,
                                           fontStyle: FontStyle.normal,
                                           fontSize: 16,
-                                          color: Colors.white,
+                                          color: Colors.blueGrey,
                                         ),
                                       ),
                                     ],
@@ -124,7 +125,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                 return GestureDetector(
                                   onTap: () {
                                     //Navigator.of(context, rootNavigator: true).pop();
-                                    openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!);
+                                    openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name);
 
                                   },
                                   child: Card(
@@ -138,18 +139,18 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                       child: Stack(
                                         alignment: Alignment.center,
                                         children: [
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(16.0),
-                                            child:///***If you have exported images you must have to copy those images in assets/images directory.
-                                            Image(
-                                              image: AssetImage("drawable/payment_method.png"),
-                                              // NetworkImage(
-                                              //     "https://image.freepik.com/free-photo/close-up-people-training-with-ball_23-2149049821.jpg"),
-                                              height: MediaQuery.of(context).size.height,
-                                              width: MediaQuery.of(context).size.width,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
+                                          // ClipRRect(
+                                          //   borderRadius: BorderRadius.circular(16.0),
+                                          //   child:///***If you have exported images you must have to copy those images in assets/images directory.
+                                          //   Image(
+                                          //     image: AssetImage("drawable/payment_method.png"),
+                                          //     // NetworkImage(
+                                          //     //     "https://image.freepik.com/free-photo/close-up-people-training-with-ball_23-2149049821.jpg"),
+                                          //     height: MediaQuery.of(context).size.height,
+                                          //     width: MediaQuery.of(context).size.width,
+                                          //     fit: BoxFit.cover,
+                                          //   ),
+                                          // ),
                                           Text(
                                             '${PaymentLists[index].name}',
                                             textAlign: TextAlign.start,
@@ -158,7 +159,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                               fontWeight: FontWeight.w700,
                                               fontStyle: FontStyle.normal,
                                               fontSize: 16,
-                                              color: Color(0xffffffff),
+                                              color: Colors.blueGrey,
                                             ),
                                           ),
                                         ],
@@ -189,7 +190,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
     });
   }
 
-  Future<Future<Object?>> openMakePayment(int type_id, int payment_link_id, String dining) async {
+  Future<Future<Object?>> openMakePayment(int type_id, int payment_link_id, String dining, String diningName) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -200,6 +201,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
               opacity: a1.value,
               child: MakePayment(
                 dining_id: dining,
+                dining_name: diningName,
                 type: type_id,
                 payment_link_company_id: payment_link_id,
               ),

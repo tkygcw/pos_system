@@ -33,6 +33,7 @@ class PaymentSuccessDialog extends StatefulWidget {
   final String orderId;
   final String orderKey;
   final String dining_id;
+  final String dining_name;
   final String? change;
   const PaymentSuccessDialog(
       {Key? key,
@@ -41,7 +42,7 @@ class PaymentSuccessDialog extends StatefulWidget {
       required this.orderCacheIdList,
       required this.selectedTableList,
       required this.dining_id,
-      required this.orderKey, this.change, required this.isCashMethod})
+      required this.orderKey, this.change, required this.isCashMethod, required this.dining_name})
       : super(key: key);
 
   @override
@@ -311,7 +312,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
 
   callUpdateOrder() async {
     await updateOrder();
-    if (widget.dining_id == '1') {
+    if (widget.dining_name == 'Dine in') {
       await deleteCurrentTableUseDetail();
       await deleteCurrentTableUseId();
       await updatePosTableStatus(0);

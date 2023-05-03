@@ -597,20 +597,30 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
       if (product.has_variant == 0) {
-        List<BranchLinkProduct> data1 =
-            await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
+        List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
         branchLinkProduct_id = data1[0].branch_link_product_sqlite_id.toString();
-        if (int.parse(data1[0].stock_quantity!) > 0) {
-          hasStock = true;
+        if(data1[0].stock_type == '2') {
+          if (int.parse(data1[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data1[0].stock_quantity!)) {
+            hasStock = true;
+          } else {
+            hasStock = false;
+          }
+        } else {
+          if (int.parse(data1[0].daily_limit_amount!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit_amount!)) {
+            hasStock = true;
+          } else {
+            hasStock = false;
+          }
         }
       } else {
+        //check has variant product stock
         List<BranchLinkProduct> data =
             await PosDatabase.instance.checkProductVariant(await getProductVariant(product.product_sqlite_id!), product.product_sqlite_id.toString());
         branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
         print('branch link product id: ${branchLinkProduct_id}');
         print('stock: ${data[0].stock_quantity}');
         if (data[0].stock_type == '2') {
-          if (int.parse(data[0].stock_quantity!) > 0 && simpleIntInput < int.parse(data[0].stock_quantity!)) {
+          if (int.parse(data[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data[0].stock_quantity!)) {
             hasStock = true;
           } else {
             hasStock = false;

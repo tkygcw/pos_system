@@ -45,7 +45,7 @@ class _DeviceCheckDialogState extends State<DeviceCheckDialog> {
           child: AlertDialog(
             title: Text('Multi device login confirmation'),
             content: Container(
-              height: 175,
+              height: 225,
               width: 400,
               child: Column(
                 children: [

@@ -58,10 +58,11 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('init called');
-    setupFirebaseMessaging();
+    if(notificationModel.notificationStarted == false){
+      setupFirebaseMessaging();
+    }
     setScreenLayout();
-    startTimers(notificationModel);
+    //startTimers();
     _items = _generateItems;
     currentPage = 'menu';
     getRoleName();
@@ -283,75 +284,74 @@ class _HomePageState extends State<HomePage> {
     print('branch name : $branchName');
   }
 
-  startTimers(NotificationModel notificationModel) {
-    int timerCount = 0;
-    notificationModel.resetTimer();
-    Timer.periodic(Duration(seconds: 15), (timer) async {
-      print('home timer called');
-      bool _status = notificationModel.notificationStatus;
-      bool stopTimer = notificationModel.stopTimer;
-      if (stopTimer == true) {
-        print('timer cancelled called');
-        timer.cancel();
-        return;
-      }
-      if (_status == true) {
-        print('timer reset');
-        timerCount = 0;
-      }
-      bool _hasInternetAccess = await Domain().isHostReachable();
-      if (_hasInternetAccess) {
-        print('timer count: ${timerCount}');
-        if (timerCount == 0) {
-          //sync to cloud
-          print('sync to cloud');
-          var isLogOut = await SyncToCloud().syncAllToCloud();
-          if (isLogOut == true) {
-            openLogOutDialog();
-            return;
-          }
-          //SyncToCloud().syncToCloud();
-        } else {
-          //qr order sync
-          print('qr order sync');
-          QrOrder().getQrOrder();
-          //sync from cloud
-          var syncStatus = await SyncRecord().syncFromCloud();
-          print('is log out: ${syncStatus}');
-          if (syncStatus == true) {
-            openLogOutDialog();
-            return;
-          } else if (syncStatus == false) {
-            // ScaffoldMessenger.of(context).showSnackBar(
-            //   SnackBar(
-            //     duration: Duration(minutes: 5),
-            //     backgroundColor: Colors.green,
-            //     content: const Text('Content change !!!'),
-            //     action: SnackBarAction(
-            //       label: 'Refresh',
-            //       textColor: Colors.white,
-            //       onPressed: () {
-            //         setState(() {
-            //           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            //         });
-            //         // Code to execute.
-            //       },
-            //     ),
-            //   ),
-            // );
-          }
-        }
-        //add timer and reset hasNotification
-        timerCount++;
-        notificationModel.resetNotification();
-        // reset the timer after two executions
-        if (timerCount >= 2) {
-          timerCount = 0;
-        }
-      }
-    });
-    this.loaded = 1;
-  }
+  // startTimers() {
+  //   int timerCount = 0;
+  //   notificationModel.resetTimer();
+  //   Timer.periodic(Duration(seconds: 15), (timer) async {
+  //     print('home timer called');
+  //     bool _status = notificationModel.notificationStatus;
+  //     bool stopTimer = notificationModel.stopTimer;
+  //     if (stopTimer == true) {
+  //       print('timer cancelled called');
+  //       timer.cancel();
+  //       return;
+  //     }
+  //     if (_status == true) {
+  //       print('timer reset');
+  //       timerCount = 0;
+  //     }
+  //     bool _hasInternetAccess = await Domain().isHostReachable();
+  //     if (_hasInternetAccess) {
+  //       print('timer count: ${timerCount}');
+  //       if (timerCount == 0) {
+  //         //sync to cloud
+  //         print('sync to cloud');
+  //         var isLogOut = await SyncToCloud().syncAllToCloud();
+  //         if (isLogOut == true) {
+  //           openLogOutDialog();
+  //           return;
+  //         }
+  //         //SyncToCloud().syncToCloud();
+  //       } else {
+  //         //qr order sync
+  //         print('qr order sync');
+  //         QrOrder().getQrOrder();
+  //         //sync from cloud
+  //         var syncStatus = await SyncRecord().syncFromCloud();
+  //         print('is log out: ${syncStatus}');
+  //         if (syncStatus == true) {
+  //           openLogOutDialog();
+  //           return;
+  //         } else if (syncStatus == false) {
+  //           // ScaffoldMessenger.of(context).showSnackBar(
+  //           //   SnackBar(
+  //           //     duration: Duration(minutes: 5),
+  //           //     backgroundColor: Colors.green,
+  //           //     content: const Text('Content change !!!'),
+  //           //     action: SnackBarAction(
+  //           //       label: 'Refresh',
+  //           //       textColor: Colors.white,
+  //           //       onPressed: () {
+  //           //         setState(() {
+  //           //           ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  //           //         });
+  //           //         // Code to execute.
+  //           //       },
+  //           //     ),
+  //           //   ),
+  //           // );
+  //         }
+  //       }
+  //       //add timer and reset hasNotification
+  //       timerCount++;
+  //       notificationModel.resetNotification();
+  //       // reset the timer after two executions
+  //       if (timerCount >= 2) {
+  //         timerCount = 0;
+  //       }
+  //     }
+  //   });
+  // }
 
   /*
   *
@@ -359,6 +359,7 @@ class _HomePageState extends State<HomePage> {
   *
   * */
   Future<void> setupFirebaseMessaging() async {
+    notificationModel.setNotificationAsStarted();
     // Update the iOS foreground notification presentation options to allow
     // heads up notifications.
     await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
@@ -397,6 +398,7 @@ class _HomePageState extends State<HomePage> {
       else {
         hasNotification = true;
         notificationModel.setNotification(hasNotification);
+        notificationModel.resetContentLoaded();
         Fluttertoast.showToast(backgroundColor: Colors.green, msg: "Cloud db change! sync from cloud");
         SyncRecord().syncFromCloud();
       }
