@@ -102,11 +102,11 @@ class _TableMenuState extends State<TableMenu> {
           if (tableModel.isChange) {
             readAllTable(model: tableModel);
           }
-          if(notificationModel.notificationStatus == true) {
+          if(notificationModel.notificationStatus == true && notificationModel.contentLoaded == false) {
             print('notification refresh called!');
             isLoaded = false;
-            notificationModel.resetNotification();
-            Future.delayed(const Duration(seconds: 1), () {
+            notificationModel.setContentLoaded();
+            Future.delayed(const Duration(seconds: 3), () {
               if(mounted){
                 setState(() {
                   readAllTable(notification: true);

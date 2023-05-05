@@ -381,7 +381,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void showFlutterNotification(RemoteMessage message) {
+  void showFlutterNotification(RemoteMessage message) async {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
     if (notification != null && android != null) {
@@ -396,11 +396,10 @@ class _HomePageState extends State<HomePage> {
       * sync request
       * */
       else {
-        hasNotification = true;
-        notificationModel.setNotification(hasNotification);
+        notificationModel.setNotification(true);
         notificationModel.resetContentLoaded();
         Fluttertoast.showToast(backgroundColor: Colors.green, msg: "Cloud db change! sync from cloud");
-        SyncRecord().syncFromCloud();
+        await SyncRecord().syncFromCloud();
       }
     }
   }

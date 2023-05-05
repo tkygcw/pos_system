@@ -237,7 +237,7 @@ class _SettingMenuState extends State<SettingMenu> {
                                 ),
                                 onPressed: () async {
                                   bool _hasInternetAccess = await Domain().isHostReachable();
-                                  if(this.cashRecordList.isNotEmpty){
+                                  if(this.cashRecordList.isEmpty){
                                     if(_hasInternetAccess){
                                       notificationModel.setTimer(true);
                                       toPosPinPage();

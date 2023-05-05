@@ -241,8 +241,9 @@ class _CartPageState extends State<CartPage> {
                                                 cart.selectedOption = diningList[index].name!;
                                                 cart.selectedOptionId = diningList[index].dining_id!;
                                               })
-                                            : cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status != 1
+                                            : cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status != 1 && cart.selectedOption != diningList[index].name!
                                                 ? setState(() {
+                                                    cart.removeAllCartItem();
                                                     cart.removeAllTable();
                                                     cart.selectedOption = diningList[index].name!;
                                                     cart.selectedOptionId = diningList[index].dining_id!;

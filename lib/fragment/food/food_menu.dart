@@ -62,7 +62,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
         print('notification refresh called!');
         isLoading = true;
         notificationModel.setContentLoaded();
-        Future.delayed(const Duration(seconds: 1), () {
+        Future.delayed(const Duration(milliseconds: 3500), () {
           if(mounted){
             setState(() {
               readAllCategories(hasNotification: true);
@@ -169,7 +169,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
         allProduct = data;
         categoryTabContent.add(GridView.count(
             shrinkWrap: true,
-            crossAxisCount: MediaQuery.of(context).size.height > 500 ? 5 : 3,
+            crossAxisCount: MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.height > 500 ? 5 : 3,
             children: List.generate(data.length, (index) {
               return Card(
                 child: Container(
@@ -212,7 +212,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
         categoryTabContent.add(GridView.count(
             shrinkWrap: true,
             padding: const EdgeInsets.all(10),
-            crossAxisCount: MediaQuery.of(context).size.height > 500 ? 5 : 3,
+            crossAxisCount: MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.height > 500 ? 5 : 3,
             children: List.generate(data.length, (index) {
               return Card(
                 child: Container(

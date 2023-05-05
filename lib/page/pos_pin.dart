@@ -73,7 +73,6 @@ class _PosPinPageState extends State<PosPinPage> {
     notificationModel.setSyncCountAsStarted();
     notificationModel.resetTimer();
     Timer.periodic(Duration(seconds: 15), (timer) async {
-      print('home timer called');
       bool _status = notificationModel.notificationStatus;
       bool stopTimer = notificationModel.stopTimer;
       if (stopTimer == true) {
@@ -84,6 +83,8 @@ class _PosPinPageState extends State<PosPinPage> {
       if (_status == true) {
         print('timer reset');
         timerCount = 0;
+        notificationModel.resetNotification();
+        return;
       }
       bool _hasInternetAccess = await Domain().isHostReachable();
       if (_hasInternetAccess) {
@@ -101,6 +102,13 @@ class _PosPinPageState extends State<PosPinPage> {
           //qr order sync
           print('qr order sync');
           QrOrder().getQrOrder();
+
+          if (notificationModel.notificationStatus == true) {
+            print('timer reset inside');
+            timerCount = 0;
+            notificationModel.resetNotification();
+            return;
+          }
           //sync from cloud
           var syncStatus = await SyncRecord().syncFromCloud();
           print('is log out: ${syncStatus}');
