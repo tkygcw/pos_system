@@ -3,6 +3,7 @@ import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
+import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 
 import '../../notifier/report_notifier.dart';
@@ -376,7 +377,7 @@ class _RefundReportState extends State<RefundReport> {
               DataCell(Text('${orderList[i].rounding}')),
               DataCell(Text('${orderList[i].final_amount}')),
               DataCell(Text('${orderList[i].refund_by}')),
-              DataCell(Text('${orderList[i].refund_at}')),
+              DataCell(Text('${Utils.formatDate(orderList[i].refund_at)}')),
             ],
           ),
         ]);

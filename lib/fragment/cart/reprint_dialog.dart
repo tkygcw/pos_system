@@ -48,19 +48,19 @@ class _ReprintDialogState extends State<ReprintDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Would you like to reprint check list?'),
-            Row(
-              children: [
-                Text('reprint kitchen check list'),
-                Checkbox(
-                    value: _isChecked,
-                    onChanged: (value) {
-                      setState(() {
-                        _isChecked = value!;
-                      });
-                    }
-                )
-              ],
-            )
+            // Row(
+            //   children: [
+            //     Text('reprint kitchen check list'),
+            //     Checkbox(
+            //         value: _isChecked,
+            //         onChanged: (value) {
+            //           setState(() {
+            //             _isChecked = value!;
+            //           });
+            //         }
+            //     )
+            //   ],
+            // )
           ],
         ),
       ),

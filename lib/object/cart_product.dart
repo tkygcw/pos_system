@@ -25,6 +25,7 @@ class cartProductItem{
    String? first_cache_created_date_time;
    String? subtotal;
    String? first_cache_batch;
+   String? first_cache_order_by;
 
    cartProductItem(
        String branchProduct_id,
@@ -46,6 +47,7 @@ class cartProductItem{
          this.first_cache_created_date_time,
          this.subtotal,
          this.first_cache_batch,
+         this.first_cache_order_by
        })
    {
        this.branchProduct_id = branchProduct_id;

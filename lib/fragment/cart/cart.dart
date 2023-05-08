@@ -719,8 +719,12 @@ class _CartPageState extends State<CartPage> {
   paymentAddToCart(CartModel cart) {
     var value = cartPaymentDetail('', total, totalAmount, rounding, finalAmount, 0.0, 0.0, [], [],
         promotionList: autoApplyPromotionList, manualPromo: cart.selectedPromotion, taxList: taxRateList, dining_name: cart.selectedOption);
-
-    cart.addPaymentDetail(value);
+    if(cart.cartNotifierPayment.isNotEmpty){
+      cart.cartNotifierPayment.clear();
+      cart.addPaymentDetail(value);
+    } else {
+      cart.addPaymentDetail(value);
+    }
   }
 
   checkCartItem(CartModel cart) {

@@ -159,6 +159,7 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
     //clear order
     PosDatabase.instance.clearAllOrderCache();
     PosDatabase.instance.clearAllOrderDetail();
+    PosDatabase.instance.clearAllOrderDetailCancel();
     PosDatabase.instance.clearAllOrderModifierDetail();
     PosDatabase.instance.clearAllOrder();
     PosDatabase.instance.clearAllOrderTax();

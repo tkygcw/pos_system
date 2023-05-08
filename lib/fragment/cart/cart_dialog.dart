@@ -772,11 +772,11 @@ class _CartDialogState extends State<CartDialog> {
           Colors.black,
           category_sqlite_id: orderDetailList[i].category_sqlite_id,
           first_cache_created_date_time: orderCacheList.last.created_at,  //orderCacheList[0].created_at,
-          first_cache_batch: orderCacheList[0].batch_id
+          first_cache_batch: orderCacheList.last.batch_id,
+          first_cache_order_by: orderCacheList.last.order_by
       );
       cart.addItem(value);
     }
-    print('first order cache: ${orderCacheList[0].order_cache_sqlite_id}');
     for (int j = 0; j < orderCacheList.length; j++) {
       //Get specific table use detail
       List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
