@@ -2086,10 +2086,10 @@ class _CartPageState extends State<CartPage> {
     String _tableUseId = '';
     int batch = 0;
     try {
-      if(isAddOrder == null){
-        batch = await batchChecking();
-      } else {
+      if(isAddOrder == true){
         batch = int.parse(cart.cartNotifierItem[0].first_cache_batch!);
+      } else {
+        batch = await batchChecking();
       }
       //check selected table is in use or not
       if (cart.selectedOption == 'Dine in') {

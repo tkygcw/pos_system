@@ -53,7 +53,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   List<TableUseDetail> cartTableUseDetail = [];
   OrderDetail? orderDetail;
   String? table_use_value, table_use_detail_value, branch_link_product_value, order_cache_value, order_detail_value, order_detail_cancel_value, table_value;
-  bool _isLoaded = false, isLogOut = false;
+  bool _isLoaded = false, isButtonDisabled = false, isLogOut = false;
   int simpleIntInput = 1;
 
 
@@ -89,6 +89,10 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   void _submit(BuildContext context, CartModel cart, ConnectivityChangeNotifier connectivity) async {
     setState(() => _submitted = true);
     if (errorPassword == null && _isLoaded == true) {
+      // Disable the button after it has been pressed
+      setState(() {
+        isButtonDisabled = true;
+      });
       await readAdminData(adminPosPinController.text, cart, connectivity);
       if(this.isLogOut == false){
         Navigator.of(context).pop();
@@ -154,9 +158,9 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
               ),
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                onPressed: ()  {
+                onPressed: isButtonDisabled ? null : () {
                   _submit(context, cart, connectivity);
-                },
+                  },
               ),
             ],
           ),

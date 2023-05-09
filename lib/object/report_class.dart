@@ -84,13 +84,15 @@ class ReportObject{
     return value;
   }
 
-  getAllSettlementPaymentDetail(String settlement_key) async {
+  getAllSettlementPaymentDetail(String settlement_date) async {
     dateSettlementPaymentList = [];
-    List<SettlementLinkPayment> settlementData = await PosDatabase.instance.readSpecificSettlementLinkPayment(settlement_key);
+    List<SettlementLinkPayment> settlementData = await PosDatabase.instance.readSpecificSettlementLinkPayment(settlement_date);
     settlementPaymentList = settlementData;
+    print('length: ${settlementPaymentList.length}');
     if (settlementPaymentList.isNotEmpty) {
       for (int i = 0; i < settlementPaymentList.length; i++) {
         dateSettlementPaymentList!.add(settlementPaymentList[i]);
+        print('payment method: ${settlementPaymentList[i].payment_link_company_id}');
       }
     }
     ReportObject value = ReportObject(dateSettlementPaymentList: dateSettlementPaymentList);

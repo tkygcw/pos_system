@@ -1134,8 +1134,7 @@ getAllOrderDetail() async {
       //OrderDetail item = OrderDetail.fromJson(responseJson[i]);
       OrderCache cacheData = await PosDatabase.instance.readOrderCacheSqliteID(responseJson[i]['order_cache_key']);
       Categories? categoriesData = await PosDatabase.instance.readCategorySqliteID(responseJson[i]['category_id'].toString());
-      BranchLinkProduct branchLinkProductData =
-          await PosDatabase.instance.readBranchLinkProductSqliteID(responseJson[i]['branch_link_product_id'].toString());
+      BranchLinkProduct branchLinkProductData = await PosDatabase.instance.readBranchLinkProductSqliteID(responseJson[i]['branch_link_product_id'].toString());
       OrderDetail data = await PosDatabase.instance.insertOrderDetail(OrderDetail(
           order_detail_id: responseJson[i]['order_detail_id'],
           order_detail_key: responseJson[i]['order_detail_key'].toString(),
@@ -1190,7 +1189,7 @@ getAllOrderDetailCancel() async {
         quantity: responseJson[i]['quantity'],
         cancel_by: responseJson[i]['cancel_by'],
         cancel_by_user_id: responseJson[i]['cancel_by_user_id'],
-        settlement_sqlite_id: settlement != null ? settlement.settlement_sqlite_id.toString() : '',
+        settlement_sqlite_id: responseJson[i]['settlement_key'] != '' ? settlement?.settlement_sqlite_id.toString() : '',
         settlement_key: responseJson[i]['settlement_key'],
         status: responseJson[i]['status'],
         sync_status: 1,

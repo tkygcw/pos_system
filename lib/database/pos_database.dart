@@ -1463,7 +1463,7 @@ class PosDatabase {
         data.soft_delete
       ]
     );
-    return data.copy(order_cache_id: await id);
+    return data.copy(order_cache_sqlite_id: await id);
   }
 
 /*
@@ -1509,7 +1509,7 @@ class PosDatabase {
         data.soft_delete
       ]
     );
-    return data.copy(order_detail_id: await id);
+    return data.copy(order_detail_sqlite_id: await id);
   }
 
 /*
@@ -3270,7 +3270,7 @@ class PosDatabase {
   Future<List<PaymentLinkCompany>> readAllPaymentLinkCompany(String company_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? AND company_id = ?',
+        'SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? AND company_id = ? ORDER BY name',
         ['', company_id]);
     return result.map((json) => PaymentLinkCompany.fromJson(json)).toList();
   }
@@ -3523,9 +3523,11 @@ class PosDatabase {
     print('settlement time: ${settlement_key}');
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT *, SUM(total_sales) AS all_payment_sales FROM $tableSettlementLinkPayment '
-            'WHERE soft_delete = ? AND status = ? AND SUBSTR(created_at, 1, 10) = SUBSTR(?, 1, 10) GROUP BY payment_link_company_id ORDER BY payment_link_company_id ',
-        ['', 0, settlement_key]
+        'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.payment_link_company_id, a.total_sales, a.total_bill, a.settlement_key, a.settlement_sqlite_id, a.branch_id, '
+            'a.company_id, a.settlement_link_payment_key, a.settlement_link_payment_id, a.settlement_link_payment_sqlite_id,  '
+            'SUM(a.total_sales) AS all_payment_sales FROM $tableSettlementLinkPayment AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id  '
+            'WHERE a.soft_delete = ? AND a.status = ? AND b.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) = SUBSTR(?, 1, 10) GROUP BY a.payment_link_company_id ORDER BY b.name ',
+        ['', 0, '', settlement_key]
     );
     return result.map((json) => SettlementLinkPayment.fromJson(json)).toList();
   }
