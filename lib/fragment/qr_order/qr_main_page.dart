@@ -46,9 +46,10 @@ class _QrMainPageState extends State<QrMainPage> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Scaffold(
           appBar: AppBar(
+            primary: false,
             elevation: 0,
             automaticallyImplyLeading: false,
-            title: Text("Qr order", style: TextStyle(fontSize: 25, color: color.backgroundColor)),
+            title: Text("Qr order", style: TextStyle(fontSize: 25)),
           ),
           body: StreamBuilder(
               stream: controller.stream,
@@ -68,9 +69,9 @@ class _QrMainPageState extends State<QrMainPage> {
                           child: ListTile(
                             contentPadding: EdgeInsets.all(10),
                             //isThreeLine: true,
-                            title: qrOrderCacheList[index].dining_id == '1'
+                            title: qrOrderCacheList[index].dining_name == 'Dine in'
                                 ? Text('Table No: ${qrOrderCacheList[index].table_number}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
-                                : qrOrderCacheList[index].dining_id == '2'
+                                : qrOrderCacheList[index].dining_name == 'Take Away'
                                 ? Text('Take Away', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
                                 : Text('Delivery', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                             subtitle: RichText(
@@ -99,7 +100,7 @@ class _QrMainPageState extends State<QrMainPage> {
                               await checkOrderDetail(qrOrderCacheList[index].order_cache_sqlite_id!);
                               //pop stock adjust dialog
                               openAdjustStockDialog(orderDetailList, qrOrderCacheList[index].order_cache_sqlite_id!,
-                                  qrOrderCacheList[index].qr_order_table_sqlite_id!);
+                                  qrOrderCacheList[index].qr_order_table_sqlite_id!, qrOrderCacheList[index].batch_id!);
                             },
                           ),
                         );
@@ -121,7 +122,7 @@ class _QrMainPageState extends State<QrMainPage> {
     });
   }
 
-  openAdjustStockDialog(List<OrderDetail> orderDetail, int localId, String tableLocalId) async {
+  openAdjustStockDialog(List<OrderDetail> orderDetail, int localId, String tableLocalId, String batchNumber) async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
         transitionBuilder: (context, a1, a2, widget) {
@@ -136,6 +137,7 @@ class _QrMainPageState extends State<QrMainPage> {
                 orderCacheLocalId: localId,
                 callBack: () => preload(),
                 orderCacheList: qrOrderCacheList,
+                currentBatch: batchNumber,
               ),
             ),
           );

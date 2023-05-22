@@ -624,7 +624,8 @@ class PosDatabase {
 */
     await db.execute('''CREATE TABLE $tableAppSetting(
           ${AppSettingFields.app_setting_sqlite_id} $idType,
-          ${AppSettingFields.open_cash_drawer} $integerType)''');
+          ${AppSettingFields.open_cash_drawer} $integerType,
+          ${AppSettingFields.show_second_display} $integerType)''');
 /*
     create transfer owner table
 */
@@ -2904,14 +2905,14 @@ class PosDatabase {
 /*
   read table order cache
 */
-  Future<List<OrderCache>> readTableOrderCache(String branch_id, String table_use_id) async {
+  Future<List<OrderCache>> readTableOrderCache(String table_use_sqlite_id) async {
     try {
       final db = await instance.database;
       final result = await db.rawQuery(
           'SELECT a.*, b.card_color FROM $tableOrderCache AS a JOIN $tableTableUse AS b ON a.table_use_sqlite_id = b.table_use_sqlite_id '
-              'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ? AND a.table_use_sqlite_id = ? AND a.cancel_by = ? AND a.accepted = ? AND b.status = ? '
+              'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.table_use_sqlite_id = ? AND a.cancel_by = ? AND a.accepted = ? AND b.status = ? '
               'ORDER BY a.order_cache_sqlite_id DESC',
-          ['', '', branch_id, table_use_id, '', 0, 0]);
+          ['', '', table_use_sqlite_id, '', 0, 0]);
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
       print(e);
@@ -4245,12 +4246,14 @@ class PosDatabase {
   Future<List<OrderCache>> readNotAcceptedQROrderCache() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-      'SELECT * FROM (SELECT a.*, b.number AS table_number FROM $tableOrderCache AS a LEFT JOIN $tablePosTable AS b ON a.qr_order_table_id = b.table_id '
-          'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.qr_order = ? AND a.accepted = ? '
+      'SELECT * FROM (SELECT a.*, b.number AS table_number, c.name '
+          'FROM $tableOrderCache AS a LEFT JOIN $tablePosTable AS b ON a.qr_order_table_id = b.table_id '
+          'LEFT JOIN $tableDiningOption AS c ON a.dining_id = c.dining_id '
+          'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.qr_order = ? AND a.accepted = ? '
           'UNION '
-          'SELECT *, null AS table_number FROM $tableOrderCache '
-          'WHERE soft_delete = ? AND qr_order_table_id = ? AND qr_order = ? AND accepted = ?) ORDER BY created_at DESC ',
-      ['', '', 1, 1, '', '', 1, 1]
+          'SELECT d.*, null AS table_number, e.name FROM $tableOrderCache AS d LEFT JOIN $tableDiningOption AS e ON d.dining_id = e.dining_id '
+          'WHERE d.soft_delete = ? AND e.soft_delete = ? AND d.qr_order_table_id = ? AND d.qr_order = ? AND d.accepted = ?) ORDER BY created_at DESC ',
+      ['', '', '', 1, 1, '', '', '', 1, 1]
     );
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
@@ -4985,9 +4988,10 @@ class PosDatabase {
   Future<int> updateAppSettings(AppSetting data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableAppSetting SET open_cash_drawer = ? WHERE app_setting_sqlite_id = ?',
+        'UPDATE $tableAppSetting SET open_cash_drawer = ?, show_second_display = ? WHERE app_setting_sqlite_id = ?',
         [
           data.open_cash_drawer,
+          data.show_second_display,
           data.app_setting_sqlite_id
         ]);
   }
@@ -5251,8 +5255,8 @@ class PosDatabase {
   Future<int> updateQrOrderCache(OrderCache data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableOrderCache SET table_use_sqlite_id = ?, table_use_key = ?, total_amount = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
-        [data.table_use_sqlite_id, data.table_use_key, data.total_amount, data.sync_status, data.updated_at, data.order_cache_sqlite_id]);
+        'UPDATE $tableOrderCache SET table_use_sqlite_id = ?, table_use_key = ?, batch_id = ?, total_amount = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+        [data.table_use_sqlite_id, data.table_use_key, data.batch_id, data.total_amount, data.sync_status, data.updated_at, data.order_cache_sqlite_id]);
   }
 
 /*

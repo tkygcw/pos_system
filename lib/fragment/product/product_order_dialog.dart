@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';
@@ -63,15 +64,15 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(variantGroup.name!, style: TextStyle(fontWeight: FontWeight.bold)),
-        for (int i = 0; i < variantGroup.child.length; i++)
+        for (int i = 0; i < variantGroup.child!.length; i++)
           RadioListTile<int?>(
-            value: variantGroup.child[i].variant_item_sqlite_id,
+            value: variantGroup.child![i].variant_item_sqlite_id,
             groupValue: variantGroup.variant_item_sqlite_id,
             onChanged: (ind) => setState(() {
               print('ind: ${ind}');
               variantGroup.variant_item_sqlite_id = ind;
             }),
-            title: Text(variantGroup.child[i].name!),
+            title: Text(variantGroup.child![i].name!),
             controlAffinity: ListTileControlAffinity.trailing,
           )
       ],
@@ -565,8 +566,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
           }
         }
       } else {
-        List<BranchLinkProduct> productVariant =
-            await PosDatabase.instance.checkProductVariant(await getProductVariant(productId!), productId.toString());
+        List<BranchLinkProduct> productVariant = await PosDatabase.instance.checkProductVariant(await getProductVariant(productId!), productId.toString());
         basePrice = productVariant[0].price!;
         finalPrice = basePrice;
         dialogPrice = basePrice;
@@ -614,11 +614,8 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
         }
       } else {
         //check has variant product stock
-        List<BranchLinkProduct> data =
-            await PosDatabase.instance.checkProductVariant(await getProductVariant(product.product_sqlite_id!), product.product_sqlite_id.toString());
+        List<BranchLinkProduct> data = await PosDatabase.instance.checkProductVariant(await getProductVariant(product.product_sqlite_id!), product.product_sqlite_id.toString());
         branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
-        print('branch link product id: ${branchLinkProduct_id}');
-        print('stock: ${data[0].stock_quantity}');
         if (data[0].stock_type == '2') {
           if (int.parse(data[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data[0].stock_quantity!)) {
             hasStock = true;
@@ -645,34 +642,27 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     String variant3 = '';
     String productVariant = '';
     try {
-      print('variant group length: ${variantGroup.length}');
       for (int j = 0; j < variantGroup.length; j++) {
         VariantGroup group = variantGroup[j];
-        for (int i = 0; i < group.child.length; i++) {
-          if (group.variant_item_sqlite_id == group.child[i].variant_item_sqlite_id) {
-            group.child[i].isSelected = true;
+        for (int i = 0; i < group.child!.length; i++) {
+          if (group.variant_item_sqlite_id == group.child![i].variant_item_sqlite_id) {
+            group.child![i].isSelected = true;
             if (variant == '') {
-              variant = group.child[i].name!.trim();
-              print('variant: ${variant}abc');
+              variant = group.child![i].name!.trim();
               if (variantGroup.length == 1) {
                 List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant);
                 productVariant = data[0].product_variant_sqlite_id.toString();
                 break;
               }
             } else if (variant2 == '') {
-              print('variant 2 called');
-              variant2 = variant + " | " + group.child[i].name!;
-              print('variant2: ${variant2}');
+              variant2 = variant + " | " + group.child![i].name!;
               if (variantGroup.length == 2) {
                 List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant2);
                 productVariant = data[0].product_variant_sqlite_id.toString();
                 break;
               }
             } else if (variant3 == '') {
-              print('variant2 in variant3: ${variant2}');
-              variant3 = variant2 + " | " + group.child[i].name!;
-              print('variant3: ${variant3}');
-              print('product id: ${product_id}');
+              variant3 = variant2 + " | " + group.child![i].name!;
               if (variantGroup.length == 3) {
                 List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant3);
                 productVariant = data[0].product_variant_sqlite_id.toString();
@@ -682,8 +672,8 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
           }
         }
       }
-      print('variant string: ${variant}');
-      print('product variant: ${productVariant}');
+      // print('variant string: ${variant}');
+      // print('product variant: ${productVariant}');
       return productVariant;
     } catch (error) {
       print('get product variant error: ${error}');
@@ -719,11 +709,11 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     //check selected variant
     for (int j = 0; j < variantGroup.length; j++) {
       VariantGroup group = variantGroup[j];
-      for (int i = 0; i < group.child.length; i++) {
-        if (group.variant_item_sqlite_id == group.child[i].variant_item_sqlite_id) {
-          group.child[i].isSelected = true;
+      for (int i = 0; i < group.child!.length; i++) {
+        if (group.variant_item_sqlite_id == group.child![i].variant_item_sqlite_id) {
+          group.child![i].isSelected = true;
         } else {
-          group.child[i].isSelected = false;
+          group.child![i].isSelected = false;
         }
       }
     }
@@ -738,12 +728,28 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
         remarkController.text,
         0,
         null,
-        Colors.black,
         category_sqlite_id: widget.productDetail!.category_sqlite_id,
-        base_price: basePrice);
-    print('base price: ${value.base_price}');
-    print('price: ${value.price}');
-    cart.addItem(value);
+        base_price: basePrice,
+        refColor: Colors.black,
+    );
+    // print('base price: ${value.base_price}');
+    // print('price: ${value.price}');
+    List<cartProductItem> item = [];
+    if(cart.cartNotifierItem.isEmpty){
+      cart.addItem(value);
+    } else {
+      for(int k = 0; k < cart.cartNotifierItem.length; k++){
+        if(cart.cartNotifierItem[k].branchProduct_id == value.branchProduct_id && cart.cartNotifierItem[k].status == 0){
+          item.add(cart.cartNotifierItem[k]);
+        }
+      }
+      if(item.isNotEmpty){
+        item[0].quantity += value.quantity;
+      } else {
+        cart.addItem(value);
+      }
+      print('length after: ${cart.cartNotifierItem.length}');
+    }
     cart.resetCount();
   }
 }

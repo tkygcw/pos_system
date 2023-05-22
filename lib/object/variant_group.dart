@@ -34,7 +34,7 @@ class VariantGroup {
   int? variant_group_id;
   int? variant_item_id;
   int? variant_item_sqlite_id;
-  late List<VariantItem> child;
+  List<VariantItem>? child;
   String? product_id;
   String? product_sqlite_id;
   String? name;
@@ -48,7 +48,7 @@ class VariantGroup {
       this.variant_group_id,
       this.variant_item_id,
       this.variant_item_sqlite_id,
-      required this.child,
+      this.child,
       this.product_id,
       this.product_sqlite_id,
       this.name,
@@ -69,8 +69,7 @@ class VariantGroup {
     String? soft_delete,
   }) =>
       VariantGroup(
-          variant_group_sqlite_id:
-              variant_group_sqlite_id ?? this.variant_group_sqlite_id,
+          variant_group_sqlite_id: variant_group_sqlite_id ?? this.variant_group_sqlite_id,
           variant_group_id: variant_group_id ?? this.variant_group_id,
           product_id: product_id ?? this.product_id,
           product_sqlite_id: product_sqlite_id ?? this.product_sqlite_id,
@@ -79,39 +78,71 @@ class VariantGroup {
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete,
-          child: []);
-
-  static VariantGroup fromJson(Map<String, Object?> json) => VariantGroup(
-        variant_group_sqlite_id:
-            json[VariantGroupFields.variant_group_sqlite_id] as int?,
-        variant_group_id: json[VariantGroupFields.variant_group_id] as int?,
-        product_id: json[VariantGroupFields.product_id] as String?,
-    product_sqlite_id: json[VariantGroupFields.product_sqlite_id] as String?,
-        name: json[VariantGroupFields.name] as String?,
-        sync_status: json[VariantGroupFields.sync_status] as int?,
-        created_at: json[VariantGroupFields.created_at] as String?,
-        updated_at: json[VariantGroupFields.updated_at] as String?,
-        soft_delete: json[VariantGroupFields.soft_delete] as String?,
-        child: [],
       );
 
-  Map<String, Object?> toJson() => {
-        VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
-        VariantGroupFields.variant_group_id: variant_group_id,
-        VariantGroupFields.product_id: product_id,
-        VariantGroupFields.product_sqlite_id: product_sqlite_id,
-        VariantGroupFields.name: name,
-        VariantGroupFields.sync_status: sync_status,
-        VariantGroupFields.created_at: created_at,
-        VariantGroupFields.updated_at: updated_at,
-        VariantGroupFields.soft_delete: soft_delete,
-      };
+  // static VariantGroup fromJson(Map<String, Object?> json) => VariantGroup(
+  //       variant_group_sqlite_id: json[VariantGroupFields.variant_group_sqlite_id] as int?,
+  //       variant_group_id: json[VariantGroupFields.variant_group_id] as int?,
+  //       product_id: json[VariantGroupFields.product_id] as String?,
+  //       product_sqlite_id: json[VariantGroupFields.product_sqlite_id] as String?,
+  //       name: json[VariantGroupFields.name] as String?,
+  //       sync_status: json[VariantGroupFields.sync_status] as int?,
+  //       created_at: json[VariantGroupFields.created_at] as String?,
+  //       updated_at: json[VariantGroupFields.updated_at] as String?,
+  //       soft_delete: json[VariantGroupFields.soft_delete] as String?,
+  //       child: [],
+  //     );
 
-  Map addToCartJSon() => {
-        VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
-        VariantGroupFields.variant_group_id: variant_group_id,
-        VariantGroupFields.name: name,
-        VariantGroupFields.variant_item:
-            jsonEncode(child.map((e) => e.addToCartJSon()).toList()),
-      };
+  static VariantGroup fromJson(Map<String, Object?> json) {
+    var childJson = json['child'] as List?;
+    List<VariantItem>? childList = childJson != null ? childJson.map((json) => VariantItem.fromJson(json)).toList() : null;
+    return VariantGroup(
+      variant_group_sqlite_id: json[VariantGroupFields.variant_group_sqlite_id] as int?,
+      variant_group_id: json[VariantGroupFields.variant_group_id] as int?,
+      product_id: json[VariantGroupFields.product_id] as String?,
+      product_sqlite_id: json[VariantGroupFields.product_sqlite_id] as String?,
+      name: json[VariantGroupFields.name] as String?,
+      sync_status: json[VariantGroupFields.sync_status] as int?,
+      created_at: json[VariantGroupFields.created_at] as String?,
+      updated_at: json[VariantGroupFields.updated_at] as String?,
+      soft_delete: json[VariantGroupFields.soft_delete] as String?,
+      child: childList,
+    );
+  }
+
+  // Map<String, Object?> toJson() => {
+  //   VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
+  //   VariantGroupFields.variant_group_id: variant_group_id,
+  //   VariantGroupFields.product_id: product_id,
+  //   VariantGroupFields.product_sqlite_id: product_sqlite_id,
+  //   VariantGroupFields.name: name,
+  //   VariantGroupFields.sync_status: sync_status,
+  //   VariantGroupFields.created_at: created_at,
+  //   VariantGroupFields.updated_at: updated_at,
+  //   VariantGroupFields.soft_delete: soft_delete,
+  // };
+
+  Map toJson() {
+    List? variantChild = this.child != null ? this.child?.map((i) => i.toJson()).toList() : null;
+    return {
+      VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
+      VariantGroupFields.variant_group_id: variant_group_id,
+      VariantGroupFields.product_id: product_id,
+      VariantGroupFields.product_sqlite_id: product_sqlite_id,
+      VariantGroupFields.name: name,
+      VariantGroupFields.sync_status: sync_status,
+      VariantGroupFields.created_at: created_at,
+      VariantGroupFields.updated_at: updated_at,
+      VariantGroupFields.soft_delete: soft_delete,
+      'child': variantChild
+    };
+  }
+
+  // Map addToCartJSon() => {
+  //       VariantGroupFields.variant_group_sqlite_id: variant_group_sqlite_id,
+  //       VariantGroupFields.variant_group_id: variant_group_id,
+  //       VariantGroupFields.name: name,
+  //       VariantGroupFields.variant_item:
+  //           jsonEncode(child.map((e) => e.addToCartJSon()).toList()),
+  //     };
 }

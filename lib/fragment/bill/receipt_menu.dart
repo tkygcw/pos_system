@@ -446,8 +446,9 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
           orderDetailList[i].remark!,
           0,
           null,
-          Colors.black,
-          isRefund: isRefund);
+          isRefund: isRefund,
+          refColor: Colors.black,
+      );
       cart.addItem(value);
     }
     print('order cache list: ${orderCacheList.length}');

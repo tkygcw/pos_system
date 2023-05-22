@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/bill.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';
@@ -49,6 +50,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import '../database/domain.dart';
 import '../notifier/theme_color.dart';
+import '../object/app_setting.dart';
 import '../object/branch_link_user.dart';
 import '../object/customer.dart';
 import '../object/dining_option.dart';
@@ -108,6 +110,7 @@ class _LoadingPageState extends State<LoadingPage> {
       await clearCloudSyncRecord();
       await createReceiptLayout();
       await createDeviceLogin();
+      await createAppSetting();
     }catch(e){
       Navigator.of(context).pushAndRemoveUntil(
         // the new route
@@ -126,6 +129,19 @@ class _LoadingPageState extends State<LoadingPage> {
       Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
     });
   }
+
+/*
+  create app setting
+*/
+  createAppSetting() async {
+    AppSetting appSetting = AppSetting(
+        open_cash_drawer: 1,
+        show_second_display: notificationModel.hasSecondScreen ? 1 : 0
+    );
+    AppSetting data = await PosDatabase.instance.insertSetting(appSetting);
+    notificationModel.enableSecondDisplay();
+  }
+
 /*
   create device login
 */
@@ -138,11 +154,15 @@ class _LoadingPageState extends State<LoadingPage> {
     var value = md5.convert(utf8.encode(dateTime)).toString();
 
     bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().insertDeviceLogin(device_id.toString(), value);
-      if (response['status'] == '1') {
-        await prefs.setString('login_value', value);
+    if(device_id != 4){
+      if (_hasInternetAccess) {
+        Map response = await Domain().insertDeviceLogin(device_id.toString(), value);
+        if (response['status'] == '1') {
+          await prefs.setString('login_value', value);
+        }
       }
+    } else {
+      await prefs.setString('login_value', 'demo12345');
     }
   }
 

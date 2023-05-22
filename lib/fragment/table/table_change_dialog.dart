@@ -100,10 +100,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   updateOrderCache(String currentTableUseId, String NewTableUseId, String dateTime) async {
     List<String> _value = [];
     try{
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-
-      List<OrderCache> checkData = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), currentTableUseId);
+      List<OrderCache> checkData = await PosDatabase.instance.readTableOrderCache(currentTableUseId);
       TableUse newTableUseData = await PosDatabase.instance.readSpecificTableUseIdByLocalId(int.parse(NewTableUseId));
       for(int i = 0; i < checkData.length; i++){
         OrderCache orderCacheObject = OrderCache(

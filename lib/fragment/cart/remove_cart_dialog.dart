@@ -261,15 +261,13 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   }
 
   readCartItemInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
     //get cart item order cache
     List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCache(widget.cartItem!.orderCacheId!);
     cartCacheList = List.from(cacheData);
 
     if(widget.currentPage != 'other order'){
       //get table use order cache
-      List<OrderCache> tableCacheData = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), cacheData[0].table_use_sqlite_id!);
+      List<OrderCache> tableCacheData = await PosDatabase.instance.readTableOrderCache(cacheData[0].table_use_sqlite_id!);
       cartTableCacheList = List.from(tableCacheData);
 
       //get table use detail

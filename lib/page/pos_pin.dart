@@ -21,8 +21,6 @@ import '../notifier/theme_color.dart';
 import '../object/cash_record.dart';
 import '../object/print_receipt.dart';
 import '../object/printer.dart';
-import '../object/qr_order.dart';
-import '../object/sync_record.dart';
 import '../object/sync_to_cloud.dart';
 import '../object/user.dart';
 import '../translation/AppLocalizations.dart';
@@ -61,7 +59,11 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   preload() async {
-    SyncRecord().syncFromCloud();
+    bool _hasInternetAccess = await Domain().isHostReachable();
+    if(_hasInternetAccess){
+      syncRecord.syncFromCloud();
+      syncRecord.count = 0;
+    }
     if(notificationModel.syncCountStarted == false){
       startTimers();
     }
@@ -73,6 +75,7 @@ class _PosPinPageState extends State<PosPinPage> {
     notificationModel.setSyncCountAsStarted();
     notificationModel.resetTimer();
     Timer.periodic(Duration(seconds: 15), (timer) async {
+      print('sync record count: ${syncRecord.count}');
       bool _status = notificationModel.notificationStatus;
       bool stopTimer = notificationModel.stopTimer;
       if (stopTimer == true) {
@@ -92,47 +95,56 @@ class _PosPinPageState extends State<PosPinPage> {
         if (timerCount == 0) {
           //sync to cloud
           print('sync to cloud');
-          var isLogOut = await SyncToCloud().syncAllToCloud();
-          if (isLogOut == true) {
-            openLogOutDialog();
-            return;
+          if(mainSyncToCloud.count == 0){
+            var isLogOut = await mainSyncToCloud.syncAllToCloud();
+            if (isLogOut == true) {
+              openLogOutDialog();
+              return;
+            }
+            mainSyncToCloud.count = 0;
           }
           //SyncToCloud().syncToCloud();
         } else {
           //qr order sync
-          print('qr order sync');
-          QrOrder().getQrOrder();
-
-          if (notificationModel.notificationStatus == true) {
-            print('timer reset inside');
-            timerCount = 0;
-            notificationModel.resetNotification();
-            return;
+          if(qrOrder.count == 0){
+            print('qr order sync');
+            qrOrder.getQrOrder();
+            qrOrder.count = 0;
           }
+
+          // if (notificationModel.notificationStatus == true) {
+          //   print('timer reset inside');
+          //   timerCount = 0;
+          //   notificationModel.resetNotification();
+          //   return;
+          // }
           //sync from cloud
-          var syncStatus = await SyncRecord().syncFromCloud();
-          print('is log out: ${syncStatus}');
-          if (syncStatus == true) {
-            openLogOutDialog();
-            return;
-          } else if (syncStatus == false) {
-            // ScaffoldMessenger.of(context).showSnackBar(
-            //   SnackBar(
-            //     duration: Duration(minutes: 5),
-            //     backgroundColor: Colors.green,
-            //     content: const Text('Content change !!!'),
-            //     action: SnackBarAction(
-            //       label: 'Refresh',
-            //       textColor: Colors.white,
-            //       onPressed: () {
-            //         setState(() {
-            //           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            //         });
-            //         // Code to execute.
-            //       },
-            //     ),
-            //   ),
-            // );
+          if(syncRecord.count == 0){
+            var syncStatus = await syncRecord.syncFromCloud();
+            print('is log out: ${syncStatus}');
+            if (syncStatus == true) {
+              openLogOutDialog();
+              return;
+            } else if (syncStatus == false) {
+              // ScaffoldMessenger.of(context).showSnackBar(
+              //   SnackBar(
+              //     duration: Duration(minutes: 5),
+              //     backgroundColor: Colors.green,
+              //     content: const Text('Content change !!!'),
+              //     action: SnackBarAction(
+              //       label: 'Refresh',
+              //       textColor: Colors.white,
+              //       onPressed: () {
+              //         setState(() {
+              //           ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              //         });
+              //         // Code to execute.
+              //       },
+              //     ),
+              //   ),
+              // );
+            }
+            syncRecord.count = 0;
           }
         }
         //add timer and reset hasNotification
@@ -473,10 +485,10 @@ class _PosPinPageState extends State<PosPinPage> {
     TransferOwner createRecord = await PosDatabase.instance.insertSqliteTransferOwner(object);
     TransferOwner _keyInsert = await insertTransferOwnerKey(createRecord, dateTime);
     _value.add(jsonEncode(_keyInsert));
-    await syncToCloud(_value.toString());
+    await syncTransferOwnerToCloud(_value.toString());
   }
 
-  syncToCloud(String value) async {
+  syncTransferOwnerToCloud(String value) async {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
     final String? login_value = prefs.getString('login_value');

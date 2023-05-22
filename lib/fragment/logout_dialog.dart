@@ -92,7 +92,9 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
 
   deviceLogout() async {
     final int? device_id = prefs.getInt('device_id');
-    Map response = await Domain().deviceLogout(device_id.toString());
+    if(device_id != 4){
+      Map response = await Domain().deviceLogout(device_id.toString());
+    }
   }
 
   logout(CartModel cart) async{

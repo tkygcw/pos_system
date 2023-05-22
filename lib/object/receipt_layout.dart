@@ -75,9 +75,9 @@ class ReceiptLayout{
     String result = '';
     for (int i = 0; i < object.variant.length; i++) {
       VariantGroup group = object.variant[i];
-      for (int j = 0; j < group.child.length; j++) {
-        if (group.child[j].isSelected!) {
-          variant.add(group.child[j].name!);
+      for (int j = 0; j < group.child!.length; j++) {
+        if (group.child![j].isSelected!) {
+          variant.add(group.child![j].name!);
           result = variant.toString().replaceAll('[', '').replaceAll(']', '').replaceAll(",", " |");
         }
       }
@@ -1368,7 +1368,7 @@ class ReceiptLayout{
         if(orderDetail.has_variant == '1'){
           bytes += generator.row([
             PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '-${orderDetail.product_variant_name}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+            PosColumn(text: '(${orderDetail.product_variant_name})', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
             PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
           ]);
         }
@@ -2733,11 +2733,9 @@ class ReceiptLayout{
   read specific order cache (reprint use)
 */
   readReprintOrderCache(String orderCacheId, int table_sqlite_id ) async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
     List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(table_sqlite_id);
 
-    List<OrderCache> cacheData = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
+    List<OrderCache> cacheData = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_sqlite_id!);
     for(int i = 0; i < cacheData.length; i++){
       this.orderCacheList.add(cacheData[i]);
       List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCacheList[i].order_cache_sqlite_id.toString());

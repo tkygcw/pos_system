@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:pos_system/object/branch.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/product.dart';
@@ -32,8 +32,10 @@ import 'modifier_item.dart';
 import 'modifier_link_product.dart';
 
 class SyncRecord {
+  int count = 0;
 
   syncFromCloud() async {
+    count++;
     print("sync from cloud call");
     return await checkAllSyncRecord();
   }
@@ -52,6 +54,7 @@ class SyncRecord {
       if (data['status'] == '1') {
         print('status 1 called!');
         List responseJson = data['data'];
+        print('data: ${data['data']}');
         for (var i = 0; i < responseJson.length; i++) {
           switch(responseJson[i]['type']){
             case '0':
@@ -200,6 +203,8 @@ class SyncRecord {
         print('sync record length: ${syncRecordIdList.length}');
         //update sync record
         Map updateResponse = await Domain().updateAllCloudSyncRecord('${branchObject['branchID']}', syncRecordIdList.toString());
+        notificationModel.setContentLoaded();
+        notificationModel.setCartContentLoaded();
         return false;
       } else if (data['status'] == '7'){
         return true;

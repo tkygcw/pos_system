@@ -159,13 +159,13 @@ class _SetupPageState extends State<SetupPage> {
                 Visibility(
                   visible: isFirstPage ? false : true,
                   child: TextButton(
-                    style: TextButton.styleFrom(primary: Colors.white),
+                    style: TextButton.styleFrom(foregroundColor: Colors.white),
                     onPressed: isFirstPage ? null : () => togglePage(true),
                     child: Text('BACK'),
                   ),
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(primary: color.buttonColor),
+                  style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                   onPressed: () async  {
                     await checkBranchSelected();
                   },
@@ -235,11 +235,15 @@ class _SetupPageState extends State<SetupPage> {
   }
 
   checkDeviceLogin() async {
-    Map response = await Domain().getDeviceLogin(selectedDevice!.deviceID!.toString());
-    if(response['status'] == '1'){
-      openConfirmDialog();
-    } else if (response['status'] == '2'){
-      saveBranchAndDevice();
+    if(selectedDevice!.deviceID! != '4'){
+      Map response = await Domain().getDeviceLogin(selectedDevice!.deviceID!.toString());
+      if(response['status'] == '1'){
+        openConfirmDialog();
+      } else if (response['status'] == '2'){
+        await saveBranchAndDevice();
+      }
+    } else {
+      await saveBranchAndDevice();
     }
   }
 

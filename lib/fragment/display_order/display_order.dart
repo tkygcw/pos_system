@@ -279,9 +279,9 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           orderDetailList[i].remark!,
           0,
           orderCache.order_cache_sqlite_id.toString(),
-          Colors.black,
           category_sqlite_id: orderDetailList[i].category_sqlite_id,
-          order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString()
+          order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString(),
+          refColor: Colors.black,
       );
       cart.addItem(value);
       if(orderCache.dining_name == 'Take Away'){

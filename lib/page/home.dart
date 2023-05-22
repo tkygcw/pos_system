@@ -17,20 +17,19 @@ import 'package:pos_system/fragment/table/table.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
+import 'package:pos_system/object/qr_order.dart';
+import 'package:pos_system/object/sync_record.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../database/domain.dart';
 import '../database/pos_database.dart';
 import '../fragment/display_order/other_order.dart';
 import '../fragment/logout_dialog.dart';
 import '../fragment/qr_order/qr_order_page.dart';
 import '../fragment/report/init_report_page.dart';
 import '../fragment/settlement/cash_dialog.dart';
+import '../object/app_setting.dart';
 import '../object/branch.dart';
-import '../object/qr_order.dart';
-import '../object/sync_record.dart';
-import '../object/sync_to_cloud.dart';
 import '../object/user.dart';
 
 //11
@@ -53,6 +52,7 @@ class _HomePageState extends State<HomePage> {
   bool hasNotification = false;
   int loaded = 0;
   late ThemeColor themeColor;
+  List<AppSetting> appSettingList = [];
 
   @override
   void initState() {
@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> {
       setupFirebaseMessaging();
     }
     setScreenLayout();
-    //startTimers();
+    initSecondDisplay();
     _items = _generateItems;
     currentPage = 'menu';
     getRoleName();
@@ -94,6 +94,12 @@ class _HomePageState extends State<HomePage> {
     }
 
     super.dispose();
+  }
+
+  initSecondDisplay() async {
+    if(notificationModel.hasSecondScreen == true){
+      await displayManager.showSecondaryDisplay(displayId: notificationModel.displays[1]!.displayId, routerName: "presentation");
+    }
   }
 
   setScreenLayout() {
@@ -133,58 +139,56 @@ class _HomePageState extends State<HomePage> {
     var size = MediaQuery.of(context).size;
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       this.themeColor = color;
-      return Consumer<NotificationModel>(builder: (context, NotificationModel notificationModel, child) {
-        return WillPopScope(
-          onWillPop: () async => false,
-          child: Scaffold(
-              resizeToAvoidBottomInset: false,
-              body: SafeArea(
-                //side nav bar
-                child: CollapsibleSidebar(
-                    sidebarBoxShadow: [
-                      BoxShadow(
-                        color: Colors.transparent,
+      return WillPopScope(
+        onWillPop: () async => false,
+        child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            body: SafeArea(
+              //side nav bar
+              child: CollapsibleSidebar(
+                  sidebarBoxShadow: [
+                    BoxShadow(
+                      color: Colors.transparent,
+                    ),
+                  ],
+                  // maxWidth: 80,
+                  isCollapsed: true,
+                  items: _items,
+                  avatarImg: AssetImage("drawable/logo.png"),
+                  title: widget.user!.name! + "\n" + (branchName ?? '') + " - " + role,
+                  backgroundColor: color.backgroundColor,
+                  selectedTextColor: color.iconColor,
+                  textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
+                  titleStyle: TextStyle(fontSize: 17, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
+                  toggleTitleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  selectedIconColor: color.iconColor,
+                  selectedIconBox: color.buttonColor,
+                  unselectedIconColor: Colors.white,
+                  body: Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: _body(size, context),
                       ),
+                      //cart page
+                      Visibility(
+                        visible: currentPage != 'product' &&
+                            currentPage != 'setting' &&
+                            currentPage != 'settlement' &&
+                            currentPage != 'qr_order' &&
+                            currentPage != 'report'
+                            ? true
+                            : false,
+                        child: Expanded(
+                            flex: MediaQuery.of(context).size.height > 500 ? 1 : 2,
+                            child: CartPage(
+                              currentPage: currentPage,
+                            )),
+                      )
                     ],
-                    // maxWidth: 80,
-                    isCollapsed: true,
-                    items: _items,
-                    avatarImg: AssetImage("drawable/logo.png"),
-                    title: widget.user!.name! + "\n" + (branchName ?? '') + " - " + role,
-                    backgroundColor: color.backgroundColor,
-                    selectedTextColor: color.iconColor,
-                    textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
-                    titleStyle: TextStyle(fontSize: 17, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
-                    toggleTitleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    selectedIconColor: color.iconColor,
-                    selectedIconBox: color.buttonColor,
-                    unselectedIconColor: Colors.white,
-                    body: Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: _body(size, context),
-                        ),
-                        //cart page
-                        Visibility(
-                          visible: currentPage != 'product' &&
-                                  currentPage != 'setting' &&
-                                  currentPage != 'settlement' &&
-                                  currentPage != 'qr_order' &&
-                                  currentPage != 'report'
-                              ? true
-                              : false,
-                          child: Expanded(
-                              flex: MediaQuery.of(context).size.height > 500 ? 1 : 2,
-                              child: CartPage(
-                                currentPage: currentPage,
-                              )),
-                        )
-                      ],
-                    )),
-              )),
-        );
-      });
+                  )),
+            )),
+      );
     });
   }
 
@@ -284,81 +288,13 @@ class _HomePageState extends State<HomePage> {
     print('branch name : $branchName');
   }
 
-  // startTimers() {
-  //   int timerCount = 0;
-  //   notificationModel.resetTimer();
-  //   Timer.periodic(Duration(seconds: 15), (timer) async {
-  //     print('home timer called');
-  //     bool _status = notificationModel.notificationStatus;
-  //     bool stopTimer = notificationModel.stopTimer;
-  //     if (stopTimer == true) {
-  //       print('timer cancelled called');
-  //       timer.cancel();
-  //       return;
-  //     }
-  //     if (_status == true) {
-  //       print('timer reset');
-  //       timerCount = 0;
-  //     }
-  //     bool _hasInternetAccess = await Domain().isHostReachable();
-  //     if (_hasInternetAccess) {
-  //       print('timer count: ${timerCount}');
-  //       if (timerCount == 0) {
-  //         //sync to cloud
-  //         print('sync to cloud');
-  //         var isLogOut = await SyncToCloud().syncAllToCloud();
-  //         if (isLogOut == true) {
-  //           openLogOutDialog();
-  //           return;
-  //         }
-  //         //SyncToCloud().syncToCloud();
-  //       } else {
-  //         //qr order sync
-  //         print('qr order sync');
-  //         QrOrder().getQrOrder();
-  //         //sync from cloud
-  //         var syncStatus = await SyncRecord().syncFromCloud();
-  //         print('is log out: ${syncStatus}');
-  //         if (syncStatus == true) {
-  //           openLogOutDialog();
-  //           return;
-  //         } else if (syncStatus == false) {
-  //           // ScaffoldMessenger.of(context).showSnackBar(
-  //           //   SnackBar(
-  //           //     duration: Duration(minutes: 5),
-  //           //     backgroundColor: Colors.green,
-  //           //     content: const Text('Content change !!!'),
-  //           //     action: SnackBarAction(
-  //           //       label: 'Refresh',
-  //           //       textColor: Colors.white,
-  //           //       onPressed: () {
-  //           //         setState(() {
-  //           //           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-  //           //         });
-  //           //         // Code to execute.
-  //           //       },
-  //           //     ),
-  //           //   ),
-  //           // );
-  //         }
-  //       }
-  //       //add timer and reset hasNotification
-  //       timerCount++;
-  //       notificationModel.resetNotification();
-  //       // reset the timer after two executions
-  //       if (timerCount >= 2) {
-  //         timerCount = 0;
-  //       }
-  //     }
-  //   });
-  // }
-
   /*
   *
   *   handle Push notification purpose
   *
   * */
   Future<void> setupFirebaseMessaging() async {
+    print('setup firebase called');
     notificationModel.setNotificationAsStarted();
     // Update the iOS foreground notification presentation options to allow
     // heads up notifications.
@@ -369,6 +305,7 @@ class _HomePageState extends State<HomePage> {
     );
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('has notification');
       showFlutterNotification(message);
     });
 
@@ -389,17 +326,23 @@ class _HomePageState extends State<HomePage> {
       * qr ordering come in
       * */
       if (message.data['type'] == '0') {
-        QrOrder().getQrOrder();
-        manageNotificationTimer();
+        if(qrOrder.count == 0){
+          qrOrder.getQrOrder();
+          manageNotificationTimer();
+        }
       }
       /*
       * sync request
       * */
       else {
         notificationModel.setNotification(true);
-        notificationModel.resetContentLoaded();
+        notificationModel.setContentLoad();
         Fluttertoast.showToast(backgroundColor: Colors.green, msg: "Cloud db change! sync from cloud");
-        await SyncRecord().syncFromCloud();
+        // await SyncRecord().syncFromCloud();
+        if(syncRecord.count == 0){
+          await syncRecord.syncFromCloud();
+          syncRecord.count = 0;
+        }
       }
     }
   }

@@ -211,15 +211,13 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   }
 
   readCartItemInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
     //get cart item order cache
     List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCache(widget.cartItem.orderCacheId!);
     cartCacheList = List.from(cacheData);
 
     if(widget.currentPage != 'other order'){
       //get table use order cache
-      List<OrderCache> tableCacheData = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), cacheData[0].table_use_sqlite_id!);
+      List<OrderCache> tableCacheData = await PosDatabase.instance.readTableOrderCache(cacheData[0].table_use_sqlite_id!);
       cartTableCacheList = List.from(tableCacheData);
 
       //get table use detail
@@ -340,9 +338,9 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
             openLogOutDialog();
             return;
           } else {
+            tableModel.changeContent(true);
             await PrintReceipt().printDeleteList(printerList, widget.cartItem.orderCacheId!, dateTime);
             await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem.orderCacheId!, widget.cartItem.category_sqlite_id!, dateTime, cart);
-            tableModel.changeContent(true);
           }
           //syncUpdatedPosTableToCloud(_posTableValue.toString());
           //print cancel receipt

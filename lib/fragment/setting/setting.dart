@@ -58,7 +58,7 @@ class _SettingMenuState extends State<SettingMenu> {
     //   child: TestCategorySync(),
     // ),
     // Container(
-    //   child: SecondDisplayTest(),
+    //   child: DisplayManagerScreen(),
     // ),
     // Container(
     //   child: TestPrint(),

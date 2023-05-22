@@ -35,6 +35,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../main.dart';
 import '../../object/cart_payment.dart';
 import '../../object/cash_record.dart';
 import '../../object/order_modifier_detail.dart';
@@ -129,12 +130,63 @@ class _CartPageState extends State<CartPage> {
     super.deactivate();
   }
 
+  Future showSecondDialog(BuildContext context, ThemeColor color, CartModel cart, BranchLinkDining branchLinkDining) {
+    return showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) => Center(
+        child: SingleChildScrollView(
+          physics: NeverScrollableScrollPhysics(),
+          child: AlertDialog(
+            title: Text('Confirm change dining option'),
+            content: SizedBox(
+              child: Text('All your cart item will remove, confirm change dining option?')
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                onPressed: () {
+                  cart.removeAllCartItem();
+                  cart.removeAllTable();
+                  cart.selectedOption = branchLinkDining.name!;
+                  cart.selectedOptionId = branchLinkDining.dining_id!;
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Consumer<CartModel>(builder: (context, CartModel cart, child) {
+          if(notificationModel.cartContentLoaded == true){
+            print('cart refresh!');
+            notificationModel.resetCartContentLoaded();
+            Future.delayed(const Duration(seconds: 1), () {
+              print('cart delay refresh!');
+              if(mounted){
+                setState(() {
+                  readAllBranchLinkDiningOption();
+                  getPromotionData();
+                  getSubTotal(cart);
+                  getReceiptPaymentDetail(cart);
+                });
+              }
+            });
+          }
           widget.currentPage == 'menu' || widget.currentPage == 'table' || widget.currentPage == 'qr_order' || widget.currentPage == 'other_order'
               ? getSubTotal(cart)
               : getReceiptPaymentDetail(cart);
@@ -243,10 +295,7 @@ class _CartPageState extends State<CartPage> {
                                               })
                                             : cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status != 1 && cart.selectedOption != diningList[index].name!
                                                 ? setState(() {
-                                                    cart.removeAllCartItem();
-                                                    cart.removeAllTable();
-                                                    cart.selectedOption = diningList[index].name!;
-                                                    cart.selectedOptionId = diningList[index].dining_id!;
+                                                    showSecondDialog(context, color, cart, diningList[index]);
                                                   })
                                                 : null
                                         : null;
@@ -771,9 +820,9 @@ class _CartPageState extends State<CartPage> {
     String result = '';
     for (int i = 0; i < object.variant.length; i++) {
       VariantGroup group = object.variant[i];
-      for (int j = 0; j < group.child.length; j++) {
-        if (group.child[j].isSelected!) {
-          variant.add(group.child[j].name! + '\n');
+      for (int j = 0; j < group.child!.length; j++) {
+        if (group.child![j].isSelected!) {
+          variant.add(group.child![j].name! + '\n');
           result = variant.toString().replaceAll('[', '').replaceAll(']', '').replaceAll(',', '+').replaceAll('|', '\n+').replaceFirst('', '+ ');
         }
       }
@@ -786,9 +835,9 @@ class _CartPageState extends State<CartPage> {
     String result = '';
     for (int i = 0; i < object.variant.length; i++) {
       VariantGroup group = object.variant[i];
-      for (int j = 0; j < group.child.length; j++) {
-        if (group.child[j].isSelected!) {
-          variant.add(group.child[j].name!);
+      for (int j = 0; j < group.child!.length; j++) {
+        if (group.child![j].isSelected!) {
+          variant.add(group.child![j].name!);
           result = variant.toString().replaceAll('[', '').replaceAll(']', '').replaceAll(",", " |");
         }
       }
@@ -1742,6 +1791,8 @@ class _CartPageState extends State<CartPage> {
   }
 
   readAllBranchLinkDiningOption() async {
+    diningList.clear();
+    branchLinkDiningIdList.clear();
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     List<BranchLinkDining> data = await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
@@ -1749,10 +1800,13 @@ class _CartPageState extends State<CartPage> {
       diningList.add(data[i]);
       branchLinkDiningIdList.add(data[i].dining_id!);
     }
-    controller.add('refresh');
+    if (!controller.isClosed) {
+      controller.sink.add('refresh');
+    }
   }
 
   void getPromotionData() async {
+    promotionList.clear();
     try {
       List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion();
       for (int i = 0; i < data.length; i++) {
@@ -2475,70 +2529,74 @@ class _CartPageState extends State<CartPage> {
   }
 
   syncAllToCloud() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().syncLocalUpdateToCloud(
-          device_id: device_id.toString(),
-          value: login_value,
-          table_use_value: this.table_use_value,
-          table_use_detail_value: this.table_use_detail_value,
-          order_cache_value: this.order_cache_value,
-          order_detail_value: this.order_detail_value,
-          branch_link_product_value: this.branch_link_product_value,
-          order_modifier_value: this.order_modifier_detail_value,
-          table_value: this.table_value);
-      if (data['status'] == '1') {
-        print('success');
-        List responseJson = data['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          switch (responseJson[i]['table_name']) {
-            case 'tb_table_use':
-              {
-                await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
-              }
-              break;
-            case 'tb_table_use_detail':
-              {
-                await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-              }
-              break;
-            case 'tb_order_cache':
-              {
-                await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
-              }
-              break;
-            case 'tb_order_detail':
-              {
-                await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
-              }
-              break;
-            case 'tb_order_modifier_detail':
-              {
-                await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
-              }
-              break;
-            case 'tb_branch_link_product':
-              {
-                await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-              }
-              break;
-            case 'tb_table':
-              {
-                await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-              }
-              break;
-            default:
-              {
-                return;
-              }
+    if(mainSyncToCloud.count == 0){
+      mainSyncToCloud.count = 1;
+      final prefs = await SharedPreferences.getInstance();
+      final int? device_id = prefs.getInt('device_id');
+      final String? login_value = prefs.getString('login_value');
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if (_hasInternetAccess) {
+        Map data = await Domain().syncLocalUpdateToCloud(
+            device_id: device_id.toString(),
+            value: login_value,
+            table_use_value: this.table_use_value,
+            table_use_detail_value: this.table_use_detail_value,
+            order_cache_value: this.order_cache_value,
+            order_detail_value: this.order_detail_value,
+            branch_link_product_value: this.branch_link_product_value,
+            order_modifier_value: this.order_modifier_detail_value,
+            table_value: this.table_value);
+        if (data['status'] == '1') {
+          print('success');
+          List responseJson = data['data'];
+          for (int i = 0; i < responseJson.length; i++) {
+            switch (responseJson[i]['table_name']) {
+              case 'tb_table_use':
+                {
+                  await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+                }
+                break;
+              case 'tb_table_use_detail':
+                {
+                  await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+                }
+                break;
+              case 'tb_order_cache':
+                {
+                  await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+                }
+                break;
+              case 'tb_order_detail':
+                {
+                  await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+                }
+                break;
+              case 'tb_order_modifier_detail':
+                {
+                  await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
+                }
+                break;
+              case 'tb_branch_link_product':
+                {
+                  await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+                }
+                break;
+              case 'tb_table':
+                {
+                  await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+                }
+                break;
+              default:
+                {
+                  return;
+                }
+            }
           }
+        }else if(data['status'] == '7'){
+          this.isLogOut = true;
         }
-      }else if(data['status'] == '7'){
-        this.isLogOut = true;
       }
+      mainSyncToCloud.count = 0;
     }
   }
 }

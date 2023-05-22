@@ -226,12 +226,9 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
     isLoad = false;
     orderDetailList.clear();
     orderCacheList.clear();
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
 
     //Get all order table cache
-    List<OrderCache> data = await PosDatabase.instance
-        .readTableOrderCache(branch_id.toString(), widget.object.table_id.toString());
+    List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(widget.object.table_id.toString());
     //loop all table order cache
     for (int i = 0; i < data.length; i++) {
       if(!orderCacheList.contains(data)){
@@ -462,7 +459,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
         orderDetailList[i].remark!,
         1,
         null,
-        Colors.black
+        refColor: Colors.black,
       );
       cart.addItem(value);
     }

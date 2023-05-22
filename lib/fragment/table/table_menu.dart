@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -102,11 +101,13 @@ class _TableMenuState extends State<TableMenu> {
           if (tableModel.isChange) {
             readAllTable(model: tableModel);
           }
-          if(notificationModel.notificationStatus == true && notificationModel.contentLoaded == false) {
-            print('notification refresh called!');
+          if(notificationModel.contentLoaded == true) {
             isLoaded = false;
-            notificationModel.setContentLoaded();
-            Future.delayed(const Duration(seconds: 3), () {
+          }
+          if(notificationModel.contentLoaded == true){
+            notificationModel.resetContentLoaded();
+            notificationModel.resetContentLoad();
+            Future.delayed(const Duration(seconds: 1), () {
               if(mounted){
                 setState(() {
                   readAllTable(notification: true);
@@ -208,15 +209,16 @@ class _TableMenuState extends State<TableMenu> {
                                               } else if (tableList[i].isSelected == true) {
                                                 if (tableList[index].group == tableList[i].group) {
                                                   setState(() {
-                                                    removeFromCart(cart, tableList[index]);
+                                                    //removeFromCart(cart, tableList[index]);
                                                     tableList[i].isSelected = false;
-                                                    cart.removeSpecificTable(tableList[i]);
+                                                    //print('table list: ${tableList[i].number}');
+                                                    //cart.removeSpecificTable(tableList[i]);
                                                   });
                                                 } else {
                                                   setState(() {
-                                                    removeFromCart(cart, tableList[index]);
+                                                    //removeFromCart(cart, tableList[index]);
                                                     tableList[i].isSelected = false;
-                                                    cart.removeSpecificTable(tableList[index]);
+                                                    //cart.removeSpecificTable(tableList[index]);
                                                   });
                                                 }
                                               }
@@ -229,24 +231,21 @@ class _TableMenuState extends State<TableMenu> {
                                               tableList[j].isSelected = false;
                                               cart.removeAllCartItem();
                                               cart.removePromotion();
-                                              cart.removeSpecificTable(
-                                                  tableList[j]);
+                                              cart.removeSpecificTable(tableList[j]);
                                             }
                                           }
-                                          Fluttertoast.showToast(
-                                              backgroundColor:
-                                                  Color(0xFF07F107),
-                                              msg: "Table not in use");
+                                          Fluttertoast.showToast(backgroundColor: Color(0xFF07F107), msg: "Table not in use");
                                         }
                                         if (tableList[index].status == 1 && tableList[index].isSelected == true) {
                                           //await readSpecificTableDetail(tableList[index]);
                                           addToCart(cart, tableList[index]);
+                                        } else {
+                                          removeFromCart(cart, tableList[index]);
                                         }
                                       }
                                     },
                                     child: Container(
-                                      margin:
-                                          MediaQuery.of(context).size.height > 500 ? EdgeInsets.all(2) : EdgeInsets.all(0),
+                                      margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.all(2) : EdgeInsets.all(0),
                                       child: Column(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
@@ -463,20 +462,23 @@ class _TableMenuState extends State<TableMenu> {
   readAllTableGroup() async {
     priceSST = 0.0;
     priceServeTax = 0.0;
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
 
-    for (int i = 0; i < tableList.length; i++) {
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(tableList[i].table_sqlite_id!);
-      if (tableUseDetailData.isNotEmpty) {
-        List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
-        if(data.isNotEmpty){
-          tableList[i].group = data[0].table_use_sqlite_id;
-          tableList[i].card_color = data[0].card_color;
-          //tableList[i].total_Amount = double.parse(data[0].total_amount!);
+    bool hasTableInUse = tableList.any((item) => item.status == 1);
+    if(hasTableInUse){
+      for (int i = 0; i < tableList.length; i++) {
+        if(tableList[i].status == 1){
+          List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(tableList[i].table_sqlite_id!);
+          if (tableUseDetailData.isNotEmpty) {
+            List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_sqlite_id!);
+            if(data.isNotEmpty){
+              tableList[i].group = data[0].table_use_sqlite_id;
+              tableList[i].card_color = data[0].card_color;
+              //tableList[i].total_Amount = double.parse(data[0].total_amount!);
 
-          for(int j = 0; j < data.length; j++){
-            tableList[i].total_Amount += double.parse(data[j].total_amount!);
+              for(int j = 0; j < data.length; j++){
+                tableList[i].total_Amount += double.parse(data[j].total_amount!);
+              }
+            }
           }
         }
       }
@@ -486,14 +488,12 @@ class _TableMenuState extends State<TableMenu> {
   readSpecificTableDetail(PosTable posTable) async {
     orderDetailList.clear();
     orderCacheList.clear();
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
 
     //Get specific table use detail
     List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(posTable.table_sqlite_id!);
     if (tableUseDetailData.isNotEmpty) {
       //Get all order table cache
-      List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
+      List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_sqlite_id!);
 
       //loop all table order cache
       for (int i = 0; i < data.length; i++) {
@@ -637,8 +637,8 @@ class _TableMenuState extends State<TableMenu> {
   addToCart(CartModel cart, PosTable posTable) async {
     var value;
     List<TableUseDetail> tableUseDetailList = [];
-
-    for (int i = 0; i < orderDetailList.length; i++) {
+    var detailLength = orderDetailList.length;
+    for (int i = 0; i < detailLength; i++) {
       value = cartProductItem(
           orderDetailList[i].branch_link_product_sqlite_id!,
           orderDetailList[i].productName!,
@@ -650,21 +650,22 @@ class _TableMenuState extends State<TableMenu> {
           orderDetailList[i].remark!,
           0,
           orderDetailList[i].order_cache_sqlite_id,
-          toColor(posTable.card_color!),
           category_sqlite_id: orderDetailList[i].category_sqlite_id,
           order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString(),
-          base_price: orderDetailList[i].original_price
+          base_price: orderDetailList[i].original_price,
+          refColor: toColor(posTable.card_color!),
       );
       cart.addItem(value);
     }
-    for (int j = 0; j < orderCacheList.length; j++) {
+    var cacheLength = orderCacheList.length;
+    for (int j = 0; j < cacheLength; j++) {
       //Get specific table use detail
       List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
           .readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
       tableUseDetailList = List.from(tableUseDetailData);
     }
-
-    for (int k = 0; k < tableUseDetailList.length; k++) {
+    var length = tableUseDetailList.length;
+    for (int k = 0; k < length; k++) {
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[k].table_sqlite_id!);
       cart.addTable(tableData[0]);
     }
@@ -672,9 +673,11 @@ class _TableMenuState extends State<TableMenu> {
 
   removeFromCart(CartModel cart, PosTable posTable) async {
     var value;
+    List<TableUseDetail> tableUseDetailList = [];
     //await readSpecificTableDetail(posTable);
     if (this.productDetailLoaded) {
-      for (int i = 0; i < orderDetailList.length; i++) {
+      var detailLength = orderDetailList.length;
+      for (int i = 0; i < detailLength; i++) {
         value = cartProductItem(
             orderDetailList[i].branch_link_product_sqlite_id!,
             orderDetailList[i].productName!,
@@ -686,11 +689,24 @@ class _TableMenuState extends State<TableMenu> {
             orderDetailList[i].remark!,
             0,
             orderDetailList[i].order_cache_sqlite_id,
-            toColor(posTable.card_color!),
             category_sqlite_id: orderDetailList[i].category_sqlite_id,
-            order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString());
+            order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString(),
+            refColor: toColor(posTable.card_color!),
+        );
         cart.removeSpecificItem(value);
         cart.removePromotion();
+      }
+      var cacheLength = orderCacheList.length;
+      for (int j = 0; j < cacheLength; j++) {
+        //Get specific table use detail
+        List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
+        tableUseDetailList = tableUseDetailData;
+      }
+      var length = tableUseDetailList.length;
+      for (int k = 0; k < length; k++) {
+        List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[k].table_sqlite_id!);
+        cart.removeSpecificTable(tableData[0]);
+        //cart.addTable(tableData[0]);
       }
     }
   }

@@ -25,6 +25,7 @@ import '../logout_dialog.dart';
 class AdjustStockDialog extends StatefulWidget {
   final int orderCacheLocalId;
   final String tableLocalId;
+  final String currentBatch;
   final List<OrderCache> orderCacheList;
   final List<OrderDetail> orderDetailList;
   final Function() callBack;
@@ -35,7 +36,7 @@ class AdjustStockDialog extends StatefulWidget {
       required this.orderCacheLocalId,
       required this.callBack,
       required this.tableLocalId,
-      required this.orderCacheList})
+      required this.orderCacheList, required this.currentBatch})
       : super(key: key);
 
   @override
@@ -46,15 +47,9 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   List<OrderDetail> orderDetailList = [], noStockOrderDetailList = [], removeDetailList = [];
   List<Printer> printerList = [];
-  String localTableUseId = '', tableUseKey = '', tableUseDetailKey = '';
-  String? table_use_value,
-      table_use_detail_value,
-      order_cache_value,
-      order_detail_value,
-      delete_order_detail_value,
-      order_modifier_detail_value,
-      table_value,
-      branch_link_product_value;
+  String localTableUseId = '', tableUseKey = '', tableUseDetailKey = '', batchNo = '';
+  String? table_use_value, table_use_detail_value, order_cache_value, order_detail_value,
+      delete_order_detail_value, order_modifier_detail_value, table_value, branch_link_product_value;
   double newSubtotal = 0.0;
   bool hasNoStockProduct = false, tableInUsed = false;
   bool isButtonDisabled = false, isLogOut = false;
@@ -590,8 +585,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                     }
                                     widget.callBack;
                                     await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
-                                    await PrintReceipt()
-                                        .printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                                    await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                                   } else {
                                     await callNewOrder();
                                     await updateProductStock();
@@ -740,6 +734,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   }
 
   updateOrderCache() async {
+    String currentBatch = widget.currentBatch;
     List<String> _value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -747,6 +742,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         updated_at: dateTime,
         sync_status: 2,
         total_amount: newSubtotal.toStringAsFixed(2),
+        batch_id: tableInUsed ? this.batchNo : currentBatch,
         table_use_key: this.tableUseKey,
         table_use_sqlite_id: this.localTableUseId,
         order_cache_sqlite_id: widget.orderCacheLocalId);
@@ -1036,7 +1032,9 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(widget.tableLocalId);
       if (tableData[0].status == 1) {
         TableUse tableUse = await PosDatabase.instance.readSpecificTableUseByKey(tableData[0].table_use_key!);
+        List<OrderCache> orderCache = await PosDatabase.instance.readTableOrderCache(tableUse.table_use_sqlite_id.toString());
         tableInUsed = true;
+        batchNo = orderCache[0].batch_id!;
         this.tableUseKey = tableData[0].table_use_key!;
         this.localTableUseId = tableUse.table_use_sqlite_id.toString();
       }
