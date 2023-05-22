@@ -26,7 +26,7 @@ class CartModel extends ChangeNotifier {
     removePromotion();
     removePaymentDetail();
     selectedOption = 'Dine in';
-    selectedOptionId = '1';
+    //selectedOptionId = '1';
     notifyListeners();
   }
 
@@ -36,7 +36,7 @@ class CartModel extends ChangeNotifier {
     removePromotion();
     removePaymentDetail();
     selectedOption = 'Take Away';
-    selectedOptionId = '2';
+    //selectedOptionId = '2';
     notifyListeners();
   }
 
@@ -70,8 +70,9 @@ class CartModel extends ChangeNotifier {
   }
 
   void addItem(cartProductItem object) {
+    print('add item called');
     cartNotifierItem.add(object);
-    notifyListeners();
+    //notifyListeners();
   }
 
   void removeItem(cartProductItem object) {

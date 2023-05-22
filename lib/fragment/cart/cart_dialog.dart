@@ -606,14 +606,11 @@ class _CartDialogState extends State<CartDialog> {
   }
 
   readAllTableAmount() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
     for (int i = 0; i < tableList.length; i++) {
       List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
 
       if (tableUseDetailData.length > 0) {
-        List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
+        List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_sqlite_id!);
 
         tableList[i].group = data[0].table_use_sqlite_id;
         tableList[i].card_color = data[0].card_color;
@@ -629,14 +626,12 @@ class _CartDialogState extends State<CartDialog> {
   readSpecificTableDetail(PosTable posTable) async {
     orderDetailList.clear();
     orderCacheList.clear();
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
 
     //Get specific table use detail
     List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(posTable.table_sqlite_id!);
 
     //Get all order table cache
-    List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(branch_id.toString(), tableUseDetailData[0].table_use_sqlite_id!);
+    List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_sqlite_id!);
     //loop all table order cache
     for (int i = 0; i < data.length; i++) {
       if (!orderCacheList.contains(data)) {
@@ -769,14 +764,14 @@ class _CartDialogState extends State<CartDialog> {
           orderDetailList[i].remark!,
           1,
           null,
-          Colors.black,
           category_sqlite_id: orderDetailList[i].category_sqlite_id,
           first_cache_created_date_time: orderCacheList.last.created_at,  //orderCacheList[0].created_at,
-          first_cache_batch: orderCacheList[0].batch_id
+          first_cache_batch: orderCacheList.last.batch_id,
+          first_cache_order_by: orderCacheList.last.order_by,
+          refColor: Colors.black,
       );
       cart.addItem(value);
     }
-    print('first order cache: ${orderCacheList[0].order_cache_sqlite_id}');
     for (int j = 0; j < orderCacheList.length; j++) {
       //Get specific table use detail
       List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);

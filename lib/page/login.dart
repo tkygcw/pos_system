@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,7 +12,6 @@ import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/page/setup.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../fragment/logout_dialog.dart';
 import '../fragment/network_dialog.dart';
 import '../notifier/theme_color.dart';
 import 'package:flutter_login/flutter_login.dart';
@@ -24,6 +24,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  bool toNextPage = true;
   bool isLoaded = false;
   @override
   void initState() {
@@ -63,18 +64,23 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<String?> _authUser(LoginData loginInfo) {
     return Future.delayed(loginTime).then((_) async {
-      Map data = await Domain().userlogin(loginInfo.name, loginInfo.password);
-      if (data['status'] == '2') {
-        return 'Please check your email or password.';
+      try{
+        Map data = await Domain().userlogin(loginInfo.name, loginInfo.password);
+        if (data['status'] == '2') {
+          return 'Please check your email or password.';
+        }
+        if (data['status'] == '4') {
+          return 'Please try again later';
+        }
+        // Obtain shared preferences.
+        _createDir();
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString("user", json.encode(data['user']));
+        return null;
+      } catch(e){
+        Fluttertoast.showToast(msg: "Please try again later");
+        toNextPage = false;
       }
-      if (data['status'] == '4') {
-        return 'Please try again later';
-      }
-      // Obtain shared preferences.
-      _createDir();
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString("user", json.encode(data['user']));
-      return null;
     });
   }
 
@@ -107,15 +113,23 @@ class _LoginPageState extends State<LoginPage> {
                   recoverPasswordSuccess: 'Password reset successfully',
                 ),
                 scrollable: false,
-                logo: NetworkImage('${Domain.domain}asset/logo.jpg'),
+                logo: AssetImage("drawable/logo.png"),
+                //NetworkImage('${Domain.domain}asset/logo.png'),
                 // File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg').existsSync() == false
                 //     ? NetworkImage("https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg")
                 //     : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),
                 onLogin: _authUser,
                 onSubmitAnimationCompleted: () {
-                  Navigator.of(context).pushReplacement(MaterialPageRoute(
-                    builder: (context) => SetupPage(),
-                  ));
+                  if(toNextPage == true){
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      builder: (context) => SetupPage(),
+                    ));
+                  } else {
+                    Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                          (Route route) => false,
+                    );
+                  }
                 },
                 theme: LoginTheme(
                     primaryColor: Colors.black26,
@@ -146,6 +160,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
     bool _hasInternetAccess = await Domain().isHostReachable();
+    print('host reach: ${_hasInternetAccess}');
     if(!_hasInternetAccess){
       openLogOutDialog();
       return;

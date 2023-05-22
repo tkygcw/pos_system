@@ -25,6 +25,7 @@ import 'order_promotion_detail.dart';
 import 'order_tax_detail.dart';
 
 class SyncToCloud {
+  int count = 0;
   List<PosTable> notSyncPosTableList = [];
   List<Order> notSyncOrderList = [];
   List<OrderTaxDetail> notSyncOrderTaxDetailList = [];
@@ -49,6 +50,7 @@ class SyncToCloud {
       settlement_link_payment_value, cash_record_value, branch_link_product_value, printer_value, printer_link_category_value, transfer_owner_value;
 
   syncAllToCloud() async {
+    count++;
     await getAllValue();
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');

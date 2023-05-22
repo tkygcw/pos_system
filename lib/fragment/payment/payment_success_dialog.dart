@@ -15,6 +15,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../main.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
 import '../../object/order.dart';
@@ -90,6 +91,10 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           // ignore: null_check_always_fails
           return null!;
         });
+  }
+
+  reInitSecondDisplay() async {
+    await displayManager.transferDataToPresentation("init");
   }
 
   @override
@@ -181,6 +186,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                       });
                                       tableModel.changeContent(true);
                                       cartModel.initialLoad();
+                                      if(notificationModel.hasSecondScreen == true){
+                                        reInitSecondDisplay();
+                                      }
                                       Navigator.of(context).pop();
                                       Navigator.of(context).pop();
                                       Navigator.of(context).pop();

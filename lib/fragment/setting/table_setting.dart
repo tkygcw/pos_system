@@ -20,8 +20,9 @@ class TableSetting extends StatefulWidget {
 class _TableSettingState extends State<TableSetting> {
   List<PosTable> tableList = [];
   List<PosTable> checkedTable = [];
-  int _maxChecked = 4;
-  int _numChecked = 0;
+  String btnText = "Select All";
+  // int _maxChecked = 10;
+  // int _numChecked = 0;
   bool _isLoad = false;
 
   @override
@@ -37,6 +38,44 @@ class _TableSettingState extends State<TableSetting> {
       return LayoutBuilder(builder: (context,  constraints) {
         if(constraints.maxWidth > 800) {
           return Scaffold(
+            appBar: AppBar(
+              primary: false,
+              automaticallyImplyLeading: false,
+              title: Text('Table QR Generate', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+              elevation: 0,
+              actions: [
+                Container(
+                  padding: EdgeInsets.all(10),
+                  width: 125,
+                  child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color.backgroundColor
+                      ),
+                      onPressed: (){
+                        setState(() {
+                          if(btnText == "Select All"){
+                            for(var table in tableList){
+                              if(table.isSelected == false){
+                                table.isSelected = true;
+                                checkedTable.add(table);
+                              }
+                            }
+                            btnText = "Unselect";
+                          } else {
+                            for(var table in tableList){
+                              if(table.isSelected == true){
+                                table.isSelected = false;
+                                checkedTable.clear();
+                              }
+                            }
+                            btnText = "Select All";
+                          }
+                        });
+                      },
+                      child: Text('${btnText}')),
+                )
+              ],
+            ),
             resizeToAvoidBottomInset: false,
             floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
             floatingActionButton: FloatingActionButton(
@@ -76,24 +115,16 @@ class _TableSettingState extends State<TableSetting> {
                       child: CheckboxListTile(
                           value: tableList[index].isSelected,
                           activeColor: color.backgroundColor,
-                          title: Text('Table NO: ${tableList[index].number}'),
+                          title: Text('Table No: ${tableList[index].number}'),
                           onChanged: (value){
                             setState(() {
-                              if (value!) {
-                                if (_numChecked < _maxChecked) {
-                                  tableList[index].isSelected = true;
-                                  _numChecked++;
-                                  checkedTable.add(tableList[index]);
-                                } else {
-                                  // Prevent the user from checking more checkboxes
-                                  tableList[index].isSelected = false;
-                                }
+                              if(value!){
+                                tableList[index].isSelected = true;
+                                checkedTable.add(tableList[index]);
                               } else {
                                 tableList[index].isSelected = false;
-                                _numChecked--;
                                 checkedTable.remove(tableList[index]);
                               }
-                              print('check list: ${checkedTable.length}');
                             });
                           }),
                     );
@@ -117,6 +148,44 @@ class _TableSettingState extends State<TableSetting> {
         } else {
           ///mobile view
           return Scaffold(
+            appBar: AppBar(
+              primary: false,
+              automaticallyImplyLeading: false,
+              title: Text('Table QR Generate', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+              elevation: 0,
+              actions: [
+                Container(
+                  padding: EdgeInsets.all(10),
+                  width: 125,
+                  child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: color.backgroundColor
+                      ),
+                      onPressed: (){
+                        setState(() {
+                          if(btnText == "Select All"){
+                            for(var table in tableList){
+                              if(table.isSelected == false){
+                                table.isSelected = true;
+                                checkedTable.add(table);
+                              }
+                            }
+                            btnText = "Unselect";
+                          } else {
+                            for(var table in tableList){
+                              if(table.isSelected == true){
+                                table.isSelected = false;
+                                checkedTable.clear();
+                              }
+                            }
+                            btnText = "Select All";
+                          }
+                        });
+                      },
+                      child: Text('${btnText}')),
+                )
+              ],
+            ),
             resizeToAvoidBottomInset: false,
             floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
             floatingActionButton: FloatingActionButton(
@@ -160,18 +229,11 @@ class _TableSettingState extends State<TableSetting> {
                           title: Text('Table NO: ${tableList[index].number}'),
                           onChanged: (value){
                             setState(() {
-                              if (value!) {
-                                if (_numChecked < _maxChecked) {
-                                  tableList[index].isSelected = true;
-                                  _numChecked++;
-                                  checkedTable.add(tableList[index]);
-                                } else {
-                                  // Prevent the user from checking more checkboxes
-                                  tableList[index].isSelected = false;
-                                }
+                              if(value!){
+                                tableList[index].isSelected = true;
+                                checkedTable.add(tableList[index]);
                               } else {
                                 tableList[index].isSelected = false;
-                                _numChecked--;
                                 checkedTable.remove(tableList[index]);
                               }
                             });
@@ -200,7 +262,7 @@ class _TableSettingState extends State<TableSetting> {
   }
 
   getAllTable() async {
-    this._numChecked = 0;
+    this.btnText = "Select All";
     this.checkedTable.clear();
     List<PosTable> data = await PosDatabase.instance.readAllTable();
     tableList = data;

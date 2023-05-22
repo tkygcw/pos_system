@@ -92,7 +92,9 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
 
   deviceLogout() async {
     final int? device_id = prefs.getInt('device_id');
-    Map response = await Domain().deviceLogout(device_id.toString());
+    if(device_id != 4){
+      Map response = await Domain().deviceLogout(device_id.toString());
+    }
   }
 
   logout(CartModel cart) async{
@@ -159,6 +161,7 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
     //clear order
     PosDatabase.instance.clearAllOrderCache();
     PosDatabase.instance.clearAllOrderDetail();
+    PosDatabase.instance.clearAllOrderDetailCancel();
     PosDatabase.instance.clearAllOrderModifierDetail();
     PosDatabase.instance.clearAllOrder();
     PosDatabase.instance.clearAllOrderTax();

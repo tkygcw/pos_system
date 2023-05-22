@@ -1,35 +1,46 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:presentation_displays/display.dart';
 import 'package:presentation_displays/displays_manager.dart';
 import 'package:presentation_displays/secondary_display.dart';
+import 'package:provider/provider.dart';
 
-Route<dynamic> generateRoute(RouteSettings settings) {
-  switch (settings.name) {
-    case '/display':
-      return MaterialPageRoute(builder: (_) => const DisplayManagerScreen());
-    case 'presentation':
-      return MaterialPageRoute(builder: (_) => const SecondaryScreen());
-    default:
-      return MaterialPageRoute(
-          builder: (_) => Scaffold(
-            body: Center(
-                child: Text('No route defined for ${settings.name}')),
-          ));
-  }
-}
+import '../../notifier/cart_notifier.dart';
+import '../../object/second_display_data.dart';
+
+// Route<dynamic> generateRoute(RouteSettings settings) {
+//   return MaterialPageRoute(
+//       builder: (_) => Scaffold(
+//         body: Center(
+//             child: Text('No route defined for ${settings.name}')),
+//       ));
+//   // switch (settings.name) {
+//   //   case '/display':
+//   //     return MaterialPageRoute(builder: (_) => const DisplayManagerScreen());
+//   //   case 'presentation':
+//   //     return MaterialPageRoute(builder: (_) => const SecondaryScreen());
+//   //   default:
+//   //     return MaterialPageRoute(
+//   //         builder: (_) => Scaffold(
+//   //           body: Center(
+//   //               child: Text('No route defined for ${settings.name}')),
+//   //         ));
+//   // }
+// }
 
 
-class SecondDisplayTest  extends StatelessWidget {
-  const SecondDisplayTest ({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      onGenerateRoute: generateRoute,
-      initialRoute: '/display',
-    );
-  }
-}
+// class SecondDisplayTest  extends StatelessWidget {
+//   const SecondDisplayTest ({Key? key}) : super(key: key);
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return const Scaffold(
+//       onGenerateRoute: generateRoute,
+//       initialRoute: '/display',
+//     );
+//   }
+// }
 
 class Button extends StatelessWidget {
   final String title;
@@ -86,6 +97,7 @@ class _DisplayManagerScreenState extends State<DisplayManagerScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               _getDisplays(),
+              resetScreen(),
               _showPresentation(),
               _transferData(),
               _getDisplayeById(),
@@ -122,6 +134,22 @@ class _DisplayManagerScreenState extends State<DisplayManagerScreen> {
                 child: Center(
                     child: Text('${displays[index]?.displayId} ${displays[index]?.name}')),
               );
+            }),
+        const Divider()
+      ],
+    );
+  }
+
+  Widget resetScreen() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Button(
+            title: "Reset Screen",
+            onPressed: () async {
+              String data = "init";
+              await displayManager.transferDataToPresentation(data);
             }),
         const Divider()
       ],
@@ -268,23 +296,44 @@ class SecondaryScreen extends StatefulWidget {
 
 class _SecondaryScreenState extends State<SecondaryScreen> {
   String value = "init";
-
+  SecondDisplayData? obj;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: SecondaryDisplay(
-          callback: (argument) {
-            setState(() {
-              value = argument;
-              print('argument: ${argument}');
-            });
-          },
-          child: Container(
-            color: Colors.red,
-            child: Center(
-              child: Text(value),
-            ),
-          ),
-        ));
+    return Consumer<CartModel>(builder: (context, CartModel cart, child) {
+      return Scaffold(
+          body: SecondaryDisplay(
+              callback: (argument) {
+                setState(() {
+                  value = argument;
+                  //var decode = SecondDisplayData.fromJson(argument);
+                  if(argument != 'init'){
+                    var decode = jsonDecode(argument);
+                    obj = SecondDisplayData.fromJson(decode);
+                    print('argument: ${decode}');
+                  }
+                });
+              },
+              child: value == "init"
+                  ?
+              Container(
+                color: Colors.white24,
+                child: Center(
+                    child: Column(
+                      children: [
+                        Image.asset("drawable/logo.png"),
+                      ],
+                    )
+                ),
+              )
+                  :
+              Container(
+                color: Colors.white24,
+                child: Center(
+                    child: Text('This is payment screen: cart notifier item: ${obj?.tableNo}\n'
+                        'Item: ${obj?.itemList?[0].name}', style: TextStyle(fontSize: 35),)
+                ),
+              )
+          ));
+    });
   }
 }

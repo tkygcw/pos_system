@@ -85,8 +85,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
         orderCacheList = data;
       });
     } else {
-      List<OrderCache> data = await PosDatabase.instance.readOrderCacheSpecial(
-          branch_id.toString(), userObject['company_id'],selectDiningOption!);
+      List<OrderCache> data = await PosDatabase.instance.readOrderCacheSpecial(selectDiningOption!);
       setState(() {
         orderCacheList = data;
       });
@@ -214,7 +213,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                               padding: const EdgeInsets.all(16.0),
                               child: ListTile(
                                   leading:
-                                      orderCacheList[index].dining_id == '2'
+                                      orderCacheList[index].dining_name == 'Take Away'
                                           ? Icon(
                                               Icons.fastfood_sharp,
                                               color: color.backgroundColor,
@@ -280,14 +279,14 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           orderDetailList[i].remark!,
           0,
           orderCache.order_cache_sqlite_id.toString(),
-          Colors.black,
           category_sqlite_id: orderDetailList[i].category_sqlite_id,
-          order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString()
+          order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString(),
+          refColor: Colors.black,
       );
       cart.addItem(value);
-      if(orderCache.dining_id == '2'){
+      if(orderCache.dining_name == 'Take Away'){
         cart.selectedOption = 'Take Away';
-      } else if(orderCache.dining_id == '3') {
+      } else {
         cart.selectedOption = 'Delivery';
       }
     }

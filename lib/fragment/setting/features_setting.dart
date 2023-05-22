@@ -2,6 +2,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/logout_dialog.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -22,7 +23,7 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
   late Color _buttonColor;
   late Color _iconColor;
   List<AppSetting> appSettingList = [];
-  bool cashDrawer = false;
+  bool cashDrawer = false, secondDisplay = false;
   bool _isLoaded = false;
 
   @override
@@ -184,7 +185,6 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                   endIndent: 20,
                 ),
                 ListTile(
-                  isThreeLine: true,
                   title: Text('Auto open cash drawer'),
                   subtitle: Text('Auto open cash drawer after insert opening balance'),
                   trailing: Switch(
@@ -195,12 +195,31 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                         setState(() {
                           this.cashDrawer = value;
                         });
-                        if(appSettingList.length == 0){
+                        if(appSettingList.isEmpty){
                           await createAppSetting();
                         } else {
                           await updateAppSetting();
                         }
                       },
+                  ),
+                ),
+                ListTile(
+                  title: Text('Enable Second Display'),
+                  subtitle: Text('Show device second display (if have)'),
+                  trailing: Switch(
+                    value: this.secondDisplay,
+                    activeColor: color.backgroundColor,
+                    onChanged: (value) async {
+                      await getAllAppSetting();
+                      setState(() {
+                        this.secondDisplay = value;
+                      });
+                      if(appSettingList.length == 0){
+                        await createAppSetting();
+                      } else {
+                        await updateAppSetting();
+                      }
+                    },
                   ),
                 ),
                 Divider(
@@ -285,18 +304,25 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
   }
 
   updateAppSetting() async {
+    print('update called');
     AppSetting appSetting = AppSetting(
       open_cash_drawer: this.cashDrawer == true ? 1 : 0,
+      show_second_display: this.secondDisplay == true ? 1 : 0,
       app_setting_sqlite_id: appSettingList[0].app_setting_sqlite_id
-
     );
-
     int data = await PosDatabase.instance.updateAppSettings(appSetting);
+    if(appSetting.show_second_display == 0){
+      notificationModel.disableSecondDisplay();
+    } else {
+      notificationModel.enableSecondDisplay();
+    }
   }
 
   createAppSetting() async {
     AppSetting appSetting = AppSetting(
-      open_cash_drawer: this.cashDrawer ? 1 : 0
+      open_cash_drawer: this.cashDrawer ? 1 : 0,
+      show_second_display: this.secondDisplay ? 1 : 0
+
     );
     AppSetting data = await PosDatabase.instance.insertSetting(appSetting);
   }
@@ -309,6 +335,12 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
         this.cashDrawer = true;
       } else {
         this.cashDrawer = false;
+      }
+
+      if(appSettingList[0].show_second_display == 1){
+        this.secondDisplay = true;
+      } else {
+        this.secondDisplay = false;
       }
     }
     setState(() {

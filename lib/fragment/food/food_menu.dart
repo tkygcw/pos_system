@@ -58,11 +58,14 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      if(notificationModel.notificationStatus == true && notificationModel.contentLoaded == false) {
-        print('notification refresh called!');
+      if(notificationModel.contentLoad == true) {
         isLoading = true;
-        notificationModel.setContentLoaded();
-        Future.delayed(const Duration(milliseconds: 3500), () {
+        //print('notification refresh called!');
+      }
+      if(notificationModel.contentLoad == true && notificationModel.contentLoaded == true){
+        notificationModel.resetContentLoaded();
+        notificationModel.resetContentLoad();
+        Future.delayed(const Duration(seconds: 1), () {
           if(mounted){
             setState(() {
               readAllCategories(hasNotification: true);

@@ -5,12 +5,15 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:pos_system/fragment/test_dual_screen/test_display.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/notification.dart';
+import 'package:pos_system/object/qr_order.dart';
+import 'package:pos_system/object/sync_record.dart';
+import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:pos_system/page/login.dart';
+import 'package:pos_system/page/second_display.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/translation/appLanguage.dart';
 import 'package:presentation_displays/display.dart';
@@ -21,25 +24,17 @@ import 'notifier/cart_notifier.dart';
 import 'notifier/connectivity_change_notifier.dart';
 import 'notifier/printer_notifier.dart';
 import 'notifier/theme_color.dart';
+import 'object/lcd_display.dart';
 import 'page/loading.dart';
 import 'utils/notification_plugin.dart';
 
 final NotificationModel notificationModel = NotificationModel();
+final SyncToCloud mainSyncToCloud = SyncToCloud();
+final SyncRecord syncRecord = SyncRecord();
+final QrOrder qrOrder = QrOrder();
+final LCDDisplay lcdDisplay = LCDDisplay();
+DisplayManager displayManager = DisplayManager();
 final snackBarKey = GlobalKey<ScaffoldMessengerState>();
-
-Route<dynamic> generateRoute(RouteSettings settings) {
-  switch (settings.name) {
-    case '/init':
-      return MaterialPageRoute(builder: (_) => const LoginPage());
-    case 'presentation':
-      return MaterialPageRoute(builder: (_) => const SecondDisplayTest());
-    default:
-      return MaterialPageRoute(
-          builder: (_) => Scaffold(
-                body: Center(child: Text('No route defined for ${settings.name}')),
-              ));
-  }
-}
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
 
@@ -50,25 +45,36 @@ Future<void> main() async {
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   setupNotificationChannel();
 
+  //check second screen
+  getSecondScreen();
+
   //device detect
   deviceDetect();
+
   //other method
   statusBarColor();
+
+  //init lcd screen
+  initLCDScreen();
+
   WidgetsFlutterBinding.ensureInitialized();
 
   AppLanguage appLanguage = AppLanguage();
   //create default app color
   await appLanguage.fetchLocale();
-  runApp(ChangeNotifierProvider.value(
-    value: notificationModel,
-    child: MyApp(appLanguage: appLanguage),
-  ));
+  runApp(
+      ChangeNotifierProvider.value(
+        value: notificationModel,
+        child: MyApp(appLanguage: appLanguage),
+      )
+  );
 }
 
 deviceDetect() async {
   final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
   if (screenWidth < 500) {
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+    await SystemChrome.setPreferredOrientations(
+        [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   } else {
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
@@ -80,12 +86,15 @@ deviceDetect() async {
 setupNotificationChannel() {
   List<CustomNotificationChannel> channels = [
     CustomNotificationChannel(
-        channelId: 2, channelName: 'Order', title: 'Order', message: 'New Order Received!', description: 'New Order Received!', sound: 'notification')
+        channelId: 2,
+        channelName: 'Order',
+        title: 'Order',
+        message: 'New Order Received!',
+        description: 'New Order Received!',
+        sound: 'notification')
   ];
   NotificationPlugin(channels);
 }
-
-bool hasNotification = false;
 
 class MyApp extends StatelessWidget {
   final AppLanguage appLanguage;
@@ -94,8 +103,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool notification = hasNotification;
-    print('notification inside build main: ${notification}');
     // Set landscape orientation
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -168,21 +175,30 @@ class MyApp extends StatelessWidget {
                   ),
                 ),
               )),
-          routes: {'/loading': (context) => LoadingPage(), '/': (context) => LoginPage()},
+          routes: {
+            '/loading': (context) => LoadingPage(),
+            '/': (context) => LoginPage(),
+            'presentation': (context) => SecondDisplay(),
+          },
         );
       }),
     );
   }
 }
 
-initSecondScreen() async {
-  DisplayManager displayManager = DisplayManager();
+initLCDScreen() async {
+  await lcdDisplay.initLcd();
+}
+
+getSecondScreen() async {
   List<Display?> displays = [];
   final values = await displayManager.getDisplays();
   displays.clear();
   displays.addAll(values!);
   if (displays.length > 1) {
-    await displayManager.showSecondaryDisplay(displayId: 1, routerName: "/init");
+    notificationModel.setHasSecondScreen();
+    notificationModel.insertDisplay(value: displays);
+    //await displayManager.showSecondaryDisplay(displayId: 1, routerName: "/init");
   }
   print('display list = ${displays.length}');
 }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io' show Directory, Platform;
 
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -18,6 +17,8 @@ import 'package:pos_system/fragment/table/table.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
+import 'package:pos_system/object/qr_order.dart';
+import 'package:pos_system/object/sync_record.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,9 +28,8 @@ import '../fragment/logout_dialog.dart';
 import '../fragment/qr_order/qr_order_page.dart';
 import '../fragment/report/init_report_page.dart';
 import '../fragment/settlement/cash_dialog.dart';
+import '../object/app_setting.dart';
 import '../object/branch.dart';
-import '../object/qr_order.dart';
-import '../object/sync_record.dart';
 import '../object/user.dart';
 
 //11
@@ -52,16 +52,17 @@ class _HomePageState extends State<HomePage> {
   bool hasNotification = false;
   int loaded = 0;
   late ThemeColor themeColor;
+  List<AppSetting> appSettingList = [];
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    if (notificationModel.notificationStarted == false) {
+    if(notificationModel.notificationStarted == false){
       setupFirebaseMessaging();
     }
     setScreenLayout();
-    //startTimers();
+    initSecondDisplay();
     _items = _generateItems;
     currentPage = 'menu';
     getRoleName();
@@ -93,6 +94,12 @@ class _HomePageState extends State<HomePage> {
     }
 
     super.dispose();
+  }
+
+  initSecondDisplay() async {
+    if(notificationModel.hasSecondScreen == true){
+      await displayManager.showSecondaryDisplay(displayId: notificationModel.displays[1]!.displayId, routerName: "presentation");
+    }
   }
 
   setScreenLayout() {
@@ -132,58 +139,56 @@ class _HomePageState extends State<HomePage> {
     var size = MediaQuery.of(context).size;
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       this.themeColor = color;
-      return Consumer<NotificationModel>(builder: (context, NotificationModel notificationModel, child) {
-        return WillPopScope(
-          onWillPop: () async => false,
-          child: Scaffold(
-              resizeToAvoidBottomInset: false,
-              body: SafeArea(
-                //side nav bar
-                child: CollapsibleSidebar(
-                    sidebarBoxShadow: [
-                      BoxShadow(
-                        color: Colors.transparent,
+      return WillPopScope(
+        onWillPop: () async => false,
+        child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            body: SafeArea(
+              //side nav bar
+              child: CollapsibleSidebar(
+                  sidebarBoxShadow: [
+                    BoxShadow(
+                      color: Colors.transparent,
+                    ),
+                  ],
+                  // maxWidth: 80,
+                  isCollapsed: true,
+                  items: _items,
+                  avatarImg: AssetImage("drawable/logo.png"),
+                  title: widget.user!.name! + "\n" + (branchName ?? '') + " - " + role,
+                  backgroundColor: color.backgroundColor,
+                  selectedTextColor: color.iconColor,
+                  textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
+                  titleStyle: TextStyle(fontSize: 17, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
+                  toggleTitleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  selectedIconColor: color.iconColor,
+                  selectedIconBox: color.buttonColor,
+                  unselectedIconColor: Colors.white,
+                  body: Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: _body(size, context),
                       ),
+                      //cart page
+                      Visibility(
+                        visible: currentPage != 'product' &&
+                            currentPage != 'setting' &&
+                            currentPage != 'settlement' &&
+                            currentPage != 'qr_order' &&
+                            currentPage != 'report'
+                            ? true
+                            : false,
+                        child: Expanded(
+                            flex: MediaQuery.of(context).size.height > 500 ? 1 : 2,
+                            child: CartPage(
+                              currentPage: currentPage,
+                            )),
+                      )
                     ],
-                    // maxWidth: 80,
-                    isCollapsed: true,
-                    items: _items,
-                    avatarImg: AssetImage("drawable/logo.jpg"),
-                    title: widget.user!.name! + "\n" + (branchName ?? '') + " - " + role,
-                    backgroundColor: color.backgroundColor,
-                    selectedTextColor: color.iconColor,
-                    textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
-                    titleStyle: TextStyle(fontSize: 17, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
-                    toggleTitleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    selectedIconColor: color.iconColor,
-                    selectedIconBox: color.buttonColor,
-                    unselectedIconColor: Colors.white,
-                    body: Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: _body(size, context),
-                        ),
-                        //cart page
-                        Visibility(
-                          visible: currentPage != 'product' &&
-                                  currentPage != 'setting' &&
-                                  currentPage != 'settlement' &&
-                                  currentPage != 'qr_order' &&
-                                  currentPage != 'report'
-                              ? true
-                              : false,
-                          child: Expanded(
-                              flex: MediaQuery.of(context).size.height > 500 ? 1 : 2,
-                              child: CartPage(
-                                currentPage: currentPage,
-                              )),
-                        )
-                      ],
-                    )),
-              )),
-        );
-      });
+                  )),
+            )),
+      );
     });
   }
 
@@ -289,6 +294,7 @@ class _HomePageState extends State<HomePage> {
   *
   * */
   Future<void> setupFirebaseMessaging() async {
+    print('setup firebase called');
     notificationModel.setNotificationAsStarted();
     // Update the iOS foreground notification presentation options to allow
     // heads up notifications.
@@ -299,6 +305,7 @@ class _HomePageState extends State<HomePage> {
     );
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('has notification');
       showFlutterNotification(message);
     });
 
@@ -309,40 +316,33 @@ class _HomePageState extends State<HomePage> {
     FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
       if (message != null) {}
     });
-
-    if (Platform.isIOS) {
-      FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
-    }
   }
 
   void showFlutterNotification(RemoteMessage message) async {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
-    print(message.data);
     if (notification != null && android != null) {
       /*
       * qr ordering come in
       * */
       if (message.data['type'] == '0') {
-        QrOrder().getQrOrder();
-        manageNotificationTimer();
+        if(qrOrder.count == 0){
+          qrOrder.getQrOrder();
+          manageNotificationTimer();
+        }
       }
       /*
       * sync request
       * */
       else {
         notificationModel.setNotification(true);
-        notificationModel.resetContentLoaded();
+        notificationModel.setContentLoad();
         Fluttertoast.showToast(backgroundColor: Colors.green, msg: "Cloud db change! sync from cloud");
-        await SyncRecord().syncFromCloud();
+        // await SyncRecord().syncFromCloud();
+        if(syncRecord.count == 0){
+          await syncRecord.syncFromCloud();
+          syncRecord.count = 0;
+        }
       }
     }
   }
@@ -366,7 +366,7 @@ class _HomePageState extends State<HomePage> {
             textColor: themeColor.iconColor,
             label: 'Check it now!',
             onPressed: () {
-              if (mounted) {
+              if(mounted){
                 setState(() {
                   currentPage = 'qr_order';
                   notificationTimer!.cancel();
@@ -391,7 +391,7 @@ class _HomePageState extends State<HomePage> {
         textColor: themeColor.iconColor,
         label: 'Check it now!',
         onPressed: () {
-          if (mounted) {
+          if(mounted){
             setState(() {
               currentPage = 'qr_order';
               notificationTimer!.cancel();

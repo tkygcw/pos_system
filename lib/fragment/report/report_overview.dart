@@ -354,7 +354,10 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   elevation: 5,
                                   child: ListTile(
                                     title: Text('Total Cancelled Item'),
-                                    subtitle: Text('${dateOrderDetail.length}',
+                                    subtitle: dateOrderDetailCancel[0].total_item != null
+                                        ? Text('${dateOrderDetailCancel[0].total_item}',
+                                        style: TextStyle(color: Colors.black, fontSize: 24))
+                                        : Text('0',
                                         style: TextStyle(color: Colors.black, fontSize: 24)),
                                   ),
                                 ),

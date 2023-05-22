@@ -483,7 +483,7 @@ class _CashDialogState extends State<CashDialog> {
         closeDialog(context);
         widget.callBack();
         if (widget.isNewDay) {
-          if (appSettingList.length > 0 && appSettingList[0].open_cash_drawer == 1) {
+          if (appSettingList.isNotEmpty && appSettingList[0].open_cash_drawer == 1) {
             await PrintReceipt().cashDrawer(context, printerList: this.printerList);
           }
         } else {

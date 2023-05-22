@@ -1268,51 +1268,52 @@ class ReportFormat {
     // final logoFile = FileImage(File('/data/data/com.example.pos_system/files/assets/img/logo1.jpg'));
     // final logoImage = await flutterImageProvider(logoFile);
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: format,
-        build: (context) {
-          return pw.Center(
-            child: pw.GridView(
-                padding: pw.EdgeInsets.only(bottom: 50),
-                crossAxisCount: 2,
-                children: List.generate(
-                  tableList.length, (index) => pw.Column(
-                    children: [
-                      pw.Spacer(),
-                      pw.Container(
-                          height: 200,
-                          width: 200,
-                          decoration: pw.BoxDecoration(
-                            border: pw.Border.all(color: PdfColors.black),
+        build: (pw.Context context) => [
+          pw.Center(
+              child: pw.Container(
+                // height: 500,
+                child: pw.GridView(
+                    padding: pw.EdgeInsets.only(bottom: 50),
+                    crossAxisCount: 2,
+                    childAspectRatio: 1.10,
+                    children: List.generate(
+                      tableList.length, (index) => pw.Column(
+                        children: [
+                          pw.Container(
+                              height: 200,
+                              width: 200,
+                              padding: pw.EdgeInsets.all(15),
+                              decoration: pw.BoxDecoration(
+                                border: pw.Border.all(color: PdfColors.black),
+                              ),
+                              child: pw.Stack(
+                                  children: [
+                                    pw.BarcodeWidget(
+                                        data: tableList[index].qrOrderUrl!,
+                                        barcode: pw.Barcode.qrCode()
+                                    ),
+                                    pw.Center(
+                                        child: pw.SizedBox(
+                                            height: 60,
+                                            width: 60,
+                                            child: pw.Image(image))
+                                    ),
+                                  ]
+                              ),
                           ),
-                          child: pw.Padding(
-                            padding: pw.EdgeInsets.all(15),
-                            child: pw.Stack(
-                                children: [
-                                  pw.BarcodeWidget(
-                                      data: tableList[index].qrOrderUrl!,
-                                      barcode: pw.Barcode.qrCode()
-                                  ),
-                                  pw.Center(
-                                      child: pw.SizedBox(
-                                          height: 60,
-                                          width: 60,
-                                          child: pw.Image(image))
-                                  ),
-                                ]
-                            ),
-                          )
-                      ),
-                      pw.SizedBox(height: 10),
-                      pw.Center(
-                          child: pw.Text('Table No: ${tableList[index].number}', style: pw.TextStyle(font: font, fontSize: 24))
-                      )
-                    ]
-                ),
+                          pw.SizedBox(height: 10),
+                          pw.Center(
+                              child: pw.Text('Table No: ${tableList[index].number}', style: pw.TextStyle(font: font, fontSize: 24))
+                          ),
+                        ]
+                    ),
+                    )
                 )
-            )
-          );
-        },
+              )
+          )
+        ]
       ),
     );
 
