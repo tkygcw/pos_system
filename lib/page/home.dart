@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Directory, Platform;
 
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -20,7 +21,6 @@ import 'package:pos_system/notifier/theme_color.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../database/domain.dart';
 import '../database/pos_database.dart';
 import '../fragment/display_order/other_order.dart';
 import '../fragment/logout_dialog.dart';
@@ -30,7 +30,6 @@ import '../fragment/settlement/cash_dialog.dart';
 import '../object/branch.dart';
 import '../object/qr_order.dart';
 import '../object/sync_record.dart';
-import '../object/sync_to_cloud.dart';
 import '../object/user.dart';
 
 //11
@@ -58,7 +57,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    if(notificationModel.notificationStarted == false){
+    if (notificationModel.notificationStarted == false) {
       setupFirebaseMessaging();
     }
     setScreenLayout();
@@ -149,7 +148,7 @@ class _HomePageState extends State<HomePage> {
                     // maxWidth: 80,
                     isCollapsed: true,
                     items: _items,
-                    avatarImg: AssetImage("drawable/logo.png"),
+                    avatarImg: AssetImage("drawable/logo.jpg"),
                     title: widget.user!.name! + "\n" + (branchName ?? '') + " - " + role,
                     backgroundColor: color.backgroundColor,
                     selectedTextColor: color.iconColor,
@@ -284,75 +283,6 @@ class _HomePageState extends State<HomePage> {
     print('branch name : $branchName');
   }
 
-  // startTimers() {
-  //   int timerCount = 0;
-  //   notificationModel.resetTimer();
-  //   Timer.periodic(Duration(seconds: 15), (timer) async {
-  //     print('home timer called');
-  //     bool _status = notificationModel.notificationStatus;
-  //     bool stopTimer = notificationModel.stopTimer;
-  //     if (stopTimer == true) {
-  //       print('timer cancelled called');
-  //       timer.cancel();
-  //       return;
-  //     }
-  //     if (_status == true) {
-  //       print('timer reset');
-  //       timerCount = 0;
-  //     }
-  //     bool _hasInternetAccess = await Domain().isHostReachable();
-  //     if (_hasInternetAccess) {
-  //       print('timer count: ${timerCount}');
-  //       if (timerCount == 0) {
-  //         //sync to cloud
-  //         print('sync to cloud');
-  //         var isLogOut = await SyncToCloud().syncAllToCloud();
-  //         if (isLogOut == true) {
-  //           openLogOutDialog();
-  //           return;
-  //         }
-  //         //SyncToCloud().syncToCloud();
-  //       } else {
-  //         //qr order sync
-  //         print('qr order sync');
-  //         QrOrder().getQrOrder();
-  //         //sync from cloud
-  //         var syncStatus = await SyncRecord().syncFromCloud();
-  //         print('is log out: ${syncStatus}');
-  //         if (syncStatus == true) {
-  //           openLogOutDialog();
-  //           return;
-  //         } else if (syncStatus == false) {
-  //           // ScaffoldMessenger.of(context).showSnackBar(
-  //           //   SnackBar(
-  //           //     duration: Duration(minutes: 5),
-  //           //     backgroundColor: Colors.green,
-  //           //     content: const Text('Content change !!!'),
-  //           //     action: SnackBarAction(
-  //           //       label: 'Refresh',
-  //           //       textColor: Colors.white,
-  //           //       onPressed: () {
-  //           //         setState(() {
-  //           //           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-  //           //         });
-  //           //         // Code to execute.
-  //           //       },
-  //           //     ),
-  //           //   ),
-  //           // );
-  //         }
-  //       }
-  //       //add timer and reset hasNotification
-  //       timerCount++;
-  //       notificationModel.resetNotification();
-  //       // reset the timer after two executions
-  //       if (timerCount >= 2) {
-  //         timerCount = 0;
-  //       }
-  //     }
-  //   });
-  // }
-
   /*
   *
   *   handle Push notification purpose
@@ -379,11 +309,24 @@ class _HomePageState extends State<HomePage> {
     FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
       if (message != null) {}
     });
+
+    if (Platform.isIOS) {
+      FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+    }
   }
 
   void showFlutterNotification(RemoteMessage message) async {
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
+    print(message.data);
     if (notification != null && android != null) {
       /*
       * qr ordering come in
@@ -423,7 +366,7 @@ class _HomePageState extends State<HomePage> {
             textColor: themeColor.iconColor,
             label: 'Check it now!',
             onPressed: () {
-              if(mounted){
+              if (mounted) {
                 setState(() {
                   currentPage = 'qr_order';
                   notificationTimer!.cancel();
@@ -448,7 +391,7 @@ class _HomePageState extends State<HomePage> {
         textColor: themeColor.iconColor,
         label: 'Check it now!',
         onPressed: () {
-          if(mounted){
+          if (mounted) {
             setState(() {
               currentPage = 'qr_order';
               notificationTimer!.cancel();

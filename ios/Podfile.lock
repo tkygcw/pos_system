@@ -1,6 +1,10 @@
 PODS:
   - "app_settings (3.0.0+1)":
     - Flutter
+  - assets_audio_player (0.0.1):
+    - Flutter
+  - assets_audio_player_web (0.0.1):
+    - Flutter
   - barcode_scan2 (0.0.1):
     - Flutter
     - MTBBarcodeScanner
@@ -104,8 +108,9 @@ PODS:
     - Flutter
     - MTBBarcodeScanner
   - ReachabilitySwift (5.0.0)
-  - shared_preferences_ios (0.0.1):
+  - shared_preferences_foundation (0.0.1):
     - Flutter
+    - FlutterMacOS
   - sqflite (0.0.2):
     - Flutter
     - FMDB (>= 2.7.5)
@@ -116,6 +121,8 @@ PODS:
 
 DEPENDENCIES:
   - app_settings (from `.symlinks/plugins/app_settings/ios`)
+  - assets_audio_player (from `.symlinks/plugins/assets_audio_player/ios`)
+  - assets_audio_player_web (from `.symlinks/plugins/assets_audio_player_web/ios`)
   - barcode_scan2 (from `.symlinks/plugins/barcode_scan2/ios`)
   - charset_converter (from `.symlinks/plugins/charset_converter/ios`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
@@ -135,7 +142,7 @@ DEPENDENCIES:
   - presentation_displays (from `.symlinks/plugins/presentation_displays/ios`)
   - printing (from `.symlinks/plugins/printing/ios`)
   - qr_code_scanner (from `.symlinks/plugins/qr_code_scanner/ios`)
-  - shared_preferences_ios (from `.symlinks/plugins/shared_preferences_ios/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
@@ -159,6 +166,10 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   app_settings:
     :path: ".symlinks/plugins/app_settings/ios"
+  assets_audio_player:
+    :path: ".symlinks/plugins/assets_audio_player/ios"
+  assets_audio_player_web:
+    :path: ".symlinks/plugins/assets_audio_player_web/ios"
   barcode_scan2:
     :path: ".symlinks/plugins/barcode_scan2/ios"
   charset_converter:
@@ -197,8 +208,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/printing/ios"
   qr_code_scanner:
     :path: ".symlinks/plugins/qr_code_scanner/ios"
-  shared_preferences_ios:
-    :path: ".symlinks/plugins/shared_preferences_ios/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/ios"
   sqflite:
     :path: ".symlinks/plugins/sqflite/ios"
   url_launcher_ios:
@@ -206,6 +217,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   app_settings: d103828c9f5d515c4df9ee754dabd443f7cedcf3
+  assets_audio_player: edee322b9cb625571b830b35872ead1a295fd917
+  assets_audio_player_web: 19826380c44375761aa0b9053665c1e3fbc3b86b
   barcode_scan2: 0af2bb63c81b4565aab6cd78278e4c0fa136dbb0
   charset_converter: 215c7b04932ec2b9ba43be96a9bc34afed3e5322
   connectivity_plus: 413a8857dd5d9f1c399a39130850d02fe0feaf7e
@@ -233,16 +246,16 @@ SPEC CHECKSUMS:
   package_info: 873975fc26034f0b863a300ad47e7f1ac6c7ec62
   path_provider_foundation: c68054786f1b4f3343858c1e1d0caaded73f0be9
   presentation_displays: 02a9b05f708afe31d23564988f285b4d8019ddcd
-  printing: eafa00acb682c0ca029d4d98d0798f55a1e27102
+  printing: 233e1b73bd1f4a05615548e9b5a324c98588640b
   PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
   qr_code_scanner: bb67d64904c3b9658ada8c402e8b4d406d5d796e
   ReachabilitySwift: 985039c6f7b23a1da463388634119492ff86c825
-  shared_preferences_ios: 548a61f8053b9b8a49ac19c1ffbc8b92c50d68ad
+  shared_preferences_foundation: 986fc17f3d3251412d18b0265f9c64113a8c2472
   sqflite: 6d358c025f5b867b29ed92fc697fd34924e11904
   SwiftProtobuf: afced68785854575756db965e9da52bbf3dc45e7
   Toast: 91b396c56ee72a5790816f40d3a94dd357abc196
   url_launcher_ios: 839c58cdb4279282219f5e248c3321761ff3c4de
 
-PODFILE CHECKSUM: 7368163408c647b7eb699d0d788ba6718e18fb8d
+PODFILE CHECKSUM: ccac63c05dd16deb99d60c6cf25c438ef7dc7c5e
 
 COCOAPODS: 1.12.0

@@ -84,7 +84,7 @@ class _LoadingPageState extends State<LoadingPage> {
   }
 
   startLoad() async {
-    try{
+    try {
       await _createProductImgFolder();
       await getAllUser();
       await getAllSettlement();
@@ -108,7 +108,7 @@ class _LoadingPageState extends State<LoadingPage> {
       await clearCloudSyncRecord();
       await createReceiptLayout();
       await createDeviceLogin();
-    }catch(e){
+    } catch (e) {
       Navigator.of(context).pushAndRemoveUntil(
         // the new route
         MaterialPageRoute(
@@ -118,7 +118,7 @@ class _LoadingPageState extends State<LoadingPage> {
         // this function should return true when we're done removing routes
         // but because we want to remove all other screens, we make it
         // always return false
-            (Route route) => false,
+        (Route route) => false,
       );
     }
     // Go to Page2 after 5s.
@@ -126,6 +126,7 @@ class _LoadingPageState extends State<LoadingPage> {
       Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
     });
   }
+
 /*
   create device login
 */
@@ -1291,27 +1292,24 @@ getTransferOwner() async {
   final prefs = await SharedPreferences.getInstance();
   final int? branch_id = prefs.getInt('branch_id');
   Map data = await Domain().getTransferOwner(branch_id.toString());
-  if(data['status'] == '1'){
+  if (data['status'] == '1') {
     List responseJson = data['data'];
     for (var i = 0; i < responseJson.length; i++) {
-      TransferOwner data = await PosDatabase.instance.insertTransferOwner(
-          TransferOwner(
-            transfer_owner_key: responseJson[i]['transfer_owner_key'],
-            branch_id: responseJson[i]['branch_id'],
-            device_id: responseJson[i]['device_id'],
-            transfer_from_user_id: responseJson[i]['transfer_from_user_id'],
-            transfer_to_user_id: responseJson[i]['transfer_to_user_id'],
-            cash_balance: responseJson[i]['cash_balance'],
-            sync_status: 1,
-            created_at: responseJson[i]['created_at'],
-            updated_at: '',
-            soft_delete: '',
-          )
-      );
+      TransferOwner data = await PosDatabase.instance.insertTransferOwner(TransferOwner(
+        transfer_owner_key: responseJson[i]['transfer_owner_key'],
+        branch_id: responseJson[i]['branch_id'],
+        device_id: responseJson[i]['device_id'],
+        transfer_from_user_id: responseJson[i]['transfer_from_user_id'],
+        transfer_to_user_id: responseJson[i]['transfer_to_user_id'],
+        cash_balance: responseJson[i]['cash_balance'],
+        sync_status: 1,
+        created_at: responseJson[i]['created_at'],
+        updated_at: '',
+        soft_delete: '',
+      ));
     }
   }
 }
-
 
 /*
   create folder to save product image

@@ -107,7 +107,7 @@ class _LoginPageState extends State<LoginPage> {
                   recoverPasswordSuccess: 'Password reset successfully',
                 ),
                 scrollable: false,
-                logo: NetworkImage('${Domain.domain}asset/logo.png'),
+                logo: NetworkImage('${Domain.domain}asset/logo.jpg'),
                 // File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg').existsSync() == false
                 //     ? NetworkImage("https://channelsoft.com.my/wp-content/uploads/2020/02/logo1.jpg")
                 //     : FileImage(File('data/user/0/com.example.pos_system/files/assets/img/logo1.jpg')),

@@ -56,6 +56,12 @@ class _PrintReportPageState extends State<PrintReportPage> {
             return true;
           },
           child: Scaffold(
+            appBar:  AppBar(
+              backgroundColor: Colors.white,
+                actions: [
+                ],
+                title: Text('Pdf',
+                    style: TextStyle(fontSize: 18))),
             body: PdfPreview(
               build: (format) {
                 switch(widget.currentPage){

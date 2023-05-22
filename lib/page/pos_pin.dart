@@ -25,7 +25,6 @@ import '../object/qr_order.dart';
 import '../object/sync_record.dart';
 import '../object/sync_to_cloud.dart';
 import '../object/user.dart';
-import '../translation/AppLocalizations.dart';
 
 class PosPinPage extends StatefulWidget {
   final String? cashBalance;
