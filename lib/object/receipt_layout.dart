@@ -73,8 +73,9 @@ class ReceiptLayout{
   getVariant(cartProductItem object) {
     List<String?> variant = [];
     String result = '';
-    for (int i = 0; i < object.variant.length; i++) {
-      VariantGroup group = object.variant[i];
+    var length = object.variant!.length;
+    for (int i = 0; i < length ; i++) {
+      VariantGroup group = object.variant![i];
       for (int j = 0; j < group.child!.length; j++) {
         if (group.child![j].isSelected!) {
           variant.add(group.child![j].name!);
@@ -650,7 +651,7 @@ class ReceiptLayout{
         for(int i = 0; i < cartModel.cartNotifierItem.length; i++){
           bytes += generator.row([
             PosColumn(
-                text: '${cartModel.cartNotifierItem[i].name}',
+                text: '${cartModel.cartNotifierItem[i].product_name}',
                 width: 6,
                 containsChinese: true,
                 styles: PosStyles(align: PosAlign.left, bold: true)),
@@ -661,7 +662,7 @@ class ReceiptLayout{
                 styles: PosStyles(align: PosAlign.right)),
           ]);
           bytes += generator.reset();
-          if(cartModel.cartNotifierItem[i].variant.isNotEmpty){
+          if(cartModel.cartNotifierItem[i].variant!.isNotEmpty){
             bytes += generator.row([
               PosColumn(text: '(${getVariant(cartModel.cartNotifierItem[i])})', width: 6, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
               PosColumn(text: '', width: 2),
@@ -670,13 +671,13 @@ class ReceiptLayout{
           }
           bytes += generator.reset();
           //product modifier
-          if(cartModel.cartNotifierItem[i].modifier.isNotEmpty){
-            for (int j = 0; j < cartModel.cartNotifierItem[i].modifier.length; j++) {
-              ModifierGroup group = cartModel.cartNotifierItem[i].modifier[j];
-              for (int k = 0; k < group.modifierChild.length; k++) {
-                if (group.modifierChild[k].isChecked!) {
+          if(cartModel.cartNotifierItem[i].modifier!.isNotEmpty){
+            for (int j = 0; j < cartModel.cartNotifierItem[i].modifier!.length; j++) {
+              ModifierGroup group = cartModel.cartNotifierItem[i].modifier![j];
+              for (int k = 0; k < group.modifierChild!.length; k++) {
+                if (group.modifierChild![k].isChecked!) {
                   bytes += generator.row([
-                    PosColumn(text: '+${group.modifierChild[k].name!}', width: 12, containsChinese: true, styles: PosStyles(align: PosAlign.left))
+                    PosColumn(text: '+${group.modifierChild![k].name!}', width: 12, containsChinese: true, styles: PosStyles(align: PosAlign.left))
                   ]);
                 }
               }
@@ -820,7 +821,7 @@ class ReceiptLayout{
         for(int i = 0; i < cartModel.cartNotifierItem.length; i++){
           bytes += generator.row([
             PosColumn(
-                text: '${cartModel.cartNotifierItem[i].name}',
+                text: '${cartModel.cartNotifierItem[i].product_name}',
                 width: 6,
                 containsChinese: true,
                 styles: PosStyles(bold: true)),
@@ -831,7 +832,7 @@ class ReceiptLayout{
             ),
           ]);
           bytes += generator.reset();
-          if(cartModel.cartNotifierItem[i].variant.isNotEmpty){
+          if(cartModel.cartNotifierItem[i].variant!.isNotEmpty){
             bytes += generator.row([
               PosColumn(text: '(${getVariant(cartModel.cartNotifierItem[i])})', width: 6, containsChinese: true),
               PosColumn(text: '', width: 2),
@@ -840,13 +841,13 @@ class ReceiptLayout{
           }
           bytes += generator.reset();
           //product modifier
-          if(cartModel.cartNotifierItem[i].modifier.isNotEmpty){
-            for (int j = 0; j < cartModel.cartNotifierItem[i].modifier.length; j++) {
-              ModifierGroup group = cartModel.cartNotifierItem[i].modifier[j];
-              for (int k = 0; k < group.modifierChild.length; k++) {
-                if (group.modifierChild[k].isChecked!) {
+          if(cartModel.cartNotifierItem[i].modifier!.isNotEmpty){
+            for (int j = 0; j < cartModel.cartNotifierItem[i].modifier!.length; j++) {
+              ModifierGroup group = cartModel.cartNotifierItem[i].modifier![j];
+              for (int k = 0; k < group.modifierChild!.length; k++) {
+                if (group.modifierChild![k].isChecked!) {
                   bytes += generator.row([
-                    PosColumn(text: '+${group.modifierChild[k].name!}', width: 12, containsChinese: true)
+                    PosColumn(text: '+${group.modifierChild![k].name!}', width: 12, containsChinese: true)
                   ]);
                 }
               }
@@ -1175,27 +1176,27 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: '${cartModel.cartNotifierItem[i].name}',
+              text: '${cartModel.cartNotifierItem[i].product_name}',
               width: 8,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1)),
           PosColumn(text: '', width: 2),
         ]);
         bytes += generator.reset();
-        if(cartModel.cartNotifierItem[i].variant.isNotEmpty){
+        if(cartModel.cartNotifierItem[i].variant!.isNotEmpty){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
             PosColumn(text: '(${getVariant(cartModel.cartNotifierItem[i])})', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
           ]);
         }
-        if(cartModel.cartNotifierItem[i].modifier.isNotEmpty){
-          for (int j = 0; j < cartModel.cartNotifierItem[i].modifier.length; j++) {
-            ModifierGroup group = cartModel.cartNotifierItem[i].modifier[j];
-            for (int k = 0; k < group.modifierChild.length; k++) {
-              if (group.modifierChild[k].isChecked!) {
+        if(cartModel.cartNotifierItem[i].modifier!.isNotEmpty){
+          for (int j = 0; j < cartModel.cartNotifierItem[i].modifier!.length; j++) {
+            ModifierGroup group = cartModel.cartNotifierItem[i].modifier![j];
+            for (int k = 0; k < group.modifierChild!.length; k++) {
+              if (group.modifierChild![k].isChecked!) {
                 bytes += generator.row([
                   PosColumn(text: '', width: 2),
-                  PosColumn(text: '+${group.modifierChild[k].name!}', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left))
+                  PosColumn(text: '+${group.modifierChild![k].name!}', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left))
                 ]);
               }
             }
@@ -1264,26 +1265,26 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: '${cartModel.cartNotifierItem[i].name}',
+              text: '${cartModel.cartNotifierItem[i].product_name}',
               width: 10,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1)),
         ]);
         bytes += generator.reset();
-        if(cartModel.cartNotifierItem[i].variant.isNotEmpty){
+        if(cartModel.cartNotifierItem[i].variant!.isNotEmpty){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
             PosColumn(text: '(${getVariant(cartModel.cartNotifierItem[i])})', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
           ]);
         }
-        if(cartModel.cartNotifierItem[i].modifier.isNotEmpty){
-          for (int j = 0; j < cartModel.cartNotifierItem[i].modifier.length; j++) {
-            ModifierGroup group = cartModel.cartNotifierItem[i].modifier[j];
-            for (int k = 0; k < group.modifierChild.length; k++) {
-              if (group.modifierChild[k].isChecked!) {
+        if(cartModel.cartNotifierItem[i].modifier!.isNotEmpty){
+          for (int j = 0; j < cartModel.cartNotifierItem[i].modifier!.length; j++) {
+            ModifierGroup group = cartModel.cartNotifierItem[i].modifier![j];
+            for (int k = 0; k < group.modifierChild!.length; k++) {
+              if (group.modifierChild![k].isChecked!) {
                 bytes += generator.row([
                   PosColumn(text: '', width: 2),
-                  PosColumn(text: '+${group.modifierChild[k].name!}', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left))
+                  PosColumn(text: '+${group.modifierChild![k].name!}', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left))
                 ]);
               }
             }
@@ -1550,14 +1551,14 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: '${cartItem.quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: '${cartItem.name}',
+              text: '${cartItem.product_name}',
               width: 10,
               containsChinese: true,
               styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1))
         ]);
         bytes += generator.reset();
         //product variant
-        if(cartItem.variant.isNotEmpty){
+        if(cartItem.variant!.isNotEmpty){
           bytes += generator.row([
             PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.left)),
             PosColumn(text: '(${getVariant(cartItem)})', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
@@ -1577,14 +1578,14 @@ class ReceiptLayout{
         }
         bytes += generator.reset();
         //product modifier
-        if(cartItem.modifier.isNotEmpty){
-          for (int i = 0; i < cartItem.modifier.length; i++) {
-            ModifierGroup group = cartItem.modifier[i];
-            for (int j = 0; j < group.modifierChild.length; j++) {
-              if (group.modifierChild[j].isChecked!) {
+        if(cartItem.modifier!.isNotEmpty){
+          for (int i = 0; i < cartItem.modifier!.length; i++) {
+            ModifierGroup group = cartItem.modifier![i];
+            for (int j = 0; j < group.modifierChild!.length; j++) {
+              if (group.modifierChild![j].isChecked!) {
                 bytes += generator.row([
                   PosColumn(text: '', width: 2),
-                  PosColumn(text: '+${group.modifierChild[j].name!}', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left))
+                  PosColumn(text: '+${group.modifierChild![j].name!}', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left))
                 ]);
               }
             }
@@ -1658,14 +1659,14 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: '${cartItem.quantity}', width: 2, styles: PosStyles(bold: true)),
           PosColumn(
-              text: '${cartItem.name}',
+              text: '${cartItem.product_name}',
               width: 10,
               containsChinese: true,
               styles: PosStyles(height: PosTextSize.size1, width: PosTextSize.size1)),
         ]);
         bytes += generator.reset();
         //product variant
-        if(cartItem.variant.isNotEmpty){
+        if(cartItem.variant!.isNotEmpty){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
             PosColumn(text: '(${getVariant(cartItem)})', width: 10, containsChinese: true,)
@@ -1685,14 +1686,14 @@ class ReceiptLayout{
         }
         bytes += generator.reset();
         //product modifier
-        if(cartItem.modifier.isNotEmpty){
-          for (int i = 0; i < cartItem.modifier.length; i++) {
-            ModifierGroup group = cartItem.modifier[i];
-            for (int j = 0; j < group.modifierChild.length; j++) {
-              if (group.modifierChild[j].isChecked!) {
+        if(cartItem.modifier!.isNotEmpty){
+          for (int i = 0; i < cartItem.modifier!.length; i++) {
+            ModifierGroup group = cartItem.modifier![i];
+            for (int j = 0; j < group.modifierChild!.length; j++) {
+              if (group.modifierChild![j].isChecked!) {
                 bytes += generator.row([
                   PosColumn(text: '', width: 2),
-                  PosColumn(text: '+${group.modifierChild[j].name!}', width: 10, containsChinese: true,)
+                  PosColumn(text: '+${group.modifierChild![j].name!}', width: 10, containsChinese: true,)
                 ]);
               }
             }
@@ -2715,7 +2716,7 @@ class ReceiptLayout{
     //   // List<OrderCache> data = await PosDatabase.instance.readBranchLatestOrderCache(branch_id!);
     //   // orderCache = data[0];
     // }
-    List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCache!.order_cache_sqlite_id.toString());
+    List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCache!.order_cache_key!);
     if(!detailData.contains(detailData)){
       orderDetailList = List.from(detailData);
     }
@@ -2735,10 +2736,10 @@ class ReceiptLayout{
   readReprintOrderCache(String orderCacheId, int table_sqlite_id ) async {
     List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(table_sqlite_id);
 
-    List<OrderCache> cacheData = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_sqlite_id!);
+    List<OrderCache> cacheData = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
     for(int i = 0; i < cacheData.length; i++){
       this.orderCacheList.add(cacheData[i]);
-      List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCacheList[i].order_cache_sqlite_id.toString());
+      List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCacheList[i].order_cache_key!);
       if(!detailData.contains(detailData)){
         orderDetailList = List.from(detailData);
       }

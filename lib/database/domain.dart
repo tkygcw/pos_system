@@ -345,6 +345,7 @@ class Domain {
         'tb_table_sync': table_value != null ? table_value : [].toString()
       });
       print('response: ${jsonDecode(response.body)}');
+      print('order cache value 15 sync: ${order_cache_value}');
       return jsonDecode(response.body);
     } catch (error) {
       print('error: ${error}');

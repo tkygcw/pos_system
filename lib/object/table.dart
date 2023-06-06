@@ -66,6 +66,8 @@ class PosTable{
         this.created_at,
         this.updated_at,
         this.soft_delete,
+        this.group,
+        this.card_color,
         this.qrOrderUrl,
       });
 
@@ -99,7 +101,7 @@ class PosTable{
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
 
-  static PosTable fromJson(Map<String, Object?> json) => PosTable  (
+  static PosTable fromJson(Map<String, Object?> json) => PosTable(
     table_sqlite_id: json[PosTableFields.table_sqlite_id] as int?,
     table_url: json[PosTableFields.table_url] as String?,
     table_id: json[PosTableFields.table_id] as int?,
@@ -113,6 +115,8 @@ class PosTable{
     created_at: json[PosTableFields.created_at] as String?,
     updated_at: json[PosTableFields.updated_at] as String?,
     soft_delete: json[PosTableFields .soft_delete] as String?,
+    group: json['group'] as String?,
+    card_color: json['card_color'] as String?
   );
 
   Map<String, Object?> toJson() => {
@@ -129,6 +133,8 @@ class PosTable{
     PosTableFields.created_at: created_at,
     PosTableFields.updated_at: updated_at,
     PosTableFields.soft_delete: soft_delete,
+    'group': group,
+    'card_color': card_color
   };
 
 

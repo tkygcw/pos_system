@@ -16,6 +16,7 @@ class OrderDetailFields {
     order_cache_key,
     branch_link_product_sqlite_id,
     category_sqlite_id,
+    category_name,
     productName,
     has_variant,
     product_variant_name,
@@ -40,6 +41,7 @@ class OrderDetailFields {
   static String order_cache_key = 'order_cache_key';
   static String branch_link_product_sqlite_id = 'branch_link_product_sqlite_id';
   static String category_sqlite_id = 'category_sqlite_id';
+  static String category_name = 'category_name';
   static String productName = 'product_name';
   static String has_variant = 'has_variant';
   static String product_variant_name = 'product_variant_name';
@@ -65,6 +67,7 @@ class OrderDetail{
   String? order_cache_key;
   String? branch_link_product_sqlite_id;
   String? category_sqlite_id;
+  String? category_name;
   String? productName;
   String? has_variant = '';
   String? product_variant_name = '';
@@ -92,7 +95,6 @@ class OrderDetail{
   bool hasModifier = false;
   int? category_id;
   int? branch_link_product_id;
-  String? category_name;
   int? item_sum;
   double? double_price;
   double? gross_price;
@@ -109,6 +111,7 @@ class OrderDetail{
         this.order_cache_key,
         this.branch_link_product_sqlite_id,
         this.category_sqlite_id,
+        this.category_name,
         this.productName,
         this.has_variant,
         this.product_variant_name,
@@ -127,7 +130,6 @@ class OrderDetail{
         this.total_amount,
         this.category_id,
         this.branch_link_product_id,
-        this.category_name,
         this.item_sum,
         this.double_price,
         this.gross_price,
@@ -145,6 +147,7 @@ class OrderDetail{
     String? order_cache_key,
     String? branch_link_product_sqlite_id,
     String? category_sqlite_id,
+    String? category_name,
     String? productName,
     String? has_variant,
     String? product_variant_name,
@@ -169,6 +172,7 @@ class OrderDetail{
           order_cache_key: order_cache_key ?? this.order_cache_key,
           branch_link_product_sqlite_id: branch_link_product_sqlite_id ?? this.branch_link_product_sqlite_id,
           category_sqlite_id: category_sqlite_id ?? this.category_sqlite_id,
+          category_name: category_name ?? this.category_name,
           productName: productName ?? this.productName,
           has_variant: has_variant ?? this.has_variant,
           product_variant_name: product_variant_name ?? this.product_variant_name,
@@ -193,6 +197,7 @@ class OrderDetail{
     order_cache_key: json[OrderDetailFields.order_cache_key] as String?,
     branch_link_product_sqlite_id: json[OrderDetailFields.branch_link_product_sqlite_id] as String?,
     category_sqlite_id: json[OrderDetailFields.category_sqlite_id] as String?,
+    category_name: json[OrderDetailFields.category_name] as String?,
     productName: json[OrderDetailFields.productName] as String?,
     has_variant: json[OrderDetailFields.has_variant] as String?,
     product_variant_name: json[OrderDetailFields.product_variant_name] as String?,
@@ -211,7 +216,7 @@ class OrderDetail{
     total_amount: json['total_amount'] as String?,
     category_id: json['category_id'] as int?,
     branch_link_product_id: json['branch_link_product_id'] as int?,
-    category_name: json['category_name'] as String?,
+    //category_name: json['category_name'] as String?,
     item_sum: json['item_sum'] as int?,
     double_price: json['net_sales'] as double?,
     gross_price: json['gross_price'] as double?,
@@ -228,6 +233,7 @@ class OrderDetail{
     OrderDetailFields.order_cache_key: order_cache_key,
     OrderDetailFields.branch_link_product_sqlite_id: branch_link_product_sqlite_id,
     OrderDetailFields.category_sqlite_id: category_sqlite_id,
+    OrderDetailFields.category_name: category_name,
     OrderDetailFields.productName: productName,
     OrderDetailFields.has_variant: has_variant,
     OrderDetailFields.product_variant_name: product_variant_name,
@@ -248,6 +254,7 @@ class OrderDetail{
   Map syncJson() => {
     OrderDetailFields.order_detail_key: order_detail_key,
     OrderDetailFields.order_cache_key: order_cache_key,
+    OrderDetailFields.category_name: category_name,
     OrderDetailFields.productName: productName,
     OrderDetailFields.has_variant: has_variant,
     OrderDetailFields.product_variant_name: product_variant_name,

@@ -77,8 +77,7 @@ class BranchLinkDining {
 
   static BranchLinkDining fromJson(Map<String, Object?> json) =>
       BranchLinkDining(
-        branch_link_dining_id:
-            json[BranchLinkDiningFields.branch_link_dining_id] as int?,
+        branch_link_dining_id: json[BranchLinkDiningFields.branch_link_dining_id] as int?,
         branch_id: json[BranchLinkDiningFields.branch_id] as String?,
         dining_id: json[BranchLinkDiningFields.dining_id] as String?,
         is_default: json[BranchLinkDiningFields.is_default] as int?,
@@ -93,7 +92,7 @@ class BranchLinkDining {
         order_date: json['order_date'] as String?
       );
 
-  Map<String, Object?> toJson() => {
+  Map<String, Object?> toJson2() => {
         BranchLinkDiningFields.branch_link_dining_id: branch_link_dining_id,
         BranchLinkDiningFields.branch_id: branch_id,
         BranchLinkDiningFields.dining_id: dining_id,
@@ -102,5 +101,17 @@ class BranchLinkDining {
         BranchLinkDiningFields.created_at: created_at,
         BranchLinkDiningFields.updated_at: updated_at,
         BranchLinkDiningFields.soft_delete: soft_delete,
-      };
+  };
+
+  Map<String, Object?> toJson() => {
+    BranchLinkDiningFields.branch_link_dining_id: branch_link_dining_id,
+    BranchLinkDiningFields.branch_id: branch_id,
+    BranchLinkDiningFields.dining_id: dining_id,
+    BranchLinkDiningFields.is_default: is_default,
+    BranchLinkDiningFields.sequence: sequence,
+    BranchLinkDiningFields.created_at: created_at,
+    BranchLinkDiningFields.updated_at: updated_at,
+    BranchLinkDiningFields.soft_delete: soft_delete,
+    'name': name
+  };
 }

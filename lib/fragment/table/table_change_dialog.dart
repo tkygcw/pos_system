@@ -91,16 +91,16 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     return null;
   }
 
-  callChangeToTableInUse(String currentTableUseId, String NewTableUseId, String dateTime) async {
-    await updateOrderCache(currentTableUseId, NewTableUseId, dateTime);
+  callChangeToTableInUse(String currentTableUseKey, String currentTableUseId, String NewTableUseId, String dateTime) async {
+    await updateOrderCache(currentTableUseKey, NewTableUseId, dateTime);
     await deleteCurrentTableUseDetail(currentTableUseId, dateTime);
     await deleteCurrentTableUseId(int.parse(currentTableUseId), dateTime);
   }
 
-  updateOrderCache(String currentTableUseId, String NewTableUseId, String dateTime) async {
+  updateOrderCache(String currentTableUseKey, String NewTableUseId, String dateTime) async {
     List<String> _value = [];
     try{
-      List<OrderCache> checkData = await PosDatabase.instance.readTableOrderCache(currentTableUseId);
+      List<OrderCache> checkData = await PosDatabase.instance.readTableOrderCache(currentTableUseKey);
       TableUse newTableUseData = await PosDatabase.instance.readSpecificTableUseIdByLocalId(int.parse(NewTableUseId));
       for(int i = 0; i < checkData.length; i++){
         OrderCache orderCacheObject = OrderCache(
@@ -289,7 +289,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       List<TableUseDetail> NewUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableData[0].table_sqlite_id!);
       //check new table is in use or not
       if(NewUseDetailData.isNotEmpty){
-        await callChangeToTableInUse(NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
+        await callChangeToTableInUse(NowUseDetailData[0].table_use_key!, NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
         await updatePosTable(NewUseDetailData[0].table_use_detail_key!, dateTime);
 
       } else {
@@ -371,57 +371,59 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   _printChangeTableList({lastTable, newTable}) async {
     try {
       for (int i = 0; i < printerList.length; i++) {
-        var printerDetail = jsonDecode(printerList[i].value!);
-        if (printerList[i].type == 0) {
-          //print USB 80mm
-          if (printerList[i].paper_size == 0) {
-            var data = Uint8List.fromList(await ReceiptLayout().printChangeTableList80mm(true, fromTable: lastTable, toTable: newTable));
-            bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-            if (isConnected == true) {
-              await flutterUsbPrinter.write(data);
+        if(printerList[i].printer_status == 1){
+          var printerDetail = jsonDecode(printerList[i].value!);
+          if (printerList[i].type == 0) {
+            //print USB 80mm
+            if (printerList[i].paper_size == 0) {
+              var data = Uint8List.fromList(await ReceiptLayout().printChangeTableList80mm(true, fromTable: lastTable, toTable: newTable));
+              bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+              }
             } else {
-              Fluttertoast.showToast(
-                  backgroundColor: Colors.red,
-                  msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+              var data = Uint8List.fromList(await ReceiptLayout().printChangeTableList58mm(true, fromTable: lastTable, toTable: newTable));
+              bool? isConnected = await flutterUsbPrinter.connect(
+                  int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+              if (isConnected == true) {
+                await flutterUsbPrinter.write(data);
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
+              }
             }
           } else {
-            var data = Uint8List.fromList(await ReceiptLayout().printChangeTableList58mm(true, fromTable: lastTable, toTable: newTable));
-            bool? isConnected = await flutterUsbPrinter.connect(
-                int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
-            if (isConnected == true) {
-              await flutterUsbPrinter.write(data);
+            if (printerList[i].paper_size == 0) {
+              //print LAN 80mm paper
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm80, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().printChangeTableList80mm(false, value: printer, fromTable: lastTable, toTable: newTable);
+                printer.disconnect();
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+              }
             } else {
-              Fluttertoast.showToast(
-                  backgroundColor: Colors.red,
-                  msg: "${AppLocalizations.of(context)?.translate('usb_printer_not_connect')}");
-            }
-          }
-        } else {
-          if (printerList[i].paper_size == 0) {
-            //print LAN 80mm paper
-            final profile = await CapabilityProfile.load();
-            final printer = NetworkPrinter(PaperSize.mm80, profile);
-            final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-            if (res == PosPrintResult.success) {
-              await ReceiptLayout().printChangeTableList80mm(false, value: printer, fromTable: lastTable, toTable: newTable);
-              printer.disconnect();
-            } else {
-              Fluttertoast.showToast(
-                  backgroundColor: Colors.red,
-                  msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
-            }
-          } else {
-            //print LAN 58mm paper
-            final profile = await CapabilityProfile.load();
-            final printer = NetworkPrinter(PaperSize.mm58, profile);
-            final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
-            if (res == PosPrintResult.success) {
-              await ReceiptLayout().printChangeTableList58mm(false, value: printer, fromTable: lastTable, toTable: newTable);
-              printer.disconnect();
-            } else {
-              Fluttertoast.showToast(
-                  backgroundColor: Colors.red,
-                  msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+              //print LAN 58mm paper
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm58, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().printChangeTableList58mm(false, value: printer, fromTable: lastTable, toTable: newTable);
+                printer.disconnect();
+              } else {
+                Fluttertoast.showToast(
+                    backgroundColor: Colors.red,
+                    msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+              }
             }
           }
         }

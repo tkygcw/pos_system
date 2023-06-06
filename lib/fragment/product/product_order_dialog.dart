@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/cart_product.dart';
+import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/variant_group.dart';
@@ -30,10 +31,11 @@ class ProductOrderDialog extends StatefulWidget {
   const ProductOrderDialog({Key? key, this.productDetail, required this.cartModel}) : super(key: key);
 
   @override
-  _ProductOrderDialogState createState() => _ProductOrderDialogState();
+  ProductOrderDialogState createState() => ProductOrderDialogState();
 }
 
-class _ProductOrderDialogState extends State<ProductOrderDialog> {
+class ProductOrderDialogState extends State<ProductOrderDialog> {
+  Categories? categories;
   String branchLinkProduct_id = '';
   String basePrice = '';
   String finalPrice = '';
@@ -84,23 +86,23 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(modifierGroup.name!, style: TextStyle(fontWeight: FontWeight.bold)),
-        for (int i = 0; i < modifierGroup.modifierChild.length; i++)
+        for (int i = 0; i < modifierGroup.modifierChild!.length; i++)
           CheckboxListTile(
             title: Row(
               children: [
-                Text('${modifierGroup.modifierChild[i].name!}'),
+                Text('${modifierGroup.modifierChild![i].name!}'),
                 Text(
-                  ' (+RM ${Utils.convertTo2Dec(modifierGroup.modifierChild[i].price)})',
+                  ' (+RM ${Utils.convertTo2Dec(modifierGroup.modifierChild![i].price)})',
                   style: TextStyle(fontSize: 12),
                 )
               ],
             ),
-            value: modifierGroup.modifierChild[i].isChecked,
-            onChanged: modifierGroup.modifierChild[i].mod_status! == '2'
+            value: modifierGroup.modifierChild![i].isChecked,
+            onChanged: modifierGroup.modifierChild![i].mod_status! == '2'
                 ? null
                 : (isChecked) {
                     setState(() {
-                      modifierGroup.modifierChild[i].isChecked = isChecked!;
+                      modifierGroup.modifierChild![i].isChecked = isChecked!;
                       // print('flavour ${modifierGroup.modifierChild[i].name},'
                       //     'is check ${modifierGroup.modifierChild[i].isChecked}, ${modifierGroup.modifierChild[i].mod_status}');
                     });
@@ -156,7 +158,7 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                                   variantGroupLayout(variantGroup[i]),
                                 for (int j = 0; j < modifierGroup.length; j++)
                                   Visibility(
-                                    visible: modifierGroup[j].modifierChild.isNotEmpty && modifierGroup[j].dining_id == "" || modifierGroup[j].dining_id == cart.selectedOptionId ? true : false,
+                                    visible: modifierGroup[j].modifierChild!.isNotEmpty && modifierGroup[j].dining_id == "" || modifierGroup[j].dining_id == cart.selectedOptionId ? true : false,
                                     child: modifierGroupLayout(modifierGroup[j], cart),
                                   ),
                                 Column(
@@ -325,10 +327,11 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                for (int i = 0; i < variantGroup.length; i++) variantGroupLayout(variantGroup[i]),
+                                for (int i = 0; i < variantGroup.length; i++)
+                                  variantGroupLayout(variantGroup[i]),
                                 for (int j = 0; j < modifierGroup.length; j++)
                                   Visibility(
-                                    visible: modifierGroup[j].modifierChild.isNotEmpty && modifierGroup[j].dining_id == "" || modifierGroup[j].dining_id == cart.selectedOptionId ? true : false,
+                                    visible: modifierGroup[j].modifierChild!.isNotEmpty && modifierGroup[j].dining_id == "" || modifierGroup[j].dining_id == cart.selectedOptionId ? true : false,
                                     child: modifierGroupLayout(modifierGroup[j], cart),
                                   ),
                                 Column(
@@ -466,7 +469,10 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     List<VariantGroup> data = await PosDatabase.instance.readProductVariantGroup(productID);
     for (int i = 0; i < data.length; i++) {
       variantGroup.add(VariantGroup(
-          variant_group_sqlite_id: data[i].variant_group_sqlite_id, variant_group_id: data[i].variant_group_id, child: [], name: data[i].name));
+          variant_group_sqlite_id: data[i].variant_group_sqlite_id,
+          variant_group_id: data[i].variant_group_id,
+          child: [],
+          name: data[i].name));
 
       //loop variant child based on variant group id
       List<VariantItem> itemData = await PosDatabase.instance.readProductVariantItem(data[i].variant_group_sqlite_id!);
@@ -526,9 +532,9 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
   readProductModifierItemPrice(ModifierGroup modGroup) async {
     modifierItemPrice = '';
 
-    for (int i = 0; i < modGroup.modifierChild.length; i++) {
-      List<BranchLinkModifier> data = await PosDatabase.instance.readBranchLinkModifier(modGroup.modifierChild[i].mod_item_id.toString());
-      modGroup.modifierChild[i].price = data[0].price!;
+    for (int i = 0; i < modGroup.modifierChild!.length; i++) {
+      List<BranchLinkModifier> data = await PosDatabase.instance.readBranchLinkModifier(modGroup.modifierChild![i].mod_item_id.toString());
+      modGroup.modifierChild![i].price = data[0].price!;
     }
   }
 
@@ -536,6 +542,8 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
     await readProductVariant(widget.productDetail!.product_sqlite_id!);
     await readProductModifier(widget.productDetail!.product_sqlite_id!);
     await getProductPrice(widget.productDetail!.product_sqlite_id);
+    categories = await PosDatabase.instance.readSpecificCategoryById(widget.productDetail!.category_sqlite_id!);
+    print('category init: ${categories}');
     setState(() {
       this.isLoaded = true;
     });
@@ -556,9 +564,9 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
         for (int j = 0; j < modifierGroup.length; j++) {
           ModifierGroup group = modifierGroup[j];
           //loop mod group child
-          for (int k = 0; k < group.modifierChild.length; k++) {
-            if (group.modifierChild[k].isChecked == true) {
-              List<BranchLinkModifier> modPrice = await PosDatabase.instance.readBranchLinkModifier(group.modifierChild[k].mod_item_id.toString());
+          for (int k = 0; k < group.modifierChild!.length; k++) {
+            if (group.modifierChild![k].isChecked == true) {
+              List<BranchLinkModifier> modPrice = await PosDatabase.instance.readBranchLinkModifier(group.modifierChild![k].mod_item_id.toString());
               totalModPrice += double.parse(modPrice[0].price!);
               totalBasePrice = double.parse(data[0].price!) + totalModPrice;
               finalPrice = totalBasePrice.toStringAsFixed(2);
@@ -575,9 +583,9 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
         for (int j = 0; j < modifierGroup.length; j++) {
           ModifierGroup group = modifierGroup[j];
           //loop mod group child
-          for (int k = 0; k < group.modifierChild.length; k++) {
-            if (group.modifierChild[k].isChecked == true) {
-              List<BranchLinkModifier> modPrice = await PosDatabase.instance.readBranchLinkModifier(group.modifierChild[k].mod_item_id.toString());
+          for (int k = 0; k < group.modifierChild!.length; k++) {
+            if (group.modifierChild![k].isChecked == true) {
+              List<BranchLinkModifier> modPrice = await PosDatabase.instance.readBranchLinkModifier(group.modifierChild![k].mod_item_id.toString());
               totalModPrice += double.parse(modPrice[0].price!);
               totalBasePrice = double.parse(productVariant[0].price!) + totalModPrice;
               finalPrice = totalBasePrice.toStringAsFixed(2);
@@ -718,20 +726,21 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       }
     }
     var value = cartProductItem(
-        await getBranchLinkProductItem(widget.productDetail!),
-        widget.productDetail!.name!,
-        widget.productDetail!.category_id!,
-        await getProductPrice(widget.productDetail?.product_sqlite_id),
-        simpleIntInput,
-        modifierGroup,
-        variantGroup,
-        remarkController.text,
-        0,
-        null,
+        branch_link_product_sqlite_id: await getBranchLinkProductItem(widget.productDetail!),
+        product_name: widget.productDetail!.name!,
+        category_id: widget.productDetail!.category_id!,
+        category_name: categories != null ? categories!.name : '',
+        price: await getProductPrice(widget.productDetail?.product_sqlite_id),
+        quantity: simpleIntInput,
+        modifier: modifierGroup,
+        variant: variantGroup,
+        remark: remarkController.text,
+        status: 0,
         category_sqlite_id: widget.productDetail!.category_sqlite_id,
         base_price: basePrice,
         refColor: Colors.black,
     );
+    print('value category: ${value.category_name}');
     // print('base price: ${value.base_price}');
     // print('price: ${value.price}');
     List<cartProductItem> item = [];
@@ -739,12 +748,12 @@ class _ProductOrderDialogState extends State<ProductOrderDialog> {
       cart.addItem(value);
     } else {
       for(int k = 0; k < cart.cartNotifierItem.length; k++){
-        if(cart.cartNotifierItem[k].branchProduct_id == value.branchProduct_id && cart.cartNotifierItem[k].status == 0){
+        if(cart.cartNotifierItem[k].branch_link_product_sqlite_id == value.branch_link_product_sqlite_id && value.remark == cart.cartNotifierItem[k].remark && cart.cartNotifierItem[k].status == 0){
           item.add(cart.cartNotifierItem[k]);
         }
       }
       if(item.isNotEmpty){
-        item[0].quantity += value.quantity;
+        item[0].quantity = item[0].quantity! + value.quantity!;
       } else {
         cart.addItem(value);
       }

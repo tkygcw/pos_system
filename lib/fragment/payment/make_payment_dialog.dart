@@ -275,7 +275,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                           text: TextSpan(
                                                             children: <TextSpan>[
                                                               TextSpan(
-                                                                text: cart.cartNotifierItem[index].name +'\n',
+                                                                text: cart.cartNotifierItem[index].product_name! +'\n',
                                                                 style: TextStyle(
                                                                   fontSize: MediaQuery.of(context).size.height > 500 ? 20 : 15 ,
                                                                   color: color.backgroundColor,
@@ -283,7 +283,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                 ),
                                                               ),
                                                               TextSpan(
-                                                                  text: "RM" + cart.cartNotifierItem[index].price,
+                                                                  text: "RM" + cart.cartNotifierItem[index].price!,
                                                                   style: TextStyle(fontSize: 15, color: color.backgroundColor,
                                                                   )),
                                                             ],
@@ -743,14 +743,14 @@ class _MakePaymentState extends State<MakePayment> {
                                                         text: TextSpan(
                                                           children: <TextSpan>[
                                                             TextSpan(
-                                                              text: cart.cartNotifierItem[index].name +'\n',
+                                                              text: cart.cartNotifierItem[index].product_name! +'\n',
                                                               style: TextStyle(
                                                                   fontSize: 15 ,
                                                                   color: color.backgroundColor,
                                                                   fontWeight: FontWeight.bold),
                                                             ),
                                                             TextSpan(
-                                                                text: "RM" + cart.cartNotifierItem[index].price,
+                                                                text: "RM" + cart.cartNotifierItem[index].price!,
                                                                 style: TextStyle(fontSize: 15, color: color.backgroundColor,
                                                                 )),
                                                           ],
@@ -1251,11 +1251,12 @@ class _MakePaymentState extends State<MakePayment> {
   getModifier(cartProductItem object) {
     List<String?> modifier = [];
     String result = '';
-    for (int i = 0; i < object.modifier.length; i++) {
-      ModifierGroup group = object.modifier[i];
-      for (int j = 0; j < group.modifierChild.length; j++) {
-        if (group.modifierChild[j].isChecked!) {
-          modifier.add(group.modifierChild[j].name! + '\n');
+    var length = object.modifier!.length;
+    for (int i = 0; i < length ; i++) {
+      ModifierGroup group = object.modifier![i];
+      for (int j = 0; j < group.modifierChild!.length; j++) {
+        if (group.modifierChild![j].isChecked!) {
+          modifier.add(group.modifierChild![j].name! + '\n');
           result = modifier
               .toString()
               .replaceAll('[', '')
@@ -1274,8 +1275,9 @@ class _MakePaymentState extends State<MakePayment> {
   getVariant(cartProductItem object) {
     List<String?> variant = [];
     String result = '';
-    for (int i = 0; i < object.variant.length; i++) {
-      VariantGroup group = object.variant[i];
+    var length = object.variant!.length;
+    for (int i = 0; i < length ; i++) {
+      VariantGroup group = object.variant![i];
       for (int j = 0; j < group.child!.length; j++) {
         if (group.child![j].isSelected!) {
           variant.add(group.child![j].name! + '\n');
@@ -1354,13 +1356,11 @@ class _MakePaymentState extends State<MakePayment> {
       for (int j = 0; j < cartItem.length; j++) {
         if (promotion.type == 0) {
           hasSelectedPromo = true;
-          selectedPromo +=
-              (double.parse(cartItem[j].price) * cartItem[j].quantity) *
-                  (double.parse(promotion.amount!) / 100);
+          selectedPromo += (double.parse(cartItem[j].price!) * cartItem[j].quantity!) * (double.parse(promotion.amount!) / 100);
         } else {
           hasSelectedPromo = true;
           selectedPromo +=
-          (double.parse(promotion.amount!) * cartItem[j].quantity);
+          (double.parse(promotion.amount!) * cartItem[j].quantity!);
         }
       }
       promoAmount += selectedPromo;
@@ -1384,7 +1384,7 @@ class _MakePaymentState extends State<MakePayment> {
         if (cart.cartNotifierItem.isNotEmpty) {
           for (int i = 0; i < cart.cartNotifierItem.length; i++) {
             hasSelectedPromo = true;
-            selectedPromo += double.parse(cart.selectedPromotion!.amount!) * cart.cartNotifierItem[i].quantity;
+            selectedPromo += double.parse(cart.selectedPromotion!.amount!) * cart.cartNotifierItem[i].quantity!;
           }
         }
       }
@@ -1445,14 +1445,12 @@ class _MakePaymentState extends State<MakePayment> {
       promo = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
         if (promotion.type == 1) {
-          promo += (double.parse(promotion.amount!) *
-              cart.cartNotifierItem[i].quantity);
+          promo += (double.parse(promotion.amount!) * cart.cartNotifierItem[i].quantity!);
           promotion.promoAmount = promo;
           promoRate = 'RM' + promotion.amount!;
           promotion.promoRate = promoRate;
         } else {
-          promo += (double.parse(cart.cartNotifierItem[i].price) *
-              cart.cartNotifierItem[i].quantity) *
+          promo += (double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!) *
               (double.parse(promotion.amount!) / 100);
           promotion.promoAmount = promo;
           promoRate = promotion.amount! + '%';
@@ -1477,12 +1475,12 @@ class _MakePaymentState extends State<MakePayment> {
     try {
       promo = 0.0;
       if (promotion.type == 1) {
-        promo += (double.parse(promotion.amount!) * cartItem.quantity);
+        promo += (double.parse(promotion.amount!) * cartItem.quantity!);
         promotion.promoAmount = promotion.promoAmount! + promo;
         promoRate = 'RM' + promotion.amount!;
         promotion.promoRate = promoRate;
       } else {
-        promo += (double.parse(cartItem.price) * cartItem.quantity) *
+        promo += (double.parse(cartItem.price!) * cartItem.quantity!) *
             (double.parse(promotion.amount!) / 100);
         promotion.promoAmount = promotion.promoAmount! + promo;
         promoRate = promotion.amount! + '%';
@@ -1519,8 +1517,8 @@ class _MakePaymentState extends State<MakePayment> {
     orderCacheIdList = [];
     selectedTableList = [];
     for(int i = 0; i < cart.cartNotifierItem.length; i++){
-      if(!orderCacheIdList.contains(cart.cartNotifierItem[i].orderCacheId!)){
-        orderCacheIdList.add(cart.cartNotifierItem[i].orderCacheId!);
+      if(!orderCacheIdList.contains(cart.cartNotifierItem[i].order_cache_sqlite_id!)){
+        orderCacheIdList.add(cart.cartNotifierItem[i].order_cache_sqlite_id!);
       }
     }
     for(int j = 0; j < cart.selectedTable.length; j++){
@@ -1592,7 +1590,7 @@ class _MakePaymentState extends State<MakePayment> {
       promo = 0.0;
       promoAmount = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        total += (double.parse((cart.cartNotifierItem[i].price)) * cart.cartNotifierItem[i].quantity);
+        total += (double.parse((cart.cartNotifierItem[i].price!)) * cart.cartNotifierItem[i].quantity!);
       }
     } catch (e) {
       print('Sub Total Error: $e');
@@ -1698,7 +1696,7 @@ class _MakePaymentState extends State<MakePayment> {
       List<DiningOption> data = await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
       diningOptionID = data[0].dining_id!;
       //get dining tax
-      List<Tax> taxData = await PosDatabase.instance.readTax(branch_id.toString(), diningOptionID.toString());
+      List<Tax> taxData = await PosDatabase.instance.readTax(diningOptionID.toString());
       if (taxData.length > 0) {
         taxList = List.from(taxData);
       } else {

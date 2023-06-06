@@ -212,12 +212,12 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
 
   readCartItemInfo() async {
     //get cart item order cache
-    List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCache(widget.cartItem.orderCacheId!);
+    List<OrderCache> cacheData = await PosDatabase.instance.readSpecificOrderCache(widget.cartItem.order_cache_sqlite_id!);
     cartCacheList = List.from(cacheData);
 
     if(widget.currentPage != 'other order'){
       //get table use order cache
-      List<OrderCache> tableCacheData = await PosDatabase.instance.readTableOrderCache(cacheData[0].table_use_sqlite_id!);
+      List<OrderCache> tableCacheData = await PosDatabase.instance.readTableOrderCache(cacheData[0].table_use_key!);
       cartTableCacheList = List.from(tableCacheData);
 
       //get table use detail
@@ -226,7 +226,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     }
 
     //get cart item order cache order detail
-    List<OrderDetail> orderDetailData = await PosDatabase.instance.readTableOrderDetail(widget.cartItem.orderCacheId!);
+    List<OrderDetail> orderDetailData = await PosDatabase.instance.readTableOrderDetail(widget.cartItem.order_cache_key!);
     cartOrderDetailList = List.from(orderDetailData);
 
     OrderDetail cartItemOrderDetail = await PosDatabase.instance.readSpecificOrderDetailByLocalId(int.parse(widget.cartItem.order_detail_sqlite_id!));
@@ -339,8 +339,8 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
             return;
           } else {
             tableModel.changeContent(true);
-            await PrintReceipt().printDeleteList(printerList, widget.cartItem.orderCacheId!, dateTime);
-            await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem.orderCacheId!, widget.cartItem.category_sqlite_id!, dateTime, cart);
+            await PrintReceipt().printDeleteList(printerList, widget.cartItem.order_cache_sqlite_id!, dateTime);
+            await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem.order_cache_sqlite_id!, widget.cartItem.category_sqlite_id!, dateTime, cart);
           }
           //syncUpdatedPosTableToCloud(_posTableValue.toString());
           //print cancel receipt
@@ -433,20 +433,20 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   updateOrderDetailQuantity(String dateTime, CartModel cart) async {
     List<String> _value = [];
     int totalQty = 0;
-    totalQty = widget.cartItem.quantity - simpleIntInput;
+    totalQty = widget.cartItem.quantity! - simpleIntInput;
     OrderDetail orderDetailObject = OrderDetail(
         updated_at: dateTime,
         sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
         status: 0,
         quantity: totalQty.toString(),
         order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
-        branch_link_product_sqlite_id: widget.cartItem.branchProduct_id);
+        branch_link_product_sqlite_id: widget.cartItem.branch_link_product_sqlite_id);
 
     int data = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObject);
     if(data == 1){
       OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
       await updateOrderCacheSubtotal(detailData.order_cache_sqlite_id!, detailData.price, simpleIntInput, dateTime);
-      await updateProductStock(widget.cartItem.branchProduct_id, simpleIntInput, dateTime);
+      await updateProductStock(widget.cartItem.branch_link_product_sqlite_id!, simpleIntInput, dateTime);
       _value.add(jsonEncode(detailData.syncJson()));
     }
     order_detail_value = _value.toString();
@@ -489,7 +489,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         cancel_by: user.name,
         cancel_by_user_id: user.user_id.toString(),
         order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
-        branch_link_product_sqlite_id: widget.cartItem.branchProduct_id);
+        branch_link_product_sqlite_id: widget.cartItem.branch_link_product_sqlite_id);
 
     int deleteOrderDetailData = await PosDatabase.instance.updateOrderDetailStatus(orderDetailObject);
     if(deleteOrderDetailData == 1){
@@ -603,7 +603,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
           sync_status: cartCacheList[0].sync_status == 0 ? 0 : 2,
           cancel_by: user.name,
           cancel_by_user_id: user.user_id.toString(),
-          order_cache_sqlite_id: int.parse(widget.cartItem.orderCacheId!)
+          order_cache_sqlite_id: int.parse(widget.cartItem.order_cache_sqlite_id!)
       );
       int deletedOrderCache = await PosDatabase.instance.cancelOrderCache(orderCacheObject);
       //sync to cloud

@@ -73,6 +73,7 @@ class Product{
   String? created_at;
   String? updated_at;
   String? soft_delete;
+  String? category_name;
 
   Product(
       {this.product_sqlite_id,
@@ -96,7 +97,9 @@ class Product{
         this.sync_status,
         this.created_at,
         this.updated_at,
-        this.soft_delete});
+        this.soft_delete,
+        this.category_name,
+      });
 
   Product copy({
     int? product_sqlite_id,
@@ -169,6 +172,7 @@ class Product{
     created_at: json[ProductFields.created_at] as String?,
     updated_at: json[ProductFields.updated_at] as String?,
     soft_delete: json[ProductFields.soft_delete] as String?,
+    category_name: json['category_name'] as String?
   );
 
   Map<String, Object?> toJson() => {
@@ -194,5 +198,6 @@ class Product{
     ProductFields.created_at: created_at,
     ProductFields.updated_at: updated_at,
     ProductFields.soft_delete: soft_delete,
+    'category_name': category_name,
   };
 }

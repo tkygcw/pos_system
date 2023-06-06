@@ -84,10 +84,25 @@ class ModifierItem{
     created_at: json[ModifierItemFields.created_at] as String?,
     updated_at: json[ModifierItemFields.updated_at] as String?,
     soft_delete: json[ModifierItemFields.soft_delete] as String?,
-    mod_status: json['mod_status'] as String?
+    mod_status: json['mod_status'] as String?,
+    isChecked: json['isChecked'] as bool?
   );
 
   Map<String, Object?> toJson() => {
+    ModifierItemFields.mod_item_id: mod_item_id,
+    ModifierItemFields.mod_group_id: mod_group_id,
+    ModifierItemFields.name: name,
+    ModifierItemFields.price: price,
+    ModifierItemFields.sequence: sequence,
+    ModifierItemFields.quantity: quantity,
+    ModifierItemFields.created_at: created_at,
+    ModifierItemFields.updated_at: updated_at,
+    ModifierItemFields.soft_delete: soft_delete,
+    'mod_status': mod_status,
+    'isChecked': isChecked
+  };
+
+  Map<String, Object?> toJson2() => {
     ModifierItemFields.mod_item_id: mod_item_id,
     ModifierItemFields.mod_group_id: mod_group_id,
     ModifierItemFields.name: name,

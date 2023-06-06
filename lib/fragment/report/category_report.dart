@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
@@ -248,7 +249,8 @@ class _CategoryReportState extends State<CategoryReport> {
               ),
               DataCell(Text('${categoryData[i].item_sum}')),
               DataCell(Text('${categoryData[i].net_sales!.toStringAsFixed(2)}')),
-              DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
+              //DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
+              DataCell(Text('${Utils.to2Decimal(categoryData[i].gross_sales!)}')),
             ],
           ),
         ]);

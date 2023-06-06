@@ -125,7 +125,7 @@ class _LoadingPageState extends State<LoadingPage> {
       );
     }
     // Go to Page2 after 5s.
-    Timer(Duration(seconds: 1), () {
+    Timer(Duration(seconds: 2), () {
       Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
     });
   }
@@ -146,6 +146,7 @@ class _LoadingPageState extends State<LoadingPage> {
   create device login
 */
   createDeviceLogin() async {
+    print('devide logout called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
@@ -1162,6 +1163,7 @@ getAllOrderDetail() async {
           order_cache_key: responseJson[i]['order_cache_key'],
           branch_link_product_sqlite_id: branchLinkProductData.branch_link_product_sqlite_id.toString(),
           category_sqlite_id: categoriesData != null ? categoriesData.category_sqlite_id.toString() : '0',
+          category_name: responseJson[i]['category_name'],
           productName: responseJson[i]['product_name'],
           has_variant: responseJson[i]['has_variant'],
           product_variant_name: responseJson[i]['product_variant_name'],

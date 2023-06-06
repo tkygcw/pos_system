@@ -330,7 +330,7 @@ class _SecondaryScreenState extends State<SecondaryScreen> {
                 color: Colors.white24,
                 child: Center(
                     child: Text('This is payment screen: cart notifier item: ${obj?.tableNo}\n'
-                        'Item: ${obj?.itemList?[0].name}', style: TextStyle(fontSize: 35),)
+                        'Item: ${obj?.itemList?[0].product_name}', style: TextStyle(fontSize: 35),)
                 ),
               )
           ));

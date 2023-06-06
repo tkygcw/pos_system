@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/order.dart';
+import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
@@ -240,7 +241,8 @@ class _DiningReportState extends State<DiningReport> {
               ),
               DataCell(Text('${diningList[i].item_sum}')),
               DataCell(Text('${diningList[i].net_sales!.toStringAsFixed(2)}')),
-              DataCell(Text('${diningList[i].gross_sales!.toStringAsFixed(2)}')),
+              // DataCell(Text('${diningList[i].gross_sales!.toStringAsFixed(2)}')),
+              DataCell(Text('${Utils.to2Decimal(diningList[i].gross_sales!)}')),
             ],
           ),
         ]);

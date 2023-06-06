@@ -143,6 +143,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                           //   openLogOutDialog();
                                           //   return;
                                           // }
+                                          if(notificationModel.hasSecondScreen == true){
+                                            reInitSecondDisplay();
+                                          }
                                           await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
                                           tableModel.changeContent(true);
                                           cartModel.initialLoad();
@@ -165,6 +168,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                           ),
                                           onPressed: () {
                                             PrintReceipt().cashDrawer(context, printerList: this.printerList);
+                                            if(notificationModel.hasSecondScreen == true){
+                                              reInitSecondDisplay();
+                                            }
                                           },
                                           child: Text(
                                               '${AppLocalizations.of(context)?.translate('open_cash_drawer')}', style: TextStyle(fontSize: 15), textAlign: TextAlign.center)

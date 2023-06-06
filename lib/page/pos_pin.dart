@@ -21,9 +21,7 @@ import '../notifier/theme_color.dart';
 import '../object/cash_record.dart';
 import '../object/print_receipt.dart';
 import '../object/printer.dart';
-import '../object/sync_to_cloud.dart';
 import '../object/user.dart';
-import '../translation/AppLocalizations.dart';
 
 class PosPinPage extends StatefulWidget {
   final String? cashBalance;

@@ -54,10 +54,10 @@ class CartPage extends StatefulWidget {
   const CartPage({required this.currentPage, Key? key}) : super(key: key);
 
   @override
-  State<CartPage> createState() => _CartPageState();
+  State<CartPage> createState() => CartPageState();
 }
 
-class _CartPageState extends State<CartPage> {
+class CartPageState extends State<CartPage> {
   final ScrollController _scrollController = ScrollController();
   late StreamController controller;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
@@ -65,7 +65,7 @@ class _CartPageState extends State<CartPage> {
   List<Printer> printerList = [];
   List<Promotion> promotionList = [], autoApplyPromotionList = [];
   List<BranchLinkDining> diningList = [];
-  List<String>  branchLinkDiningIdList = [];
+  List<String> branchLinkDiningIdList = [];
   List<cartProductItem> sameCategoryItemList = [];
   List<TableUse> tableUseList = [];
   List<Tax> taxRateList = [];
@@ -332,7 +332,7 @@ class _CartPageState extends State<CartPage> {
                                         ],
                                       ),
                                     ),
-                                    key: ValueKey(cart.cartNotifierItem[index].name),
+                                    key: ValueKey(cart.cartNotifierItem[index].product_name),
                                     direction: widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
                                             widget.currentPage == 'table' ||
                                             widget.currentPage == 'other_order'
@@ -352,14 +352,14 @@ class _CartPageState extends State<CartPage> {
                                         text: TextSpan(
                                           children: <TextSpan>[
                                             TextSpan(
-                                              text: cart.cartNotifierItem[index].name + '\n',
+                                              text: cart.cartNotifierItem[index].product_name! + '\n',
                                               style: TextStyle(
                                                   fontSize: 14,
                                                   color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
                                                   fontWeight: FontWeight.bold),
                                             ),
                                             TextSpan(
-                                                text: "RM" + cart.cartNotifierItem[index].price,
+                                                text: "RM" + cart.cartNotifierItem[index].price!,
                                                 style: TextStyle(
                                                   fontSize: 13,
                                                   color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
@@ -382,7 +382,7 @@ class _CartPageState extends State<CartPage> {
                                                     icon: Icon(Icons.remove),
                                                     onPressed: () {
                                                       cart.cartNotifierItem[index].quantity != 1 && cart.cartNotifierItem[index].status == 0
-                                                          ? setState(() => cart.cartNotifierItem[index].quantity--)
+                                                          ? setState(() => cart.cartNotifierItem[index].quantity = cart.cartNotifierItem[index].quantity! -1)
                                                           : cart.cartNotifierItem[index].status != 0
                                                           ? Fluttertoast.showToast(backgroundColor: Colors.red, msg: "order already placed!")
                                                           : cart.removeItem(cart.cartNotifierItem[index]);
@@ -399,7 +399,7 @@ class _CartPageState extends State<CartPage> {
                                                       onPressed: () {
                                                         if (cart.cartNotifierItem[index].status == 0) {
                                                           setState(() {
-                                                            cart.cartNotifierItem[index].quantity++;
+                                                            cart.cartNotifierItem[index].quantity =  cart.cartNotifierItem[index].quantity! + 1;
                                                           });
                                                         } else {
                                                           Fluttertoast.showToast(backgroundColor: Colors.red, msg: "order already placed!");
@@ -800,11 +800,13 @@ class _CartPageState extends State<CartPage> {
   getModifier(cartProductItem object) {
     List<String?> modifier = [];
     String result = '';
-    for (int i = 0; i < object.modifier.length; i++) {
-      ModifierGroup group = object.modifier[i];
-      for (int j = 0; j < group.modifierChild.length; j++) {
-        if (group.modifierChild[j].isChecked!) {
-          modifier.add(group.modifierChild[j].name! + '\n');
+    var length = object.modifier!.length;
+    for (int i = 0; i < length; i++) {
+      ModifierGroup group = object.modifier![i];
+      var length = group.modifierChild!.length;
+      for (int j = 0; j < length; j++) {
+        if (group.modifierChild![j].isChecked!) {
+          modifier.add(group.modifierChild![j].name! + '\n');
           result = modifier.toString().replaceAll('[', '').replaceAll(']', '').replaceAll(',', '+').replaceFirst('', '+ ');
         }
       }
@@ -818,8 +820,9 @@ class _CartPageState extends State<CartPage> {
   getVariant(cartProductItem object) {
     List<String?> variant = [];
     String result = '';
-    for (int i = 0; i < object.variant.length; i++) {
-      VariantGroup group = object.variant[i];
+    var length = object.variant!.length;
+    for (int i = 0; i < length; i++) {
+      VariantGroup group = object.variant![i];
       for (int j = 0; j < group.child!.length; j++) {
         if (group.child![j].isSelected!) {
           variant.add(group.child![j].name! + '\n');
@@ -833,8 +836,9 @@ class _CartPageState extends State<CartPage> {
   getVariant2(cartProductItem object) {
     List<String?> variant = [];
     String result = '';
-    for (int i = 0; i < object.variant.length; i++) {
-      VariantGroup group = object.variant[i];
+    var length = object.variant!.length;
+    for (int i = 0; i < length ; i++) {
+      VariantGroup group = object.variant![i];
       for (int j = 0; j < group.child!.length; j++) {
         if (group.child![j].isSelected!) {
           variant.add(group.child![j].name!);
@@ -932,11 +936,11 @@ class _CartPageState extends State<CartPage> {
       for (int j = 0; j < cartItem.length; j++) {
         if (promotion.type == 0) {
           hasSelectedPromo = true;
-          selectedPromo += (double.parse(cartItem[j].price) * cartItem[j].quantity) * (double.parse(promotion.amount!) / 100);
+          selectedPromo += (double.parse(cartItem[j].price!) * cartItem[j].quantity!) * (double.parse(promotion.amount!) / 100);
           cart.selectedPromotion!.promoAmount = selectedPromo;
         } else {
           hasSelectedPromo = true;
-          selectedPromo += (double.parse(promotion.amount!) * cartItem[j].quantity);
+          selectedPromo += (double.parse(promotion.amount!) * cartItem[j].quantity!);
           cart.selectedPromotion!.promoAmount = selectedPromo;
         }
       }
@@ -960,7 +964,7 @@ class _CartPageState extends State<CartPage> {
         if (cart.cartNotifierItem.isNotEmpty) {
           for (int i = 0; i < cart.cartNotifierItem.length; i++) {
             hasSelectedPromo = true;
-            selectedPromo += double.parse(cart.selectedPromotion!.amount!) * cart.cartNotifierItem[i].quantity;
+            selectedPromo += double.parse(cart.selectedPromotion!.amount!) * cart.cartNotifierItem[i].quantity!;
             cart.selectedPromotion!.promoAmount = selectedPromo;
           }
         }
@@ -1416,12 +1420,12 @@ class _CartPageState extends State<CartPage> {
       promo = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
         if (promotion.type == 1) {
-          promo += (double.parse(promotion.amount!) * cart.cartNotifierItem[i].quantity);
+          promo += (double.parse(promotion.amount!) * cart.cartNotifierItem[i].quantity!);
           promotion.promoAmount = promo;
           promoRate = 'RM' + promotion.amount!;
           promotion.promoRate = promoRate;
         } else {
-          promo += (double.parse(cart.cartNotifierItem[i].price) * cart.cartNotifierItem[i].quantity) * (double.parse(promotion.amount!) / 100);
+          promo += (double.parse(cart.cartNotifierItem[i].price!) * cart.cartNotifierItem[i].quantity!) * (double.parse(promotion.amount!) / 100);
           promotion.promoAmount = promo;
           promoRate = promotion.amount! + '%';
           promotion.promoRate = promoRate;
@@ -1441,12 +1445,12 @@ class _CartPageState extends State<CartPage> {
     try {
       promo = 0.0;
       if (promotion.type == 1) {
-        promo += (double.parse(promotion.amount!) * cartItem.quantity);
+        promo += (double.parse(promotion.amount!) * cartItem.quantity!);
         promotion.promoAmount = promotion.promoAmount! + promo;
         promoRate = 'RM' + promotion.amount!;
         promotion.promoRate = promoRate;
       } else {
-        promo += (double.parse(cartItem.price) * cartItem.quantity) * (double.parse(promotion.amount!) / 100);
+        promo += (double.parse(cartItem.price!) * cartItem.quantity!) * (double.parse(promotion.amount!) / 100);
         promotion.promoAmount = promotion.promoAmount! + promo;
         promoRate = promotion.amount! + '%';
         promotion.promoRate = promoRate;
@@ -1470,7 +1474,7 @@ class _CartPageState extends State<CartPage> {
         diningOptionID = data[0].dining_id!;
 
         //get dining tax
-        List<Tax> taxData = await PosDatabase.instance.readTax(branch_id.toString(), diningOptionID.toString());
+        List<Tax> taxData = await PosDatabase.instance.readTax(diningOptionID.toString());
         if (taxData.isNotEmpty) {
           taxRateList = List.from(taxData);
         } else {
@@ -1526,9 +1530,9 @@ class _CartPageState extends State<CartPage> {
       promo = 0.0;
       promoAmount = 0.0;
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-        total += (double.parse((cart.cartNotifierItem[i].price)) * cart.cartNotifierItem[i].quantity);
+        total += (double.parse((cart.cartNotifierItem[i].price!)) * cart.cartNotifierItem[i].quantity!);
         if (cart.cartNotifierItem[i].status == 0) {
-          newOrderSubtotal += (double.parse((cart.cartNotifierItem[i].price)) * cart.cartNotifierItem[i].quantity);
+          newOrderSubtotal += (double.parse((cart.cartNotifierItem[i].price!)) * cart.cartNotifierItem[i].quantity!);
         }
       }
     } catch (e) {
@@ -1790,7 +1794,7 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  readAllBranchLinkDiningOption() async {
+  readAllBranchLinkDiningOption({serverCall}) async {
     diningList.clear();
     branchLinkDiningIdList.clear();
     final prefs = await SharedPreferences.getInstance();
@@ -1800,12 +1804,14 @@ class _CartPageState extends State<CartPage> {
       diningList.add(data[i]);
       branchLinkDiningIdList.add(data[i].dining_id!);
     }
-    if (!controller.isClosed) {
-      controller.sink.add('refresh');
+    if(serverCall == null){
+      if (!controller.isClosed) {
+        controller.sink.add('refresh');
+      }
     }
   }
 
-  void getPromotionData() async {
+  getPromotionData({serverCall}) async {
     promotionList.clear();
     try {
       List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion();
@@ -2113,19 +2119,19 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  syncTableUseDetailToCloud(String value) async {
-    //check is host reachable
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().SyncTableUseDetailToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int updateStatus = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-        }
-      }
-    }
-  }
+  // syncTableUseDetailToCloud(String value) async {
+  //   //check is host reachable
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().SyncTableUseDetailToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int updateStatus = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   createOrderCache(CartModel cart, ConnectivityChangeNotifier connectivity, {isAddOrder}) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -2149,7 +2155,7 @@ class _CartPageState extends State<CartPage> {
       if (cart.selectedOption == 'Dine in') {
         for (int i = 0; i < cart.selectedTable.length; i++) {
           List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
-          if (useDetail.length > 0) {
+          if (useDetail.isNotEmpty) {
             _tableUseId = useDetail[0].table_use_sqlite_id!;
           } else {
             _tableUseId = this.localTableUseId;
@@ -2290,10 +2296,11 @@ class _CartPageState extends State<CartPage> {
             order_detail_key: '',
             order_cache_sqlite_id: orderCacheId,
             order_cache_key: orderCacheKey,
-            branch_link_product_sqlite_id: cart.cartNotifierItem[j].branchProduct_id,
+            branch_link_product_sqlite_id: cart.cartNotifierItem[j].branch_link_product_sqlite_id,
             category_sqlite_id: cart.cartNotifierItem[j].category_sqlite_id,
-            productName: cart.cartNotifierItem[j].name,
-            has_variant: cart.cartNotifierItem[j].variant.length == 0 ? '0' : '1',
+            category_name: cart.cartNotifierItem[j].category_name,
+            productName: cart.cartNotifierItem[j].product_name,
+            has_variant: cart.cartNotifierItem[j].variant!.length == 0 ? '0' : '1',
             product_variant_name: getVariant2(cart.cartNotifierItem[j]),
             price: cart.cartNotifierItem[j].price,
             original_price: cart.cartNotifierItem[j].base_price,
@@ -2308,8 +2315,7 @@ class _CartPageState extends State<CartPage> {
             updated_at: '',
             soft_delete: '');
         OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(object);
-        BranchLinkProduct branchLinkProductData =
-            await updateProductStock(orderDetailData.branch_link_product_sqlite_id.toString(), int.parse(orderDetailData.quantity!), dateTime);
+        BranchLinkProduct branchLinkProductData = await updateProductStock(orderDetailData.branch_link_product_sqlite_id.toString(), int.parse(orderDetailData.quantity!), dateTime);
         _branchLinkProductValue.add(jsonEncode(branchLinkProductData.toJson()));
         branch_link_product_value = _branchLinkProductValue.toString();
         //insert order detail key
@@ -2317,11 +2323,11 @@ class _CartPageState extends State<CartPage> {
         _orderDetailValue.add(jsonEncode(updatedOrderDetailData.syncJson()));
         order_detail_value = _orderDetailValue.toString();
         //insert order modifier detail
-        if (cart.cartNotifierItem[j].modifier.isNotEmpty) {
-          for (int k = 0; k < cart.cartNotifierItem[j].modifier.length; k++) {
-            ModifierGroup group = cart.cartNotifierItem[j].modifier[k];
-            for (int m = 0; m < group.modifierChild.length; m++) {
-              if (group.modifierChild[m].isChecked!) {
+        if (cart.cartNotifierItem[j].modifier!.isNotEmpty) {
+          for (int k = 0; k < cart.cartNotifierItem[j].modifier!.length; k++) {
+            ModifierGroup group = cart.cartNotifierItem[j].modifier![k];
+            for (int m = 0; m < group.modifierChild!.length; m++) {
+              if (group.modifierChild![m].isChecked!) {
                 _hasModifier = true;
                 OrderModifierDetail orderModifierDetailData = await PosDatabase.instance.insertSqliteOrderModifierDetail(OrderModifierDetail(
                     order_modifier_detail_id: 0,
@@ -2329,9 +2335,9 @@ class _CartPageState extends State<CartPage> {
                     order_detail_sqlite_id: orderDetailData.order_detail_sqlite_id.toString(),
                     order_detail_id: '0',
                     order_detail_key: await orderDetailKey,
-                    mod_item_id: group.modifierChild[m].mod_item_id.toString(),
-                    mod_name: group.modifierChild[m].name,
-                    mod_price: group.modifierChild[m].price,
+                    mod_item_id: group.modifierChild![m].mod_item_id.toString(),
+                    mod_name: group.modifierChild![m].name,
+                    mod_price: group.modifierChild![m].price,
                     mod_group_id: group.mod_group_id.toString(),
                     sync_status: 0,
                     created_at: dateTime,
@@ -2386,44 +2392,44 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  syncBranchLinkProductStock(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map orderDetailResponse = await Domain().SyncBranchLinkProductToCloud(value);
-      if (orderDetailResponse['status'] == '1') {
-        List responseJson = orderDetailResponse['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int syncUpdated = await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-        }
-      }
-    }
-  }
-
-  syncOrderDetailToCloud(String orderDetailValue) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map orderDetailResponse = await Domain().SyncOrderDetailToCloud(orderDetailValue);
-      if (orderDetailResponse['status'] == '1') {
-        List responseJson = orderDetailResponse['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int syncUpdated = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
-        }
-      }
-    }
-  }
-
-  syncOrderModifierToCloud(String orderModifierValue) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map orderModifierResponse = await Domain().SyncOrderModifierDetailToCloud(orderModifierValue);
-      if (orderModifierResponse['status'] == '1') {
-        List responseJson = orderModifierResponse['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int syncUpdated = await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
-        }
-      }
-    }
-  }
+  // syncBranchLinkProductStock(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map orderDetailResponse = await Domain().SyncBranchLinkProductToCloud(value);
+  //     if (orderDetailResponse['status'] == '1') {
+  //       List responseJson = orderDetailResponse['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int syncUpdated = await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+  //       }
+  //     }
+  //   }
+  // }
+  //
+  // syncOrderDetailToCloud(String orderDetailValue) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map orderDetailResponse = await Domain().SyncOrderDetailToCloud(orderDetailValue);
+  //     if (orderDetailResponse['status'] == '1') {
+  //       List responseJson = orderDetailResponse['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int syncUpdated = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+  //       }
+  //     }
+  //   }
+  // }
+  //
+  // syncOrderModifierToCloud(String orderModifierValue) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map orderModifierResponse = await Domain().SyncOrderModifierDetailToCloud(orderModifierValue);
+  //     if (orderModifierResponse['status'] == '1') {
+  //       List responseJson = orderModifierResponse['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int syncUpdated = await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   insertOrderModifierDetailKey(OrderModifierDetail orderModifierDetail, String dateTime) async {
     OrderModifierDetail? detailData;
@@ -2515,18 +2521,18 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  syncUpdatedTableToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().SyncUpdatedPosTableToCloud(value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-        }
-      }
-    }
-  }
+  // syncUpdatedTableToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map data = await Domain().SyncUpdatedPosTableToCloud(value);
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+  //       }
+  //     }
+  //   }
+  // }
 
   syncAllToCloud() async {
     if(mainSyncToCloud.count == 0){

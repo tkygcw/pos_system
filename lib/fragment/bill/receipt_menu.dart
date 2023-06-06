@@ -198,9 +198,9 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                           await getOrderDetail(paidOrderList[index]);
                                           //check is order refunded or not
                                           if (paidOrderList[index].payment_status == 1) {
-                                            await addToCart(cart, orderCacheList, false);
+                                            await addToCart(cart, orderCacheList, paidOrderList[index], false);
                                           } else {
-                                            await addToCart(cart, orderCacheList, true);
+                                            await addToCart(cart, orderCacheList, paidOrderList[index], true);
                                           }
                                           await callReadOrderTaxPromoDetail(paidOrderList[index]);
                                           if (_readComplete == true) {
@@ -346,9 +346,9 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                         await getOrderDetail(paidOrderList[index]);
                                         //check is order refunded or not
                                         if (paidOrderList[index].payment_status == 1) {
-                                          await addToCart(cart, orderCacheList, false);
+                                          await addToCart(cart, orderCacheList, paidOrderList[index], false);
                                         } else {
-                                          await addToCart(cart, orderCacheList, true);
+                                          await addToCart(cart, orderCacheList, paidOrderList[index], true);
                                         }
                                         await callReadOrderTaxPromoDetail(paidOrderList[index]);
                                         if (_readComplete == true) {
@@ -429,23 +429,22 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     cart.addPaymentDetail(value);
   }
 
-  addToCart(CartModel cart, List<OrderCache> orderCacheList, bool isRefund) async {
+  addToCart(CartModel cart, List<OrderCache> orderCacheList, Order order, bool isRefund) async {
     print('is refund: ${isRefund}');
     var value;
     List<TableUseDetail> tableUseDetailList = [];
     List<OrderCache> _uniqueOrderCacheList = [];
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
-          orderDetailList[i].branch_link_product_sqlite_id!,
-          orderDetailList[i].productName!,
-          orderDetailList[i].product_category_id!,
-          orderDetailList[i].price!,
-          int.parse(orderDetailList[i].quantity!),
-          getModifierGroupItem(orderDetailList[i]),
-          getVariantGroupItem(orderDetailList[i]),
-          orderDetailList[i].remark!,
-          0,
-          null,
+          branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
+          product_name: orderDetailList[i].productName!,
+          category_id: orderDetailList[i].product_category_id!,
+          price: orderDetailList[i].price!,
+          quantity: int.parse(orderDetailList[i].quantity!),
+          modifier: getModifierGroupItem(orderDetailList[i]),
+          variant: getVariantGroupItem(orderDetailList[i]),
+          remark: orderDetailList[i].remark!,
+          status: 0,
           isRefund: isRefund,
           refColor: Colors.black,
       );
@@ -480,13 +479,14 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
       // }
       //tableUseDetailList = List.from(tableUseDetailData);
       //add selected dining option
-      if (orderCacheList[j].dining_id == '2') {
-        cart.selectedOption = 'Take Away';
-      } else if (orderCacheList[j].dining_id == '3') {
-        cart.selectedOption = 'Delivery';
-      } else {
-        cart.selectedOption = 'Dine in';
-      }
+      cart.selectedOption = order.dining_name!;
+      // if (orderCacheList[j].dining_id == '2') {
+      //   cart.selectedOption = 'Take Away';
+      // } else if (orderCacheList[j].dining_id == '3') {
+      //   cart.selectedOption = 'Delivery';
+      // } else {
+      //   cart.selectedOption = 'Dine in';
+      // }
       print('cycle ${j + 1} finish');
     }
     //get all table use detail
@@ -559,60 +559,59 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     await getOrderCache(order.order_sqlite_id.toString());
 
     for (int i = 0; i < orderCacheList.length; i++) {
-      List<OrderDetail> detailData =
-          await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(orderCacheList[i].order_cache_sqlite_id.toString());
+      List<OrderDetail> detailData = await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(orderCacheList[i].order_cache_sqlite_id.toString());
       if (!_cacheOrderDetail.contains(detailData)) {
         _cacheOrderDetail.addAll(detailData);
       }
     }
 
-    if (_cacheOrderDetail.length > 0) {
+    if (_cacheOrderDetail.isNotEmpty) {
       orderDetailList = List.from(_cacheOrderDetail);
-    }
-    for (int k = 0; k < orderDetailList.length; k++) {
-      List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
-      //Get product category
-      List<Product> productResult = await PosDatabase.instance.readSpecificProductCategory(result[0].product_id!);
-      orderDetailList[k].product_category_id = productResult[0].category_id;
-      if (orderDetailList[k].has_variant == '1') {
-        List<BranchLinkProduct> variant = await PosDatabase.instance.readBranchLinkProductVariant(orderDetailList[k].branch_link_product_sqlite_id!);
-        orderDetailList[k].productVariant =
-            ProductVariant(product_variant_id: int.parse(variant[0].product_variant_id!), variant_name: variant[0].variant_name);
+      for (int k = 0; k < orderDetailList.length; k++) {
+        List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
+        //Get product category
+        List<Product> productResult = await PosDatabase.instance.readSpecificProductCategory(result[0].product_id!);
+        orderDetailList[k].product_category_id = productResult[0].category_id;
+        if (orderDetailList[k].has_variant == '1') {
+          List<BranchLinkProduct> variant = await PosDatabase.instance.readBranchLinkProductVariant(orderDetailList[k].branch_link_product_sqlite_id!);
+          orderDetailList[k].productVariant =
+              ProductVariant(product_variant_id: int.parse(variant[0].product_variant_id!), variant_name: variant[0].variant_name);
 
-        //Get product variant detail
-        List<ProductVariantDetail> productVariantDetail = await PosDatabase.instance.readProductVariantDetail(variant[0].product_variant_id!);
-        orderDetailList[k].variantItem.clear();
-        for (int v = 0; v < productVariantDetail.length; v++) {
-          //Get product variant item
-          List<VariantItem> variantItemDetail =
-              await PosDatabase.instance.readProductVariantItemByVariantID(productVariantDetail[v].variant_item_id!);
-          orderDetailList[k].variantItem.add(VariantItem(
-              variant_item_id: int.parse(productVariantDetail[v].variant_item_id!),
-              variant_group_id: variantItemDetail[0].variant_group_id,
-              name: variant[0].variant_name,
-              isSelected: true));
-          productVariantDetail.clear();
+          //Get product variant detail
+          List<ProductVariantDetail> productVariantDetail = await PosDatabase.instance.readProductVariantDetail(variant[0].product_variant_id!);
+          orderDetailList[k].variantItem.clear();
+          for (int v = 0; v < productVariantDetail.length; v++) {
+            //Get product variant item
+            List<VariantItem> variantItemDetail =
+            await PosDatabase.instance.readProductVariantItemByVariantID(productVariantDetail[v].variant_item_id!);
+            orderDetailList[k].variantItem.add(VariantItem(
+                variant_item_id: int.parse(productVariantDetail[v].variant_item_id!),
+                variant_group_id: variantItemDetail[0].variant_group_id,
+                name: variant[0].variant_name,
+                isSelected: true));
+            productVariantDetail.clear();
+          }
         }
-      }
-      //check product modifier
-      List<ModifierLinkProduct> productMod = await PosDatabase.instance.readProductModifier(result[0].product_sqlite_id!);
-      if (productMod.length > 0) {
-        orderDetailList[k].hasModifier = true;
-      }
+        //check product modifier
+        List<ModifierLinkProduct> productMod = await PosDatabase.instance.readProductModifier(result[0].product_sqlite_id!);
+        if (productMod.isNotEmpty) {
+          orderDetailList[k].hasModifier = true;
+        }
 
-      if (orderDetailList[k].hasModifier == true) {
-        //Get order modifier detail
-        List<OrderModifierDetail> modDetail =
-            await PosDatabase.instance.readOrderModifierDetail(orderDetailList[k].order_detail_sqlite_id.toString());
-        if (modDetail.length > 0) {
-          orderDetailList[k].modifierItem.clear();
-          for (int m = 0; m < modDetail.length; m++) {
-            // print('mod detail length: ${modDetail.length}');
-            if (!orderDetailList[k].modifierItem.contains(modDetail[m].mod_group_id!)) {
-              orderDetailList[k].modifierItem.add(ModifierItem(
-                  mod_group_id: modDetail[m].mod_group_id!, mod_item_id: int.parse(modDetail[m].mod_item_id!), name: modDetail[m].modifier_name!));
-              orderDetailList[k].mod_group_id.add(modDetail[m].mod_group_id!);
-              orderDetailList[k].mod_item_id = modDetail[m].mod_item_id;
+        if (orderDetailList[k].hasModifier == true) {
+          //Get order modifier detail
+          List<OrderModifierDetail> modDetail =
+          await PosDatabase.instance.readOrderModifierDetail(orderDetailList[k].order_detail_sqlite_id.toString());
+          if (modDetail.isNotEmpty) {
+            orderDetailList[k].modifierItem.clear();
+            for (int m = 0; m < modDetail.length; m++) {
+              // print('mod detail length: ${modDetail.length}');
+              if (!orderDetailList[k].modifierItem.contains(modDetail[m].mod_group_id!)) {
+                orderDetailList[k].modifierItem.add(ModifierItem(
+                    mod_group_id: modDetail[m].mod_group_id!, mod_item_id: int.parse(modDetail[m].mod_item_id!), name: modDetail[m].modifier_name!));
+                orderDetailList[k].mod_group_id.add(modDetail[m].mod_group_id!);
+                orderDetailList[k].mod_item_id = modDetail[m].mod_item_id;
+              }
             }
           }
         }

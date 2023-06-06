@@ -15,10 +15,7 @@ import 'package:pos_system/fragment/setting/setting.dart';
 import 'package:pos_system/fragment/settlement/settlement_page.dart';
 import 'package:pos_system/fragment/table/table.dart';
 import 'package:pos_system/main.dart';
-import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
-import 'package:pos_system/object/qr_order.dart';
-import 'package:pos_system/object/sync_record.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -103,7 +100,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   setScreenLayout() {
-    final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
+    final double screenWidth = WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width;
     if (screenWidth < 500) {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
@@ -329,6 +326,7 @@ class _HomePageState extends State<HomePage> {
         if(qrOrder.count == 0){
           qrOrder.getQrOrder();
           manageNotificationTimer();
+          qrOrder.count = 0;
         }
       }
       /*

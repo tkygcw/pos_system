@@ -769,20 +769,20 @@ class _TestCategorySyncState extends State<TestCategorySync> {
   test linked tax
 */
   readLinkedTax() async {
-    List<Tax> taxList = [];
-    List<String> taxName = [];
-    String taxRate = '';
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-
-    List<Tax> data = await PosDatabase.instance.readTax(branch_id.toString(), '3');
-    if(data.length > 0){
-      taxList = List.from(data);
-      for(int i = 0; i < taxList.length; i++){
-        taxName.add(taxList[i].name!);
-      }
-    }
-    return taxName;
+    // List<Tax> taxList = [];
+    // List<String> taxName = [];
+    // String taxRate = '';
+    // final prefs = await SharedPreferences.getInstance();
+    // final int? branch_id = prefs.getInt('branch_id');
+    //
+    // List<Tax> data = await PosDatabase.instance.readTax(branch_id.toString(), '3');
+    // if(data.length > 0){
+    //   taxList = List.from(data);
+    //   for(int i = 0; i < taxList.length; i++){
+    //     taxName.add(taxList[i].name!);
+    //   }
+    // }
+    // return taxName;
   }
 
 /*

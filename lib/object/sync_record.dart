@@ -208,6 +208,10 @@ class SyncRecord {
         return false;
       } else if (data['status'] == '7'){
         return true;
+      } else {
+        return;
+        //notificationModel.setContentLoaded();
+        //notificationModel.setCartContentLoaded();
       }
     }
   }

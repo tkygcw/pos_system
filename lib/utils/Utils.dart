@@ -79,4 +79,29 @@ class Utils {
       return '';
     }
   }
+
+  static toColor(String hex) {
+    var hexColor = hex.replaceAll("#", "");
+    if (hexColor.length == 6) {
+      hexColor = "FF$hexColor";
+    }
+    if (hexColor.length == 8) {
+      return Color(int.parse("0x$hexColor"));
+    }
+  }
+
+  static to2Decimal(double value){
+    double _round = double.parse(value.toStringAsFixed(1)) - double.parse(value.toStringAsFixed(2));
+    if (_round.toStringAsFixed(2) != '0.05' && _round.toStringAsFixed(2) != '-0.05') {
+       _round;
+    } else {
+      _round = 0.0;
+    }
+
+    if (_round == 0.0) {
+      return value.toStringAsFixed(2);
+    } else {
+      return value.toStringAsFixed(1) + '0';
+    }
+  }
 }

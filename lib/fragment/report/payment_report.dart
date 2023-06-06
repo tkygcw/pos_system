@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/payment_link_company.dart';
+import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
@@ -250,7 +251,8 @@ class _PaymentReportState extends State<PaymentReport> {
               ),
               DataCell(Text('${paymentList[i].item_sum}')),
               DataCell(Text('${paymentList[i].net_sales!.toStringAsFixed(2)}')),
-              DataCell(Text('${paymentList[i].gross_sales!.toStringAsFixed(2)}')),
+              // DataCell(Text('${paymentList[i].gross_sales!.toStringAsFixed(2)}')),
+              DataCell(Text('${Utils.to2Decimal(paymentList[i].gross_sales!)}')),
             ],
           ),
         ]);
