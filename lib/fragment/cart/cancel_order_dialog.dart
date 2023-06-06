@@ -120,8 +120,8 @@ class _CancelDialogState extends State<CancelDialog> {
       int orderDetailData = await PosDatabase.instance.deleteSpecificOrderDetail(OrderDetail(
           soft_delete: dateTime,
           cancel_by: userData[0].name,
-          order_cache_sqlite_id: widget.cartItem.orderCacheId!,
-          branch_link_product_sqlite_id: widget.cartItem.branchProduct_id
+          order_cache_sqlite_id: widget.cartItem.order_cache_sqlite_id!,
+          branch_link_product_sqlite_id: widget.cartItem.branch_link_product_sqlite_id
       ));
 
       Fluttertoast.showToast(

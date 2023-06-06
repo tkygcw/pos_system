@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
@@ -292,7 +293,8 @@ class _CancellationReportState extends State<CancellationReport> {
               DataCell(Text('')),
               DataCell(Text('${categoryData[i].item_sum}')),
               DataCell(Text('${categoryData[i].net_sales!.toStringAsFixed(2)}')),
-              DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
+              // DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
+              DataCell(Text('${Utils.to2Decimal(categoryData[i].gross_sales!)}')),
               DataCell(Text('')),
             ],
           ),
@@ -305,7 +307,8 @@ class _CancellationReportState extends State<CancellationReport> {
                     Text('${categoryData[i].categoryOrderDetailList[j].product_variant_name}'): Text('-')),
                 DataCell(Text('${categoryData[i].categoryOrderDetailList[j].item_sum}')),
                 DataCell(Text('${categoryData[i].categoryOrderDetailList[j].double_price!.toStringAsFixed(2)}')),
-                DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
+                // DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
+                DataCell(Text('${Utils.to2Decimal(categoryData[i].categoryOrderDetailList[j].gross_price!)}')),
                 DataCell(Text('${categoryData[i].categoryOrderDetailList[j].cancel_by}')),
               ],
             ),

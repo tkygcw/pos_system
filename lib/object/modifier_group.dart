@@ -36,7 +36,7 @@ class ModifierGroup{
   String? dining_id;
   String? compulsory;
   int? modifier_item_id;
-  late List<ModifierItem> modifierChild;
+  List<ModifierItem>? modifierChild;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -48,7 +48,7 @@ class ModifierGroup{
       {this.mod_group_id,
         this.company_id,
         this.modifier_item_id,
-        required this.modifierChild,
+        this.modifierChild,
         this.dining_id,
         this.compulsory,
         this.name,
@@ -77,23 +77,55 @@ class ModifierGroup{
           compulsory: compulsory ?? this.compulsory,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
-          soft_delete: soft_delete ?? this.soft_delete, modifierChild: []);
+          soft_delete: soft_delete ?? this.soft_delete);
 
-  static ModifierGroup fromJson(Map<String, Object?> json) => ModifierGroup(
-    mod_group_id: json[ModifierGroupFields.mod_group_id] as int?,
-    company_id: json[ModifierGroupFields.company_id] as String?,
-    name: json[ModifierGroupFields.name] as String?,
-    dining_id: json[ModifierGroupFields.dining_id] as String?,
-    compulsory: json[ModifierGroupFields.compulsory] as String?,
-    created_at: json[ModifierGroupFields.created_at] as String?,
-    updated_at: json[ModifierGroupFields.updated_at] as String?,
-    soft_delete: json[ModifierGroupFields.soft_delete] as String?,
-    modifierChild: [],
-    item_sum: json['item_sum'] as int?,
-    net_sales: json['net_sales'] as double?
-  );
+  // static ModifierGroup fromJson(Map<String, Object?> json) => ModifierGroup(
+  //   mod_group_id: json[ModifierGroupFields.mod_group_id] as int?,
+  //   company_id: json[ModifierGroupFields.company_id] as String?,
+  //   name: json[ModifierGroupFields.name] as String?,
+  //   dining_id: json[ModifierGroupFields.dining_id] as String?,
+  //   compulsory: json[ModifierGroupFields.compulsory] as String?,
+  //   created_at: json[ModifierGroupFields.created_at] as String?,
+  //   updated_at: json[ModifierGroupFields.updated_at] as String?,
+  //   soft_delete: json[ModifierGroupFields.soft_delete] as String?,
+  //   modifierChild: [],
+  //   item_sum: json['item_sum'] as int?,
+  //   net_sales: json['net_sales'] as double?
+  // );
 
-  Map<String, Object?> toJson() => {
+  static ModifierGroup fromJson(Map<String, Object?> json) {
+    var childJson = json['modifierChild'] as List?;
+    List<ModifierItem>? childList = childJson != null ? childJson.map((json) => ModifierItem.fromJson(json)).toList() : null;
+    return ModifierGroup(
+        mod_group_id: json[ModifierGroupFields.mod_group_id] as int?,
+        company_id: json[ModifierGroupFields.company_id] as String?,
+        name: json[ModifierGroupFields.name] as String?,
+        dining_id: json[ModifierGroupFields.dining_id] as String?,
+        compulsory: json[ModifierGroupFields.compulsory] as String?,
+        created_at: json[ModifierGroupFields.created_at] as String?,
+        updated_at: json[ModifierGroupFields.updated_at] as String?,
+        soft_delete: json[ModifierGroupFields.soft_delete] as String?,
+        modifierChild: childList,
+        item_sum: json['item_sum'] as int?,
+        net_sales: json['net_sales'] as double?
+    );
+  }
+  Map toJson() {
+    List? mod_child = this.modifierChild != null ? this.modifierChild?.map((i) => i.toJson()).toList() : null;
+    return {
+      ModifierGroupFields.mod_group_id: mod_group_id,
+      ModifierGroupFields.company_id: company_id,
+      ModifierGroupFields.name: name,
+      ModifierGroupFields.dining_id: dining_id,
+      ModifierGroupFields.compulsory: compulsory,
+      ModifierGroupFields.created_at: created_at,
+      ModifierGroupFields.updated_at: updated_at,
+      ModifierGroupFields.soft_delete: soft_delete,
+      'modifierChild': mod_child
+    };
+  }
+
+  Map<String, Object?> toJson2() => {
     ModifierGroupFields.mod_group_id: mod_group_id,
     ModifierGroupFields.company_id: company_id,
     ModifierGroupFields.name: name,
@@ -104,9 +136,9 @@ class ModifierGroup{
     ModifierGroupFields.soft_delete: soft_delete,
   };
 
-  Map addToCartJSon() => {
-    ModifierGroupFields.mod_group_id: mod_group_id,
-    ModifierGroupFields.name: name,
-    ModifierGroupFields.modifier_item: jsonEncode(modifierChild.map((e) => e.addToCartJSon()).toList()),
-  };
+  // Map addToCartJSon() => {
+  //   ModifierGroupFields.mod_group_id: mod_group_id,
+  //   ModifierGroupFields.name: name,
+  //   ModifierGroupFields.modifier_item: jsonEncode(modifierChild.map((e) => e.addToCartJSon()).toList()),
+  // };
 }

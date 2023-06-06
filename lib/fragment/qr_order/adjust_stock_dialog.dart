@@ -1032,7 +1032,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(widget.tableLocalId);
       if (tableData[0].status == 1) {
         TableUse tableUse = await PosDatabase.instance.readSpecificTableUseByKey(tableData[0].table_use_key!);
-        List<OrderCache> orderCache = await PosDatabase.instance.readTableOrderCache(tableUse.table_use_sqlite_id.toString());
+        List<OrderCache> orderCache = await PosDatabase.instance.readTableOrderCache(tableUse.table_use_key!);
         tableInUsed = true;
         batchNo = orderCache[0].batch_id!;
         this.tableUseKey = tableData[0].table_use_key!;

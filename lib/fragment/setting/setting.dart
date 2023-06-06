@@ -25,6 +25,7 @@ import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
 import '../../page/pos_pin.dart';
 import '../../translation/AppLocalizations.dart';
+import '../multi_device/multi_device.dart';
 import '../test_dual_screen/test_display.dart';
 
 class SettingMenu extends StatefulWidget {
@@ -53,6 +54,9 @@ class _SettingMenuState extends State<SettingMenu> {
     ),
     Container(
       child: FeaturesSetting(),
+    ),
+    Container(
+      child: MultiDevicePage(),
     ),
     // Container(
     //   child: TestCategorySync(),
@@ -174,6 +178,10 @@ class _SettingMenuState extends State<SettingMenu> {
                         icon: Icons.settings,
                         label: 'App-Device setting',
                       ),
+                      // SideNavigationBarItem(
+                      //   icon: Icons.settings,
+                      //   label: 'Multi device testing',
+                      // ),
                       // SideNavigationBarItem(
                       //   icon: Icons.list,
                       //   label: 'Test sync (temp)',

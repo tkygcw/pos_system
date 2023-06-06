@@ -228,7 +228,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
     orderCacheList.clear();
 
     //Get all order table cache
-    List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(widget.object.table_id.toString());
+    List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(widget.object.table_use_key!);
     //loop all table order cache
     for (int i = 0; i < data.length; i++) {
       if(!orderCacheList.contains(data)){
@@ -236,8 +236,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
 
       }
       //Get all order detail based on order cache id
-      List<OrderDetail> detailData = await PosDatabase.instance
-          .readTableOrderDetail(data[i].order_cache_sqlite_id.toString());
+      List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(data[i].order_cache_key!);
       //add all order detail from db
       if (!orderDetailList.contains(detailData)) {
         orderDetailList..addAll(detailData);
@@ -449,16 +448,15 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
     cart.removeAllTable();
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
-        orderDetailList[i].branch_link_product_sqlite_id!,
-        orderDetailList[i].productName!,
-        orderDetailList[i].product_category_id!,
-        orderDetailList[i].price!,
-        int.parse(orderDetailList[i].quantity!),
-        getModifierGroupItem(orderDetailList[i]),
-        getVariantGroupItem(orderDetailList[i]),
-        orderDetailList[i].remark!,
-        1,
-        null,
+        branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
+        product_name: orderDetailList[i].productName!,
+        category_id: orderDetailList[i].product_category_id!,
+        price: orderDetailList[i].price!,
+        quantity: int.parse(orderDetailList[i].quantity!),
+        modifier: getModifierGroupItem(orderDetailList[i]),
+        variant: getVariantGroupItem(orderDetailList[i]),
+        remark: orderDetailList[i].remark!,
+        status: 1,
         refColor: Colors.black,
       );
       cart.addItem(value);

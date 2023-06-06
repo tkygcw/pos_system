@@ -78,6 +78,7 @@ class QrOrder {
             order_cache_key: response['data'][i]['order_cache_key'].toString(),
             branch_link_product_sqlite_id: branchLinkProductData.branch_link_product_sqlite_id.toString(),
             category_sqlite_id: categoryLocalId,
+            category_name: response['data'][i]['order_detail'][j]['category_name'],
             productName: response['data'][i]['order_detail'][j]['product_name'],
             has_variant: response['data'][i]['order_detail'][j]['has_variant'],
             product_variant_name: response['data'][i]['order_detail'][j]['product_variant_name'],

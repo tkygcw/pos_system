@@ -23,12 +23,13 @@ class _SecondDisplayState extends State<SecondDisplay> {
   getVariant(cartProductItem object) {
     List<String?> variant = [];
     String result = '';
-    for (int i = 0; i < object.variant.length; i++) {
-      VariantGroup group = object.variant[i];
+    var length = object.variant!.length;
+    for (int i = 0; i < length ; i++) {
+      VariantGroup group = object.variant![i];
       for (int j = 0; j < group.child!.length; j++) {
         if (group.child![j].isSelected!) {
           variant.add(group.child![j].name!);
-          result = variant.toString().replaceAll('[', '').replaceAll(']', '');
+          result = '(${variant.toString().replaceAll('[', '').replaceAll(']', '')})';
           //.replaceAll(',', '+')
           //.replaceAll('|', '\n+')
         }
@@ -128,7 +129,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                                   child: ListTile(
                                     dense: true,
                                     visualDensity: VisualDensity(horizontal: 0, vertical: -4),
-                                    title: Text('${obj!.itemList![index].name} (${getVariant(obj!.itemList![index])})'),
+                                    title: Text('${obj!.itemList![index].product_name} ${getVariant(obj!.itemList![index])}'),
                                     leading: Text('${obj!.itemList![index].quantity}'),
                                     trailing: Text('${obj!.itemList![index].price}'),
                                   ),

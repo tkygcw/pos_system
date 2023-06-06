@@ -86,7 +86,7 @@ dependencies:
   device_info_plus: ^8.2.2
   syncfusion_flutter_pdf: ^20.4.54
   pdf: ^3.10.1
-  printing: ^5.10.3
+  printing: ^5.10.4
   qr_flutter:
     git:
       url: https://github.com/theyakka/qr.flutter.git

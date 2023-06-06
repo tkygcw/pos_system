@@ -48,7 +48,7 @@ class _SetupPageState extends State<SetupPage> {
             child: Opacity(
               opacity: a1.value,
               child: DeviceCheckDialog(
-                callBack: () => saveBranchAndDevice(),
+                callBack: () async => await saveBranchAndDevice(),
               )
             ),
           );
@@ -142,7 +142,7 @@ class _SetupPageState extends State<SetupPage> {
       );
 
   Widget backToLoginButton() => TextButton(
-      style: TextButton.styleFrom(primary: Colors.white),
+      style: TextButton.styleFrom(foregroundColor: Colors.white),
       onPressed: () {
         backToLogin();
       },
@@ -235,7 +235,8 @@ class _SetupPageState extends State<SetupPage> {
   }
 
   checkDeviceLogin() async {
-    if(selectedDevice!.deviceID! != '4'){
+    print('selected device id: ${selectedDevice!.deviceID!}');
+    if(selectedDevice!.deviceID! != 4){
       Map response = await Domain().getDeviceLogin(selectedDevice!.deviceID!.toString());
       if(response['status'] == '1'){
         openConfirmDialog();
@@ -289,8 +290,7 @@ class _SetupPageState extends State<SetupPage> {
       if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi) {
         Map response = await Domain().updateBranchNotificationToken(this.token, selectedBranch!.branchID);
         if (response['status'] == '1') {
-          Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => LoadingPage()));
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));
         } else {
           Fluttertoast.showToast(msg: '${AppLocalizations.of(context)?.translate('fail_get_token')}');
           Navigator.of(context).pushAndRemoveUntil(

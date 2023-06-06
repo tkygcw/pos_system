@@ -7,6 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -43,10 +44,10 @@ class CartDialog extends StatefulWidget {
   const CartDialog({Key? key, required this.selectedTableList}) : super(key: key);
 
   @override
-  State<CartDialog> createState() => _CartDialogState();
+  State<CartDialog> createState() => CartDialogState();
 }
 
-class _CartDialogState extends State<CartDialog> {
+class CartDialogState extends State<CartDialog> {
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   List<PosTable> tableList = [];
   List<OrderCache> orderCacheList = [];
@@ -295,7 +296,7 @@ class _CartDialogState extends State<CartDialog> {
             shape: tableList[index].isSelected
                 ? new RoundedRectangleBorder(side: new BorderSide(color: color.backgroundColor, width: 3.0), borderRadius: BorderRadius.circular(4.0))
                 : new RoundedRectangleBorder(side: new BorderSide(color: Colors.white, width: 3.0), borderRadius: BorderRadius.circular(4.0)),
-            color: tableList[index].status == 1 ? toColor(tableList[index].card_color!) : Colors.white,
+            color: tableList[index].status == 1 ? Utils.toColor(tableList[index].card_color!) : Colors.white,
             child: InkWell(
               splashColor: Colors.blue.withAlpha(30),
               onDoubleTap: () {
@@ -567,18 +568,20 @@ class _CartDialogState extends State<CartDialog> {
         });
   }
 
-  readAllTable({isReset}) async {
+  readAllTable({isReset, bool? isServerCall}) async {
     isLoad = false;
 
     List<PosTable> data = await PosDatabase.instance.readAllTable();
 
-    tableList = List.from(data);
+    tableList = data;
     await readAllTableAmount();
-    if (widget.selectedTableList.length > 0) {
-      for (int i = 0; i < widget.selectedTableList.length; i++) {
-        for (int j = 0; j < tableList.length; j++) {
-          if (tableList[j].table_sqlite_id == widget.selectedTableList[i].table_sqlite_id) {
-            tableList[j].isSelected = true;
+    if(isServerCall == null){
+      if (widget.selectedTableList.isNotEmpty) {
+        for (int i = 0; i < widget.selectedTableList.length; i++) {
+          for (int j = 0; j < tableList.length; j++) {
+            if (tableList[j].table_sqlite_id == widget.selectedTableList[i].table_sqlite_id) {
+              tableList[j].isSelected = true;
+            }
           }
         }
       }
@@ -595,7 +598,6 @@ class _CartDialogState extends State<CartDialog> {
   }
 
   resetAllTable() async {
-    List<PosTable> data = await PosDatabase.instance.readAllTable();
     for (int j = 0; j < tableList.length; j++) {
       tableList[j].isSelected = false;
     }
@@ -607,20 +609,21 @@ class _CartDialogState extends State<CartDialog> {
 
   readAllTableAmount() async {
     for (int i = 0; i < tableList.length; i++) {
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
+      if(tableList[i].status == 1){
+        List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
 
-      if (tableUseDetailData.length > 0) {
-        List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_sqlite_id!);
+        if (tableUseDetailData.isNotEmpty) {
+          List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
 
-        tableList[i].group = data[0].table_use_sqlite_id;
-        tableList[i].card_color = data[0].card_color;
+          tableList[i].group = data[0].table_use_sqlite_id;
+          tableList[i].card_color = data[0].card_color;
 
-        // for (int j = 0; j < data.length; j++) {
-        //   tableList[i].total_Amount += double.parse(data[j].total_amount!);
-        // }
+          // for (int j = 0; j < data.length; j++) {
+          //   tableList[i].total_Amount += double.parse(data[j].total_amount!);
+          // }
+        }
       }
     }
-    controller.add('refresh');
   }
 
   readSpecificTableDetail(PosTable posTable) async {
@@ -631,14 +634,14 @@ class _CartDialogState extends State<CartDialog> {
     List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(posTable.table_sqlite_id!);
 
     //Get all order table cache
-    List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_sqlite_id!);
+    List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
     //loop all table order cache
     for (int i = 0; i < data.length; i++) {
       if (!orderCacheList.contains(data)) {
         orderCacheList = List.from(data);
       }
       //Get all order detail based on order cache id
-      List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(data[i].order_cache_sqlite_id.toString());
+      List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(data[i].order_cache_key!);
       //add all order detail from db
       if (!orderDetailList.contains(detailData)) {
         orderDetailList..addAll(detailData);
@@ -677,7 +680,7 @@ class _CartDialogState extends State<CartDialog> {
 
       //check product modifier
       List<ModifierLinkProduct> productMod = await PosDatabase.instance.readProductModifier(result[0].product_sqlite_id!);
-      if (productMod.length > 0) {
+      if (productMod.isNotEmpty) {
         orderDetailList[k].hasModifier = true;
       }
 
@@ -754,16 +757,15 @@ class _CartDialogState extends State<CartDialog> {
     print('order detail length: ${orderDetailList.length}');
     for (int i = 0; i < orderDetailList.length; i++) {
       value = cartProductItem(
-          orderDetailList[i].branch_link_product_sqlite_id!,
-          orderDetailList[i].productName!,
-          orderDetailList[i].product_category_id!,
-          orderDetailList[i].price!,
-          int.parse(orderDetailList[i].quantity!),
-          getModifierGroupItem(orderDetailList[i]),
-          getVariantGroupItem(orderDetailList[i]),
-          orderDetailList[i].remark!,
-          1,
-          null,
+          branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
+          product_name: orderDetailList[i].productName!,
+          category_id: orderDetailList[i].product_category_id!,
+          price: orderDetailList[i].price!,
+          quantity: int.parse(orderDetailList[i].quantity!),
+          modifier: getModifierGroupItem(orderDetailList[i]),
+          variant: getVariantGroupItem(orderDetailList[i]),
+          remark: orderDetailList[i].remark!,
+          status: 1,
           category_sqlite_id: orderDetailList[i].category_sqlite_id,
           first_cache_created_date_time: orderCacheList.last.created_at,  //orderCacheList[0].created_at,
           first_cache_batch: orderCacheList.last.batch_id,

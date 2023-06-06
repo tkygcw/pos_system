@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
+import 'package:pos_system/object/colorCode.dart';
 import 'package:pos_system/object/product.dart';
 
 import '../fragment/product/product_order_dialog.dart';
@@ -99,9 +100,14 @@ class ProductSearchDelegate extends SearchDelegate{
         var result = matchQuery[index].SKU! + '-' + matchQuery[index].name!;
         return ListTile(
           title: Text(result),
-          leading: CircleAvatar(
-              backgroundColor: Colors.grey.shade200,
-              child: Image.file(File(imagePath! + '/' + matchQuery[index].image!))),
+          leading: matchQuery[index].graphic_type == '2'?
+          CircleAvatar(
+            backgroundColor: Colors.grey.shade200,
+            foregroundImage: FileImage(File(imagePath! + '/' + matchQuery[index].image!)),
+          ):
+          CircleAvatar(
+              backgroundColor: HexColor(matchQuery[index].color!)
+          ),
           onTap: (){
             close(context, null);
             openProductOrderDialog(matchQuery[index], cartModel!, context);
@@ -130,9 +136,15 @@ class ProductSearchDelegate extends SearchDelegate{
           var result = matchQuery[index].SKU! + ' ' + matchQuery[index].name!;
           return ListTile(
             title: Text(result),
-            leading: CircleAvatar(
+            leading: matchQuery[index].graphic_type == '2' ?
+            CircleAvatar(
+                foregroundImage: FileImage(File(imagePath! + '/' + matchQuery[index].image!)),
                 backgroundColor: Colors.grey.shade200,
-                child: Image.file(File(imagePath! + '/' + matchQuery[index].image!))),
+            ):
+                //child: Image.file(File(imagePath! + '/' + matchQuery[index].image!))):
+            CircleAvatar(
+                backgroundColor: HexColor(matchQuery[index].color!),
+            ),
             onTap: () {
               close(context, null);
               openProductOrderDialog(matchQuery[index], cartModel!, context);

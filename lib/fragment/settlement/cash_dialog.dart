@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
+import '../../main.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/app_setting.dart';
 import '../../object/print_receipt.dart';
@@ -528,12 +529,14 @@ class _CashDialogState extends State<CashDialog> {
     bool _hasInternetAccess = await Domain().isHostReachable();
     if (_hasInternetAccess) {
       print('value: ${login_value.toString()}');
-      Map data = await Domain().syncLocalUpdateToCloud(device_id: device_id.toString(), value: login_value.toString(), cash_record_value: value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
-      } else if (data['status'] == '7') {
-        this.isLogOut = true;
+      if(mainSyncToCloud.count == 0){
+        Map data = await Domain().syncLocalUpdateToCloud(device_id: device_id.toString(), value: login_value.toString(), cash_record_value: value);
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+        } else if (data['status'] == '7') {
+          this.isLogOut = true;
+        }
       }
     }
   }

@@ -107,6 +107,7 @@ class VariantGroup {
       updated_at: json[VariantGroupFields.updated_at] as String?,
       soft_delete: json[VariantGroupFields.soft_delete] as String?,
       child: childList,
+      variant_item_sqlite_id: json['variant_item_sqlite_id'] as int?
     );
   }
 
@@ -134,7 +135,8 @@ class VariantGroup {
       VariantGroupFields.created_at: created_at,
       VariantGroupFields.updated_at: updated_at,
       VariantGroupFields.soft_delete: soft_delete,
-      'child': variantChild
+      'child': variantChild,
+      'variant_item_sqlite_id': variant_item_sqlite_id
     };
   }
 

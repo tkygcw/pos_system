@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/object/categories.dart';
+import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 
 import '../../notifier/theme_color.dart';
@@ -271,7 +272,8 @@ class _ProductReportState extends State<ProductReport> {
               DataCell(Text('')),
               DataCell(Text('${categoryData[i].item_sum}')),
               DataCell(Text('${categoryData[i].net_sales!.toStringAsFixed(2)}')),
-              DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
+              //DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
+              DataCell(Text('${Utils.to2Decimal(categoryData[i].gross_sales!)}'))
             ],
           ),
           for(int j = 0; j < categoryData[i].categoryOrderDetailList.length; j++)
@@ -283,7 +285,8 @@ class _ProductReportState extends State<ProductReport> {
                   Text('${categoryData[i].categoryOrderDetailList[j].product_variant_name}'): Text('-')),
               DataCell(Text('${categoryData[i].categoryOrderDetailList[j].item_sum}')),
               DataCell(Text('${categoryData[i].categoryOrderDetailList[j].double_price!.toStringAsFixed(2)}')),
-              DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
+              //DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
+              DataCell(Text('${Utils.to2Decimal(categoryData[i].categoryOrderDetailList[j].gross_price!)}'))
             ],
           ),
         ]);

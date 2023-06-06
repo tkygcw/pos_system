@@ -71,7 +71,7 @@ Future<void> main() async {
 }
 
 deviceDetect() async {
-  final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
+  final double screenWidth = WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width;
   if (screenWidth < 500) {
     await SystemChrome.setPreferredOrientations(
         [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);

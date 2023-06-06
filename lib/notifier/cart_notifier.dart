@@ -82,7 +82,7 @@ class CartModel extends ChangeNotifier {
 
   void removeSpecificItem(cartProductItem object){
     for(int i = 0; i < cartNotifierItem.length; i++){
-      if(object.orderCacheId == cartNotifierItem[i].orderCacheId){
+      if(object.order_cache_sqlite_id == cartNotifierItem[i].order_cache_sqlite_id){
         cartNotifierItem.removeAt(i);
         break;
       }

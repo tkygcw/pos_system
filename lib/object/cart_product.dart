@@ -6,17 +6,19 @@ import 'package:pos_system/object/variant_group.dart';
 import 'order_detail.dart';
 
 class cartProductItem{
-   String branchProduct_id = '';
-   String name ='';
-   String category_id = '';
+   String? branch_link_product_sqlite_id;
+   String? product_name;
+   String? category_id;
+   String? category_name;
+   String? price;
+   int? quantity;
+   List<ModifierGroup>? modifier ;
+   List<VariantGroup>? variant ;
+   String? remark;
+   int? status = 0;
+   String? order_cache_sqlite_id;
+   String? order_cache_key;
    String? category_sqlite_id;
-   String price ='';
-   int quantity = 1;
-   late List<ModifierGroup> modifier ;
-   late List<VariantGroup> variant ;
-   String remark='';
-   int status = 0;
-   String? orderCacheId;
    Color? refColor = Colors.black;
    String? order_detail_sqlite_id;
    int? sequence = 0;
@@ -28,19 +30,22 @@ class cartProductItem{
    String? first_cache_order_by;
 
    cartProductItem(
-       String branchProduct_id,
-       String name,
-       String category_id,
-       String price,
-       int quantity,
-       List<ModifierGroup> modifier,
-       List<VariantGroup> variant,
-       String remark,
-       int status,
-       String? orderCacheId,
-       {category_sqlite_id,
-         order_detail_sqlite_id,
-         sequence,
+       {
+         this.branch_link_product_sqlite_id,
+         this.product_name,
+         this.category_id,
+         this.category_name,
+         this.price,
+         this.quantity,
+         this.modifier,
+         this.variant,
+         this.remark,
+         this.status,
+         this.order_cache_sqlite_id,
+         this.order_cache_key,
+         this.category_sqlite_id,
+         this.order_detail_sqlite_id,
+         this.sequence,
          this.isRefund,
          this.base_price,
          this.first_cache_created_date_time,
@@ -48,22 +53,7 @@ class cartProductItem{
          this.first_cache_batch,
          this.first_cache_order_by,
          this.refColor
-       })
-   {
-       this.branchProduct_id = branchProduct_id;
-       this.name = name;
-       this.category_id = category_id;
-       this.category_sqlite_id = category_sqlite_id;
-       this.price = price;
-       this.quantity = quantity;
-       this.modifier = modifier;
-       this.variant = variant;
-       this.remark = remark;
-       this.status = status;
-       this.orderCacheId = orderCacheId;
-       this.order_detail_sqlite_id = order_detail_sqlite_id;
-       this.sequence = sequence;
-   }
+       });
 
    static cartProductItem fromJson(Map<String, Object?> json) {
      var modJson = json['modifier'] as List;
@@ -71,16 +61,18 @@ class cartProductItem{
      List<ModifierGroup> modGroup = modJson.map((tagJson) => ModifierGroup.fromJson(tagJson)).toList();
      List<VariantGroup> variantGroup = variantJson.map((tagJson) => VariantGroup.fromJson(tagJson)).toList();
      return cartProductItem(
-         json['branchProduct_id'] as String,
-         json['name'] as String,
-         json['category_id'] as String,
-         json['price'] as String,
-         json['quantity'] as int,
-         modGroup,
-         variantGroup,
-         json['remark'] as String,
-         json['status'] as int,
-         json['orderCacheId'] as String,
+         branch_link_product_sqlite_id: json['branch_link_product_sqlite_id'] as String?,
+         product_name: json['product_name'] as String?,
+         category_id: json['category_id'] as String?,
+         category_name: json['category_name'] as String?,
+         price: json['price'] as String?,
+         quantity: json['quantity'] as int?,
+         modifier: modGroup,
+         variant: variantGroup,
+         remark: json['remark'] as String?,
+         status: json['status'] as int?,
+         order_cache_sqlite_id: json['orderCacheId'] as String?,
+         order_cache_key: json['order_cache_key'] as String?,
          category_sqlite_id: json['category_sqlite_id'] as String,
          order_detail_sqlite_id: json['order_detail_sqlite_id'] as String,
          sequence: json['sequence'] as int?,
@@ -95,9 +87,10 @@ class cartProductItem{
    }
 
    Map<String, Object?> toJson() => {
-     'branchProduct_id': branchProduct_id,
-     'name': name,
+     'branch_link_product_sqlite_id': branch_link_product_sqlite_id,
+     'product_name': product_name,
      'category_id': category_id,
+     'category_name': category_name,
      'category_sqlite_id': category_sqlite_id,
      'price': price,
      'quantity': quantity,
@@ -105,7 +98,8 @@ class cartProductItem{
      'variant': variant,
      'remark': remark,
      'status': status,
-     'orderCacheId': orderCacheId,
+     'order_cache_sqlite_id': order_cache_sqlite_id,
+     'order_cache_key': order_cache_key,
      'order_detail_sqlite_id': order_detail_sqlite_id,
      'sequence': sequence,
      'isRefund': isRefund,

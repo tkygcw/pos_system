@@ -469,7 +469,7 @@ class _TableMenuState extends State<TableMenu> {
         if(tableList[i].status == 1){
           List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(tableList[i].table_sqlite_id!);
           if (tableUseDetailData.isNotEmpty) {
-            List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_sqlite_id!);
+            List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
             if(data.isNotEmpty){
               tableList[i].group = data[0].table_use_sqlite_id;
               tableList[i].card_color = data[0].card_color;
@@ -493,7 +493,7 @@ class _TableMenuState extends State<TableMenu> {
     List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(posTable.table_sqlite_id!);
     if (tableUseDetailData.isNotEmpty) {
       //Get all order table cache
-      List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_sqlite_id!);
+      List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
 
       //loop all table order cache
       for (int i = 0; i < data.length; i++) {
@@ -501,8 +501,9 @@ class _TableMenuState extends State<TableMenu> {
           orderCacheList = List.from(data);
         }
         //Get all order detail based on order cache id
-        List<OrderDetail> detailData = await PosDatabase.instance
-            .readTableOrderDetail(data[i].order_cache_sqlite_id.toString());
+        print('order cache key: ${data[i].order_cache_key!}');
+        List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(data[i].order_cache_key!);
+        print('order detail length 2 : ${detailData.length}');
         //add all order detail from db
         if (!orderDetailList.contains(detailData)) {
           orderDetailList..addAll(detailData);
@@ -513,37 +514,27 @@ class _TableMenuState extends State<TableMenu> {
     //loop all order detail
     for (int k = 0; k < orderDetailList.length; k++) {
       //Get data from branch link product
-      List<BranchLinkProduct> result = await PosDatabase.instance
-          .readSpecificBranchLinkProduct(
-              orderDetailList[k].branch_link_product_sqlite_id!);
+      List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
 
       //Get product category
-      List<Product> productResult = await PosDatabase.instance
-          .readSpecificProductCategory(result[0].product_id!);
+      List<Product> productResult = await PosDatabase.instance.readSpecificProductCategory(result[0].product_id!);
       orderDetailList[k].product_category_id = productResult[0].category_id;
 
       if (result[0].has_variant == '1') {
         //Get product variant
-        List<BranchLinkProduct> variant = await PosDatabase.instance
-            .readBranchLinkProductVariant(
-                orderDetailList[k].branch_link_product_sqlite_id!);
+        List<BranchLinkProduct> variant = await PosDatabase.instance.readBranchLinkProductVariant(orderDetailList[k].branch_link_product_sqlite_id!);
         orderDetailList[k].productVariant = ProductVariant(
             product_variant_id: int.parse(variant[0].product_variant_id!),
             variant_name: variant[0].variant_name);
 
         //Get product variant detail
-        List<ProductVariantDetail> productVariantDetail = await PosDatabase
-            .instance
-            .readProductVariantDetail(variant[0].product_variant_id!);
+        List<ProductVariantDetail> productVariantDetail = await PosDatabase.instance.readProductVariantDetail(variant[0].product_variant_id!);
         orderDetailList[k].variantItem.clear();
         for (int v = 0; v < productVariantDetail.length; v++) {
           //Get product variant item
-          List<VariantItem> variantItemDetail = await PosDatabase.instance
-              .readProductVariantItemByVariantID(
-                  productVariantDetail[v].variant_item_id!);
+          List<VariantItem> variantItemDetail = await PosDatabase.instance.readProductVariantItemByVariantID(productVariantDetail[v].variant_item_id!);
           orderDetailList[k].variantItem.add(VariantItem(
-              variant_item_id:
-                  int.parse(productVariantDetail[v].variant_item_id!),
+              variant_item_id: int.parse(productVariantDetail[v].variant_item_id!),
               variant_group_id: variantItemDetail[0].variant_group_id,
               name: variant[0].variant_name,
               isSelected: true));
@@ -638,18 +629,20 @@ class _TableMenuState extends State<TableMenu> {
     var value;
     List<TableUseDetail> tableUseDetailList = [];
     var detailLength = orderDetailList.length;
+    print('tb order detail length: ${detailLength}');
     for (int i = 0; i < detailLength; i++) {
       value = cartProductItem(
-          orderDetailList[i].branch_link_product_sqlite_id!,
-          orderDetailList[i].productName!,
-          orderDetailList[i].product_category_id!,
-          orderDetailList[i].price!,
-          int.parse(orderDetailList[i].quantity!),
-          getModifierGroupItem(orderDetailList[i]),
-          getVariantGroupItem(orderDetailList[i]),
-          orderDetailList[i].remark!,
-          0,
-          orderDetailList[i].order_cache_sqlite_id,
+          branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
+          product_name: orderDetailList[i].productName!,
+          category_id: orderDetailList[i].product_category_id!,
+          price: orderDetailList[i].price!,
+          quantity: int.parse(orderDetailList[i].quantity!),
+          modifier: getModifierGroupItem(orderDetailList[i]),
+          variant: getVariantGroupItem(orderDetailList[i]),
+          remark: orderDetailList[i].remark!,
+          status: 0,
+          order_cache_sqlite_id: orderDetailList[i].order_cache_sqlite_id,
+          order_cache_key: orderDetailList[i].order_cache_key,
           category_sqlite_id: orderDetailList[i].category_sqlite_id,
           order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString(),
           base_price: orderDetailList[i].original_price,
@@ -679,16 +672,16 @@ class _TableMenuState extends State<TableMenu> {
       var detailLength = orderDetailList.length;
       for (int i = 0; i < detailLength; i++) {
         value = cartProductItem(
-            orderDetailList[i].branch_link_product_sqlite_id!,
-            orderDetailList[i].productName!,
-            orderDetailList[i].product_category_id!,
-            orderDetailList[i].price!,
-            int.parse(orderDetailList[i].quantity!),
-            getModifierGroupItem(orderDetailList[i]),
-            getVariantGroupItem(orderDetailList[i]),
-            orderDetailList[i].remark!,
-            0,
-            orderDetailList[i].order_cache_sqlite_id,
+            branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
+            product_name: orderDetailList[i].productName!,
+            category_id: orderDetailList[i].product_category_id!,
+            price: orderDetailList[i].price!,
+            quantity: int.parse(orderDetailList[i].quantity!),
+            modifier: getModifierGroupItem(orderDetailList[i]),
+            variant: getVariantGroupItem(orderDetailList[i]),
+            remark: orderDetailList[i].remark!,
+            status: 0,
+            order_cache_sqlite_id: orderDetailList[i].order_cache_sqlite_id,
             category_sqlite_id: orderDetailList[i].category_sqlite_id,
             order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString(),
             refColor: toColor(posTable.card_color!),
