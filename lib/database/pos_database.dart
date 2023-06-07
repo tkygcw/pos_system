@@ -2820,7 +2820,7 @@ class PosDatabase {
   Future<List<TableUseDetail>> readSpecificTableUseDetail(int table_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.table_id AS table_local_id FROM $tableTableUseDetail AS a '
+        'SELECT a.* FROM $tableTableUseDetail AS a '
             'JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
             'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.table_sqlite_id = ? AND a.status = ? ORDER BY table_use_detail_sqlite_id DESC LIMIT 1',
         ['', '', table_sqlite_id, 0]);
@@ -5125,17 +5125,16 @@ class PosDatabase {
 /*
   update table use detail
 */
-  Future<int> updateTableUseDetail(
-      int table_sqlite_id, TableUseDetail data) async {
+  Future<int> updateTableUseDetail(TableUseDetail data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableTableUseDetail SET table_sqlite_id = ?, table_id = ?, sync_status = ?, updated_at = ? WHERE table_sqlite_id = ?',
+        'UPDATE $tableTableUseDetail SET table_sqlite_id = ?, table_id = ?, sync_status = ?, updated_at = ? WHERE table_use_detail_key = ?',
         [
           data.table_sqlite_id,
           data.table_id,
           data.sync_status,
           data.updated_at,
-          table_sqlite_id
+          data.table_use_detail_key
         ]);
   }
 
@@ -5242,10 +5241,10 @@ class PosDatabase {
   Future<int> updateOrderCacheSubtotal(OrderCache data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableOrderCache SET total_amount = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+        'UPDATE $tableOrderCache SET sync_status = ?, total_amount = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
         [
-          data.total_amount,
           data.sync_status,
+          data.total_amount,
           data.updated_at,
           data.order_cache_sqlite_id
         ]);
@@ -6818,7 +6817,6 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND sync_status != ? ',
         ['', 1]);
-
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 

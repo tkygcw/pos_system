@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
@@ -692,52 +693,55 @@ class _SettlementDialogState extends State<SettlementDialog> {
   }
 
   syncAllToCloud() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().syncLocalUpdateToCloud(
-        device_id: device_id.toString(),
-        value: login_value,
-        settlement_value: this.settlement_value,
-        settlement_link_payment_value: this.settlement_link_payment_value,
-        order_value: this.order_value,
-        order_detail_cancel_value: this.order_cancel_value,
-        cash_record_value: this.cash_record_value
-      );
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for(int i = 0; i < responseJson.length; i++){
-          switch(responseJson[i]['table_name']){
-            case 'tb_settlement': {
-              await PosDatabase.instance.updateSettlementSyncStatusFromCloud(responseJson[i]['settlement_key']);
+    if(mainSyncToCloud.count == 0){
+      mainSyncToCloud.count == 1;
+      final prefs = await SharedPreferences.getInstance();
+      final int? device_id = prefs.getInt('device_id');
+      final String? login_value = prefs.getString('login_value');
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if (_hasInternetAccess) {
+        Map data = await Domain().syncLocalUpdateToCloud(
+            device_id: device_id.toString(),
+            value: login_value,
+            settlement_value: this.settlement_value,
+            settlement_link_payment_value: this.settlement_link_payment_value,
+            order_value: this.order_value,
+            order_detail_cancel_value: this.order_cancel_value,
+            cash_record_value: this.cash_record_value
+        );
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          for(int i = 0; i < responseJson.length; i++){
+            switch(responseJson[i]['table_name']){
+              case 'tb_settlement': {
+                await PosDatabase.instance.updateSettlementSyncStatusFromCloud(responseJson[i]['settlement_key']);
+              }
+              break;
+              case 'tb_settlement_link_payment': {
+                await PosDatabase.instance.updateSettlementLinkPaymentSyncStatusFromCloud(responseJson[i]['settlement_link_payment_key']);
+              }
+              break;
+              case 'tb_order': {
+                await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+              }
+              break;
+              case 'tb_order_detail_cancel': {
+                await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[i]['order_detail_cancel_key']);
+              }
+              break;
+              case 'tb_cash_record': {
+                await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+              }
+              break;
+              default:
+                return;
             }
-            break;
-            case 'tb_settlement_link_payment': {
-              await PosDatabase.instance.updateSettlementLinkPaymentSyncStatusFromCloud(responseJson[i]['settlement_link_payment_key']);
-            }
-            break;
-            case 'tb_order': {
-              await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
-            }
-            break;
-            case 'tb_order_detail_cancel': {
-              await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[i]['order_detail_cancel_key']);
-            }
-            break;
-            case 'tb_cash_record': {
-              await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
-            }
-            break;
-            default:
-              return;
           }
+        }else if(data['status'] == '7'){
+          this.isLogOut = true;
         }
-      }else if(data['status'] == '7'){
-        this.isLogOut = true;
       }
+      mainSyncToCloud.resetCount();
     }
   }
-
 }

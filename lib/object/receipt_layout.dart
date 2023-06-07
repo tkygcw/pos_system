@@ -299,7 +299,7 @@ class ReceiptLayout{
         bytes += generator.hr();
         bytes += generator.reset();
         //item count
-        bytes += generator.text('Items count: ${orderDetailList.length}', styles: PosStyles(bold: true));
+        bytes += generator.text('Item count: ${orderDetailList.length}');
         bytes += generator.hr();
         bytes += generator.reset();
         //total calc
@@ -341,7 +341,7 @@ class ReceiptLayout{
         //total
         bytes += generator.hr();
         bytes += generator.row([
-          PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2, bold: true)),
+          PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
           PosColumn(
               text: '${this.paidOrder!.final_amount}',
               width: 4,
@@ -514,7 +514,7 @@ class ReceiptLayout{
         bytes += generator.hr();
         bytes += generator.reset();
         //item count
-        bytes += generator.text('Items count: ${orderDetailList.length}', styles: PosStyles(bold: true));
+        bytes += generator.text('Item count: ${orderDetailList.length}');
         bytes += generator.hr();
         bytes += generator.reset();
         //total calc
@@ -548,7 +548,7 @@ class ReceiptLayout{
         //total
         bytes += generator.hr();
         bytes += generator.row([
-          PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(bold: true)),
+          PosColumn(text: 'Final Amount', width: 8),
           PosColumn(
               text: '${this.paidOrder!.final_amount}',
               width: 4,
@@ -595,7 +595,6 @@ class ReceiptLayout{
 
 
   }
-
 
 /*
   Review Receipt layout 80mm
@@ -697,7 +696,7 @@ class ReceiptLayout{
         bytes += generator.hr();
         bytes += generator.reset();
         //item count
-        bytes += generator.text('Items count: ${cartModel.cartNotifierItem.length}', styles: PosStyles(bold: true));
+        bytes += generator.text('Item count: ${cartModel.cartNotifierItem.length}');
         bytes += generator.hr();
         bytes += generator.reset();
         //total calc
@@ -749,7 +748,7 @@ class ReceiptLayout{
         //total
         bytes += generator.hr();
         bytes += generator.row([
-          PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2, bold: true)),
+          PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(align: PosAlign.right, height: PosTextSize.size2)),
           PosColumn(
               text: '${cartModel.cartNotifierPayment[0].finalAmount}',
               width: 4,
@@ -867,7 +866,7 @@ class ReceiptLayout{
         bytes += generator.hr();
         bytes += generator.reset();
         //item count
-        bytes += generator.text('Items count: ${cartModel.cartNotifierItem.length}', styles: PosStyles(bold: true));
+        bytes += generator.text('Item count: ${cartModel.cartNotifierItem.length}');
         bytes += generator.hr();
         bytes += generator.reset();
         //total calc
@@ -927,7 +926,7 @@ class ReceiptLayout{
         //total
         bytes += generator.hr();
         bytes += generator.row([
-          PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(height: PosTextSize.size2, bold: true)),
+          PosColumn(text: 'Final Amount', width: 8, styles: PosStyles(height: PosTextSize.size2)),
           PosColumn(
               text: '${cartModel.cartNotifierPayment[0].finalAmount}',
               width: 4,

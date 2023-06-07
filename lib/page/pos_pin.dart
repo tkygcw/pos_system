@@ -99,7 +99,7 @@ class _PosPinPageState extends State<PosPinPage> {
               openLogOutDialog();
               return;
             }
-            mainSyncToCloud.count = 0;
+            mainSyncToCloud.resetCount();
           }
           //SyncToCloud().syncToCloud();
         } else {

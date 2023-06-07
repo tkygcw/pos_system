@@ -49,8 +49,12 @@ class SyncToCloud {
       order_modifier_detail_value, order_value, order_promotion_value, order_tax_value, refund_value, table_value, settlement_value,
       settlement_link_payment_value, cash_record_value, branch_link_product_value, printer_value, printer_link_category_value, transfer_owner_value;
 
+  resetCount(){
+    count = 0;
+  }
+
   syncAllToCloud() async {
-    count++;
+    count = 1;
     await getAllValue();
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
@@ -167,7 +171,29 @@ class SyncToCloud {
     }
   }
 
+  resetValue(){
+    table_use_value = [].toString();
+    table_use_detail_value = [].toString();
+    order_cache_value = [].toString();
+    order_detail_value = [].toString();
+    order_detail_cancel_value = [].toString();
+    order_modifier_detail_value = [].toString();
+    order_value = [].toString();
+    order_promotion_value = [].toString();
+    order_tax_value = [].toString();
+    refund_value = [].toString();
+    table_value = [].toString();
+    settlement_value = [].toString();
+    settlement_link_payment_value = [].toString();
+    cash_record_value = [].toString();
+    branch_link_product_value = [].toString();
+    printer_value = [].toString();
+    printer_link_category_value = [].toString();
+    transfer_owner_value = [].toString();
+  }
+
   getAllValue() async {
+    resetValue();
     await getNotSyncBranchLinkProduct();
     await getNotSyncCashRecord();
     await getNotSyncOrder();
