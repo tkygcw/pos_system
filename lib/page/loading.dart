@@ -123,6 +123,7 @@ class _LoadingPageState extends State<LoadingPage> {
         // always return false
             (Route route) => false,
       );
+      return;
     }
     // Go to Page2 after 5s.
     Timer(Duration(seconds: 2), () {

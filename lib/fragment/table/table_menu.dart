@@ -544,32 +544,53 @@ class _TableMenuState extends State<TableMenu> {
 
       //check product modifier
       List<ModifierLinkProduct> productMod = await PosDatabase.instance.readProductModifier(result[0].product_sqlite_id!);
-      if (productMod.length > 0) {
+      if (productMod.isNotEmpty) {
         orderDetailList[k].hasModifier = true;
+        getOrderModifierDetail(orderDetailList[k]);
       }
 
-      if (orderDetailList[k].hasModifier == true) {
-        //Get order modifier detail
-        List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[k].order_detail_sqlite_id.toString());
-        if (modDetail.length > 0) {
-          orderDetailList[k].modifierItem.clear();
-          for (int m = 0; m < modDetail.length; m++) {
-            // print('mod detail length: ${modDetail.length}');
-            if (!orderDetailList[k].modifierItem.contains(modDetail[m].mod_group_id!)) {
-              orderDetailList[k].modifierItem.add(ModifierItem(
-                  mod_group_id: modDetail[m].mod_group_id!,
-                  mod_item_id: int.parse(modDetail[m].mod_item_id!),
-                  name: modDetail[m].modifier_name!));
-              orderDetailList[k].mod_group_id.add(modDetail[m].mod_group_id!);
-              orderDetailList[k].mod_item_id = modDetail[m].mod_item_id;
-            }
-          }
-        }
-      }
+      // if (orderDetailList[k].hasModifier == true) {
+      //   //Get order modifier detail
+      //   gerOrderModifierDetail(orderDetailList[k]);
+      //   // List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[k].order_detail_sqlite_id.toString());
+      //   // if (modDetail.length > 0) {
+      //   //   orderDetailList[k].modifierItem.clear();
+      //   //   for (int m = 0; m < modDetail.length; m++) {
+      //   //     // print('mod detail length: ${modDetail.length}');
+      //   //     if (!orderDetailList[k].modifierItem.contains(modDetail[m].mod_group_id!)) {
+      //   //       orderDetailList[k].modifierItem.add(ModifierItem(
+      //   //           mod_group_id: modDetail[m].mod_group_id!,
+      //   //           mod_item_id: int.parse(modDetail[m].mod_item_id!),
+      //   //           name: modDetail[m].modifier_name!));
+      //   //       orderDetailList[k].mod_group_id.add(modDetail[m].mod_group_id!);
+      //   //       orderDetailList[k].mod_item_id = modDetail[m].mod_item_id;
+      //   //     }
+      //   //   }
+      //   // }
+      // }
     }
     setState(() {
       productDetailLoaded = true;
     });
+  }
+
+  getOrderModifierDetail(OrderDetail orderDetail) async {
+    List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetail.order_detail_sqlite_id.toString());
+    if (modDetail.isNotEmpty) {
+      orderDetail.modifierItem.clear();
+      for (int m = 0; m < modDetail.length; m++) {
+        // print('mod detail length: ${modDetail.length}');
+        if (!orderDetail.modifierItem.contains(modDetail[m].mod_group_id!)) {
+          orderDetail.modifierItem.add(ModifierItem(
+              mod_group_id: modDetail[m].mod_group_id!,
+              mod_item_id: int.parse(modDetail[m].mod_item_id!),
+              name: modDetail[m].modifier_name!));
+          orderDetail.mod_group_id.add(modDetail[m].mod_group_id!);
+          orderDetail.mod_item_id = modDetail[m].mod_item_id;
+        }
+      }
+    }
+
   }
 
   getModifierGroupItem(OrderDetail orderDetail) {
@@ -628,6 +649,7 @@ class _TableMenuState extends State<TableMenu> {
   addToCart(CartModel cart, PosTable posTable) async {
     var value;
     List<TableUseDetail> tableUseDetailList = [];
+    List<cartProductItem> itemList = [];
     var detailLength = orderDetailList.length;
     print('tb order detail length: ${detailLength}');
     for (int i = 0; i < detailLength; i++) {
@@ -662,6 +684,7 @@ class _TableMenuState extends State<TableMenu> {
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[k].table_sqlite_id!);
       cart.addTable(tableData[0]);
     }
+    //cart.addAllItem(cartItemList: itemList);
   }
 
   removeFromCart(CartModel cart, PosTable posTable) async {

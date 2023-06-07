@@ -319,6 +319,7 @@ class Domain {
         table_value,
       }) async {
     try {
+      print('order cache value 15 sync: ${order_cache_value}');
       var response = await http.post(Domain.sync_to_cloud, body: {
         'all_local_update': '1',
         'device_id': device_id,
@@ -344,8 +345,7 @@ class Domain {
         'tb_printer_link_category_delete': printer_link_category_delete_value != null ? printer_link_category_delete_value : [].toString(),
         'tb_table_sync': table_value != null ? table_value : [].toString()
       });
-      print('response: ${jsonDecode(response.body)}');
-      print('order cache value 15 sync: ${order_cache_value}');
+      print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);
     } catch (error) {
       print('error: ${error}');

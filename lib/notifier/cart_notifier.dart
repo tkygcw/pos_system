@@ -75,6 +75,11 @@ class CartModel extends ChangeNotifier {
     //notifyListeners();
   }
 
+  void addAllItem({required List<cartProductItem> cartItemList}) {
+    cartNotifierItem = cartItemList;
+    //notifyListeners();
+  }
+
   void removeItem(cartProductItem object) {
     cartNotifierItem.remove(object);
     notifyListeners();

@@ -5,7 +5,7 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/cart/adjust_quantity.dart';
-import 'package:pos_system/notifier/connectivity_change_notifier.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
@@ -86,14 +86,14 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     return null;
   }
 
-  void _submit(BuildContext context, CartModel cart, ConnectivityChangeNotifier connectivity) async {
+  void _submit(BuildContext context, CartModel cart) async {
     setState(() => _submitted = true);
     if (errorPassword == null && _isLoaded == true) {
       // Disable the button after it has been pressed
       setState(() {
         isButtonDisabled = true;
       });
-      await readAdminData(adminPosPinController.text, cart, connectivity);
+      await readAdminData(adminPosPinController.text, cart);
       if(this.isLogOut == false){
         Navigator.of(context).pop();
         Navigator.of(context).pop();
@@ -106,7 +106,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     return Navigator.of(context).pop(true);
   }
 
-  Future showSecondDialog(BuildContext context, ThemeColor color, CartModel cart, ConnectivityChangeNotifier connectivity) {
+  Future showSecondDialog(BuildContext context, ThemeColor color, CartModel cart) {
     return showDialog(
       barrierDismissible: false,
       context: context,
@@ -159,7 +159,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                 onPressed: isButtonDisabled ? null : () {
-                  _submit(context, cart, connectivity);
+                  _submit(context, cart);
                   },
               ),
             ],
@@ -194,45 +194,43 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
-        return Consumer<CartModel>(builder: (context, CartModel cart, child) {
-          return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
-            this.tableModel = tableModel;
-            return AlertDialog(
-              title: Text('Confirm remove item ?'),
-              content: Container(
-                child: Text('${widget.cartItem!.product_name} ${AppLocalizations.of(context)?.translate('confirm_delete')}'),
-              ),
-              actions: <Widget>[
-                TextButton(
-                    child:
-                    Text('${AppLocalizations.of(context)?.translate('no')}'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    }),
-                TextButton(
-                    child:
-                    Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                    onPressed: () async {
-                      if (widget.currentPage == 'menu') {
-                        cart.removeItem(widget.cartItem!);
-                        if (cart.cartNotifierItem.isEmpty) {
-                          cart.removeAllTable();
-                        }
-                        Navigator.of(context).pop();
-                      } else {
-                        if(widget.cartItem!.quantity == 1){
-                          await showSecondDialog(context, color, cart, connectivity);
-                        } else {
-                          openDialog(cartItem: widget.cartItem, currentPage: widget.currentPage);
-                          //await showAdjustQuantityDialog(context, color, cart, connectivity);
-                        }                        //openCancelOrderDialog(widget.cartItem!);
-                        //Navigator.of(context).pop();
+      return Consumer<CartModel>(builder: (context, CartModel cart, child) {
+        return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
+          this.tableModel = tableModel;
+          return AlertDialog(
+            title: Text('Confirm remove item ?'),
+            content: Container(
+              child: Text('${widget.cartItem!.product_name} ${AppLocalizations.of(context)?.translate('confirm_delete')}'),
+            ),
+            actions: <Widget>[
+              TextButton(
+                  child:
+                  Text('${AppLocalizations.of(context)?.translate('no')}'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  }),
+              TextButton(
+                  child:
+                  Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                  onPressed: () async {
+                    if (widget.currentPage == 'menu') {
+                      cart.removeItem(widget.cartItem!);
+                      if (cart.cartNotifierItem.isEmpty) {
+                        cart.removeAllTable();
                       }
-                    })
-              ],
-            );
-          });
+                      Navigator.of(context).pop();
+                    } else {
+                      if(widget.cartItem!.quantity == 1){
+                        showSecondDialog(context, color, cart);
+                      } else {
+                        openDialog(cartItem: widget.cartItem, currentPage: widget.currentPage);
+                        //await showAdjustQuantityDialog(context, color, cart, connectivity);
+                      }                        //openCancelOrderDialog(widget.cartItem!);
+                      //Navigator.of(context).pop();
+                    }
+                  })
+            ],
+          );
         });
       });
     });
@@ -289,10 +287,8 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     _isLoaded = true;
   }
 
-  readAdminData(String pin, CartModel cart, ConnectivityChangeNotifier connectivity) async {
+  readAdminData(String pin, CartModel cart) async {
     List<String> _posTableValue = [];
-    List<String> _orderModDetailValue = [];
-    bool _hasModifier = false;
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? pos_user = prefs.getString('pos_pin_user');
@@ -306,20 +302,24 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
         if (userData.user_id == userObject['user_id']) {
 
           if(cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1){
+            print('delete order detail called');
             await callDeleteOrderDetail(userData, dateTime, cart);
 
           } else if(cartTableCacheList.length > 1 && cartOrderDetailList.length <= 1 ){
-            await callDeletePartialOrder(userData, dateTime, cart, connectivity);
+            print('delete partial order called');
+            await callDeletePartialOrder(userData, dateTime, cart);
 
           } else if (cartTableCacheList.length > 1 && cartOrderDetailList.length > 1) {
+            print('delete order detail 2 called');
             await callDeleteOrderDetail(userData, dateTime, cart);
 
           } else if(widget.currentPage == 'other order' && cartOrderDetailList.length > 1){
+            print('delete not dine in called');
             await callDeleteOrderDetail(userData, dateTime, cart);
 
           } else {
             print('delete all called');
-            await callDeleteAllOrder(userData, cartCacheList[0].table_use_sqlite_id!, dateTime, cart, connectivity);
+            await callDeleteAllOrder(userData, cartCacheList[0].table_use_sqlite_id!, dateTime, cart);
             for (int i = 0; i < cartTableUseDetail.length; i++) {
               //update all table to unused
               PosTable posTableData = await updatePosTableStatus(int.parse(cartTableUseDetail[i].table_sqlite_id!), 0, dateTime);
@@ -510,6 +510,9 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       updated_at: dateTime
     );
     int status = await PosDatabase.instance.updateOrderCacheSubtotal(orderCache);
+    if(status == 1){
+      await getOrderCacheValue(orderCache);
+    }
   }
 
   updateProductStock(String branch_link_product_sqlite_id, int quantity, String dateTime) async{
@@ -569,18 +572,18 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     }
   }
 
-  callDeleteAllOrder(User user, String currentTableUseId, String dateTime, CartModel cartModel, ConnectivityChangeNotifier connectivity) async {
+  callDeleteAllOrder(User user, String currentTableUseId, String dateTime, CartModel cartModel) async {
     if(widget.currentPage != 'other_order'){
-      await deleteCurrentTableUseDetail(currentTableUseId, dateTime, connectivity);
-      await deleteCurrentTableUseId(int.parse(currentTableUseId), dateTime, connectivity);
+      await deleteCurrentTableUseDetail(currentTableUseId, dateTime);
+      await deleteCurrentTableUseId(int.parse(currentTableUseId), dateTime);
     }
     await callDeleteOrderDetail(user, dateTime, cartModel);
-    await deleteCurrentOrderCache(user, dateTime, connectivity);
+    await deleteCurrentOrderCache(user, dateTime);
   }
 
-  callDeletePartialOrder(User user, String dateTime, CartModel cartModel, ConnectivityChangeNotifier connectivity) async {
+  callDeletePartialOrder(User user, String dateTime, CartModel cartModel) async {
     await callDeleteOrderDetail(user, dateTime, cartModel);
-    await deleteCurrentOrderCache(user, dateTime, connectivity);
+    await deleteCurrentOrderCache(user, dateTime);
   }
 
   updatePosTableStatus(int tableId, int status, String dateTime) async {
@@ -601,9 +604,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     return _data;
   }
 
-  deleteCurrentOrderCache(User user, String dateTime, ConnectivityChangeNotifier connectivity) async {
-    print('delete order cache called');
-    List<String> _orderCacheValue = [];
+  deleteCurrentOrderCache(User user, String dateTime) async {
     try {
       OrderCache orderCacheObject = OrderCache(
           sync_status: cartCacheList[0].sync_status == 0 ? 0 : 2,
@@ -612,19 +613,30 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           order_cache_sqlite_id: int.parse(widget.cartItem!.order_cache_sqlite_id!)
       );
       int deletedOrderCache = await PosDatabase.instance.cancelOrderCache(orderCacheObject);
-      print('delete order cache status: ${deletedOrderCache}');
       //sync to cloud
-      if(deletedOrderCache == 1 && connectivity.isConnect){
-        OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
-        if(orderCacheData.sync_status != 1){
-          _orderCacheValue.add(jsonEncode(orderCacheData));
-        }
-        order_cache_value = _orderCacheValue.toString();
+      if(deletedOrderCache == 1){
+        await getOrderCacheValue(orderCacheObject);
+        // OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
+        // if(orderCacheData.sync_status != 1){
+        //   _orderCacheValue.add(jsonEncode(orderCacheData));
+        // }
+        // order_cache_value = _orderCacheValue.toString();
         //syncOrderCacheToCloud(_orderCacheValue.toString());
       }
     } catch (e) {
       print('delete order cache error: ${e}');
     }
+  }
+
+  getOrderCacheValue(OrderCache orderCacheObject) async {
+    List<String> _orderCacheValue = [];
+    OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheObject.order_cache_sqlite_id!);
+    print('order cache return data: ${orderCacheData.sync_status}');
+    if(orderCacheData.sync_status != 1){
+      _orderCacheValue.add(jsonEncode(orderCacheData));
+    }
+    order_cache_value = _orderCacheValue.toString();
+    print('order cache subtotal value: $order_cache_value');
   }
 
   // syncOrderCacheToCloud(String value) async {
@@ -638,7 +650,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   //   }
   // }
 
-  deleteCurrentTableUseDetail(String currentTableUseId, String dateTime, ConnectivityChangeNotifier connectivity) async {
+  deleteCurrentTableUseDetail(String currentTableUseId, String dateTime) async {
     print('current table use id: ${currentTableUseId}');
     List<String> _value = [];
     try {
@@ -680,7 +692,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     }
   }
 
-  deleteCurrentTableUseId(int currentTableUseId, String dateTime, ConnectivityChangeNotifier connectivity) async {
+  deleteCurrentTableUseId(int currentTableUseId, String dateTime) async {
     List<String> _value = [];
     try {
       TableUse checkData = await PosDatabase.instance.readSpecificTableUseIdByLocalId(currentTableUseId);
@@ -716,63 +728,67 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   }
 
   syncAllToCloud() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().syncLocalUpdateToCloud(
-        device_id: device_id.toString(),
-        value: login_value,
-        table_use_value: this.table_use_value,
-        table_use_detail_value: this.table_use_detail_value,
-        order_cache_value: this.order_cache_value,
-        order_detail_value: this.order_detail_value,
-        order_detail_cancel_value: this.order_detail_cancel_value,
-        branch_link_product_value: this.branch_link_product_value,
-        table_value: this.table_value
-      );
-      //if success update local sync status
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for(int i = 0; i < responseJson.length; i++){
-          switch(responseJson[i]['table_name']){
-            case 'tb_table_use_detail': {
-              await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-            }
-            break;
-            case 'tb_table_use': {
-              await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
-            }
-            break;
-            case 'tb_order_detail_cancel': {
-              await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[i]['order_detail_cancel_key']);
-            }
-            break;
-            case 'tb_branch_link_product': {
-              await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-            }
-            break;
-            case 'tb_order_detail': {
-              await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
-            }
-            break;
-            case 'tb_order_cache': {
-              await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
-            }
-            break;
-            case 'tb_table': {
-              await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-            }
-            break;
-            default: {
-              return;
+    if(mainSyncToCloud.count == 0){
+      mainSyncToCloud.count = 1;
+      final prefs = await SharedPreferences.getInstance();
+      final int? device_id = prefs.getInt('device_id');
+      final String? login_value = prefs.getString('login_value');
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if (_hasInternetAccess) {
+        Map data = await Domain().syncLocalUpdateToCloud(
+            device_id: device_id.toString(),
+            value: login_value,
+            table_use_value: this.table_use_value,
+            table_use_detail_value: this.table_use_detail_value,
+            order_cache_value: this.order_cache_value,
+            order_detail_value: this.order_detail_value,
+            order_detail_cancel_value: this.order_detail_cancel_value,
+            branch_link_product_value: this.branch_link_product_value,
+            table_value: this.table_value
+        );
+        //if success update local sync status
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          for(int i = 0; i < responseJson.length; i++){
+            switch(responseJson[i]['table_name']){
+              case 'tb_table_use_detail': {
+                await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+              }
+              break;
+              case 'tb_table_use': {
+                await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+              }
+              break;
+              case 'tb_order_detail_cancel': {
+                await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[i]['order_detail_cancel_key']);
+              }
+              break;
+              case 'tb_branch_link_product': {
+                await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+              }
+              break;
+              case 'tb_order_detail': {
+                await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+              }
+              break;
+              case 'tb_order_cache': {
+                await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+              }
+              break;
+              case 'tb_table': {
+                await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+              }
+              break;
+              default: {
+                return;
+              }
             }
           }
+        } else if(data['status'] == '7'){
+          this.isLogOut = true;
         }
-      } else if(data['status'] == '7'){
-        this.isLogOut = true;
       }
+      mainSyncToCloud.resetCount();
     }
   }
 }
