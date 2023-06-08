@@ -17,8 +17,14 @@ class MainActivity: FlutterActivity() {
 
         channel.setMethodCallHandler { call, result ->
             if(call.method == "sdkInit") {
-                ILcdManager.getInstance(this).sendLCDCommand(1)
-                result.success(true)
+                try{
+                    val value = ILcdManager.getInstance(this)
+                    result.success(value)
+                    //ILcdManager.getInstance(this).sendLCDCommand(1)
+                    //result.success(true)
+                }catch (e: Exception){
+                    result.error("404", "Can't find display", null)
+                }
 
             } else if (call.method == "sendString"){
                 ILcdManager.getInstance(this).sendLCDString("OPTIMY")

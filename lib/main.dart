@@ -187,7 +187,10 @@ class MyApp extends StatelessWidget {
 }
 
 initLCDScreen() async {
-  await lcdDisplay.initLcd();
+  int status = await lcdDisplay.checkLcdScreen();
+  if(status == 1){
+    await lcdDisplay.initLcd();
+  }
 }
 
 getSecondScreen() async {
