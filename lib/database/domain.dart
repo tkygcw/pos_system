@@ -3,6 +3,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
 class Domain {
+  // static var domain = 'https://pos.lkmng.com/';
+  // static var backend_domain = 'https://pos.lkmng.com/';
+  // static var qr_domain = 'https://pos.lkmng.com/';
   static var domain = 'https://pos.optimy.com.my/';
   static var backend_domain = 'https://api.optimy.com.my/';
   static var qr_domain = 'https://qr.optimy.com.my/';

@@ -178,7 +178,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                               elevation: 10,
                               child: Container(
                                 alignment: Alignment.centerRight,
-                                padding: EdgeInsets.all(10),
+                                padding: EdgeInsets.all(5),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.end,

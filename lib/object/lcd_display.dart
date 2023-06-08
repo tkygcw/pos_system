@@ -3,6 +3,16 @@ import 'package:flutter/services.dart';
 class LCDDisplay {
   static const MethodChannel channel = MethodChannel('com.example.pos_system/lcdDisplay');
 
+  checkLcdScreen() async {
+    try{
+      await channel.invokeMethod("sdkInit");
+      return 1;
+    }catch(e){
+      print('no lcd screen');
+      return 0;
+    }
+  }
+
   initLcd() async {
     try{
       final byteData = await rootBundle.load("drawable/logo.png");
