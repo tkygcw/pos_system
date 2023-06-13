@@ -12,8 +12,9 @@ class cartProductItem{
    String? category_name;
    String? price;
    int? quantity;
-   List<ModifierGroup>? modifier ;
-   List<VariantGroup>? variant ;
+   int? checkedModifierLength;
+   List<ModifierGroup>? modifier;
+   List<VariantGroup>? variant;
    String? remark;
    int? status = 0;
    String? order_cache_sqlite_id;
@@ -37,6 +38,7 @@ class cartProductItem{
          this.category_name,
          this.price,
          this.quantity,
+         this.checkedModifierLength,
          this.modifier,
          this.variant,
          this.remark,
@@ -67,6 +69,7 @@ class cartProductItem{
          category_name: json['category_name'] as String?,
          price: json['price'] as String?,
          quantity: json['quantity'] as int?,
+         checkedModifierLength: json['checkedModifierLength'] as int?,
          modifier: modGroup,
          variant: variantGroup,
          remark: json['remark'] as String?,
@@ -94,6 +97,7 @@ class cartProductItem{
      'category_sqlite_id': category_sqlite_id,
      'price': price,
      'quantity': quantity,
+     'checkedModifierLength': checkedModifierLength,
      'modifier': modifier,
      'variant': variant,
      'remark': remark,
