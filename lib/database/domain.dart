@@ -322,7 +322,7 @@ class Domain {
         table_value,
       }) async {
     try {
-      print('order cache value 15 sync: ${order_cache_value}');
+      //print('order cache value 15 sync: ${order_cache_value}');
       var response = await http.post(Domain.sync_to_cloud, body: {
         'all_local_update': '1',
         'device_id': device_id,

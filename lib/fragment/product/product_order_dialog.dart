@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';
@@ -44,8 +46,10 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   String modifierItemPrice = '';
   List<VariantGroup> variantGroup = [];
   List<ModifierGroup> modifierGroup = [];
+  List<ModifierItem> checkedModItem = [];
   final remarkController = TextEditingController();
   final quantityController = TextEditingController();
+  int checkedModifierLength = 0;
 
   bool checkboxValueA = false;
   bool isLoaded = false;
@@ -103,6 +107,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                 : (isChecked) {
                     setState(() {
                       modifierGroup.modifierChild![i].isChecked = isChecked!;
+                      addCheckedModItem(modifierGroup.modifierChild![i]);
+                      //print('check item length: ${checkedModItem.length}');
                       // print('flavour ${modifierGroup.modifierChild[i].name},'
                       //     'is check ${modifierGroup.modifierChild[i].isChecked}, ${modifierGroup.modifierChild[i].mod_status}');
                     });
@@ -111,6 +117,14 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           )
       ],
     );
+  }
+
+  addCheckedModItem(ModifierItem modifierItem){
+    if(modifierItem.isChecked == true){
+      checkedModItem.add(modifierItem);
+    } else {
+      checkedModItem.remove(modifierItem);
+    }
   }
 
   @override
@@ -497,35 +511,36 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
 
   readProductModifier(int productID) async {
     List<ModifierGroup> data = await PosDatabase.instance.readProductModifierGroupName(productID);
+    if(data.isNotEmpty){
+      for (int i = 0; i < data.length; i++) {
+        modifierGroup.add(ModifierGroup(
+          modifierChild: [],
+          name: data[i].name,
+          mod_group_id: data[i].mod_group_id,
+          dining_id: data[i].dining_id,
+          compulsory: data[i].compulsory,
+        ));
 
-    for (int i = 0; i < data.length; i++) {
-      modifierGroup.add(ModifierGroup(
-        modifierChild: [],
-        name: data[i].name,
-        mod_group_id: data[i].mod_group_id,
-        dining_id: data[i].dining_id,
-        compulsory: data[i].compulsory,
-      ));
+        List<ModifierItem> itemData = await PosDatabase.instance.readProductModifierItem(data[i].mod_group_id!);
+        List<ModifierItem> modItemChild = [];
 
-      List<ModifierItem> itemData = await PosDatabase.instance.readProductModifierItem(data[i].mod_group_id!);
-      List<ModifierItem> modItemChild = [];
-
-      for (int j = 0; j < itemData.length; j++) {
-        modItemChild.add(ModifierItem(
-            mod_group_id: data[i].mod_group_id.toString(),
-            name: itemData[j].name!,
-            mod_item_id: itemData[j].mod_item_id,
-            mod_status: itemData[j].mod_status,
-            isChecked: false));
-      }
-      if(modifierGroup[i].compulsory == '1' && modifierGroup[i].dining_id == widget.cartModel.selectedOptionId){
-        for(int k = 0; k < modItemChild.length; k++){
-          modItemChild[k].isChecked = true;
+        for (int j = 0; j < itemData.length; j++) {
+          modItemChild.add(ModifierItem(
+              mod_group_id: data[i].mod_group_id.toString(),
+              name: itemData[j].name!,
+              mod_item_id: itemData[j].mod_item_id,
+              mod_status: itemData[j].mod_status,
+              isChecked: false));
+        }
+        if(modifierGroup[i].compulsory == '1' && modifierGroup[i].dining_id == widget.cartModel.selectedOptionId){
+          for(int k = 0; k < modItemChild.length; k++){
+            modItemChild[k].isChecked = true;
+          }
+          modifierGroup[i].modifierChild = modItemChild;
         }
         modifierGroup[i].modifierChild = modItemChild;
+        readProductModifierItemPrice(modifierGroup[i]);
       }
-      modifierGroup[i].modifierChild = modItemChild;
-      readProductModifierItemPrice(modifierGroup[i]);
     }
   }
 
@@ -713,6 +728,51 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         });
   }
 
+  compareCartProductModifier({required List<ModifierGroup> cartModifierGroup}){
+    List<ModifierItem> checkedCartModItem = [];
+    //add all checked modifier item from cart product
+    if(cartModifierGroup.isNotEmpty){
+      for(int i = 0 ; i < cartModifierGroup.length; i++){
+        ModifierGroup group = cartModifierGroup[i];
+        for(int j = 0; j < group.modifierChild!.length; j++){
+          if(group.modifierChild![j].isChecked == true){
+            checkedCartModItem.add(cartModifierGroup[i].modifierChild![j]);
+          }
+        }
+      }
+    }
+    return checkSame(checkedCartModItem, checkedModItem);
+  }
+
+  bool checkSame(List<ModifierItem> checkedCartModItem, List<ModifierItem> checkedModItem) {
+    List<int> cartModItemId = [];
+    List<int> checkedModItemId = [];
+    bool same = true;
+    print('cart mod item length:${checkedCartModItem.length}');
+    print('checked mod item length:${checkedModItem.length}');
+    if (checkedCartModItem.length != checkedModItem.length) {
+      same = false;
+    } else {
+      //insert mod item id into a list
+      for(int i = 0; i < checkedCartModItem.length; i++){
+        cartModItemId.add(checkedCartModItem[i].mod_item_id!);
+      }
+      //insert mod item id into a list
+      for(int j = 0; j< checkedModItem.length; j++){
+        checkedModItemId.add(checkedModItem[j].mod_item_id!);
+      }
+      //get all same mod item into a list
+      List<int> comparedList = cartModItemId.toSet().intersection(checkedModItemId.toSet()).toList();
+      print('compared list length: ${comparedList.length}');
+      if(comparedList.length == checkedModItem.length){
+        same = true;
+      } else {
+        same = false;
+      }
+    }
+    return same;
+  }
+
   addToCart(CartModel cart) async {
     //check selected variant
     for (int j = 0; j < variantGroup.length; j++) {
@@ -725,6 +785,12 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         }
       }
     }
+    //check checked modifier length
+    if(checkedModItem.isNotEmpty){
+      checkedModifierLength = checkedModItem.length;
+    } else {
+      checkedModifierLength = 0;
+    }
     var value = cartProductItem(
         branch_link_product_sqlite_id: await getBranchLinkProductItem(widget.productDetail!),
         product_name: widget.productDetail!.name!,
@@ -732,6 +798,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         category_name: categories != null ? categories!.name : '',
         price: await getProductPrice(widget.productDetail?.product_sqlite_id),
         quantity: simpleIntInput,
+        checkedModifierLength: checkedModifierLength,
         modifier: modifierGroup,
         variant: variantGroup,
         remark: remarkController.text,
@@ -740,7 +807,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         base_price: basePrice,
         refColor: Colors.black,
     );
-    print('value category: ${value.category_name}');
+    print('value checked item length: ${value.checkedModifierLength}');
+    //print('value category: ${value.category_name}');
     // print('base price: ${value.base_price}');
     // print('price: ${value.price}');
     List<cartProductItem> item = [];
@@ -748,12 +816,36 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       cart.addItem(value);
     } else {
       for(int k = 0; k < cart.cartNotifierItem.length; k++){
-        if(cart.cartNotifierItem[k].branch_link_product_sqlite_id == value.branch_link_product_sqlite_id && value.remark == cart.cartNotifierItem[k].remark && cart.cartNotifierItem[k].status == 0){
+        print('cart checked mod item length in cart: ${cart.cartNotifierItem[k].checkedModifierLength}');
+        if(cart.cartNotifierItem[k].branch_link_product_sqlite_id == value.branch_link_product_sqlite_id
+            && value.remark == cart.cartNotifierItem[k].remark
+            && value.checkedModifierLength == cart.cartNotifierItem[k].checkedModifierLength
+            && cart.cartNotifierItem[k].status == 0) {
           item.add(cart.cartNotifierItem[k]);
         }
       }
-      if(item.isNotEmpty){
-        item[0].quantity = item[0].quantity! + value.quantity!;
+      print('item length: ${item.length}');
+      while(item.length > 1){
+        for(int i = 0 ; i < item.length; i++){
+          bool status = compareCartProductModifier(cartModifierGroup: item[i].modifier!);
+          if(status == false){
+            item.remove(item[i]);
+          }
+        }
+      }
+      print('item after first compare length: ${item.length}');
+      if(item.length == 1){
+        if(item[0].checkedModifierLength == 0){
+          item[0].quantity = item[0].quantity! + value.quantity!;
+        } else {
+          bool status = compareCartProductModifier(cartModifierGroup: item[0].modifier!);
+          print('compared status: ${status}');
+          if(status == false){
+            cart.addItem(value);
+          } else{
+            item[0].quantity = item[0].quantity! + value.quantity!;
+          }
+        }
       } else {
         cart.addItem(value);
       }
