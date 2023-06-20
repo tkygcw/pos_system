@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -19,7 +20,8 @@ class CategoryReport extends StatefulWidget {
 
 class _CategoryReportState extends State<CategoryReport> {
   List<DataRow> _dataRow = [];
-  List<Categories> categoryData = [];
+  //List<Categories> categoryData = [];
+  List<OrderDetail> orderDetailCategoryData = [];
   String currentStDate = '';
   String currentEdDate = '';
   bool isLoaded = false;
@@ -227,7 +229,8 @@ class _CategoryReportState extends State<CategoryReport> {
     this.currentStDate = reportModel.startDateTime;
     this.currentEdDate = reportModel.endDateTime;
     await getAllCategory();
-    reportModel.addOtherValue(valueList: categoryData);
+    reportModel.addOtherValue(valueList: orderDetailCategoryData);
+    // reportModel.addOtherValue(valueList: categoryData);
     if(mounted){
       setState(() {
         isLoaded = true;
@@ -238,23 +241,45 @@ class _CategoryReportState extends State<CategoryReport> {
   getAllCategory() async {
     _dataRow.clear();
     ReportObject object = await ReportObject().getAllPaidCategory(currentStDate: currentStDate, currentEdDate: currentEdDate);
-    categoryData = object.dateCategory!;
-    if(categoryData.isNotEmpty){
-      for(int i = 0; i < categoryData.length; i++){
+    orderDetailCategoryData = object.dateOrderDetail!;
+    if(orderDetailCategoryData.isNotEmpty){
+      for(int i = 0; i < orderDetailCategoryData.length; i++){
         _dataRow.addAll([
           DataRow(
             cells: <DataCell>[
               DataCell(
-                Text('Category - ${categoryData[i].name}'),
+                Text('Category - ${orderDetailCategoryData[i].category_name}'),
               ),
-              DataCell(Text('${categoryData[i].item_sum}')),
-              DataCell(Text('${categoryData[i].net_sales!.toStringAsFixed(2)}')),
-              //DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
-              DataCell(Text('${Utils.to2Decimal(categoryData[i].gross_sales!)}')),
+              DataCell(Text('${orderDetailCategoryData[i].category_item_sum}')),
+              DataCell(Text('${orderDetailCategoryData[i].category_net_sales!.toStringAsFixed(2)}')),
+              DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].category_gross_sales!)}')),
             ],
           ),
         ]);
       }
     }
   }
+
+  // getAllCategory() async {
+  //   _dataRow.clear();
+  //   ReportObject object = await ReportObject().getAllPaidCategory(currentStDate: currentStDate, currentEdDate: currentEdDate);
+  //   categoryData = object.dateCategory!;
+  //   if(categoryData.isNotEmpty){
+  //     for(int i = 0; i < categoryData.length; i++){
+  //       _dataRow.addAll([
+  //         DataRow(
+  //           cells: <DataCell>[
+  //             DataCell(
+  //               Text('Category - ${categoryData[i].name}'),
+  //             ),
+  //             DataCell(Text('${categoryData[i].item_sum}')),
+  //             DataCell(Text('${categoryData[i].net_sales!.toStringAsFixed(2)}')),
+  //             //DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
+  //             DataCell(Text('${Utils.to2Decimal(categoryData[i].gross_sales!)}')),
+  //           ],
+  //         ),
+  //       ]);
+  //     }
+  //   }
+  // }
 }

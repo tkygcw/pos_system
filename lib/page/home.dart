@@ -58,7 +58,6 @@ class _HomePageState extends State<HomePage> {
     if(notificationModel.notificationStarted == false){
       setupFirebaseMessaging();
     }
-    setScreenLayout();
     initSecondDisplay();
     _items = _generateItems;
     currentPage = 'menu';
@@ -75,16 +74,17 @@ class _HomePageState extends State<HomePage> {
             });
       });
     }
+    setScreenLayout();
   }
 
   @override
   dispose() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    // SystemChrome.setPreferredOrientations([
+    //   DeviceOrientation.landscapeRight,
+    //   DeviceOrientation.landscapeLeft,
+    //   DeviceOrientation.portraitUp,
+    //   DeviceOrientation.portraitDown,
+    // ]);
 
     if (notificationTimer != null) {
       notificationTimer!.cancel();
@@ -100,13 +100,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   setScreenLayout() {
-    final double screenWidth = WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width;
-    if (screenWidth < 500) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
-    }
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    // final double screenHeight = WidgetsBinding
+    //     .instance.platformDispatcher.views.first.physicalSize.height /
+    //     WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
+    // if (screenHeight < 500) {
+    //   SystemChrome.setPreferredOrientations([
+    //     DeviceOrientation.landscapeLeft,
+    //     DeviceOrientation.landscapeRight,
+    //   ]);
+    // }
   }
 
   Future<Future<Object?>> openLogOutDialog() async {
@@ -227,11 +233,11 @@ class _HomePageState extends State<HomePage> {
         icon: Icons.monetization_on,
         onPressed: () => setState(() => currentPage = 'report'),
       ),
-      // CollapsibleItem(
-      //   text: 'Product',
-      //   icon: Icons.fastfood,
-      //   onPressed: () => setState(() => currentPage = 'product'),
-      // ),
+      CollapsibleItem(
+        text: 'Product',
+        icon: Icons.fastfood,
+        onPressed: () => setState(() => currentPage = 'product'),
+      ),
       CollapsibleItem(
         text: 'Setting',
         icon: Icons.settings,

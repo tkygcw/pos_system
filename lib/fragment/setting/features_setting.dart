@@ -185,51 +185,6 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                   endIndent: 20,
                 ),
                 ListTile(
-                  title: Text('Auto open cash drawer'),
-                  subtitle: Text('Auto open cash drawer after insert opening balance'),
-                  trailing: Switch(
-                      value: this.cashDrawer,
-                      activeColor: color.backgroundColor,
-                      onChanged: (value) async {
-                        await getAllAppSetting();
-                        setState(() {
-                          this.cashDrawer = value;
-                        });
-                        if(appSettingList.isEmpty){
-                          await createAppSetting();
-                        } else {
-                          await updateAppSetting();
-                        }
-                      },
-                  ),
-                ),
-                ListTile(
-                  title: Text('Enable Second Display'),
-                  subtitle: Text('Show device second display (if have)'),
-                  trailing: Switch(
-                    value: this.secondDisplay,
-                    activeColor: color.backgroundColor,
-                    onChanged: (value) async {
-                      await getAllAppSetting();
-                      setState(() {
-                        this.secondDisplay = value;
-                      });
-                      if(appSettingList.length == 0){
-                        await createAppSetting();
-                      } else {
-                        await updateAppSetting();
-                      }
-                    },
-                  ),
-                ),
-                Divider(
-                  color: Colors.grey,
-                  height: 1,
-                  thickness: 1,
-                  indent: 20,
-                  endIndent: 20,
-                ),
-                ListTile(
                   title: Text('Wi-Fi setting'),
                   subtitle: Text('open wi-fi setting'),
                   trailing: Icon(Icons.wifi),

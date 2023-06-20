@@ -10,6 +10,7 @@ import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/utils/Utils.dart';
 import 'package:printing/printing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -582,23 +583,28 @@ class ReportFormat {
                   for(int j = 0; j < valueList.length; j++)
                     pw.TableRow(
                         children: [
+                          valueList[j].category_name != ''?
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].name}', style: pw.TextStyle(font: getFontFormat(valueList[j].name))),
+                            child: pw.Text('${valueList[j].category_name}', style: pw.TextStyle(font: getFontFormat(valueList[j].category_name))),
+                          ):
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text('Other', style: pw.TextStyle(font: getFontFormat('Other'))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].item_sum}', style: pw.TextStyle(font: getFontFormat(valueList[j].item_sum))),
+                            child: pw.Text('${valueList[j].category_item_sum}', style: pw.TextStyle(font: getFontFormat(valueList[j].category_item_sum))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].net_sales!.toStringAsFixed(2)}',
-                                style: pw.TextStyle(font: getFontFormat(valueList[j].net_sales!.toStringAsFixed(2)))),
+                            child: pw.Text('${valueList[j].category_net_sales!.toStringAsFixed(2)}',
+                                style: pw.TextStyle(font: getFontFormat(valueList[j].category_net_sales!.toStringAsFixed(2)))),
                           ),
                           pw.Padding(
                             padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                            child: pw.Text('${valueList[j].gross_sales!.toStringAsFixed(2)}',
-                                style: pw.TextStyle(font: getFontFormat(valueList[j].gross_sales!.toStringAsFixed(2)))),
+                            child: pw.Text('${Utils.to2Decimal(valueList[j].category_gross_sales!)}',
+                                style: pw.TextStyle(font: getFontFormat(Utils.to2Decimal(valueList[j].category_gross_sales!)))),
                           ),
                         ]
                     ),

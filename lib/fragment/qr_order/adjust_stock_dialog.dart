@@ -51,7 +51,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   String? table_use_value, table_use_detail_value, order_cache_value, order_detail_value,
       delete_order_detail_value, order_modifier_detail_value, table_value, branch_link_product_value;
   double newSubtotal = 0.0;
-  bool hasNoStockProduct = false, tableInUsed = false;
+  bool hasNoStockProduct = false, hasNotAvailableProduct = false, tableInUsed = false;
   bool isButtonDisabled = false, isLogOut = false;
 
   @override
@@ -308,8 +308,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                       : widget.orderDetailList.isNotEmpty
                           ? () async {
                               await checkOrderDetailStock();
+                              print('available check: ${hasNotAvailableProduct}');
                               if (hasNoStockProduct) {
-                                Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Contain out of stock product");
+                                Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "Contain out of stock product");
+                              } else if(hasNotAvailableProduct){
+                                Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Contain not available product");
                               } else {
                                 // Disable the button after it has been pressed
                                 setState(() {
@@ -563,7 +566,9 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                           ? () async {
                               await checkOrderDetailStock();
                               if (hasNoStockProduct) {
-                                Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Contain out of stock product");
+                                Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "Contain out of stock product");
+                              } else if (hasNotAvailableProduct){
+                                Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Contain not available product");
                               } else {
                                 // Disable the button after it has been pressed
                                 setState(() {
@@ -1046,24 +1051,29 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     print('detail length: ${orderDetailList.length}');
     noStockOrderDetailList = [];
     hasNoStockProduct = false;
+    hasNotAvailableProduct = false;
     for (int i = 0; i < orderDetailList.length; i++) {
-      print('inside call');
-      List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
-      if (data[0].stock_type == '2') {
-        orderDetailList[i].available_stock = data[0].stock_quantity!;
-        if (int.parse(orderDetailList[i].quantity!) > int.parse(data[0].stock_quantity!)) {
-          hasNoStockProduct = true;
+      BranchLinkProduct? data = await PosDatabase.instance.readSpecificAvailableBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
+      if(data != null){
+        if (data.stock_type == '2') {
+          orderDetailList[i].available_stock = data.stock_quantity!;
+          if (int.parse(orderDetailList[i].quantity!) > int.parse(data.stock_quantity!)) {
+            hasNoStockProduct = true;
+          } else {
+            hasNoStockProduct = false;
+          }
         } else {
-          hasNoStockProduct = false;
+          orderDetailList[i].available_stock = data.daily_limit_amount!;
+          if (int.parse(orderDetailList[i].quantity!) > int.parse(data.daily_limit_amount!)) {
+            hasNoStockProduct = true;
+          } else {
+            hasNoStockProduct = false;
+          }
         }
       } else {
-        orderDetailList[i].available_stock = data[0].daily_limit_amount!;
-        if (int.parse(orderDetailList[i].quantity!) > int.parse(data[0].daily_limit_amount!)) {
-          hasNoStockProduct = true;
-        } else {
-          hasNoStockProduct = false;
-        }
+        hasNotAvailableProduct = true;
       }
+      print('has no available product status: ${hasNotAvailableProduct}');
       //orderDetailList[i].isRemove = false;
       //noStockOrderDetailList.add(orderDetailList[i]);
     }

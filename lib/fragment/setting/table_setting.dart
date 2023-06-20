@@ -121,9 +121,13 @@ class _TableSettingState extends State<TableSetting> {
                               if(value!){
                                 tableList[index].isSelected = true;
                                 checkedTable.add(tableList[index]);
+                                btnText = "Unselect";
                               } else {
                                 tableList[index].isSelected = false;
                                 checkedTable.remove(tableList[index]);
+                              }
+                              if(checkedTable.isEmpty){
+                                btnText = "Select All";
                               }
                             });
                           }),
@@ -232,9 +236,13 @@ class _TableSettingState extends State<TableSetting> {
                               if(value!){
                                 tableList[index].isSelected = true;
                                 checkedTable.add(tableList[index]);
+                                btnText = "Unselect";
                               } else {
                                 tableList[index].isSelected = false;
                                 checkedTable.remove(tableList[index]);
+                              }
+                              if(checkedTable.isEmpty){
+                                btnText = "Select All";
                               }
                             });
                           }),

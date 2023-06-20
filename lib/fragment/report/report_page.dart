@@ -78,6 +78,7 @@ class _ReportPageState extends State<ReportPage> {
               return Scaffold(
                 resizeToAvoidBottomInset: false,
                 appBar: AppBar(
+                  primary: false,
                   automaticallyImplyLeading: false,
                   title: Row(
                     children: [
@@ -166,8 +167,13 @@ class _ReportPageState extends State<ReportPage> {
                         visible: this.currentPage != 1 ? true : false,
                         child: Container(
                           width: 300,
+                          height: 55,
                           child: TextField(
                             controller: _controller,
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(5.0)))
+                            ),
+                            style: TextStyle(color: Colors.black),
                             enabled: false,
                           ),
                         ),
@@ -267,20 +273,18 @@ class _ReportPageState extends State<ReportPage> {
                       Spacer(),
                       Visibility(
                         visible: this.currentPage != 10 ? true : false,
-                        child: Container(
-                          child: IconButton(
-                            icon: Icon(Icons.print),
-                            color: color.backgroundColor,
-                            onPressed: (){
-                              Navigator.push(
-                                context,
-                                PageTransition(
-                                  type: PageTransitionType.bottomToTop,
-                                  child: PrintReportPage(currentPage: this.currentPage,),
-                                ),
-                              );
-                            },
-                          ),
+                        child: IconButton(
+                          icon: Icon(Icons.print),
+                          color: color.backgroundColor,
+                          onPressed: (){
+                            Navigator.push(
+                              context,
+                              PageTransition(
+                                type: PageTransitionType.bottomToTop,
+                                child: PrintReportPage(currentPage: this.currentPage,),
+                              ),
+                            );
+                          },
                         ),
                       ),
                       Visibility(
@@ -345,9 +349,15 @@ class _ReportPageState extends State<ReportPage> {
                       Visibility(
                         visible: this.currentPage != 1 ? true : false,
                         child: Container(
-                          width: 200,
+                          width: 230,
+                          height: 55,
                           child: TextField(
                             controller: _controller,
+                            decoration: InputDecoration(
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(5.0)))
+                            ),
+                            style: TextStyle(color: Colors.black),
                             enabled: false,
                           ),
                         ),

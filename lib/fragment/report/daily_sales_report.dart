@@ -187,122 +187,124 @@ class _DailySalesReportState extends State<DailySalesReport> {
             return Scaffold(
               body: Container(
                 padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          child: Text('Daily Sales Report',
-                              style: TextStyle(fontSize: 25, color: Colors.black)),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 5),
-                    Divider(
-                      height: 10,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(height: 5),
-                    _dataRow.isNotEmpty ?
-                    Container(
-                        margin: EdgeInsets.all(10),
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                              border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                              headingTextStyle: TextStyle(color: Colors.white),
-                              headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                              columns: <DataColumn>[
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Date',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Total Bills',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Total Sales',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Total Refund bill',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Total Refund',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Total Discount',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Total Tax',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Total Cancellation',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                for(int i = 0; i < paymentLinkCompanyList.length; i++)
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            child: Text('Daily Sales Report',
+                                style: TextStyle(fontSize: 25, color: Colors.black)),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 5),
+                      Divider(
+                        height: 10,
+                        color: Colors.grey,
+                      ),
+                      SizedBox(height: 5),
+                      _dataRow.isNotEmpty ?
+                      Container(
+                          margin: EdgeInsets.all(10),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: DataTable(
+                                border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                                headingTextStyle: TextStyle(color: Colors.white),
+                                headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                                columns: <DataColumn>[
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        '${paymentLinkCompanyList[i].name}',
+                                        'Date',
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
                                   ),
-                              ],
-                              rows: _dataRow
-                          ),
-                        )
-                    ):
-                    Center(
-                      heightFactor: 4,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(Icons.menu),
-                          Text('NO RECORD FOUND'),
-                        ],
-                      ),
-                    )
-                  ],
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(
+                                        'Total Bills',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(
+                                        'Total Sales',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(
+                                        'Total Refund bill',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(
+                                        'Total Refund',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(
+                                        'Total Discount',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(
+                                        'Total Tax',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(
+                                        'Total Cancellation',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  for(int i = 0; i < paymentLinkCompanyList.length; i++)
+                                    DataColumn(
+                                      label: Expanded(
+                                        child: Text(
+                                          '${paymentLinkCompanyList[i].name}',
+                                          style: TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                                rows: _dataRow
+                            ),
+                          )
+                      ):
+                      Center(
+                        heightFactor: 4,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Icon(Icons.menu),
+                            Text('NO RECORD FOUND'),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
                 ),
               ),
             );
@@ -345,12 +347,12 @@ class _DailySalesReportState extends State<DailySalesReport> {
     if(settlementList.isNotEmpty){
       for(int i = 0; i < settlementList.length; i++){
         settlementStringList.add(jsonEncode(settlementList[i]));
-        print('settlement key: ${settlementList[i].settlement_key}');
+        //print('settlement key: ${settlementList[i].settlement_key}');
         ReportObject object = await ReportObject().getAllSettlementPaymentDetail(settlementList[i].created_at!);
         settlementLinkPaymentList = object.dateSettlementPaymentList!;
         //add settlement payment into settlement object
         settlementList[i].settlementPayment = settlementLinkPaymentList;
-        print('settlement payment length: ${settlementLinkPaymentList.length}');
+        //print('settlement payment length: ${settlementLinkPaymentList.length}');
         DateTime dataDate = DateTime.parse(settlementList[i].created_at!);
         String stringDate = new DateFormat("dd-MM-yyyy").format(dataDate);
         settlementList[i].created_at = stringDate;

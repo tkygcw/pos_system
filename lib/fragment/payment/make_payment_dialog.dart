@@ -706,9 +706,9 @@ class _MakePaymentState extends State<MakePayment> {
             ///mobile view
             return Center(
               child: SingleChildScrollView(
-                physics: NeverScrollableScrollPhysics(),
+                // physics: NeverScrollableScrollPhysics(),
                 child: AlertDialog(
-                  insetPadding: EdgeInsets.all(10),
+                  insetPadding: EdgeInsets.zero,
                   title: Text('Payment Detail'),
                   content: Container(
                       width: 650,

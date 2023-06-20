@@ -1678,7 +1678,7 @@ class CartPageState extends State<CartPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: PromotionDialog(),
+              child: PromotionDialog(cartFinalAmount: finalAmount,),
             ),
           );
         },
@@ -1836,7 +1836,7 @@ class CartPageState extends State<CartPage> {
 */
   callCreateNewNotDineOrder(CartModel cart) async {
     resetValue();
-    await createOrderCache(cart);
+    await createOrderCache(cart, isAddOrder: false);
     await createOrderDetail(cart);
     await syncAllToCloud();
     if(this.isLogOut == true){
@@ -1854,7 +1854,7 @@ class CartPageState extends State<CartPage> {
     resetValue();
     await createTableUseID();
     await createTableUseDetail(cart);
-    await createOrderCache(cart);
+    await createOrderCache(cart, isAddOrder: false);
     await createOrderDetail(cart);
     await updatePosTable(cart);
     await syncAllToCloud();
@@ -2130,7 +2130,7 @@ class CartPageState extends State<CartPage> {
   //   }
   // }
 
-  createOrderCache(CartModel cart, {isAddOrder}) async {
+  createOrderCache(CartModel cart, {required bool isAddOrder}) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
 
@@ -2191,7 +2191,7 @@ class CartPageState extends State<CartPage> {
             soft_delete: ''));
         orderCacheId = data.order_cache_sqlite_id.toString();
         OrderCache updatedCache = await insertOrderCacheKey(data, dateTime);
-        if (updatedCache.sync_status == 0) {
+        if (updatedCache.sync_status == 0 && isAddOrder == false) {
           //sync updated table use (with order cache key)
           await insertOrderCacheKeyIntoTableUse(cart, updatedCache, dateTime);
         }
@@ -2284,7 +2284,7 @@ class CartPageState extends State<CartPage> {
     List<String> _orderDetailValue = [];
     List<String> _orderModifierValue = [];
     List<String> _branchLinkProductValue = [];
-    bool _hasModifier = false;
+    //bool _hasModifier = false;
     //loop cart item & create order detail
     for (int j = 0; j < cart.cartNotifierItem.length; j++) {
       if (cart.cartNotifierItem[j].status == 0) {
@@ -2325,7 +2325,7 @@ class CartPageState extends State<CartPage> {
             ModifierGroup group = cart.cartNotifierItem[j].modifier![k];
             for (int m = 0; m < group.modifierChild!.length; m++) {
               if (group.modifierChild![m].isChecked!) {
-                _hasModifier = true;
+                // _hasModifier = true;
                 OrderModifierDetail orderModifierDetailData = await PosDatabase.instance.insertSqliteOrderModifierDetail(OrderModifierDetail(
                     order_modifier_detail_id: 0,
                     order_modifier_detail_key: '',

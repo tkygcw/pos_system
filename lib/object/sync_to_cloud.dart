@@ -5,6 +5,7 @@ import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/printer_link_category.dart';
+import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/refund.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
@@ -46,7 +47,7 @@ class SyncToCloud {
   List<Printer> notSyncPrinterList = [];
   List<PrinterLinkCategory> notSyncPrinterCategoryList = [];
   String? table_use_value, table_use_detail_value, order_cache_value, order_detail_value, order_detail_cancel_value,
-      order_modifier_detail_value, order_value, order_promotion_value, order_tax_value, refund_value, table_value, settlement_value,
+      order_modifier_detail_value, order_value, order_promotion_value, order_tax_value, receipt_value, refund_value, table_value, settlement_value,
       settlement_link_payment_value, cash_record_value, branch_link_product_value, printer_value, printer_link_category_value, transfer_owner_value;
 
   resetCount(){
@@ -73,6 +74,7 @@ class SyncToCloud {
           order_value: this.order_value,
           order_promotion_value: this.order_promotion_value,
           order_tax_value: this.order_tax_value,
+          receipt_value: this.receipt_value,
           refund_value: this.refund_value,
           settlement_value: this.settlement_value,
           settlement_link_payment_value: this.settlement_link_payment_value,
@@ -121,6 +123,10 @@ class SyncToCloud {
             break;
             case 'tb_order_tax_detail': {
               await PosDatabase.instance.updateOrderTaxDetailSyncStatusFromCloud(responseJson[i]['order_tax_detail_key']);
+            }
+            break;
+            case 'tb_receipt': {
+              await PosDatabase.instance.updateReceiptSyncStatusFromCloud(responseJson[i]['receipt_key']);
             }
             break;
             case 'tb_refund': {
@@ -181,6 +187,7 @@ class SyncToCloud {
     order_value = [].toString();
     order_promotion_value = [].toString();
     order_tax_value = [].toString();
+    receipt_value = [].toString();
     refund_value = [].toString();
     table_value = [].toString();
     settlement_value = [].toString();
@@ -194,6 +201,7 @@ class SyncToCloud {
 
   getAllValue() async {
     resetValue();
+    await getNotSyncReceipt();
     await getNotSyncBranchLinkProduct();
     await getNotSyncCashRecord();
     await getNotSyncOrder();
@@ -213,6 +221,24 @@ class SyncToCloud {
     await getNotSyncTable();
     await getNotSyncTransfer();
   }
+
+  getNotSyncReceipt() async {
+    try{
+      List<String> _value = [];
+      List<Receipt> data = await PosDatabase.instance.readAllNotSyncReceipt();
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        this.receipt_value = _value.toString();
+      }
+      print('receipt value: ${receipt_value}');
+    } catch(error){
+      print('15 receipt error: ${error}');
+      return;
+    }
+  }
+
 
 /*
   ----------------------Printer part----------------------------------------------------------------------------------------------------------------------------

@@ -7,6 +7,7 @@ import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import '../../notifier/report_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/categories.dart';
+import '../../object/order_detail.dart';
 import '../../object/report_class.dart';
 import '../../page/progress_bar.dart';
 
@@ -20,6 +21,7 @@ class CancellationReport extends StatefulWidget {
 class _CancellationReportState extends State<CancellationReport> {
   List<DataRow> _dataRow = [];
   List<Categories> categoryData = [];
+  List<OrderDetail> orderDetailCategoryData = [];
   String currentStDate = '';
   String currentEdDate = '';
   bool isLoaded = false;
@@ -276,42 +278,72 @@ class _CancellationReportState extends State<CancellationReport> {
   getAllCancelItemData() async {
     _dataRow.clear();
     ReportObject object = await ReportObject().getAllCancelItemCategory(currentStDate: currentStDate, currentEdDate: currentEdDate);
-    categoryData = object.dateCategory!;
-    print('date category data: ${categoryData.length}');
-    if(categoryData.isNotEmpty){
-      for(int i = 0; i < categoryData.length; i++){
-        ReportObject object = await ReportObject().getAllCancelOrderDetailWithCategory(categoryData[i].category_sqlite_id!, currentStDate: currentStDate, currentEdDate: currentEdDate);
-        categoryData[i].categoryOrderDetailList = object.dateOrderDetail!;
-        print('date detail data: ${categoryData[i].categoryOrderDetailList.length}');
+    orderDetailCategoryData = object.dateOrderDetail!;
+    //print('date category data: ${categoryData.length}');
+    if(orderDetailCategoryData.isNotEmpty){
+      for(int i = 0; i < orderDetailCategoryData.length; i++){
+        ReportObject object2 = await ReportObject().getAllCancelOrderDetailWithCategory(orderDetailCategoryData[i].category_name!, currentStDate: currentStDate, currentEdDate: currentEdDate);
+        orderDetailCategoryData[i].categoryOrderDetailList = object2.dateOrderDetail!;
+        // print('date detail data: ${categoryData[i].categoryOrderDetailList.length}');
         _dataRow.addAll([
           DataRow(
             color: MaterialStateColor.resolveWith((states) {return Colors.grey;},),
             cells: <DataCell>[
+              orderDetailCategoryData[i].category_name != '' ?
               DataCell(
-                Text('Category - ${categoryData[i].name}'),
+                Text('Category - ${orderDetailCategoryData[i].category_name}', style: TextStyle(fontWeight: FontWeight.bold)),
+              ): DataCell(
+                Text('Category - Other', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
               DataCell(Text('')),
-              DataCell(Text('${categoryData[i].item_sum}')),
-              DataCell(Text('${categoryData[i].net_sales!.toStringAsFixed(2)}')),
+              DataCell(Text('${orderDetailCategoryData[i].category_item_sum}')),
+              DataCell(Text('${orderDetailCategoryData[i].category_net_sales!.toStringAsFixed(2)}')),
               // DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
-              DataCell(Text('${Utils.to2Decimal(categoryData[i].gross_sales!)}')),
+              DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].category_gross_sales!)}')),
               DataCell(Text('')),
             ],
           ),
-          for(int j = 0; j < categoryData[i].categoryOrderDetailList.length; j++)
+          for(int j = 0; j < orderDetailCategoryData[i].categoryOrderDetailList.length; j++)
             DataRow(
               cells: <DataCell>[
-                DataCell(Text('${categoryData[i].categoryOrderDetailList[j].productName}')),
+                DataCell(Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].productName}')),
                 DataCell(
-                    categoryData[i].categoryOrderDetailList[j].product_variant_name != '' ?
-                    Text('${categoryData[i].categoryOrderDetailList[j].product_variant_name}'): Text('-')),
-                DataCell(Text('${categoryData[i].categoryOrderDetailList[j].item_sum}')),
-                DataCell(Text('${categoryData[i].categoryOrderDetailList[j].double_price!.toStringAsFixed(2)}')),
+                    orderDetailCategoryData[i].categoryOrderDetailList[j].product_variant_name != '' ?
+                    Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].product_variant_name}'): Text('-')),
+                DataCell(Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum}')),
+                DataCell(Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].double_price!.toStringAsFixed(2)}')),
                 // DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
-                DataCell(Text('${Utils.to2Decimal(categoryData[i].categoryOrderDetailList[j].gross_price!)}')),
-                DataCell(Text('${categoryData[i].categoryOrderDetailList[j].cancel_by}')),
-              ],
-            ),
+                DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].categoryOrderDetailList[j].gross_price!)}')),
+                DataCell(Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].cancel_by}')),
+              ]),
+          // DataRow(
+          //   color: MaterialStateColor.resolveWith((states) {return Colors.grey;},),
+          //   cells: <DataCell>[
+          //     DataCell(
+          //       Text('Category - ${categoryData[i].name}'),
+          //     ),
+          //     DataCell(Text('')),
+          //     DataCell(Text('${categoryData[i].item_sum}')),
+          //     DataCell(Text('${categoryData[i].net_sales!.toStringAsFixed(2)}')),
+          //     // DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
+          //     DataCell(Text('${Utils.to2Decimal(categoryData[i].gross_sales!)}')),
+          //     DataCell(Text('')),
+          //   ],
+          // ),
+          // for(int j = 0; j < categoryData[i].categoryOrderDetailList.length; j++)
+          //   DataRow(
+          //     cells: <DataCell>[
+          //       DataCell(Text('${categoryData[i].categoryOrderDetailList[j].productName}')),
+          //       DataCell(
+          //           categoryData[i].categoryOrderDetailList[j].product_variant_name != '' ?
+          //           Text('${categoryData[i].categoryOrderDetailList[j].product_variant_name}'): Text('-')),
+          //       DataCell(Text('${categoryData[i].categoryOrderDetailList[j].item_sum}')),
+          //       DataCell(Text('${categoryData[i].categoryOrderDetailList[j].double_price!.toStringAsFixed(2)}')),
+          //       // DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
+          //       DataCell(Text('${Utils.to2Decimal(categoryData[i].categoryOrderDetailList[j].gross_price!)}')),
+          //       DataCell(Text('${categoryData[i].categoryOrderDetailList[j].cancel_by}')),
+          //     ],
+          //   ),
         ]);
       }
     }

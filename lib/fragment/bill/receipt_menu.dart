@@ -498,8 +498,8 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     }
     //get table object add to cart
     for (int k = 0; k < tableUseDetailList.length; k++) {
-      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[k].table_sqlite_id!);
-      if (cart.selectedTable.length > 0) {
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTableIncludeDeleted(tableUseDetailList[k].table_sqlite_id!);
+      if (cart.selectedTable.isNotEmpty) {
         if (!cart.selectedTable.contains(tableData)) {
           cart.addTable(tableData[0]);
         }

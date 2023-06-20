@@ -36,8 +36,25 @@ class Domain {
   static Uri sync_to_cloud = Uri.parse(domain + 'mobile-api/sync_to_cloud/index.php');
   static Uri qr_order_sync = Uri.parse(domain + 'mobile-api/qr_order_sync/index.php');
   static Uri printer = Uri.parse(domain + 'mobile-api/printer/index.php');
+  static Uri app_version = Uri.parse(domain + 'mobile-api/app_version/index.php');
+  static Uri receipt = Uri.parse(domain + 'mobile-api/receipt/index.php');
 
-  /*
+/*
+  get app version
+*/
+  getAppVersion(String platform) async {
+    try{
+      var response = await http.post(Domain.app_version, body: {
+        'getAppVersion': '1',
+        'platform': platform,
+      });
+      return jsonDecode(response.body);
+    } catch(e){
+      Fluttertoast.showToast(msg: e.toString());
+    }
+  }
+
+  /**
   * login
   * */
   userlogin(email, password) async {
@@ -53,7 +70,7 @@ class Domain {
     }
   }
 
-  /*
+  /**
   * Forget Password
   * */
   forgetPassword(email) async {
@@ -311,6 +328,7 @@ class Domain {
         order_modifier_value,
         cash_record_value,
         transfer_owner_value,
+        receipt_value,
         refund_value,
         branch_link_product_value,
         settlement_value,
@@ -338,6 +356,7 @@ class Domain {
         'tb_order_modifier_detail_create': order_modifier_value != null ? order_modifier_value : [].toString(),
         'tb_cash_record_create': cash_record_value != null ? cash_record_value : [].toString(),
         'tb_transfer_owner_create': transfer_owner_value != null ? transfer_owner_value : [].toString(),
+        'tb_receipt_create': receipt_value != null ? receipt_value : [].toString(),
         'tb_refund_create': refund_value != null ? refund_value : [].toString(),
         'tb_branch_link_product_sync': branch_link_product_value != null ? branch_link_product_value : [].toString(),
         'tb_settlement_create': settlement_value != null ? settlement_value : [].toString(),
@@ -1928,6 +1947,19 @@ class Domain {
     try {
       var response = await http.post(Domain.printer,
           body: {'getAllPrinterLinkCategory': '1', 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /**
+  * get receipt
+  * */
+  getReceipt(branch_id) async {
+    try {
+      var response = await http.post(Domain.receipt,
+          body: {'getReceipt': '1', 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());

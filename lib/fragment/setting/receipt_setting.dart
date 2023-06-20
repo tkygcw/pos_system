@@ -180,13 +180,13 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
   }
 
   readAllReceiptLayout() async {
-    List<Receipt> data = await PosDatabase.instance.readAllReceipt();
-    if(!receiptList.contains(data)){
-      receiptList = List.from(data);
-    }
-    setState(() {
-      isLoad = true;
-    });
+    // List<Receipt> data = await PosDatabase.instance.readAllReceipt();
+    // if(!receiptList.contains(data)){
+    //   receiptList = List.from(data);
+    // }
+    // setState(() {
+    //   isLoad = true;
+    // });
   }
 
   deleteLayout(Receipt receipt) async {
@@ -222,7 +222,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
             child: Opacity(
                 opacity: a1.value,
                 child: ReceiptDialog(
-                  allReceiptList: allReceipt,
+                  // allReceiptList: allReceipt,
                   receiptObject: receipt,
                   callBack: () => readAllReceiptLayout(),
                 )

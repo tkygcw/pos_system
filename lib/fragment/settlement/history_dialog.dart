@@ -171,6 +171,8 @@ class _HistoryDialogState extends State<HistoryDialog> {
         } else {
           ///mobile layout
           return AlertDialog(
+            contentPadding: EdgeInsets.only(top: 15),
+            //actionsPadding: EdgeInsets.zero,
             title: Text('Settlement History'),
             content: isLoaded ?
             Container(
@@ -178,6 +180,7 @@ class _HistoryDialogState extends State<HistoryDialog> {
               width: MediaQuery.of(context).size.width / 1.5,
               child: cashRecordList.isNotEmpty ?
               ListView.builder(
+                  padding: EdgeInsets.zero,
                   shrinkWrap: true,
                   itemCount: cashRecordList.length,
                   itemBuilder: (context, index) {

@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:pos_system/fragment/update_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/transfer_owner.dart';
 import 'package:pos_system/page/home.dart';
@@ -13,6 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:custom_pin_screen/custom_pin_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../database/domain.dart';
 import '../database/pos_database.dart';
 import '../fragment/logout_dialog.dart';
@@ -35,7 +38,9 @@ class PosPinPage extends StatefulWidget {
 class _PosPinPageState extends State<PosPinPage> {
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   PrintReceipt printReceipt = PrintReceipt();
+  List response = [];
   List<Printer> printerList = [];
+  String latestVersion = '';
   bool isLogOut = false;
 
   @override
@@ -43,6 +48,7 @@ class _PosPinPageState extends State<PosPinPage> {
     super.initState();
     //readAllPrinters();
     preload();
+    checkVersion();
   }
 
   @override
@@ -66,6 +72,34 @@ class _PosPinPageState extends State<PosPinPage> {
       startTimers();
     }
     await readAllPrinters();
+  }
+
+  getLatestVersion() async {
+    if(defaultTargetPlatform == TargetPlatform.android){
+      Map data =  await Domain().getAppVersion('0');
+      if(data['status'] == '1'){
+        response = data['app_version'];
+        latestVersion = response[0]['version'];
+      } else {
+        Map data =  await Domain().getAppVersion('1');
+        if(data['status'] == '1'){
+          response = data['app_version'];
+          latestVersion = response[0]['version'];
+        }
+      }
+    }
+  }
+
+  checkVersion() async {
+    await getLatestVersion();
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    String version = packageInfo.version;
+    if(latestVersion != ''){
+      if(version != latestVersion){
+        openUpdateDialog();
+      }
+    }
+    print('current version: $version');
   }
 
   startTimers() {
@@ -154,6 +188,28 @@ class _PosPinPageState extends State<PosPinPage> {
         }
       }
     });
+  }
+
+  Future<Future<Object?>> openUpdateDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: UpdateDialog(versionData: response,)
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   Future<Future<Object?>> openPrinterDialog({devices}) async {

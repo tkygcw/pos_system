@@ -4,17 +4,21 @@ class ReceiptFields {
   static List<String> values = [
     receipt_sqlite_id,
     receipt_id,
+    receipt_key,
     branch_id,
-    company_id,
     header_image,
     header_image_status,
     header_text,
     header_text_status,
+    show_address,
+    show_email,
+    receipt_email,
     footer_image,
     footer_image_status,
     footer_text,
     footer_text_status,
     promotion_detail_status,
+    paper_size,
     status,
     sync_status,
     created_at,
@@ -24,17 +28,21 @@ class ReceiptFields {
 
   static String receipt_sqlite_id = 'receipt_sqlite_id';
   static String receipt_id = 'receipt_id';
+  static String receipt_key = 'receipt_key';
   static String branch_id = 'branch_id';
-  static String company_id = 'company_id';
   static String header_image = 'header_image';
   static String header_image_status = 'header_image_status';
   static String header_text = 'header_text';
   static String header_text_status = 'header_text_status';
+  static String show_address = 'show_address';
+  static String show_email = 'show_email';
+  static String receipt_email = 'receipt_email';
   static String footer_image = 'footer_image';
   static String footer_image_status = 'footer_image_status';
   static String footer_text = 'footer_text';
   static String footer_text_status = 'footer_text_status';
   static String promotion_detail_status = 'promotion_detail_status';
+  static String paper_size = 'paper_size';
   static String status = 'status';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
@@ -46,17 +54,21 @@ class ReceiptFields {
 class Receipt {
   int? receipt_sqlite_id;
   int? receipt_id;
+  String? receipt_key;
   String? branch_id;
-  String? company_id;
   String? header_image;
   int? header_image_status;
   String? header_text;
   int? header_text_status;
+  int? show_address;
+  int? show_email;
+  String? receipt_email;
   String? footer_image;
   int? footer_image_status;
   String? footer_text;
   int? footer_text_status;
   int? promotion_detail_status;
+  String? paper_size;
   int? status;
   int? sync_status;
   String? created_at;
@@ -66,17 +78,21 @@ class Receipt {
   Receipt(
       {this.receipt_sqlite_id,
         this.receipt_id,
+        this.receipt_key,
         this.branch_id,
-        this.company_id,
         this.header_image,
         this.header_image_status,
         this.header_text,
         this.header_text_status,
+        this.show_address,
+        this.show_email,
+        this.receipt_email,
         this.footer_image,
         this.footer_image_status,
         this.footer_text,
         this.footer_text_status,
         this.promotion_detail_status,
+        this.paper_size,
         this.status,
         this.sync_status,
         this.created_at,
@@ -86,17 +102,21 @@ class Receipt {
   Receipt copy({
     int? receipt_sqlite_id,
     int? receipt_id,
+    String? receipt_key,
     String? branch_id,
-    String? company_id,
     String? header_image,
     int? header_image_status,
     String? header_text,
     int? header_text_status,
+    int? show_address,
+    int? show_email,
+    String? receipt_email,
     String? footer_image,
     int? footer_image_status,
     String? footer_text,
     int? footer_text_status,
     int? promotion_detail_status,
+    String? paper_size,
     int? status,
     int? sync_status,
     String? created_at,
@@ -106,17 +126,21 @@ class Receipt {
       Receipt(
           receipt_sqlite_id: receipt_sqlite_id ?? this.receipt_sqlite_id,
           receipt_id: receipt_id ?? this.receipt_id,
+          receipt_key: receipt_key ?? this.receipt_key,
           branch_id: branch_id ?? this.branch_id,
-          company_id: company_id ?? this.company_id,
           header_image: header_image ?? this.header_image,
           header_image_status: header_image_status ?? this.header_image_status,
           header_text: header_text ?? this.header_text,
           header_text_status: header_text_status ?? this.header_text_status,
+          show_address: show_address ?? this.show_address,
+          show_email: show_email ?? this.show_email,
+          receipt_email: receipt_email ?? this.receipt_email,
           footer_image: footer_image ?? this.footer_image,
           footer_image_status: footer_image_status ?? this.footer_image_status,
           footer_text: footer_text ?? this.footer_text,
           footer_text_status: footer_text_status ?? this.footer_text_status,
           promotion_detail_status: promotion_detail_status ?? this.promotion_detail_status,
+          paper_size: paper_size ?? this.paper_size,
           status: status ?? this.status,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
@@ -126,17 +150,21 @@ class Receipt {
   static Receipt fromJson(Map<String, Object?> json) => Receipt(
     receipt_sqlite_id: json[ReceiptFields.receipt_sqlite_id] as int?,
     receipt_id: json[ReceiptFields.receipt_id] as int?,
+    receipt_key: json[ReceiptFields.receipt_key] as String?,
     branch_id: json[ReceiptFields.branch_id] as String?,
-    company_id: json[ReceiptFields.company_id] as String?,
     header_image: json[ReceiptFields.header_image] as String?,
     header_image_status: json[ReceiptFields.header_image_status] as int?,
     header_text: json[ReceiptFields.header_text] as String?,
     header_text_status: json[ReceiptFields.header_text_status] as int?,
+    show_address: json[ReceiptFields.show_address] as int?,
+    show_email: json[ReceiptFields.show_email] as int?,
+    receipt_email: json[ReceiptFields.receipt_email] as String?,
     footer_image: json[ReceiptFields.footer_image] as String?,
     footer_image_status: json[ReceiptFields.footer_image_status] as int?,
     footer_text: json[ReceiptFields.footer_text] as String?,
     footer_text_status: json[ReceiptFields.footer_text_status] as int?,
     promotion_detail_status: json[ReceiptFields.promotion_detail_status] as int?,
+    paper_size: json[ReceiptFields.paper_size] as String?,
     status: json[ReceiptFields.status] as int?,
     sync_status: json[ReceiptFields.sync_status] as int?,
     created_at: json[ReceiptFields.created_at] as String?,
@@ -147,17 +175,21 @@ class Receipt {
   Map<String, Object?> toJson() => {
     ReceiptFields.receipt_sqlite_id: receipt_sqlite_id,
     ReceiptFields.receipt_id: receipt_id,
+    ReceiptFields.receipt_key: receipt_key,
     ReceiptFields.branch_id: branch_id,
-    ReceiptFields.company_id: company_id,
     ReceiptFields.header_image: header_image,
     ReceiptFields.header_image_status: header_image_status,
     ReceiptFields.header_text: header_text,
     ReceiptFields.header_text_status: header_text_status,
+    ReceiptFields.show_address: show_address,
+    ReceiptFields.show_email: show_email,
+    ReceiptFields.receipt_email: receipt_email,
     ReceiptFields.footer_image: footer_image,
     ReceiptFields.footer_image_status: footer_image_status,
     ReceiptFields.footer_text: footer_text,
     ReceiptFields.footer_text_status: footer_text_status,
     ReceiptFields.promotion_detail_status: promotion_detail_status,
+    ReceiptFields.paper_size: paper_size,
     ReceiptFields.status: status,
     ReceiptFields.sync_status: sync_status,
     ReceiptFields.created_at: created_at,

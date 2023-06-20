@@ -8,7 +8,7 @@ class LCDDisplay {
       await channel.invokeMethod("sdkInit");
       return 1;
     }catch(e){
-      print('no lcd screen');
+      print('no lcd screen: $e');
       return 0;
     }
   }

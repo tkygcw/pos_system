@@ -95,13 +95,17 @@ class OrderDetail{
   bool hasModifier = false;
   int? category_id;
   int? branch_link_product_id;
+  int? category_item_sum;
   int? item_sum;
+  double? category_net_sales;
+  double? category_gross_sales;
   double? double_price;
   double? gross_price;
   int? total_record;
   String? available_stock;
   bool? isRemove;
   String? item_cancel;
+  List<OrderDetail> categoryOrderDetailList = [];
 
   OrderDetail(
       {this.order_detail_sqlite_id,
@@ -130,7 +134,10 @@ class OrderDetail{
         this.total_amount,
         this.category_id,
         this.branch_link_product_id,
+        this.category_item_sum,
         this.item_sum,
+        this.category_net_sales,
+        this.category_gross_sales,
         this.double_price,
         this.gross_price,
         this.total_record,
@@ -217,7 +224,10 @@ class OrderDetail{
     category_id: json['category_id'] as int?,
     branch_link_product_id: json['branch_link_product_id'] as int?,
     //category_name: json['category_name'] as String?,
+    category_item_sum: json['category_item_sum'] as int?,
     item_sum: json['item_sum'] as int?,
+    category_net_sales: json['category_net_sales'] as double?,
+    category_gross_sales: json['category_gross_sales'] as double?,
     double_price: json['net_sales'] as double?,
     gross_price: json['gross_price'] as double?,
     total_record: json['total_record'] as int?,

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/domain.dart';
@@ -14,10 +15,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
 class TableDialog extends StatefulWidget {
+  final List<PosTable> allTableList;
   final Function() callBack;
   final PosTable object;
 
-  const TableDialog({required this.callBack, required this.object, Key? key})
+  const TableDialog({required this.callBack, required this.object, Key? key, required this.allTableList})
       : super(key: key);
 
   @override
@@ -79,8 +81,20 @@ class _TableDialogState extends State<TableDialog> {
       if (isUpdate) {
         updatePosTable();
       } else {
-        createPosTable();
+        checkRepeatedTableNumber();
       }
+    }
+  }
+
+  checkRepeatedTableNumber(){
+    List<PosTable> tableList = widget.allTableList;
+    bool tbNumberRepeated = tableList.any((item) => item.number == tableNoController.text);
+    if(tbNumberRepeated){
+      Fluttertoast.showToast(msg: "Table number repeated", backgroundColor: Colors.red);
+      isButtonDisabled = false;
+      return;
+    } else {
+      createPosTable();
     }
   }
 
@@ -295,6 +309,17 @@ class _TableDialogState extends State<TableDialog> {
                             padding: const EdgeInsets.all(8.0),
                             child: TextField(
                               controller: tableNoController,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'[0-9]'),
+                                ),
+                                FilteringTextInputFormatter.deny(
+                                  RegExp(
+                                      r'^0+'), //users can't type 0 at 1st position
+                                ),
+                              ],
+                              maxLength: 3,
                               decoration: InputDecoration(
                                 errorText: _submitted
                                     ? errorTableNo == null
@@ -324,6 +349,16 @@ class _TableDialogState extends State<TableDialog> {
                             child: TextField(
                               controller: seatController,
                               keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                  RegExp(r'[0-9]'),
+                                ),
+                                FilteringTextInputFormatter.deny(
+                                  RegExp(
+                                      r'^0+'), //users can't type 0 at 1st position
+                                ),
+                              ],
+                              maxLength: 2,
                               decoration: InputDecoration(
                                 errorText: _submitted
                                     ? errorSeat == null

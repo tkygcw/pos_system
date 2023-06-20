@@ -12,8 +12,8 @@ import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/table_notifier.dart';
 import '../../notifier/theme_color.dart';
@@ -134,8 +134,13 @@ class _TableMenuState extends State<TableMenu> {
                                   child: ElevatedButton.icon(
                                       style: ElevatedButton.styleFrom(
                                           backgroundColor: color.backgroundColor),
-                                      onPressed: () {
-                                        openAddTableDialog(PosTable());
+                                      onPressed: () async  {
+                                        bool hasInternetAccess = await Domain().isHostReachable();
+                                        if(hasInternetAccess){
+                                          openAddTableDialog(PosTable());
+                                        } else {
+                                          Fluttertoast.showToast(msg: "Check your internet access");
+                                        }
                                       },
                                       icon: Icon(Icons.add),
                                       label: Text("Table")),
@@ -372,6 +377,7 @@ class _TableMenuState extends State<TableMenu> {
             child: Opacity(
                 opacity: a1.value,
                 child: TableDialog(
+                    allTableList: tableList,
                     object: posTable, callBack: () => readAllTable())),
           );
         },
