@@ -76,6 +76,10 @@ class _LoginPageState extends State<LoginPage> {
         if (data['status'] == '4') {
           return 'Please try again later';
         }
+        if(data['status'] == '8'){
+          throw TimeoutException("Time out");
+          return 'Connection timeout';
+        }
         // Obtain shared preferences.
         _createDir();
         final prefs = await SharedPreferences.getInstance();

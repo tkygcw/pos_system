@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -90,15 +91,16 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     setState(() => _submitted = true);
     if (errorPassword == null && _isLoaded == true) {
       // Disable the button after it has been pressed
-      setState(() {
-        isButtonDisabled = true;
-      });
       await readAdminData(adminPosPinController.text, cart);
       if(this.isLogOut == false){
         Navigator.of(context).pop();
         Navigator.of(context).pop();
       }
       return;
+    } else {
+      setState(() {
+        isButtonDisabled = false;
+      });
     }
   }
 
@@ -110,62 +112,72 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     return showDialog(
       barrierDismissible: false,
       context: context,
-      builder: (BuildContext context) => Center(
-        child: SingleChildScrollView(
-          physics: NeverScrollableScrollPhysics(),
-          child: AlertDialog(
-            title: Text('Enter Current User PIN'),
-            content: SizedBox(
-              height: 100.0,
-              width: 350.0,
-              child: ValueListenableBuilder(
-                  valueListenable: adminPosPinController,
-                  builder: (context, TextEditingValue value, __) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        obscureText: true,
-                        controller: adminPosPinController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          errorText: _submitted
-                              ? errorPassword == null
-                              ? errorPassword
-                              : AppLocalizations.of(context)
-                              ?.translate(errorPassword!)
-                              : null,
-                          border: OutlineInputBorder(
-                            borderSide:
-                            BorderSide(color: color.backgroundColor),
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, StateSetter setState){
+          return Center(
+            child: SingleChildScrollView(
+              physics: NeverScrollableScrollPhysics(),
+              child: AlertDialog(
+                title: Text('Enter Current User PIN'),
+                content: SizedBox(
+                  height: 100.0,
+                  width: 350.0,
+                  child: ValueListenableBuilder(
+                      valueListenable: adminPosPinController,
+                      builder: (context, TextEditingValue value, __) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextField(
+                            obscureText: true,
+                            controller: adminPosPinController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              errorText: _submitted
+                                  ? errorPassword == null
+                                  ? errorPassword
+                                  : AppLocalizations.of(context)
+                                  ?.translate(errorPassword!)
+                                  : null,
+                              border: OutlineInputBorder(
+                                borderSide:
+                                BorderSide(color: color.backgroundColor),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide:
+                                BorderSide(color: color.backgroundColor),
+                              ),
+                              labelText: "PIN",
+                            ),
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide:
-                            BorderSide(color: color.backgroundColor),
-                          ),
-                          labelText: "PIN",
-                        ),
-                      ),
-                    );
-                  }),
+                        );
+                      }),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                    onPressed: isButtonDisabled ? null : () {
+                      setState(() {
+                        isButtonDisabled = true;
+                      });
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  TextButton(
+                    child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                    onPressed: isButtonDisabled ? null : () {
+                      setState(() {
+                        isButtonDisabled = true;
+                      });
+                      _submit(context, cart);
+                    },
+                  ),
+                ],
+              ),
             ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                onPressed: isButtonDisabled ? null : () {
-                  _submit(context, cart);
-                  },
-              ),
-            ],
-          ),
-        ),
-      ),
+          );
+        });
+      }
     );
   }
 
@@ -327,23 +339,24 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
             }
           }
           table_value = _posTableValue.toString();
+          await callPrinter(dateTime, cart);
+          // await PrintReceipt().printDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, dateTime);
+          // await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
+          // if(connectivity.isConnect){
+          //
+          //   //syncUpdatedPosTableToCloud(_posTableValue.toString());
+          // }
+          Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: "delete successful");
+          tableModel.changeContent(true);
+          cart.removeAllTable();
+          cart.removeAllCartItem();
+          cart.removePromotion();
           //sync to cloud
           await syncAllToCloud();
           if(this.isLogOut == true){
             openLogOutDialog();
             return;
           }
-          await PrintReceipt().printDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, dateTime);
-          await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
-          tableModel.changeContent(true);
-          cart.removeAllTable();
-          cart.removeAllCartItem();
-          cart.removePromotion();
-          // if(connectivity.isConnect){
-          //
-          //   //syncUpdatedPosTableToCloud(_posTableValue.toString());
-          // }
-          Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: "delete successful");
 
         } else {
           Fluttertoast.showToast(
@@ -356,6 +369,29 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
 
     } catch (e) {
       print('delete error ${e}');
+    }
+  }
+
+  callPrinter(String dateTime, CartModel cart) async {
+    int printStatus = await PrintReceipt().printDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, dateTime);
+    if(printStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (printStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }
+    int kitchenPrintStatus = await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
+    if(kitchenPrintStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (kitchenPrintStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     }
   }
 
@@ -728,67 +764,84 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   }
 
   syncAllToCloud() async {
-    if(mainSyncToCloud.count == 0){
-      mainSyncToCloud.count = 1;
-      final prefs = await SharedPreferences.getInstance();
-      final int? device_id = prefs.getInt('device_id');
-      final String? login_value = prefs.getString('login_value');
-      bool _hasInternetAccess = await Domain().isHostReachable();
-      if (_hasInternetAccess) {
-        Map data = await Domain().syncLocalUpdateToCloud(
-            device_id: device_id.toString(),
-            value: login_value,
-            table_use_value: this.table_use_value,
-            table_use_detail_value: this.table_use_detail_value,
-            order_cache_value: this.order_cache_value,
-            order_detail_value: this.order_detail_value,
-            order_detail_cancel_value: this.order_detail_cancel_value,
-            branch_link_product_value: this.branch_link_product_value,
-            table_value: this.table_value
-        );
-        //if success update local sync status
-        if (data['status'] == '1') {
-          List responseJson = data['data'];
-          for(int i = 0; i < responseJson.length; i++){
-            switch(responseJson[i]['table_name']){
-              case 'tb_table_use_detail': {
-                await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+    try{
+      if(mainSyncToCloud.count == 0){
+        mainSyncToCloud.count = 1;
+        final prefs = await SharedPreferences.getInstance();
+        final int? device_id = prefs.getInt('device_id');
+        final String? login_value = prefs.getString('login_value');
+        bool _hasInternetAccess = await Domain().isHostReachable();
+        if (_hasInternetAccess) {
+          Map data = await Domain().syncLocalUpdateToCloud(
+              device_id: device_id.toString(),
+              value: login_value,
+              table_use_value: this.table_use_value,
+              table_use_detail_value: this.table_use_detail_value,
+              order_cache_value: this.order_cache_value,
+              order_detail_value: this.order_detail_value,
+              order_detail_cancel_value: this.order_detail_cancel_value,
+              branch_link_product_value: this.branch_link_product_value,
+              table_value: this.table_value
+          );
+          //if success update local sync status
+          if (data['status'] == '1') {
+            List responseJson = data['data'];
+            if(responseJson.isNotEmpty){
+              for(int i = 0; i < responseJson.length; i++){
+                switch(responseJson[i]['table_name']){
+                  case 'tb_table_use_detail': {
+                    await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+                  }
+                  break;
+                  case 'tb_table_use': {
+                    await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+                  }
+                  break;
+                  case 'tb_order_detail_cancel': {
+                    await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[i]['order_detail_cancel_key']);
+                  }
+                  break;
+                  case 'tb_branch_link_product': {
+                    await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+                  }
+                  break;
+                  case 'tb_order_detail': {
+                    await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+                  }
+                  break;
+                  case 'tb_order_cache': {
+                    await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+                  }
+                  break;
+                  case 'tb_table': {
+                    await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+                  }
+                  break;
+                  default: {
+                    return;
+                  }
+                }
               }
-              break;
-              case 'tb_table_use': {
-                await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
-              }
-              break;
-              case 'tb_order_detail_cancel': {
-                await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[i]['order_detail_cancel_key']);
-              }
-              break;
-              case 'tb_branch_link_product': {
-                await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-              }
-              break;
-              case 'tb_order_detail': {
-                await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
-              }
-              break;
-              case 'tb_order_cache': {
-                await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
-              }
-              break;
-              case 'tb_table': {
-                await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-              }
-              break;
-              default: {
-                return;
-              }
+              mainSyncToCloud.resetCount();
+            } else {
+              mainSyncToCloud.resetCount();
             }
+          } else if(data['status'] == '7'){
+            this.isLogOut = true;
+            mainSyncToCloud.resetCount();
+          } else if(data['status'] == '8') {
+            throw TimeoutException("Time out");
+          } else {
+            mainSyncToCloud.resetCount();
           }
-        } else if(data['status'] == '7'){
-          this.isLogOut = true;
+        } else {
+          mainSyncToCloud.resetCount();
         }
       }
+    } catch(e){
+      print("remove cart error: $e");
       mainSyncToCloud.resetCount();
+      return;
     }
   }
 }

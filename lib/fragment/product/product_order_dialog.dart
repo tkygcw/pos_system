@@ -539,7 +539,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           modifierGroup[i].modifierChild = modItemChild;
         }
         modifierGroup[i].modifierChild = modItemChild;
-        readProductModifierItemPrice(modifierGroup[i]);
+        await readProductModifierItemPrice(modifierGroup[i]);
       }
     }
   }

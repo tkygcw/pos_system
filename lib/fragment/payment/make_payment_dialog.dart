@@ -217,7 +217,6 @@ class _MakePaymentState extends State<MakePayment> {
       controller!.pauseCamera();
       controller!.resumeCamera();
     }
-
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
         getReceiptPaymentDetail(cart);
@@ -242,10 +241,22 @@ class _MakePaymentState extends State<MakePayment> {
                   child: SingleChildScrollView(
                     physics: NeverScrollableScrollPhysics(),
                     child: AlertDialog(
-                      title: Text('Payment Detail'),
+                      title: Row(
+                        children: [
+                          Text('Payment Detail'),
+                          Spacer(),
+                          IconButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            color: Colors.red,
+                            icon: Icon(Icons.close),
+                          ),
+                        ],
+                      ),
                       content: Container(
-                          width: MediaQuery.of(context).size.width / 1,
-                          height: MediaQuery.of(context).size.height / 1.2,
+                          width: MediaQuery.of(context).size.width,
+                          //height: MediaQuery.of(context).size.height,
                           child: Row(
                             children: [
                               Expanded(
@@ -265,6 +276,7 @@ class _MakePaymentState extends State<MakePayment> {
                                               Container(
                                                 height: MediaQuery.of(context).size.width < 1300 ? MediaQuery.of(context).size.width / 4.5 : MediaQuery.of(context).size.width / 5,
                                                 child: ListView.builder(
+                                                    shrinkWrap: true,
                                                     itemCount: cart.cartNotifierItem.length,
                                                     itemBuilder: (context, index) {
                                                       return ListTile(
@@ -438,7 +450,7 @@ class _MakePaymentState extends State<MakePayment> {
                               //divider
                               Container(
                                 padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                height: MediaQuery.of(context).size.height,
+                                height: MediaQuery.of(context).size.height/2,
                                 child: VerticalDivider(
                                     color: Colors.grey, thickness: 1),
                               ),
@@ -446,7 +458,7 @@ class _MakePaymentState extends State<MakePayment> {
                                 child: widget.type == 0 ?
                                 Container(
                                   margin: EdgeInsets.fromLTRB(30, 0, 25, 0),
-                                  height: MediaQuery.of(context).size.height / 1,
+                                  //height: MediaQuery.of(context).size.height / 1,
                                   child: Column(
                                     //mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -538,9 +550,9 @@ class _MakePaymentState extends State<MakePayment> {
                                             Container(
                                               child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
                                                 return SizedBox(
-                                                  height: MediaQuery.of(context).size.height / 12,
-                                                  width: MediaQuery.of(context).size.width / 7,
-                                                  child: ElevatedButton(
+                                                  height: 70,
+                                                  width: 150,
+                                                  child: ElevatedButton.icon(
                                                       onPressed: () async {
                                                         if(inputController.text.isNotEmpty && double.parse(inputController.text) >= double.parse(finalAmount)){
                                                           await callCreateOrder(inputController.text, connectivity, orderChange: change);
@@ -569,32 +581,35 @@ class _MakePaymentState extends State<MakePayment> {
                                                         backgroundColor: color.backgroundColor,
                                                         elevation: 5,
                                                       ),
-                                                      child: Text('Pay')),
+                                                      icon: Icon(Icons.payments, size: 24),
+                                                      label: Text('Pay', style: TextStyle(fontSize: 20),)),
                                                 );
                                               }),
 
                                             ),
                                             SizedBox(width: 10,),
                                             SizedBox(
-                                              height: MediaQuery.of(context).size.height / 12,
-                                              width: MediaQuery.of(context).size.width / 7,
-                                              child: ElevatedButton(
+                                              height: 70,
+                                              width: 150,
+                                              child: ElevatedButton.icon(
                                                   onPressed: () async {
                                                     inputController.clear();
                                                     change = '0.00';
                                                   },
                                                   style: ElevatedButton.styleFrom(
-                                                    elevation: 5,
-                                                    primary: color.buttonColor,
+                                                    elevation: 5, backgroundColor: color.buttonColor,
                                                   ),
-                                                  child: Text('Clear')),
+                                                  icon: Icon(Icons.backspace),
+                                                  label: Text('Clear', style: TextStyle(fontSize: 20)),
+                                              ),
                                             ),
                                           ],
                                         ),
-                                      )
+                                      ),
                                     ],
                                   ), // GridView.builder
                                 ): widget.type == 1  ?
+                                ///card payment
                                 Container(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -618,7 +633,7 @@ class _MakePaymentState extends State<MakePayment> {
                                       ),
                                       Container(
                                         child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
-                                          return ElevatedButton(
+                                          return ElevatedButton.icon(
                                             style: ButtonStyle(
                                                 backgroundColor: MaterialStateProperty.all(Colors.green),
                                                 padding: MaterialStateProperty.all(EdgeInsets.all(20))
@@ -630,7 +645,8 @@ class _MakePaymentState extends State<MakePayment> {
                                                 return;
                                               }
                                               openPaymentSuccessDialog(widget.dining_id, isCashMethod: false, diningName: widget.dining_name);
-                                            }, child: Text("Received payment",style:TextStyle(fontSize: 25)),
+                                            }, icon: Icon(Icons.call_received),
+                                            label: Text("Received payment",style:TextStyle(fontSize: 20)),
                                           );
                                         }),
                                       ),

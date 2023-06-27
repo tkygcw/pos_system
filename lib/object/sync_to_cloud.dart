@@ -55,6 +55,7 @@ class SyncToCloud {
   }
 
   syncAllToCloud() async {
+    print('sync to cloud called');
     count = 1;
     await getAllValue();
     final prefs = await SharedPreferences.getInstance();
@@ -170,9 +171,11 @@ class SyncToCloud {
             }
           }
         }
-        return false;
+        return 0;
       } else if (data['status'] == '7'){
-        return true;
+        return 1;
+      } else if (data['status'] == '8'){
+        return 2;
       }
     }
   }
@@ -970,11 +973,13 @@ class SyncToCloud {
       List<String> _value = [];
       List<OrderDetail> data = await PosDatabase.instance.readAllNotSyncOrderDetail();
       notSyncOrderDetailList = data;
+      print('not sync order detail length: ${notSyncOrderDetailList.length}');
       if(notSyncOrderDetailList.isNotEmpty){
         for(int i = 0; i <  notSyncOrderDetailList.length; i++){
           _value.add(jsonEncode(notSyncOrderDetailList[i].syncJson()));
         }
         this.order_detail_value = _value.toString();
+        print('order detail not sync value: ${order_detail_value}');
       }
     } catch(error){
       print('15 order detail sync error: ${error}');

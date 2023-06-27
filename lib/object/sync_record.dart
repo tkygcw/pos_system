@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -41,14 +42,14 @@ class SyncRecord {
   }
 
   checkAllSyncRecord() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? user = prefs.getString('user');
-    final String? branch = prefs.getString('branch');
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    if(user != null){
-      Map userObject = json.decode(user);
+    try{
+      int status = 0;
+      final prefs = await SharedPreferences.getInstance();
+      final String? branch = prefs.getString('branch');
+      final int? device_id = prefs.getInt('device_id');
+      final String? login_value = prefs.getString('login_value');
       Map branchObject = json.decode(branch!);
+      ///get data
       Map data = await Domain().getAllSyncRecord('${branchObject['branchID']}', device_id.toString(), login_value.toString());
       List<int> syncRecordIdList = [];
       if (data['status'] == '1') {
@@ -205,15 +206,32 @@ class SyncRecord {
         Map updateResponse = await Domain().updateAllCloudSyncRecord('${branchObject['branchID']}', syncRecordIdList.toString());
         notificationModel.setContentLoaded();
         notificationModel.setCartContentLoaded();
-        return false;
+        status = 0;
       } else if (data['status'] == '7'){
-        return true;
+        status = 1;
+      } else if(data['status'] == '8'){
+        throw TimeoutException("Timeout");
       } else {
-        return;
-        //notificationModel.setContentLoaded();
-        //notificationModel.setCartContentLoaded();
+        status = 0;
       }
+      return status;
+      // else {
+      //   return;
+      //   notificationModel.setContentLoaded();
+      //   notificationModel.setCartContentLoaded();
+      // }
+    }on TimeoutException catch(_){
+      print('sync record 15 timeout');
+      notificationModel.setContentLoaded();
+      //notificationModel.setCartContentLoaded();
+      return 2;
+    }catch(e){
+      print("sync record 15 error: $e");
+      notificationModel.setContentLoaded();
+      //notificationModel.setCartContentLoaded();
+      return 3;
     }
+
   }
 
   callBranchLinkPromotionQuery({data, method}) async {

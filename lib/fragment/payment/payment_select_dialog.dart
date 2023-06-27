@@ -40,7 +40,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                   Container(
                     margin: EdgeInsets.all(2),
                     width: MediaQuery.of(context).size.width / 2,
-                    height: MediaQuery.of(context).size.height / 2,
+                    height: MediaQuery.of(context).size.height / 3,
                     child: Column(children: [
                       GridView.count(
                           shrinkWrap: true,
@@ -99,6 +99,13 @@ class _PaymentSelectState extends State<PaymentSelect> {
                 ],
               ))
               : CustomProgressBar(),
+          actions: [
+            ElevatedButton(
+                onPressed: (){
+                  Navigator.of(context).pop();
+                },
+                child: Text("Close"))
+          ],
         ); 
       } else {
         ///mobile view
@@ -174,6 +181,13 @@ class _PaymentSelectState extends State<PaymentSelect> {
                     ],
                   ))
                   : CustomProgressBar(),
+              actions: [
+                ElevatedButton(
+                    onPressed: (){
+                      Navigator.of(context).pop();
+                    },
+                    child: Text("Close"))
+              ],
             ),
           ),
         );

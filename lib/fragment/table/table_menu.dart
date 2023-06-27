@@ -552,7 +552,7 @@ class _TableMenuState extends State<TableMenu> {
       List<ModifierLinkProduct> productMod = await PosDatabase.instance.readProductModifier(result[0].product_sqlite_id!);
       if (productMod.isNotEmpty) {
         orderDetailList[k].hasModifier = true;
-        getOrderModifierDetail(orderDetailList[k]);
+        await getOrderModifierDetail(orderDetailList[k]);
       }
 
       // if (orderDetailList[k].hasModifier == true) {
@@ -575,9 +575,11 @@ class _TableMenuState extends State<TableMenu> {
       //   // }
       // }
     }
-    setState(() {
-      productDetailLoaded = true;
-    });
+    if(mounted){
+      setState(() {
+        productDetailLoaded = true;
+      });
+    }
   }
 
   getOrderModifierDetail(OrderDetail orderDetail) async {

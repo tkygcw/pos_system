@@ -20,6 +20,7 @@ import '../../object/order_cache.dart';
 import '../../object/order_detail.dart';
 import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
+import '../../translation/AppLocalizations.dart';
 import '../logout_dialog.dart';
 
 class AdjustStockDialog extends StatefulWidget {
@@ -333,8 +334,9 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                       return;
                                     }
                                     widget.callBack;
-                                    await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
-                                    await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                                    await callPrinter();
+                                    // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                                    // await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                                   } else {
                                     await callNewOrder();
                                     await updateProductStock();
@@ -344,13 +346,15 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                       return;
                                     }
                                     widget.callBack;
-                                    await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
-                                    await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                                    await callPrinter();
+                                    // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                                    // await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                                   }
                                 } else {
-                                  callOtherOrder();
-                                  await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
-                                  await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                                  await callOtherOrder();
+                                  await callPrinter();
+                                  // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                                  // await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
 
                                 }
                                 Navigator.of(context).pop();
@@ -589,8 +593,9 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                       return;
                                     }
                                     widget.callBack;
-                                    await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
-                                    await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                                    await callPrinter();
+                                    // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                                    // await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                                   } else {
                                     await callNewOrder();
                                     await updateProductStock();
@@ -600,14 +605,16 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                       return;
                                     }
                                     widget.callBack;
-                                    await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
-                                    await PrintReceipt()
-                                        .printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                                    await callPrinter();
+                                    // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                                    // await PrintReceipt()
+                                    //     .printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                                   }
                                 } else {
-                                  callOtherOrder();
-                                  await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
-                                  await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                                  await callOtherOrder();
+                                  await callPrinter();
+                                  // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                                  // await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                                 }
                                 Navigator.of(context).pop();
                               }
@@ -622,6 +629,29 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     });
   }
 
+  callPrinter() async {
+    int printStatus = await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+    if(printStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (printStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }
+    int kitchenPrintStatus = await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+    if(kitchenPrintStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (kitchenPrintStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }
+  }
+
   callNewOrder() async {
     await createTableUseID();
     await createTableUseDetail();
@@ -632,7 +662,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
 
   callOtherOrder() async {
     await acceptOrder(widget.orderCacheLocalId);
-    updateProductStock();
+    await updateProductStock();
   }
 
   callRejectOrder() async {

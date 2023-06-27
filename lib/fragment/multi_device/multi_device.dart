@@ -29,6 +29,11 @@ class _MultiDevicePageState extends State<MultiDevicePage> {
     listen();
   }
 
+  @override
+  dispose() {
+    super.dispose();
+  }
+
   void listen() async {
     var ips = await networkInfo.getWifiIP();
     print('ips: $ips');
@@ -63,7 +68,8 @@ class _MultiDevicePageState extends State<MultiDevicePage> {
           response = await ServerAction().checkAction(action: msg['action']);
         }
         print('server response2: ${jsonEncode(response)}');
-        currentClient.write(jsonEncode(response));
+        currentClient.write(jsonEncode(response) + '\n');
+        currentClient.flush();
       }
       //incomingMessage =  await PosDatabase.instance.readAllTableToJson();
       //Map<String, dynamic> result = {'status': '1','data':jsonDecode(incomingMessage)};
@@ -83,7 +89,6 @@ class _MultiDevicePageState extends State<MultiDevicePage> {
       //client.close();
     });
     //client.close();
-
   }
 
   @override

@@ -1,13 +1,16 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
+import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/pos_database.dart';
+import 'cart_product.dart';
 
 class ServerAction {
   String? action;
@@ -47,21 +50,21 @@ class ServerAction {
     try{
       switch(action){
         case '1': {
-          // var data = await PosDatabase.instance.readAllCategories();
-          // var data2 = await PosDatabase.instance.readAllClientProduct();
-          // var data3 = await PosDatabase.instance.readAllUser();
-          // var data4 = await PosDatabase.instance.readAllBranchLinkProduct();
-          // var data5 = await PosDatabase.instance.readAllBranchLinkModifier();
-          // var data6 = await PosDatabase.instance.readAllProductVariant();
-          List<String> encodedList = await encodeAllImage();
+          var data = await PosDatabase.instance.readAllCategories();
+          var data2 = await PosDatabase.instance.readAllClientProduct();
+          var data3 = await PosDatabase.instance.readAllUser();
+          var data4 = await PosDatabase.instance.readAllBranchLinkProduct();
+          var data5 = await PosDatabase.instance.readAllBranchLinkModifier();
+          var data6 = await PosDatabase.instance.readAllProductVariant();
+          //List<String> encodedList = await encodeAllImage();
           objectData = {
-            // 'tb_categories': data,
-            // 'tb_product': data2,
-            // 'tb_user': data3,
-            // 'tb_branch_link_product': data4,
-            // 'tb_branch_link_modifier': data5,
-            // 'tb_product_variant': data6,
-            'image_list': encodedList,
+            'tb_categories': data,
+            'tb_product': data2,
+            'tb_user': data3,
+            'tb_branch_link_product': data4,
+            'tb_branch_link_modifier': data5,
+            'tb_product_variant': data6,
+            //'image_list': encodedList,
           };
           result = {'status': '1','data': objectData};
         }
@@ -132,6 +135,26 @@ class ServerAction {
           //   'image_list': encodedList,
           // };
           // result = {'status': '1','data':objectData};
+        }
+        break;
+        case '9': {
+          try{
+            CartModel cart = CartModel();
+            CartPageState cartPageState = CartPageState();
+            var decodeParam = jsonDecode(param);
+            var cartJson = decodeParam as List;
+            List<cartProductItem> cartList = cartJson.map((tagJson) => cartProductItem.fromJson(tagJson)).toList();
+            cart.addAllItem(cartItemList: cartList);
+            print("cart list length: ${cart.cartNotifierItem[0].product_name}");
+            cart.selectedOption = 'Take Away';
+            await cartPageState.readAllPrinters();
+            await cartPageState.getSubTotalMultiDevice(cart);
+            await cartPageState.callCreateNewNotDineOrder2(cart);
+            result = {'status': '1'};
+          } catch(e){
+            result = {'status': '4'};
+            print('place order request error: $e');
+          }
         }
         break;
       }

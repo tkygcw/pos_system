@@ -126,14 +126,19 @@ class _PosPinPageState extends State<PosPinPage> {
         print('timer count: ${timerCount}');
         if (timerCount == 0) {
           //sync to cloud
-          print('sync to cloud');
           if(mainSyncToCloud.count == 0){
-            var isLogOut = await mainSyncToCloud.syncAllToCloud();
-            if (isLogOut == true) {
+            int status = await mainSyncToCloud.syncAllToCloud();
+            print('status: ${status}');
+            if (status == 1) {
               openLogOutDialog();
+              mainSyncToCloud.resetCount();
               return;
+            } else if(status == 2){
+              print('time out detected');
+              mainSyncToCloud.resetCount();
+            } else {
+              mainSyncToCloud.resetCount();
             }
-            mainSyncToCloud.resetCount();
           }
           //SyncToCloud().syncToCloud();
         } else {
@@ -152,30 +157,31 @@ class _PosPinPageState extends State<PosPinPage> {
           // }
           //sync from cloud
           if(syncRecord.count == 0){
-            var syncStatus = await syncRecord.syncFromCloud();
+            int syncStatus = await syncRecord.syncFromCloud();
             print('is log out: ${syncStatus}');
-            if (syncStatus == true) {
+            if (syncStatus == 1) {
               openLogOutDialog();
               return;
-            } else if (syncStatus == false) {
-              // ScaffoldMessenger.of(context).showSnackBar(
-              //   SnackBar(
-              //     duration: Duration(minutes: 5),
-              //     backgroundColor: Colors.green,
-              //     content: const Text('Content change !!!'),
-              //     action: SnackBarAction(
-              //       label: 'Refresh',
-              //       textColor: Colors.white,
-              //       onPressed: () {
-              //         setState(() {
-              //           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              //         });
-              //         // Code to execute.
-              //       },
-              //     ),
-              //   ),
-              // );
             }
+            // else if (syncStatus == false) {
+            //   ScaffoldMessenger.of(context).showSnackBar(
+            //     SnackBar(
+            //       duration: Duration(minutes: 5),
+            //       backgroundColor: Colors.green,
+            //       content: const Text('Content change !!!'),
+            //       action: SnackBarAction(
+            //         label: 'Refresh',
+            //         textColor: Colors.white,
+            //         onPressed: () {
+            //           setState(() {
+            //             ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            //           });
+            //           // Code to execute.
+            //         },
+            //       ),
+            //     ),
+            //   );
+            // }
             syncRecord.count = 0;
           }
         }
