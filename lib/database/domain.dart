@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
@@ -36,8 +37,25 @@ class Domain {
   static Uri sync_to_cloud = Uri.parse(domain + 'mobile-api/sync_to_cloud/index.php');
   static Uri qr_order_sync = Uri.parse(domain + 'mobile-api/qr_order_sync/index.php');
   static Uri printer = Uri.parse(domain + 'mobile-api/printer/index.php');
+  static Uri app_version = Uri.parse(domain + 'mobile-api/app_version/index.php');
+  static Uri receipt = Uri.parse(domain + 'mobile-api/receipt/index.php');
 
-  /*
+/*
+  get app version
+*/
+  getAppVersion(String platform) async {
+    try{
+      var response = await http.post(Domain.app_version, body: {
+        'getAppVersion': '1',
+        'platform': platform,
+      });
+      return jsonDecode(response.body);
+    } catch(e){
+      Fluttertoast.showToast(msg: e.toString());
+    }
+  }
+
+  /**
   * login
   * */
   userlogin(email, password) async {
@@ -46,14 +64,18 @@ class Domain {
         'login': '1',
         'password': password,
         'email': email,
-      });
+      }).timeout(Duration(seconds: 3), onTimeout: ()=> throw TimeoutException("Time out"));
       return jsonDecode(response.body);
+    } on TimeoutException catch(_){
+      print('domain login time out');
+      Map<String, dynamic>? result = {'status': '8'};
+      return result;
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
   }
 
-  /*
+  /**
   * Forget Password
   * */
   forgetPassword(email) async {
@@ -250,8 +272,12 @@ class Domain {
         'branch_id': branch_id,
         'device_id': device_id,
         'value': value
-      });
+      }).timeout(Duration(seconds: 5), onTimeout: ()=> throw TimeoutException("Timeout"));
       return jsonDecode(response.body);
+    } on TimeoutException catch(_){
+      print('domain sync record time out');
+      Map<String, dynamic>? result = {'status': '8'};
+      return result;
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
@@ -311,6 +337,7 @@ class Domain {
         order_modifier_value,
         cash_record_value,
         transfer_owner_value,
+        receipt_value,
         refund_value,
         branch_link_product_value,
         settlement_value,
@@ -338,6 +365,7 @@ class Domain {
         'tb_order_modifier_detail_create': order_modifier_value != null ? order_modifier_value : [].toString(),
         'tb_cash_record_create': cash_record_value != null ? cash_record_value : [].toString(),
         'tb_transfer_owner_create': transfer_owner_value != null ? transfer_owner_value : [].toString(),
+        'tb_receipt_create': receipt_value != null ? receipt_value : [].toString(),
         'tb_refund_create': refund_value != null ? refund_value : [].toString(),
         'tb_branch_link_product_sync': branch_link_product_value != null ? branch_link_product_value : [].toString(),
         'tb_settlement_create': settlement_value != null ? settlement_value : [].toString(),
@@ -347,11 +375,16 @@ class Domain {
         'tb_printer_link_category_sync': printer_link_category_value != null ? printer_link_category_value : [].toString(),
         'tb_printer_link_category_delete': printer_link_category_delete_value != null ? printer_link_category_delete_value : [].toString(),
         'tb_table_sync': table_value != null ? table_value : [].toString()
-      });
+      }).timeout(Duration(seconds: 5), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);
-    } catch (error) {
-      print('error: ${error}');
+    } on TimeoutException catch(_){
+      print('domain sync to cloud time out');
+      Map<String, dynamic>? result = {'status': '8'};
+      return result;
+    }
+    catch (error) {
+      print('domain sync to cloud error: ${error}');
       Fluttertoast.showToast(msg: error.toString());
     }
   }
@@ -1928,6 +1961,19 @@ class Domain {
     try {
       var response = await http.post(Domain.printer,
           body: {'getAllPrinterLinkCategory': '1', 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /**
+  * get receipt
+  * */
+  getReceipt(branch_id) async {
+    try {
+      var response = await http.post(Domain.receipt,
+          body: {'getReceipt': '1', 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());

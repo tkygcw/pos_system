@@ -244,41 +244,55 @@ class _EditProductDialogState extends State<EditProductDialog> {
             msg: "Please fill in all the required field");
       }
     } else {
-      if (errorNameText == null &&
-          errorDescriptionText == null &&
-          errorPriceText == null &&
-          errorSKUText == null) {
-        if (selectStock == 'Daily Limit' && errorDailyLimitText != null) {
-          Fluttertoast.showToast(
-              backgroundColor: Color(0xFFFFC107),
-              msg: "Please fill in all the required field");
-        } else if (selectStock == 'Stock' && errorStockQuantityText != null) {
-          Fluttertoast.showToast(
-              backgroundColor: Color(0xFFFFC107),
-              msg: "Please fill in all the required field");
-        } else {
-          if (imageDir == null &&
-              widget.product!.image == '' &&
-              selectGraphic == 'Image') {
-            Fluttertoast.showToast(
-                backgroundColor: Color(0xFFFFC107),
-                msg: "Please pick product image");
-          } else {
-            if (productVariantListIsEmpty && selectVariant == 'Have Variant') {
-              Fluttertoast.showToast(
-                  backgroundColor: Color(0xFFFFC107),
-                  msg: "Please fill in all the variant list info");
-            } else {
-              updateProduct(context);
-            }
-          }
-        }
-      } else {
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFFC107),
-            msg: "Please fill in all the required field");
-      }
+      updateProductAvailability();
+      // if (errorNameText == null &&
+      //     errorDescriptionText == null &&
+      //     errorPriceText == null &&
+      //     errorSKUText == null) {
+      //   if (selectStock == 'Daily Limit' && errorDailyLimitText != null) {
+      //     Fluttertoast.showToast(
+      //         backgroundColor: Color(0xFFFFC107),
+      //         msg: "Please fill in all the required field");
+      //   } else if (selectStock == 'Stock' && errorStockQuantityText != null) {
+      //     Fluttertoast.showToast(
+      //         backgroundColor: Color(0xFFFFC107),
+      //         msg: "Please fill in all the required field");
+      //   } else {
+      //     if (imageDir == null &&
+      //         widget.product!.image == '' &&
+      //         selectGraphic == 'Image') {
+      //       Fluttertoast.showToast(
+      //           backgroundColor: Color(0xFFFFC107),
+      //           msg: "Please pick product image");
+      //     } else {
+      //       if (productVariantListIsEmpty && selectVariant == 'Have Variant') {
+      //         Fluttertoast.showToast(
+      //             backgroundColor: Color(0xFFFFC107),
+      //             msg: "Please fill in all the variant list info");
+      //       } else {
+      //         updateProduct(context);
+      //       }
+      //     }
+      //   }
+      // } else {
+      //   Fluttertoast.showToast(
+      //       backgroundColor: Color(0xFFFFC107),
+      //       msg: "Please fill in all the required field");
+      // }
     }
+    Navigator.of(context).pop();
+  }
+
+  updateProductAvailability() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    Product object = Product(
+      product_sqlite_id: widget.product!.product_sqlite_id,
+      available: selectStatus == 'Available Sale' ? 1 : 0,
+      sync_status: 1,
+      updated_at: dateTime
+    );
+    int status = await PosDatabase.instance.updateProductAvailability(object);
   }
 
   readProductVariantList() async {
@@ -1676,27 +1690,27 @@ class _EditProductDialogState extends State<EditProductDialog> {
                     ),
                   ),
                   Spacer(),
-                  widget.product!.product_id == null
-                      ? Container()
-                      : IconButton(
-                          icon: const Icon(Icons.delete_outlined),
-                          color: Colors.red,
-                          onPressed: () async {
-                            if (await confirm(
-                              context,
-                              title: Text(
-                                  '${AppLocalizations.of(context)?.translate('confirm')}'),
-                              content: Text(
-                                  '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
-                              textOK: Text(
-                                  '${AppLocalizations.of(context)?.translate('yes')}'),
-                              textCancel: Text(
-                                  '${AppLocalizations.of(context)?.translate('no')}'),
-                            )) {
-                              return deleteProduct(context);
-                            }
-                          },
-                        ),
+                  // widget.product!.product_id == null
+                  //     ? Container()
+                  //     : IconButton(
+                  //         icon: const Icon(Icons.delete_outlined),
+                  //         color: Colors.red,
+                  //         onPressed: () async {
+                  //           if (await confirm(
+                  //             context,
+                  //             title: Text(
+                  //                 '${AppLocalizations.of(context)?.translate('confirm')}'),
+                  //             content: Text(
+                  //                 '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                  //             textOK: Text(
+                  //                 '${AppLocalizations.of(context)?.translate('yes')}'),
+                  //             textCancel: Text(
+                  //                 '${AppLocalizations.of(context)?.translate('no')}'),
+                  //           )) {
+                  //             return deleteProduct(context);
+                  //           }
+                  //         },
+                  //       ),
                 ],
               ),
               content: Container(
@@ -1852,6 +1866,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                 return Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: TextField(
+                                    enabled: false,
                                     controller: stockQuantityController,
                                     keyboardType: TextInputType.number,
                                     inputFormatters: [
@@ -1880,6 +1895,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                             return Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: TextField(
+                                enabled: false,
                                 controller: priceController,
                                 keyboardType: TextInputType.number,
                                 inputFormatters: [
@@ -2081,6 +2097,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                                                   child:
                                                                       TextField(
                                                                     keyboardType: TextInputType.number,
+                                                                    readOnly: true,
                                                                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                                                                     controller: TextEditingController(text: productVariantList[index]['quantity']),
                                                                     decoration: InputDecoration(),
@@ -2100,6 +2117,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                                                   child:
                                                                       TextField(
                                                                     keyboardType: TextInputType.number,
+                                                                    readOnly: true,
                                                                     inputFormatters: [
                                                                       FilteringTextInputFormatter.digitsOnly
                                                                     ],
@@ -2220,9 +2238,12 @@ class _EditProductDialogState extends State<EditProductDialog> {
                           direction: Axis.horizontal,
                           groupValue: selectStatus,
                           horizontalAlignment: MainAxisAlignment.spaceBetween,
-                          onChanged:isAdd? (value) => setState(() {
-                            selectStatus = value!;
-                          }):null,
+                          onChanged: (value) => setState(() {
+                              selectStatus = value!;
+                            }),
+                          // isAdd? (value) => setState(() {
+                          //   selectStatus = value!;
+                          // }):null,
                           items: productStatus,
                           textStyle:
                               TextStyle(fontSize: 15, color: color.buttonColor),

@@ -108,7 +108,7 @@ class _LoadingPageState extends State<LoadingPage> {
       await getCashRecord();
       await getTransferOwner();
       await clearCloudSyncRecord();
-      await createReceiptLayout();
+      await getAllReceipt();
       await createDeviceLogin();
       await createAppSetting();
     }catch(e){
@@ -168,7 +168,26 @@ class _LoadingPageState extends State<LoadingPage> {
     }
   }
 
-  createReceiptLayout() async {
+  getAllReceipt() async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      Map response = await Domain().getReceipt(branch_id.toString());
+      if(response['status'] == '1'){
+        List responseJson = response['receipt'];
+        for (var i = 0; i < responseJson.length; i++) {
+          Receipt data = await PosDatabase.instance.insertReceipt(Receipt.fromJson(responseJson[i]));
+        }
+      } else if (response['status'] == '2'){
+        await createReceiptLayout80();
+        await createReceiptLayout58();
+      }
+    } catch(e){
+
+    }
+  }
+
+  createReceiptLayout80() async {
     try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
@@ -179,22 +198,82 @@ class _LoadingPageState extends State<LoadingPage> {
 
       Receipt data = await PosDatabase.instance.insertSqliteReceipt(Receipt(
           receipt_id: 0,
+          receipt_key: '',
           branch_id: branch_id.toString(),
-          company_id: '',
           header_text: branchObject['name'],
-          footer_text: '',
+          footer_text: 'Thank you, please come again',
           header_image: '',
           footer_image: '',
+          show_address: branchObject['address'] != '' ? 1 : 0,
+          show_email: branchObject['email'] != '' ? 1 : 0,
+          receipt_email: branchObject['email'] != '' ? branchObject['email'] : '',
           header_text_status: 1,
-          footer_text_status: 0,
+          footer_text_status: 1,
           header_image_status: 0,
           footer_image_status: 0,
           promotion_detail_status: 0,
+          paper_size: '80',
           status: 1,
           sync_status: 0,
           created_at: dateTime,
           updated_at: '',
           soft_delete: ''));
+      await insertReceiptKey(data, dateTime);
+    } catch (e) {
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Fail to add receipt layout, Please try again $e");
+      print('$e');
+    }
+  }
+
+  generateReceiptKey(Receipt receipt) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    var bytes = receipt.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + receipt.receipt_sqlite_id.toString() + branch_id.toString();
+    return md5.convert(utf8.encode(bytes)).toString();
+  }
+
+  insertReceiptKey(Receipt receipt, String dateTime) async {
+    String receiptKey = await generateReceiptKey(receipt);
+    Receipt data = Receipt(
+        receipt_key: receiptKey,
+        updated_at: dateTime,
+        sync_status: 0,
+        receipt_sqlite_id: receipt.receipt_sqlite_id);
+    int updateUniqueKey = await PosDatabase.instance.updateReceiptUniqueKey(data);
+  }
+
+  createReceiptLayout58() async {
+    try {
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      final String? branch = prefs.getString('branch');
+      var branchObject = json.decode(branch!);
+
+      Receipt data = await PosDatabase.instance.insertSqliteReceipt(Receipt(
+          receipt_id: 0,
+          receipt_key: '',
+          branch_id: branch_id.toString(),
+          header_text: branchObject['name'],
+          footer_text: 'Thank you, please come again',
+          header_image: '',
+          footer_image: '',
+          show_address: branchObject['address'] != '' ? 1 : 0,
+          show_email: branchObject['email'] != '' ? 1 : 0,
+          receipt_email: branchObject['email'] != '' ? branchObject['email'] : '',
+          header_text_status: 1,
+          footer_text_status: 1,
+          header_image_status: 0,
+          footer_image_status: 0,
+          promotion_detail_status: 0,
+          paper_size: '58',
+          status: 1,
+          sync_status: 0,
+          created_at: dateTime,
+          updated_at: '',
+          soft_delete: ''));
+      await insertReceiptKey(data, dateTime);
     } catch (e) {
       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Fail to add receipt layout, Please try again $e");
       print('$e');

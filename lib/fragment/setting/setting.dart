@@ -7,6 +7,7 @@ import 'package:pos_system/fragment/qr_order/test_qrcode.dart';
 import 'package:pos_system/fragment/report/print_report_page.dart';
 // import 'package:pos_system/fragment/printer/test_scanner.dart';
 import 'package:pos_system/fragment/setting/features_setting.dart';
+import 'package:pos_system/fragment/setting/hardware_setting.dart';
 import 'package:pos_system/fragment/setting/logout_dialog.dart';
 import 'package:pos_system/fragment/setting/printer_setting.dart';
 import 'package:pos_system/fragment/setting/receipt_setting.dart';
@@ -46,11 +47,14 @@ class _SettingMenuState extends State<SettingMenu> {
       child: PrinterSetting(),
       // TestPrint()
     ),
-    Container(
-      child: ReceiptSetting(),
-    ),
+    // Container(
+    //   child: ReceiptSetting(),
+    // ),
     Container(
       child: TableSetting(),
+    ),
+    Container(
+      child: HardwareSetting(),
     ),
     Container(
       child: FeaturesSetting(),
@@ -164,15 +168,19 @@ class _SettingMenuState extends State<SettingMenu> {
                     items: const [
                       SideNavigationBarItem(
                         icon: Icons.print,
-                        label: 'Printer',
+                        label: 'Printer Setting',
                       ),
+                      // SideNavigationBarItem(
+                      //   icon: Icons.receipt,
+                      //   label: 'Receipt Layout',
+                      // ),
                       SideNavigationBarItem(
-                        icon: Icons.receipt,
-                        label: 'Receipt Layout',
-                      ),
-                      SideNavigationBarItem(
-                        icon: Icons.settings,
+                        icon: Icons.table_restaurant,
                         label: 'Table Setting',
+                      ),
+                      SideNavigationBarItem(
+                        icon: Icons.devices,
+                        label: 'Hardware Setting',
                       ),
                       SideNavigationBarItem(
                         icon: Icons.settings,
@@ -279,13 +287,17 @@ class _SettingMenuState extends State<SettingMenu> {
                           icon: Icons.print,
                           label: 'Printer',
                         ),
-                        SideNavigationBarItem(
-                          icon: Icons.receipt,
-                          label: 'Receipt Layout',
-                        ),
+                        // SideNavigationBarItem(
+                        //   icon: Icons.receipt,
+                        //   label: 'Receipt Layout',
+                        // ),
                         SideNavigationBarItem(
                           icon: Icons.table_restaurant,
                           label: 'Table Setting',
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.devices,
+                          label: 'Hardware Setting',
                         ),
                         SideNavigationBarItem(
                           icon: Icons.settings,

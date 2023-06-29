@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -8,48 +11,58 @@ import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../database/domain.dart';
+import '../../main.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/print_receipt.dart';
+import '../../object/printer.dart';
 import '../../translation/AppLocalizations.dart';
+import '../logout_dialog.dart';
 
 class ReceiptDialog extends StatefulWidget {
-  final Function() callBack;
   final Receipt? receiptObject;
-  final List<Receipt> allReceiptList;
-  const ReceiptDialog({Key? key, required this.callBack, required this.receiptObject, required this.allReceiptList}) : super(key: key);
+  final Function() callBack;
+  const ReceiptDialog({Key? key, required this.receiptObject, required this.callBack}) : super(key: key);
 
   @override
   State<ReceiptDialog> createState() => _ReceiptDialogState();
 }
 
 class _ReceiptDialogState extends State<ReceiptDialog> {
+  List<Printer> printerList = [];
   final headerTextController = TextEditingController();
+  final emailTextController = TextEditingController();
   final footerTextController = TextEditingController();
   File? headerImage;
   File? footerImg;
   String? headerDir;
   String? footerDir;
+  String headerText = '';
+  String footerTextString = '';
+  String? emailAddress;
   bool isLoad = false;
   bool _isUpdate = false;
   bool logoImage = false;
   bool footerImage = false;
   bool logoText = false;
   bool footerText = false;
+  bool showAddress = true;
+  bool showEmail = true;
+  bool showTaxDetail = true;
   bool promoDetail = true;
   bool _submitted = false;
+  bool isLogOut = false;
+  Map? branchObject;
+  Receipt? testReceipt;
+  Receipt receipt = Receipt();
+  String receiptView = "80";
 
   @override
   void initState() {
     // TODO: implement initState
     if (widget.receiptObject != null) {
-      _isUpdate = true;
-      widget.receiptObject!.header_image_status == 1 ? this.logoImage = true  : this.logoImage = false;
-      widget.receiptObject!.footer_image_status == 1 ? this.footerImage = true  : this.footerImage = false;
-      widget.receiptObject!.header_text_status == 1 ? this.logoText = true : this.logoText = false;
-      widget.receiptObject!.footer_text_status == 1 ? this.footerText = true : this.footerText = false;
-      widget.receiptObject!.promotion_detail_status == 1 ? this.promoDetail = true : this.promoDetail = false;
-      headerTextController.text = widget.receiptObject!.header_text!;
-      footerTextController.text = widget.receiptObject!.footer_text!;
-      isLoad = true;
+      preload();
+      //isLoad = true;
     } else {
       _isUpdate = false;
       isLoad = true;
@@ -62,7 +75,94 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     // TODO: implement dispose
     super.dispose();
     headerTextController.dispose();
+    emailTextController.dispose();
     footerTextController.dispose();
+  }
+
+  preload(){
+    _isUpdate = true;
+    initialData(widget.receiptObject!);
+    getSharePreferences();
+    getAllPrinter();
+  }
+
+  reload() async {
+    _isUpdate = true;
+    await readSpecificReceiptLayout();
+  }
+
+  readSpecificReceiptLayout() async {
+    Receipt? data = await PosDatabase.instance.readSpecificReceipt(receiptView);
+    if(data != null){
+      initialData(data);
+    }
+    setState(() {
+      isLoad = true;
+    });
+  }
+
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
+  // readAllReceiptLayout() async {
+  //   Receipt? data = await PosDatabase.instance.readAllReceipt();
+  //   if(data != null){
+  //     widget.receiptObject = data;
+  //   }
+  // }
+
+  initialData(Receipt data){
+    receipt = data;
+    receipt.header_image_status == 1 ? this.logoImage = true  : this.logoImage = false;
+    receipt.footer_image_status == 1 ? this.footerImage = true  : this.footerImage = false;
+    receipt.header_text_status == 1 ? this.logoText = true : this.logoText = false;
+    receipt.footer_text_status == 1 ? this.footerText = true : this.footerText = false;
+    receipt.promotion_detail_status == 1 ? this.promoDetail = true : this.promoDetail = false;
+    receipt.show_address == 1 ? this.showAddress = true : this.showAddress = false;
+    receipt.show_email == 1 ? this.showEmail = true : this.showEmail = false;
+    headerText = receipt.header_text!;
+    headerTextController.text = receipt.header_text!;
+    receipt.show_email == 1 ? emailAddress = receipt.receipt_email : '';
+    receipt.show_email == 1 ? emailTextController.text = receipt.receipt_email! : '';
+    footerTextString = receipt.footer_text!;
+    footerTextController.text = receipt.footer_text!;
+  }
+
+  getSharePreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    branchObject = json.decode(branch!);
+    // emailTextController.text = branchObject!['email'];
+    // emailAddress = branchObject!['email'];
+    // if(branchObject!['address'] != ''){
+    //   showAddress = true;
+    // } else {
+    //   showAddress = false;
+    // }
+    isLoad = true;
+  }
+
+  getAllPrinter() async {
+    printerList = await PrintReceipt().readAllPrinters();
   }
 
   String? get errorHeaderText {
@@ -70,6 +170,17 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     if (logoText == true && text.isEmpty) {
       return 'header_text_required';
     }
+    return null;
+  }
+
+  String? get errorEmailText {
+    final text = headerTextController.value.text;
+    if (showEmail == true && text.isEmpty) {
+      return 'email_text_required';
+    }
+    // else if (!text.contains('@') && !text.endsWith('com')){
+    //   return 'invalid_email';
+    // }
     return null;
   }
 
@@ -81,7 +192,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     return null;
   }
 
-  void _submit(BuildContext context) {
+  Future<void> _submit(BuildContext context) async {
     setState(() => _submitted = true);
     if(!_isUpdate){
       if(logoImage == false && footerImage == false && logoText == false && footerText == false){
@@ -89,7 +200,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
             backgroundColor: Color(0xFFFF0000),
             msg: "${AppLocalizations.of(context)?.translate('submit_fail2')}");
       } else if(errorHeaderText == null && errorFooterText == null) {
-        createReceiptLayout();
+        //createReceiptLayout();
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000),
@@ -97,8 +208,31 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       }
 
     } else {
-      setLayoutInUse(widget.receiptObject!);
+      if(errorHeaderText == null && errorFooterText == null){
+        //update receipt layout
+        await updateReceiptLayout();
+        Navigator.of(context).pop();
+      }
+
+      //setLayoutInUse(widget.receiptObject!);
     }
+  }
+
+  testReceiptLayout(){
+    testReceipt = Receipt(
+      header_text: logoText == true ? headerTextController.text : '',
+      footer_text: footerText == true ? footerTextController.text : '',
+      header_image: logoImage == true ? 'branchLogo.jpg' : '',
+      footer_image: footerImage == true ? 'branchFooter.jpg' : '',
+      header_text_status: logoText == true ? 1 : 0,
+      footer_text_status: footerText == true ? 1 : 0,
+      header_image_status: logoImage == true ? 1 : 0,
+      footer_image_status: footerImage == true ? 1 : 0,
+      promotion_detail_status: promoDetail == true ? 1 : 0,
+      show_address: showAddress == true ? 1 : 0,
+      show_email: showEmail == true ? 1 : 0,
+      receipt_email: emailTextController.text,
+    );
   }
 
   closeDialog(BuildContext context) {
@@ -112,587 +246,52 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         if(constraints.maxWidth > 800){
           return Center(
             child: SingleChildScrollView(
-              physics: NeverScrollableScrollPhysics(),
+              //physics: NeverScrollableScrollPhysics(),
               child: AlertDialog(
                 title: !_isUpdate ? Text('Add receipt layout') : Text("Receipt Layout"),
                 content: isLoad ?
                 Container(
-                  height: MediaQuery.of(context).size.height / 1.5,
-                  width: MediaQuery.of(context).size.width / 1.5,
+                  height: 500,
+                  width: 850,
                   child: SingleChildScrollView(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Column(
                         children: [
-                          Expanded(
-                              flex: 1,
-                              child: Container(
-                                padding: MediaQuery.of(context).size.width > 1300 ? EdgeInsets.fromLTRB(50, 20, 50, 20) : EdgeInsets.fromLTRB(20, 20, 20, 20) ,
-                                color: Colors.black12,
-                                height: MediaQuery.of(context).size.height,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Visibility(
-                                        visible: logoImage ? true : false,
-                                        child: Center(
-                                          child: CircleAvatar(
-                                            radius: 30,
-                                            backgroundColor: Colors.black,
-                                            child: Text('Logo'),
-                                          ),
-                                        )
-                                    ),
-                                    Visibility(
-                                        visible: logoText ? true : false,
-                                        child: Center(
-                                          child: Text('Logo text here', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
-                                        )
-                                    ),
-                                    Container(
-                                      child: Center(
-                                        child: Column(
-                                          children: [
-                                            Text('Jalan permas baru'),
-                                            Text('Tel: 0123456789'),
-                                            Text('xxx@gmail.com')
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    Divider(
-                                      color: Colors.black,
-                                      height: 1,
-                                      thickness: 1,
-                                    ),
-                                    Container(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('Receipt NO: #xxxx-xxxx'),
-                                          Text('Table No: x'),
-                                          Text('Dine in'),
-                                          Text('Close by: xxx')
-                                        ],
-                                      ),
-                                    ),
-                                    Divider(
-                                      color: Colors.black,
-                                      height: 1,
-                                      thickness: 1,
-                                    ),
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 2,
-                                            child: Text('ITEM'),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text('QTY'),
-                                          ),
-                                          Expanded(
-                                            flex: 0,
-                                            child: Text('AMOUNT'),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Divider(
-                                      color: Colors.black,
-                                      height: 1,
-                                      thickness: 1,
-                                    ),
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 2,
-                                            child: Text('product1'),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text('2'),
-                                          ),
-                                          Expanded(
-                                            flex: 0,
-                                            child: Text('2.00'),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 2,
-                                            child: Text('product2'),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text('1'),
-                                          ),
-                                          Expanded(
-                                            flex: 0,
-                                            child: Text('2.00'),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Divider(
-                                      color: Colors.black,
-                                      height: 1,
-                                      thickness: 1,
-                                    ),
-                                    Container(
-                                      child: Text('Item count: 2'),
-                                    ),
-                                    Divider(
-                                      color: Colors.black,
-                                      height: 1,
-                                      thickness: 1,
-                                    ),
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text(''),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text('Subtotal'),
-                                          ),
-                                          Expanded(
-                                            flex: 0,
-                                            child: Text('4.00'),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Visibility(
-                                        visible: promoDetail ? true : false,
-                                        child: Column(
-                                          children: [
-                                            Container(
-                                              child: Row(
-                                                children: [
-                                                  Expanded(
-                                                    flex: 1,
-                                                    child: Text(''),
-                                                  ),
-                                                  Expanded(
-                                                    flex: 1,
-                                                    child: Text('Discount 1'),
-                                                  ),
-                                                  Expanded(
-                                                    flex: 0,
-                                                    child: Text('-1.00'),
-                                                  )
-                                                ],
-                                              ),
-                                            ),
-                                            Container(
-                                              child: Row(
-                                                children: [
-                                                  Expanded(
-                                                    flex: 1,
-                                                    child: Text(''),
-                                                  ),
-                                                  Expanded(
-                                                    flex: 1,
-                                                    child: Text('Discount 2'),
-                                                  ),
-                                                  Expanded(
-                                                    flex: 0,
-                                                    child: Text('-1.00'),
-                                                  )
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                    ),
-                                    Visibility(
-                                      visible: !promoDetail ? true : false,
-                                      child: Container(
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              flex: 1,
-                                              child: Text(''),
-                                            ),
-                                            Expanded(
-                                              flex: 1,
-                                              child: Text('Total discount'),
-                                            ),
-                                            Expanded(
-                                              flex: 0,
-                                              child: Text('-2.00'),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text(''),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text('Tax1(10%)'),
-                                          ),
-                                          Expanded(
-                                            flex: 0,
-                                            child: Text('0.20'),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text(''),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text('Tax2(6%)'),
-                                          ),
-                                          Expanded(
-                                            flex: 0,
-                                            child: Text('0.12'),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text(''),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text('Amount'),
-                                          ),
-                                          Expanded(
-                                            flex: 0,
-                                            child: Text('2.32'),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text(''),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text('Rounding'),
-                                          ),
-                                          Expanded(
-                                            flex: 0,
-                                            child: Text('-0.02'),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Divider(
-                                      color: Colors.black,
-                                      height: 1,
-                                      thickness: 1,
-                                    ),
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text(''),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text('Final Amount', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                                          ),
-                                          Expanded(
-                                            flex: 0,
-                                            child: Text('2.30'),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Divider(
-                                      color: Colors.black,
-                                      height: 1,
-                                      thickness: 1,
-                                    ),
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text(''),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text('Payment method'),
-                                          ),
-                                          Expanded(
-                                            flex: 0,
-                                            child: Text('Cash'),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text(''),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text('Payment received'),
-                                          ),
-                                          Expanded(
-                                            flex: 0,
-                                            child: Text('14.00'),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    Container(
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text(''),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text('Change'),
-                                          ),
-                                          Expanded(
-                                            flex: 0,
-                                            child: Text('0.00'),
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(height: 20),
-                                    Visibility(
-                                        visible: footerImage ? true : false,
-                                        child: Center(
-                                          child: CircleAvatar(
-                                            radius: 30,
-                                            backgroundColor: Colors.black,
-                                            child: Text('footer'),
-                                          ),
-                                        )
-                                    ),
-                                    SizedBox(height: 10),
-                                    Visibility(
-                                        visible: footerText ? true : false,
-                                        child: Center(
-                                          child: Text('footer text here', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
-                                        )
-                                    ),
-                                    SizedBox(height: 10),
-                                    Container(
-                                      child: Center(
-                                        child: Text('POWERED BY CHANNEL POS'),
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              )
-                          ),
-                          SizedBox(width: 25),
-                          Expanded(
-                            flex: 1,
-                            child: Column(
-                              children: [
-                                // Row(
-                                //   children: [
-                                //     Container(
-                                //       alignment: Alignment.topLeft,
-                                //       child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                //     ),
-                                //     Spacer(),
-                                //     Container(
-                                //       child: Switch(
-                                //           value: logoImage,
-                                //           activeColor: color.backgroundColor,
-                                //           onChanged: !_isUpdate ?  (bool value){
-                                //             setState(() {
-                                //               logoImage = value;
-                                //             });
-                                //           }: null ),
-                                //     )
-                                //   ],
-                                // ),
-                                // Row(
-                                //   children: [
-                                //     Container(
-                                //       alignment: Alignment.topLeft,
-                                //       child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                //     ),
-                                //     Spacer(),
-                                //     Container(
-                                //       child: Switch(
-                                //           value: footerImage,
-                                //           activeColor: color.backgroundColor,
-                                //           onChanged: !_isUpdate ? (bool value){
-                                //             setState(() {
-                                //               footerImage = value;
-                                //             });
-                                //           }: null),
-                                //     )
-                                //   ],
-                                // ),
-                                Row(
-                                  children: [
-                                    Container(
-                                      alignment: Alignment.topLeft,
-                                      child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                    ),
-                                    Spacer(),
-                                    Container(
-                                      child: Switch(
-                                          value: logoText,
-                                          activeColor: color.backgroundColor,
-                                          onChanged: !_isUpdate ? (bool value){
-                                            setState(() {
-                                              logoText = value;
-                                            });
-                                          } : null),
-                                    )
-                                  ],
-                                ),
-                                Visibility(
-                                  visible: logoText ? true : false,
-                                  child: Container(
-                                    child: ValueListenableBuilder(
-                                      // Note: pass _controller to the animation argument
-                                        valueListenable: headerTextController,
-                                        builder: (context, TextEditingValue value, __) {
-                                          return SizedBox(
-                                            height: MediaQuery.of(context).size.height / 8,
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: TextField(
-                                                enabled: _isUpdate ? false : true,
-                                                controller: headerTextController,
-                                                decoration: InputDecoration(
-                                                  errorText: _submitted
-                                                      ? errorHeaderText == null
-                                                      ? errorHeaderText
-                                                      : AppLocalizations.of(context)
-                                                      ?.translate(errorHeaderText!)
-                                                      : null,
-                                                  border: OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        color: color.backgroundColor),
-                                                  ),
-                                                  focusedBorder: OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        color: color.backgroundColor),
-                                                  ),
-                                                  labelText: 'Logo text here',
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        }),
+                          Align(
+                            alignment: Alignment.topLeft,
+                            child: SegmentedButton(
+                              style: ButtonStyle(
+                                side: MaterialStateProperty.all(
+                                  BorderSide.lerp(BorderSide(
+                                    style: BorderStyle.solid,
+                                    color: Colors.blueGrey,
+                                    width: 1,
                                   ),
-                                ),
-                                Row(
-                                  children: [
-                                    Container(
-                                      alignment: Alignment.topLeft,
-                                      child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                    ),
-                                    Spacer(),
-                                    Container(
-                                      child: Switch(
-                                          value: footerText,
-                                          activeColor: color.backgroundColor,
-                                          onChanged: !_isUpdate ? (bool value){
-                                            setState(() {
-                                              footerText = value;
-                                            });
-                                          } : null),
-                                    )
-                                  ],
-                                ),
-                                Visibility(
-                                  visible: footerText ? true : false,
-                                  child: Container(
-                                    child: ValueListenableBuilder(
-                                      // Note: pass _controller to the animation argument
-                                        valueListenable: footerTextController,
-                                        builder: (context, TextEditingValue value, __) {
-                                          return SizedBox(
-                                            height: MediaQuery.of(context).size.height / 8,
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: TextField(
-                                                enabled: _isUpdate ? false : true,
-                                                controller: footerTextController,
-                                                decoration: InputDecoration(
-                                                  errorText: _submitted
-                                                      ? errorFooterText == null
-                                                      ? errorFooterText
-                                                      : AppLocalizations.of(context)
-                                                      ?.translate(errorFooterText!)
-                                                      : null,
-                                                  border: OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        color: color.backgroundColor),
-                                                  ),
-                                                  focusedBorder: OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        color: color.backgroundColor),
-                                                  ),
-                                                  labelText: 'footer text here',
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        }),
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    Container(
-                                      alignment: Alignment.topLeft,
-                                      child: Text('Show promotion detail (80mm)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                    ),
-                                    Spacer(),
-                                    Container(
-                                      child: Switch(
-                                          value: promoDetail,
-                                          activeColor: color.backgroundColor,
-                                          onChanged: !_isUpdate ?  (bool value){
-                                            setState(() {
-                                              promoDetail = value;
-                                            });
-                                          }: null ),
-                                    )
-                                  ],
-                                ),
+                                      BorderSide(
+                                        style: BorderStyle.solid,
+                                        color: Colors.blueGrey,
+                                        width: 1,
+                                      ),
+                                      1),
+                                )
+                              ),
+                              segments: <ButtonSegment<String>>[
+                                ButtonSegment(value: "80", label: Text("80mm")),
+                                ButtonSegment(value: "58", label: Text("58mm"))
                               ],
+                              onSelectionChanged: (Set<String> newSelection) async{
+                                receiptView = newSelection.first;
+                                isLoad = false;
+                                reload();
+
+                              },
+                              selected: <String>{receiptView},
                             ),
-                          )
+                          ),
+                          SizedBox(height: 10),
+                          receiptView == "80" ?
+                          ReceiptView1(color) :
+                          ReceiptView2(color),
+
                         ],
                       )
                   ),
@@ -705,7 +304,15 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     },
                   ),
                   TextButton(
-                    child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text("Apply"),
+                    child: Text('Test Print'),
+                    onPressed: () {
+                      testReceiptLayout();
+                      PrintReceipt().printTestPrintReceipt(printerList, testReceipt!, this.receipt.paper_size!, context);
+
+                    },
+                  ),
+                  TextButton(
+                    child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text("Update"),
                     onPressed: () {
                       _submit(context);
                     },
@@ -717,193 +324,55 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         } else {
           ///mobile layout
           return SingleChildScrollView(
-            physics: NeverScrollableScrollPhysics(),
+            //physics: NeverScrollableScrollPhysics(),
             child: Center(
               child: AlertDialog(
+                scrollable: true,
+                actionsPadding: EdgeInsets.all(5),
+                insetPadding: EdgeInsets.only(top: 20),
+                contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
                 title: !_isUpdate ? Text('Add receipt layout') : Text("Receipt Layout"),
                 content: isLoad ?
                 Container(
-                  height: MediaQuery.of(context).size.height / 2.5,
-                  width: MediaQuery.of(context).size.width / 1.5,
+                  height: 200,
+                  width: 500,
                   child: SingleChildScrollView(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Column(
                       children: [
-                        SizedBox(width: 25),
-                        Expanded(
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    alignment: Alignment.topLeft,
-                                    child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                        Align(
+                          alignment: Alignment.topLeft,
+                          child: SegmentedButton(
+                            style: ButtonStyle(
+                                side: MaterialStateProperty.all(
+                                  BorderSide.lerp(BorderSide(
+                                    style: BorderStyle.solid,
+                                    color: Colors.blueGrey,
+                                    width: 1,
                                   ),
-                                  Spacer(),
-                                  Container(
-                                    child: Switch(
-                                        value: logoImage,
-                                        activeColor: color.backgroundColor,
-                                        onChanged: !_isUpdate ?  (bool value){
-                                          setState(() {
-                                            logoImage = value;
-                                          });
-                                        }: null ),
-                                  )
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  Container(
-                                    alignment: Alignment.topLeft,
-                                    child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                  ),
-                                  Spacer(),
-                                  Container(
-                                    child: Switch(
-                                        value: footerImage,
-                                        activeColor: color.backgroundColor,
-                                        onChanged: !_isUpdate ? (bool value){
-                                          setState(() {
-                                            footerImage = value;
-                                          });
-                                        }: null),
-                                  )
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  Container(
-                                    alignment: Alignment.topLeft,
-                                    child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                  ),
-                                  Spacer(),
-                                  Container(
-                                    child: Switch(
-                                        value: logoText,
-                                        activeColor: color.backgroundColor,
-                                        onChanged: !_isUpdate ? (bool value){
-                                          setState(() {
-                                            logoText = value;
-                                          });
-                                        } : null),
-                                  )
-                                ],
-                              ),
-                              Visibility(
-                                visible: logoText ? true : false,
-                                child: Container(
-                                  child: ValueListenableBuilder(
-                                    // Note: pass _controller to the animation argument
-                                      valueListenable: headerTextController,
-                                      builder: (context, TextEditingValue value, __) {
-                                        return SizedBox(
-                                          height: MediaQuery.of(context).size.height / 4,
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: TextField(
-                                              enabled: _isUpdate ? false : true,
-                                              controller: headerTextController,
-                                              decoration: InputDecoration(
-                                                errorText: _submitted
-                                                    ? errorHeaderText == null
-                                                    ? errorHeaderText
-                                                    : AppLocalizations.of(context)
-                                                    ?.translate(errorHeaderText!)
-                                                    : null,
-                                                border: OutlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                      color: color.backgroundColor),
-                                                ),
-                                                focusedBorder: OutlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                      color: color.backgroundColor),
-                                                ),
-                                                labelText: 'Logo text here',
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      }),
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  Container(
-                                    alignment: Alignment.topLeft,
-                                    child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                  ),
-                                  Spacer(),
-                                  Container(
-                                    child: Switch(
-                                        value: footerText,
-                                        activeColor: color.backgroundColor,
-                                        onChanged: !_isUpdate ? (bool value){
-                                          setState(() {
-                                            footerText = value;
-                                          });
-                                        } : null),
-                                  )
-                                ],
-                              ),
-                              Visibility(
-                                visible: footerText ? true : false,
-                                child: Container(
-                                  child: ValueListenableBuilder(
-                                    // Note: pass _controller to the animation argument
-                                      valueListenable: footerTextController,
-                                      builder: (context, TextEditingValue value, __) {
-                                        return SizedBox(
-                                          height: MediaQuery.of(context).size.height / 4,
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: TextField(
-                                              enabled: _isUpdate ? false : true,
-                                              controller: footerTextController,
-                                              decoration: InputDecoration(
-                                                errorText: _submitted
-                                                    ? errorFooterText == null
-                                                    ? errorFooterText
-                                                    : AppLocalizations.of(context)
-                                                    ?.translate(errorFooterText!)
-                                                    : null,
-                                                border: OutlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                      color: color.backgroundColor),
-                                                ),
-                                                focusedBorder: OutlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                      color: color.backgroundColor),
-                                                ),
-                                                labelText: 'footer text here',
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      }),
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text('Show promotion detail (80mm)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                                  ),
-                                  Spacer(),
-                                  Container(
-                                    child: Switch(
-                                        value: promoDetail,
-                                        activeColor: color.backgroundColor,
-                                        onChanged: !_isUpdate ?  (bool value){
-                                          setState(() {
-                                            promoDetail = value;
-                                          });
-                                        }: null ),
-                                  )
-                                ],
-                              ),
+                                      BorderSide(
+                                        style: BorderStyle.solid,
+                                        color: Colors.blueGrey,
+                                        width: 1,
+                                      ),
+                                      1),
+                                )
+                            ),
+                            segments: <ButtonSegment<String>>[
+                              ButtonSegment(value: "80", label: Text("80mm")),
+                              ButtonSegment(value: "58", label: Text("58mm"))
                             ],
+                            onSelectionChanged: (Set<String> newSelection) async{
+                              receiptView = newSelection.first;
+                              isLoad = false;
+                              reload();
+
+                            },
+                            selected: <String>{receiptView},
                           ),
-                        )
+                        ),
+                        receiptView == "80" ?
+                        MobileReceiptView1(color) :
+                        MobileReceiptView2(color)
                       ],
                     ),
                   ),
@@ -916,7 +385,14 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     },
                   ),
                   TextButton(
-                    child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text("Apply"),
+                    child: Text('Test Print'),
+                    onPressed: () {
+                      testReceiptLayout();
+                      PrintReceipt().printTestPrintReceipt(printerList, testReceipt!, this.receipt.paper_size!, context);
+                    },
+                  ),
+                  TextButton(
+                    child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text("Update"),
                     onPressed: () {
                       _submit(context);
                     },
@@ -927,87 +403,1791 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
           );
         }
       });
-
     });
   }
 
-  createReceiptLayout() async {
-    try{
-      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-      String dateTime = dateFormat.format(DateTime.now());
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-
-      Receipt data = await PosDatabase.instance.insertSqliteReceipt(Receipt(
-        receipt_id: 0,
-        branch_id: branch_id.toString(),
-        company_id: '6',
-        header_text: logoText == true ? headerTextController.text : '',
-        footer_text: footerText == true ? footerTextController.text : '',
-        header_image: logoImage == true ? 'branchLogo.jpg' : '',
-        footer_image: footerImage == true ? 'branchFooter.jpg' : '',
-        header_text_status: logoText == true ? 1 : 0,
-        footer_text_status: footerText == true ? 1 : 0,
-        header_image_status: logoImage == true ? 1 : 0,
-        footer_image_status: footerImage == true ? 1 : 0,
-        promotion_detail_status: promoDetail == true ? 1 : 0,
-        status: widget.allReceiptList.length == 0 ? 1 : 0,
-        sync_status: 0,
-        created_at: dateTime,
-        updated_at: '',
-        soft_delete: ''
-      ));
+  updateReceiptLayout() async {
+    List<String> receiptValue = [];
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    Receipt? checkData = await PosDatabase.instance.readSpecificReceiptByKey(receipt.receipt_key!);
+    Receipt data = Receipt(
+      receipt_sqlite_id: receipt.receipt_sqlite_id,
+      receipt_key: receipt.receipt_key,
+      header_text: logoText == true ? headerTextController.text : '',
+      footer_text: footerText == true ? footerTextController.text : '',
+      header_image: logoImage == true ? 'branchLogo.jpg' : '',
+      footer_image: footerImage == true ? 'branchFooter.jpg' : '',
+      header_text_status: logoText == true ? 1 : 0,
+      footer_text_status: footerText == true ? 1 : 0,
+      header_image_status: logoImage == true ? 1 : 0,
+      footer_image_status: footerImage == true ? 1 : 0,
+      promotion_detail_status: promoDetail == true ? 1 : 0,
+      show_address: showAddress == true ? 1 : 0,
+      show_email: showEmail == true ? 1 : 0,
+      receipt_email: emailTextController.text,
+      sync_status: checkData!.sync_status == 0 ? 0 : 2,
+      updated_at: dateTime
+    );
+    int status = await PosDatabase.instance.updateReceiptLayout(data);
+    if(status == 1){
       widget.callBack();
-      closeDialog(context);
-    }catch(e){
-      Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: "Fail to add receipt layout, Please try again $e");
-      print('$e');
+      Receipt? receipt = await PosDatabase.instance.readSpecificReceiptByKey(data.receipt_key!);
+      receiptValue.add(jsonEncode(receipt));
+      await syncAllToCloud(receiptValue: receiptValue.toString());
     }
+    print('update status: $status');
   }
 
-  setLayoutInUse(Receipt receipt) async {
-    print('called');
-    try{
-      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-      String dateTime = dateFormat.format(DateTime.now());
-
-      for(int i = 0; i < widget.allReceiptList.length; i++){
-        if(widget.allReceiptList[i].status == 1){
-          int data = await PosDatabase.instance.updateReceiptStatus(Receipt(
-              status: 0,
-              sync_status: 0,
-              updated_at: dateTime,
-              receipt_sqlite_id: widget.allReceiptList[i].receipt_sqlite_id
-          ));
+  syncAllToCloud({receiptValue}) async {
+    if(mainSyncToCloud.count == 0){
+      mainSyncToCloud.count = 1;
+      final prefs = await SharedPreferences.getInstance();
+      final int? device_id = prefs.getInt('device_id');
+      final String? login_value = prefs.getString('login_value');
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if (_hasInternetAccess) {
+        Map data = await Domain().syncLocalUpdateToCloud(
+          device_id: device_id.toString(),
+          value: login_value,
+          receipt_value: receiptValue
+        );
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          await PosDatabase.instance.updateReceiptSyncStatusFromCloud(responseJson[0]['receipt_key']);
+        }else if(data['status'] == '7'){
+          this.isLogOut = true;
+          openLogOutDialog();
+          return;
         }
       }
-
-      if(receipt.status == 0){
-        int data = await PosDatabase.instance.updateReceiptStatus(Receipt(
-            status: 1,
-            sync_status: 0,
-            updated_at: dateTime,
-            receipt_sqlite_id: receipt.receipt_sqlite_id
-        ));
-        widget.callBack();
-        closeDialog(context);
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xFF07F107),
-            msg: "Receipt layout apply");
-      } else {
-        closeDialog(context);
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000),
-            msg: "receipt already in-use");
-      }
-    }catch(e){
-      Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: "Fail set layout in use, Please try again $e");
-      print('$e');
     }
   }
+
+  Widget ReceiptView1(ThemeColor color) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Expanded(
+          flex: 1,
+          child: Container(
+            decoration: BoxDecoration(
+                border: Border.all(color: Colors.blueGrey, style: BorderStyle.solid, width: 1)
+            ),
+            padding: MediaQuery.of(context).size.width > 1300 ? EdgeInsets.fromLTRB(50, 20, 50, 20) : EdgeInsets.fromLTRB(20, 20, 20, 20) ,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Visibility(
+                    visible: logoImage ? true : false,
+                    child: Center(
+                      child: CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.black,
+                        child: Text('Logo'),
+                      ),
+                    )
+                ),
+                Visibility(
+                    visible: logoText ? true : false,
+                    child: Center(
+                      child: Text('${headerText}', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                    )
+                ),
+                Center(
+                  child: Column(
+                    children: [
+                      Visibility(
+                        visible: showAddress ? true : false,
+                        child: Text('Jalan permas baru'),
+                      ),
+                      Text('Tel: 07-3456789'),
+                      Visibility(
+                        visible: showEmail? true : false,
+                        child: Text('${emailAddress}'),
+                      )
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
+                  child: DottedLine(),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Receipt No.: #00001-001-12345678', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Close at: 31/12/2021 00:00 AM'),
+                    Text('Close by: Waiter'),
+                    Text('Table No: 1'),
+                    Text('Dine in'),
+                  ],
+                ),
+                DottedLine(),
+                Container(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Padding(
+                          padding: EdgeInsets.all(5),
+                          child: Text('Item', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                      Expanded(
+                        flex: 0,
+                        child: Text('Price/Unit', style: TextStyle(fontWeight: FontWeight.bold)),
+                      )
+                    ],
+                  ),
+                ),
+                DottedLine(),
+                Padding(
+                  padding: EdgeInsets.all(5),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Text('product1', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: Text('2'),
+                          ),
+                          Expanded(
+                            flex: 0,
+                            child: Text('2.00'),
+                          )
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Text('product2', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: Text('1'),
+                          ),
+                          Expanded(
+                            flex: 0,
+                            child: Text('2.00'),
+                          )
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Container(
+                //   child: Row(
+                //     children: [
+                //       Expanded(
+                //         flex: 2,
+                //         child: Text('product1', style: TextStyle(fontWeight: FontWeight.bold)),
+                //       ),
+                //       Expanded(
+                //         flex: 1,
+                //         child: Text('2'),
+                //       ),
+                //       Expanded(
+                //         flex: 0,
+                //         child: Text('2.00'),
+                //       )
+                //     ],
+                //   ),
+                // ),
+                // Container(
+                //   child: Row(
+                //     children: [
+                //       Expanded(
+                //         flex: 2,
+                //         child: Text('product2', style: TextStyle(fontWeight: FontWeight.bold)),
+                //       ),
+                //       Expanded(
+                //         flex: 1,
+                //         child: Text('1'),
+                //       ),
+                //       Expanded(
+                //         flex: 0,
+                //         child: Text('2.00'),
+                //       )
+                //     ],
+                //   ),
+                // ),
+                DottedLine(),
+                Container(
+                  padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
+                  child: Text('Item count: 2'),
+                ),
+                DottedLine(),
+                Container(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text('Subtotal', textAlign: TextAlign.right),
+                      ),
+                      SizedBox(width: 80),
+                      Text('4.00')
+                    ],
+                  ),
+                ),
+                Visibility(
+                    visible: promoDetail ? true : false,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text('Discount1(1.00)', textAlign: TextAlign.right),
+                            ),
+                            SizedBox(width: 75),
+                            Text('-1.00')
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text('Discount2(1.00)', textAlign: TextAlign.right),
+                            ),
+                            SizedBox(width: 75),
+                            Text('-1.00')
+                          ],
+                        ),
+                      ],
+                    )
+                ),
+                Visibility(
+                  visible: !promoDetail ? true : false,
+                  child: Container(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text('Total discount', textAlign: TextAlign.right),
+                        ),
+                        SizedBox(width: 75),
+                        Text('-2.00')
+                      ],
+                    ),
+                  ),
+                ),
+                Visibility(
+                    visible: showTaxDetail ? true : false,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text('Tax1(10%)', textAlign: TextAlign.right),
+                            ),
+                            SizedBox(width: 80),
+                            Text('0.20')
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text('Tax2(6%)', textAlign: TextAlign.right),
+                            ),
+                            SizedBox(width: 80),
+                            Text('0.12')
+                          ],
+                        ),
+                      ],
+                    )
+                ),
+                // Visibility(
+                //     visible: !showTaxDetail ? true : false,
+                //     child: Row(
+                //       children: [
+                //         Expanded(
+                //           flex: 1,
+                //           child: Text(''),
+                //         ),
+                //         Expanded(
+                //           flex: 1,
+                //           child: Text(''),
+                //         ),
+                //         Expanded(
+                //           flex: 0,
+                //           child: Text('Tax inc.'),
+                //         )
+                //       ],
+                //     ),
+                // ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Amount', textAlign: TextAlign.right),
+                    ),
+                    SizedBox(width: 80),
+                    Text('2.32')
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Rounding', textAlign: TextAlign.right),
+                    ),
+                    SizedBox(width: 75),
+                    Text('-0.02',)
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
+                  child: DottedLine(),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Final Amount', textAlign: TextAlign.right, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    ),
+                    SizedBox(width: 70),
+                    Text('2.30', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20))
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
+                  child: DottedLine(),
+                ),
+                Container(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text('Payment method', textAlign: TextAlign.right),
+                      ),
+                      SizedBox(width: 75),
+                      Text('Cash')
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Payment received', textAlign: TextAlign.right,),
+                    ),
+                    SizedBox(width: 80),
+                    Text('5.00')
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Text('Change', textAlign: TextAlign.right,),
+                    ),
+                    SizedBox(width: 80),
+                    Text('2.70')
+                  ],
+                ),
+                SizedBox(height: 20),
+                Visibility(
+                    visible: footerImage ? true : false,
+                    child: Center(
+                      child: CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.black,
+                        child: Text('footer'),
+                      ),
+                    )
+                ),
+                SizedBox(height: 10),
+                Visibility(
+                    visible: footerText ? true : false,
+                    child: Center(
+                      child: Text('${footerTextString}',
+                          maxLines: 3,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    )
+                ),
+                SizedBox(height: 10),
+                Container(
+                  child: Center(
+                    child: Text('POWERED BY OPTIMY POS', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                )
+              ],
+            ),
+          )
+      ),
+      SizedBox(width: 25),
+      Expanded(
+        flex: 1,
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: logoText,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      setState(() {
+                        logoText = value;
+                      });
+                    })
+              ],
+            ),
+            Visibility(
+              visible: logoText ? true : false,
+              child: Container(
+                child: ValueListenableBuilder(
+                  // Note: pass _controller to the animation argument
+                    valueListenable: headerTextController,
+                    builder: (context, TextEditingValue value, __) {
+                      return SizedBox(
+                        height: 80,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextField(
+                            onChanged: (value){
+                              setState(() {
+                                headerText = value;
+                              });
+                            },
+                            controller: headerTextController,
+                            decoration: InputDecoration(
+                              errorText: _submitted
+                                  ? errorHeaderText == null
+                                  ? errorHeaderText
+                                  : AppLocalizations.of(context)
+                                  ?.translate(errorHeaderText!)
+                                  : null,
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: color.backgroundColor),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: color.backgroundColor),
+                              ),
+                              labelText: 'Logo text here',
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+              ),
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text('Show address', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Container(
+                  child: Switch(
+                      value: showAddress,
+                      activeColor: color.backgroundColor,
+                      onChanged: branchObject!['address'] != '' ? (bool value){
+                        setState(() {
+                          showAddress = value;
+                        });
+                      } :
+                          (bool value){
+                        Fluttertoast.showToast(msg: "No branch address added");
+                      }
+                  ),
+                )
+              ],
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text('Show email', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: showEmail,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      setState(() {
+                        showEmail = value;
+                        if(widget.receiptObject!.show_email == 0 && showEmail ==true){
+                          emailAddress = widget.receiptObject!.receipt_email;
+                          emailTextController.text = widget.receiptObject!.receipt_email!;
+                        }
+                      });
+                    })
+              ],
+            ),
+            Visibility(
+              visible: showEmail ? true : false,
+              child: ValueListenableBuilder(
+                // Note: pass _controller to the animation argument
+                  valueListenable: emailTextController,
+                  builder: (context, TextEditingValue value, __) {
+                    return SizedBox(
+                      height: 80,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextField(
+                          onChanged: (value){
+                            setState(() {
+                              print('value: $value');
+                              emailAddress = value;
+                            });
+                          },
+                          controller: emailTextController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            errorText: _submitted
+                                ? errorEmailText == null
+                                ? errorEmailText
+                                : AppLocalizations.of(context)
+                                ?.translate(errorEmailText!)
+                                : null,
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: color.backgroundColor),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: color.backgroundColor),
+                            ),
+                            labelText: 'email here',
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Container(
+                  child: Switch(
+                      value: footerText,
+                      activeColor: color.backgroundColor,
+                      onChanged: (bool value){
+                        setState(() {
+                          footerText = value;
+                        });
+                      }),
+                )
+              ],
+            ),
+            Visibility(
+              visible: footerText ? true : false,
+              child: ValueListenableBuilder(
+                // Note: pass _controller to the animation argument
+                  valueListenable: footerTextController,
+                  builder: (context, TextEditingValue value, __) {
+                    return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextField(
+                          onChanged: (value){
+                            setState(() {
+                              footerTextString = value;
+                            });
+                          },
+                          controller: footerTextController,
+                          decoration: InputDecoration(
+                            helperText: "Max 3 lines",
+                            isDense: true,
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: color.backgroundColor),
+                            ),
+                          ),
+                          keyboardType: TextInputType.multiline,
+                          maxLines: 3,
+                          maxLength: 40,
+                        )
+                      // TextField(
+                      //   onChanged: (value){
+                      //     setState(() {
+                      //       footerTextString = value;
+                      //     });
+                      //   },
+                      //   controller: footerTextController,
+                      //   decoration: InputDecoration(
+                      //     errorText: _submitted
+                      //         ? errorFooterText == null
+                      //         ? errorFooterText
+                      //         : AppLocalizations.of(context)
+                      //         ?.translate(errorFooterText!)
+                      //         : null,
+                      //     border: OutlineInputBorder(
+                      //       borderSide: BorderSide(
+                      //           color: color.backgroundColor),
+                      //     ),
+                      //     focusedBorder: OutlineInputBorder(
+                      //       borderSide: BorderSide(
+                      //           color: color.backgroundColor),
+                      //     ),
+                      //     labelText: 'footer text here',
+                      //   ),
+                      // ),
+                    );
+                  }),
+            ),
+            // Row(
+            //   children: [
+            //     Container(
+            //       alignment: Alignment.topLeft,
+            //       child: Text('Show tax detail', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            //     ),
+            //     Spacer(),
+            //     Container(
+            //       child: Switch(
+            //           value: showTaxDetail,
+            //           activeColor: color.backgroundColor,
+            //           onChanged: (bool value){
+            //             setState(() {
+            //               showTaxDetail = value;
+            //             });
+            //           }
+            //       ),
+            //     )
+            //   ],
+            // ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text('Show promotion detail (80mm)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Container(
+                  child: Switch(
+                      value: promoDetail,
+                      activeColor: color.backgroundColor,
+                      onChanged: (bool value){
+                        setState(() {
+                          promoDetail = value;
+                        });
+                      }),
+                )
+              ],
+            ),
+          ],
+        ),
+      )
+    ],
+  );
+
+  Widget ReceiptView2(ThemeColor color) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Expanded(
+          flex: 1,
+          child: Container(
+            decoration: BoxDecoration(
+                border: Border.all(color: Colors.blueGrey, style: BorderStyle.solid, width: 1)
+            ),
+            padding: MediaQuery.of(context).size.width > 1300 ? EdgeInsets.fromLTRB(50, 20, 50, 20) : EdgeInsets.fromLTRB(20, 20, 20, 20) ,
+            child: Column(
+              // crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Visibility(
+                    visible: logoImage ? true : false,
+                    child: Center(
+                      child: CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.black,
+                        child: Text('Logo'),
+                      ),
+                    )
+                ),
+                Visibility(
+                    visible: logoText ? true : false,
+                    child: Center(
+                      child: Text('${headerText}', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                    )
+                ),
+                Center(
+                  child: Column(
+                    children: [
+                      Visibility(
+                        visible: showAddress ? true : false,
+                        child: Text('Jalan permas baru'),
+                      ),
+                      Text('Tel: 07-3456789'),
+                      Visibility(
+                        visible: showEmail? true : false,
+                        child: Text('${emailAddress}'),
+                      )
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
+                  child: DottedLine(),
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  //crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('Receipt No:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text('#00001-001-12345678', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Close at:'),
+                    Text('31/12/2021 00:00 AM'),
+                    Text('Close by:'),
+                    Text('Waiter'),
+                    Text('Table No: 1', textAlign: TextAlign.center),
+                    Text('Dine in', textAlign: TextAlign.center),
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
+                  child: DottedLine(),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      //flex: 1,
+                      child: Text('Item', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Expanded(
+                      //flex: 1,
+                      child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Expanded(
+                      //flex: 0,
+                      child: Text('Price/Unit', style: TextStyle(fontWeight: FontWeight.bold)),
+                    )
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
+                  child: DottedLine(),
+                ),
+                Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text('product1', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                        Expanded(
+                          child: Text('2'),
+                        ),
+                        Expanded(
+                          child: Text('2.00', textAlign: TextAlign.left),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text('product2', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                        Expanded(
+                          child: Text('1'),
+                        ),
+                        Expanded(
+                          child: Text('2.00'),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+                // Container(
+                //   child: Row(
+                //     children: [
+                //       Expanded(
+                //         flex: 2,
+                //         child: Text('product1', style: TextStyle(fontWeight: FontWeight.bold)),
+                //       ),
+                //       Expanded(
+                //         flex: 1,
+                //         child: Text('2'),
+                //       ),
+                //       Expanded(
+                //         flex: 0,
+                //         child: Text('2.00'),
+                //       )
+                //     ],
+                //   ),
+                // ),
+                // Container(
+                //   child: Row(
+                //     children: [
+                //       Expanded(
+                //         flex: 2,
+                //         child: Text('product2', style: TextStyle(fontWeight: FontWeight.bold)),
+                //       ),
+                //       Expanded(
+                //         flex: 1,
+                //         child: Text('1'),
+                //       ),
+                //       Expanded(
+                //         flex: 0,
+                //         child: Text('2.00'),
+                //       )
+                //     ],
+                //   ),
+                // ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
+                  child: DottedLine(),
+                ),
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text('Item count: 2', textAlign: TextAlign.left),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
+                  child: DottedLine(),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Subtotal', textAlign: TextAlign.left),
+                    ),
+                    Expanded(child: Text('')),
+                    Expanded(child: Text('4.00'))
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Total discount', textAlign: TextAlign.left),
+                    ),
+                    Expanded(child: Text('')),
+                    Expanded(child: Text('-2.00', textAlign: TextAlign.left,))
+                  ],
+                ),
+                Visibility(
+                    visible: showTaxDetail ? true : false,
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text('Tax1(10%)', textAlign: TextAlign.left),
+                            ),
+                            Expanded(child: Text('')),
+                            Expanded(child: Text('0.20'))
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text('Tax2(6%)', textAlign: TextAlign.left),
+                            ),
+                            Expanded(child: Text('')),
+                            Expanded(child: Text('0.12'))
+                          ],
+                        ),
+                      ],
+                    )
+                ),
+                // Visibility(
+                //     visible: !showTaxDetail ? true : false,
+                //     child: Row(
+                //       children: [
+                //         Expanded(
+                //           flex: 1,
+                //           child: Text(''),
+                //         ),
+                //         Expanded(
+                //           flex: 1,
+                //           child: Text(''),
+                //         ),
+                //         Expanded(
+                //           flex: 0,
+                //           child: Text('Tax inc.'),
+                //         )
+                //       ],
+                //     ),
+                // ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Amount', textAlign: TextAlign.left),
+                    ),
+                    Expanded(child: Text('')),
+                    Expanded(child: Text('2.32'))
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Rounding', textAlign: TextAlign.left),
+                    ),
+                    Expanded(child: Text('')),
+                    Expanded(child: Text('-0.02',))
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
+                  child: DottedLine(),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Final Amount', textAlign: TextAlign.left, style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Expanded(child: Text('')),
+                    Expanded(child: Text('2.30', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)))
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
+                  child: DottedLine(),
+                ),
+                Row(
+                  children: [
+                    Text('Payment method', textAlign: TextAlign.left),
+                    Expanded(child: Text('')),
+                    Expanded(child: Text('Cash'))
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text('Payment received', textAlign: TextAlign.left),
+                    // SizedBox(width: 80),
+                    Expanded(child: Text('')),
+                    Expanded(child: Text('5.00')),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Change', textAlign: TextAlign.left),
+                    ),
+                    Expanded(child: Text('')),
+                    Expanded(child: Text('2.70'))
+                  ],
+                ),
+                SizedBox(height: 20),
+                Visibility(
+                    visible: footerImage ? true : false,
+                    child: Center(
+                      child: CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.black,
+                        child: Text('footer'),
+                      ),
+                    )
+                ),
+                SizedBox(height: 10),
+                Visibility(
+                    visible: footerText ? true : false,
+                    child: Center(
+                      child: Text('${footerTextString}',
+                          maxLines: 3,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    )
+                ),
+                SizedBox(height: 10),
+                Container(
+                  child: Center(
+                    child: Text('POWERED BY OPTIMY POS', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                )
+              ],
+            ),
+          )
+      ),
+      SizedBox(width: 25),
+      Expanded(
+        flex: 1,
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: logoText,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      setState(() {
+                        logoText = value;
+                      });
+                    })
+              ],
+            ),
+            Visibility(
+              visible: logoText ? true : false,
+              child: ValueListenableBuilder(
+                // Note: pass _controller to the animation argument
+                  valueListenable: headerTextController,
+                  builder: (context, TextEditingValue value, __) {
+                    return SizedBox(
+                      height: 80,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextField(
+                          onChanged: (value){
+                            setState(() {
+                              headerText = value;
+                            });
+                          },
+                          controller: headerTextController,
+                          decoration: InputDecoration(
+                            errorText: _submitted
+                                ? errorHeaderText == null
+                                ? errorHeaderText
+                                : AppLocalizations.of(context)
+                                ?.translate(errorHeaderText!)
+                                : null,
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: color.backgroundColor),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: color.backgroundColor),
+                            ),
+                            labelText: 'Logo text here',
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text('Show address', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: showAddress,
+                    activeColor: color.backgroundColor,
+                    onChanged: branchObject!['address'] != '' ? (bool value){
+                      setState(() {
+                        showAddress = value;
+                      });
+                    } :
+                        (bool value){
+                      Fluttertoast.showToast(msg: "No branch address added");
+                    }
+                )
+              ],
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text('Show email', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: showEmail,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      setState(() {
+                        showEmail = value;
+                        if(widget.receiptObject!.show_email == 0 && showEmail ==true){
+                          emailAddress = widget.receiptObject!.receipt_email;
+                          emailTextController.text = widget.receiptObject!.receipt_email!;
+                        }
+                      });
+                    })
+              ],
+            ),
+            Visibility(
+              visible: showEmail ? true : false,
+              child: ValueListenableBuilder(
+                // Note: pass _controller to the animation argument
+                  valueListenable: emailTextController,
+                  builder: (context, TextEditingValue value, __) {
+                    return SizedBox(
+                      height: 80,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextField(
+                          onChanged: (value){
+                            setState(() {
+                              print('value: $value');
+                              emailAddress = value;
+                            });
+                          },
+                          controller: emailTextController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            errorText: _submitted
+                                ? errorEmailText == null
+                                ? errorEmailText
+                                : AppLocalizations.of(context)
+                                ?.translate(errorEmailText!)
+                                : null,
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: color.backgroundColor),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: color.backgroundColor),
+                            ),
+                            labelText: 'email here',
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+            ),
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                ),
+                Spacer(),
+                Switch(
+                    value: footerText,
+                    activeColor: color.backgroundColor,
+                    onChanged: (bool value){
+                      setState(() {
+                        footerText = value;
+                      });
+                    })
+              ],
+            ),
+            Visibility(
+              visible: footerText ? true : false,
+              child: ValueListenableBuilder(
+                // Note: pass _controller to the animation argument
+                  valueListenable: footerTextController,
+                  builder: (context, TextEditingValue value, __) {
+                    return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextField(
+                          onChanged: (value){
+                            setState(() {
+                              footerTextString = value;
+                            });
+                          },
+                          controller: footerTextController,
+                          decoration: InputDecoration(
+                            helperText: "Max 3 lines",
+                            isDense: true,
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: color.backgroundColor),
+                            ),
+                          ),
+                          keyboardType: TextInputType.multiline,
+                          maxLines: 3,
+                          maxLength: 40,
+                        )
+                      // TextField(
+                      //   onChanged: (value){
+                      //     setState(() {
+                      //       footerTextString = value;
+                      //     });
+                      //   },
+                      //   controller: footerTextController,
+                      //   decoration: InputDecoration(
+                      //     errorText: _submitted
+                      //         ? errorFooterText == null
+                      //         ? errorFooterText
+                      //         : AppLocalizations.of(context)
+                      //         ?.translate(errorFooterText!)
+                      //         : null,
+                      //     border: OutlineInputBorder(
+                      //       borderSide: BorderSide(
+                      //           color: color.backgroundColor),
+                      //     ),
+                      //     focusedBorder: OutlineInputBorder(
+                      //       borderSide: BorderSide(
+                      //           color: color.backgroundColor),
+                      //     ),
+                      //     labelText: 'footer text here',
+                      //   ),
+                      // ),
+                    );
+                  }),
+            ),
+            // Row(
+            //   children: [
+            //     Container(
+            //       alignment: Alignment.topLeft,
+            //       child: Text('Show tax detail', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            //     ),
+            //     Spacer(),
+            //     Container(
+            //       child: Switch(
+            //           value: showTaxDetail,
+            //           activeColor: color.backgroundColor,
+            //           onChanged: (bool value){
+            //             setState(() {
+            //               showTaxDetail = value;
+            //             });
+            //           }
+            //       ),
+            //     )
+            //   ],
+            // ),
+          ],
+        ),
+      )
+    ],
+  );
+
+  Widget MobileReceiptView1(ThemeColor color) => Column(
+    children: [
+      // Row(
+      //   children: [
+      //     Container(
+      //       alignment: Alignment.topLeft,
+      //       child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      //     ),
+      //     Spacer(),
+      //     Container(
+      //       child: Switch(
+      //           value: logoImage,
+      //           activeColor: color.backgroundColor,
+      //           onChanged: (bool value){
+      //             setState(() {
+      //               logoImage = value;
+      //             });
+      //           }),
+      //     )
+      //   ],
+      // ),
+      // Row(
+      //   children: [
+      //     Container(
+      //       alignment: Alignment.topLeft,
+      //       child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      //     ),
+      //     Spacer(),
+      //     Container(
+      //       child: Switch(
+      //           value: footerImage,
+      //           activeColor: color.backgroundColor,
+      //           onChanged: (bool value){
+      //             setState(() {
+      //               footerImage = value;
+      //             });
+      //           }),
+      //     )
+      //   ],
+      // ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: logoText,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  logoText = value;
+                });
+              })
+        ],
+      ),
+      Visibility(
+        visible: logoText ? true : false,
+        child: ValueListenableBuilder(
+          // Note: pass _controller to the animation argument
+            valueListenable: headerTextController,
+            builder: (context, TextEditingValue value, __) {
+              return SizedBox(
+                height: MediaQuery.of(context).size.height / 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    controller: headerTextController,
+                    decoration: InputDecoration(
+                      errorText: _submitted
+                          ? errorHeaderText == null
+                          ? errorHeaderText
+                          : AppLocalizations.of(context)
+                          ?.translate(errorHeaderText!)
+                          : null,
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: color.backgroundColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: color.backgroundColor),
+                      ),
+                      labelText: 'Logo text here',
+                    ),
+                  ),
+                ),
+              );
+            }),
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text('Show address', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: showAddress,
+              activeColor: color.backgroundColor,
+              onChanged: branchObject!['address'] != '' ? (bool value){
+                setState(() {
+                  showAddress = value;
+                });
+              } :
+                  (bool value){
+                Fluttertoast.showToast(msg: "No branch address added");
+              }
+          )
+        ],
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text('Show email', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: showEmail,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  showEmail = value;
+                  if(widget.receiptObject!.show_email == 0 && showEmail ==true){
+                    emailAddress = widget.receiptObject!.receipt_email;
+                    emailTextController.text = widget.receiptObject!.receipt_email!;
+                  }
+                });
+              })
+        ],
+      ),
+      Visibility(
+        visible: showEmail ? true : false,
+        child: ValueListenableBuilder(
+          // Note: pass _controller to the animation argument
+            valueListenable: emailTextController,
+            builder: (context, TextEditingValue value, __) {
+              return SizedBox(
+                height: 80,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    onChanged: (value){
+                      setState(() {
+                        print('value: $value');
+                        emailAddress = value;
+                      });
+                    },
+                    controller: emailTextController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      errorText: _submitted
+                          ? errorEmailText == null
+                          ? errorEmailText
+                          : AppLocalizations.of(context)
+                          ?.translate(errorEmailText!)
+                          : null,
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: color.backgroundColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: color.backgroundColor),
+                      ),
+                      labelText: 'email here',
+                    ),
+                  ),
+                ),
+              );
+            }),
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: footerText,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  footerText = value;
+                });
+              })
+        ],
+      ),
+      Visibility(
+        visible: footerText ? true : false,
+        child: ValueListenableBuilder(
+          // Note: pass _controller to the animation argument
+            valueListenable: footerTextController,
+            builder: (context, TextEditingValue value, __) {
+              return SizedBox(
+                height: MediaQuery.of(context).size.height / 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    controller: footerTextController,
+                    decoration: InputDecoration(
+                      errorText: _submitted
+                          ? errorFooterText == null
+                          ? errorFooterText
+                          : AppLocalizations.of(context)
+                          ?.translate(errorFooterText!)
+                          : null,
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: color.backgroundColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: color.backgroundColor),
+                      ),
+                      labelText: 'footer text here',
+                    ),
+                  ),
+                ),
+              );
+            }),
+      ),
+      Row(
+        children: [
+          Expanded(
+            child: Text('Show promotion detail (80mm)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: promoDetail,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  promoDetail = value;
+                });
+              })
+        ],
+      ),
+    ],
+  );
+
+  Widget MobileReceiptView2(ThemeColor color) => Column(
+    children: [
+      // Row(
+      //   children: [
+      //     Container(
+      //       alignment: Alignment.topLeft,
+      //       child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      //     ),
+      //     Spacer(),
+      //     Container(
+      //       child: Switch(
+      //           value: logoImage,
+      //           activeColor: color.backgroundColor,
+      //           onChanged: (bool value){
+      //             setState(() {
+      //               logoImage = value;
+      //             });
+      //           }),
+      //     )
+      //   ],
+      // ),
+      // Row(
+      //   children: [
+      //     Container(
+      //       alignment: Alignment.topLeft,
+      //       child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      //     ),
+      //     Spacer(),
+      //     Container(
+      //       child: Switch(
+      //           value: footerImage,
+      //           activeColor: color.backgroundColor,
+      //           onChanged: (bool value){
+      //             setState(() {
+      //               footerImage = value;
+      //             });
+      //           }),
+      //     )
+      //   ],
+      // ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: logoText,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  logoText = value;
+                });
+              })
+        ],
+      ),
+      Visibility(
+        visible: logoText ? true : false,
+        child: ValueListenableBuilder(
+          // Note: pass _controller to the animation argument
+            valueListenable: headerTextController,
+            builder: (context, TextEditingValue value, __) {
+              return SizedBox(
+                height: MediaQuery.of(context).size.height / 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    controller: headerTextController,
+                    decoration: InputDecoration(
+                      errorText: _submitted
+                          ? errorHeaderText == null
+                          ? errorHeaderText
+                          : AppLocalizations.of(context)
+                          ?.translate(errorHeaderText!)
+                          : null,
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: color.backgroundColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: color.backgroundColor),
+                      ),
+                      labelText: 'Logo text here',
+                    ),
+                  ),
+                ),
+              );
+            }),
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text('Show address', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: showAddress,
+              activeColor: color.backgroundColor,
+              onChanged: branchObject!['address'] != '' ? (bool value){
+                setState(() {
+                  showAddress = value;
+                });
+              } :
+                  (bool value){
+                Fluttertoast.showToast(msg: "No branch address added");
+              }
+          )
+        ],
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text('Show email', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: showEmail,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  showEmail = value;
+                  if(widget.receiptObject!.show_email == 0 && showEmail ==true){
+                    emailAddress = widget.receiptObject!.receipt_email;
+                    emailTextController.text = widget.receiptObject!.receipt_email!;
+                  }
+                });
+              })
+        ],
+      ),
+      Visibility(
+        visible: showEmail ? true : false,
+        child: ValueListenableBuilder(
+          // Note: pass _controller to the animation argument
+            valueListenable: emailTextController,
+            builder: (context, TextEditingValue value, __) {
+              return SizedBox(
+                height: 80,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    onChanged: (value){
+                      setState(() {
+                        print('value: $value');
+                        emailAddress = value;
+                      });
+                    },
+                    controller: emailTextController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      errorText: _submitted
+                          ? errorEmailText == null
+                          ? errorEmailText
+                          : AppLocalizations.of(context)
+                          ?.translate(errorEmailText!)
+                          : null,
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: color.backgroundColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: color.backgroundColor),
+                      ),
+                      labelText: 'email here',
+                    ),
+                  ),
+                ),
+              );
+            }),
+      ),
+      Row(
+        children: [
+          Container(
+            alignment: Alignment.topLeft,
+            child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+          ),
+          Spacer(),
+          Switch(
+              value: footerText,
+              activeColor: color.backgroundColor,
+              onChanged: (bool value){
+                setState(() {
+                  footerText = value;
+                });
+              })
+        ],
+      ),
+      Visibility(
+        visible: footerText ? true : false,
+        child: ValueListenableBuilder(
+          // Note: pass _controller to the animation argument
+            valueListenable: footerTextController,
+            builder: (context, TextEditingValue value, __) {
+              return SizedBox(
+                height: MediaQuery.of(context).size.height / 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    controller: footerTextController,
+                    decoration: InputDecoration(
+                      errorText: _submitted
+                          ? errorFooterText == null
+                          ? errorFooterText
+                          : AppLocalizations.of(context)
+                          ?.translate(errorFooterText!)
+                          : null,
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: color.backgroundColor),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: color.backgroundColor),
+                      ),
+                      labelText: 'footer text here',
+                    ),
+                  ),
+                ),
+              );
+            }),
+      ),
+    ],
+  );
+
+  // createReceiptLayout() async {
+  //   try{
+  //     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+  //     String dateTime = dateFormat.format(DateTime.now());
+  //     final prefs = await SharedPreferences.getInstance();
+  //     final int? branch_id = prefs.getInt('branch_id');
+  //
+  //     Receipt data = await PosDatabase.instance.insertSqliteReceipt(Receipt(
+  //       receipt_id: 0,
+  //       branch_id: branch_id.toString(),
+  //       company_id: '6',
+  //       header_text: logoText == true ? headerTextController.text : '',
+  //       footer_text: footerText == true ? footerTextController.text : '',
+  //       header_image: logoImage == true ? 'branchLogo.jpg' : '',
+  //       footer_image: footerImage == true ? 'branchFooter.jpg' : '',
+  //       header_text_status: logoText == true ? 1 : 0,
+  //       footer_text_status: footerText == true ? 1 : 0,
+  //       header_image_status: logoImage == true ? 1 : 0,
+  //       footer_image_status: footerImage == true ? 1 : 0,
+  //       promotion_detail_status: promoDetail == true ? 1 : 0,
+  //       status: widget.allReceiptList.length == 0 ? 1 : 0,
+  //       sync_status: 0,
+  //       created_at: dateTime,
+  //       updated_at: '',
+  //       soft_delete: ''
+  //     ));
+  //     widget.callBack();
+  //     closeDialog(context);
+  //   }catch(e){
+  //     Fluttertoast.showToast(
+  //         backgroundColor: Color(0xFFFF0000),
+  //         msg: "Fail to add receipt layout, Please try again $e");
+  //     print('$e');
+  //   }
+  // }
+
+  // setLayoutInUse(Receipt receipt) async {
+  //   print('called');
+  //   try{
+  //     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+  //     String dateTime = dateFormat.format(DateTime.now());
+  //
+  //     for(int i = 0; i < widget.allReceiptList.length; i++){
+  //       if(widget.allReceiptList[i].status == 1){
+  //         int data = await PosDatabase.instance.updateReceiptStatus(Receipt(
+  //             status: 0,
+  //             sync_status: 0,
+  //             updated_at: dateTime,
+  //             receipt_sqlite_id: widget.allReceiptList[i].receipt_sqlite_id
+  //         ));
+  //       }
+  //     }
+  //
+  //     if(receipt.status == 0){
+  //       int data = await PosDatabase.instance.updateReceiptStatus(Receipt(
+  //           status: 1,
+  //           sync_status: 0,
+  //           updated_at: dateTime,
+  //           receipt_sqlite_id: receipt.receipt_sqlite_id
+  //       ));
+  //       widget.callBack();
+  //       closeDialog(context);
+  //       Fluttertoast.showToast(
+  //           backgroundColor: Color(0xFF07F107),
+  //           msg: "Receipt layout apply");
+  //     } else {
+  //       closeDialog(context);
+  //       Fluttertoast.showToast(
+  //           backgroundColor: Color(0xFFFF0000),
+  //           msg: "receipt already in-use");
+  //     }
+  //   }catch(e){
+  //     Fluttertoast.showToast(
+  //         backgroundColor: Color(0xFFFF0000),
+  //         msg: "Fail set layout in use, Please try again $e");
+  //     print('$e');
+  //   }
+  // }
 
 }

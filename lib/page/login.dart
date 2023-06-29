@@ -30,12 +30,16 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    setScreenLayout();
+    loginCheck();
+    //setScreenLayout();
   }
 
   setScreenLayout() {
-    final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
-    if (screenWidth < 500) {
+    // final double screenWidth = WidgetsBinding.instance.platformDispatcher.views.first.physicalSize.width;
+    final double screenHeight = WidgetsBinding
+        .instance.platformDispatcher.views.first.physicalSize.height /
+        WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
+    if (screenHeight < 500) {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
         DeviceOrientation.portraitDown
@@ -71,6 +75,10 @@ class _LoginPageState extends State<LoginPage> {
         }
         if (data['status'] == '4') {
           return 'Please try again later';
+        }
+        if(data['status'] == '8'){
+          throw TimeoutException("Time out");
+          return 'Connection timeout';
         }
         // Obtain shared preferences.
         _createDir();

@@ -20,6 +20,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../main.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/categories.dart';
 import '../../translation/AppLocalizations.dart';
@@ -1158,37 +1159,41 @@ class _PrinterDialogState extends State<PrinterDialog> {
   }
 
   syncAllToCloud() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().syncLocalUpdateToCloud(
-        device_id: device_id.toString(),
-        value: login_value,
-        printer_value: this.printer_value,
-        printer_link_category_value: this.printer_category_value,
-        printer_link_category_delete_value: this.printer_category_delete_value
-      );
-      if(data['status'] == '1'){
-        List responseJson = data['data'];
-        for(int i = 0; i < responseJson.length; i++) {
-          switch (responseJson[i]['table_name']) {
-            case 'tb_printer': {
-              await PosDatabase.instance.updatePrinterSyncStatusFromCloud(responseJson[i]['printer_key']);
+    if(mainSyncToCloud.count == 0){
+      mainSyncToCloud.count = 1;
+      final prefs = await SharedPreferences.getInstance();
+      final int? device_id = prefs.getInt('device_id');
+      final String? login_value = prefs.getString('login_value');
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if (_hasInternetAccess) {
+        Map data = await Domain().syncLocalUpdateToCloud(
+            device_id: device_id.toString(),
+            value: login_value,
+            printer_value: this.printer_value,
+            printer_link_category_value: this.printer_category_value,
+            printer_link_category_delete_value: this.printer_category_delete_value
+        );
+        if(data['status'] == '1'){
+          List responseJson = data['data'];
+          for(int i = 0; i < responseJson.length; i++) {
+            switch (responseJson[i]['table_name']) {
+              case 'tb_printer': {
+                await PosDatabase.instance.updatePrinterSyncStatusFromCloud(responseJson[i]['printer_key']);
+              }
+              break;
+              case 'tb_printer_link_category': {
+                await PosDatabase.instance.updatePrinterLinkCategorySyncStatusFromCloud(responseJson[i]['printer_link_category_key']);
+              }
+              break;
+              default:
+                return;
             }
-            break;
-            case 'tb_printer_link_category': {
-              await PosDatabase.instance.updatePrinterLinkCategorySyncStatusFromCloud(responseJson[i]['printer_link_category_key']);
-            }
-            break;
-            default:
-              return;
           }
+        } else if (data['status'] == '7'){
+          this.isLogOut = true;
         }
-      } else if (data['status'] == '7'){
-        this.isLogOut = true;
       }
+      mainSyncToCloud.resetCount();
     }
   }
 

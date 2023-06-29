@@ -278,12 +278,29 @@ class _SettlementDialogState extends State<SettlementDialog> {
     await updateTodaySettlementOrder(dateTime);
     await updateTodaySettlementOrderDetailCancel(dateTime);
     await updateAllCashRecordSettlement(dateTime, connectivity);
+    await callPrinter(dateTime);
     await syncAllToCloud();
     if(this.isLogOut == true){
       openLogOutDialog();
       return;
     }
-    await PrintReceipt().printSettlementList(printerList, dateTime, context, this.settlement!);
+  }
+
+  callPrinter(String dateTime) async {
+    int printStatus = await PrintReceipt().printSettlementList(printerList, dateTime, context, this.settlement!);
+    if(printStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (printStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }else if(printStatus == 3){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "No cashier printer added");
+    }
   }
 
   generateSettlementKey(Settlement settlement) async  {

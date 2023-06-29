@@ -111,8 +111,8 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                   title: Text('Payment success'),
                   content: isLoaded
                       ? Container(
-                          width: MediaQuery.of(context).size.width / 3,
-                          height: MediaQuery.of(context).size.height / 2.5,
+                          width: 360,
+                          height: 350,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -127,8 +127,8 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Container(
-                                    width: MediaQuery.of(context).size.width / 7,
-                                    height: MediaQuery.of(context).size.height / 12,
+                                    width: 150,
+                                    height: 60,
                                     child: ElevatedButton(
                                         style: ElevatedButton.styleFrom(
                                             backgroundColor: color.buttonColor),
@@ -146,21 +146,28 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                           if(notificationModel.hasSecondScreen == true){
                                             reInitSecondDisplay();
                                           }
-                                          await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
+                                          await callPrinter();
+                                          //await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
                                           tableModel.changeContent(true);
                                           cartModel.initialLoad();
                                           Navigator.of(context).pop();
                                           Navigator.of(context).pop();
                                           Navigator.of(context).pop();
                                         },
-                                        child: Text('${AppLocalizations.of(context)?.translate('print_receipt')}', style: TextStyle(fontSize: 15), textAlign: TextAlign.center)
+                                        child: Row(
+                                          children: [
+                                            Text('Print receipt'),
+                                            Spacer(),
+                                            Icon(Icons.print),
+                                          ],
+                                        )
                                     ),
                                   ),
                                   Visibility(
                                     visible: widget.isCashMethod == true ? true : false,
                                     child: Container(
-                                      width: MediaQuery.of(context).size.width / 7,
-                                      height: MediaQuery.of(context).size.height / 12,
+                                      //width: 160,
+                                      height: 60,
                                       margin: EdgeInsets.only(left: 15),
                                       child: ElevatedButton(
                                           style: ElevatedButton.styleFrom(
@@ -172,8 +179,13 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                               reInitSecondDisplay();
                                             }
                                           },
-                                          child: Text(
-                                              '${AppLocalizations.of(context)?.translate('open_cash_drawer')}', style: TextStyle(fontSize: 15), textAlign: TextAlign.center)
+                                          child: Row(
+                                            children: [
+                                              Text('${AppLocalizations.of(context)?.translate('open_cash_drawer')}', overflow: TextOverflow.fade, maxLines: 2,style: TextStyle(fontSize: 15)),
+                                              SizedBox(width: 5),
+                                              Icon(Icons.point_of_sale),
+                                            ],
+                                          )
                                       )
                                     ),
                                   ),
@@ -181,8 +193,8 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                               ),
                               SizedBox(height: 15),
                               SizedBox(
-                                width: MediaQuery.of(context).size.width / 7,
-                                height: MediaQuery.of(context).size.height / 12,
+                                width: 150,
+                                height: 60,
                                 child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                     onPressed: isButtonDisabled ? null : (){
@@ -199,7 +211,13 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                       Navigator.of(context).pop();
                                       Navigator.of(context).pop();
                                     },
-                                    child: Text('${AppLocalizations.of(context)?.translate('close')}')),
+                                    child: Row(
+                                      children: [
+                                        Text('${AppLocalizations.of(context)?.translate('close')}'),
+                                        Spacer(),
+                                        Icon(Icons.close)
+                                      ],
+                                    )),
                               )
                             ],
                           ),
@@ -258,7 +276,8 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                     setState(() {
                                       isButtonDisabled = true;
                                     });
-                                    await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
+                                    await callPrinter();
+                                    //await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
                                     // await createCashRecord();
                                     // await syncAllToCloud();
                                     // if(this.isLogOut == true){
@@ -334,18 +353,35 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     await updateOrderCache();
     await createCashRecord();
     await readAllPrinters();
+    await callPrinter();
+    if(widget.isCashMethod == true){
+      await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+    }
     await syncAllToCloud();
     if(this.isLogOut == true){
       openLogOutDialog();
       return;
     }
-    await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
-    if(widget.isCashMethod == true){
-      await PrintReceipt().cashDrawer(context, printerList: this.printerList);
-    }
     //await _printReceiptList();
     //await deleteOrderCache();
     isLoaded = true;
+  }
+
+  callPrinter() async {
+    int printStatus = await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
+    if(printStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (printStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }else if(printStatus == 3){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "No cashier printer added");
+    }
   }
 
   updateOrder() async {
@@ -666,7 +702,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
         table_use_value: this.table_use_value,
         table_value: this.table_value,
         cash_record_value: this.cash_record_value
-
       );
       if (data['status'] == '1') {
         List responseJson = data['data'];

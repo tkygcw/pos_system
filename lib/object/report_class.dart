@@ -88,11 +88,11 @@ class ReportObject{
     dateSettlementPaymentList = [];
     List<SettlementLinkPayment> settlementData = await PosDatabase.instance.readSpecificSettlementLinkPayment(settlement_date);
     settlementPaymentList = settlementData;
-    print('length: ${settlementPaymentList.length}');
+    //print('length: ${settlementPaymentList.length}');
     if (settlementPaymentList.isNotEmpty) {
       for (int i = 0; i < settlementPaymentList.length; i++) {
         dateSettlementPaymentList!.add(settlementPaymentList[i]);
-        print('payment method: ${settlementPaymentList[i].payment_link_company_id}');
+        //print('payment method: ${settlementPaymentList[i].payment_link_company_id}');
       }
     }
     ReportObject value = ReportObject(dateSettlementPaymentList: dateSettlementPaymentList);
@@ -250,7 +250,38 @@ class ReportObject{
     return value;
   }
 
-  getAllCancelOrderDetailWithCategory(int category_sqlite_id, {currentStDate, currentEdDate}) async {
+  // getAllCancelOrderDetailWithCategory(int category_sqlite_id, {currentStDate, currentEdDate}) async {
+  //   dateOrderDetail = [];
+  //   DateTime _startDate = DateTime.parse(currentStDate);
+  //   DateTime _endDate = DateTime.parse(currentEdDate);
+  //   //convert time to string
+  //   DateTime addEndDate = addDays(date: _endDate);
+  //   String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+  //   String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+  //   //get data
+  //   List<OrderDetail> detailData = await PosDatabase.instance.readAllCancelledOrderDetailWithCategory(category_sqlite_id, stringStDate, stringEdDate);
+  //   this.paidOrderDetail = detailData;
+  //   if (paidOrderDetail.isNotEmpty) {
+  //     for (int i = 0; i < paidOrderDetail.length; i++) {
+  //       DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderDetail[i].created_at!);
+  //       if(currentStDate != currentEdDate){
+  //         if(convertDate.isAfter(_startDate)){
+  //           if(convertDate.isBefore(addDays(date: _endDate))){
+  //             dateOrderDetail!.add(paidOrderDetail[i]);
+  //           }
+  //         }
+  //       } else {
+  //         if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
+  //           dateOrderDetail!.add(paidOrderDetail[i]);
+  //         }
+  //       }
+  //     }
+  //   }
+  //   ReportObject value = ReportObject(dateOrderDetail: dateOrderDetail);
+  //   return value;
+  // }
+
+  getAllCancelOrderDetailWithCategory(String category_name, {currentStDate, currentEdDate}) async {
     dateOrderDetail = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -259,22 +290,23 @@ class ReportObject{
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     //get data
-    List<OrderDetail> detailData = await PosDatabase.instance.readAllCancelledOrderDetailWithCategory(category_sqlite_id, stringStDate, stringEdDate);
+    List<OrderDetail> detailData = await PosDatabase.instance.readAllCancelledOrderDetailWithCategory2(category_name, stringStDate, stringEdDate);
     this.paidOrderDetail = detailData;
     if (paidOrderDetail.isNotEmpty) {
       for (int i = 0; i < paidOrderDetail.length; i++) {
-        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderDetail[i].created_at!);
-        if(currentStDate != currentEdDate){
-          if(convertDate.isAfter(_startDate)){
-            if(convertDate.isBefore(addDays(date: _endDate))){
-              dateOrderDetail!.add(paidOrderDetail[i]);
-            }
-          }
-        } else {
-          if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
-            dateOrderDetail!.add(paidOrderDetail[i]);
-          }
-        }
+        dateOrderDetail!.add(paidOrderDetail[i]);
+        //DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderDetail[i].created_at!);
+        // if(currentStDate != currentEdDate){
+        //   if(convertDate.isAfter(_startDate)){
+        //     if(convertDate.isBefore(addDays(date: _endDate))){
+        //       dateOrderDetail!.add(paidOrderDetail[i]);
+        //     }
+        //   }
+        // } else {
+        //   if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
+        //     dateOrderDetail!.add(paidOrderDetail[i]);
+        //   }
+        // }
       }
     }
     ReportObject value = ReportObject(dateOrderDetail: dateOrderDetail);
@@ -282,7 +314,7 @@ class ReportObject{
   }
 
   getAllCancelItemCategory({currentStDate, currentEdDate}) async {
-    dateCategory = [];
+    dateOrderDetail = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
     //convert time to string
@@ -291,11 +323,11 @@ class ReportObject{
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     print('string start date: ${stringStDate}');
     print('string end date: ${stringEdDate}');
-    List<Categories> categoryData = await PosDatabase.instance.readAllCancelledCategoryWithOrderDetail(stringStDate, stringEdDate);
-    this.paidCategory = categoryData;
-    if (paidCategory.isNotEmpty) {
-      for (int i = 0; i < paidCategory.length; i++) {
-        dateCategory!.add(paidCategory[i]);
+    List<OrderDetail> orderDetailData = await PosDatabase.instance.readAllCancelledCategoryWithOrderDetail2(stringStDate, stringEdDate);
+    this.paidOrderDetail = orderDetailData;
+    if (paidOrderDetail.isNotEmpty) {
+      for (int i = 0; i < paidOrderDetail.length; i++) {
+        dateOrderDetail!.add(paidOrderDetail[i]);
         // DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidCategory[i].created_at!);
         // if(currentStDate != currentEdDate){
         //   if(convertDate.isAfter(_startDate)){
@@ -310,9 +342,42 @@ class ReportObject{
         // }
       }
     }
-    ReportObject value = ReportObject(dateCategory: dateCategory);
+    ReportObject value = ReportObject(dateOrderDetail: dateOrderDetail);
     return value;
   }
+
+  // getAllCancelItemCategory({currentStDate, currentEdDate}) async {
+  //   dateCategory = [];
+  //   DateTime _startDate = DateTime.parse(currentStDate);
+  //   DateTime _endDate = DateTime.parse(currentEdDate);
+  //   //convert time to string
+  //   DateTime addEndDate = addDays(date: _endDate);
+  //   String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+  //   String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+  //   print('string start date: ${stringStDate}');
+  //   print('string end date: ${stringEdDate}');
+  //   List<Categories> categoryData = await PosDatabase.instance.readAllCancelledCategoryWithOrderDetail(stringStDate, stringEdDate);
+  //   this.paidCategory = categoryData;
+  //   if (paidCategory.isNotEmpty) {
+  //     for (int i = 0; i < paidCategory.length; i++) {
+  //       dateCategory!.add(paidCategory[i]);
+  //       // DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidCategory[i].created_at!);
+  //       // if(currentStDate != currentEdDate){
+  //       //   if(convertDate.isAfter(_startDate)){
+  //       //     if(convertDate.isBefore(addDays(date: _endDate))){
+  //       //       dateCategory!.add(paidCategory[i]);
+  //       //     }
+  //       //   }
+  //       // } else {
+  //       //   if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
+  //       //     dateCategory!.add(paidCategory[i]);
+  //       //   }
+  //       // }
+  //     }
+  //   }
+  //   ReportObject value = ReportObject(dateCategory: dateCategory);
+  //   return value;
+  // }
 
   getAllPaymentData({currentStDate, currentEdDate}) async {
     datePayment = [];
@@ -448,7 +513,7 @@ class ReportObject{
     return value;
   }
 
-  getAllPaidOrderDetailWithCategory(int category_sqlite_id, {currentStDate, currentEdDate}) async {
+  getAllPaidOrderDetailWithCategory(String category_name, {currentStDate, currentEdDate}) async {
     dateOrderDetail = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -457,7 +522,7 @@ class ReportObject{
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     //get data
-    List<OrderDetail> detailData = await PosDatabase.instance.readAllPaidOrderDetailWithCategory(category_sqlite_id, stringStDate, stringEdDate);
+    List<OrderDetail> detailData = await PosDatabase.instance.readAllPaidOrderDetailWithCategory2(category_name, stringStDate, stringEdDate);
     this.paidOrderDetail = detailData;
     if (paidOrderDetail.isNotEmpty) {
       for (int i = 0; i < paidOrderDetail.length; i++) {
@@ -480,8 +545,40 @@ class ReportObject{
     return value;
   }
 
+  // getAllPaidOrderDetailWithCategory(int category_sqlite_id, {currentStDate, currentEdDate}) async {
+  //   dateOrderDetail = [];
+  //   DateTime _startDate = DateTime.parse(currentStDate);
+  //   DateTime _endDate = DateTime.parse(currentEdDate);
+  //   //convert time to string
+  //   DateTime addEndDate = addDays(date: _endDate);
+  //   String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+  //   String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+  //   //get data
+  //   List<OrderDetail> detailData = await PosDatabase.instance.readAllPaidOrderDetailWithCategory(category_sqlite_id, stringStDate, stringEdDate);
+  //   this.paidOrderDetail = detailData;
+  //   if (paidOrderDetail.isNotEmpty) {
+  //     for (int i = 0; i < paidOrderDetail.length; i++) {
+  //       dateOrderDetail!.add(paidOrderDetail[i]);
+  //       // DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderDetail[i].created_at!);
+  //       // if(currentStDate != currentEdDate){
+  //       //   if(convertDate.isAfter(_startDate)){
+  //       //     if(convertDate.isBefore(addDays(date: _endDate))){
+  //       //       dateOrderDetail!.add(paidOrderDetail[i]);
+  //       //     }
+  //       //   }
+  //       // } else {
+  //       //   if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
+  //       //     dateOrderDetail!.add(paidOrderDetail[i]);
+  //       //   }
+  //       // }
+  //     }
+  //   }
+  //   ReportObject value = ReportObject(dateOrderDetail: dateOrderDetail);
+  //   return value;
+  // }
+
   getAllPaidCategory({currentStDate, currentEdDate}) async {
-    dateCategory = [];
+    dateOrderDetail = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
     //convert time to string
@@ -490,11 +587,11 @@ class ReportObject{
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     print('string start date: ${stringStDate}');
     print('string end date: ${stringEdDate}');
-    List<Categories> categoryData = await PosDatabase.instance.readAllCategoryWithOrderDetail(stringStDate, stringEdDate);
-    this.paidCategory = categoryData;
-    if (paidCategory.isNotEmpty) {
-      for (int i = 0; i < paidCategory.length; i++) {
-        dateCategory!.add(paidCategory[i]);
+    List<OrderDetail> orderDetailData = await PosDatabase.instance.readAllCategoryWithOrderDetail2(stringStDate, stringEdDate);
+    this.paidOrderDetail = orderDetailData;
+    if (paidOrderDetail.isNotEmpty) {
+      for (int i = 0; i < paidOrderDetail.length; i++) {
+        dateOrderDetail!.add(paidOrderDetail[i]);
         // DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidCategory[i].created_at!);
         // if(currentStDate != currentEdDate){
         //   if(convertDate.isAfter(_startDate)){
@@ -509,9 +606,42 @@ class ReportObject{
         // }
       }
     }
-    ReportObject value = ReportObject(dateCategory: dateCategory);
+    ReportObject value = ReportObject(dateOrderDetail: dateOrderDetail);
     return value;
   }
+
+  // getAllPaidCategory({currentStDate, currentEdDate}) async {
+  //   dateCategory = [];
+  //   DateTime _startDate = DateTime.parse(currentStDate);
+  //   DateTime _endDate = DateTime.parse(currentEdDate);
+  //   //convert time to string
+  //   DateTime addEndDate = addDays(date: _endDate);
+  //   String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+  //   String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+  //   print('string start date: ${stringStDate}');
+  //   print('string end date: ${stringEdDate}');
+  //   List<Categories> categoryData = await PosDatabase.instance.readAllCategoryWithOrderDetail(stringStDate, stringEdDate);
+  //   this.paidCategory = categoryData;
+  //   if (paidCategory.isNotEmpty) {
+  //     for (int i = 0; i < paidCategory.length; i++) {
+  //       dateCategory!.add(paidCategory[i]);
+  //       // DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidCategory[i].created_at!);
+  //       // if(currentStDate != currentEdDate){
+  //       //   if(convertDate.isAfter(_startDate)){
+  //       //     if(convertDate.isBefore(addDays(date: _endDate))){
+  //       //       dateCategory!.add(paidCategory[i]);
+  //       //     }
+  //       //   }
+  //       // } else {
+  //       //   if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
+  //       //     dateCategory!.add(paidCategory[i]);
+  //       //   }
+  //       // }
+  //     }
+  //   }
+  //   ReportObject value = ReportObject(dateCategory: dateCategory);
+  //   return value;
+  // }
 
   getTotalCancelledItem({currentStDate, currentEdDate}) async {
     List<OrderDetailCancel> _list = [];

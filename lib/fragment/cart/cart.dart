@@ -744,7 +744,20 @@ class CartPageState extends State<CartPage> {
                                     ),
                                       onPressed: () async {
                                         paymentAddToCart(cart);
-                                        await printReceipt.printReviewReceipt(printerList, cart.selectedTable, cart, context);
+                                        int printStatus = await printReceipt.printReviewReceipt(printerList, cart.selectedTable, cart, context);
+                                        if(printStatus == 1){
+                                          Fluttertoast.showToast(
+                                              backgroundColor: Colors.red,
+                                              msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+                                        } else if (printStatus == 2){
+                                          Fluttertoast.showToast(
+                                              backgroundColor: Colors.orangeAccent,
+                                              msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+                                        }else if(printStatus == 3){
+                                          Fluttertoast.showToast(
+                                              backgroundColor: Colors.red,
+                                              msg: "No cashier printer added");
+                                        }
                                       },
                                       child: Text('Print Receipt'),
                                     )),
@@ -1678,7 +1691,7 @@ class CartPageState extends State<CartPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: PromotionDialog(),
+              child: PromotionDialog(cartFinalAmount: finalAmount,),
             ),
           );
         },
@@ -1836,15 +1849,33 @@ class CartPageState extends State<CartPage> {
 */
   callCreateNewNotDineOrder(CartModel cart) async {
     resetValue();
-    await createOrderCache(cart);
+    await createOrderCache(cart, isAddOrder: false);
     await createOrderDetail(cart);
+    int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId), context);
+    if(printStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (printStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }
+    int kitchenPrintStatus = await printReceipt.printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
+    if(kitchenPrintStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (kitchenPrintStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }
     await syncAllToCloud();
     if(this.isLogOut == true){
       openLogOutDialog();
       return;
     }
-    await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId), context);
-    await printReceipt.printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
   }
 
 /*
@@ -1854,16 +1885,34 @@ class CartPageState extends State<CartPage> {
     resetValue();
     await createTableUseID();
     await createTableUseDetail(cart);
-    await createOrderCache(cart);
+    await createOrderCache(cart, isAddOrder: false);
     await createOrderDetail(cart);
     await updatePosTable(cart);
+    int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId), context);
+    if(printStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (printStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }
+    int kitchenPrintStatus = await printReceipt.printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
+    if(kitchenPrintStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (kitchenPrintStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }
     await syncAllToCloud();
     if(this.isLogOut == true){
       openLogOutDialog();
       return;
     }
-    await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId), context);
-    await printReceipt.printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
   }
 
 /*
@@ -1873,13 +1922,31 @@ class CartPageState extends State<CartPage> {
     resetValue();
     await createOrderCache(cart, isAddOrder: true);
     await createOrderDetail(cart);
+    int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId), context);
+    if(printStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (printStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }
+    int kitchenPrintStatus = await printReceipt.printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
+    if(kitchenPrintStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (kitchenPrintStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }
     await syncAllToCloud();
     if(this.isLogOut == true){
       openLogOutDialog();
       return;
     }
-    await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId), context);
-    await printReceipt.printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
   }
 
   randomColor() {
@@ -2130,7 +2197,7 @@ class CartPageState extends State<CartPage> {
   //   }
   // }
 
-  createOrderCache(CartModel cart, {isAddOrder}) async {
+  createOrderCache(CartModel cart, {required bool isAddOrder}) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
 
@@ -2191,7 +2258,7 @@ class CartPageState extends State<CartPage> {
             soft_delete: ''));
         orderCacheId = data.order_cache_sqlite_id.toString();
         OrderCache updatedCache = await insertOrderCacheKey(data, dateTime);
-        if (updatedCache.sync_status == 0) {
+        if (updatedCache.sync_status == 0 && isAddOrder == false) {
           //sync updated table use (with order cache key)
           await insertOrderCacheKeyIntoTableUse(cart, updatedCache, dateTime);
         }
@@ -2284,7 +2351,7 @@ class CartPageState extends State<CartPage> {
     List<String> _orderDetailValue = [];
     List<String> _orderModifierValue = [];
     List<String> _branchLinkProductValue = [];
-    bool _hasModifier = false;
+    //bool _hasModifier = false;
     //loop cart item & create order detail
     for (int j = 0; j < cart.cartNotifierItem.length; j++) {
       if (cart.cartNotifierItem[j].status == 0) {
@@ -2325,7 +2392,7 @@ class CartPageState extends State<CartPage> {
             ModifierGroup group = cart.cartNotifierItem[j].modifier![k];
             for (int m = 0; m < group.modifierChild!.length; m++) {
               if (group.modifierChild![m].isChecked!) {
-                _hasModifier = true;
+                // _hasModifier = true;
                 OrderModifierDetail orderModifierDetailData = await PosDatabase.instance.insertSqliteOrderModifierDetail(OrderModifierDetail(
                     order_modifier_detail_id: 0,
                     order_modifier_detail_key: '',
@@ -2532,74 +2599,172 @@ class CartPageState extends State<CartPage> {
   // }
 
   syncAllToCloud() async {
-    if(mainSyncToCloud.count == 0){
-      mainSyncToCloud.count = 1;
-      final prefs = await SharedPreferences.getInstance();
-      final int? device_id = prefs.getInt('device_id');
-      final String? login_value = prefs.getString('login_value');
-      bool _hasInternetAccess = await Domain().isHostReachable();
-      if (_hasInternetAccess) {
-        Map data = await Domain().syncLocalUpdateToCloud(
-            device_id: device_id.toString(),
-            value: login_value,
-            table_use_value: this.table_use_value,
-            table_use_detail_value: this.table_use_detail_value,
-            order_cache_value: this.order_cache_value,
-            order_detail_value: this.order_detail_value,
-            branch_link_product_value: this.branch_link_product_value,
-            order_modifier_value: this.order_modifier_detail_value,
-            table_value: this.table_value);
-        if (data['status'] == '1') {
-          print('success');
-          List responseJson = data['data'];
-          for (int i = 0; i < responseJson.length; i++) {
-            switch (responseJson[i]['table_name']) {
-              case 'tb_table_use':
-                {
-                  await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+    try{
+      if(mainSyncToCloud.count == 0){
+        mainSyncToCloud.count = 1;
+        final prefs = await SharedPreferences.getInstance();
+        final int? device_id = prefs.getInt('device_id');
+        final String? login_value = prefs.getString('login_value');
+        bool _hasInternetAccess = await Domain().isHostReachable();
+        if (_hasInternetAccess) {
+          Map data = await Domain().syncLocalUpdateToCloud(
+              device_id: device_id.toString(),
+              value: login_value,
+              table_use_value: this.table_use_value,
+              table_use_detail_value: this.table_use_detail_value,
+              order_cache_value: this.order_cache_value,
+              order_detail_value: this.order_detail_value,
+              branch_link_product_value: this.branch_link_product_value,
+              order_modifier_value: this.order_modifier_detail_value,
+              table_value: this.table_value);
+          print('data status: ${data['status']}');
+          if (data['status'] == '1') {
+            print('success');
+            List responseJson = data['data'];
+            if(responseJson.isNotEmpty){
+              for (int i = 0; i < responseJson.length; i++) {
+                switch (responseJson[i]['table_name']) {
+                  case 'tb_table_use':
+                    {
+                      await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+                    }
+                    break;
+                  case 'tb_table_use_detail':
+                    {
+                      await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+                    }
+                    break;
+                  case 'tb_order_cache':
+                    {
+                      await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+                    }
+                    break;
+                  case 'tb_order_detail':
+                    {
+                      await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+                    }
+                    break;
+                  case 'tb_order_modifier_detail':
+                    {
+                      await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
+                    }
+                    break;
+                  case 'tb_branch_link_product':
+                    {
+                      await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+                    }
+                    break;
+                  case 'tb_table':
+                    {
+                      await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+                    }
+                    break;
+                  default:
+                    {
+                      return;
+                    }
                 }
-                break;
-              case 'tb_table_use_detail':
-                {
-                  await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-                }
-                break;
-              case 'tb_order_cache':
-                {
-                  await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
-                }
-                break;
-              case 'tb_order_detail':
-                {
-                  await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
-                }
-                break;
-              case 'tb_order_modifier_detail':
-                {
-                  await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
-                }
-                break;
-              case 'tb_branch_link_product':
-                {
-                  await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-                }
-                break;
-              case 'tb_table':
-                {
-                  await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-                }
-                break;
-              default:
-                {
-                  return;
-                }
+              }
+              mainSyncToCloud.resetCount();
+            } else {
+              mainSyncToCloud.resetCount();
             }
+          }else if(data['status'] == '7'){
+            this.isLogOut = true;
+            mainSyncToCloud.resetCount();
+          } else if (data['status'] == '8'){
+            print('cart time out');
+            throw TimeoutException("Time out");
+          }else {
+            mainSyncToCloud.resetCount();
           }
-        }else if(data['status'] == '7'){
-          this.isLogOut = true;
+        } else {
+          mainSyncToCloud.resetCount();
         }
       }
+    }catch(e){
+      print("cart sync ro cloud error: $e");
       mainSyncToCloud.resetCount();
+      return;
     }
+  }
+
+/*
+  ---------------multi device part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+/*
+  Cart Ordering initial called
+*/
+  getSubTotalMultiDevice(CartModel cart) async {
+    try {
+      //widget.currentPage == 'table' || widget.currentPage == 'qr_order' ? cart.selectedOption = 'Dine in' : null;
+      total = 0.0;
+      newOrderSubtotal = 0.0;
+      promo = 0.0;
+      promoAmount = 0.0;
+      for (int i = 0; i < cart.cartNotifierItem.length; i++) {
+        total += (double.parse((cart.cartNotifierItem[i].price!)) * cart.cartNotifierItem[i].quantity!);
+        if (cart.cartNotifierItem[i].status == 0) {
+          newOrderSubtotal += (double.parse((cart.cartNotifierItem[i].price!)) * cart.cartNotifierItem[i].quantity!);
+        }
+      }
+    } catch (e) {
+      print('Sub Total Error: $e');
+      total = 0.0;
+    }
+    await getDiningTaxMultiDevice(cart);
+    // calPromotion(cart);
+    // getTaxAmount();
+    // getRounding();
+    // getAllTotal();
+    checkCartItem(cart);
+    // if (cart.myCount == 0) {
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     setState(() {
+    //       _scrollDown();
+    //     });
+    //   });
+    //   cart.myCount++;
+    // }
+    // if (!controller.isClosed) {
+    //   controller.sink.add('refresh');
+    // }
+  }
+
+  getDiningTaxMultiDevice(CartModel cart) async {
+    try {
+      //get dining option data
+      List<DiningOption> data = await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
+      if(data.isNotEmpty){
+        diningOptionID = data[0].dining_id!;
+
+        //get dining tax
+        List<Tax> taxData = await PosDatabase.instance.readTax(diningOptionID.toString());
+        if (taxData.isNotEmpty) {
+          taxRateList = List.from(taxData);
+        } else {
+          taxRateList = [];
+        }
+      }
+    } catch (error) {
+      print('get dining tax in cart error: $error');
+    }
+  }
+
+/*
+  Not dine in call
+*/
+  callCreateNewNotDineOrder2(CartModel cart) async {
+    print('cart: ${cart.cartNotifierItem.length}');
+    resetValue();
+    await createOrderCache(cart, isAddOrder: false);
+    await createOrderDetail(cart);
+    // await syncAllToCloud();
+    // if(this.isLogOut == true){
+    //   openLogOutDialog();
+    //   return;
+    // }
+    // await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId), context);
+    // await printReceipt.printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
   }
 }

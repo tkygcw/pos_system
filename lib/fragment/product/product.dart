@@ -18,9 +18,9 @@ class _ProductPageState extends State<ProductPage> {
     Container(
       child: FoodSetting(),
     ),
-    Container(
-      child: CategorySetting(),
-    ),
+    // Container(
+    //   child: CategorySetting(),
+    // ),
   ];
   int selectedIndex = 0;
 
@@ -58,10 +58,10 @@ class _ProductPageState extends State<ProductPage> {
                     icon: Icons.food_bank,
                     label: 'Food and Beverage',
                   ),
-                  SideNavigationBarItem(
-                    icon: Icons.list,
-                    label: 'Categories',
-                  ),
+                  // SideNavigationBarItem(
+                  //   icon: Icons.list,
+                  //   label: 'Categories',
+                  // ),
                 ],
                 onTap: (index) {
                   setState(() {
