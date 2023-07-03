@@ -42,7 +42,7 @@ class _SettlementPageState extends State<SettlementPage> {
   @override
   void initState() {
     super.initState();
-    //checkUnpaidOrderCache();
+    checkUnpaidOrderCache();
     readPaymentLinkCompany();
     readCashRecord();
   }
