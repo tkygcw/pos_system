@@ -34,6 +34,7 @@
   "merge_error": "Cannot merge same table!",
   "merge_error_2": "Cannot join with table not in use or table in use",
   "no": "No",
+  "no_cashier_printer": "No active cashier printer",
   "no_table": "No table selected!",
   "no_second_display": "No second display detected",
   "offer_ended": "Offer ended",

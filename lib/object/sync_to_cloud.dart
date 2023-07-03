@@ -56,7 +56,6 @@ class SyncToCloud {
 
   syncAllToCloud() async {
     print('sync to cloud called');
-    count = 1;
     await getAllValue();
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');

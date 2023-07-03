@@ -173,8 +173,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: color.buttonColor,
                                           ),
-                                          onPressed: () {
-                                            PrintReceipt().cashDrawer(context, printerList: this.printerList);
+                                          onPressed: () async {
+                                            await callOpenCashDrawer();
+                                            //int printStatus = await PrintReceipt().cashDrawer(context, printerList: this.printerList);
                                             if(notificationModel.hasSecondScreen == true){
                                               reInitSecondDisplay();
                                             }
@@ -304,8 +305,8 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: color.buttonColor,
                                     ),
-                                    onPressed: () {
-                                      PrintReceipt().cashDrawer(context, printerList: this.printerList);
+                                    onPressed: () async {
+                                      await callOpenCashDrawer();
                                     },
                                     child: Text(
                                         '${AppLocalizations.of(context)?.translate('open_cash_drawer')}', style: TextStyle(fontSize: 15),
@@ -343,6 +344,25 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     });
   }
 
+  callOpenCashDrawer() async{
+    int printStatus = await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+    if(printStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (printStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }else if(printStatus == 3){
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "No cashier printer added");
+    } else if(printStatus == 4){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('no_cashier_printer')}");
+    }
+  }
+
   callUpdateOrder() async {
     await updateOrder();
     if (widget.dining_name == 'Dine in') {
@@ -355,7 +375,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     await readAllPrinters();
     await callPrinter();
     if(widget.isCashMethod == true){
-      await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+      await callOpenCashDrawer();
     }
     await syncAllToCloud();
     if(this.isLogOut == true){
@@ -378,9 +398,11 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     }else if(printStatus == 3){
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "No cashier printer added");
+    } else if(printStatus == 4){
       Fluttertoast.showToast(
-          backgroundColor: Colors.red,
-          msg: "No cashier printer added");
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('no_cashier_printer')}");
     }
   }
 

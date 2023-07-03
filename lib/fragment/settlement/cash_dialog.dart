@@ -79,7 +79,7 @@ class _CashDialogState extends State<CashDialog> {
     return null;
   }
 
-  void _submit(BuildContext context, ConnectivityChangeNotifier connectivity) {
+  _submit(BuildContext context) async {
     setState(() => _submitted = true);
     if (errorRemark == null && errorAmount == null) {
       // Disable the button after it has been pressed
@@ -88,13 +88,14 @@ class _CashDialogState extends State<CashDialog> {
       });
       if (widget.isCashIn) {
         print('cash in');
-        createCashRecord(1, connectivity);
+        await createCashRecord(1);
       } else if (widget.isCashOut) {
         print('cash-out');
-        createCashRecord(2, connectivity);
+        await createCashRecord(2);
       } else {
-        createCashRecord(3, connectivity);
+        await createCashRecord(3);
       }
+      closeDialog(context);
     }
   }
 
@@ -246,10 +247,10 @@ class _CashDialogState extends State<CashDialog> {
                           child: Text('${AppLocalizations.of(context)?.translate('add')}'),
                           onPressed: isButtonDisabled
                               ? null
-                              : () {
+                              : () async {
                             try {
                               double.parse(amountController.text);
-                              _submit(context, connectivity);
+                              await _submit(context);
                             } catch (e) {
                               Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Invalid Input!");
                             }
@@ -265,10 +266,10 @@ class _CashDialogState extends State<CashDialog> {
                         child: Text('${AppLocalizations.of(context)?.translate('add')}'),
                         onPressed: isButtonDisabled
                             ? null
-                            : () {
+                            : () async {
                                 try {
                                   double.parse(amountController.text);
-                                  _submit(context, connectivity);
+                                  await _submit(context);
                                 } catch (e) {
                                   Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Invalid Input!");
                                 }
@@ -398,8 +399,8 @@ class _CashDialogState extends State<CashDialog> {
                         child: Text('${AppLocalizations.of(context)?.translate('add')}'),
                         onPressed: isButtonDisabled
                             ? null
-                            : () {
-                                _submit(context, connectivity);
+                            : () async {
+                                await _submit(context);
                               },
                       )
                     ],
@@ -440,7 +441,7 @@ class _CashDialogState extends State<CashDialog> {
     return _record;
   }
 
-  createCashRecord(int type, ConnectivityChangeNotifier connectivity) async {
+  createCashRecord(int type) async {
     try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
@@ -481,22 +482,42 @@ class _CashDialogState extends State<CashDialog> {
       if (this.isLogOut == true) {
         openLogOutDialog();
       } else {
-        closeDialog(context);
-        widget.callBack();
         if (widget.isNewDay) {
           if (appSettingList.isNotEmpty && appSettingList[0].open_cash_drawer == 1) {
-            await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+            await callOpenCashDrawer();
           }
         } else {
-          await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+          await callOpenCashDrawer();
         }
+        widget.callBack();
       }
     } catch (e) {
-      setState(() {
-        this.isButtonDisabled = false;
-      });
+      if(mounted){
+        setState(() {
+          this.isButtonDisabled = false;
+        });
+      }
       print('cash record error: ${e}');
       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Create cash record error: ${e}");
+    }
+  }
+
+  callOpenCashDrawer() async{
+    int printStatus = await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+    if(printStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (printStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }else if(printStatus == 3){
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "No cashier printer added");
+    } else if(printStatus == 4){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('no_cashier_printer')}");
     }
   }
 

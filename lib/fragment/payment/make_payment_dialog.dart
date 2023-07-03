@@ -984,7 +984,6 @@ class _MakePaymentState extends State<MakePayment> {
                                                             return;
                                                           }
                                                           openPaymentSuccessDialog(widget.dining_id, isCashMethod: true, diningName: widget.dining_name);
-                                                          await PrintReceipt().cashDrawer(context, printerList: this.printerList);
                                                         } else {
                                                           Fluttertoast.showToast(
                                                               backgroundColor: Color(0xFFFF0000),

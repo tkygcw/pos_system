@@ -127,6 +127,7 @@ class _PosPinPageState extends State<PosPinPage> {
         if (timerCount == 0) {
           //sync to cloud
           if(mainSyncToCloud.count == 0){
+            mainSyncToCloud.count = 1;
             int status = await mainSyncToCloud.syncAllToCloud();
             print('status: ${status}');
             if (status == 1) {

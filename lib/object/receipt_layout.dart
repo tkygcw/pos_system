@@ -1731,7 +1731,7 @@ class ReceiptLayout{
               text: '${orderDetail.productName}',
               width: 8,
               containsChinese: true,
-              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2)),
           PosColumn(
               text: '',
               width: 2,
@@ -1830,7 +1830,7 @@ class ReceiptLayout{
               text: '${orderDetail.productName}',
               width: 8,
               containsChinese: true,
-              styles: PosStyles(height: PosTextSize.size2, width: PosTextSize.size1)),
+              styles: PosStyles(height: PosTextSize.size2, width: PosTextSize.size2)),
           PosColumn(
               text: '',
               width: 2),
@@ -1922,12 +1922,12 @@ class ReceiptLayout{
     * */
         //order product
         bytes += generator.row([
-          PosColumn(text: '${cartItem.quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
+          PosColumn(text: '${cartItem.quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true, height: PosTextSize.size2)),
           PosColumn(
               text: '${cartItem.product_name}',
               width: 10,
               containsChinese: true,
-              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1))
+              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2))
         ]);
         bytes += generator.reset();
         //product variant
@@ -2035,7 +2035,7 @@ class ReceiptLayout{
               text: '${cartItem.product_name}',
               width: 10,
               containsChinese: true,
-              styles: PosStyles(height: PosTextSize.size1, width: PosTextSize.size1)),
+              styles: PosStyles(height: PosTextSize.size2, width: PosTextSize.size2)),
         ]);
         bytes += generator.reset();
         //product variant
