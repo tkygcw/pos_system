@@ -1322,7 +1322,7 @@ class ReceiptLayout{
 /*
   Check list layout 80mm
 */
-  printCheckList80mm(bool isUSB, int localId, {value}) async {
+  printCheckList80mm(bool isUSB, int localId, {value, isQrOrder}) async {
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -1351,7 +1351,11 @@ class ReceiptLayout{
 
       // bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
       bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}');
-      bytes += generator.text('Order By: ${orderCache!.order_by}');
+      if(isQrOrder != null){
+        bytes += generator.text('Order By: QrOrder');
+      } else {
+        bytes += generator.text('Order By: ${orderCache!.order_by}');
+      }
       bytes += generator.text('Order time: ${Utils.formatDate(orderCache!.created_at)}');
       bytes += generator.hr();
       bytes += generator.reset();

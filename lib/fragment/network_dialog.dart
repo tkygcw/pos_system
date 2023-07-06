@@ -23,7 +23,7 @@ class _NetworkDialogState extends State<NetworkDialog> {
         }
       },
       child: AlertDialog(
-        title: Text('Host Not Reachable'),
+        title: Text('Connection failed'),
         content: Container(
           child: Text('Network Connection failed. Please check your devices wireless or mobile network setting and reconnect'),
         ),

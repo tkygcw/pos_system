@@ -559,9 +559,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     await getProductPrice(widget.productDetail!.product_sqlite_id);
     categories = await PosDatabase.instance.readSpecificCategoryById(widget.productDetail!.category_sqlite_id!);
     print('category init: ${categories}');
-    setState(() {
-      this.isLoaded = true;
-    });
+    if(mounted){
+      setState(() {
+        this.isLoaded = true;
+      });
+    }
   }
 
   getProductPrice(int? productId) async {

@@ -585,6 +585,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       for (int i = 0; i < widget.selectedTableList.length; i++) {
         PosTable posTableData = PosTable(
             table_use_detail_key: '',
+            table_use_key: '',
             status: status,
             updated_at: dateTime,
             table_sqlite_id: widget.selectedTableList[i].table_sqlite_id);

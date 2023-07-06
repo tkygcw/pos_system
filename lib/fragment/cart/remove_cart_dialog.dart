@@ -56,6 +56,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   String? table_use_value, table_use_detail_value, branch_link_product_value, order_cache_value, order_detail_value, order_detail_cancel_value, table_value;
   bool _isLoaded = false, isButtonDisabled = false, isLogOut = false;
   int simpleIntInput = 1;
+  bool willPop = true;
 
 
   late TableModel tableModel;
@@ -114,65 +115,69 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, StateSetter setState){
-          return Center(
-            child: SingleChildScrollView(
-              physics: NeverScrollableScrollPhysics(),
-              child: AlertDialog(
-                title: Text('Enter Current User PIN'),
-                content: SizedBox(
-                  height: 100.0,
-                  width: 350.0,
-                  child: ValueListenableBuilder(
-                      valueListenable: adminPosPinController,
-                      builder: (context, TextEditingValue value, __) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextField(
-                            obscureText: true,
-                            controller: adminPosPinController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              errorText: _submitted
-                                  ? errorPassword == null
-                                  ? errorPassword
-                                  : AppLocalizations.of(context)
-                                  ?.translate(errorPassword!)
-                                  : null,
-                              border: OutlineInputBorder(
-                                borderSide:
-                                BorderSide(color: color.backgroundColor),
+          return WillPopScope(
+            onWillPop: () async => willPop,
+            child: Center(
+              child: SingleChildScrollView(
+                physics: NeverScrollableScrollPhysics(),
+                child: AlertDialog(
+                  title: Text('Enter Current User PIN'),
+                  content: SizedBox(
+                    height: 100.0,
+                    width: 350.0,
+                    child: ValueListenableBuilder(
+                        valueListenable: adminPosPinController,
+                        builder: (context, TextEditingValue value, __) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              obscureText: true,
+                              controller: adminPosPinController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                errorText: _submitted
+                                    ? errorPassword == null
+                                    ? errorPassword
+                                    : AppLocalizations.of(context)
+                                    ?.translate(errorPassword!)
+                                    : null,
+                                border: OutlineInputBorder(
+                                  borderSide:
+                                  BorderSide(color: color.backgroundColor),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide:
+                                  BorderSide(color: color.backgroundColor),
+                                ),
+                                labelText: "PIN",
                               ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                BorderSide(color: color.backgroundColor),
-                              ),
-                              labelText: "PIN",
                             ),
-                          ),
-                        );
-                      }),
+                          );
+                        }),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: isButtonDisabled ? null : () {
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                      onPressed: isButtonDisabled ? null : () {
+                        setState(() {
+                          isButtonDisabled = true;
+                          willPop = false;
+                        });
+                        _submit(context, cart);
+                      },
+                    ),
+                  ],
                 ),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                    onPressed: isButtonDisabled ? null : () {
-                      setState(() {
-                        isButtonDisabled = true;
-                      });
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  TextButton(
-                    child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                    onPressed: isButtonDisabled ? null : () {
-                      setState(() {
-                        isButtonDisabled = true;
-                      });
-                      _submit(context, cart);
-                    },
-                  ),
-                ],
               ),
             ),
           );
@@ -626,6 +631,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     PosTable? _data;
     PosTable posTableData = PosTable(
         table_use_detail_key: '',
+        table_use_key: '',
         status: status,
         updated_at: dateTime,
         table_sqlite_id: tableId);

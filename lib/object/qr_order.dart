@@ -30,6 +30,10 @@ class QrOrder {
       for(int i = 0; i < response['data'].length; i++){
         print('response table id: ${response['data'][i]['table_id']}');
         //PosTable tableData = await PosDatabase.instance.readTableByCloudId(response['data'][i]['table_id']);
+        OrderCache? checkOrderCacheData = await PosDatabase.instance.readSpecificOrderCacheByKey(response['data'][i]['order_cache_key']);
+        if(checkOrderCacheData != null){
+          break;
+        }
         OrderCache orderCache = OrderCache(
             order_cache_id: 0,
             order_cache_key: response['data'][i]['order_cache_key'].toString(),

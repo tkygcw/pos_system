@@ -40,7 +40,8 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   List<OrderCache> orderCacheList = [];
   List<Printer> printerList = [];
   String? table_use_value, table_use_detail_value, order_cache_value, table_value;
-  bool _submitted = false, isLogOut = false;
+  bool _submitted = false, isLogOut = false, isButtonDisabled = false, willPop = true;
+
 
   @override
   void initState() {
@@ -155,12 +156,15 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       List<TableUseDetail> checkData  = await PosDatabase.instance.readAllTableUseDetail(currentTableUseId);
       for(int i = 0; i < checkData.length; i++){
         TableUseDetail tableUseDetailObject =  TableUseDetail(
+          soft_delete: dateTime,
           sync_status: checkData[i].sync_status == 0 ?  0 : 2,
           status: 1,
           table_use_sqlite_id: currentTableUseId,
+          table_use_detail_key: checkData[i].table_use_detail_key,
           table_use_detail_sqlite_id: checkData[i].table_use_detail_sqlite_id
         );
-        int updatedData = await PosDatabase.instance.deleteTableUseDetail(tableUseDetailObject);
+        int updatedData = await PosDatabase.instance.deleteTableUseDetailByKey(tableUseDetailObject);
+        //int updatedData = await PosDatabase.instance.deleteTableUseDetail(tableUseDetailObject);
         if(updatedData == 1){
           TableUseDetail detailData =  await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
           _value.add(jsonEncode(detailData));
@@ -201,11 +205,14 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     try{
       TableUse checkData = await PosDatabase.instance.readSpecificTableUseIdByLocalId(currentTableUseId);
       TableUse tableUseObject = TableUse(
+        soft_delete: dateTime,
         sync_status: checkData.sync_status == 0 ? 0 : 2,
         status: 1,
+        table_use_key: checkData.table_use_key,
         table_use_sqlite_id: currentTableUseId,
       );
-      int updatedData = await PosDatabase.instance.deleteTableUseID(tableUseObject);
+      int updatedData = await PosDatabase.instance.deleteTableUseByKey(tableUseObject);
+      //int updatedData = await PosDatabase.instance.deleteTableUseID(tableUseObject);
       if(updatedData == 1){
         TableUse tableUseData = await PosDatabase.instance.readSpecificTableUseIdByLocalId(tableUseObject.table_use_sqlite_id!);
         _value.add(jsonEncode(tableUseData));
@@ -293,11 +300,11 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       //check new table is in use or not
       if(NewUseDetailData.isNotEmpty){
         await callChangeToTableInUse(NowUseDetailData[0].table_use_key!, NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
-        await updatePosTable(NewUseDetailData[0].table_use_detail_key!, dateTime);
+        await updatePosTable(NewUseDetailData[0].table_use_detail_key!, dateTime, NowUseDetailData[0].table_use_key!);
 
       } else {
         await changeToUnusedTable(widget.object.table_sqlite_id!, tableData[0].table_sqlite_id.toString(), tableData[0].table_id.toString(), dateTime);
-        await updatePosTable(NowUseDetailData[0].table_use_detail_key!, dateTime);
+        await updatePosTable(NowUseDetailData[0].table_use_detail_key!, dateTime, NowUseDetailData[0].table_use_key!);
       }
       await syncAllToCloud();
       if(this.isLogOut == true){
@@ -317,10 +324,11 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   /**
    * concurrent here
    */
-  updatePosTableStatusAndDetailKey(int tableId, int status, String dateTime, String key) async {
+  updatePosTableStatusAndDetailKey(int tableId, int status, String dateTime, String key, String tableUseKey) async {
     PosTable? _data;
     PosTable posTableObject = PosTable(
       table_use_detail_key: key,
+      table_use_key: tableUseKey,
       status: status,
       updated_at: dateTime,
       table_sqlite_id: tableId,
@@ -335,7 +343,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   }
 
 
-  updatePosTable(String key, String dateTime) async {
+  updatePosTable(String key, String dateTime, String currantTableUseKey) async {
     print('table updated');
     List<String> _value = [];
 
@@ -343,13 +351,13 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     //update new table status
     List<PosTable> newTable = await PosDatabase.instance.checkPosTableStatus(tableData[0].table_sqlite_id!);
     if (newTable[0].status == 0) {
-      PosTable updateNewTableData = await updatePosTableStatusAndDetailKey(tableData[0].table_sqlite_id!, 1, dateTime, key);
+      PosTable updateNewTableData = await updatePosTableStatusAndDetailKey(tableData[0].table_sqlite_id!, 1, dateTime, key, currantTableUseKey);
       _value.add(jsonEncode(updateNewTableData));
     }
     //update previous table status
     List<PosTable> lastTable = await PosDatabase.instance.checkPosTableStatus(widget.object.table_sqlite_id!);
     if (lastTable[0].status == 1) {
-      PosTable updatedLastTableData = await updatePosTableStatusAndDetailKey(widget.object.table_sqlite_id!, 0, dateTime, '');
+      PosTable updatedLastTableData = await updatePosTableStatusAndDetailKey(widget.object.table_sqlite_id!, 0, dateTime, '', '');
       _value.add(jsonEncode(updatedLastTableData));
     }
     this.table_value = _value.toString();
@@ -443,58 +451,74 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     setState(() => _submitted = true);
     if (errorTableNo == null) {
       await updateTable();
+    } else {
+      setState(() {
+        isButtonDisabled = false;
+        willPop = true;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return AlertDialog(
-        title: Text("Change table to?"),
-        content: Container(
-          width: 350.0,
-          height: 100.0,
-          child: ValueListenableBuilder(
-              // Note: pass _controller to the animation argument
-              valueListenable: tableNoController,
-              builder: (context, TextEditingValue value, __) {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    controller: tableNoController,
-                    decoration: InputDecoration(
-                      errorText: _submitted
-                          ? errorTableNo == null
-                              ? errorTableNo
-                              : AppLocalizations.of(context)
-                                  ?.translate(errorTableNo!)
-                          : null,
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(color: color.backgroundColor),
+      return WillPopScope(
+        onWillPop: () async => willPop,
+        child: AlertDialog(
+          title: Text("Change table to?"),
+          content: Container(
+            width: 350.0,
+            height: 100.0,
+            child: ValueListenableBuilder(
+                // Note: pass _controller to the animation argument
+                valueListenable: tableNoController,
+                builder: (context, TextEditingValue value, __) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      controller: tableNoController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        errorText: _submitted
+                            ? errorTableNo == null
+                                ? errorTableNo
+                                : AppLocalizations.of(context)
+                                    ?.translate(errorTableNo!)
+                            : null,
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: color.backgroundColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: color.backgroundColor),
+                        ),
+                        labelText: 'Table No.',
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: color.backgroundColor),
-                      ),
-                      labelText: 'Table No.',
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+              onPressed: isButtonDisabled ? null : () {
+                setState(() {
+                  isButtonDisabled = true;
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text("Submit"),
+              onPressed: isButtonDisabled ? null : () {
+                setState(() {
+                  isButtonDisabled = true;
+                  willPop = false;
+                });
+                _submit(context);
+              },
+            ),
+          ],
         ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: Text("Submit"),
-            onPressed: () {
-              _submit(context);
-            },
-          ),
-        ],
       );
     });
   }

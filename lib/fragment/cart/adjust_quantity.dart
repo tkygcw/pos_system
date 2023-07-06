@@ -54,6 +54,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   bool _isLoaded = false;
   bool _submitted = false;
   bool isButtonDisabled = false;
+  bool willPop = true;
 
   late TableModel tableModel;
 
@@ -104,64 +105,71 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, StateSetter setState){
-          return Center(
-            child: SingleChildScrollView(
-              physics: NeverScrollableScrollPhysics(),
-              child: AlertDialog(
-                title: Text('Enter Current User PIN'),
-                content: SizedBox(
-                  height: 100.0,
-                  width: 350.0,
-                  child: ValueListenableBuilder(
-                      valueListenable: adminPosPinController,
-                      builder: (context, TextEditingValue value, __) {
-                        return Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextField(
-                            obscureText: true,
-                            controller: adminPosPinController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              errorText: _submitted
-                                  ? errorPassword == null
-                                  ? errorPassword
-                                  : AppLocalizations.of(context)
-                                  ?.translate(errorPassword!)
-                                  : null,
-                              border: OutlineInputBorder(
-                                borderSide:
-                                BorderSide(color: color.backgroundColor),
+          return WillPopScope(
+            onWillPop: () async => willPop,
+            child: Center(
+              child: SingleChildScrollView(
+                physics: NeverScrollableScrollPhysics(),
+                child: AlertDialog(
+                  title: Text('Enter Current User PIN'),
+                  content: SizedBox(
+                    height: 100.0,
+                    width: 350.0,
+                    child: ValueListenableBuilder(
+                        valueListenable: adminPosPinController,
+                        builder: (context, TextEditingValue value, __) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              obscureText: true,
+                              controller: adminPosPinController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                errorText: _submitted
+                                    ? errorPassword == null
+                                    ? errorPassword
+                                    : AppLocalizations.of(context)
+                                    ?.translate(errorPassword!)
+                                    : null,
+                                border: OutlineInputBorder(
+                                  borderSide:
+                                  BorderSide(color: color.backgroundColor),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide:
+                                  BorderSide(color: color.backgroundColor),
+                                ),
+                                labelText: "PIN",
                               ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide:
-                                BorderSide(color: color.backgroundColor),
-                              ),
-                              labelText: "PIN",
                             ),
-                          ),
-                        );
-                      }),
+                          );
+                        }),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: isButtonDisabled ? null :  () {
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        Navigator.of(context).pop();
+                        setState(() {
+                          isButtonDisabled = false;
+                        });
+                      },
+                    ),
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                      onPressed: isButtonDisabled ? null : () async {
+                        setState(() {
+                          isButtonDisabled = true;
+                          willPop = false;
+                        });
+                        _submit(context, cart);
+                      },
+                    ),
+                  ],
                 ),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                    onPressed: isButtonDisabled ? null :  () {
-                      setState(() {
-                        isButtonDisabled = true;
-                      });
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  TextButton(
-                    child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                    onPressed: isButtonDisabled ? null : () async {
-                      setState(() {
-                        isButtonDisabled = true;
-                      });
-                      _submit(context, cart);
-                    },
-                  ),
-                ],
               ),
             ),
           );
@@ -209,7 +217,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                   ),
                   TextButton(
                     child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                    onPressed: () async {
+                    onPressed: isButtonDisabled ? null : () async {
                       await showSecondDialog(context, color, cart);
                     },
                   ),
@@ -621,6 +629,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     PosTable? _data;
     PosTable posTableData = PosTable(
         table_use_detail_key: '',
+        table_use_key: '',
         status: status,
         updated_at: dateTime,
         table_sqlite_id: tableId);

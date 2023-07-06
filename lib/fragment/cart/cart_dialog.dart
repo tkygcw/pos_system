@@ -64,7 +64,7 @@ class CartDialogState extends State<CartDialog> {
   bool isFinish = false;
   bool isButtonDisabled = false, isMergeButtonDisabled = false, isLogOut = false;
   Color cardColor = Colors.white;
-  String? table_use_detail_value, table_value, tableUseDetailKey;
+  String? table_use_detail_value, table_value, tableUseDetailKey, tableUseKey;
 
   @override
   void initState() {
@@ -791,7 +791,7 @@ class CartDialogState extends State<CartDialog> {
    */
   callRemoveTableQuery(int table_id) async {
     await deleteCurrentTableUseDetail(table_id);
-    await updatePosTableStatus(table_id, 0, '');
+    await updatePosTableStatus(table_id, 0, '', '');
     await syncAllToCloud();
     if (this.isLogOut == true) {
       openLogOutDialog();
@@ -809,6 +809,7 @@ class CartDialogState extends State<CartDialog> {
       List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(currentTableId);
       print('check data length: ${checkData.length}');
       TableUseDetail tableUseDetailObject = TableUseDetail(
+          soft_delete: dateTime,
           sync_status: checkData[0].sync_status == 0 ? 0 : 2,
           status: 1,
           table_sqlite_id: currentTableId.toString(),
@@ -845,12 +846,17 @@ class CartDialogState extends State<CartDialog> {
     }
   }
 
-  updatePosTableStatus(int dragTableId, int status, String tableUseDetailKey) async {
+  updatePosTableStatus(int dragTableId, int status, String tableUseDetailKey, String tableUseKey) async {
     List<String> _value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     /*get target table use key here*/
-    PosTable posTableData = PosTable(table_use_detail_key: tableUseDetailKey, table_sqlite_id: dragTableId, status: status, updated_at: dateTime);
+    PosTable posTableData = PosTable(
+        table_use_detail_key: tableUseDetailKey,
+        table_use_key: tableUseKey,
+        table_sqlite_id: dragTableId,
+        status: status,
+        updated_at: dateTime);
     int updatedTable = await PosDatabase.instance.updatePosTableStatus(posTableData);
     int updatedKey = await PosDatabase.instance.removePosTableTableUseDetailKey(posTableData);
     if (updatedTable == 1 && updatedKey == 1) {
@@ -882,7 +888,7 @@ class CartDialogState extends State<CartDialog> {
   callAddNewTableQuery(int dragTableId, int targetTableId) async {
     //List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(targetTableId);
     await createTableUseDetail(dragTableId, targetTableId);
-    await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!);
+    await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!, tableUseKey!);
     await syncAllToCloud();
     if (this.isLogOut == true) {
       openLogOutDialog();
@@ -941,6 +947,7 @@ class CartDialogState extends State<CartDialog> {
           sync_status: 0,
           updated_at: '',
           soft_delete: ''));
+      this.tableUseKey = insertData.table_use_key;
       TableUseDetail updatedDetail = await insertTableUseDetailKey(insertData, dateTime);
       this.tableUseDetailKey = updatedDetail.table_use_detail_key;
       _value.add(jsonEncode(updatedDetail));

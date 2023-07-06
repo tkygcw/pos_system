@@ -71,6 +71,19 @@ class _TableMenuState extends State<TableMenu> {
     super.dispose();
   }
 
+  fontColor({required PosTable posTable}){
+    if(posTable.status == 1){
+      Color fontColor = Colors.black;
+      Color backgroundColor = toColor(posTable.card_color!);
+      if(backgroundColor.computeLuminance() > 0.5){
+        fontColor = Colors.black;
+      } else {
+        fontColor = Colors.white;
+      }
+      return fontColor;
+    }
+  }
+
   toColor(String hex) {
     var hexColor = hex.replaceAll("#", "");
     if (hexColor.length == 6) {
@@ -178,7 +191,7 @@ class _TableMenuState extends State<TableMenu> {
                                   tableList.length, (index) {
                                 // tableList[index].seats == 2;
                                 return Card(
-                                  color: tableList[index].status != 0
+                                  color: tableList[index].status != 0 && MediaQuery.of(context).size.height < 500
                                       ? toColor(tableList[index].card_color!)
                                       : Colors.white,
                                   shape: tableList[index].isSelected
@@ -279,10 +292,21 @@ class _TableMenuState extends State<TableMenu> {
                                                   visible: tableList[index].group != null && MediaQuery.of(context).size.height > 500  ? true : false,
                                                   child: Container(
                                                       alignment: Alignment.topCenter,
-                                                      child: Text(
-                                                        "Group: ${tableList[index].group}",
-                                                        style:
-                                                        TextStyle(fontSize: 18),
+                                                      child: Container(
+                                                        padding: EdgeInsets.only(right: 5.0, left: 5.0),
+                                                        decoration: BoxDecoration(
+                                                            color: tableList[index].group != null && MediaQuery.of(context).size.height > 500
+                                                                ?
+                                                            toColor(tableList[index].card_color!)
+                                                                :
+                                                            Colors.white,
+                                                            borderRadius: BorderRadius.circular(5.0)
+                                                        ),
+                                                        child: Text(
+                                                          "Group: ${tableList[index].group}",
+                                                          style:
+                                                          TextStyle(fontSize: 18, color: fontColor(posTable: tableList[index])),
+                                                        ),
                                                       )),
                                                 ),
                                                 tableList[index].seats == '2'

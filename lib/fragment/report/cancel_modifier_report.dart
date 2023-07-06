@@ -45,73 +45,76 @@ class _CancelModifierReportState extends State<CancelModifierReport> {
                 body: this.isLoaded ?
                 Container(
                   padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            child: Text('Cancelled Modifier Report',
-                                style: TextStyle(fontSize: 25, color: Colors.black)),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 5),
-                      Divider(
-                        height: 10,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 5),
-                      _dataRow.isNotEmpty ?
-                      Container(
-                        margin: EdgeInsets.all(10),
-                        child:  isLoaded ?
-                        DataTable(
-                            border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                            headingTextStyle: TextStyle(color: Colors.white),
-                            headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                            columns: <DataColumn>[
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    'Modifier',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    'Quantity',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    'Net Sales',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                            ],
-                            rows: _dataRow
-                        ) : Center(
-                          child: CustomProgressBar(),
-                        ),
-                      ):
-                      Center(
-                        heightFactor: 12,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Icon(Icons.menu),
-                            Text('NO RECORD FOUND'),
+                            Container(
+                              child: Text('Cancelled Modifier Report',
+                                  style: TextStyle(fontSize: 25, color: Colors.black)),
+                            ),
                           ],
                         ),
-                      )
-                    ],
+                        SizedBox(height: 5),
+                        Divider(
+                          height: 10,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 5),
+                        _dataRow.isNotEmpty ?
+                        Container(
+                          margin: EdgeInsets.all(10),
+                          child:  isLoaded ?
+                          DataTable(
+                              border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                              headingTextStyle: TextStyle(color: Colors.white),
+                              headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                              columns: <DataColumn>[
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Modifier',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Quantity',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Net Sales',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              rows: _dataRow
+                          ) : Center(
+                            child: CustomProgressBar(),
+                          ),
+                        ):
+                        Center(
+                          heightFactor: 12,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(Icons.menu),
+                              Text('NO RECORD FOUND'),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ) : CustomProgressBar(),
               );
@@ -120,73 +123,76 @@ class _CancelModifierReportState extends State<CancelModifierReport> {
                 body: this.isLoaded ?
                 Container(
                   padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            child: Text('Cancelled Modifier Report',
-                                style: TextStyle(fontSize: 25, color: Colors.black)),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 5),
-                      Divider(
-                        height: 10,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 5),
-                      _dataRow.isNotEmpty ?
-                      Container(
-                        margin: EdgeInsets.all(10),
-                        child:  isLoaded ?
-                        DataTable(
-                            border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                            headingTextStyle: TextStyle(color: Colors.white),
-                            headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                            columns: <DataColumn>[
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    'Modifier',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    'Quantity',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    'Net Sales',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                            ],
-                            rows: _dataRow
-                        ) : Center(
-                          child: CustomProgressBar(),
-                        ),
-                      ):
-                      Center(
-                        heightFactor: 4,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Icon(Icons.menu),
-                            Text('NO RECORD FOUND'),
+                            Container(
+                              child: Text('Cancelled Modifier Report',
+                                  style: TextStyle(fontSize: 25, color: Colors.black)),
+                            ),
                           ],
                         ),
-                      )
-                    ],
+                        SizedBox(height: 5),
+                        Divider(
+                          height: 10,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 5),
+                        _dataRow.isNotEmpty ?
+                        Container(
+                          margin: EdgeInsets.all(10),
+                          child:  isLoaded ?
+                          DataTable(
+                              border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                              headingTextStyle: TextStyle(color: Colors.white),
+                              headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                              columns: <DataColumn>[
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Modifier',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Quantity',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(
+                                      'Net Sales',
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              rows: _dataRow
+                          ) : Center(
+                            child: CustomProgressBar(),
+                          ),
+                        ):
+                        Center(
+                          heightFactor: 4,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(Icons.menu),
+                              Text('NO RECORD FOUND'),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ) : CustomProgressBar(),
               );

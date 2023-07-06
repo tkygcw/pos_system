@@ -111,7 +111,7 @@ class CartPageState extends State<CartPage> {
   Color font = Colors.black45;
   int myCount = 0;
 
-  //Timer? _timer;
+  Timer? _timer;
   bool _isProcessComplete = false;
 
   void _scrollDown() {
@@ -132,6 +132,13 @@ class CartPageState extends State<CartPage> {
     controller.sink.close();
     super.deactivate();
   }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
 
   Future showSecondDialog(BuildContext context, ThemeColor color, CartModel cart, BranchLinkDining branchLinkDining) {
     return showDialog(
@@ -624,7 +631,7 @@ class CartPageState extends State<CartPage> {
                                         if (cart.selectedOption == 'Dine in') {
                                           if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
                                             openLoadingDialogBox();
-                                            //_startTimer();
+                                            _startTimer();
                                             print('has new item ${hasNewItem}');
                                             if (cart.cartNotifierItem[0].status == 1 && hasNewItem == true) {
                                              await callAddOrderCache(cart);
@@ -636,6 +643,7 @@ class CartPageState extends State<CartPage> {
                                             cart.removeAllCartItem();
                                             cart.removeAllTable();
                                             _isProcessComplete = true;
+                                            _timer?.cancel();
                                             Navigator.of(context).pop();
                                           } else {
                                             Fluttertoast.showToast(
@@ -644,13 +652,14 @@ class CartPageState extends State<CartPage> {
                                         } else {
                                           // not dine in call
                                           cart.removeAllTable();
-                                          openLoadingDialogBox();
-                                          //_startTimer();
                                           if (cart.cartNotifierItem.isNotEmpty) {
+                                            openLoadingDialogBox();
+                                            _startTimer();
                                             await callCreateNewNotDineOrder(cart);
                                             cart.removeAllCartItem();
                                             cart.selectedTable.clear();
                                             _isProcessComplete = true;
+                                            _timer?.cancel();
                                             Navigator.of(context).pop();
                                           } else {
                                             Fluttertoast.showToast(
@@ -775,14 +784,15 @@ class CartPageState extends State<CartPage> {
     });
   }
 
-  // void _startTimer() {
-  //   _timer = Timer(Duration(seconds: 5), () {
-  //     if (!_isProcessComplete) {
-  //       Navigator.of(context).pop();
-  //       enableButton();// Closing the dialog
-  //     }
-  //   });
-  // }
+  void _startTimer() {
+    _isProcessComplete = false;
+    _timer = Timer(Duration(seconds: 5), () {
+      if (_isProcessComplete == false) {
+        Navigator.of(context).pop();
+        enableButton();// Closing the dialog
+      }
+    });
+  }
 
   enableButton(){
     setState(() {
@@ -1776,7 +1786,9 @@ class CartPageState extends State<CartPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: LoadingDialog(),
+              child: WillPopScope(
+                  child: LoadingDialog(),
+                  onWillPop: () async => false)
             ),
           );
         },

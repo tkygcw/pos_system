@@ -1797,7 +1797,7 @@ class _MakePaymentState extends State<MakePayment> {
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',
-            soft_delete: dateTime
+            soft_delete: ''
         );
         Order data = await PosDatabase.instance.insertSqliteOrder(orderObject);
         print('data: ${data}');

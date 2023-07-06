@@ -2100,6 +2100,19 @@ class PosDatabase {
     return OrderCache.fromJson(maps.first);
   }
 
+  Future<OrderCache?> readSpecificOrderCacheByKey(String orderCacheKey) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery(
+        'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND order_cache_key = ?',
+        ['', orderCacheKey]
+    );
+    if(maps.isNotEmpty){
+      return OrderCache.fromJson(maps.first);
+    } else {
+      return null;
+    }
+  }
+
   Future<OrderDetail> readOrderDetailSqliteID(String orderDetailKey) async {
     final db = await instance.database;
     final maps = await db.rawQuery(
@@ -2135,8 +2148,6 @@ class PosDatabase {
     );
     return Printer.fromJson(maps.first);
   }
-
-
 
 /*
   read branch name
@@ -5305,8 +5316,8 @@ class PosDatabase {
   Future<int> removePosTableTableUseDetailKey(PosTable data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tablePosTable SET sync_status = ?, table_use_detail_key = ?, updated_at = ? WHERE table_sqlite_id = ?',
-        [2, data.table_use_detail_key, data.updated_at, data.table_sqlite_id]);
+        'UPDATE $tablePosTable SET sync_status = ?, table_use_detail_key = ?, table_use_key = ?, updated_at = ? WHERE table_sqlite_id = ?',
+        [2, data.table_use_detail_key, data.table_use_key, data.updated_at, data.table_sqlite_id]);
   }
 
 
@@ -5489,8 +5500,20 @@ class PosDatabase {
   Future<int> updateQrOrderCache(OrderCache data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableOrderCache SET table_use_sqlite_id = ?, table_use_key = ?, batch_id = ?, total_amount = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
-        [data.table_use_sqlite_id, data.table_use_key, data.batch_id, data.total_amount, data.sync_status, data.updated_at, data.order_cache_sqlite_id]);
+        'UPDATE $tableOrderCache SET table_use_sqlite_id = ?, table_use_key = ?, batch_id = ?, total_amount = ?, '
+            'order_by = ?, order_by_user_id = ?, accepted = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+        [
+          data.table_use_sqlite_id,
+          data.table_use_key,
+          data.batch_id,
+          data.total_amount,
+          data.order_by,
+          data.order_by_user_id,
+          data.accepted,
+          data.sync_status,
+          data.updated_at,
+          data.order_cache_sqlite_id
+        ]);
   }
 
 /*
@@ -6103,8 +6126,13 @@ class PosDatabase {
   Future<int> deleteTableUseDetailByKey(TableUseDetail data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableTableUseDetail SET sync_status = ?, status = ? WHERE table_use_detail_key = ?',
-        [data.sync_status, data.status, data.table_use_detail_key]);
+        'UPDATE $tableTableUseDetail SET soft_delete = ?, sync_status = ?, status = ? WHERE table_use_detail_key = ?',
+        [
+          data.soft_delete,
+          data.sync_status,
+          data.status,
+          data.table_use_detail_key
+        ]);
   }
 
 /*
@@ -6115,6 +6143,20 @@ class PosDatabase {
     return await db.rawUpdate(
         'UPDATE $tableTableUse SET status = ?, sync_status = ? WHERE table_use_sqlite_id = ?',
         [data.status, data.sync_status, data.table_use_sqlite_id]);
+  }
+
+/*
+  Soft-delete table use id
+*/
+  Future<int> deleteTableUseByKey(TableUse data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableTableUse SET soft_delete = ?, status = ?, sync_status = ? WHERE table_use_key = ?',
+        [
+          data.soft_delete,
+          data.status,
+          data.sync_status,
+          data.table_use_key]);
   }
 
 /*
