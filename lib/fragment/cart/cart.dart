@@ -406,11 +406,15 @@ class CartPageState extends State<CartPage> {
                                                   ? IconButton(
                                                       hoverColor: Colors.transparent,
                                                       icon: Icon(Icons.add),
-                                                      onPressed: () {
+                                                      onPressed: () async  {
                                                         if (cart.cartNotifierItem[index].status == 0) {
-                                                          setState(() {
-                                                            cart.cartNotifierItem[index].quantity =  cart.cartNotifierItem[index].quantity! + 1;
-                                                          });
+                                                          if(await checkProductStock(cart, cart.cartNotifierItem[index]) == true){
+                                                            setState(() {
+                                                              cart.cartNotifierItem[index].quantity =  cart.cartNotifierItem[index].quantity! + 1;
+                                                            });
+                                                          } else {
+                                                            Fluttertoast.showToast(backgroundColor: Colors.red, msg: "product out of stock");
+                                                          }
                                                         } else {
                                                           Fluttertoast.showToast(backgroundColor: Colors.red, msg: "order already placed!");
                                                         }
@@ -631,7 +635,7 @@ class CartPageState extends State<CartPage> {
                                         if (cart.selectedOption == 'Dine in') {
                                           if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
                                             openLoadingDialogBox();
-                                            _startTimer();
+                                            //_startTimer();
                                             print('has new item ${hasNewItem}');
                                             if (cart.cartNotifierItem[0].status == 1 && hasNewItem == true) {
                                              await callAddOrderCache(cart);
@@ -642,9 +646,9 @@ class CartPageState extends State<CartPage> {
                                             }
                                             cart.removeAllCartItem();
                                             cart.removeAllTable();
-                                            _isProcessComplete = true;
-                                            _timer?.cancel();
-                                            Navigator.of(context).pop();
+                                            // _isProcessComplete = true;
+                                            // _timer?.cancel();
+                                            // Navigator.of(context).pop();
                                           } else {
                                             Fluttertoast.showToast(
                                                 backgroundColor: Colors.red, msg: "make sure cart is not empty and table is selected");
@@ -654,13 +658,13 @@ class CartPageState extends State<CartPage> {
                                           cart.removeAllTable();
                                           if (cart.cartNotifierItem.isNotEmpty) {
                                             openLoadingDialogBox();
-                                            _startTimer();
+                                            //_startTimer();
                                             await callCreateNewNotDineOrder(cart);
                                             cart.removeAllCartItem();
                                             cart.selectedTable.clear();
-                                            _isProcessComplete = true;
-                                            _timer?.cancel();
-                                            Navigator.of(context).pop();
+                                            // _isProcessComplete = true;
+                                            // _timer?.cancel();
+                                            // Navigator.of(context).pop();
                                           } else {
                                             Fluttertoast.showToast(
                                                 backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
@@ -784,15 +788,91 @@ class CartPageState extends State<CartPage> {
     });
   }
 
-  void _startTimer() {
-    _isProcessComplete = false;
-    _timer = Timer(Duration(seconds: 5), () {
-      if (_isProcessComplete == false) {
-        Navigator.of(context).pop();
-        enableButton();// Closing the dialog
-      }
-    });
+  int checkCartProductQuantity(CartModel cart, BranchLinkProduct branchLinkProduct){
+    ///get all same item in cart
+    List<cartProductItem> sameProductList = cart.cartNotifierItem.where(
+            (item) => item.branch_link_product_sqlite_id == branchLinkProduct.branch_link_product_sqlite_id.toString() && item.status == 0
+    ).toList();
+    if(sameProductList.isNotEmpty){
+      /// sum all quantity
+      int totalQuantity = sameProductList.fold(0, (sum, product) => sum + product.quantity!);
+      return totalQuantity;
+    } else {
+      return 0;
+    }
   }
+
+  checkProductStock(CartModel cart, cartProductItem cartItem) async {
+    bool hasStock = true;
+    List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(cartItem.branch_link_product_sqlite_id!);
+    BranchLinkProduct product = data[0];
+    if (product.has_variant == 0) {
+      if(product.stock_type == '2') {
+        if (int.parse(product.stock_quantity!) > 0 && simpleIntInput <= int.parse(product.stock_quantity!)) {
+          int stockLeft =  int.parse(product.stock_quantity!) - checkCartProductQuantity(cart, product);
+          if(stockLeft > 0){
+            hasStock = true;
+          } else {
+            hasStock = false;
+          }
+        } else {
+          hasStock = false;
+        }
+      } else {
+        if (int.parse(product.daily_limit_amount!) > 0 && simpleIntInput <= int.parse(product.daily_limit_amount!)) {
+          int stockLeft =  int.parse(product.daily_limit_amount!) - checkCartProductQuantity(cart, product);
+          print('stock left: ${stockLeft}');
+          if(stockLeft > 0){
+            hasStock = true;
+          } else {
+            hasStock = false;
+          }
+        } else {
+          hasStock = false;
+        }
+      }
+    } else {
+      //check has variant product stock
+      if (product.stock_type == '2') {
+        if (int.parse(product.stock_quantity!) > 0 && simpleIntInput <= int.parse(product.stock_quantity!)) {
+          int stockLeft =  int.parse(product.stock_quantity!) - checkCartProductQuantity(cart, product);
+          print('stock left: ${stockLeft}');
+          if(stockLeft > 0){
+            hasStock = true;
+          } else {
+            hasStock = false;
+          }
+        } else {
+          hasStock = false;
+        }
+      } else {
+        if (int.parse(product.daily_limit_amount!) > 0 && simpleIntInput <= int.parse(product.daily_limit_amount!)) {
+          int stockLeft =  int.parse(product.daily_limit_amount!) - checkCartProductQuantity(cart, product);
+          print('stock left: ${stockLeft}');
+          if(stockLeft > 0){
+            hasStock = true;
+          } else {
+            hasStock = false;
+          }
+        } else {
+          hasStock = false;
+        }
+      }
+    }
+    print('has stock ${hasStock}');
+    return hasStock;
+  }
+
+  // void _startTimer() {
+  //   _isProcessComplete = false;
+  //   _timer = Timer(Duration(seconds: 5), () {
+  //     if (_isProcessComplete == false) {
+  //       Navigator.of(context).pop();
+  //       _isProcessComplete = true;
+  //       enableButton();// Closing the dialog
+  //     }
+  //   });
+  // }
 
   enableButton(){
     setState(() {
@@ -1910,6 +1990,10 @@ class CartPageState extends State<CartPage> {
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }else if (printStatus == 5){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "Printing error");
     }
     int kitchenPrintStatus = await printReceipt.printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
     if(kitchenPrintStatus == 1){
@@ -1920,12 +2004,17 @@ class CartPageState extends State<CartPage> {
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }else if (printStatus == 5){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "Printing error");
     }
     await syncAllToCloud();
     if(this.isLogOut == true){
       openLogOutDialog();
       return;
     }
+    Navigator.of(context).pop();
   }
 
 /*
@@ -1947,6 +2036,10 @@ class CartPageState extends State<CartPage> {
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }else if (printStatus == 5){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "Printing error");
     }
     int kitchenPrintStatus = await printReceipt.printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
     if(kitchenPrintStatus == 1){
@@ -1956,13 +2049,20 @@ class CartPageState extends State<CartPage> {
     } else if (kitchenPrintStatus == 2){
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
-          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+          msg: "kitchen printer timeout");
+    }else if (printStatus == 5){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "Printing error");
     }
+    print('start sync to cloud');
     await syncAllToCloud();
+    print('finish sync');
     if(this.isLogOut == true){
       openLogOutDialog();
       return;
     }
+    Navigator.of(context).pop();
   }
 
 /*
@@ -1981,6 +2081,10 @@ class CartPageState extends State<CartPage> {
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    } else if (printStatus == 5){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "Printing error");
     }
     int kitchenPrintStatus = await printReceipt.printKitchenList(printerList, context, cart, int.parse(this.orderCacheId));
     if(kitchenPrintStatus == 1){
@@ -1991,12 +2095,17 @@ class CartPageState extends State<CartPage> {
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }else if (printStatus == 5){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "Printing error");
     }
     await syncAllToCloud();
     if(this.isLogOut == true){
       openLogOutDialog();
       return;
     }
+    Navigator.of(context).pop();
   }
 
   randomColor() {
@@ -2657,87 +2766,89 @@ class CartPageState extends State<CartPage> {
         final prefs = await SharedPreferences.getInstance();
         final int? device_id = prefs.getInt('device_id');
         final String? login_value = prefs.getString('login_value');
-        bool _hasInternetAccess = await Domain().isHostReachable();
-        if (_hasInternetAccess) {
-          Map data = await Domain().syncLocalUpdateToCloud(
-              device_id: device_id.toString(),
-              value: login_value,
-              table_use_value: this.table_use_value,
-              table_use_detail_value: this.table_use_detail_value,
-              order_cache_value: this.order_cache_value,
-              order_detail_value: this.order_detail_value,
-              branch_link_product_value: this.branch_link_product_value,
-              order_modifier_value: this.order_modifier_detail_value,
-              table_value: this.table_value);
-          print('data status: ${data['status']}');
-          if (data['status'] == '1') {
-            print('success');
-            List responseJson = data['data'];
-            if(responseJson.isNotEmpty){
-              for (int i = 0; i < responseJson.length; i++) {
-                switch (responseJson[i]['table_name']) {
-                  case 'tb_table_use':
-                    {
-                      await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
-                    }
-                    break;
-                  case 'tb_table_use_detail':
-                    {
-                      await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-                    }
-                    break;
-                  case 'tb_order_cache':
-                    {
-                      await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
-                    }
-                    break;
-                  case 'tb_order_detail':
-                    {
-                      await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
-                    }
-                    break;
-                  case 'tb_order_modifier_detail':
-                    {
-                      await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
-                    }
-                    break;
-                  case 'tb_branch_link_product':
-                    {
-                      await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-                    }
-                    break;
-                  case 'tb_table':
-                    {
-                      await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-                    }
-                    break;
-                  default:
-                    {
-                      return;
-                    }
-                }
+        //bool _hasInternetAccess = await Domain().isHostReachable();
+        Map data = await Domain().syncLocalUpdateToCloud(
+            device_id: device_id.toString(),
+            value: login_value,
+            table_use_value: this.table_use_value,
+            table_use_detail_value: this.table_use_detail_value,
+            order_cache_value: this.order_cache_value,
+            order_detail_value: this.order_detail_value,
+            branch_link_product_value: this.branch_link_product_value,
+            order_modifier_value: this.order_modifier_detail_value,
+            table_value: this.table_value);
+        print('data status: ${data['status']}');
+        if (data['status'] == '1') {
+          print('success');
+          List responseJson = data['data'];
+          if(responseJson.isNotEmpty){
+            for (int i = 0; i < responseJson.length; i++) {
+              switch (responseJson[i]['table_name']) {
+                case 'tb_table_use':
+                  {
+                    await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+                  }
+                  break;
+                case 'tb_table_use_detail':
+                  {
+                    await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+                  }
+                  break;
+                case 'tb_order_cache':
+                  {
+                    await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+                  }
+                  break;
+                case 'tb_order_detail':
+                  {
+                    await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+                  }
+                  break;
+                case 'tb_order_modifier_detail':
+                  {
+                    await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
+                  }
+                  break;
+                case 'tb_branch_link_product':
+                  {
+                    await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+                  }
+                  break;
+                case 'tb_table':
+                  {
+                    await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+                  }
+                  break;
+                default:
+                  {
+                    return;
+                  }
               }
-              mainSyncToCloud.resetCount();
-            } else {
-              mainSyncToCloud.resetCount();
             }
-          }else if(data['status'] == '7'){
-            this.isLogOut = true;
             mainSyncToCloud.resetCount();
-          } else if (data['status'] == '8'){
-            print('cart time out');
-            throw TimeoutException("Time out");
-          }else {
+          } else {
             mainSyncToCloud.resetCount();
           }
-        } else {
+        }else if(data['status'] == '7'){
+          this.isLogOut = true;
+          mainSyncToCloud.resetCount();
+        } else if (data['status'] == '8'){
+          print('cart time out');
+          mainSyncToCloud.resetCount();
+          throw TimeoutException("Time out");
+        }else {
           mainSyncToCloud.resetCount();
         }
+        // if (_hasInternetAccess) {
+        //
+        // } else {
+        //   mainSyncToCloud.resetCount();
+        // }
       }
     }catch(e){
-      print("cart sync ro cloud error: $e");
+      print("cart sync to cloud error: $e");
       mainSyncToCloud.resetCount();
-      return;
+      // return;
     }
   }
 

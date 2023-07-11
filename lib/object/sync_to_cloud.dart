@@ -60,123 +60,124 @@ class SyncToCloud {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
     final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().syncLocalUpdateToCloud(
-          device_id: device_id.toString(),
-          value: login_value,
-          table_use_value: this.table_use_value,
-          table_use_detail_value: this.table_use_detail_value,
-          order_cache_value: this.order_cache_value,
-          order_detail_value: this.order_detail_value,
-          order_detail_cancel_value: this.order_detail_cancel_value,
-          order_modifier_value: this.order_modifier_detail_value,
-          order_value: this.order_value,
-          order_promotion_value: this.order_promotion_value,
-          order_tax_value: this.order_tax_value,
-          receipt_value: this.receipt_value,
-          refund_value: this.refund_value,
-          settlement_value: this.settlement_value,
-          settlement_link_payment_value: this.settlement_link_payment_value,
-          cash_record_value: this.cash_record_value,
-          branch_link_product_value: this.branch_link_product_value,
-          table_value: this.table_value,
-          printer_value: this.printer_value,
-          printer_link_category_value: this.printer_link_category_value,
-          transfer_owner_value: this.transfer_owner_value
-      );
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for(int i = 0; i < responseJson.length; i++){
-          switch(responseJson[i]['table_name']){
-            case 'tb_table_use': {
-              await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
-            }
-            break;
-            case 'tb_table_use_detail': {
-              await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-            }
-            break;
-            case 'tb_order_cache': {
-              await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
-            }
-            break;
-            case 'tb_order_detail': {
-              await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
-            }
-            break;
-            case 'tb_order_detail_cancel': {
-              await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[i]['order_detail_cancel_key']);
-            }
-            break;
-            case 'tb_order_modifier_detail': {
-              await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
-            }
-            break;
-            case 'tb_order': {
-              await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
-            }
-            break;
-            case 'tb_order_promotion_detail': {
-              await PosDatabase.instance.updateOrderPromotionDetailSyncStatusFromCloud(responseJson[i]['order_promotion_detail_key']);
-            }
-            break;
-            case 'tb_order_tax_detail': {
-              await PosDatabase.instance.updateOrderTaxDetailSyncStatusFromCloud(responseJson[i]['order_tax_detail_key']);
-            }
-            break;
-            case 'tb_receipt': {
-              await PosDatabase.instance.updateReceiptSyncStatusFromCloud(responseJson[i]['receipt_key']);
-            }
-            break;
-            case 'tb_refund': {
-              await PosDatabase.instance.updateRefundSyncStatusFromCloud(responseJson[i]['refund_key']);
-            }
-            break;
-            case 'tb_settlement': {
-              await PosDatabase.instance.updateSettlementSyncStatusFromCloud(responseJson[i]['settlement_key']);
-            }
-            break;
-            case 'tb_settlement_link_payment': {
-              await PosDatabase.instance.updateSettlementLinkPaymentSyncStatusFromCloud(responseJson[i]['settlement_link_payment_key']);
-            }
-            break;
-            case 'tb_cash_record': {
-              await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
-            }
-            break;
-            case 'tb_branch_link_product': {
-              await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-            }
-            break;
-            case 'tb_table': {
-              await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-            }
-            break;
-            case 'tb_printer': {
-              await PosDatabase.instance.updatePrinterSyncStatusFromCloud(responseJson[i]['printer_key']);
-            }
-            break;
-            case 'tb_printer_link_category': {
-              await PosDatabase.instance.updatePrinterLinkCategorySyncStatusFromCloud(responseJson[i]['printer_link_category_key']);
-            }
-            break;
-            case 'tb_transfer_owner': {
-              await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[i]['transfer_owner_key']);
-            }
-            break;
-            default: {
-              return;
-            }
+    Map data = await Domain().syncLocalUpdateToCloud(
+        device_id: device_id.toString(),
+        value: login_value,
+        table_use_value: this.table_use_value,
+        table_use_detail_value: this.table_use_detail_value,
+        order_cache_value: this.order_cache_value,
+        order_detail_value: this.order_detail_value,
+        order_detail_cancel_value: this.order_detail_cancel_value,
+        order_modifier_value: this.order_modifier_detail_value,
+        order_value: this.order_value,
+        order_promotion_value: this.order_promotion_value,
+        order_tax_value: this.order_tax_value,
+        receipt_value: this.receipt_value,
+        refund_value: this.refund_value,
+        settlement_value: this.settlement_value,
+        settlement_link_payment_value: this.settlement_link_payment_value,
+        cash_record_value: this.cash_record_value,
+        branch_link_product_value: this.branch_link_product_value,
+        table_value: this.table_value,
+        printer_value: this.printer_value,
+        printer_link_category_value: this.printer_link_category_value,
+        transfer_owner_value: this.transfer_owner_value
+    );
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for(int i = 0; i < responseJson.length; i++){
+        switch(responseJson[i]['table_name']){
+          case 'tb_table_use': {
+            await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+          }
+          break;
+          case 'tb_table_use_detail': {
+            await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+          }
+          break;
+          case 'tb_order_cache': {
+            await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+          }
+          break;
+          case 'tb_order_detail': {
+            await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+          }
+          break;
+          case 'tb_order_detail_cancel': {
+            await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[i]['order_detail_cancel_key']);
+          }
+          break;
+          case 'tb_order_modifier_detail': {
+            await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
+          }
+          break;
+          case 'tb_order': {
+            await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+          }
+          break;
+          case 'tb_order_promotion_detail': {
+            await PosDatabase.instance.updateOrderPromotionDetailSyncStatusFromCloud(responseJson[i]['order_promotion_detail_key']);
+          }
+          break;
+          case 'tb_order_tax_detail': {
+            await PosDatabase.instance.updateOrderTaxDetailSyncStatusFromCloud(responseJson[i]['order_tax_detail_key']);
+          }
+          break;
+          case 'tb_receipt': {
+            await PosDatabase.instance.updateReceiptSyncStatusFromCloud(responseJson[i]['receipt_key']);
+          }
+          break;
+          case 'tb_refund': {
+            await PosDatabase.instance.updateRefundSyncStatusFromCloud(responseJson[i]['refund_key']);
+          }
+          break;
+          case 'tb_settlement': {
+            await PosDatabase.instance.updateSettlementSyncStatusFromCloud(responseJson[i]['settlement_key']);
+          }
+          break;
+          case 'tb_settlement_link_payment': {
+            await PosDatabase.instance.updateSettlementLinkPaymentSyncStatusFromCloud(responseJson[i]['settlement_link_payment_key']);
+          }
+          break;
+          case 'tb_cash_record': {
+            await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+          }
+          break;
+          case 'tb_branch_link_product': {
+            await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+          }
+          break;
+          case 'tb_table': {
+            await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+          }
+          break;
+          case 'tb_printer': {
+            await PosDatabase.instance.updatePrinterSyncStatusFromCloud(responseJson[i]['printer_key']);
+          }
+          break;
+          case 'tb_printer_link_category': {
+            await PosDatabase.instance.updatePrinterLinkCategorySyncStatusFromCloud(responseJson[i]['printer_link_category_key']);
+          }
+          break;
+          case 'tb_transfer_owner': {
+            await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[i]['transfer_owner_key']);
+          }
+          break;
+          default: {
+            return;
           }
         }
-        return 0;
-      } else if (data['status'] == '7'){
-        return 1;
-      } else if (data['status'] == '8'){
-        return 2;
       }
+      return 0;
+    } else if (data['status'] == '7'){
+      return 1;
+    } else if (data['status'] == '8'){
+      return 2;
     }
+    // bool _hasInternetAccess = await Domain().isHostReachable();
+    // if (_hasInternetAccess) {
+    //
+    // }
   }
 
   resetValue(){
@@ -972,13 +973,11 @@ class SyncToCloud {
       List<String> _value = [];
       List<OrderDetail> data = await PosDatabase.instance.readAllNotSyncOrderDetail();
       notSyncOrderDetailList = data;
-      print('not sync order detail length: ${notSyncOrderDetailList.length}');
       if(notSyncOrderDetailList.isNotEmpty){
         for(int i = 0; i <  notSyncOrderDetailList.length; i++){
           _value.add(jsonEncode(notSyncOrderDetailList[i].syncJson()));
         }
         this.order_detail_value = _value.toString();
-        print('order detail not sync value: ${order_detail_value}');
       }
     } catch(error){
       print('15 order detail sync error: ${error}');

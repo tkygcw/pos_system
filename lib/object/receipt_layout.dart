@@ -1758,7 +1758,10 @@ class ReceiptLayout{
             //modifier
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}',
+                  width: 8,
+                  containsChinese: true,
+                  styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2)),
               PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
             ]);
           }
@@ -1856,7 +1859,11 @@ class ReceiptLayout{
           for (int j = 0; j < orderModifierDetailList.length; j++) {
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}', width: 8, containsChinese: true,),
+              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}',
+                width: 8,
+                styles: PosStyles(height: PosTextSize.size2, width: PosTextSize.size2),
+                containsChinese: true
+              ),
               PosColumn(text: '', width: 2),
             ]);
           }
@@ -2070,7 +2077,10 @@ class ReceiptLayout{
               if (group.modifierChild![j].isChecked!) {
                 bytes += generator.row([
                   PosColumn(text: '', width: 2),
-                  PosColumn(text: '+${group.modifierChild![j].name!}', width: 10, containsChinese: true,)
+                  PosColumn(text: '+${group.modifierChild![j].name!}',
+                      width: 10,
+                      containsChinese: true,
+                      styles: PosStyles(height: PosTextSize.size2, width: PosTextSize.size2))
                 ]);
               }
             }

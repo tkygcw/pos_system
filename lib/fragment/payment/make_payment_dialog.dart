@@ -104,6 +104,7 @@ class _MakePaymentState extends State<MakePayment> {
   String? order_value, order_tax_value, order_promotion_value;
   int myCount = 0, initLoad = 0;
   late Map branchObject;
+  bool isButtonDisable = false, willPop = true;
 
   // Array of button
   final List<String> buttons = [
@@ -232,10 +233,10 @@ class _MakePaymentState extends State<MakePayment> {
           if(constraints.maxWidth > 800){
             return WillPopScope(
                 onWillPop: () async {
-                  if(notificationModel.hasSecondScreen == true){
+                  if(notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true){
                     reInitSecondDisplay(isWillPop: true);
                   }
-                  return true;
+                  return willPop;
                 },
                 child: Center(
                   child: SingleChildScrollView(
@@ -246,8 +247,12 @@ class _MakePaymentState extends State<MakePayment> {
                           Text('Payment Detail'),
                           Spacer(),
                           IconButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
+                            onPressed: isButtonDisable ? null : () {
+                              setState(() {
+                                reInitSecondDisplay(isWillPop: true);
+                                willPop = true;
+                                Navigator.of(context).pop();
+                              });
                             },
                             color: Colors.red,
                             icon: Icon(Icons.close),
@@ -553,8 +558,12 @@ class _MakePaymentState extends State<MakePayment> {
                                                   height: 70,
                                                   width: 150,
                                                   child: ElevatedButton.icon(
-                                                      onPressed: () async {
+                                                      onPressed: isButtonDisable ? null : () async {
                                                         if(inputController.text.isNotEmpty && double.parse(inputController.text) >= double.parse(finalAmount)){
+                                                          setState(() {
+                                                            willPop = false;
+                                                            isButtonDisable = true;
+                                                          });
                                                           await callCreateOrder(inputController.text, connectivity, orderChange: change);
                                                           if(this.isLogOut == true){
                                                             openLogOutDialog();
@@ -638,7 +647,11 @@ class _MakePaymentState extends State<MakePayment> {
                                                 backgroundColor: MaterialStateProperty.all(Colors.green),
                                                 padding: MaterialStateProperty.all(EdgeInsets.all(20))
                                             ),
-                                            onPressed: () async {
+                                            onPressed: isButtonDisable ? null : () async {
+                                              setState(() {
+                                                willPop = false;
+                                                isButtonDisable = true;
+                                              });
                                               await callCreateOrder(finalAmount, connectivity);
                                               if(this.isLogOut == true){
                                                 openLogOutDialog();
@@ -692,6 +705,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                 style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                                                 onPressed: () async {
                                                   setState(() {
+                                                    willPop = false;
                                                     scanning = true;
                                                   });
                                                   //await controller?.resumeCamera();
@@ -2038,17 +2052,16 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   syncAllToCloud() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? device_id = prefs.getInt('device_id');
+      final String? login_value = prefs.getString('login_value');
       Map data = await Domain().syncLocalUpdateToCloud(
-        device_id: device_id.toString(),
-        value: login_value,
-        order_value:  this.order_value,
-        order_promotion_value: this.order_promotion_value,
-        order_tax_value: this.order_tax_value
+          device_id: device_id.toString(),
+          value: login_value,
+          order_value:  this.order_value,
+          order_promotion_value: this.order_promotion_value,
+          order_tax_value: this.order_tax_value
       );
       if (data['status'] == '1') {
         List responseJson = data['data'];
@@ -2073,7 +2086,17 @@ class _MakePaymentState extends State<MakePayment> {
         }
       } else if(data['status'] == '7'){
         this.isLogOut = true;
+      }else if (data['status'] == '8'){
+        print('payment time out');
+        throw TimeoutException("Timeout");
       }
+      // bool _hasInternetAccess = await Domain().isHostReachable();
+      // if (_hasInternetAccess) {
+      //
+      // }
+    } catch(e){
+      print('make payment sync to cloud error ${e}');
+      return 1;
     }
   }
 

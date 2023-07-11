@@ -279,7 +279,9 @@ class Domain {
       Map<String, dynamic>? result = {'status': '8'};
       return result;
     } catch (error) {
-      Fluttertoast.showToast(msg: error.toString());
+      Map<String, dynamic>? result = {'status': '9'};
+      return result;
+      //Fluttertoast.showToast(msg: error.toString());
     }
   }
 
@@ -375,7 +377,7 @@ class Domain {
         'tb_printer_link_category_sync': printer_link_category_value != null ? printer_link_category_value : [].toString(),
         'tb_printer_link_category_delete': printer_link_category_delete_value != null ? printer_link_category_delete_value : [].toString(),
         'tb_table_sync': table_value != null ? table_value : [].toString()
-      }).timeout(Duration(seconds: 5), onTimeout: () => throw TimeoutException("Time out"));
+      }).timeout(Duration(milliseconds: 3000), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);
     } on TimeoutException catch(_){
@@ -385,7 +387,9 @@ class Domain {
     }
     catch (error) {
       print('domain sync to cloud error: ${error}');
-      Fluttertoast.showToast(msg: error.toString());
+      Map<String, dynamic>? result = {'status': '8'};
+      return result;
+      //Fluttertoast.showToast(msg: error.toString());
     }
   }
 
@@ -828,12 +832,18 @@ class Domain {
         'get_new_qr_order': '1',
         'branch_id': branch_id,
         'company_id': company_id
-      });
+      }).timeout(Duration(milliseconds: 3000), onTimeout: ()=> throw TimeoutException("Timeout"));
 
       return jsonDecode(response.body);
+    } on TimeoutException catch(_){
+      print('domain qr order sync timeout');
+      Map<String, dynamic>? result = {'status': '8'};
+      return result;
     } catch (error) {
       print('domain error: ${error}');
-      Fluttertoast.showToast(msg: error.toString());
+      Map<String, dynamic>? result = {'status': '9'};
+      return result;
+      //Fluttertoast.showToast(msg: error.toString());
     }
   }
 

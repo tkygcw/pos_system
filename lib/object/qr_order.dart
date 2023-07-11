@@ -15,7 +15,6 @@ class QrOrder {
   int count = 0;
 
   getQrOrder() async {
-    count++;
     String categoryLocalId;
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -125,6 +124,8 @@ class QrOrder {
           }
         }
       }
+    } else {
+      return 1;
     }
   }
 }

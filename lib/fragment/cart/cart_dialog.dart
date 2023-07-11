@@ -972,36 +972,43 @@ class CartDialogState extends State<CartDialog> {
   }
 
   syncAllToCloud() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().syncLocalUpdateToCloud(
-          device_id: device_id.toString(), value: login_value, table_use_detail_value: this.table_use_detail_value, table_value: this.table_value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          switch (responseJson[i]['table_name']) {
-            case 'tb_table_use_detail':
-              {
-                await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-              }
-              break;
-            case 'tb_table':
-              {
-                await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-              }
-              break;
-            default:
-              {
-                return;
-              }
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? device_id = prefs.getInt('device_id');
+      final String? login_value = prefs.getString('login_value');
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if (_hasInternetAccess) {
+        Map data = await Domain().syncLocalUpdateToCloud(
+            device_id: device_id.toString(), value: login_value, table_use_detail_value: this.table_use_detail_value, table_value: this.table_value);
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          for (int i = 0; i < responseJson.length; i++) {
+            switch (responseJson[i]['table_name']) {
+              case 'tb_table_use_detail':
+                {
+                  await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+                }
+                break;
+              case 'tb_table':
+                {
+                  await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+                }
+                break;
+              default:
+                {
+                  return;
+                }
+            }
           }
+        } else if (data['status'] == '7') {
+          this.isLogOut = true;
+        }else if (data['status'] == '8'){
+          print('cart dialog sync to cloud timeout');
+          throw TimeoutException("Timeout");
         }
-      } else if (data['status'] == '7') {
-        this.isLogOut = true;
       }
+    }catch(e){
+
     }
   }
 }

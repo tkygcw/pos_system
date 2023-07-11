@@ -846,7 +846,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     } catch(e){
       print('adjust quantity sync to cloud error: $e');
       mainSyncToCloud.resetCount();
-      return;
+      return 1;
     }
   }
 }

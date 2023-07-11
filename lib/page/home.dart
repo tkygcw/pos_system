@@ -334,6 +334,7 @@ class _HomePageState extends State<HomePage> {
       * */
       if (message.data['type'] == '0') {
         if(qrOrder.count == 0){
+          qrOrder.count = 1;
           qrOrder.getQrOrder();
           manageNotificationTimer();
           qrOrder.count = 0;

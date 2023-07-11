@@ -700,7 +700,7 @@ class _TableMenuState extends State<TableMenu> {
           category_sqlite_id: orderDetailList[i].category_sqlite_id,
           order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString(),
           base_price: orderDetailList[i].original_price,
-          refColor: toColor(posTable.card_color!),
+          refColor: Colors.black,
       );
       cart.addItem(value);
     }

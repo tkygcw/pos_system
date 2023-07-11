@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -711,20 +712,19 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   }
 
   syncAllToCloud() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? device_id = prefs.getInt('device_id');
+      final String? login_value = prefs.getString('login_value');
       Map data = await Domain().syncLocalUpdateToCloud(
-        device_id: device_id.toString(),
-        value: login_value,
-        order_value:  this.order_value,
-        order_cache_value: this.order_cache_value,
-        table_use_detail_value: this.table_use_detail_value,
-        table_use_value: this.table_use_value,
-        table_value: this.table_value,
-        cash_record_value: this.cash_record_value
+          device_id: device_id.toString(),
+          value: login_value,
+          order_value:  this.order_value,
+          order_cache_value: this.order_cache_value,
+          table_use_detail_value: this.table_use_detail_value,
+          table_use_value: this.table_use_value,
+          table_value: this.table_value,
+          cash_record_value: this.cash_record_value
       );
       if (data['status'] == '1') {
         List responseJson = data['data'];
@@ -761,7 +761,18 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
         }
       } else if(data['status'] == '7'){
         this.isLogOut = true;
+      }else if (data['status'] == '8'){
+        print('payment time out');
+        throw TimeoutException("Time out");
       }
+      // bool _hasInternetAccess = await Domain().isHostReachable();
+      // if (_hasInternetAccess) {
+      //
+      // }
+    }catch(e){
+      print('payment success error: $e');
+      return 1;
     }
+
   }
 }

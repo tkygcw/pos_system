@@ -42,7 +42,7 @@ class _SettlementPageState extends State<SettlementPage> {
   @override
   void initState() {
     super.initState();
-    checkUnpaidOrderCache();
+    //checkUnpaidOrderCache();
     readPaymentLinkCompany();
     readCashRecord();
   }
@@ -95,11 +95,9 @@ class _SettlementPageState extends State<SettlementPage> {
                     ))
                         .toList(),
                     // Customize the selected item
-                    selectedItemBuilder: (BuildContext context) => paymentNameList
-                        .map((e) => Center(
+                    selectedItemBuilder: (BuildContext context) => paymentNameList.map((e) => Center(
                       child: Text(e),
-                    ))
-                        .toList(),
+                    )).toList(),
                   ),
                 ),
               ],

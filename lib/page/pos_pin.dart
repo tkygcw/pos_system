@@ -121,79 +121,81 @@ class _PosPinPageState extends State<PosPinPage> {
         notificationModel.resetNotification();
         return;
       }
-      bool _hasInternetAccess = await Domain().isHostReachable();
-      if (_hasInternetAccess) {
-        print('timer count: ${timerCount}');
-        if (timerCount == 0) {
-          //sync to cloud
-          if(mainSyncToCloud.count == 0){
-            mainSyncToCloud.count = 1;
-            int status = await mainSyncToCloud.syncAllToCloud();
-            print('status: ${status}');
-            if (status == 1) {
-              openLogOutDialog();
-              mainSyncToCloud.resetCount();
-              return;
-            } else if(status == 2){
-              print('time out detected');
-              mainSyncToCloud.resetCount();
-            } else {
-              mainSyncToCloud.resetCount();
-            }
-          }
-          //SyncToCloud().syncToCloud();
-        } else {
-          //qr order sync
-          if(qrOrder.count == 0){
-            print('qr order sync');
-            qrOrder.getQrOrder();
-            qrOrder.count = 0;
-          }
-
-          // if (notificationModel.notificationStatus == true) {
-          //   print('timer reset inside');
-          //   timerCount = 0;
-          //   notificationModel.resetNotification();
-          //   return;
-          // }
-          //sync from cloud
-          if(syncRecord.count == 0){
-            int syncStatus = await syncRecord.syncFromCloud();
-            print('is log out: ${syncStatus}');
-            if (syncStatus == 1) {
-              openLogOutDialog();
-              return;
-            }
-            // else if (syncStatus == false) {
-            //   ScaffoldMessenger.of(context).showSnackBar(
-            //     SnackBar(
-            //       duration: Duration(minutes: 5),
-            //       backgroundColor: Colors.green,
-            //       content: const Text('Content change !!!'),
-            //       action: SnackBarAction(
-            //         label: 'Refresh',
-            //         textColor: Colors.white,
-            //         onPressed: () {
-            //           setState(() {
-            //             ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            //           });
-            //           // Code to execute.
-            //         },
-            //       ),
-            //     ),
-            //   );
-            // }
-            syncRecord.count = 0;
+      print('timer count: ${timerCount}');
+      if (timerCount == 0) {
+        //sync to cloud
+        if(mainSyncToCloud.count == 0){
+          mainSyncToCloud.count = 1;
+          int? status = await mainSyncToCloud.syncAllToCloud();
+          print('status: ${status}');
+          if (status == 1) {
+            openLogOutDialog();
+            mainSyncToCloud.resetCount();
+            return;
+          } else if(status == 2){
+            print('time out detected');
+            mainSyncToCloud.resetCount();
+          } else {
+            mainSyncToCloud.resetCount();
           }
         }
-        //add timer and reset hasNotification
-        timerCount++;
-        notificationModel.resetNotification();
-        // reset the timer after two executions
-        if (timerCount >= 2) {
-          timerCount = 0;
+        //SyncToCloud().syncToCloud();
+      } else {
+        //qr order sync
+        if(qrOrder.count == 0){
+          print('qr order sync');
+          qrOrder.count = 1;
+          qrOrder.getQrOrder();
+          qrOrder.count = 0;
+        }
+
+        // if (notificationModel.notificationStatus == true) {
+        //   print('timer reset inside');
+        //   timerCount = 0;
+        //   notificationModel.resetNotification();
+        //   return;
+        // }
+        //sync from cloud
+        if(syncRecord.count == 0){
+          int syncStatus = await syncRecord.syncFromCloud();
+          print('is log out: ${syncStatus}');
+          if (syncStatus == 1) {
+            openLogOutDialog();
+            return;
+          }
+          // else if (syncStatus == false) {
+          //   ScaffoldMessenger.of(context).showSnackBar(
+          //     SnackBar(
+          //       duration: Duration(minutes: 5),
+          //       backgroundColor: Colors.green,
+          //       content: const Text('Content change !!!'),
+          //       action: SnackBarAction(
+          //         label: 'Refresh',
+          //         textColor: Colors.white,
+          //         onPressed: () {
+          //           setState(() {
+          //             ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          //           });
+          //           // Code to execute.
+          //         },
+          //       ),
+          //     ),
+          //   );
+          // }
+          syncRecord.count = 0;
         }
       }
+      //add timer and reset hasNotification
+      timerCount++;
+      notificationModel.resetNotification();
+      // reset the timer after two executions
+      if (timerCount >= 2) {
+        timerCount = 0;
+      }
+      // bool _hasInternetAccess = await Domain().isHostReachable();
+      // if (_hasInternetAccess) {
+      //
+      // }
     });
   }
 
@@ -348,45 +350,48 @@ class _PosPinPageState extends State<PosPinPage> {
             ),
           );
         } else {
-          return Scaffold(
-            backgroundColor: color.backgroundColor,
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Theme(
-                      data: Theme.of(context).copyWith(
-                          textTheme: TextTheme(
-                        bodyMedium: TextStyle(color: Colors.white),
-                      )),
-                      child: SingleChildScrollView(
-                          child: Container(
-                            height: MediaQuery.of(context).size.height,
-                            child: PinAuthentication(
-                              pinTheme: PinTheme(
-                              shape: PinCodeFieldShape.box,
-                              fieldOuterPadding: EdgeInsets.zero,
-                              fieldWidth: 40,
-                              selectedFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
-                              inactiveFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
-                              borderRadius: BorderRadius.circular(5),
-                              backgroundColor: color.backgroundColor,
-                              keysColor: Colors.white,
-                              activeFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
-                            ),
-                          onChanged: (v) {},
-                          onCompleted: (v) {
-                            if (v.length == 6) {
-                              userCheck(v);
-                            }
-                          },
-                          maxLength: 6,
-                        ),
-                      )),
+          return WillPopScope(
+            onWillPop: () async => false,
+            child: Scaffold(
+              backgroundColor: color.backgroundColor,
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Theme(
+                        data: Theme.of(context).copyWith(
+                            textTheme: TextTheme(
+                          bodyMedium: TextStyle(color: Colors.white),
+                        )),
+                        child: SingleChildScrollView(
+                            child: Container(
+                              height: MediaQuery.of(context).size.height,
+                              child: PinAuthentication(
+                                pinTheme: PinTheme(
+                                shape: PinCodeFieldShape.box,
+                                fieldOuterPadding: EdgeInsets.zero,
+                                fieldWidth: 40,
+                                selectedFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                                inactiveFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                                borderRadius: BorderRadius.circular(5),
+                                backgroundColor: color.backgroundColor,
+                                keysColor: Colors.white,
+                                activeFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                              ),
+                            onChanged: (v) {},
+                            onCompleted: (v) {
+                              if (v.length == 6) {
+                                userCheck(v);
+                              }
+                            },
+                            maxLength: 6,
+                          ),
+                        )),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
