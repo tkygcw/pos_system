@@ -144,7 +144,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                           //   openLogOutDialog();
                                           //   return;
                                           // }
-                                          if(notificationModel.hasSecondScreen == true){
+                                          if(notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true){
                                             reInitSecondDisplay();
                                           }
                                           await callPrinter();
@@ -177,7 +177,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                           onPressed: () async {
                                             await callOpenCashDrawer();
                                             //int printStatus = await PrintReceipt().cashDrawer(context, printerList: this.printerList);
-                                            if(notificationModel.hasSecondScreen == true){
+                                            if(notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true){
                                               reInitSecondDisplay();
                                             }
                                           },
@@ -206,7 +206,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                       });
                                       tableModel.changeContent(true);
                                       cartModel.initialLoad();
-                                      if(notificationModel.hasSecondScreen == true){
+                                      if(notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true){
                                         reInitSecondDisplay();
                                       }
                                       Navigator.of(context).pop();

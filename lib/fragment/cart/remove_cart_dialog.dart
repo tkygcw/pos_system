@@ -571,14 +571,14 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       );
       updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
     } else {
-      _totalStockQty = int.parse(checkData[0].daily_limit_amount!) + quantity;
+      _totalStockQty = int.parse(checkData[0].daily_limit!) + quantity;
       object = BranchLinkProduct(
           updated_at: dateTime,
           sync_status: 2,
-          daily_limit_amount: _totalStockQty.toString(),
+          daily_limit: _totalStockQty.toString(),
           branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
       );
-      updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimitAmount(object);
+      updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
     }
     if(updateStock == 1){
       List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);

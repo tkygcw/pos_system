@@ -235,7 +235,7 @@ class SyncToCloud {
         }
         this.receipt_value = _value.toString();
       }
-      print('receipt value: ${receipt_value}');
+      //print('receipt value: ${receipt_value}');
     } catch(error){
       print('15 receipt error: ${error}');
       return;

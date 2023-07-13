@@ -190,22 +190,22 @@ class CartDialogState extends State<CartDialog> {
                 ),
                 content: isLoad
                     ? Container(
-                        height: 650,
+                        // height: 650,
                         width: MediaQuery.of(context).size.width / 2,
                         child: Column(
                           children: [
-                            Expanded(
-                              child: ReorderableGridView.count(
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 10,
-                                crossAxisCount: MediaQuery.of(context).size.height > 500 ? 4 : 3,
-                                children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, color, index))).values.toList(),
-                                onReorder: (int oldIndex, int newIndex) {
-                                  if (oldIndex != newIndex) {
-                                    showSecondDialog(context, color, oldIndex, newIndex, cart);
-                                  }
-                                },
-                              ),
+                            ReorderableGridView.count(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              crossAxisCount: MediaQuery.of(context).size.height > 500 ? 4 : 3,
+                              children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, color, index))).values.toList(),
+                              onReorder: (int oldIndex, int newIndex) {
+                                if (oldIndex != newIndex) {
+                                  showSecondDialog(context, color, oldIndex, newIndex, cart);
+                                }
+                              },
                             ),
                           ],
                         ))
@@ -286,6 +286,19 @@ class CartDialogState extends State<CartDialog> {
     return selected;
   }
 
+  fontColor({required PosTable posTable}){
+    if(posTable.status == 1){
+      Color fontColor = Colors.black;
+      Color backgroundColor = toColor(posTable.card_color!);
+      if(backgroundColor.computeLuminance() > 0.5){
+        fontColor = Colors.black;
+      } else {
+        fontColor = Colors.white;
+      }
+      return fontColor;
+    }
+  }
+
   Widget tableItem(CartModel cart, ThemeColor color, index) {
     return Container(
       key: Key(index.toString()),
@@ -296,7 +309,7 @@ class CartDialogState extends State<CartDialog> {
             shape: tableList[index].isSelected
                 ? new RoundedRectangleBorder(side: new BorderSide(color: color.backgroundColor, width: 3.0), borderRadius: BorderRadius.circular(4.0))
                 : new RoundedRectangleBorder(side: new BorderSide(color: Colors.white, width: 3.0), borderRadius: BorderRadius.circular(4.0)),
-            color: tableList[index].status == 1 ? Utils.toColor(tableList[index].card_color!) : Colors.white,
+            color: tableList[index].status == 1 && MediaQuery.of(context).size.height < 500 ? Utils.toColor(tableList[index].card_color!) : Colors.white,
             child: InkWell(
               splashColor: Colors.blue.withAlpha(30),
               onDoubleTap: () {
@@ -352,14 +365,26 @@ class CartDialogState extends State<CartDialog> {
                     tableList[index].group != null && MediaQuery.of(context).size.height > 500
                         ? Row(
                         children: [
-                          Text(
-                            "Group: ${tableList[index].group}",
-                            style: TextStyle(fontSize: 18),
+                          Container(
+                            padding: EdgeInsets.only(right: 5.0, left: 5.0),
+                            decoration: BoxDecoration(
+                                color: tableList[index].group != null && MediaQuery.of(context).size.height > 500
+                                    ?
+                                toColor(tableList[index].card_color!)
+                                    :
+                                Colors.white,
+                                borderRadius: BorderRadius.circular(5.0)
+                            ),
+                            child: Text(
+                              "Group: ${tableList[index].group}",
+                              style: TextStyle(fontSize: 18, color: fontColor(posTable: tableList[index])),
+                            ),
                           ),
                           Spacer(),
                           Visibility(
                               visible: tableList[index].isSelected  ? true : false,
                               child: IconButton(
+                                color: Colors.red,
                                 icon: Icon(Icons.close, size: 18),
                                 constraints: BoxConstraints(),
                                 padding: EdgeInsets.zero,

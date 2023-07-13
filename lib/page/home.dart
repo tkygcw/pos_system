@@ -95,6 +95,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   initSecondDisplay() async {
+    List<AppSetting> data = await PosDatabase.instance.readAllAppSetting();
+    if(data.isNotEmpty){
+      if(data[0].show_second_display == 1){
+        notificationModel.secondScreenEnable = true;
+      } else {
+        notificationModel.secondScreenEnable = false;
+      }
+    }
     if(notificationModel.hasSecondScreen == true){
       await displayManager.showSecondaryDisplay(displayId: notificationModel.displays[1]!.displayId, routerName: "presentation");
     }

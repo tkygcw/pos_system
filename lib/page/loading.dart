@@ -140,14 +140,14 @@ class _LoadingPageState extends State<LoadingPage> {
         show_second_display: notificationModel.hasSecondScreen ? 1 : 0
     );
     AppSetting data = await PosDatabase.instance.insertSetting(appSetting);
-    notificationModel.enableSecondDisplay();
+    //notificationModel.enableSecondDisplay();
   }
 
 /*
   create device login
 */
   createDeviceLogin() async {
-    print('devide logout called');
+    print('device logout called');
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();

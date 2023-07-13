@@ -5464,11 +5464,11 @@ class PosDatabase {
 /*
   update branch link product daily limit amount
 */
-  Future<int> updateBranchLinkProductDailyLimitAmount(BranchLinkProduct data) async {
+  Future<int> updateBranchLinkProductDailyLimit(BranchLinkProduct data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableBranchLinkProduct SET updated_at = ?, sync_status = ?, daily_limit_amount = ? WHERE branch_link_product_sqlite_id = ?',
-        [data.updated_at, data.sync_status, data.daily_limit_amount, data.branch_link_product_sqlite_id]
+        'UPDATE $tableBranchLinkProduct SET updated_at = ?, sync_status = ?, daily_limit = ? WHERE branch_link_product_sqlite_id = ?',
+        [data.updated_at, data.sync_status, data.daily_limit, data.branch_link_product_sqlite_id]
     );
   }
 

@@ -223,10 +223,11 @@ class _MakePaymentState extends State<MakePayment> {
         getReceiptPaymentDetail(cart);
         //getSubTotal(cart);
         getCartItemList(cart);
-        if(initLoad == 0 && notificationModel.hasSecondScreen == true){
-          if(notificationModel.secondScreenEnable == true){
-            reInitSecondDisplay(cart: cart);
-          }
+        if(initLoad == 0 && notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true){
+          reInitSecondDisplay(cart: cart);
+          // if(notificationModel.secondScreenEnable == true){
+          //   reInitSecondDisplay(cart: cart);
+          // }
           initLoad++;
         }
         return LayoutBuilder(builder: (context,  constraints) {
@@ -249,7 +250,9 @@ class _MakePaymentState extends State<MakePayment> {
                           IconButton(
                             onPressed: isButtonDisable ? null : () {
                               setState(() {
-                                reInitSecondDisplay(isWillPop: true);
+                                if(notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true){
+                                  reInitSecondDisplay(isWillPop: true);
+                                }
                                 willPop = true;
                                 Navigator.of(context).pop();
                               });

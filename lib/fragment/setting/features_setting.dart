@@ -23,7 +23,7 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
   late Color _buttonColor;
   late Color _iconColor;
   List<AppSetting> appSettingList = [];
-  bool cashDrawer = false, secondDisplay = false;
+  bool cashDrawer = false;
   bool _isLoaded = false;
 
   @override
@@ -258,29 +258,29 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
         });
   }
 
-  updateAppSetting() async {
-    print('update called');
-    AppSetting appSetting = AppSetting(
-      open_cash_drawer: this.cashDrawer == true ? 1 : 0,
-      show_second_display: this.secondDisplay == true ? 1 : 0,
-      app_setting_sqlite_id: appSettingList[0].app_setting_sqlite_id
-    );
-    int data = await PosDatabase.instance.updateAppSettings(appSetting);
-    if(appSetting.show_second_display == 0){
-      notificationModel.disableSecondDisplay();
-    } else {
-      notificationModel.enableSecondDisplay();
-    }
-  }
+  // updateAppSetting() async {
+  //   print('update called');
+  //   AppSetting appSetting = AppSetting(
+  //     open_cash_drawer: this.cashDrawer == true ? 1 : 0,
+  //     show_second_display: this.secondDisplay == true ? 1 : 0,
+  //     app_setting_sqlite_id: appSettingList[0].app_setting_sqlite_id
+  //   );
+  //   int data = await PosDatabase.instance.updateAppSettings(appSetting);
+  //   if(appSetting.show_second_display == 0){
+  //     notificationModel.disableSecondDisplay();
+  //   } else {
+  //     notificationModel.enableSecondDisplay();
+  //   }
+  // }
 
-  createAppSetting() async {
-    AppSetting appSetting = AppSetting(
-      open_cash_drawer: this.cashDrawer ? 1 : 0,
-      show_second_display: this.secondDisplay ? 1 : 0
-
-    );
-    AppSetting data = await PosDatabase.instance.insertSetting(appSetting);
-  }
+  // createAppSetting() async {
+  //   AppSetting appSetting = AppSetting(
+  //     open_cash_drawer: this.cashDrawer ? 1 : 0,
+  //     show_second_display: this.secondDisplay ? 1 : 0
+  //
+  //   );
+  //   AppSetting data = await PosDatabase.instance.insertSetting(appSetting);
+  // }
 
   getAllAppSetting() async {
     List<AppSetting> data = await PosDatabase.instance.readAllAppSetting();
@@ -292,11 +292,11 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
         this.cashDrawer = false;
       }
 
-      if(appSettingList[0].show_second_display == 1){
-        this.secondDisplay = true;
-      } else {
-        this.secondDisplay = false;
-      }
+      // if(appSettingList[0].show_second_display == 1){
+      //   this.secondDisplay = true;
+      // } else {
+      //   this.secondDisplay = false;
+      // }
     }
     setState(() {
       _isLoaded = true;

@@ -71,6 +71,7 @@ class Domain {
       Map<String, dynamic>? result = {'status': '8'};
       return result;
     } catch (error) {
+      print('login domain error: $error');
       Fluttertoast.showToast(msg: error.toString());
     }
   }
@@ -349,6 +350,7 @@ class Domain {
         printer_link_category_value,
         printer_link_category_delete_value,
         table_value,
+        user_value,
       }) async {
     try {
       //print('order cache value 15 sync: ${order_cache_value}');
@@ -376,7 +378,8 @@ class Domain {
         'tb_printer_create': printer_value != null ? printer_value : [].toString(),
         'tb_printer_link_category_sync': printer_link_category_value != null ? printer_link_category_value : [].toString(),
         'tb_printer_link_category_delete': printer_link_category_delete_value != null ? printer_link_category_delete_value : [].toString(),
-        'tb_table_sync': table_value != null ? table_value : [].toString()
+        'tb_table_sync': table_value != null ? table_value : [].toString(),
+        'tb_user_sync': user_value != null ? user_value : [].toString()
       }).timeout(Duration(milliseconds: 3000), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);

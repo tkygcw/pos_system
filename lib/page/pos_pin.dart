@@ -41,6 +41,7 @@ class _PosPinPageState extends State<PosPinPage> {
   List response = [];
   List<Printer> printerList = [];
   String latestVersion = '';
+  String? userValue, transferOwnerValue;
   bool isLogOut = false;
 
   @override
@@ -551,32 +552,61 @@ class _PosPinPageState extends State<PosPinPage> {
     TransferOwner createRecord = await PosDatabase.instance.insertSqliteTransferOwner(object);
     TransferOwner _keyInsert = await insertTransferOwnerKey(createRecord, dateTime);
     _value.add(jsonEncode(_keyInsert));
-    await syncTransferOwnerToCloud(_value.toString());
+    transferOwnerValue = _value.toString();
+    //await syncTransferOwnerToCloud(_value.toString());
   }
 
-  syncTransferOwnerToCloud(String value) async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    //check is host reachable
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
+  // syncTransferOwnerToCloud(String value) async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final int? device_id = prefs.getInt('device_id');
+  //   final String? login_value = prefs.getString('login_value');
+  //   //check is host reachable
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map data = await Domain().syncLocalUpdateToCloud(
+  //         device_id: device_id.toString(),
+  //         value: login_value,
+  //         transfer_owner_value: value
+  //     );
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
+  //     } else if (data['status'] == '7') {
+  //       this.isLogOut = true;
+  //     }
+  //     // Map response = await Domain().SyncTransferOwnerToCloud(value);
+  //     // if (response['status'] == '1') {
+  //     //   List responseJson = response['data'];
+  //     //   int updateStatus = await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
+  //     // }
+  //   }
+  // }
+
+  syncAllToCloud() async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? device_id = prefs.getInt('device_id');
+      final String? login_value = prefs.getString('login_value');
       Map data = await Domain().syncLocalUpdateToCloud(
           device_id: device_id.toString(),
           value: login_value,
-          transfer_owner_value: value
+          transfer_owner_value: transferOwnerValue,
+          user_value: userValue
       );
       if (data['status'] == '1') {
         List responseJson = data['data'];
-        await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
+        for(int i = 0; i < responseJson.length; i++){
+          if(responseJson[i]['table_name'] == 'tb_transfer_owner'){
+            await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
+          }
+        }
       } else if (data['status'] == '7') {
         this.isLogOut = true;
+      } else if(data['status'] == '8'){
+        throw TimeoutException("Time out");
       }
-      // Map response = await Domain().SyncTransferOwnerToCloud(value);
-      // if (response['status'] == '1') {
-      //   List responseJson = response['data'];
-      //   int updateStatus = await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
-      // }
+    }catch(e){
+     return 0;
     }
   }
 

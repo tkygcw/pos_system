@@ -819,8 +819,8 @@ class CartPageState extends State<CartPage> {
           hasStock = false;
         }
       } else {
-        if (int.parse(product.daily_limit_amount!) > 0 && simpleIntInput <= int.parse(product.daily_limit_amount!)) {
-          int stockLeft =  int.parse(product.daily_limit_amount!) - checkCartProductQuantity(cart, product);
+        if (int.parse(product.daily_limit!) > 0 && simpleIntInput <= int.parse(product.daily_limit!)) {
+          int stockLeft =  int.parse(product.daily_limit!) - checkCartProductQuantity(cart, product);
           print('stock left: ${stockLeft}');
           if(stockLeft > 0){
             hasStock = true;
@@ -2362,10 +2362,12 @@ class CartPageState extends State<CartPage> {
 
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    final String? user = prefs.getString('user');
+    final String? user = prefs.getString('pos_pin_user');
+    final String? loginUser = prefs.getString('user');
     List<TableUse> _tableUse = [];
     List<String> _value = [];
     Map userObject = json.decode(user!);
+    Map loginUserObject = json.decode(loginUser!);
     String _tableUseId = '';
     String batch = '';
     try {
@@ -2392,7 +2394,7 @@ class CartPageState extends State<CartPage> {
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(OrderCache(
             order_cache_id: 0,
             order_cache_key: '',
-            company_id: userObject['company_id'].toString(),
+            company_id: loginUserObject['company_id'].toString(),
             branch_id: branch_id.toString(),
             order_detail_id: '',
             table_use_sqlite_id: cart.selectedOption == 'Dine in' ? _tableUseId : '',
@@ -2432,18 +2434,18 @@ class CartPageState extends State<CartPage> {
     }
   }
 
-  syncOrderCacheToCloud(OrderCache updatedCache) async {
-    List<String> _orderCacheValue = [];
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      _orderCacheValue.add(jsonEncode(updatedCache));
-      Map response = await Domain().SyncOrderCacheToCloud(_orderCacheValue.toString());
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int orderCacheData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[0]['order_cache_key']);
-      }
-    }
-  }
+  // syncOrderCacheToCloud(OrderCache updatedCache) async {
+  //   List<String> _orderCacheValue = [];
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     _orderCacheValue.add(jsonEncode(updatedCache));
+  //     Map response = await Domain().SyncOrderCacheToCloud(_orderCacheValue.toString());
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       int orderCacheData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[0]['order_cache_key']);
+  //     }
+  //   }
+  // }
 
   generateOrderCacheKey(OrderCache orderCache) async {
     final prefs = await SharedPreferences.getInstance();
@@ -2489,20 +2491,20 @@ class CartPageState extends State<CartPage> {
     }
   }
 
-  syncUpdatedTableUseIdToCloud(String tableUseValue) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      var response = await Domain().SyncTableUseToCloud(tableUseValue);
-      if (response != null) {
-        if (response['status'] == '1') {
-          List responseJson = response['data'];
-          int updatedTableUse = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
-        }
-      } else {
-        this.timeOutDetected = true;
-      }
-    }
-  }
+  // syncUpdatedTableUseIdToCloud(String tableUseValue) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     var response = await Domain().SyncTableUseToCloud(tableUseValue);
+  //     if (response != null) {
+  //       if (response['status'] == '1') {
+  //         List responseJson = response['data'];
+  //         int updatedTableUse = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
+  //       }
+  //     } else {
+  //       this.timeOutDetected = true;
+  //     }
+  //   }
+  // }
 
   createOrderDetail(CartModel cart) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -2602,13 +2604,13 @@ class CartPageState extends State<CartPage> {
           branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
       updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
     } else {
-      _totalStockQty = int.parse(checkData[0].daily_limit_amount!) - quantity;
+      _totalStockQty = int.parse(checkData[0].daily_limit!) - quantity;
       object = BranchLinkProduct(
           updated_at: dateTime,
           sync_status: 2,
-          daily_limit_amount: _totalStockQty.toString(),
+          daily_limit: _totalStockQty.toString(),
           branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
-      updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimitAmount(object);
+      updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
     }
     //return updated value
     if (updateStock == 1) {

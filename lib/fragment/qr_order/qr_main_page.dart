@@ -167,7 +167,7 @@ class _QrMainPageState extends State<QrMainPage> {
       if (data[0].stock_type == '2') {
         orderDetailList[i].available_stock = data[0].stock_quantity!;
       } else {
-        orderDetailList[i].available_stock = data[0].daily_limit_amount!;
+        orderDetailList[i].available_stock = data[0].daily_limit!;
       }
       orderDetailList[i].isRemove = false;
     }

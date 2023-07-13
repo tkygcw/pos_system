@@ -649,8 +649,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           hasStock = false;
         }
       } else {
-        if (int.parse(data1[0].daily_limit_amount!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit_amount!)) {
-          int stockLeft =  int.parse(data1[0].daily_limit_amount!) - checkCartProductQuantity(cart, data1[0]);
+        if (int.parse(data1[0].daily_limit!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit!)) {
+          int stockLeft =  int.parse(data1[0].daily_limit!) - checkCartProductQuantity(cart, data1[0]);
           print('stock left: ${stockLeft}');
           if(stockLeft > 0){
             hasStock = true;

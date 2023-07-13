@@ -1838,6 +1838,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                 return Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: TextField(
+                                    enabled: false,
                                     controller: dailyLimitController,
                                     keyboardType: TextInputType.number,
                                     inputFormatters: [

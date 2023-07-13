@@ -724,13 +724,13 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
             branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
         updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
       } else {
-        _totalStockQty = int.parse(checkData[0].daily_limit_amount!) - int.parse(orderDetailList[i].quantity!);
+        _totalStockQty = int.parse(checkData[0].daily_limit!) - int.parse(orderDetailList[i].quantity!);
         object = BranchLinkProduct(
             updated_at: dateTime,
             sync_status: 2,
-            daily_limit_amount: _totalStockQty.toString(),
+            daily_limit: _totalStockQty.toString(),
             branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
-        updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimitAmount(object);
+        updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
       }
       if (updateStock == 1) {
         List<BranchLinkProduct> updatedData =
@@ -743,18 +743,18 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     //syncBranchLinkProductStock(_branchLinkProductValue.toString());
   }
 
-  syncBranchLinkProductStock(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map orderDetailResponse = await Domain().SyncBranchLinkProductToCloud(value);
-      if (orderDetailResponse['status'] == '1') {
-        List responseJson = orderDetailResponse['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int syncUpdated = await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-        }
-      }
-    }
-  }
+  // syncBranchLinkProductStock(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map orderDetailResponse = await Domain().SyncBranchLinkProductToCloud(value);
+  //     if (orderDetailResponse['status'] == '1') {
+  //       List responseJson = orderDetailResponse['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int syncUpdated = await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+  //       }
+  //     }
+  //   }
+  // }
 
   updatePosTable() async {
     try {
