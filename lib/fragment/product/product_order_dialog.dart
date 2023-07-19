@@ -880,6 +880,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         price: await getProductPrice(widget.productDetail?.product_sqlite_id),
         quantity: simpleIntInput,
         checkedModifierLength: checkedModifierLength,
+        checkedModifierItem: checkedModItem,
         modifier: modifierGroup,
         variant: variantGroup,
         remark: remarkController.text,

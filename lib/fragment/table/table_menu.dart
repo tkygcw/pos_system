@@ -114,10 +114,10 @@ class _TableMenuState extends State<TableMenu> {
           if (tableModel.isChange) {
             readAllTable(model: tableModel);
           }
-          if(notificationModel.contentLoaded == true) {
+          if(notificationModel.contentLoad == true) {
             isLoaded = false;
           }
-          if(notificationModel.contentLoaded == true){
+          if(notificationModel.contentLoad == true && notificationModel.contentLoaded == true){
             notificationModel.resetContentLoaded();
             notificationModel.resetContentLoad();
             Future.delayed(const Duration(seconds: 1), () {
@@ -152,7 +152,7 @@ class _TableMenuState extends State<TableMenu> {
                                         if(hasInternetAccess){
                                           openAddTableDialog(PosTable());
                                         } else {
-                                          Fluttertoast.showToast(msg: "Check your internet access");
+                                          Fluttertoast.showToast(msg: "Internet access required");
                                         }
                                       },
                                       icon: Icon(Icons.add),
@@ -531,9 +531,9 @@ class _TableMenuState extends State<TableMenu> {
           orderCacheList = List.from(data);
         }
         //Get all order detail based on order cache id
-        print('order cache key: ${data[i].order_cache_key!}');
+        //print('order cache key: ${data[i].order_cache_key!}');
         List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(data[i].order_cache_key!);
-        print('order detail length 2 : ${detailData.length}');
+        //print('order detail length 2 : ${detailData.length}');
         //add all order detail from db
         if (!orderDetailList.contains(detailData)) {
           orderDetailList..addAll(detailData);
@@ -683,7 +683,7 @@ class _TableMenuState extends State<TableMenu> {
     List<TableUseDetail> tableUseDetailList = [];
     List<cartProductItem> itemList = [];
     var detailLength = orderDetailList.length;
-    print('tb order detail length: ${detailLength}');
+    //print('tb order detail length: ${detailLength}');
     for (int i = 0; i < detailLength; i++) {
       value = cartProductItem(
           branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,

@@ -257,6 +257,7 @@ class SyncToCloud {
           _value.add(jsonEncode(notSyncPrinterCategoryList[i]));
         }
         this.printer_link_category_value = _value.toString();
+        print('value: ${printer_link_category_value}');
       }
     }catch (error){
       print('15 printer category error: ${error}');
@@ -284,31 +285,31 @@ class SyncToCloud {
 /*
   ----------------------Branch link product part----------------------------------------------------------------------------------------------------------------------------
 */
-  branchLinkProductSyncToCloud() async {
-    List<String> value = [];
-    await getNotSyncBranchLinkProduct();
-    if(notSyncBranchLinkProductList.isNotEmpty){
-      for(int i = 0; i < notSyncBranchLinkProductList.length; i++){
-        value.add(jsonEncode(notSyncBranchLinkProductList[i]));
-      }
-    }
-    //sync to cloud
-    syncBranchLinkProductStock(value.toString());
-  }
+  // branchLinkProductSyncToCloud() async {
+  //   List<String> value = [];
+  //   await getNotSyncBranchLinkProduct();
+  //   if(notSyncBranchLinkProductList.isNotEmpty){
+  //     for(int i = 0; i < notSyncBranchLinkProductList.length; i++){
+  //       value.add(jsonEncode(notSyncBranchLinkProductList[i]));
+  //     }
+  //   }
+  //   //sync to cloud
+  //   syncBranchLinkProductStock(value.toString());
+  // }
 
 
-  syncBranchLinkProductStock(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess) {
-      Map orderDetailResponse = await Domain().SyncBranchLinkProductToCloud(value);
-      if (orderDetailResponse['status'] == '1') {
-        List responseJson = orderDetailResponse['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int syncUpdated = await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-        }
-      }
-    }
-  }
+  // syncBranchLinkProductStock(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if(_hasInternetAccess) {
+  //     Map orderDetailResponse = await Domain().SyncBranchLinkProductToCloud(value);
+  //     if (orderDetailResponse['status'] == '1') {
+  //       List responseJson = orderDetailResponse['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int syncUpdated = await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+  //       }
+  //     }
+  //   }
+  // }
 
   getNotSyncBranchLinkProduct() async {
     try{
@@ -376,29 +377,29 @@ class SyncToCloud {
   ----------------------Settlement part-------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
-  settlementSyncToCloud() async {
-    List<String> value = [];
-    await getNotSyncSettlement();
-    if(notSyncSettlementList.isNotEmpty){
-      for(int i = 0; i < notSyncSettlementList.length; i++){
-        value.add(jsonEncode(notSyncSettlementList[i]));
-      }
-    }
-    //sync to cloud
-    syncSettlementToCloud(value.toString());
-  }
-  syncSettlementToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map settlementResponse = await Domain().SyncSettlementToCloud(value);
-      if (settlementResponse['status'] == '1') {
-        List responseJson = settlementResponse['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int syncUpdated = await PosDatabase.instance.updateSettlementSyncStatusFromCloud(responseJson[i]['settlement_key']);
-        }
-      }
-    }
-  }
+  // settlementSyncToCloud() async {
+  //   List<String> value = [];
+  //   await getNotSyncSettlement();
+  //   if(notSyncSettlementList.isNotEmpty){
+  //     for(int i = 0; i < notSyncSettlementList.length; i++){
+  //       value.add(jsonEncode(notSyncSettlementList[i]));
+  //     }
+  //   }
+  //   //sync to cloud
+  //   syncSettlementToCloud(value.toString());
+  // }
+  // syncSettlementToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map settlementResponse = await Domain().SyncSettlementToCloud(value);
+  //     if (settlementResponse['status'] == '1') {
+  //       List responseJson = settlementResponse['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int syncUpdated = await PosDatabase.instance.updateSettlementSyncStatusFromCloud(responseJson[i]['settlement_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   getNotSyncSettlement() async {
     try{
@@ -421,32 +422,32 @@ class SyncToCloud {
   ----------------------Transfer owner part----------------------------------------------------------------------------------------------------------------------------
 */
 
-  transferOwnerSyncToCloud() async {
-    List<String> value = [];
-    await getNotSyncTransfer();
-    if(notSyncTransferOwnerList.isNotEmpty){
-      for(int i = 0; i < notSyncTransferOwnerList.length; i++){
-        value.add(jsonEncode(notSyncTransferOwnerList[i]));
-      }
-      //sync to cloud
-      syncTransferOwnerToCloud(value.toString());
-    }
-  }
-
-  syncTransferOwnerToCloud(String value) async {
-    //check is host reachable
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess){
-      Map response = await Domain().SyncTransferOwnerToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int updateStatus = await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(
-              responseJson[i]['transfer_owner_key']);
-        }
-      }
-    }
-  }
+  // transferOwnerSyncToCloud() async {
+  //   List<String> value = [];
+  //   await getNotSyncTransfer();
+  //   if(notSyncTransferOwnerList.isNotEmpty){
+  //     for(int i = 0; i < notSyncTransferOwnerList.length; i++){
+  //       value.add(jsonEncode(notSyncTransferOwnerList[i]));
+  //     }
+  //     //sync to cloud
+  //     syncTransferOwnerToCloud(value.toString());
+  //   }
+  // }
+  //
+  // syncTransferOwnerToCloud(String value) async {
+  //   //check is host reachable
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if(_hasInternetAccess){
+  //     Map response = await Domain().SyncTransferOwnerToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int updateStatus = await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(
+  //             responseJson[i]['transfer_owner_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   getNotSyncTransfer() async {
     try{
@@ -470,30 +471,30 @@ class SyncToCloud {
   ----------------------Refund part----------------------------------------------------------------------------------------------------------------------------
 */
 
-  refundSyncToCloud() async {
-    List<String> value = [];
-    await getNotSyncRefund();
-    if(notSyncRefundList.isNotEmpty){
-      for(int i = 0; i <  notSyncRefundList.length; i++){
-        value.add(jsonEncode(notSyncRefundList[i]));
-      }
-      //sync to cloud
-      syncRefundToCloud(value.toString());
-    }
-
-  }
-
-  syncRefundToCloud(String value) async {
-    //check is host reachable
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().SyncRefundToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int updateStatus = await PosDatabase.instance.updateRefundSyncStatusFromCloud(responseJson[0]['refund_key']);
-      }
-    }
-  }
+  // refundSyncToCloud() async {
+  //   List<String> value = [];
+  //   await getNotSyncRefund();
+  //   if(notSyncRefundList.isNotEmpty){
+  //     for(int i = 0; i <  notSyncRefundList.length; i++){
+  //       value.add(jsonEncode(notSyncRefundList[i]));
+  //     }
+  //     //sync to cloud
+  //     syncRefundToCloud(value.toString());
+  //   }
+  //
+  // }
+  //
+  // syncRefundToCloud(String value) async {
+  //   //check is host reachable
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().SyncRefundToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       int updateStatus = await PosDatabase.instance.updateRefundSyncStatusFromCloud(responseJson[0]['refund_key']);
+  //     }
+  //   }
+  // }
 
   getNotSyncRefund() async {
     try{
@@ -877,30 +878,30 @@ class SyncToCloud {
   ----------------------Order detail cancel part---------------------------------------------------------------------------------------------------------------------------------------
 */
 
-  orderDetailCancelSyncToCloud() async {
-    List<String> jsonValue = [];
-    await getNotSyncOrderDetailCancel();
-    if(notSyncOrderDetailCancelList.isNotEmpty){
-      for(int i = 0; i < notSyncOrderDetailCancelList.length; i++){
-        jsonValue.add(jsonEncode(notSyncOrderDetailCancelList[i]));
-      }
-      //sync to cloud
-      syncOrderDetailCancelToCloud(jsonValue.toString());
-    }
-  }
-
-  syncOrderDetailCancelToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().SyncOrderDetailCancelToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int data = await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[i]['order_detail_cancel_key']);
-        }
-      }
-    }
-  }
+  // orderDetailCancelSyncToCloud() async {
+  //   List<String> jsonValue = [];
+  //   await getNotSyncOrderDetailCancel();
+  //   if(notSyncOrderDetailCancelList.isNotEmpty){
+  //     for(int i = 0; i < notSyncOrderDetailCancelList.length; i++){
+  //       jsonValue.add(jsonEncode(notSyncOrderDetailCancelList[i]));
+  //     }
+  //     //sync to cloud
+  //     syncOrderDetailCancelToCloud(jsonValue.toString());
+  //   }
+  // }
+  //
+  // syncOrderDetailCancelToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().SyncOrderDetailCancelToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         int data = await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[i]['order_detail_cancel_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
 
   getNotSyncOrderDetailCancel() async {

@@ -16,6 +16,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../main.dart';
 import '../../object/branch_link_product.dart';
 import '../../object/order_cache.dart';
 import '../../object/order_detail.dart';
@@ -786,18 +787,18 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     }
   }
 
-  syncUpdatedTableToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().SyncUpdatedPosTableToCloud(value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-        }
-      }
-    }
-  }
+  // syncUpdatedTableToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map data = await Domain().SyncUpdatedPosTableToCloud(value);
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+  //       }
+  //     }
+  //   }
+  // }
 
   updateOrderCache() async {
     String currentBatch = widget.currentBatch;
@@ -885,19 +886,19 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     }
   }
 
-  syncTableUseDetailToCloud(String value) async {
-    //check is host reachable
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().SyncTableUseDetailToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int updateStatus = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-        }
-      }
-    }
-  }
+  // syncTableUseDetailToCloud(String value) async {
+  //   //check is host reachable
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().SyncTableUseDetailToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int updateStatus = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   generateTableUseDetailKey(TableUseDetail tableUseDetail) async {
     final prefs = await SharedPreferences.getInstance();
@@ -961,20 +962,20 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     }
   }
 
-  syncTableUseIdToCloud(TableUse updatedTableUseData) async {
-    List<String> _value = [];
-    //check is host reachable
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      _value.add(jsonEncode(updatedTableUseData));
-      print('table use value: ${_value}');
-      Map response = await Domain().SyncTableUseToCloud(_value.toString());
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int syncData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
-      }
-    }
-  }
+  // syncTableUseIdToCloud(TableUse updatedTableUseData) async {
+  //   List<String> _value = [];
+  //   //check is host reachable
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     _value.add(jsonEncode(updatedTableUseData));
+  //     print('table use value: ${_value}');
+  //     Map response = await Domain().SyncTableUseToCloud(_value.toString());
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       int syncData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
+  //     }
+  //   }
+  // }
 
   generateTableUseKey(TableUse tableUse) async {
     final prefs = await SharedPreferences.getInstance();
@@ -1082,18 +1083,18 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     //syncOrderDetailToCloud(value.toString());
   }
 
-  syncOrderDetailToCloud(String orderDetailValue) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map orderDetailResponse = await Domain().SyncOrderDetailToCloud(orderDetailValue);
-      if (orderDetailResponse['status'] == '1') {
-        List responseJson = orderDetailResponse['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int syncUpdated = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
-        }
-      }
-    }
-  }
+  // syncOrderDetailToCloud(String orderDetailValue) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map orderDetailResponse = await Domain().SyncOrderDetailToCloud(orderDetailValue);
+  //     if (orderDetailResponse['status'] == '1') {
+  //       List responseJson = orderDetailResponse['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int syncUpdated = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   checkTable() async {
     tableInUsed = false;
@@ -1228,77 +1229,86 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
 
   syncAllToCloud() async {
     try{
-      final prefs = await SharedPreferences.getInstance();
-      final int? device_id = prefs.getInt('device_id');
-      final String? login_value = prefs.getString('login_value');
-      Map data = await Domain().syncLocalUpdateToCloud(
-          device_id: device_id.toString(),
-          value: login_value,
-          table_use_value: this.table_use_value,
-          table_use_detail_value: this.table_use_detail_value,
-          order_cache_value: this.order_cache_value,
-          order_detail_value: this.order_detail_value,
-          order_detail_delete_value: this.delete_order_detail_value,
-          branch_link_product_value: this.branch_link_product_value,
-          order_modifier_value: this.order_modifier_detail_value,
-          table_value: this.table_value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          switch (responseJson[i]['table_name']) {
-            case 'tb_table_use':
-              {
-                await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
-              }
-              break;
-            case 'tb_table_use_detail':
-              {
-                await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-              }
-              break;
-            case 'tb_order_cache':
-              {
-                await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
-              }
-              break;
-            case 'tb_order_detail':
-              {
-                await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
-              }
-              break;
-            case 'tb_order_modifier_detail':
-              {
-                await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
-              }
-              break;
-            case 'tb_branch_link_product':
-              {
-                await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-              }
-              break;
-            case 'tb_table':
-              {
-                await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-              }
-              break;
-            default:
-              {
-                return;
-              }
+      if(mainSyncToCloud.count == 0){
+        mainSyncToCloud.count = 1;
+        final prefs = await SharedPreferences.getInstance();
+        final int? device_id = prefs.getInt('device_id');
+        final String? login_value = prefs.getString('login_value');
+        Map data = await Domain().syncLocalUpdateToCloud(
+            device_id: device_id.toString(),
+            value: login_value,
+            table_use_value: this.table_use_value,
+            table_use_detail_value: this.table_use_detail_value,
+            order_cache_value: this.order_cache_value,
+            order_detail_value: this.order_detail_value,
+            order_detail_delete_value: this.delete_order_detail_value,
+            branch_link_product_value: this.branch_link_product_value,
+            order_modifier_value: this.order_modifier_detail_value,
+            table_value: this.table_value);
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          for (int i = 0; i < responseJson.length; i++) {
+            switch (responseJson[i]['table_name']) {
+              case 'tb_table_use':
+                {
+                  await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+                }
+                break;
+              case 'tb_table_use_detail':
+                {
+                  await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+                }
+                break;
+              case 'tb_order_cache':
+                {
+                  await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+                }
+                break;
+              case 'tb_order_detail':
+                {
+                  await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+                }
+                break;
+              case 'tb_order_modifier_detail':
+                {
+                  await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
+                }
+                break;
+              case 'tb_branch_link_product':
+                {
+                  await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+                }
+                break;
+              case 'tb_table':
+                {
+                  await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+                }
+                break;
+              default:
+                {
+                  return;
+                }
+            }
           }
+          mainSyncToCloud.resetCount();
+        } else if (data['status'] == '7') {
+          mainSyncToCloud.resetCount();
+          this.isLogOut = true;
+        }else if (data['status'] == '8'){
+          print('qr sync to cloud time out');
+          mainSyncToCloud.resetCount();
+          throw TimeoutException("Time out");
+        } else {
+          mainSyncToCloud.resetCount();
         }
-      } else if (data['status'] == '7') {
-        this.isLogOut = true;
-      }else if (data['status'] == '8'){
-        print('qr sync to cloud time out');
-        throw TimeoutException("Time out");
+        // bool _hasInternetAccess = await Domain().isHostReachable();
+        // if (_hasInternetAccess) {
+        //
+        // }
       }
-      // bool _hasInternetAccess = await Domain().isHostReachable();
-      // if (_hasInternetAccess) {
-      //
-      // }
     }catch(e){
-      return 1;
+      //return 1;
+      mainSyncToCloud.resetCount();
     }
   }
 }

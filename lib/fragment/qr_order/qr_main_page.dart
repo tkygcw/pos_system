@@ -198,10 +198,10 @@ class _QrMainPageState extends State<QrMainPage> {
     }
   }
 
-  callUpdateCloud(String key) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().updateCloudOrderCacheSyncStatus(key);
-    }
-  }
+  // callUpdateCloud(String key) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().updateCloudOrderCacheSyncStatus(key);
+  //   }
+  // }
 }

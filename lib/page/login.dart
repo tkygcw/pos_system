@@ -167,19 +167,21 @@ class _LoginPageState extends State<LoginPage> {
       ));
       return;
     }
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    print('host reach: ${_hasInternetAccess}');
-    if(!_hasInternetAccess){
-      openLogOutDialog();
-      return;
-    }
-    if(mounted){
-      Timer(Duration(seconds: 3), () {
-        setState(() {
-          isLoaded = true;
+    Future.delayed(loginTime).then((_) async {
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      print('host reach: ${_hasInternetAccess}');
+      if(!_hasInternetAccess){
+        openLogOutDialog();
+        return;
+      }
+      if(mounted){
+        Timer(Duration(seconds: 3), () {
+          setState(() {
+            isLoaded = true;
+          });
         });
-      });
-    }
+      }
+    });
   }
 
   Future<Future<Object?>> openLogOutDialog() async {

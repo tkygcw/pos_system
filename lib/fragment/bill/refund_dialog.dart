@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../main.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
 import '../../object/order.dart';
@@ -274,17 +276,17 @@ class _RefundDialogState extends State<RefundDialog> {
     //syncRefundToCloud(_value.toString());
   }
 
-  syncRefundToCloud(String value) async {
-    //check is host reachable
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().SyncRefundToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int updateStatus = await PosDatabase.instance.updateRefundSyncStatusFromCloud(responseJson[0]['refund_key']);
-      }
-    }
-  }
+  // syncRefundToCloud(String value) async {
+  //   //check is host reachable
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().SyncRefundToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       int updateStatus = await PosDatabase.instance.updateRefundSyncStatusFromCloud(responseJson[0]['refund_key']);
+  //     }
+  //   }
+  // }
 
   updateOrderPaymentStatus() async {
     List<String> _value = [];
@@ -307,16 +309,16 @@ class _RefundDialogState extends State<RefundDialog> {
     //syncUpdatedOrderToCloud(_value.toString());
   }
 
-  syncUpdatedOrderToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().SyncOrderToCloud(value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[0]['order_key']);
-      }
-    }
-  }
+  // syncUpdatedOrderToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map data = await Domain().SyncOrderToCloud(value);
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[0]['order_key']);
+  //     }
+  //   }
+  // }
 
   generateCashRecordKey(CashRecord cashRecord) async {
     final prefs = await SharedPreferences.getInstance();
@@ -379,55 +381,71 @@ class _RefundDialogState extends State<RefundDialog> {
     //syncCashRecordToCloud(_value.toString());
   }
 
-  syncCashRecordToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().SyncCashRecordToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
-        }
-      }
-    }
-  }
+  // syncCashRecordToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().SyncCashRecordToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   syncAllToCloud() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().syncLocalUpdateToCloud(
-        device_id: device_id.toString(),
-        value: login_value,
-        refund_value: this.refund_value,
-        order_value: this.order_value,
-        cash_record_value: this.cash_record_value
-      );
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          switch(responseJson[i]['table_name']){
-            case 'tb_refund': {
-              await PosDatabase.instance.updateRefundSyncStatusFromCloud(responseJson[i]['refund_key']);
+    try{
+      if(mainSyncToCloud.count == 0){
+        mainSyncToCloud.count = 1;
+        final prefs = await SharedPreferences.getInstance();
+        final int? device_id = prefs.getInt('device_id');
+        final String? login_value = prefs.getString('login_value');
+        Map data = await Domain().syncLocalUpdateToCloud(
+            device_id: device_id.toString(),
+            value: login_value,
+            refund_value: this.refund_value,
+            order_value: this.order_value,
+            cash_record_value: this.cash_record_value
+        );
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          for (int i = 0; i < responseJson.length; i++) {
+            switch(responseJson[i]['table_name']){
+              case 'tb_refund': {
+                await PosDatabase.instance.updateRefundSyncStatusFromCloud(responseJson[i]['refund_key']);
+              }
+              break;
+              case 'tb_order': {
+                await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+              }
+              break;
+              case 'tb_cash_record': {
+                await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+              }
+              break;
+              default:
+                return;
             }
-            break;
-            case 'tb_order': {
-              await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
-            }
-            break;
-            case 'tb_cash_record': {
-              await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
-            }
-            break;
-            default:
-              return;
           }
+          mainSyncToCloud.resetCount();
+        } else if(data['status'] == '7'){
+          mainSyncToCloud.resetCount();
+          this.isLogOut = true;
+        } else if (data['status'] == '8') {
+          mainSyncToCloud.resetCount();
+          print('refund timeout');
+          throw TimeoutException("Time out");
+        }else {
+          mainSyncToCloud.resetCount();
         }
-      } else if(data['status'] == '7'){
-        this.isLogOut = true;
       }
+    } catch(e){
+      mainSyncToCloud.resetCount();
     }
+    // bool _hasInternetAccess = await Domain().isHostReachable();
+    // if (_hasInternetAccess) {
+    //
+    // }
   }
 }

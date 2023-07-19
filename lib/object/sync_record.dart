@@ -36,7 +36,7 @@ class SyncRecord {
   int count = 0;
 
   syncFromCloud() async {
-    count++;
+    //count++;
     print("sync from cloud call");
     return await checkAllSyncRecord();
   }
@@ -239,8 +239,13 @@ class SyncRecord {
     BranchLinkPromotion branchLinkPromotion = BranchLinkPromotion.fromJson(data[0]);
     try{
       if(method == '0'){
-        BranchLinkPromotion data = await PosDatabase.instance.insertBranchLinkPromotion(branchLinkPromotion);
-        if(data.created_at != ''){
+        BranchLinkPromotion? checkData = await PosDatabase.instance.checkSpecificBranchLinkPromotionId(branchLinkPromotion.branch_link_promotion_id!);
+        if(checkData == null){
+          BranchLinkPromotion data = await PosDatabase.instance.insertBranchLinkPromotion(branchLinkPromotion);
+          if(data.created_at != ''){
+            isComplete = true;
+          }
+        } else {
           isComplete = true;
         }
       }else {
@@ -252,6 +257,7 @@ class SyncRecord {
       return isComplete;
 
     } catch(e){
+      print("branch link promotion error: ${e}");
       return isComplete = false;
     }
 
@@ -262,8 +268,13 @@ class SyncRecord {
     Promotion promotion = Promotion.fromJson(data[0]);
     try{
       if(method == '0'){
-        Promotion data = await PosDatabase.instance.insertPromotion(promotion);
-        if(data.created_at != ''){
+        Promotion? checkData = await PosDatabase.instance.checkSpecificPromotionId(promotion.promotion_id!);
+        if(checkData == null){
+          Promotion data = await PosDatabase.instance.insertPromotion(promotion);
+          if(data.created_at != ''){
+            isComplete = true;
+          }
+        } else {
           isComplete = true;
         }
       }else {
@@ -275,6 +286,7 @@ class SyncRecord {
       return isComplete;
 
     } catch(e){
+      print('promotion error: ${e}');
       return isComplete = false;
     }
 
@@ -285,8 +297,13 @@ class SyncRecord {
     PosTable posTable = PosTable.fromJson(data[0]);
     try{
       if(method == '0'){
-        PosTable data = await PosDatabase.instance.insertPosTable(posTable);
-        if(data.created_at != ''){
+        PosTable? checkData = await PosDatabase.instance.checkSpecificTableId(posTable.table_id!);
+        if(checkData == null){
+          PosTable data = await PosDatabase.instance.insertPosTable(posTable);
+          if(data.created_at != ''){
+            isComplete = true;
+          }
+        } else {
           isComplete = true;
         }
       }else {
@@ -346,8 +363,13 @@ class SyncRecord {
     TaxLinkDining taxData = TaxLinkDining.fromJson(data[0]);
     try{
       if(method == '0'){
-        TaxLinkDining data = await PosDatabase.instance.insertTaxLinkDining(taxData);
-        if(data.created_at != ''){
+        TaxLinkDining? checkData = await PosDatabase.instance.checkSpecificTaxLinkDiningId(taxData.tax_link_dining_id!);
+        if(checkData == null){
+          TaxLinkDining data = await PosDatabase.instance.insertTaxLinkDining(taxData);
+          if(data.created_at != ''){
+            isComplete = true;
+          }
+        } else {
           isComplete = true;
         }
       } else {
@@ -358,6 +380,7 @@ class SyncRecord {
       }
       return isComplete;
     } catch(e){
+      print("tax link dining error: ${e}");
       return isComplete = false;
     }
   }
@@ -367,8 +390,13 @@ class SyncRecord {
     BranchLinkTax taxData = BranchLinkTax.fromJson(data[0]);
     try{
       if(method == '0'){
-        BranchLinkTax data = await PosDatabase.instance.insertBranchLinkTax(taxData);
-        if(data.created_at != ''){
+        BranchLinkTax? checkData = await PosDatabase.instance.checkSpecificBranchLinkTaxId(taxData.branch_link_tax_id!);
+        if(checkData == null){
+          BranchLinkTax data = await PosDatabase.instance.insertBranchLinkTax(taxData);
+          if(data.created_at != ''){
+            isComplete = true;
+          }
+        } else {
           isComplete = true;
         }
       } else {
@@ -380,6 +408,7 @@ class SyncRecord {
       }
       return isComplete;
     } catch(e){
+      print("Branch link tax error: ${e}");
       return isComplete = false;
     }
   }
@@ -389,8 +418,14 @@ class SyncRecord {
     Tax taxData = Tax.fromJson(data[0]);
     try{
       if(method == '0'){
-        Tax data = await PosDatabase.instance.insertTax(taxData);
-        if(data.created_at != ''){
+        Tax? checkData = await PosDatabase.instance.checkSpecificTaxId(taxData.tax_id!);
+        print("check data: ${checkData}");
+        if(checkData == null){
+          Tax data = await PosDatabase.instance.insertTax(taxData);
+          if(data.created_at != ''){
+            isComplete = true;
+          }
+        } else {
           isComplete = true;
         }
       }else {
@@ -411,8 +446,13 @@ class SyncRecord {
     PaymentLinkCompany paymentData = PaymentLinkCompany.fromJson(data[0]);
     try{
       if(method == '0'){
-        PaymentLinkCompany data = await PosDatabase.instance.insertPaymentLinkCompany(paymentData);
-        if(data.created_at != ''){
+        PaymentLinkCompany? checkData = await PosDatabase.instance.checkSpecificPaymentLinkCompanyId(paymentData.payment_link_company_id!);
+        if(checkData == null){
+          PaymentLinkCompany data = await PosDatabase.instance.insertPaymentLinkCompany(paymentData);
+          if(data.created_at != ''){
+            isComplete = true;
+          }
+        } else {
           isComplete = true;
         }
       } else {
@@ -449,8 +489,13 @@ class SyncRecord {
     BranchLinkUser branchLinkUserData = BranchLinkUser.fromJson(data[0]);
     if(method == '0'){
       //create
-      BranchLinkUser data = await PosDatabase.instance.insertBranchLinkUser(branchLinkUserData);
-      if(data.created_at != ''){
+      BranchLinkUser? checkData = await PosDatabase.instance.checkSpecificBranchLinkUserId(branchLinkUserData.branch_link_user_id!);
+      if(checkData == null){
+        BranchLinkUser data = await PosDatabase.instance.insertBranchLinkUser(branchLinkUserData);
+        if(data.created_at != ''){
+          isComplete = true;
+        }
+      } else {
         isComplete = true;
       }
     } else {
@@ -468,8 +513,13 @@ class SyncRecord {
     User userData = User.fromJson(data[0]);
     if(method == '0'){
       //create
-      User user = await PosDatabase.instance.insertUser(userData);
-      if(user.created_at != ''){
+      User? checkData = await PosDatabase.instance.checkSpecificUserId(userData.user_id!);
+      if(checkData == null){
+        User user = await PosDatabase.instance.insertUser(userData);
+        if(user.created_at != ''){
+          isComplete = true;
+        }
+      } else {
         isComplete = true;
       }
     } else {
@@ -487,8 +537,13 @@ class SyncRecord {
     BranchLinkModifier branchLinkModifierData = BranchLinkModifier.fromJson(data[0]);
     if(method == '0'){
       //create
-      BranchLinkModifier insertData = await PosDatabase.instance.insertBranchLinkModifier(branchLinkModifierData);
-      if(insertData.created_at != ''){
+      BranchLinkModifier? checkData = await PosDatabase.instance.checkSpecificBranchLinkModifierId(branchLinkModifierData.branch_link_modifier_id!);
+      if(checkData == null){
+        BranchLinkModifier insertData = await PosDatabase.instance.insertBranchLinkModifier(branchLinkModifierData);
+        if(insertData.created_at != ''){
+          isComplete = true;
+        }
+      } else {
         isComplete = true;
       }
     } else {
@@ -506,8 +561,13 @@ class SyncRecord {
     ModifierItem modifierItemData = ModifierItem.fromJson(data[0]);
     if(method == '0'){
       //create
-      ModifierItem insertData = await PosDatabase.instance.insertModifierItem(modifierItemData);
-      if(insertData.created_at != ''){
+      ModifierItem? checkData = await PosDatabase.instance.checkSpecificModifierItemId(modifierItemData.mod_item_id!);
+      if(checkData == null){
+        ModifierItem insertData = await PosDatabase.instance.insertModifierItem(modifierItemData);
+        if(insertData.created_at != ''){
+          isComplete = true;
+        }
+      } else {
         isComplete = true;
       }
     } else {
@@ -525,8 +585,13 @@ class SyncRecord {
     ModifierGroup modifierGroupData = ModifierGroup.fromJson(data[0]);
     if(method == '0'){
       //create
-      ModifierGroup insertData = await PosDatabase.instance.insertModifierGroup(modifierGroupData);
-      if(insertData.created_at != ''){
+      ModifierGroup? checkData = await PosDatabase.instance.checkSpecificModifierGroupId(modifierGroupData.mod_group_id!);
+      if(checkData == null){
+        ModifierGroup insertData = await PosDatabase.instance.insertModifierGroup(modifierGroupData);
+        if(insertData.created_at != ''){
+          isComplete = true;
+        }
+      } else {
         isComplete = true;
       }
     } else {
@@ -567,9 +632,14 @@ class SyncRecord {
       );
       if(method == '0'){
         //create
-        BranchLinkProduct data = await PosDatabase.instance.insertBranchLinkProduct(object);
-        print('data : ${data.branch_link_product_sqlite_id}');
-        if(data.branch_link_product_sqlite_id != null){
+        BranchLinkProduct? checkData = await PosDatabase.instance.checkSpecificBranchLinkProductId(object.branch_link_product_id!);
+        if(checkData == null){
+          BranchLinkProduct data = await PosDatabase.instance.insertBranchLinkProduct(object);
+          print('data : ${data.branch_link_product_sqlite_id}');
+          if(data.branch_link_product_sqlite_id != null){
+            isComplete = true;
+          }
+        } else {
           isComplete = true;
         }
       } else {
@@ -598,15 +668,20 @@ class SyncRecord {
         product_variant_sqlite_id: productVariantData!.product_variant_sqlite_id.toString(),
         variant_item_id: productVariantDetailItem.variant_item_id,
         variant_item_sqlite_id: variantItemData!.variant_item_sqlite_id.toString(),
-        sync_status: 2,
+        sync_status: 1,
         created_at: productVariantDetailItem.created_at,
         updated_at: productVariantDetailItem.updated_at,
         soft_delete: productVariantDetailItem.soft_delete
     );
     if(method == '0'){
       //create
-      ProductVariantDetail data = await PosDatabase.instance.insertProductVariantDetail(object);
-      if(data.product_variant_detail_sqlite_id != null){
+      ProductVariantDetail? checkData = await PosDatabase.instance.checkSpecificProductVariantDetailId(object.product_variant_detail_id!);
+      if(checkData == null){
+        ProductVariantDetail data = await PosDatabase.instance.insertProductVariantDetail(object);
+        if(data.product_variant_detail_sqlite_id != null){
+          isComplete = true;
+        }
+      } else {
         isComplete = true;
       }
     } else {
@@ -634,15 +709,20 @@ class SyncRecord {
         daily_limit: productVariantItem.daily_limit,
         daily_limit_amount: productVariantItem.daily_limit_amount,
         stock_quantity: productVariantItem.stock_quantity,
-        sync_status: 2,
+        sync_status: 1,
         created_at: productVariantItem.created_at,
         updated_at: productVariantItem.updated_at,
         soft_delete: productVariantItem.soft_delete
     );
     if(method == '0'){
       //create
-      ProductVariant data = await PosDatabase.instance.insertProductVariant(object);
-      if(data.product_variant_sqlite_id != null){
+      ProductVariant? checkData = await PosDatabase.instance.checkSpecificProductVariantId(object.product_variant_id!);
+      if(checkData == null){
+        ProductVariant data = await PosDatabase.instance.insertProductVariant(object);
+        if(data.product_variant_sqlite_id != null){
+          isComplete = true;
+        }
+      } else {
         isComplete = true;
       }
     } else {
@@ -664,15 +744,20 @@ class SyncRecord {
         variant_group_id: variantItemData.variant_group_id,
         variant_group_sqlite_id: variantGroupData != null ? variantGroupData.variant_group_sqlite_id.toString(): '0',
         name: variantItemData.name,
-        sync_status: 2,
+        sync_status: 1,
         created_at: variantItemData.created_at,
         updated_at: variantItemData.updated_at,
         soft_delete: variantItemData.soft_delete
     );
     if(method == '0'){
       //create
-      VariantItem data = await PosDatabase.instance.insertVariantItem(object);
-      if(data.variant_item_sqlite_id != null){
+      VariantItem? checkData = await PosDatabase.instance.checkSpecificVariantItemId(object.variant_item_id!);
+      if(checkData == null){
+        VariantItem data = await PosDatabase.instance.insertVariantItem(object);
+        if(data.variant_item_sqlite_id != null){
+          isComplete = true;
+        }
+      } else {
         isComplete = true;
       }
     } else {
@@ -695,15 +780,20 @@ class SyncRecord {
         product_id: variantData.product_id,
         product_sqlite_id: productData!.product_sqlite_id.toString(),
         name: variantData.name,
-        sync_status: 2,
+        sync_status: 1,
         created_at: variantData.created_at,
         updated_at: variantData.updated_at,
         soft_delete: variantData.soft_delete
     );
     if(method == '0'){
       //create
-      VariantGroup data = await PosDatabase.instance.insertVariantGroup(object);
-      if(data.variant_group_sqlite_id != null){
+      VariantGroup? checkData = await PosDatabase.instance.checkSpecificVariantGroupId(object.variant_group_id!);
+      if(checkData == null){
+        VariantGroup data = await PosDatabase.instance.insertVariantGroup(object);
+        if(data.variant_group_sqlite_id != null){
+          isComplete = true;
+        }
+      } else {
         isComplete = true;
       }
     } else {
@@ -725,15 +815,20 @@ class SyncRecord {
       mod_group_id: modData.mod_group_id,
       product_id: modData.product_id,
       product_sqlite_id: productData!.product_sqlite_id.toString(),
-      sync_status: 2,
+      sync_status: 1,
       created_at: modData.created_at,
       updated_at: modData.updated_at,
       soft_delete: modData.soft_delete,
     );
     if(method == '0'){
       //create
-      ModifierLinkProduct data = await PosDatabase.instance.insertModifierLinkProduct(object);
-      if(data.modifier_link_product_sqlite_id != null){
+      ModifierLinkProduct? checkData = await PosDatabase.instance.checkSpecificModifierLinkProductId(object.modifier_link_product_id!);
+      if(checkData == null){
+        ModifierLinkProduct data = await PosDatabase.instance.insertModifierLinkProduct(object);
+        if(data.modifier_link_product_sqlite_id != null){
+          isComplete = true;
+        }
+      } else {
         isComplete = true;
       }
     } else {
@@ -748,16 +843,21 @@ class SyncRecord {
 
   callCategoryQuery({data, method}) async {
     print('query call: ${data[0]}');
-    final category = Categories.fromJson(data[0]);
+    Categories category = Categories.fromJson(data[0]);
     bool isComplete = false;
 
     if(method == '0'){
-      Categories categoryData = await PosDatabase.instance.insertCategories(Categories.fromJson(data[0]));
-      if(categoryData.category_sqlite_id != null){
+      Categories? checkData = await PosDatabase.instance.checkSpecificCategoryId(category.category_id!);
+      if(checkData == null){
+        Categories categoryData = await PosDatabase.instance.insertCategories(category);
+        if(categoryData.category_sqlite_id != null){
+          isComplete = true;
+        }
+      } else {
         isComplete = true;
       }
     } else {
-      int categoryData = await PosDatabase.instance.updateCategoryFromCloud(Categories.fromJson(data[0]));
+      int categoryData = await PosDatabase.instance.updateCategoryFromCloud(category);
       if(categoryData == 1){
         isComplete = true;
       }
@@ -787,24 +887,37 @@ class SyncRecord {
         color: productItem.color,
         daily_limit: productItem.daily_limit,
         daily_limit_amount: productItem.daily_limit_amount,
-        sync_status: 2,
+        sync_status: 1,
         created_at: productItem.created_at,
         updated_at: productItem.updated_at,
         soft_delete: productItem.soft_delete
     );
-    if(productObject.image != ''){
-      await downloadProductImage();
-    }
     if(method == '0'){
       //create
-      Product productData = await PosDatabase.instance.insertProduct(productObject);
-      if(productData.product_sqlite_id != null){
+      Product? checkData = await PosDatabase.instance.checkSpecificProductId(productItem.product_id!);
+      if(checkData == null){
+        if(productObject.image != ''){
+          await downloadProductImage();
+        }
+        Product productData = await PosDatabase.instance.insertProduct(productObject);
+        if(productData.product_sqlite_id != null){
+          isComplete = true;
+        }
+      } else {
         isComplete = true;
       }
     } else {
       //update
-      int data = await PosDatabase.instance.updateProduct(productObject);
-      if(data == 1){
+      Product? checkData = await PosDatabase.instance.checkSpecificProductId(productItem.product_id!);
+      if(checkData != null && checkData.updated_at != productObject.updated_at) {
+        if(productObject.image != ''){
+          await downloadProductImage();
+        }
+        int data = await PosDatabase.instance.updateProduct(productObject);
+        if (data == 1) {
+          isComplete = true;
+        }
+      } else {
         isComplete = true;
       }
     }

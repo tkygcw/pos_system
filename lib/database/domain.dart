@@ -315,11 +315,15 @@ class Domain {
         'getAllDeviceLogin': '1',
         'device_id': device_id,
         'value': value,
-      });
+      }).timeout(Duration(seconds: 3), onTimeout: ()=> throw TimeoutException("Timeout"));
       return jsonDecode(response.body);
-    } catch(error){
+    }on TimeoutException catch(_){
+      print('domain checkDeviceLogin timeout');
+      Map<String, dynamic>? result = {'status': '8'};
+      return result;
+    }  catch(error){
       print('error: ${error}');
-      Fluttertoast.showToast(msg: error.toString());
+      //Fluttertoast.showToast(msg: error.toString());
     }
   }
 
@@ -2028,9 +2032,10 @@ class Domain {
 
   isHostReachable() async {
     try {
-      await http.get(Uri.parse('https://pos.lkmng.com/mobile-api/login/index.php'));
+      await http.get(Uri.parse('https://pos.optimy.com.my/mobile-api/login/index.php')).timeout(Duration(seconds: 2), onTimeout: () => throw TimeoutException("Timeout"));
       return true;
     } catch (e) {
+      print('host check error: $e');
       return false;
     }
   }

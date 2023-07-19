@@ -20,6 +20,7 @@ import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/dining_option.dart';
 import 'package:pos_system/object/modifier_group.dart';
+import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
@@ -1613,6 +1614,7 @@ class CartPageState extends State<CartPage> {
 
         //get dining tax
         List<Tax> taxData = await PosDatabase.instance.readTax(diningOptionID.toString());
+        //print("tax data length: ${taxData.length}");
         if (taxData.isNotEmpty) {
           taxRateList = List.from(taxData);
         } else {
@@ -2248,19 +2250,19 @@ class CartPageState extends State<CartPage> {
     }
   }
 
-  syncTableUseIdToCloud(TableUse updatedTableUseData) async {
-    List<String> _value = [];
-    //check is host reachable
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      _value.add(jsonEncode(updatedTableUseData));
-      Map response = await Domain().SyncTableUseToCloud(_value.toString());
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int syncData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
-      }
-    }
-  }
+  // syncTableUseIdToCloud(TableUse updatedTableUseData) async {
+  //   List<String> _value = [];
+  //   //check is host reachable
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     _value.add(jsonEncode(updatedTableUseData));
+  //     Map response = await Domain().SyncTableUseToCloud(_value.toString());
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       int syncData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
+  //     }
+  //   }
+  // }
 
   generateTableUseKey(TableUse tableUse) async {
     final prefs = await SharedPreferences.getInstance();
@@ -2512,8 +2514,7 @@ class CartPageState extends State<CartPage> {
     List<String> _orderDetailValue = [];
     List<String> _orderModifierValue = [];
     List<String> _branchLinkProductValue = [];
-    //bool _hasModifier = false;
-    //loop cart item & create order detail
+    ///loop cart item & create order detail
     List<cartProductItem> newOrderDetailList = cart.cartNotifierItem.where((item) => item.status == 0).toList();
     for (int j = 0; j < newOrderDetailList.length; j++) {
       OrderDetail object = OrderDetail(
@@ -2543,52 +2544,70 @@ class CartPageState extends State<CartPage> {
       BranchLinkProduct branchLinkProductData = await updateProductStock(orderDetailData.branch_link_product_sqlite_id.toString(), int.parse(orderDetailData.quantity!), dateTime);
       _branchLinkProductValue.add(jsonEncode(branchLinkProductData.toJson()));
       branch_link_product_value = _branchLinkProductValue.toString();
-      //insert order detail key
+      ///insert order detail key
       OrderDetail updatedOrderDetailData = await insertOrderDetailKey(orderDetailData, dateTime);
       _orderDetailValue.add(jsonEncode(updatedOrderDetailData.syncJson()));
       order_detail_value = _orderDetailValue.toString();
-      //insert order modifier detail
-      if (newOrderDetailList[j].modifier!.isNotEmpty) {
-        for (int k = 0; k < newOrderDetailList[j].modifier!.length; k++) {
-          ModifierGroup group = newOrderDetailList[j].modifier![k];
-          for (int m = 0; m < group.modifierChild!.length; m++) {
-            if (group.modifierChild![m].isChecked!) {
-              // _hasModifier = true;
-              OrderModifierDetail orderModifierDetailData = await PosDatabase.instance.insertSqliteOrderModifierDetail(OrderModifierDetail(
-                  order_modifier_detail_id: 0,
-                  order_modifier_detail_key: '',
-                  order_detail_sqlite_id: orderDetailData.order_detail_sqlite_id.toString(),
-                  order_detail_id: '0',
-                  order_detail_key: await orderDetailKey,
-                  mod_item_id: group.modifierChild![m].mod_item_id.toString(),
-                  mod_name: group.modifierChild![m].name,
-                  mod_price: group.modifierChild![m].price,
-                  mod_group_id: group.mod_group_id.toString(),
-                  sync_status: 0,
-                  created_at: dateTime,
-                  updated_at: '',
-                  soft_delete: ''));
-              //insert unique key
-              OrderModifierDetail updatedOrderModifierDetail = await insertOrderModifierDetailKey(orderModifierDetailData, dateTime);
-              if (updatedOrderModifierDetail.order_modifier_detail_key != '') {
-                _orderModifierValue.add(jsonEncode(updatedOrderModifierDetail));
-                order_modifier_detail_value = _orderModifierValue.toString();
-              }
-            }
+      ///insert order modifier detail
+      if(newOrderDetailList[j].checkedModifierItem!.isNotEmpty){
+        List<ModifierItem> modItem = newOrderDetailList[j].checkedModifierItem!;
+        for(int k = 0; k < modItem.length; k++){
+          OrderModifierDetail orderModifierDetailData = await PosDatabase.instance.insertSqliteOrderModifierDetail(OrderModifierDetail(
+              order_modifier_detail_id: 0,
+              order_modifier_detail_key: '',
+              order_detail_sqlite_id: orderDetailData.order_detail_sqlite_id.toString(),
+              order_detail_id: '0',
+              order_detail_key: await orderDetailKey,
+              mod_item_id: modItem[k].mod_item_id.toString(),
+              mod_name: modItem[k].name,
+              mod_price: modItem[k].price,
+              mod_group_id: modItem[k].mod_group_id.toString(),
+              sync_status: 0,
+              created_at: dateTime,
+              updated_at: '',
+              soft_delete: ''));
+          //insert unique key
+          OrderModifierDetail updatedOrderModifierDetail = await insertOrderModifierDetailKey(orderModifierDetailData, dateTime);
+          if (updatedOrderModifierDetail.order_modifier_detail_key != '') {
+            _orderModifierValue.add(jsonEncode(updatedOrderModifierDetail));
+            order_modifier_detail_value = _orderModifierValue.toString();
           }
         }
       }
+      // if (newOrderDetailList[j].modifier!.isNotEmpty) {
+      //   for (int k = 0; k < newOrderDetailList[j].modifier!.length; k++) {
+      //     ModifierGroup group = newOrderDetailList[j].modifier![k];
+      //     for (int m = 0; m < group.modifierChild!.length; m++) {
+      //       if (group.modifierChild![m].isChecked!) {
+      //         // _hasModifier = true;
+      //         OrderModifierDetail orderModifierDetailData = await PosDatabase.instance.insertSqliteOrderModifierDetail(OrderModifierDetail(
+      //             order_modifier_detail_id: 0,
+      //             order_modifier_detail_key: '',
+      //             order_detail_sqlite_id: orderDetailData.order_detail_sqlite_id.toString(),
+      //             order_detail_id: '0',
+      //             order_detail_key: await orderDetailKey,
+      //             mod_item_id: group.modifierChild![m].mod_item_id.toString(),
+      //             mod_name: group.modifierChild![m].name,
+      //             mod_price: group.modifierChild![m].price,
+      //             mod_group_id: group.mod_group_id.toString(),
+      //             sync_status: 0,
+      //             created_at: dateTime,
+      //             updated_at: '',
+      //             soft_delete: ''));
+      //         //insert unique key
+      //         OrderModifierDetail updatedOrderModifierDetail = await insertOrderModifierDetailKey(orderModifierDetailData, dateTime);
+      //         if (updatedOrderModifierDetail.order_modifier_detail_key != '') {
+      //           _orderModifierValue.add(jsonEncode(updatedOrderModifierDetail));
+      //           order_modifier_detail_value = _orderModifierValue.toString();
+      //         }
+      //       }
+      //     }
+      //   }
+      // }
       // if (cart.cartNotifierItem[j].status == 0) {
       //
       // }
     }
-    // if (this.timeOutDetected == false) {
-    //   syncOrderDetailToCloud(_orderDetailValue.toString());
-    //   syncBranchLinkProductStock(_branchLinkProductValue.toString());
-    //   if (_hasModifier) {
-    //     syncOrderModifierToCloud(_orderModifierValue.toString());
-    //   }
-    // }
   }
 
   updateProductStock(String branch_link_product_sqlite_id, int quantity, String dateTime) async {
@@ -2837,7 +2856,7 @@ class CartPageState extends State<CartPage> {
         } else if (data['status'] == '8'){
           print('cart time out');
           mainSyncToCloud.resetCount();
-          throw TimeoutException("Time out");
+          throw TimeoutException("Timeout");
         }else {
           mainSyncToCloud.resetCount();
         }

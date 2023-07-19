@@ -474,42 +474,42 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     //syncOrderDetailCancelToCloud(_value.toString());
   }
 
-  syncOrderDetailCancelToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().SyncOrderDetailCancelToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int data = await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[0]['order_detail_cancel_key']);
-      }
-    }
-  }
+  // syncOrderDetailCancelToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().SyncOrderDetailCancelToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       int data = await PosDatabase.instance.updateOrderDetailCancelSyncStatusFromCloud(responseJson[0]['order_detail_cancel_key']);
+  //     }
+  //   }
+  // }
 
-  syncUpdatedPosTableToCloud(String posTableValue) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess){
-      Map response = await Domain().SyncUpdatedPosTableToCloud(posTableValue);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-        }
-      }
-    }
-  }
+  // syncUpdatedPosTableToCloud(String posTableValue) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if(_hasInternetAccess){
+  //     Map response = await Domain().SyncUpdatedPosTableToCloud(posTableValue);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+  //       }
+  //     }
+  //   }
+  // }
 
-  syncOrderModifierDetailToCloud(String orderModDetailValue) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess){
-      Map modResponse = await Domain().SyncOrderModifierDetailToCloud(orderModDetailValue);
-      if(modResponse['status'] == '1'){
-        List responseJson = modResponse['data'];
-        for(int i = 0 ; i <responseJson.length; i++){
-          int syncData = await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
-        }
-      }
-    }
-  }
+  // syncOrderModifierDetailToCloud(String orderModDetailValue) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if(_hasInternetAccess){
+  //     Map modResponse = await Domain().SyncOrderModifierDetailToCloud(orderModDetailValue);
+  //     if(modResponse['status'] == '1'){
+  //       List responseJson = modResponse['data'];
+  //       for(int i = 0 ; i <responseJson.length; i++){
+  //         int syncData = await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   readAllPrinters() async {
     printerList = await PrintReceipt().readAllPrinters();
@@ -589,29 +589,29 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     //syncBranchLinkProductStock(value.toString());
   }
 
-  syncBranchLinkProductStock(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess) {
-      Map orderDetailResponse = await Domain().SyncBranchLinkProductToCloud(value);
-      if (orderDetailResponse['status'] == '1') {
-        List responseJson = orderDetailResponse['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int syncUpdated = await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-        }
-      }
-    }
-  }
+  // syncBranchLinkProductStock(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if(_hasInternetAccess) {
+  //     Map orderDetailResponse = await Domain().SyncBranchLinkProductToCloud(value);
+  //     if (orderDetailResponse['status'] == '1') {
+  //       List responseJson = orderDetailResponse['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int syncUpdated = await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+  //       }
+  //     }
+  //   }
+  // }
 
-  syncUpdatedOrderDetailToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess){
-      Map response = await Domain().SyncOrderDetailToCloud(value.toString());
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int orderDetailData = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[0]['order_detail_key']);
-      }
-    }
-  }
+  // syncUpdatedOrderDetailToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if(_hasInternetAccess){
+  //     Map response = await Domain().SyncOrderDetailToCloud(value.toString());
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       int orderDetailData = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[0]['order_detail_key']);
+  //     }
+  //   }
+  // }
 
   callDeleteAllOrder(User user, String currentTableUseId, String dateTime, CartModel cartModel) async {
     if(widget.currentPage != 'other_order'){
@@ -721,18 +721,18 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     }
   }
 
-  syncTableUseDetail(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess){
-      Map data = await Domain().SyncTableUseDetailToCloud(value);
-      if(data['status'] == '1'){
-        List responseJson = data['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-        }
-      }
-    }
-  }
+  // syncTableUseDetail(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if(_hasInternetAccess){
+  //     Map data = await Domain().SyncTableUseDetailToCloud(value);
+  //     if(data['status'] == '1'){
+  //       List responseJson = data['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   deleteCurrentTableUseId(int currentTableUseId, String dateTime) async {
     List<String> _value = [];
@@ -758,16 +758,16 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     }
   }
 
-  syncTableUseIdToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess){
-      Map data = await Domain().SyncTableUseToCloud(value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        int tablaUseData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
-      }
-    }
-  }
+  // syncTableUseIdToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if(_hasInternetAccess){
+  //     Map data = await Domain().SyncTableUseToCloud(value);
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       int tablaUseData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
+  //     }
+  //   }
+  // }
 
   syncAllToCloud() async {
     try{
@@ -849,7 +849,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     } catch(e){
       print("remove cart error: $e");
       mainSyncToCloud.resetCount();
-      return 1;
+      //return 1;
     }
   }
 }

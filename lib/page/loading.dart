@@ -155,13 +155,10 @@ class _LoadingPageState extends State<LoadingPage> {
 
     var value = md5.convert(utf8.encode(dateTime)).toString();
 
-    bool _hasInternetAccess = await Domain().isHostReachable();
     if(device_id != 4){
-      if (_hasInternetAccess) {
-        Map response = await Domain().insertDeviceLogin(device_id.toString(), value);
-        if (response['status'] == '1') {
-          await prefs.setString('login_value', value);
-        }
+      Map response = await Domain().insertDeviceLogin(device_id.toString(), value);
+      if (response['status'] == '1') {
+        await prefs.setString('login_value', value);
       }
     } else {
       await prefs.setString('login_value', 'demo12345');
@@ -501,7 +498,7 @@ getAllProduct() async {
           color: productItem.color,
           daily_limit: productItem.daily_limit,
           daily_limit_amount: productItem.daily_limit_amount,
-          sync_status: 2,
+          sync_status: 1,
           created_at: productItem.created_at,
           updated_at: productItem.updated_at,
           soft_delete: productItem.soft_delete));
@@ -875,7 +872,7 @@ getModifierLinkProduct() async {
         mod_group_id: modData.mod_group_id,
         product_id: modData.product_id,
         product_sqlite_id: productData!.product_sqlite_id.toString(),
-        sync_status: 2,
+        sync_status: 1,
         created_at: modData.created_at,
         updated_at: modData.updated_at,
         soft_delete: modData.soft_delete,
@@ -903,7 +900,7 @@ getVariantGroup() async {
           product_id: variantData.product_id,
           product_sqlite_id: productData!.product_sqlite_id.toString(),
           name: variantData.name,
-          sync_status: 2,
+          sync_status: 1,
           created_at: variantData.created_at,
           updated_at: variantData.updated_at,
           soft_delete: variantData.soft_delete));
@@ -932,7 +929,7 @@ getVariantItem() async {
           variant_group_id: variantItemData.variant_group_id,
           variant_group_sqlite_id: variantGroupData != null ? variantGroupData.variant_group_sqlite_id.toString() : '0',
           name: variantItemData.name,
-          sync_status: 2,
+          sync_status: 1,
           created_at: variantItemData.created_at,
           updated_at: variantItemData.updated_at,
           soft_delete: variantItemData.soft_delete));
@@ -968,7 +965,7 @@ getProductVariant() async {
           daily_limit: productVariantItem.daily_limit,
           daily_limit_amount: productVariantItem.daily_limit_amount,
           stock_quantity: productVariantItem.stock_quantity,
-          sync_status: 2,
+          sync_status: 1,
           created_at: productVariantItem.created_at,
           updated_at: productVariantItem.updated_at,
           soft_delete: productVariantItem.soft_delete));
@@ -998,7 +995,7 @@ getProductVariantDetail() async {
           product_variant_sqlite_id: productVariantData!.product_variant_sqlite_id.toString(),
           variant_item_id: productVariantDetailItem.variant_item_id,
           variant_item_sqlite_id: variantItemData!.variant_item_sqlite_id.toString(),
-          sync_status: 2,
+          sync_status: 1,
           created_at: productVariantDetailItem.created_at,
           updated_at: productVariantDetailItem.updated_at,
           soft_delete: productVariantDetailItem.soft_delete));

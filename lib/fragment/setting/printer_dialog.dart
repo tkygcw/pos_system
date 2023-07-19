@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -865,16 +866,16 @@ class _PrinterDialogState extends State<PrinterDialog> {
     }
   }
 
-  syncPrinterToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().SyncPrinterToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int syncUpdated = await PosDatabase.instance.updatePrinterSyncStatusFromCloud(responseJson[0]['printer_key']);
-      }
-    }
-  }
+  // syncPrinterToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().SyncPrinterToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       int syncUpdated = await PosDatabase.instance.updatePrinterSyncStatusFromCloud(responseJson[0]['printer_key']);
+  //     }
+  //   }
+  // }
 
   generatePrinterCategoryKey(PrinterLinkCategory printerLinkCategory) async {
     final prefs = await SharedPreferences.getInstance();
@@ -1159,13 +1160,12 @@ class _PrinterDialogState extends State<PrinterDialog> {
   }
 
   syncAllToCloud() async {
-    if(mainSyncToCloud.count == 0){
-      mainSyncToCloud.count = 1;
-      final prefs = await SharedPreferences.getInstance();
-      final int? device_id = prefs.getInt('device_id');
-      final String? login_value = prefs.getString('login_value');
-      bool _hasInternetAccess = await Domain().isHostReachable();
-      if (_hasInternetAccess) {
+    try{
+      if(mainSyncToCloud.count == 0){
+        mainSyncToCloud.count = 1;
+        final prefs = await SharedPreferences.getInstance();
+        final int? device_id = prefs.getInt('device_id');
+        final String? login_value = prefs.getString('login_value');
         Map data = await Domain().syncLocalUpdateToCloud(
             device_id: device_id.toString(),
             value: login_value,
@@ -1189,10 +1189,24 @@ class _PrinterDialogState extends State<PrinterDialog> {
                 return;
             }
           }
+          mainSyncToCloud.resetCount();
         } else if (data['status'] == '7'){
+          mainSyncToCloud.resetCount();
           this.isLogOut = true;
+        } else if (data['status'] == '8'){
+          print('printer sync timeout');
+          mainSyncToCloud.resetCount();
+          throw TimeoutException("Time out");
+        } else {
+          mainSyncToCloud.resetCount();
         }
+        // bool _hasInternetAccess = await Domain().isHostReachable();
+        // if (_hasInternetAccess) {
+        //
+        // }
+        // mainSyncToCloud.resetCount();
       }
+    } catch(e){
       mainSyncToCloud.resetCount();
     }
   }

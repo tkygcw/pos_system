@@ -308,11 +308,11 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
         await changeToUnusedTable(widget.object.table_sqlite_id!, tableData[0].table_sqlite_id.toString(), tableData[0].table_id.toString(), dateTime);
         await updatePosTable(NowUseDetailData[0].table_use_detail_key!, dateTime, NowUseDetailData[0].table_use_key!);
       }
-      // await syncAllToCloud();
-      // if(this.isLogOut == true){
-      //   openLogOutDialog();
-      //   return;
-      // }
+      await syncAllToCloud();
+      if(this.isLogOut == true){
+        openLogOutDialog();
+        return;
+      }
       widget.callBack();
       Navigator.of(context).pop();
     } catch(e){

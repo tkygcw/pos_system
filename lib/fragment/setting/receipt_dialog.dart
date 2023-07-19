@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:dotted_line/dotted_line.dart';
@@ -440,27 +441,36 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   }
 
   syncAllToCloud({receiptValue}) async {
-    if(mainSyncToCloud.count == 0){
-      mainSyncToCloud.count = 1;
-      final prefs = await SharedPreferences.getInstance();
-      final int? device_id = prefs.getInt('device_id');
-      final String? login_value = prefs.getString('login_value');
-      bool _hasInternetAccess = await Domain().isHostReachable();
-      if (_hasInternetAccess) {
+    try{
+      if(mainSyncToCloud.count == 0){
+        mainSyncToCloud.count = 1;
+        final prefs = await SharedPreferences.getInstance();
+        final int? device_id = prefs.getInt('device_id');
+        final String? login_value = prefs.getString('login_value');
         Map data = await Domain().syncLocalUpdateToCloud(
-          device_id: device_id.toString(),
-          value: login_value,
-          receipt_value: receiptValue
+            device_id: device_id.toString(),
+            value: login_value,
+            receipt_value: receiptValue
         );
         if (data['status'] == '1') {
           List responseJson = data['data'];
           await PosDatabase.instance.updateReceiptSyncStatusFromCloud(responseJson[0]['receipt_key']);
+          mainSyncToCloud.resetCount();
         }else if(data['status'] == '7'){
-          this.isLogOut = true;
+          mainSyncToCloud.resetCount();
+          //this.isLogOut = true;
           openLogOutDialog();
           return;
+        }else if (data['status'] == '8'){
+          print('receipt setting timeout');
+          mainSyncToCloud.resetCount();
+          throw TimeoutException("Time out");
+        } else {
+          mainSyncToCloud.resetCount();
         }
       }
+    }catch(e){
+      mainSyncToCloud.resetCount();
     }
   }
 

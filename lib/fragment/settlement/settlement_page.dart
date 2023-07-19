@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
@@ -13,6 +14,8 @@ import 'package:pos_system/fragment/settlement/pos_pin_dialog.dart';
 import 'package:pos_system/fragment/settlement/settlement_dialog.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/payment_link_company.dart';
+import 'package:pos_system/object/printer.dart';
+import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/utils/Utils.dart';
@@ -20,10 +23,13 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/domain.dart';
+import '../../main.dart';
 import '../../notifier/connectivity_change_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
+import '../../object/print_receipt.dart';
 import '../../translation/AppLocalizations.dart';
+import '../logout_dialog.dart';
 
 class SettlementPage extends StatefulWidget {
   const SettlementPage({Key? key}) : super(key: key);
@@ -33,18 +39,25 @@ class SettlementPage extends StatefulWidget {
 }
 
 class _SettlementPageState extends State<SettlementPage> {
+  PrintReceipt printReceipt = PrintReceipt();
+  List<Printer> printerList = [];
   List<OrderCache> unpaidOrderCacheList = [];
   List<CashRecord> cashRecordList = [];
   List<String> paymentNameList = [];
   String selectedPayment = 'All/Cash Drawer';
-  bool isLoad = false;
+  bool isLoad = false, isLogOut = false;
 
   @override
   void initState() {
     super.initState();
     //checkUnpaidOrderCache();
+    readAllPrinters();
     readPaymentLinkCompany();
     readCashRecord();
+  }
+
+  readAllPrinters() async {
+    printerList = await printReceipt.readAllPrinters();
   }
 
   @override
@@ -102,18 +115,19 @@ class _SettlementPageState extends State<SettlementPage> {
                 ),
               ],
             ),
-            body: isLoad
-                ? Container(
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            Divider(
-                              height: 10,
-                              color: Colors.grey,
-                            ),
-                            Container(
+            body: isLoad ? Padding(
+              padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+              child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Divider(
+                            height: 10,
+                            color: Colors.grey,
+                          ),
+                          Container(
+                            alignment: Alignment.topLeft,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
                               child: Row(
                                 children: [
                                   ElevatedButton(
@@ -157,11 +171,22 @@ class _SettlementPageState extends State<SettlementPage> {
                                     child: VerticalDivider(color: Colors.grey, thickness: 1),
                                   ),
                                   ElevatedButton(
+                                    child: Text('Reprint latest settlement'),
+                                    onPressed: () async  {
+                                      await reprintLatestSettlement();
+                                    },
+                                    style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                                  ),
+                                  Container(
+                                    height: 30,
+                                    child: VerticalDivider(color: Colors.grey, thickness: 1),
+                                  ),
+                                  ElevatedButton(
                                     child: Text('Cash Record History'),
                                     onPressed: () {
                                       openSettlementHistoryDialog();
                                     },
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                   ),
                                   Container(
                                     height: 30,
@@ -184,7 +209,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('close_counter_warn')}");
                                       }
                                     },
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                    style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                                   ),
                                   Container(
                                     height: 30,
@@ -195,7 +220,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                     onPressed: () {
                                       openCashBoxDialog();
                                     },
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                   ),
                                   Container(
                                     height: 30,
@@ -204,145 +229,144 @@ class _SettlementPageState extends State<SettlementPage> {
                                 ],
                               ),
                             ),
-                            Divider(
-                              height: 10,
-                              color: Colors.grey,
-                            ),
-                            cashRecordList.length > 0
-                                ? Container(
-                                    height: MediaQuery.of(context).size.height / 1.7,
-                                    child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
-                                      return ListView.builder(
-                                          shrinkWrap: true,
-                                          itemCount: cashRecordList.length,
-                                          itemBuilder: (context, index) {
-                                            return ListTile(
-                                              contentPadding: EdgeInsets.all(10),
-                                              leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
-                                                  ? CircleAvatar(
-                                                      backgroundColor: Colors.grey.shade200,
-                                                      child: Icon(
-                                                        Icons.payments,
-                                                        color: Colors.grey,
-                                                      ))
-                                                  : cashRecordList[index].payment_type_id == '2'
-                                                      ? CircleAvatar(
-                                                          backgroundColor: Colors.grey.shade200,
-                                                          child: Icon(
-                                                            Icons.qr_code_rounded,
-                                                            color: Colors.grey,
-                                                          ))
-                                                      : CircleAvatar(
-                                                          backgroundColor: Colors.grey.shade200,
-                                                          child: Icon(
-                                                            Icons.wifi,
-                                                            color: Colors.grey,
-                                                          )),
-                                              title: Text(
-                                                '${cashRecordList[index].remark}',
-                                                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
-                                              ),
-                                              subtitle: cashRecordList[index].type == 1 || cashRecordList[index].type == 0
-                                                  ? RichText(
-                                                      text: TextSpan(
-                                                        style: TextStyle(color: Colors.black, fontSize: 16),
-                                                        children: <TextSpan>[
-                                                          TextSpan(
-                                                              text: '${Utils.formatDate(cashRecordList[index].created_at)}',
-                                                              style: TextStyle(color: Colors.black87, fontSize: 14)),
-                                                          TextSpan(text: '\n'),
-                                                          TextSpan(
-                                                            text: 'Cash In by: ${cashRecordList[index].userName}',
-                                                            style: TextStyle(color: Colors.grey, fontSize: 12),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    )
-                                                  : cashRecordList[index].type == 3
-                                                      ? RichText(
-                                                          text: TextSpan(
-                                                            style: TextStyle(color: Colors.black, fontSize: 16),
-                                                            children: <TextSpan>[
-                                                              TextSpan(
-                                                                  text: '${Utils.formatDate(cashRecordList[index].created_at)}',
-                                                                  style: TextStyle(color: Colors.black87, fontSize: 14)),
-                                                              TextSpan(text: '\n'),
-                                                              TextSpan(
-                                                                text: 'Close by: ${cashRecordList[index].userName}',
-                                                                style: TextStyle(color: Colors.grey, fontSize: 12),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        )
-                                                      : RichText(
-                                                          text: TextSpan(
-                                                            style: TextStyle(color: Colors.black, fontSize: 16),
-                                                            children: <TextSpan>[
-                                                              TextSpan(
-                                                                  text: '${Utils.formatDate(cashRecordList[index].created_at)}',
-                                                                  style: TextStyle(color: Colors.black87, fontSize: 14)),
-                                                              TextSpan(text: '\n'),
-                                                              TextSpan(
-                                                                text: 'Cash-Out: ${cashRecordList[index].userName}',
-                                                                style: TextStyle(color: Colors.grey, fontSize: 12),
-                                                              ),
-                                                            ],
-                                                          ),
+                          ),
+                          Divider(
+                            height: 10,
+                            color: Colors.grey,
+                          ),
+                          cashRecordList.length > 0
+                              ? Container(
+                                  height: MediaQuery.of(context).size.height / 1.7,
+                                  child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+                                    return ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: cashRecordList.length,
+                                        itemBuilder: (context, index) {
+                                          return ListTile(
+                                            contentPadding: EdgeInsets.all(10),
+                                            leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
+                                                ? CircleAvatar(
+                                                    backgroundColor: Colors.grey.shade200,
+                                                    child: Icon(
+                                                      Icons.payments,
+                                                      color: Colors.grey,
+                                                    ))
+                                                : cashRecordList[index].payment_type_id == '2'
+                                                    ? CircleAvatar(
+                                                        backgroundColor: Colors.grey.shade200,
+                                                        child: Icon(
+                                                          Icons.qr_code_rounded,
+                                                          color: Colors.grey,
+                                                        ))
+                                                    : CircleAvatar(
+                                                        backgroundColor: Colors.grey.shade200,
+                                                        child: Icon(
+                                                          Icons.wifi,
+                                                          color: Colors.grey,
+                                                        )),
+                                            title: Text(
+                                              '${cashRecordList[index].remark}',
+                                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                                            ),
+                                            subtitle: cashRecordList[index].type == 1 || cashRecordList[index].type == 0
+                                                ? RichText(
+                                                    text: TextSpan(
+                                                      style: TextStyle(color: Colors.black, fontSize: 16),
+                                                      children: <TextSpan>[
+                                                        TextSpan(
+                                                            text: '${Utils.formatDate(cashRecordList[index].created_at)}',
+                                                            style: TextStyle(color: Colors.black87, fontSize: 14)),
+                                                        TextSpan(text: '\n'),
+                                                        TextSpan(
+                                                          text: 'Cash In by: ${cashRecordList[index].userName}',
+                                                          style: TextStyle(color: Colors.grey, fontSize: 12),
                                                         ),
-                                              trailing: cashRecordList[index].type == 2 || cashRecordList[index].type == 4
-                                                  ? Text('-${Utils.convertTo2Dec(cashRecordList[index].amount!)}',
-                                                      style: TextStyle(fontSize: 16, color: Colors.red))
-                                                  : Text('+${Utils.convertTo2Dec(cashRecordList[index].amount!)}',
-                                                      style: TextStyle(fontSize: 16, color: Colors.green)),
-                                              onLongPress: () async {
-                                                if (cashRecordList[index].type != 0 && cashRecordList[index].type != 3) {
-                                                  if (await confirm(
-                                                    context,
-                                                    title: Text('${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
-                                                    content: Text('${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
-                                                    textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                                    textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                                  )) {
-                                                    return removeCashRecord(cashRecordList[index], connectivity);
-                                                  }
+                                                      ],
+                                                    ),
+                                                  )
+                                                : cashRecordList[index].type == 3
+                                                    ? RichText(
+                                                        text: TextSpan(
+                                                          style: TextStyle(color: Colors.black, fontSize: 16),
+                                                          children: <TextSpan>[
+                                                            TextSpan(
+                                                                text: '${Utils.formatDate(cashRecordList[index].created_at)}',
+                                                                style: TextStyle(color: Colors.black87, fontSize: 14)),
+                                                            TextSpan(text: '\n'),
+                                                            TextSpan(
+                                                              text: 'Close by: ${cashRecordList[index].userName}',
+                                                              style: TextStyle(color: Colors.grey, fontSize: 12),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      )
+                                                    : RichText(
+                                                        text: TextSpan(
+                                                          style: TextStyle(color: Colors.black, fontSize: 16),
+                                                          children: <TextSpan>[
+                                                            TextSpan(
+                                                                text: '${Utils.formatDate(cashRecordList[index].created_at)}',
+                                                                style: TextStyle(color: Colors.black87, fontSize: 14)),
+                                                            TextSpan(text: '\n'),
+                                                            TextSpan(
+                                                              text: 'Cash-Out: ${cashRecordList[index].userName}',
+                                                              style: TextStyle(color: Colors.grey, fontSize: 12),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                            trailing: cashRecordList[index].type == 2 || cashRecordList[index].type == 4
+                                                ? Text('-${Utils.convertTo2Dec(cashRecordList[index].amount!)}',
+                                                    style: TextStyle(fontSize: 16, color: Colors.red))
+                                                : Text('+${Utils.convertTo2Dec(cashRecordList[index].amount!)}',
+                                                    style: TextStyle(fontSize: 16, color: Colors.green)),
+                                            onLongPress: () async {
+                                              if (cashRecordList[index].type != 0 && cashRecordList[index].type != 3) {
+                                                if (await confirm(
+                                                  context,
+                                                  title: Text('${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
+                                                  content: Text('${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                                                  textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                                  textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                                )) {
+                                                  return await removeCashRecord(cashRecordList[index], connectivity);
                                                 }
-                                              },
-                                            );
-                                          });
-                                    }))
-                                : Container(
-                                    alignment: Alignment.center,
-                                    height: MediaQuery.of(context).size.height / 1.7,
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.menu),
-                                        Text('NO RECORD'),
-                                      ],
-                                    ),
+                                              }
+                                            },
+                                          );
+                                        });
+                                  }))
+                              : Container(
+                                  alignment: Alignment.center,
+                                  height: MediaQuery.of(context).size.height / 1.7,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.menu),
+                                      Text('NO RECORD'),
+                                    ],
                                   ),
-                            Divider(
-                              height: 10,
-                              color: Colors.grey,
-                            ),
-                            Container(
-                                margin: EdgeInsets.all(15),
-                                padding: EdgeInsets.only(right: 10),
-                                alignment: Alignment.bottomRight,
-                                child: Text(
-                                  '${getTotalAmount()}',
-                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-                                )),
-                            Divider(
-                              height: 10,
-                              color: Colors.grey,
-                            ),
-                          ],
-                        ),
+                                ),
+                          Divider(
+                            height: 10,
+                            color: Colors.grey,
+                          ),
+                          Container(
+                              margin: EdgeInsets.all(15),
+                              padding: EdgeInsets.only(right: 10),
+                              alignment: Alignment.bottomRight,
+                              child: Text(
+                                '${getTotalAmount()}',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                              )),
+                          Divider(
+                            height: 10,
+                            color: Colors.grey,
+                          ),
+                        ],
                       ),
                     ),
-                  )
-                : CustomProgressBar(),
+            ) : CustomProgressBar(),
           );
         } else {
           ///mobile view
@@ -458,6 +482,17 @@ class _SettlementPageState extends State<SettlementPage> {
                                         }
                                       },
                                       style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                    ),
+                                    Container(
+                                      height: 30,
+                                      child: VerticalDivider(color: Colors.grey, thickness: 1),
+                                    ),
+                                    ElevatedButton(
+                                      child: Text('Reprint latest settlement'),
+                                      onPressed: () async  {
+                                        await reprintLatestSettlement();
+                                      },
+                                      style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                                     ),
                                     Container(
                                       height: 30,
@@ -615,7 +650,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                                     textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                                                     textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
                                                   )) {
-                                                    return removeCashRecord(cashRecordList[index], connectivity);
+                                                    return await removeCashRecord(cashRecordList[index], connectivity);
                                                   }
                                                 }
                                               },
@@ -758,6 +793,7 @@ class _SettlementPageState extends State<SettlementPage> {
               child: SettlementDialog(
                 cashRecordList: cashRecord,
                 callBack: () => readCashRecord(),
+                printerList: printerList,
               ),
             ),
           );
@@ -818,6 +854,7 @@ class _SettlementPageState extends State<SettlementPage> {
 /*
   ----------------DB Query part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
 
   readPaymentLinkCompany() async {
     paymentNameList.add('All/Cash Drawer');
@@ -892,27 +929,115 @@ class _SettlementPageState extends State<SettlementPage> {
       }
       await readCashRecord();
       //sync to cloud
-      syncUpdatedCashRecordToCloud(_value.toString());
+      await syncCashRecordToCloud(_value.toString());
+      if(isLogOut){
+        openLogOutDialog();
+        return;
+      }
+      //syncUpdatedCashRecordToCloud(_value.toString());
     } catch (e) {
       print('delete cash record error: ${e}');
       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Delete cash record error: ${e}");
     }
   }
 
-  syncUpdatedCashRecordToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().SyncCashRecordToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+  // syncUpdatedCashRecordToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().SyncCashRecordToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+  //     }
+  //   }
+  // }
+
+  syncCashRecordToCloud(String value) async {
+    try{
+      if(mainSyncToCloud.count == 0){
+        mainSyncToCloud.count = 1;
+        final prefs = await SharedPreferences.getInstance();
+        final int? device_id = prefs.getInt('device_id');
+        final String? login_value = prefs.getString('login_value');
+        Map data = await Domain().syncLocalUpdateToCloud(device_id: device_id.toString(), value: login_value.toString(), cash_record_value: value);
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+          mainSyncToCloud.resetCount();
+        } else if (data['status'] == '7') {
+          mainSyncToCloud.resetCount();
+          this.isLogOut = true;
+        }else if (data['status'] == '8'){
+          print('cash dialog timeout');
+          mainSyncToCloud.resetCount();
+          throw TimeoutException("Time out");
+        } else {
+          mainSyncToCloud.resetCount();
+        }
       }
+    }catch(e){
+      mainSyncToCloud.resetCount();
     }
+
+    // bool _hasInternetAccess = await Domain().isHostReachable();
+    // if (_hasInternetAccess) {
+    //   print('value: ${login_value.toString()}');
+    //
+    // }
+  }
+
+  Future<Future<Object?>> openLogOutDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: LogoutConfirmDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
 /*
   ----------------Other function part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+  reprintLatestSettlement() async {
+    Settlement? settlement = await PosDatabase.instance.readLatestSettlement();
+    if(settlement != null){
+      await callPrinter(currentSettlementDateTime: settlement.created_at!, settlement: settlement);
+    } else {
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "No settlement record found");
+    }
+  }
+
+  callPrinter({required String currentSettlementDateTime, required Settlement settlement}) async {
+    int printStatus = await printReceipt.printSettlementList(printerList, currentSettlementDateTime, settlement);
+    if(printStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (printStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }else if(printStatus == 3){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "No cashier printer added");
+    }
+  }
 
   setScreenLayout() {
     final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;

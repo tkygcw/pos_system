@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -544,21 +545,28 @@ class _CashDialogState extends State<CashDialog> {
   }
 
   syncCashRecordToCloud(String value) async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      print('value: ${login_value.toString()}');
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? device_id = prefs.getInt('device_id');
+      final String? login_value = prefs.getString('login_value');
       if(mainSyncToCloud.count == 0){
+        mainSyncToCloud.count = 1;
         Map data = await Domain().syncLocalUpdateToCloud(device_id: device_id.toString(), value: login_value.toString(), cash_record_value: value);
         if (data['status'] == '1') {
           List responseJson = data['data'];
           await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+          mainSyncToCloud.resetCount();
         } else if (data['status'] == '7') {
+          mainSyncToCloud.resetCount();
           this.isLogOut = true;
+        }else if (data['status'] == '8'){
+          print('cash dialog timeout');
+          mainSyncToCloud.resetCount();
+          throw TimeoutException("Time out");
         }
       }
+    }catch(e){
+      mainSyncToCloud.resetCount();
     }
   }
 

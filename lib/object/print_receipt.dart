@@ -1042,7 +1042,7 @@ class PrintReceipt{
     }
   }
 
-  printSettlementList(List<Printer> printerList, String dateTime, context, Settlement settlement) async {
+  printSettlementList(List<Printer> printerList, String dateTime, Settlement settlement) async {
     try {
       int printStatus = 0;
       if(printerList.isNotEmpty){
