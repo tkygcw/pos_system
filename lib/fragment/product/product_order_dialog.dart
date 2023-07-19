@@ -273,7 +273,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                               onPressed: isButtonDisabled
                                   ? null
                                   : () async {
-                                      await getBranchLinkProductItem(widget.productDetail!);
+                                      await checkProductStock(widget.productDetail!, cart);
+                                      //await getBranchLinkProductItem(widget.productDetail!);
                                       if (hasStock) {
                                         if (cart.selectedOption == 'Dine in') {
                                           if(simpleIntInput > 0){
@@ -437,7 +438,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                         onPressed: isButtonDisabled
                             ? null
                             : () async {
-                                await getBranchLinkProductItem(widget.productDetail!);
+                                await checkProductStock(widget.productDetail!, cart);
+                                //await getBranchLinkProductItem(widget.productDetail!);
                                 if (hasStock == true) {
                                   if (cart.selectedOption == 'Dine in') {
                                     if(simpleIntInput > 0){
@@ -559,9 +561,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     await getProductPrice(widget.productDetail!.product_sqlite_id);
     categories = await PosDatabase.instance.readSpecificCategoryById(widget.productDetail!.category_sqlite_id!);
     print('category init: ${categories}');
-    setState(() {
-      this.isLoaded = true;
-    });
+    if(mounted){
+      setState(() {
+        this.isLoaded = true;
+      });
+    }
   }
 
   getProductPrice(int? productId) async {
@@ -614,45 +618,122 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     return finalPrice;
   }
 
+  int checkCartProductQuantity(CartModel cart, BranchLinkProduct branchLinkProduct){
+    ///get all same item in cart
+    List<cartProductItem> sameProductList = cart.cartNotifierItem.where(
+            (item) => item.branch_link_product_sqlite_id == branchLinkProduct.branch_link_product_sqlite_id.toString() && item.status == 0
+    ).toList();
+    if(sameProductList.isNotEmpty){
+      /// sum all quantity
+      int totalQuantity = sameProductList.fold(0, (sum, product) => sum + product.quantity!);
+      return totalQuantity;
+    } else {
+      return 0;
+    }
+  }
+
+  checkProductStock(Product product, CartModel cart) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    if (product.has_variant == 0) {
+      List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
+      if(data1[0].stock_type == '2') {
+        if (int.parse(data1[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data1[0].stock_quantity!)) {
+          int stockLeft =  int.parse(data1[0].stock_quantity!) - checkCartProductQuantity(cart, data1[0]);
+          if(stockLeft > 0){
+            hasStock = true;
+          } else {
+            hasStock = false;
+          }
+        } else {
+          hasStock = false;
+        }
+      } else {
+        if (int.parse(data1[0].daily_limit!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit!)) {
+          int stockLeft =  int.parse(data1[0].daily_limit!) - checkCartProductQuantity(cart, data1[0]);
+          print('stock left: ${stockLeft}');
+          if(stockLeft > 0){
+            hasStock = true;
+          } else {
+            hasStock = false;
+          }
+        } else {
+          hasStock = false;
+        }
+      }
+    } else {
+      //check has variant product stock
+      List<BranchLinkProduct> data = await PosDatabase.instance.checkProductVariant(await getProductVariant(product.product_sqlite_id!), product.product_sqlite_id.toString());
+      if (data[0].stock_type == '2') {
+        if (int.parse(data[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data[0].stock_quantity!)) {
+          int stockLeft =  int.parse(data[0].stock_quantity!) - checkCartProductQuantity(cart, data[0]);
+          print('stock left: ${stockLeft}');
+          if(stockLeft > 0){
+            hasStock = true;
+          } else {
+            hasStock = false;
+          }
+        } else {
+          hasStock = false;
+        }
+      } else {
+        if (int.parse(data[0].daily_limit_amount!) > 0 && simpleIntInput <= int.parse(data[0].daily_limit_amount!)) {
+          int stockLeft =  int.parse(data[0].daily_limit_amount!) - checkCartProductQuantity(cart, data[0]);
+          print('stock left: ${stockLeft}');
+          if(stockLeft > 0){
+            hasStock = true;
+          } else {
+            hasStock = false;
+          }
+        } else {
+          hasStock = false;
+        }
+      }
+    }
+    print('has stock ${hasStock}');
+  }
+
   getBranchLinkProductItem(Product product) async {
     branchLinkProduct_id = '';
     try {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      if (product.has_variant == 0) {
-        List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
-        branchLinkProduct_id = data1[0].branch_link_product_sqlite_id.toString();
-        if(data1[0].stock_type == '2') {
-          if (int.parse(data1[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data1[0].stock_quantity!)) {
-            hasStock = true;
-          } else {
-            hasStock = false;
-          }
-        } else {
-          if (int.parse(data1[0].daily_limit_amount!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit_amount!)) {
-            hasStock = true;
-          } else {
-            hasStock = false;
-          }
-        }
-      } else {
-        //check has variant product stock
-        List<BranchLinkProduct> data = await PosDatabase.instance.checkProductVariant(await getProductVariant(product.product_sqlite_id!), product.product_sqlite_id.toString());
-        branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
-        if (data[0].stock_type == '2') {
-          if (int.parse(data[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data[0].stock_quantity!)) {
-            hasStock = true;
-          } else {
-            hasStock = false;
-          }
-        } else {
-          if (int.parse(data[0].daily_limit_amount!) > 0 && simpleIntInput <= int.parse(data[0].daily_limit_amount!)) {
-            hasStock = true;
-          } else {
-            hasStock = false;
-          }
-        }
-      }
+      List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
+      branchLinkProduct_id = data1[0].branch_link_product_sqlite_id.toString();
+      // if (product.has_variant == 0) {
+      //   List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
+      //   branchLinkProduct_id = data1[0].branch_link_product_sqlite_id.toString();
+      //   if(data1[0].stock_type == '2') {
+      //     if (int.parse(data1[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data1[0].stock_quantity!)) {
+      //       hasStock = true;
+      //     } else {
+      //       hasStock = false;
+      //     }
+      //   } else {
+      //     if (int.parse(data1[0].daily_limit_amount!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit_amount!)) {
+      //       hasStock = true;
+      //     } else {
+      //       hasStock = false;
+      //     }
+      //   }
+      // } else {
+      //   //check has variant product stock
+      //   List<BranchLinkProduct> data = await PosDatabase.instance.checkProductVariant(await getProductVariant(product.product_sqlite_id!), product.product_sqlite_id.toString());
+      //   branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
+      //   if (data[0].stock_type == '2') {
+      //     if (int.parse(data[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data[0].stock_quantity!)) {
+      //       hasStock = true;
+      //     } else {
+      //       hasStock = false;
+      //     }
+      //   } else {
+      //     if (int.parse(data[0].daily_limit_amount!) > 0 && simpleIntInput <= int.parse(data[0].daily_limit_amount!)) {
+      //       hasStock = true;
+      //     } else {
+      //       hasStock = false;
+      //     }
+      //   }
+      // }
       return branchLinkProduct_id;
     } catch (e) {
       Fluttertoast.showToast(msg: 'Make sure stock is restock');
@@ -799,6 +880,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         price: await getProductPrice(widget.productDetail?.product_sqlite_id),
         quantity: simpleIntInput,
         checkedModifierLength: checkedModifierLength,
+        checkedModifierItem: checkedModItem,
         modifier: modifierGroup,
         variant: variantGroup,
         remark: remarkController.text,

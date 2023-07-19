@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -15,6 +16,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../main.dart';
 import '../../object/branch_link_product.dart';
 import '../../object/order_cache.dart';
 import '../../object/order_detail.dart';
@@ -54,6 +56,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   double newSubtotal = 0.0;
   bool hasNoStockProduct = false, hasNotAvailableProduct = false, tableInUsed = false;
   bool isButtonDisabled = false, isLogOut = false;
+  bool willPop = true;
 
   @override
   void initState() {
@@ -98,54 +101,76 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return LayoutBuilder(builder: (context, constraints) {
         if (constraints.maxWidth > 800) {
-          return AlertDialog(
-            title: Text(
-              "Order detail",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            content: Container(
-              height: MediaQuery.of(context).size.height,
-              width: MediaQuery.of(context).size.width / 1.5,
-              child: ListView.builder(
-                  itemCount: widget.orderDetailList.length,
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    return Dismissible(
-                      background: Container(
-                        color: Colors.red,
-                        padding: EdgeInsets.only(left: 25.0),
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, color: Colors.white),
-                          ],
-                        ),
-                      ),
-                      key: ValueKey(widget.orderDetailList[index].productName),
-                      direction: DismissDirection.startToEnd,
-                      confirmDismiss: (direction) async {
-                        if (direction == DismissDirection.startToEnd) {
-                          print('detail remove');
-                          if (mounted) {
+          return WillPopScope(
+            onWillPop: () async => willPop,
+            child: AlertDialog(
+              title: Row(
+                children: [
+                  Text(
+                    "Order detail",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Spacer(),
+                  IconButton(
+                      onPressed: (){
+                        if(removeDetailList.isNotEmpty){
+                          if(mounted){
                             setState(() {
-                              widget.orderDetailList[index].isRemove = true;
-                              removeDetailList.add(widget.orderDetailList[index]);
-                              widget.orderDetailList.removeAt(index);
+                              widget.orderDetailList.addAll(removeDetailList);
+                              removeDetailList.clear();
                             });
+                            Fluttertoast.showToast(msg: "${AppLocalizations.of(context)?.translate('content_reset_success')}", backgroundColor: Colors.green);
                           }
+                        } else {
+                          Fluttertoast.showToast(msg: "${AppLocalizations.of(context)?.translate('content_already_reset')}", backgroundColor: Colors.red);
                         }
-                        return null;
                       },
-                      child: Card(
-                        elevation: 5,
-                        child: Container(
-                          margin: EdgeInsets.all(10),
-                          height: MediaQuery.of(context).size.height / 7,
-                          child: Column(children: [
-                            Expanded(
-                              child: ListTile(
+                      icon: Icon(Icons.refresh))
+                ],
+              ),
+              content: Container(
+                height: MediaQuery.of(context).size.height,
+                width: MediaQuery.of(context).size.width / 1.5,
+                child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: widget.orderDetailList.length,
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      return Dismissible(
+                        background: Container(
+                          color: Colors.red,
+                          padding: EdgeInsets.only(left: 25.0),
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete, color: Colors.white),
+                            ],
+                          ),
+                        ),
+                        key: ValueKey(widget.orderDetailList[index].productName),
+                        direction: DismissDirection.startToEnd,
+                        confirmDismiss: (direction) async {
+                          if (direction == DismissDirection.startToEnd) {
+                            print('detail remove');
+                            if (mounted) {
+                              setState(() {
+                                widget.orderDetailList[index].isRemove = true;
+                                removeDetailList.add(widget.orderDetailList[index]);
+                                widget.orderDetailList.removeAt(index);
+                              });
+                            }
+                          }
+                          return null;
+                        },
+                        child: Card(
+                          elevation: 5,
+                          child: Container(
+                            margin: EdgeInsets.all(10),
+                            //height: MediaQuery.of(context).size.height / 7,
+                            child: Column(children: [
+                              ListTile(
                                 onTap: null,
                                 isThreeLine: true,
                                 title: RichText(
@@ -241,129 +266,130 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                   ),
                                 ),
                               ),
-                            ),
-                          ]),
+                            ]),
+                          ),
                         ),
-                      ),
-                    );
-                  }),
-            ),
-            actions: <Widget>[
-              SizedBox(
-                width: MediaQuery.of(context).size.width / 4,
-                height: MediaQuery.of(context).size.height / 12,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color.backgroundColor,
-                  ),
-                  child: Text(
-                    'Close',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onPressed: isButtonDisabled
-                      ? null
-                      : () {
-                          // Disable the button after it has been pressed
-                          setState(() {
-                            isButtonDisabled = true;
-                          });
-                          Navigator.of(context).pop();
-                        },
-                ),
+                      );
+                    }),
               ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width / 4,
-                height: MediaQuery.of(context).size.height / 12,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
+              actions: <Widget>[
+                SizedBox(
+                  width: MediaQuery.of(context).size.width / 4,
+                  height: MediaQuery.of(context).size.height / 12,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: color.backgroundColor,
+                    ),
+                    child: Text(
+                      'Close',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: isButtonDisabled
+                        ? null
+                        : () {
+                            // Disable the button after it has been pressed
+                            setState(() {
+                              isButtonDisabled = true;
+                            });
+                            Navigator.of(context).pop();
+                          },
                   ),
-                  child: Text(
-                    'Reject',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onPressed: isButtonDisabled
-                      ? null
-                      : () async {
-                          // Disable the button after it has been pressed
-                          setState(() {
-                            isButtonDisabled = true;
-                          });
-                          await callRejectOrder();
-                        },
                 ),
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width / 4,
-                height: MediaQuery.of(context).size.height / 12,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color.buttonColor,
+                SizedBox(
+                  width: MediaQuery.of(context).size.width / 4,
+                  height: MediaQuery.of(context).size.height / 12,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                    ),
+                    child: Text(
+                      'Reject',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: isButtonDisabled
+                        ? null
+                        : () async {
+                            // Disable the button after it has been pressed
+                            setState(() {
+                              isButtonDisabled = true;
+                              willPop = false;
+                            });
+                            await callRejectOrder();
+                          },
                   ),
-                  child: Text(
-                    'Add',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onPressed: isButtonDisabled
-                      ? null
-                      : widget.orderDetailList.isNotEmpty
-                          ? () async {
-                              await checkOrderDetailStock();
-                              print('available check: ${hasNotAvailableProduct}');
-                              if (hasNoStockProduct) {
-                                Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "Contain out of stock product");
-                              } else if(hasNotAvailableProduct){
-                                Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Contain not available product");
-                              } else {
-                                // Disable the button after it has been pressed
-                                setState(() {
-                                  isButtonDisabled = true;
-                                });
-                                if (removeDetailList.isNotEmpty) {
-                                  await removeOrderDetail();
-                                }
-                                if (widget.tableLocalId != '') {
-                                  await checkTable();
-                                  if (tableInUsed == true) {
-                                    await updateOrderDetail();
-                                    await updateOrderCache();
-                                    await updateProductStock();
-                                    await syncAllToCloud();
-                                    if (this.isLogOut == true) {
-                                      openLogOutDialog();
-                                      return;
-                                    }
-                                    widget.callBack;
-                                    await callPrinter();
-                                    // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
-                                    // await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
-                                  } else {
-                                    await callNewOrder();
-                                    await updateProductStock();
-                                    await syncAllToCloud();
-                                    if (this.isLogOut == true) {
-                                      openLogOutDialog();
-                                      return;
-                                    }
-                                    widget.callBack;
-                                    await callPrinter();
-                                    // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
-                                    // await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
-                                  }
+                ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width / 4,
+                  height: MediaQuery.of(context).size.height / 12,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: color.buttonColor,
+                    ),
+                    child: Text(
+                      'Add',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: isButtonDisabled
+                        ? null
+                        : widget.orderDetailList.isNotEmpty
+                            ? () async {
+                                await checkOrderDetailStock();
+                                print('available check: ${hasNotAvailableProduct}');
+                                if (hasNoStockProduct) {
+                                  Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "Contain out of stock product");
+                                } else if(hasNotAvailableProduct){
+                                  Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Contain not available product");
                                 } else {
-                                  await callOtherOrder();
-                                  await callPrinter();
-                                  // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
-                                  // await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                                  // Disable the button after it has been pressed
+                                  setState(() {
+                                    isButtonDisabled = true;
+                                    willPop = false;
+                                  });
+                                  if (removeDetailList.isNotEmpty) {
+                                    await removeOrderDetail();
+                                  }
+                                  if (widget.tableLocalId != '') {
+                                    await checkTable();
+                                    if (tableInUsed == true) {
+                                      await updateOrderDetail();
+                                      await updateOrderCache();
+                                      await updateProductStock();
+                                      await callPrinter();
+                                      await syncAllToCloud();
+                                      if (this.isLogOut == true) {
+                                        openLogOutDialog();
+                                        return;
+                                      }
+                                      widget.callBack;
+                                      // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                                      // await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                                    } else {
+                                      await callNewOrder();
+                                      await updateProductStock();
+                                      await callPrinter();
+                                      await syncAllToCloud();
+                                      if (this.isLogOut == true) {
+                                        openLogOutDialog();
+                                        return;
+                                      }
+                                      widget.callBack;
+                                      // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                                      // await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+                                    }
+                                  } else {
+                                    await callOtherOrder();
+                                    // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+                                    // await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
 
+                                  }
+                                  Navigator.of(context).pop();
                                 }
-                                Navigator.of(context).pop();
                               }
-                            }
-                          : null,
+                            : null,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         } else {
           ///mobile view
@@ -587,32 +613,32 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                     await updateOrderDetail();
                                     await updateOrderCache();
                                     await updateProductStock();
+                                    await callPrinter();
                                     await syncAllToCloud();
                                     if (this.isLogOut == true) {
                                       openLogOutDialog();
                                       return;
                                     }
                                     widget.callBack;
-                                    await callPrinter();
                                     // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
                                     // await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                                   } else {
                                     await callNewOrder();
                                     await updateProductStock();
                                     await syncAllToCloud();
+                                    await callPrinter();
                                     if (this.isLogOut == true) {
                                       openLogOutDialog();
                                       return;
                                     }
                                     widget.callBack;
-                                    await callPrinter();
                                     // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
                                     // await PrintReceipt()
                                     //     .printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                                   }
                                 } else {
                                   await callOtherOrder();
-                                  await callPrinter();
+                                  //await callPrinter();
                                   // await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
                                   // await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
                                 }
@@ -663,6 +689,12 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   callOtherOrder() async {
     await acceptOrder(widget.orderCacheLocalId);
     await updateProductStock();
+    await callPrinter();
+    await syncAllToCloud();
+    if (this.isLogOut == true) {
+      openLogOutDialog();
+      return;
+    }
   }
 
   callRejectOrder() async {
@@ -693,13 +725,13 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
             branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
         updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
       } else {
-        _totalStockQty = int.parse(checkData[0].daily_limit_amount!) - int.parse(orderDetailList[i].quantity!);
+        _totalStockQty = int.parse(checkData[0].daily_limit!) - int.parse(orderDetailList[i].quantity!);
         object = BranchLinkProduct(
             updated_at: dateTime,
             sync_status: 2,
-            daily_limit_amount: _totalStockQty.toString(),
+            daily_limit: _totalStockQty.toString(),
             branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
-        updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimitAmount(object);
+        updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
       }
       if (updateStock == 1) {
         List<BranchLinkProduct> updatedData =
@@ -712,18 +744,18 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     //syncBranchLinkProductStock(_branchLinkProductValue.toString());
   }
 
-  syncBranchLinkProductStock(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map orderDetailResponse = await Domain().SyncBranchLinkProductToCloud(value);
-      if (orderDetailResponse['status'] == '1') {
-        List responseJson = orderDetailResponse['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int syncUpdated = await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-        }
-      }
-    }
-  }
+  // syncBranchLinkProductStock(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map orderDetailResponse = await Domain().SyncBranchLinkProductToCloud(value);
+  //     if (orderDetailResponse['status'] == '1') {
+  //       List responseJson = orderDetailResponse['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int syncUpdated = await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+  //       }
+  //     }
+  //   }
+  // }
 
   updatePosTable() async {
     try {
@@ -755,18 +787,18 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     }
   }
 
-  syncUpdatedTableToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().SyncUpdatedPosTableToCloud(value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-        }
-      }
-    }
-  }
+  // syncUpdatedTableToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map data = await Domain().SyncUpdatedPosTableToCloud(value);
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+  //       }
+  //     }
+  //   }
+  // }
 
   updateOrderCache() async {
     String currentBatch = widget.currentBatch;
@@ -776,6 +808,9 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     OrderCache orderCache = OrderCache(
         updated_at: dateTime,
         sync_status: 2,
+        order_by: 'Qr order',
+        order_by_user_id: '',
+        accepted: 0,
         total_amount: newSubtotal.toStringAsFixed(2),
         batch_id: tableInUsed ? this.batchNo : currentBatch,
         table_use_key: this.tableUseKey,
@@ -783,13 +818,13 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         order_cache_sqlite_id: widget.orderCacheLocalId);
     int status = await PosDatabase.instance.updateQrOrderCache(orderCache);
     if (status == 1) {
-      await acceptOrder(orderCache.order_cache_sqlite_id!);
+      //await acceptOrder(orderCache.order_cache_sqlite_id!);
       OrderCache updatedCache = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCache.order_cache_sqlite_id!);
       _value.add(jsonEncode(updatedCache));
       this.order_cache_value = _value.toString();
     }
   }
-  
+
   updateOrderDetail() async {
     try{
       List<String> _value = [];
@@ -851,19 +886,19 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     }
   }
 
-  syncTableUseDetailToCloud(String value) async {
-    //check is host reachable
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().SyncTableUseDetailToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int updateStatus = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-        }
-      }
-    }
-  }
+  // syncTableUseDetailToCloud(String value) async {
+  //   //check is host reachable
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().SyncTableUseDetailToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int updateStatus = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   generateTableUseDetailKey(TableUseDetail tableUseDetail) async {
     final prefs = await SharedPreferences.getInstance();
@@ -927,20 +962,20 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     }
   }
 
-  syncTableUseIdToCloud(TableUse updatedTableUseData) async {
-    List<String> _value = [];
-    //check is host reachable
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      _value.add(jsonEncode(updatedTableUseData));
-      print('table use value: ${_value}');
-      Map response = await Domain().SyncTableUseToCloud(_value.toString());
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int syncData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
-      }
-    }
-  }
+  // syncTableUseIdToCloud(TableUse updatedTableUseData) async {
+  //   List<String> _value = [];
+  //   //check is host reachable
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     _value.add(jsonEncode(updatedTableUseData));
+  //     print('table use value: ${_value}');
+  //     Map response = await Domain().SyncTableUseToCloud(_value.toString());
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       int syncData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
+  //     }
+  //   }
+  // }
 
   generateTableUseKey(TableUse tableUse) async {
     final prefs = await SharedPreferences.getInstance();
@@ -1048,23 +1083,25 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     //syncOrderDetailToCloud(value.toString());
   }
 
-  syncOrderDetailToCloud(String orderDetailValue) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map orderDetailResponse = await Domain().SyncOrderDetailToCloud(orderDetailValue);
-      if (orderDetailResponse['status'] == '1') {
-        List responseJson = orderDetailResponse['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int syncUpdated = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
-        }
-      }
-    }
-  }
+  // syncOrderDetailToCloud(String orderDetailValue) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map orderDetailResponse = await Domain().SyncOrderDetailToCloud(orderDetailValue);
+  //     if (orderDetailResponse['status'] == '1') {
+  //       List responseJson = orderDetailResponse['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int syncUpdated = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   checkTable() async {
     tableInUsed = false;
     if (widget.tableLocalId != '') {
+      print('widget table local id: ${widget.tableLocalId}');
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(widget.tableLocalId);
+      print('table use key: ${tableData[0].table_use_key}');
       if (tableData[0].status == 1) {
         TableUse tableUse = await PosDatabase.instance.readSpecificTableUseByKey(tableData[0].table_use_key!);
         List<OrderCache> orderCache = await PosDatabase.instance.readTableOrderCache(tableUse.table_use_key!);
@@ -1180,79 +1217,98 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   getOrderDetailModifier(OrderDetail orderDetail) {
     List<String> modifier = [];
     String result = '';
-    for (int j = 0; j < orderDetail.orderModifierDetail.length; j++) {
-      modifier.add(orderDetail.orderModifierDetail[j].mod_name!);
-      result = modifier.toString().replaceAll('[', '').replaceAll(']', '').replaceAll(',', '+').replaceFirst('', '+');
+    if(orderDetail.orderModifierDetail.isNotEmpty){
+      for (int j = 0; j < orderDetail.orderModifierDetail.length; j++) {
+        modifier.add(orderDetail.orderModifierDetail[j].mod_name! + "\n");
+      }
+      result = modifier.toString().replaceAll('[', '').replaceAll(']', '').replaceAll(', ', '+').replaceFirst('', '+');
     }
 
     return result;
   }
 
   syncAllToCloud() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().syncLocalUpdateToCloud(
-          device_id: device_id.toString(),
-          value: login_value,
-          table_use_value: this.table_use_value,
-          table_use_detail_value: this.table_use_detail_value,
-          order_cache_value: this.order_cache_value,
-          order_detail_value: this.order_detail_value,
-          order_detail_delete_value: this.delete_order_detail_value,
-          branch_link_product_value: this.branch_link_product_value,
-          order_modifier_value: this.order_modifier_detail_value,
-          table_value: this.table_value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          switch (responseJson[i]['table_name']) {
-            case 'tb_table_use':
-              {
-                await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
-              }
-              break;
-            case 'tb_table_use_detail':
-              {
-                await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-              }
-              break;
-            case 'tb_order_cache':
-              {
-                await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
-              }
-              break;
-            case 'tb_order_detail':
-              {
-                await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
-              }
-              break;
-            case 'tb_order_modifier_detail':
-              {
-                await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
-              }
-              break;
-            case 'tb_branch_link_product':
-              {
-                await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-              }
-              break;
-            case 'tb_table':
-              {
-                await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-              }
-              break;
-            default:
-              {
-                return;
-              }
+    try{
+      if(mainSyncToCloud.count == 0){
+        mainSyncToCloud.count = 1;
+        final prefs = await SharedPreferences.getInstance();
+        final int? device_id = prefs.getInt('device_id');
+        final String? login_value = prefs.getString('login_value');
+        Map data = await Domain().syncLocalUpdateToCloud(
+            device_id: device_id.toString(),
+            value: login_value,
+            table_use_value: this.table_use_value,
+            table_use_detail_value: this.table_use_detail_value,
+            order_cache_value: this.order_cache_value,
+            order_detail_value: this.order_detail_value,
+            order_detail_delete_value: this.delete_order_detail_value,
+            branch_link_product_value: this.branch_link_product_value,
+            order_modifier_value: this.order_modifier_detail_value,
+            table_value: this.table_value);
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          for (int i = 0; i < responseJson.length; i++) {
+            switch (responseJson[i]['table_name']) {
+              case 'tb_table_use':
+                {
+                  await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+                }
+                break;
+              case 'tb_table_use_detail':
+                {
+                  await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+                }
+                break;
+              case 'tb_order_cache':
+                {
+                  await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+                }
+                break;
+              case 'tb_order_detail':
+                {
+                  await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
+                }
+                break;
+              case 'tb_order_modifier_detail':
+                {
+                  await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
+                }
+                break;
+              case 'tb_branch_link_product':
+                {
+                  await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
+                }
+                break;
+              case 'tb_table':
+                {
+                  await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+                }
+                break;
+              default:
+                {
+                  return;
+                }
+            }
           }
+          mainSyncToCloud.resetCount();
+        } else if (data['status'] == '7') {
+          mainSyncToCloud.resetCount();
+          this.isLogOut = true;
+        }else if (data['status'] == '8'){
+          print('qr sync to cloud time out');
+          mainSyncToCloud.resetCount();
+          throw TimeoutException("Time out");
+        } else {
+          mainSyncToCloud.resetCount();
         }
-      } else if (data['status'] == '7') {
-        this.isLogOut = true;
+        // bool _hasInternetAccess = await Domain().isHostReachable();
+        // if (_hasInternetAccess) {
+        //
+        // }
       }
+    }catch(e){
+      //return 1;
+      mainSyncToCloud.resetCount();
     }
   }
 }

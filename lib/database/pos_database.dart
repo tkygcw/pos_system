@@ -2100,6 +2100,19 @@ class PosDatabase {
     return OrderCache.fromJson(maps.first);
   }
 
+  Future<OrderCache?> readSpecificOrderCacheByKey(String orderCacheKey) async {
+    final db = await instance.database;
+    final maps = await db.rawQuery(
+        'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND order_cache_key = ?',
+        ['', orderCacheKey]
+    );
+    if(maps.isNotEmpty){
+      return OrderCache.fromJson(maps.first);
+    } else {
+      return null;
+    }
+  }
+
   Future<OrderDetail> readOrderDetailSqliteID(String orderDetailKey) async {
     final db = await instance.database;
     final maps = await db.rawQuery(
@@ -2135,8 +2148,6 @@ class PosDatabase {
     );
     return Printer.fromJson(maps.first);
   }
-
-
 
 /*
   read branch name
@@ -2456,7 +2467,7 @@ class PosDatabase {
   Future<List<Tax>> readTax(String dining_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT b.* FROM $tableBranchLinkTax AS a JOIN $tableTax as B ON a.tax_id = b.tax_id JOIN $tableTaxLinkDining as c ON a.tax_id = c.tax_id WHERE a.branch_id = ? AND c.dining_id = ? AND a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ?',
+        'SELECT b.* FROM $tableBranchLinkTax AS a JOIN $tableTax as B ON a.tax_id = b.tax_id JOIN $tableTaxLinkDining as c ON a.tax_id = c.tax_id WHERE c.dining_id = ? AND a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ?',
         [dining_id, '', '', '']);
 
     return result.map((json) => Tax.fromJson(json)).toList();
@@ -3388,13 +3399,14 @@ class PosDatabase {
 
 /*
   read all branch settlement cash record
+  AND SUBSTR(a.created_at, 1, 10) = SUBSTR(?, 1, 10)
 */
-  Future<List<CashRecord>> readAllBranchSettlementCashRecord(
-      String branch_id) async {
+  Future<List<CashRecord>> readAllBranchSettlementCashRecord(String branch_id, String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id WHERE a.soft_delete = ? AND a.settlement_date != ? AND a.branch_id = ? AND b.soft_delete = ? ORDER BY a.settlement_date DESC',
-        ['', '', branch_id, '']);
+        'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id '
+            'WHERE a.soft_delete = ? AND a.settlement_date != ? AND a.branch_id = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? AND b.soft_delete = ? ORDER BY a.cash_record_sqlite_id DESC',
+        ['', '', branch_id, date1, date2, '']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
 
@@ -4165,6 +4177,21 @@ class PosDatabase {
 */
 
 /*
+  read latest settlement
+*/
+  Future<Settlement?> readLatestSettlement() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableSettlement WHERE soft_delete = ? ORDER BY settlement_sqlite_id DESC LIMIT 1',
+        ['']);
+    if(result.isNotEmpty){
+      return Settlement.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
   get all settlement order tax detail based on settlement id
 */
   Future<List<Order>> readAllSettlementOrderBySettlementKey(String settlement_key) async {
@@ -4190,8 +4217,6 @@ class PosDatabase {
     );
     return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
   }
-
-
 
 /*
   update settlement order detail cancel
@@ -5094,7 +5119,7 @@ class PosDatabase {
   Future<int> updateBranchLinkTax(BranchLinkTax data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableTax SET branch_id = ?, tax_id = ?, updated_at = ?, soft_delete = ? WHERE branch_link_tax_id = ?',
+        'UPDATE $tableBranchLinkTax SET branch_id = ?, tax_id = ?, updated_at = ?, soft_delete = ? WHERE branch_link_tax_id = ?',
         [
           data.branch_id,
           data.tax_id,
@@ -5305,8 +5330,8 @@ class PosDatabase {
   Future<int> removePosTableTableUseDetailKey(PosTable data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tablePosTable SET sync_status = ?, table_use_detail_key = ?, updated_at = ? WHERE table_sqlite_id = ?',
-        [2, data.table_use_detail_key, data.updated_at, data.table_sqlite_id]);
+        'UPDATE $tablePosTable SET sync_status = ?, table_use_detail_key = ?, table_use_key = ?, updated_at = ? WHERE table_sqlite_id = ?',
+        [2, data.table_use_detail_key, data.table_use_key, data.updated_at, data.table_sqlite_id]);
   }
 
 
@@ -5453,11 +5478,11 @@ class PosDatabase {
 /*
   update branch link product daily limit amount
 */
-  Future<int> updateBranchLinkProductDailyLimitAmount(BranchLinkProduct data) async {
+  Future<int> updateBranchLinkProductDailyLimit(BranchLinkProduct data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableBranchLinkProduct SET updated_at = ?, sync_status = ?, daily_limit_amount = ? WHERE branch_link_product_sqlite_id = ?',
-        [data.updated_at, data.sync_status, data.daily_limit_amount, data.branch_link_product_sqlite_id]
+        'UPDATE $tableBranchLinkProduct SET updated_at = ?, sync_status = ?, daily_limit = ? WHERE branch_link_product_sqlite_id = ?',
+        [data.updated_at, data.sync_status, data.daily_limit, data.branch_link_product_sqlite_id]
     );
   }
 
@@ -5489,8 +5514,20 @@ class PosDatabase {
   Future<int> updateQrOrderCache(OrderCache data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableOrderCache SET table_use_sqlite_id = ?, table_use_key = ?, batch_id = ?, total_amount = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
-        [data.table_use_sqlite_id, data.table_use_key, data.batch_id, data.total_amount, data.sync_status, data.updated_at, data.order_cache_sqlite_id]);
+        'UPDATE $tableOrderCache SET table_use_sqlite_id = ?, table_use_key = ?, batch_id = ?, total_amount = ?, '
+            'order_by = ?, order_by_user_id = ?, accepted = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+        [
+          data.table_use_sqlite_id,
+          data.table_use_key,
+          data.batch_id,
+          data.total_amount,
+          data.order_by,
+          data.order_by_user_id,
+          data.accepted,
+          data.sync_status,
+          data.updated_at,
+          data.order_cache_sqlite_id
+        ]);
   }
 
 /*
@@ -6093,8 +6130,8 @@ class PosDatabase {
   Future<int> deleteTableUseDetail(TableUseDetail data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableTableUseDetail SET sync_status = ?, status = ? WHERE table_use_sqlite_id = ? AND table_use_detail_sqlite_id = ?',
-        [data.sync_status, data.status, data.table_use_sqlite_id, data.table_use_detail_sqlite_id]);
+        'UPDATE $tableTableUseDetail SET updated_at = ?, sync_status = ?, status = ? WHERE table_use_sqlite_id = ? AND table_use_detail_sqlite_id = ?',
+        [data.updated_at, data.sync_status, data.status, data.table_use_sqlite_id, data.table_use_detail_sqlite_id]);
   }
 
   /*
@@ -6103,8 +6140,13 @@ class PosDatabase {
   Future<int> deleteTableUseDetailByKey(TableUseDetail data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableTableUseDetail SET sync_status = ?, status = ? WHERE table_use_detail_key = ?',
-        [data.sync_status, data.status, data.table_use_detail_key]);
+        'UPDATE $tableTableUseDetail SET soft_delete = ?, sync_status = ?, status = ? WHERE table_use_detail_key = ?',
+        [
+          data.soft_delete,
+          data.sync_status,
+          data.status,
+          data.table_use_detail_key
+        ]);
   }
 
 /*
@@ -6113,8 +6155,22 @@ class PosDatabase {
   Future<int> deleteTableUseID(TableUse data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableTableUse SET status = ?, sync_status = ? WHERE table_use_sqlite_id = ?',
-        [data.status, data.sync_status, data.table_use_sqlite_id]);
+        'UPDATE $tableTableUse SET updated_at = ?, status = ?, sync_status = ? WHERE table_use_sqlite_id = ?',
+        [data.updated_at, data.status, data.sync_status, data.table_use_sqlite_id]);
+  }
+
+/*
+  Soft-delete table use id
+*/
+  Future<int> deleteTableUseByKey(TableUse data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableTableUse SET soft_delete = ?, status = ?, sync_status = ? WHERE table_use_key = ?',
+        [
+          data.soft_delete,
+          data.status,
+          data.sync_status,
+          data.table_use_key]);
   }
 
 /*
@@ -6902,7 +6958,7 @@ class PosDatabase {
   Future<List<PrinterLinkCategory>> readAllNotSyncPrinterLinkCategory() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tablePrinterLinkCategory AS a JOIN $tablePrinter AS b ON a.printer_key = b.printer_key '
+        'SELECT a.* FROM $tablePrinterLinkCategory AS a JOIN $tablePrinter AS b ON a.printer_key = b.printer_key '
             'WHERE b.soft_delete = ? AND b.type = ? AND a.sync_status != ? ',
         ['', 1, 1]);
 
@@ -7002,8 +7058,8 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.table_use_key, a.table_use_detail_key, CAST(b.table_id AS TEXT) AS table_id '
             'FROM $tableTableUseDetail AS a JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
-            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.sync_status != ? ',
-        ['', '', 1]);
+            'WHERE b.soft_delete = ? AND a.sync_status != ? ',
+        ['', 1]);
 
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
   }
@@ -7014,8 +7070,8 @@ class PosDatabase {
   Future<List<TableUse>> readAllNotSyncTableUse() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableTableUse WHERE soft_delete = ? AND sync_status != ? ',
-        ['', 1]);
+        'SELECT * FROM $tableTableUse WHERE sync_status != ? ',
+        [1]);
 
     return result.map((json) => TableUse.fromJson(json)).toList();
   }
@@ -7112,6 +7168,313 @@ class PosDatabase {
 
     return result.map((json) => Order.fromJson(json)).toList();
   }
+
+/*
+  ----------------------Sync record insert checking query----------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+  read specific category (sync record)
+*/
+  Future<Categories?> checkSpecificCategoryId(int category_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableCategories WHERE soft_delete = ? AND category_id = ? LIMIT 1 ',
+        ['', category_id]);
+    if(result.isNotEmpty){
+      return Categories.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific product (sync record)
+*/
+  Future<Product?> checkSpecificProductId(int product_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableProduct WHERE soft_delete = ? AND product_id = ? LIMIT 1 ',
+        ['', product_id]);
+    if(result.isNotEmpty){
+      return Product.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific mod link product (sync record)
+*/
+  Future<ModifierLinkProduct?> checkSpecificModifierLinkProductId(int modifier_link_product_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableModifierLinkProduct WHERE soft_delete = ? AND modifier_link_product_id = ? LIMIT 1 ',
+        ['', modifier_link_product_id]);
+    if(result.isNotEmpty){
+      return ModifierLinkProduct.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific variant group (sync record)
+*/
+  Future<VariantGroup?> checkSpecificVariantGroupId(int variant_group_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableVariantGroup WHERE soft_delete = ? AND variant_group_id = ? LIMIT 1 ',
+        ['', variant_group_id]);
+    if(result.isNotEmpty){
+      return VariantGroup.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific variant item (sync record)
+*/
+  Future<VariantItem?> checkSpecificVariantItemId(int variant_item_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableVariantItem WHERE soft_delete = ? AND variant_item_id = ? LIMIT 1 ',
+        ['', variant_item_id]);
+    if(result.isNotEmpty){
+      return VariantItem.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific product variant (sync record)
+*/
+  Future<ProductVariant?> checkSpecificProductVariantId(int product_variant_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableProductVariant WHERE soft_delete = ? AND product_variant_id = ? LIMIT 1 ',
+        ['', product_variant_id]);
+    if(result.isNotEmpty){
+      return ProductVariant.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific product variant detail (sync record)
+*/
+  Future<ProductVariantDetail?> checkSpecificProductVariantDetailId(int product_variant_detail_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableProductVariantDetail WHERE soft_delete = ? AND product_variant_detail_id = ? LIMIT 1 ',
+        ['', product_variant_detail_id]);
+    if(result.isNotEmpty){
+      return ProductVariantDetail.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific branch link product (sync record)
+*/
+  Future<BranchLinkProduct?> checkSpecificBranchLinkProductId(int branch_link_product_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND branch_link_product_id = ? LIMIT 1 ',
+        ['', branch_link_product_id]);
+    if(result.isNotEmpty){
+      return BranchLinkProduct.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific modifier group (sync record)
+*/
+  Future<ModifierGroup?> checkSpecificModifierGroupId(int mod_group_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableModifierGroup WHERE soft_delete = ? AND mod_group_id = ? LIMIT 1 ',
+        ['', mod_group_id]);
+    if(result.isNotEmpty){
+      return ModifierGroup.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific modifier item (sync record)
+*/
+  Future<ModifierItem?> checkSpecificModifierItemId(int mod_item_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableModifierItem WHERE soft_delete = ? AND mod_item_id = ? LIMIT 1 ',
+        ['', mod_item_id]);
+    if(result.isNotEmpty){
+      return ModifierItem.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific branch link modifier (sync record)
+*/
+  Future<BranchLinkModifier?> checkSpecificBranchLinkModifierId(int branch_link_modifier_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableBranchLinkModifier WHERE soft_delete = ? AND branch_link_modifier_id = ? LIMIT 1 ',
+        ['', branch_link_modifier_id]);
+    if(result.isNotEmpty){
+      return BranchLinkModifier.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific user (sync record)
+*/
+  Future<User?> checkSpecificUserId(int user_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableUser WHERE soft_delete = ? AND user_id = ? LIMIT 1 ',
+        ['', user_id]);
+    if(result.isNotEmpty){
+      return User.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific branch link user (sync record)
+*/
+  Future<BranchLinkUser?> checkSpecificBranchLinkUserId(int branch_link_user_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableBranchLinkUser WHERE soft_delete = ? AND branch_link_user_id = ? LIMIT 1 ',
+        ['', branch_link_user_id]);
+    if(result.isNotEmpty){
+      return BranchLinkUser.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific payment link company (sync record)
+*/
+  Future<PaymentLinkCompany?> checkSpecificPaymentLinkCompanyId(int payment_link_company_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? AND payment_link_company_id = ? LIMIT 1 ',
+        ['', payment_link_company_id]);
+    if(result.isNotEmpty){
+      return PaymentLinkCompany.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific tax (sync record)
+*/
+  Future<Tax?> checkSpecificTaxId(int tax_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableTax WHERE soft_delete = ? AND tax_id = ? LIMIT 1 ',
+        ['', tax_id]);
+    if(result.isNotEmpty){
+      return Tax.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific branch link tax (sync record)
+*/
+  Future<BranchLinkTax?> checkSpecificBranchLinkTaxId(int branch_link_tax_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableBranchLinkTax WHERE soft_delete = ? AND branch_link_tax_id = ? LIMIT 1 ',
+        ['', branch_link_tax_id]);
+    if(result.isNotEmpty){
+      return BranchLinkTax.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific branch link tax (sync record)
+*/
+  Future<TaxLinkDining?> checkSpecificTaxLinkDiningId(int tax_link_dining_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableTaxLinkDining WHERE soft_delete = ? AND tax_link_dining_id = ? LIMIT 1 ',
+        ['', tax_link_dining_id]);
+    if(result.isNotEmpty){
+      return TaxLinkDining.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific table (sync record)
+*/
+  Future<PosTable?> checkSpecificTableId(int table_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePosTable WHERE soft_delete = ? AND table_id = ? LIMIT 1 ',
+        ['', table_id]);
+    if(result.isNotEmpty){
+      return PosTable.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific promotion (sync record)
+*/
+  Future<Promotion?> checkSpecificPromotionId(int promotion_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePromotion WHERE soft_delete = ? AND promotion_id = ? LIMIT 1 ',
+        ['', promotion_id]);
+    if(result.isNotEmpty){
+      return Promotion.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific branch link promotion (sync record)
+*/
+  Future<BranchLinkPromotion?> checkSpecificBranchLinkPromotionId(int branch_link_promotion_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      'SELECT * FROM $tableBranchLinkPromotion WHERE soft_delete = ? AND branch_link_promotion_id = ? LIMIT 1',
+      ['', branch_link_promotion_id],
+    );
+    if (result.isNotEmpty) {
+      return BranchLinkPromotion.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+
 
 /*
   ----------------------Server query--------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -29,9 +30,10 @@ import '../../translation/AppLocalizations.dart';
 import '../logout_dialog.dart';
 
 class SettlementDialog extends StatefulWidget {
+  final List<Printer> printerList;
   final List<CashRecord> cashRecordList;
   final Function() callBack;
-  const SettlementDialog({Key? key, required this.cashRecordList, required this.callBack}) : super(key: key);
+  const SettlementDialog({Key? key, required this.cashRecordList, required this.callBack, required this.printerList}) : super(key: key);
 
   @override
   State<SettlementDialog> createState() => _SettlementDialogState();
@@ -55,7 +57,9 @@ class _SettlementDialogState extends State<SettlementDialog> {
   Settlement? settlement;
   bool _submitted = false;
   bool _isLoaded = false;
-  bool isButtonDisabled = false, isLogOut = false;
+  bool isButtonDisabled = false, isLogOut = false, willPop = true;
+
+  late final currentSettlementDateTime;
 
 
   @override
@@ -80,21 +84,82 @@ class _SettlementDialogState extends State<SettlementDialog> {
     return null;
   }
 
-  void _submit(BuildContext context, ConnectivityChangeNotifier connectivity) async {
+  void _submit(BuildContext context, ConnectivityChangeNotifier connectivity, ThemeColor color) async {
     setState(() => _submitted = true);
     if (errorPassword == null) {
       // Disable the button after it has been pressed
-      setState(() {
-        isButtonDisabled = true;
-      });
       await readAdminData(adminPosPinController.text, connectivity);
       if(this.isLogOut == false){
-        Navigator.of(context).pop();
+        //showAfterSettlementDialog(context, color);
         widget.callBack();
+        Navigator.of(context).pop();
       }
-      return;
+      //return;
     }
   }
+
+  // Future showAfterSettlementDialog(BuildContext context, ThemeColor color) {
+  //   return showDialog(
+  //       barrierDismissible: false,
+  //       context: context,
+  //       builder: (BuildContext context) {
+  //         return StatefulBuilder(builder: (context, StateSetter setState){
+  //           return Center(
+  //             child: SingleChildScrollView(
+  //               physics: NeverScrollableScrollPhysics(),
+  //               child: AlertDialog(
+  //                 title: Text('Settlement success'),
+  //                 content: Column(
+  //                   mainAxisAlignment: MainAxisAlignment.center,
+  //                   children: [
+  //                     SizedBox(
+  //                       width: 190,
+  //                       height: 60,
+  //                       child: ElevatedButton(
+  //                           onPressed: () async {
+  //                             await callPrinter();
+  //                             widget.callBack();
+  //                             // Navigator.of(context).pop();
+  //                             // Navigator.of(context).pop();
+  //                           },
+  //                           child: Row(
+  //                             children: [
+  //                               Text("Reprint settlement"),
+  //                              Spacer(),
+  //                               Icon(Icons.print)
+  //                             ],
+  //                           )),
+  //                     ),
+  //                     SizedBox(height: 20),
+  //                     SizedBox(
+  //                       height: 60,
+  //                       width: 100,
+  //                       child: ElevatedButton(
+  //                           onPressed: isButtonDisabled ? null : (){
+  //                             setState(() {
+  //                               isButtonDisabled = true;
+  //                             });
+  //                             widget.callBack();
+  //                             Navigator.of(context).pop();
+  //                             Navigator.of(context).pop();
+  //                           },
+  //                           child: Row(
+  //                             children: [
+  //                               Text("Close"),
+  //                               Spacer(),
+  //                               Icon(Icons.close)
+  //                             ],
+  //                           )),
+  //                     )
+  //                   ],
+  //                 ),
+  //               ),
+  //             ),
+  //           );
+  //         });
+  //       }
+  //   );
+  // }
 
   Future<Future<Object?>> openLogOutDialog() async {
     return showGeneralDialog(
@@ -121,67 +186,77 @@ class _SettlementDialogState extends State<SettlementDialog> {
   closeDialog(BuildContext context) {
     return Navigator.of(context).pop(true);
   }
+
   Future showSecondDialog(BuildContext context, ThemeColor color, ConnectivityChangeNotifier connectivity) {
     return showDialog(
       barrierDismissible: false,
       context: context,
-      builder: (BuildContext context) => Center(
-        child: SingleChildScrollView(
-          child: AlertDialog(
-            title: Text('Enter Current User PIN'),
-            content: SizedBox(
-              height: 100.0,
-              width: 350.0,
-              child: ValueListenableBuilder(
-                  valueListenable: adminPosPinController,
-                  builder: (context, TextEditingValue value, __) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        obscureText: true,
-                        controller: adminPosPinController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          errorText: _submitted
-                              ? errorPassword == null ? errorPassword : AppLocalizations.of(context)?.translate(errorPassword!)
-                              : null,
-                          border: OutlineInputBorder(
-                            borderSide:
-                            BorderSide(color: color.backgroundColor),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide:
-                            BorderSide(color: color.backgroundColor),
-                          ),
-                          labelText: "PIN",
-                        ),
-                      ),
-                    );
-                  }),
+      builder: (BuildContext context){
+        return StatefulBuilder(builder: (context, StateSetter setState){
+          return WillPopScope(
+            onWillPop: () async => willPop,
+            child: Center(
+              child: SingleChildScrollView(
+                child: AlertDialog(
+                  title: Text('Enter Current User PIN'),
+                  content: SizedBox(
+                    height: 100.0,
+                    width: 350.0,
+                    child: ValueListenableBuilder(
+                        valueListenable: adminPosPinController,
+                        builder: (context, TextEditingValue value, __) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              obscureText: true,
+                              controller: adminPosPinController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                errorText: _submitted
+                                    ? errorPassword == null ? errorPassword : AppLocalizations.of(context)?.translate(errorPassword!)
+                                    : null,
+                                border: OutlineInputBorder(
+                                  borderSide:
+                                  BorderSide(color: color.backgroundColor),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide:
+                                  BorderSide(color: color.backgroundColor),
+                                ),
+                                labelText: "PIN",
+                              ),
+                            ),
+                          );
+                        }),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: isButtonDisabled ? null : () {
+                        // Disable the button after it has been pressed
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                      onPressed: isButtonDisabled ? null : () async {
+                        setState(() {
+                          willPop = false;
+                          isButtonDisabled = true;
+                        });
+                        _submit(context, connectivity, color);
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: isButtonDisabled ? null : () {
-                  // Disable the button after it has been pressed
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                onPressed: isButtonDisabled ? null : () async {
-                  if(_isLoaded){
-                    _submit(context, connectivity);
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
+          );
+        });
+      }
     );
   }
   @override
@@ -222,12 +297,12 @@ class _SettlementDialogState extends State<SettlementDialog> {
       final prefs = await SharedPreferences.getInstance();
       final String? pos_user = prefs.getString('pos_pin_user');
       Map userObject = json.decode(pos_user!);
-      String dateTime = dateFormat.format(DateTime.now());
+      currentSettlementDateTime = dateFormat.format(DateTime.now());
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
         if(userData.user_id == userObject['user_id']){
-          if(userData.role == 0 || userData.role == 2){
-            await callSettlement(dateTime, connectivity);
+          if(userData.role != 3){
+            await callSettlement(connectivity);
           } else {
             Fluttertoast.showToast(
                 backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('settlement_role_error')}");
@@ -270,15 +345,15 @@ class _SettlementDialogState extends State<SettlementDialog> {
     }
   }
 
-  callSettlement(dateTime, connectivity) async {
+  callSettlement(connectivity) async {
     //create settlement
     await createSettlement();
     await createSettlementLinkPayment();
     //update all today cash record settlement date
-    await updateTodaySettlementOrder(dateTime);
-    await updateTodaySettlementOrderDetailCancel(dateTime);
-    await updateAllCashRecordSettlement(dateTime, connectivity);
-    await callPrinter(dateTime);
+    await updateTodaySettlementOrder();
+    await updateTodaySettlementOrderDetailCancel();
+    await updateAllCashRecordSettlement(connectivity);
+    await callPrinter();
     await syncAllToCloud();
     if(this.isLogOut == true){
       openLogOutDialog();
@@ -286,8 +361,8 @@ class _SettlementDialogState extends State<SettlementDialog> {
     }
   }
 
-  callPrinter(String dateTime) async {
-    int printStatus = await PrintReceipt().printSettlementList(printerList, dateTime, context, this.settlement!);
+  callPrinter() async {
+    int printStatus = await PrintReceipt().printSettlementList(printerList, currentSettlementDateTime, this.settlement!);
     if(printStatus == 1){
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
@@ -373,18 +448,18 @@ class _SettlementDialogState extends State<SettlementDialog> {
     //syncSettlementToCloud(value.toString());
   }
 
-  syncSettlementToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map settlementResponse = await Domain().SyncSettlementToCloud(value);
-      if (settlementResponse['status'] == '1') {
-        List responseJson = settlementResponse['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int syncUpdated = await PosDatabase.instance.updateSettlementSyncStatusFromCloud(responseJson[i]['settlement_key']);
-        }
-      }
-    }
-  }
+  // syncSettlementToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map settlementResponse = await Domain().SyncSettlementToCloud(value);
+  //     if (settlementResponse['status'] == '1') {
+  //       List responseJson = settlementResponse['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int syncUpdated = await PosDatabase.instance.updateSettlementSyncStatusFromCloud(responseJson[i]['settlement_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   // updateSettlement(int settlement_sqlite_id) async {
   //   List<String> value = [];
@@ -444,7 +519,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
   //   }
   // }
 
-  updateTodaySettlementOrder(String dateTime) async {
+  updateTodaySettlementOrder() async {
     List<Order> _orderList = [];
     List<String> _value = [];
     List<Order> data = await PosDatabase.instance.readAllNotSettlementOrder();
@@ -452,7 +527,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
     if(_orderList.isNotEmpty){
       for(int i = 0; i < _orderList.length; i++){
         Order object = Order(
-          updated_at: dateTime,
+          updated_at: currentSettlementDateTime,
           sync_status: _orderList[i].sync_status == 0 ? 0 : 2,
           settlement_key: this.settlement!.settlement_key,
           settlement_sqlite_id: this.settlement!.settlement_sqlite_id.toString(),
@@ -466,7 +541,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
     }
   }
 
-  updateTodaySettlementOrderDetailCancel(String dateTime) async {
+  updateTodaySettlementOrderDetailCancel() async {
     List<OrderDetailCancel> _orderDetailCancelList = [];
     List<String> _value = [];
     List<OrderDetailCancel> data = await PosDatabase.instance.readAllNotSettlementOrderDetailCancel();
@@ -475,7 +550,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
     if(_orderDetailCancelList.isNotEmpty){
       for(int i = 0; i < _orderDetailCancelList.length; i++){
         OrderDetailCancel object = OrderDetailCancel(
-          updated_at: dateTime,
+          updated_at: currentSettlementDateTime,
           sync_status: _orderDetailCancelList[i].sync_status == 0 ? 0 : 2,
           settlement_key: this.settlement!.settlement_key,
           settlement_sqlite_id: this.settlement!.settlement_sqlite_id.toString(),
@@ -489,14 +564,14 @@ class _SettlementDialogState extends State<SettlementDialog> {
     }
   }
 
-  updateAllCashRecordSettlement(String dateTime, ConnectivityChangeNotifier connectivity) async {
+  updateAllCashRecordSettlement(ConnectivityChangeNotifier connectivity) async {
     List<String> _value = [];
     for(int i = 0; i < widget.cashRecordList.length; i++){
       CashRecord cashRecord = CashRecord(
-          settlement_date: dateTime,
+          settlement_date: currentSettlementDateTime,
           settlement_key: this.settlement!.settlement_key,
           sync_status: widget.cashRecordList[i].sync_status == 0 ? 0 : 2,
-          updated_at: dateTime,
+          updated_at: currentSettlementDateTime,
           cash_record_sqlite_id:  widget.cashRecordList[i].cash_record_sqlite_id);
       int data = await PosDatabase.instance.updateCashRecord(cashRecord);
       if(data == 1 && connectivity.isConnect) {
@@ -512,25 +587,25 @@ class _SettlementDialogState extends State<SettlementDialog> {
     //await syncSettlementCashRecordToCloud(_value.toString());
   }
 
-  syncSettlementCashRecordToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess){
-      Map response = await Domain().SyncCashRecordToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
-        }
-      }
-    }
-  }
+  // syncSettlementCashRecordToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if(_hasInternetAccess){
+  //     Map response = await Domain().SyncCashRecordToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   generateSettlementLinkPaymentKey(SettlementLinkPayment settlementLinkPayment) async  {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
     var bytes  = settlementLinkPayment.created_at!.replaceAll(new RegExp(r'[^0-9]'),'') +
         settlementLinkPayment.settlement_link_payment_sqlite_id.toString() + device_id.toString();
-    print('bytes: ${bytes}');
+    //print('bytes: ${bytes}');
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
@@ -592,20 +667,21 @@ class _SettlementDialogState extends State<SettlementDialog> {
     //syncSettlementLinkPaymentToCloud(_value.toString());
   }
 
-  syncSettlementLinkPaymentToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map settlementResponse = await Domain().SyncSettlementLinkPaymentToCloud(value);
-      if (settlementResponse['status'] == '1') {
-        List responseJson = settlementResponse['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int syncUpdated = await PosDatabase.instance.updateSettlementLinkPaymentSyncStatusFromCloud(responseJson[i]['settlement_link_payment_key']);
-        }
-      }
-    }
-  }
+  // syncSettlementLinkPaymentToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map settlementResponse = await Domain().SyncSettlementLinkPaymentToCloud(value);
+  //     if (settlementResponse['status'] == '1') {
+  //       List responseJson = settlementResponse['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int syncUpdated = await PosDatabase.instance.updateSettlementLinkPaymentSyncStatusFromCloud(responseJson[i]['settlement_link_payment_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   preload() async {
+    printerList = widget.printerList;
     await getAllTodaySalesOverview();
     await readPaymentLinkCompany();
     // DateTime _startDate = DateTime.parse(widget.cashRecordList[0].created_at!);
@@ -615,7 +691,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
     // await getAllPaidOrderPromotionDetail(currentStDate);
     // await getAllCancelOrderDetail(currentStDate);
     // await getBranchTaxes(currentStDate);
-    await readAllPrinters();
+    // await readAllPrinters();
     setState(() {
       _isLoaded = true;
     });
@@ -710,13 +786,12 @@ class _SettlementDialogState extends State<SettlementDialog> {
   }
 
   syncAllToCloud() async {
-    if(mainSyncToCloud.count == 0){
-      mainSyncToCloud.count == 1;
-      final prefs = await SharedPreferences.getInstance();
-      final int? device_id = prefs.getInt('device_id');
-      final String? login_value = prefs.getString('login_value');
-      bool _hasInternetAccess = await Domain().isHostReachable();
-      if (_hasInternetAccess) {
+    try{
+      if(mainSyncToCloud.count == 0){
+        mainSyncToCloud.count == 1;
+        final prefs = await SharedPreferences.getInstance();
+        final int? device_id = prefs.getInt('device_id');
+        final String? login_value = prefs.getString('login_value');
         Map data = await Domain().syncLocalUpdateToCloud(
             device_id: device_id.toString(),
             value: login_value,
@@ -754,10 +829,19 @@ class _SettlementDialogState extends State<SettlementDialog> {
                 return;
             }
           }
-        }else if(data['status'] == '7'){
+          mainSyncToCloud.resetCount();
+        } else if(data['status'] == '7'){
+          mainSyncToCloud.resetCount();
           this.isLogOut = true;
+        }else if (data['status'] == '8') {
+          print('settlement sync timeout');
+          mainSyncToCloud.resetCount();
+          throw TimeoutException("Timeout");
+        } else {
+          mainSyncToCloud.resetCount();
         }
       }
+    } catch(e){
       mainSyncToCloud.resetCount();
     }
   }

@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:pos_system/object/modifier_group.dart';
+import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/variant_group.dart';
 
 import 'order_detail.dart';
@@ -13,6 +14,7 @@ class cartProductItem{
    String? price;
    int? quantity;
    int? checkedModifierLength;
+   List<ModifierItem>? checkedModifierItem;
    List<ModifierGroup>? modifier;
    List<VariantGroup>? variant;
    String? remark;
@@ -39,6 +41,7 @@ class cartProductItem{
          this.price,
          this.quantity,
          this.checkedModifierLength,
+         this.checkedModifierItem,
          this.modifier,
          this.variant,
          this.remark,
@@ -58,8 +61,10 @@ class cartProductItem{
        });
 
    static cartProductItem fromJson(Map<String, Object?> json) {
+     var modItemJson = json['checkedModifierItem'] as List;
      var modJson = json['modifier'] as List;
      var variantJson = json['variant'] as List;
+     List<ModifierItem> modItem = modItemJson.map((tagJson) => ModifierItem.fromJson(tagJson)).toList();
      List<ModifierGroup> modGroup = modJson.map((tagJson) => ModifierGroup.fromJson(tagJson)).toList();
      List<VariantGroup> variantGroup = variantJson.map((tagJson) => VariantGroup.fromJson(tagJson)).toList();
      return cartProductItem(
@@ -70,6 +75,7 @@ class cartProductItem{
          price: json['price'] as String?,
          quantity: json['quantity'] as int?,
          checkedModifierLength: json['checkedModifierLength'] as int?,
+         checkedModifierItem: modItem,
          modifier: modGroup,
          variant: variantGroup,
          remark: json['remark'] as String?,
@@ -98,6 +104,7 @@ class cartProductItem{
      'price': price,
      'quantity': quantity,
      'checkedModifierLength': checkedModifierLength,
+     'checkedModifierItem': checkedModifierItem,
      'modifier': modifier,
      'variant': variant,
      'remark': remark,

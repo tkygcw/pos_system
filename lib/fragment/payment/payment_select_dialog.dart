@@ -116,70 +116,61 @@ class _PaymentSelectState extends State<PaymentSelect> {
               title: Text('Select Payment Method'),
               content: isload
                   ? Container(
-                // width: MediaQuery.of(context).size.width / 2,
-                // height: MediaQuery.of(context).size.height / 2,
-                  child: Row(
-                    children: [
-                      Container(
-                        margin: EdgeInsets.all(2),
-                        width: MediaQuery.of(context).size.width / 2,
-                        height: MediaQuery.of(context).size.height / 2,
-                        child: Column(children: [
-                          GridView.count(
-                              shrinkWrap: true,
-                              crossAxisCount: 4,
-                              children: List.generate(PaymentLists.length, (index) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    //Navigator.of(context, rootNavigator: true).pop();
-                                    openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name);
+                    margin: EdgeInsets.all(2),
+                    width: MediaQuery.of(context).size.width / 2,
+                    child: GridView.count(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        crossAxisCount: 4,
+                        children: List.generate(PaymentLists.length, (index) {
+                          return GestureDetector(
+                            onTap: () {
+                              //Navigator.of(context, rootNavigator: true).pop();
+                              openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name);
 
-                                  },
-                                  child: Card(
-                                    elevation: 5,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16.0),
-                                    ),
-                                    child: Container(
-                                      height: MediaQuery.of(context).size.height / 3,
-                                      width: MediaQuery.of(context).size.width / 3,
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          // ClipRRect(
-                                          //   borderRadius: BorderRadius.circular(16.0),
-                                          //   child:///***If you have exported images you must have to copy those images in assets/images directory.
-                                          //   Image(
-                                          //     image: AssetImage("drawable/payment_method.png"),
-                                          //     // NetworkImage(
-                                          //     //     "https://image.freepik.com/free-photo/close-up-people-training-with-ball_23-2149049821.jpg"),
-                                          //     height: MediaQuery.of(context).size.height,
-                                          //     width: MediaQuery.of(context).size.width,
-                                          //     fit: BoxFit.cover,
-                                          //   ),
-                                          // ),
-                                          Text(
-                                            '${PaymentLists[index].name}',
-                                            textAlign: TextAlign.start,
-                                            overflow: TextOverflow.clip,
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              fontStyle: FontStyle.normal,
-                                              fontSize: 16,
-                                              color: Colors.blueGrey,
-                                            ),
-                                          ),
-                                        ],
+                            },
+                            child: Card(
+                              elevation: 5,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16.0),
+                              ),
+                              child: Container(
+                                height: MediaQuery.of(context).size.height / 3,
+                                width: MediaQuery.of(context).size.width / 3,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    // ClipRRect(
+                                    //   borderRadius: BorderRadius.circular(16.0),
+                                    //   child:///***If you have exported images you must have to copy those images in assets/images directory.
+                                    //   Image(
+                                    //     image: AssetImage("drawable/payment_method.png"),
+                                    //     // NetworkImage(
+                                    //     //     "https://image.freepik.com/free-photo/close-up-people-training-with-ball_23-2149049821.jpg"),
+                                    //     height: MediaQuery.of(context).size.height,
+                                    //     width: MediaQuery.of(context).size.width,
+                                    //     fit: BoxFit.cover,
+                                    //   ),
+                                    // ),
+                                    Text(
+                                      '${PaymentLists[index].name}',
+                                      textAlign: TextAlign.start,
+                                      overflow: TextOverflow.clip,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontStyle: FontStyle.normal,
+                                        fontSize: 16,
+                                        color: Colors.blueGrey,
                                       ),
                                     ),
-                                  ),
-                                );
-                              })
-                          ),
-                        ]),
-                      ),
-                    ],
-                  ))
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        })
+                    ),
+                  )
                   : CustomProgressBar(),
               actions: [
                 ElevatedButton(

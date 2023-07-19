@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:grouped_list/grouped_list.dart';
+import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
 import '../../translation/AppLocalizations.dart';
+import '../../utils/Utils.dart';
 
 class HistoryDialog extends StatefulWidget {
   const HistoryDialog({Key? key}) : super(key: key);
@@ -110,26 +112,26 @@ class _HistoryDialogState extends State<HistoryDialog> {
                     //   },
                     // ),
                     cashRecordList.length > 0 ? ListView.builder(
+                        padding: EdgeInsets.zero,
                         shrinkWrap: true,
                         itemCount: cashRecordList.length,
                         itemBuilder: (context, index) {
                           return ListTile(
                             isThreeLine: true,
                             leading: cashRecordList[index].payment_type_id == '1' || cashRecordList[index].payment_type_id == ''
-                                ? Icon(Icons.payments_sharp)
+                                ? CircleAvatar(backgroundColor: Colors.grey.shade200, child: Icon(Icons.payments_rounded, color: Colors.grey))
                                 : cashRecordList[index].payment_type_id == '2'
-                                ? Icon(Icons.credit_card_rounded)
-                                : Icon(Icons.wifi),
-                            title: Text(
-                                '${cashRecordList[index].remark}'),
+                                ? CircleAvatar(backgroundColor: Colors.grey.shade200, child: Icon(Icons.qr_code_rounded, color: Colors.grey))
+                                : CircleAvatar(backgroundColor: Colors.grey.shade200, child: Icon(Icons.wifi, color: Colors.grey)),
+                            title: Text('${cashRecordList[index].remark}', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                             subtitle: cashRecordList[index].type == 1
                                 ? Text(
-                                'Cash in by: ${cashRecordList[index].userName}\nDate Time: ${cashRecordList[index].created_at}')
+                                'Date Time: ${Utils.formatDate(cashRecordList[index].created_at)}\nCash in by: ${cashRecordList[index].userName}')
                                 : cashRecordList[index].type == 2
                                 ? Text(
-                                'Cash-out by: ${cashRecordList[index].userName}\nDate Time: ${cashRecordList[index].created_at}')
+                                'Date Time: ${Utils.formatDate(cashRecordList[index].created_at)}\nCash-out by: ${cashRecordList[index].userName}')
                                 : Text(
-                                'Close By: ${cashRecordList[index].userName}\nDate Time: ${cashRecordList[index].created_at}'),
+                                'Date Time: ${Utils.formatDate(cashRecordList[index].created_at)}\nClose By: ${cashRecordList[index].userName}'),
                             trailing: cashRecordList[index].type == 2 || cashRecordList[index].type == 4
                                 ? Text(
                                 '-${cashRecordList[index].amount}',
@@ -140,7 +142,8 @@ class _HistoryDialogState extends State<HistoryDialog> {
                                 style: TextStyle(
                                     color: Colors.green)),
                           );
-                        }) : Container(
+                        }) :
+                    Container(
                       alignment: Alignment.center,
                       height: MediaQuery.of(context).size.height / 1.7,
                       child: Column(
@@ -247,8 +250,13 @@ class _HistoryDialogState extends State<HistoryDialog> {
     cashRecordList.clear();
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
+    DateFormat _dateFormat = DateFormat("yyyy-MM-dd 00:00:00");
+    var yesterday = _dateFormat.format(DateTime.now().subtract(Duration(days:1)));
+    var today = _dateFormat.format(DateTime.now());
 
-    List<CashRecord> data = await PosDatabase.instance.readAllBranchSettlementCashRecord(branch_id.toString());
+    print("yesterday date: ${yesterday}");
+
+    List<CashRecord> data = await PosDatabase.instance.readAllBranchSettlementCashRecord(branch_id.toString(), yesterday, today);
     print('settlement data: ${data.length}');
     cashRecordList = data;
     print('cash list: ${cashRecordList.length}');

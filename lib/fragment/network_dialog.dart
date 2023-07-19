@@ -14,16 +14,9 @@ class _NetworkDialogState extends State<NetworkDialog> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {
-        bool _hasInternetAccess = await Domain().isHostReachable();
-        if(_hasInternetAccess){
-          return true;
-        } else {
-          return false;
-        }
-      },
+      onWillPop: () async => false,
       child: AlertDialog(
-        title: Text('Host Not Reachable'),
+        title: Text('Connection failed'),
         content: Container(
           child: Text('Network Connection failed. Please check your devices wireless or mobile network setting and reconnect'),
         ),
@@ -31,13 +24,15 @@ class _NetworkDialogState extends State<NetworkDialog> {
           Center(
             child: ElevatedButton(
                 onPressed: () async {
-                  bool _hasInternetAccess = await Domain().isHostReachable();
-                  if(_hasInternetAccess){
-                    widget.callback();
-                    return Navigator.of(context).pop();
-                  } else {
-                    return;
-                  }
+                  widget.callback();
+                  return Navigator.of(context).pop();
+                  // bool _hasInternetAccess = await Domain().isHostReachable();
+                  // if(_hasInternetAccess){
+                  //   widget.callback();
+                  //   return Navigator.of(context).pop();
+                  // } else {
+                  //   return;
+                  // }
                 }, 
                 child: Text('Retry')
             ),

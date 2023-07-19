@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 class Domain {
   // static var domain = 'https://pos.lkmng.com/';
   // static var backend_domain = 'https://pos.lkmng.com/';
-  // static var qr_domain = 'https://pos.lkmng.com/';
+  // static var qr_domain = 'https://pos-qr.lkmng.com/';
   static var domain = 'https://pos.optimy.com.my/';
   static var backend_domain = 'https://api.optimy.com.my/';
   static var qr_domain = 'https://qr.optimy.com.my/';
@@ -71,6 +71,7 @@ class Domain {
       Map<String, dynamic>? result = {'status': '8'};
       return result;
     } catch (error) {
+      print('login domain error: $error');
       Fluttertoast.showToast(msg: error.toString());
     }
   }
@@ -279,7 +280,9 @@ class Domain {
       Map<String, dynamic>? result = {'status': '8'};
       return result;
     } catch (error) {
-      Fluttertoast.showToast(msg: error.toString());
+      Map<String, dynamic>? result = {'status': '9'};
+      return result;
+      //Fluttertoast.showToast(msg: error.toString());
     }
   }
 
@@ -312,11 +315,15 @@ class Domain {
         'getAllDeviceLogin': '1',
         'device_id': device_id,
         'value': value,
-      });
+      }).timeout(Duration(seconds: 3), onTimeout: ()=> throw TimeoutException("Timeout"));
       return jsonDecode(response.body);
-    } catch(error){
+    }on TimeoutException catch(_){
+      print('domain checkDeviceLogin timeout');
+      Map<String, dynamic>? result = {'status': '8'};
+      return result;
+    }  catch(error){
       print('error: ${error}');
-      Fluttertoast.showToast(msg: error.toString());
+      //Fluttertoast.showToast(msg: error.toString());
     }
   }
 
@@ -347,6 +354,7 @@ class Domain {
         printer_link_category_value,
         printer_link_category_delete_value,
         table_value,
+        user_value,
       }) async {
     try {
       //print('order cache value 15 sync: ${order_cache_value}');
@@ -374,8 +382,9 @@ class Domain {
         'tb_printer_create': printer_value != null ? printer_value : [].toString(),
         'tb_printer_link_category_sync': printer_link_category_value != null ? printer_link_category_value : [].toString(),
         'tb_printer_link_category_delete': printer_link_category_delete_value != null ? printer_link_category_delete_value : [].toString(),
-        'tb_table_sync': table_value != null ? table_value : [].toString()
-      }).timeout(Duration(seconds: 5), onTimeout: () => throw TimeoutException("Time out"));
+        'tb_table_sync': table_value != null ? table_value : [].toString(),
+        'tb_user_sync': user_value != null ? user_value : [].toString()
+      }).timeout(Duration(milliseconds: 3000), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);
     } on TimeoutException catch(_){
@@ -385,7 +394,9 @@ class Domain {
     }
     catch (error) {
       print('domain sync to cloud error: ${error}');
-      Fluttertoast.showToast(msg: error.toString());
+      Map<String, dynamic>? result = {'status': '8'};
+      return result;
+      //Fluttertoast.showToast(msg: error.toString());
     }
   }
 
@@ -828,12 +839,18 @@ class Domain {
         'get_new_qr_order': '1',
         'branch_id': branch_id,
         'company_id': company_id
-      });
+      }).timeout(Duration(milliseconds: 3000), onTimeout: ()=> throw TimeoutException("Timeout"));
 
       return jsonDecode(response.body);
+    } on TimeoutException catch(_){
+      print('domain qr order sync timeout');
+      Map<String, dynamic>? result = {'status': '8'};
+      return result;
     } catch (error) {
       print('domain error: ${error}');
-      Fluttertoast.showToast(msg: error.toString());
+      Map<String, dynamic>? result = {'status': '9'};
+      return result;
+      //Fluttertoast.showToast(msg: error.toString());
     }
   }
 
@@ -2015,9 +2032,10 @@ class Domain {
 
   isHostReachable() async {
     try {
-      await http.get(Uri.parse('https://pos.lkmng.com/mobile-api/login/index.php'));
+      await http.get(Uri.parse('https://pos.optimy.com.my/mobile-api/login/index.php')).timeout(Duration(seconds: 2), onTimeout: () => throw TimeoutException("Timeout"));
       return true;
     } catch (e) {
+      print('host check error: $e');
       return false;
     }
   }

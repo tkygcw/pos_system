@@ -15,7 +15,6 @@ class QrOrder {
   int count = 0;
 
   getQrOrder() async {
-    count++;
     String categoryLocalId;
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -30,6 +29,10 @@ class QrOrder {
       for(int i = 0; i < response['data'].length; i++){
         print('response table id: ${response['data'][i]['table_id']}');
         //PosTable tableData = await PosDatabase.instance.readTableByCloudId(response['data'][i]['table_id']);
+        OrderCache? checkOrderCacheData = await PosDatabase.instance.readSpecificOrderCacheByKey(response['data'][i]['order_cache_key']);
+        if(checkOrderCacheData != null){
+          break;
+        }
         OrderCache orderCache = OrderCache(
             order_cache_id: 0,
             order_cache_key: response['data'][i]['order_cache_key'].toString(),
@@ -121,6 +124,8 @@ class QrOrder {
           }
         }
       }
+    } else {
+      return 1;
     }
   }
 }

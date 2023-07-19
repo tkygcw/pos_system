@@ -71,6 +71,19 @@ class _TableMenuState extends State<TableMenu> {
     super.dispose();
   }
 
+  fontColor({required PosTable posTable}){
+    if(posTable.status == 1){
+      Color fontColor = Colors.black;
+      Color backgroundColor = toColor(posTable.card_color!);
+      if(backgroundColor.computeLuminance() > 0.5){
+        fontColor = Colors.black;
+      } else {
+        fontColor = Colors.white;
+      }
+      return fontColor;
+    }
+  }
+
   toColor(String hex) {
     var hexColor = hex.replaceAll("#", "");
     if (hexColor.length == 6) {
@@ -101,10 +114,10 @@ class _TableMenuState extends State<TableMenu> {
           if (tableModel.isChange) {
             readAllTable(model: tableModel);
           }
-          if(notificationModel.contentLoaded == true) {
+          if(notificationModel.contentLoad == true) {
             isLoaded = false;
           }
-          if(notificationModel.contentLoaded == true){
+          if(notificationModel.contentLoad == true && notificationModel.contentLoaded == true){
             notificationModel.resetContentLoaded();
             notificationModel.resetContentLoad();
             Future.delayed(const Duration(seconds: 1), () {
@@ -139,7 +152,7 @@ class _TableMenuState extends State<TableMenu> {
                                         if(hasInternetAccess){
                                           openAddTableDialog(PosTable());
                                         } else {
-                                          Fluttertoast.showToast(msg: "Check your internet access");
+                                          Fluttertoast.showToast(msg: "Internet access required");
                                         }
                                       },
                                       icon: Icon(Icons.add),
@@ -178,7 +191,7 @@ class _TableMenuState extends State<TableMenu> {
                                   tableList.length, (index) {
                                 // tableList[index].seats == 2;
                                 return Card(
-                                  color: tableList[index].status != 0
+                                  color: tableList[index].status != 0 && MediaQuery.of(context).size.height < 500
                                       ? toColor(tableList[index].card_color!)
                                       : Colors.white,
                                   shape: tableList[index].isSelected
@@ -279,10 +292,21 @@ class _TableMenuState extends State<TableMenu> {
                                                   visible: tableList[index].group != null && MediaQuery.of(context).size.height > 500  ? true : false,
                                                   child: Container(
                                                       alignment: Alignment.topCenter,
-                                                      child: Text(
-                                                        "Group: ${tableList[index].group}",
-                                                        style:
-                                                        TextStyle(fontSize: 18),
+                                                      child: Container(
+                                                        padding: EdgeInsets.only(right: 5.0, left: 5.0),
+                                                        decoration: BoxDecoration(
+                                                            color: tableList[index].group != null && MediaQuery.of(context).size.height > 500
+                                                                ?
+                                                            toColor(tableList[index].card_color!)
+                                                                :
+                                                            Colors.white,
+                                                            borderRadius: BorderRadius.circular(5.0)
+                                                        ),
+                                                        child: Text(
+                                                          "Group: ${tableList[index].group}",
+                                                          style:
+                                                          TextStyle(fontSize: 18, color: fontColor(posTable: tableList[index])),
+                                                        ),
                                                       )),
                                                 ),
                                                 tableList[index].seats == '2'
@@ -507,9 +531,9 @@ class _TableMenuState extends State<TableMenu> {
           orderCacheList = List.from(data);
         }
         //Get all order detail based on order cache id
-        print('order cache key: ${data[i].order_cache_key!}');
+        //print('order cache key: ${data[i].order_cache_key!}');
         List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(data[i].order_cache_key!);
-        print('order detail length 2 : ${detailData.length}');
+        //print('order detail length 2 : ${detailData.length}');
         //add all order detail from db
         if (!orderDetailList.contains(detailData)) {
           orderDetailList..addAll(detailData);
@@ -659,7 +683,7 @@ class _TableMenuState extends State<TableMenu> {
     List<TableUseDetail> tableUseDetailList = [];
     List<cartProductItem> itemList = [];
     var detailLength = orderDetailList.length;
-    print('tb order detail length: ${detailLength}');
+    //print('tb order detail length: ${detailLength}');
     for (int i = 0; i < detailLength; i++) {
       value = cartProductItem(
           branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
@@ -676,7 +700,7 @@ class _TableMenuState extends State<TableMenu> {
           category_sqlite_id: orderDetailList[i].category_sqlite_id,
           order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString(),
           base_price: orderDetailList[i].original_price,
-          refColor: toColor(posTable.card_color!),
+          refColor: Colors.black,
       );
       cart.addItem(value);
     }

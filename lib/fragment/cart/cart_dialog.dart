@@ -14,6 +14,7 @@ import 'package:crypto/crypto.dart';
 
 import '../../database/domain.dart';
 import '../../database/pos_database.dart';
+import '../../main.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/branch_link_product.dart';
 import '../../object/cart_product.dart';
@@ -64,7 +65,7 @@ class CartDialogState extends State<CartDialog> {
   bool isFinish = false;
   bool isButtonDisabled = false, isMergeButtonDisabled = false, isLogOut = false;
   Color cardColor = Colors.white;
-  String? table_use_detail_value, table_value, tableUseDetailKey;
+  String? table_use_detail_value, table_value, tableUseDetailKey, tableUseKey;
 
   @override
   void initState() {
@@ -190,24 +191,20 @@ class CartDialogState extends State<CartDialog> {
                 ),
                 content: isLoad
                     ? Container(
-                        height: 650,
+                        // height: 650,
                         width: MediaQuery.of(context).size.width / 2,
-                        child: Column(
-                          children: [
-                            Expanded(
-                              child: ReorderableGridView.count(
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 10,
-                                crossAxisCount: MediaQuery.of(context).size.height > 500 ? 4 : 3,
-                                children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, color, index))).values.toList(),
-                                onReorder: (int oldIndex, int newIndex) {
-                                  if (oldIndex != newIndex) {
-                                    showSecondDialog(context, color, oldIndex, newIndex, cart);
-                                  }
-                                },
-                              ),
-                            ),
-                          ],
+                        child: ReorderableGridView.count(
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          crossAxisCount: MediaQuery.of(context).size.height > 500 ? 4 : 3,
+                          children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, color, index))).values.toList(),
+                          onReorder: (int oldIndex, int newIndex) {
+                            if (oldIndex != newIndex) {
+                              showSecondDialog(context, color, oldIndex, newIndex, cart);
+                            }
+                          },
                         ))
                     : CustomProgressBar(),
                 actions: <Widget>[
@@ -286,6 +283,19 @@ class CartDialogState extends State<CartDialog> {
     return selected;
   }
 
+  fontColor({required PosTable posTable}){
+    if(posTable.status == 1){
+      Color fontColor = Colors.black;
+      Color backgroundColor = toColor(posTable.card_color!);
+      if(backgroundColor.computeLuminance() > 0.5){
+        fontColor = Colors.black;
+      } else {
+        fontColor = Colors.white;
+      }
+      return fontColor;
+    }
+  }
+
   Widget tableItem(CartModel cart, ThemeColor color, index) {
     return Container(
       key: Key(index.toString()),
@@ -296,7 +306,7 @@ class CartDialogState extends State<CartDialog> {
             shape: tableList[index].isSelected
                 ? new RoundedRectangleBorder(side: new BorderSide(color: color.backgroundColor, width: 3.0), borderRadius: BorderRadius.circular(4.0))
                 : new RoundedRectangleBorder(side: new BorderSide(color: Colors.white, width: 3.0), borderRadius: BorderRadius.circular(4.0)),
-            color: tableList[index].status == 1 ? Utils.toColor(tableList[index].card_color!) : Colors.white,
+            color: tableList[index].status == 1 && MediaQuery.of(context).size.height < 500 ? Utils.toColor(tableList[index].card_color!) : Colors.white,
             child: InkWell(
               splashColor: Colors.blue.withAlpha(30),
               onDoubleTap: () {
@@ -352,14 +362,26 @@ class CartDialogState extends State<CartDialog> {
                     tableList[index].group != null && MediaQuery.of(context).size.height > 500
                         ? Row(
                         children: [
-                          Text(
-                            "Group: ${tableList[index].group}",
-                            style: TextStyle(fontSize: 18),
+                          Container(
+                            padding: EdgeInsets.only(right: 5.0, left: 5.0),
+                            decoration: BoxDecoration(
+                                color: tableList[index].group != null && MediaQuery.of(context).size.height > 500
+                                    ?
+                                toColor(tableList[index].card_color!)
+                                    :
+                                Colors.white,
+                                borderRadius: BorderRadius.circular(5.0)
+                            ),
+                            child: Text(
+                              "Group: ${tableList[index].group}",
+                              style: TextStyle(fontSize: 18, color: fontColor(posTable: tableList[index])),
+                            ),
                           ),
                           Spacer(),
                           Visibility(
                               visible: tableList[index].isSelected  ? true : false,
                               child: IconButton(
+                                color: Colors.red,
                                 icon: Icon(Icons.close, size: 18),
                                 constraints: BoxConstraints(),
                                 padding: EdgeInsets.zero,
@@ -791,7 +813,7 @@ class CartDialogState extends State<CartDialog> {
    */
   callRemoveTableQuery(int table_id) async {
     await deleteCurrentTableUseDetail(table_id);
-    await updatePosTableStatus(table_id, 0, '');
+    await updatePosTableStatus(table_id, 0, '', '');
     await syncAllToCloud();
     if (this.isLogOut == true) {
       openLogOutDialog();
@@ -809,6 +831,7 @@ class CartDialogState extends State<CartDialog> {
       List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(currentTableId);
       print('check data length: ${checkData.length}');
       TableUseDetail tableUseDetailObject = TableUseDetail(
+          soft_delete: dateTime,
           sync_status: checkData[0].sync_status == 0 ? 0 : 2,
           status: 1,
           table_sqlite_id: currentTableId.toString(),
@@ -834,23 +857,28 @@ class CartDialogState extends State<CartDialog> {
     }
   }
 
-  syncDeletedTableUseDetailToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().SyncTableUseDetailToCloud(value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
-      }
-    }
-  }
+  // syncDeletedTableUseDetailToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map data = await Domain().SyncTableUseDetailToCloud(value);
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
+  //     }
+  //   }
+  // }
 
-  updatePosTableStatus(int dragTableId, int status, String tableUseDetailKey) async {
+  updatePosTableStatus(int dragTableId, int status, String tableUseDetailKey, String tableUseKey) async {
     List<String> _value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     /*get target table use key here*/
-    PosTable posTableData = PosTable(table_use_detail_key: tableUseDetailKey, table_sqlite_id: dragTableId, status: status, updated_at: dateTime);
+    PosTable posTableData = PosTable(
+        table_use_detail_key: tableUseDetailKey,
+        table_use_key: tableUseKey,
+        table_sqlite_id: dragTableId,
+        status: status,
+        updated_at: dateTime);
     int updatedTable = await PosDatabase.instance.updatePosTableStatus(posTableData);
     int updatedKey = await PosDatabase.instance.removePosTableTableUseDetailKey(posTableData);
     if (updatedTable == 1 && updatedKey == 1) {
@@ -868,21 +896,21 @@ class CartDialogState extends State<CartDialog> {
     // }
   }
 
-  syncUpdatedTableToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().SyncUpdatedPosTableToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[0]['table_id']);
-      }
-    }
-  }
+  // syncUpdatedTableToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().SyncUpdatedPosTableToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[0]['table_id']);
+  //     }
+  //   }
+  // }
 
   callAddNewTableQuery(int dragTableId, int targetTableId) async {
     //List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(targetTableId);
     await createTableUseDetail(dragTableId, targetTableId);
-    await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!);
+    await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!, tableUseKey!);
     await syncAllToCloud();
     if (this.isLogOut == true) {
       openLogOutDialog();
@@ -941,6 +969,7 @@ class CartDialogState extends State<CartDialog> {
           sync_status: 0,
           updated_at: '',
           soft_delete: ''));
+      this.tableUseKey = insertData.table_use_key;
       TableUseDetail updatedDetail = await insertTableUseDetailKey(insertData, dateTime);
       this.tableUseDetailKey = updatedDetail.table_use_detail_key;
       _value.add(jsonEncode(updatedDetail));
@@ -953,48 +982,62 @@ class CartDialogState extends State<CartDialog> {
     }
   }
 
-  syncTableUseDetailToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().SyncTableUseDetailToCloud(value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
-      }
-    }
-  }
+  // syncTableUseDetailToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map data = await Domain().SyncTableUseDetailToCloud(value);
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
+  //     }
+  //   }
+  // }
 
   syncAllToCloud() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().syncLocalUpdateToCloud(
-          device_id: device_id.toString(), value: login_value, table_use_detail_value: this.table_use_detail_value, table_value: this.table_value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          switch (responseJson[i]['table_name']) {
-            case 'tb_table_use_detail':
-              {
-                await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-              }
-              break;
-            case 'tb_table':
-              {
-                await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-              }
-              break;
-            default:
-              {
-                return;
-              }
+    try{
+      if(mainSyncToCloud.count == 0){
+        mainSyncToCloud.count = 1;
+        final prefs = await SharedPreferences.getInstance();
+        final int? device_id = prefs.getInt('device_id');
+        final String? login_value = prefs.getString('login_value');
+        Map data = await Domain().syncLocalUpdateToCloud(
+            device_id: device_id.toString(), value: login_value, table_use_detail_value: this.table_use_detail_value, table_value: this.table_value);
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          for (int i = 0; i < responseJson.length; i++) {
+            switch (responseJson[i]['table_name']) {
+              case 'tb_table_use_detail':
+                {
+                  await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+                }
+                break;
+              case 'tb_table':
+                {
+                  await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+                }
+                break;
+              default:
+                {
+                  return;
+                }
+            }
           }
+          mainSyncToCloud.resetCount();
+        } else if (data['status'] == '7') {
+          mainSyncToCloud.resetCount();
+          this.isLogOut = true;
+        }else if (data['status'] == '8'){
+          print('cart dialog sync to cloud timeout');
+          mainSyncToCloud.resetCount();
+          throw TimeoutException("Timeout");
         }
-      } else if (data['status'] == '7') {
-        this.isLogOut = true;
       }
+      // bool _hasInternetAccess = await Domain().isHostReachable();
+      // if (_hasInternetAccess) {
+      //
+      // }
+    }catch(e){
+      mainSyncToCloud.resetCount();
     }
   }
 }

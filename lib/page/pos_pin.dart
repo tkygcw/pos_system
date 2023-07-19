@@ -41,6 +41,7 @@ class _PosPinPageState extends State<PosPinPage> {
   List response = [];
   List<Printer> printerList = [];
   String latestVersion = '';
+  String? userValue, transferOwnerValue;
   bool isLogOut = false;
 
   @override
@@ -63,11 +64,11 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   preload() async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess){
-      syncRecord.syncFromCloud();
-      syncRecord.count = 0;
-    }
+    // bool _hasInternetAccess = await Domain().isHostReachable();
+    // if(_hasInternetAccess){
+    //
+    // }
+    syncRecord.syncFromCloud();
     if(notificationModel.syncCountStarted == false){
       startTimers();
     }
@@ -121,78 +122,81 @@ class _PosPinPageState extends State<PosPinPage> {
         notificationModel.resetNotification();
         return;
       }
-      bool _hasInternetAccess = await Domain().isHostReachable();
-      if (_hasInternetAccess) {
-        print('timer count: ${timerCount}');
-        if (timerCount == 0) {
-          //sync to cloud
-          if(mainSyncToCloud.count == 0){
-            int status = await mainSyncToCloud.syncAllToCloud();
-            print('status: ${status}');
-            if (status == 1) {
-              openLogOutDialog();
-              mainSyncToCloud.resetCount();
-              return;
-            } else if(status == 2){
-              print('time out detected');
-              mainSyncToCloud.resetCount();
-            } else {
-              mainSyncToCloud.resetCount();
-            }
-          }
-          //SyncToCloud().syncToCloud();
-        } else {
-          //qr order sync
-          if(qrOrder.count == 0){
-            print('qr order sync');
-            qrOrder.getQrOrder();
-            qrOrder.count = 0;
-          }
-
-          // if (notificationModel.notificationStatus == true) {
-          //   print('timer reset inside');
-          //   timerCount = 0;
-          //   notificationModel.resetNotification();
-          //   return;
-          // }
-          //sync from cloud
-          if(syncRecord.count == 0){
-            int syncStatus = await syncRecord.syncFromCloud();
-            print('is log out: ${syncStatus}');
-            if (syncStatus == 1) {
-              openLogOutDialog();
-              return;
-            }
-            // else if (syncStatus == false) {
-            //   ScaffoldMessenger.of(context).showSnackBar(
-            //     SnackBar(
-            //       duration: Duration(minutes: 5),
-            //       backgroundColor: Colors.green,
-            //       content: const Text('Content change !!!'),
-            //       action: SnackBarAction(
-            //         label: 'Refresh',
-            //         textColor: Colors.white,
-            //         onPressed: () {
-            //           setState(() {
-            //             ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            //           });
-            //           // Code to execute.
-            //         },
-            //       ),
-            //     ),
-            //   );
-            // }
-            syncRecord.count = 0;
+      print('timer count: ${timerCount}');
+      if (timerCount == 0) {
+        //sync to cloud
+        if(mainSyncToCloud.count == 0){
+          mainSyncToCloud.count = 1;
+          int? status = await mainSyncToCloud.syncAllToCloud();
+          print('status: ${status}');
+          if (status == 1) {
+            openLogOutDialog();
+            mainSyncToCloud.resetCount();
+            return;
+          } else if(status == 2){
+            print('time out detected');
+            mainSyncToCloud.resetCount();
+          } else {
+            mainSyncToCloud.resetCount();
           }
         }
-        //add timer and reset hasNotification
-        timerCount++;
-        notificationModel.resetNotification();
-        // reset the timer after two executions
-        if (timerCount >= 2) {
-          timerCount = 0;
+        //SyncToCloud().syncToCloud();
+      } else {
+        //qr order sync
+        if(qrOrder.count == 0){
+          print('qr order sync');
+          qrOrder.count = 1;
+          qrOrder.getQrOrder();
+          qrOrder.count = 0;
+        }
+
+        // if (notificationModel.notificationStatus == true) {
+        //   print('timer reset inside');
+        //   timerCount = 0;
+        //   notificationModel.resetNotification();
+        //   return;
+        // }
+        //sync from cloud
+        if(syncRecord.count == 0){
+          int syncStatus = await syncRecord.syncFromCloud();
+          print('is log out: ${syncStatus}');
+          if (syncStatus == 1) {
+            openLogOutDialog();
+            return;
+          }
+          // else if (syncStatus == false) {
+          //   ScaffoldMessenger.of(context).showSnackBar(
+          //     SnackBar(
+          //       duration: Duration(minutes: 5),
+          //       backgroundColor: Colors.green,
+          //       content: const Text('Content change !!!'),
+          //       action: SnackBarAction(
+          //         label: 'Refresh',
+          //         textColor: Colors.white,
+          //         onPressed: () {
+          //           setState(() {
+          //             ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          //           });
+          //           // Code to execute.
+          //         },
+          //       ),
+          //     ),
+          //   );
+          // }
+          syncRecord.count = 0;
         }
       }
+      //add timer and reset hasNotification
+      timerCount++;
+      notificationModel.resetNotification();
+      // reset the timer after two executions
+      if (timerCount >= 2) {
+        timerCount = 0;
+      }
+      // bool _hasInternetAccess = await Domain().isHostReachable();
+      // if (_hasInternetAccess) {
+      //
+      // }
     });
   }
 
@@ -347,45 +351,48 @@ class _PosPinPageState extends State<PosPinPage> {
             ),
           );
         } else {
-          return Scaffold(
-            backgroundColor: color.backgroundColor,
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Theme(
-                      data: Theme.of(context).copyWith(
-                          textTheme: TextTheme(
-                        bodyMedium: TextStyle(color: Colors.white),
-                      )),
-                      child: SingleChildScrollView(
-                          child: Container(
-                            height: MediaQuery.of(context).size.height,
-                            child: PinAuthentication(
-                              pinTheme: PinTheme(
-                              shape: PinCodeFieldShape.box,
-                              fieldOuterPadding: EdgeInsets.zero,
-                              fieldWidth: 40,
-                              selectedFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
-                              inactiveFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
-                              borderRadius: BorderRadius.circular(5),
-                              backgroundColor: color.backgroundColor,
-                              keysColor: Colors.white,
-                              activeFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
-                            ),
-                          onChanged: (v) {},
-                          onCompleted: (v) {
-                            if (v.length == 6) {
-                              userCheck(v);
-                            }
-                          },
-                          maxLength: 6,
-                        ),
-                      )),
+          return WillPopScope(
+            onWillPop: () async => false,
+            child: Scaffold(
+              backgroundColor: color.backgroundColor,
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Theme(
+                        data: Theme.of(context).copyWith(
+                            textTheme: TextTheme(
+                          bodyMedium: TextStyle(color: Colors.white),
+                        )),
+                        child: SingleChildScrollView(
+                            child: Container(
+                              height: MediaQuery.of(context).size.height,
+                              child: PinAuthentication(
+                                pinTheme: PinTheme(
+                                shape: PinCodeFieldShape.box,
+                                fieldOuterPadding: EdgeInsets.zero,
+                                fieldWidth: 40,
+                                selectedFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                                inactiveFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                                borderRadius: BorderRadius.circular(5),
+                                backgroundColor: color.backgroundColor,
+                                keysColor: Colors.white,
+                                activeFillColor: const Color(0xFFF7F8FF).withOpacity(0.13),
+                              ),
+                            onChanged: (v) {},
+                            onCompleted: (v) {
+                              if (v.length == 6) {
+                                userCheck(v);
+                              }
+                            },
+                            maxLength: 6,
+                          ),
+                        )),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
@@ -488,11 +495,13 @@ class _PosPinPageState extends State<PosPinPage> {
       } else {
         isNewUser = true;
         await createTransferOwnerRecord(fromUser: userObject['user_id'].toString(), toUser: user_id);
+        await syncAllToCloud();
       }
     } else {
       if(cashRecord!.user_id != user_id){
         isNewUser = true;
         await createTransferOwnerRecord(fromUser: cashRecord.user_id, toUser: user_id, totalCashBalance: totalCashBalance);
+        await syncAllToCloud();
       } else {
         isNewUser = false;
       }
@@ -545,32 +554,69 @@ class _PosPinPageState extends State<PosPinPage> {
     TransferOwner createRecord = await PosDatabase.instance.insertSqliteTransferOwner(object);
     TransferOwner _keyInsert = await insertTransferOwnerKey(createRecord, dateTime);
     _value.add(jsonEncode(_keyInsert));
-    await syncTransferOwnerToCloud(_value.toString());
+    transferOwnerValue = _value.toString();
+    //await syncTransferOwnerToCloud(_value.toString());
   }
 
-  syncTransferOwnerToCloud(String value) async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    //check is host reachable
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().syncLocalUpdateToCloud(
-          device_id: device_id.toString(),
-          value: login_value,
-          transfer_owner_value: value
-      );
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
-      } else if (data['status'] == '7') {
-        this.isLogOut = true;
+  // syncTransferOwnerToCloud(String value) async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final int? device_id = prefs.getInt('device_id');
+  //   final String? login_value = prefs.getString('login_value');
+  //   //check is host reachable
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map data = await Domain().syncLocalUpdateToCloud(
+  //         device_id: device_id.toString(),
+  //         value: login_value,
+  //         transfer_owner_value: value
+  //     );
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
+  //     } else if (data['status'] == '7') {
+  //       this.isLogOut = true;
+  //     }
+  //     // Map response = await Domain().SyncTransferOwnerToCloud(value);
+  //     // if (response['status'] == '1') {
+  //     //   List responseJson = response['data'];
+  //     //   int updateStatus = await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
+  //     // }
+  //   }
+  // }
+
+  syncAllToCloud() async {
+    try{
+      if(mainSyncToCloud.count == 0){
+        mainSyncToCloud.count = 1;
+        final prefs = await SharedPreferences.getInstance();
+        final int? device_id = prefs.getInt('device_id');
+        final String? login_value = prefs.getString('login_value');
+        Map data = await Domain().syncLocalUpdateToCloud(
+            device_id: device_id.toString(),
+            value: login_value,
+            transfer_owner_value: transferOwnerValue,
+            user_value: userValue
+        );
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          for(int i = 0; i < responseJson.length; i++){
+            if(responseJson[i]['table_name'] == 'tb_transfer_owner'){
+              await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
+            }
+          }
+          mainSyncToCloud.resetCount();
+        } else if (data['status'] == '7') {
+          mainSyncToCloud.resetCount();
+          this.isLogOut = true;
+        } else if(data['status'] == '8'){
+          mainSyncToCloud.resetCount();
+          throw TimeoutException("Time out");
+        } else {
+          mainSyncToCloud.resetCount();
+        }
       }
-      // Map response = await Domain().SyncTransferOwnerToCloud(value);
-      // if (response['status'] == '1') {
-      //   List responseJson = response['data'];
-      //   int updateStatus = await PosDatabase.instance.updateTransferOwnerSyncStatusFromCloud(responseJson[0]['transfer_owner_key']);
-      // }
+    }catch(e){
+      mainSyncToCloud.resetCount();
     }
   }
 

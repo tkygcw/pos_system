@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -68,7 +69,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     // TODO: implement initState
     super.initState();
     callUpdateOrder();
-
   }
 
   Future<Future<Object?>> openLogOutDialog() async {
@@ -143,7 +143,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                           //   openLogOutDialog();
                                           //   return;
                                           // }
-                                          if(notificationModel.hasSecondScreen == true){
+                                          if(notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true){
                                             reInitSecondDisplay();
                                           }
                                           await callPrinter();
@@ -173,9 +173,10 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: color.buttonColor,
                                           ),
-                                          onPressed: () {
-                                            PrintReceipt().cashDrawer(context, printerList: this.printerList);
-                                            if(notificationModel.hasSecondScreen == true){
+                                          onPressed: () async {
+                                            await callOpenCashDrawer();
+                                            //int printStatus = await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+                                            if(notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true){
                                               reInitSecondDisplay();
                                             }
                                           },
@@ -204,7 +205,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                       });
                                       tableModel.changeContent(true);
                                       cartModel.initialLoad();
-                                      if(notificationModel.hasSecondScreen == true){
+                                      if(notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true){
                                         reInitSecondDisplay();
                                       }
                                       Navigator.of(context).pop();
@@ -304,8 +305,8 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: color.buttonColor,
                                     ),
-                                    onPressed: () {
-                                      PrintReceipt().cashDrawer(context, printerList: this.printerList);
+                                    onPressed: () async {
+                                      await callOpenCashDrawer();
                                     },
                                     child: Text(
                                         '${AppLocalizations.of(context)?.translate('open_cash_drawer')}', style: TextStyle(fontSize: 15),
@@ -343,19 +344,39 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     });
   }
 
-  callUpdateOrder() async {
-    await updateOrder();
-    if (widget.dining_name == 'Dine in') {
-      await deleteCurrentTableUseDetail();
-      await deleteCurrentTableUseId();
-      await updatePosTableStatus(0);
+  callOpenCashDrawer() async{
+    int printStatus = await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+    if(printStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (printStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }else if(printStatus == 3){
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "No cashier printer added");
+    } else if(printStatus == 4){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('no_cashier_printer')}");
     }
-    await updateOrderCache();
-    await createCashRecord();
+  }
+
+  callUpdateOrder() async {
+    String dateTime = dateFormat.format(DateTime.now());
+    await updateOrder(dateTime: dateTime);
+    if (widget.dining_name == 'Dine in') {
+      await deleteCurrentTableUseDetail(dateTime: dateTime);
+      await deleteCurrentTableUseId(dateTime: dateTime);
+      await updatePosTableStatus(dateTime: dateTime);
+    }
+    await updateOrderCache(dateTime: dateTime);
+    await createCashRecord(dateTime: dateTime);
     await readAllPrinters();
     await callPrinter();
     if(widget.isCashMethod == true){
-      await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+      await callOpenCashDrawer();
     }
     await syncAllToCloud();
     if(this.isLogOut == true){
@@ -378,14 +399,15 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     }else if(printStatus == 3){
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "No cashier printer added");
+    } else if(printStatus == 4){
       Fluttertoast.showToast(
-          backgroundColor: Colors.red,
-          msg: "No cashier printer added");
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('no_cashier_printer')}");
     }
   }
 
-  updateOrder() async {
-    String dateTime = dateFormat.format(DateTime.now());
+  updateOrder({required String dateTime}) async {
     List<String> _value = [];
     Order checkData = await PosDatabase.instance.readSpecificOrder(int.parse(widget.orderId));
     Order orderObject = Order(
@@ -404,20 +426,19 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     //await syncUpdatedOrderToCloud(_value.toString());
   }
 
-  syncUpdatedOrderToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().SyncOrderToCloud(value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[0]['order_key']);
-      }
-    }
-  }
+  // syncUpdatedOrderToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map data = await Domain().SyncOrderToCloud(value);
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       int orderData = await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[0]['order_key']);
+  //     }
+  //   }
+  // }
 
-  deleteCurrentTableUseDetail() async {
+  deleteCurrentTableUseDetail({required String dateTime}) async {
     List<String> _value = [];
-    String dateTime = dateFormat.format(DateTime.now());
     try {
       if (widget.orderCacheIdList.isNotEmpty) {
         for (int j = 0; j < widget.orderCacheIdList.length; j++) {
@@ -425,6 +446,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           List<TableUseDetail> tableUseCheckData = await PosDatabase.instance.readAllTableUseDetail(data[0].table_use_sqlite_id!);
           for (int i = 0; i < tableUseCheckData.length; i++) {
             TableUseDetail tableUseDetailObject = TableUseDetail(
+                updated_at: dateTime,
                 sync_status: tableUseCheckData[i].sync_status == 0 ? 0 : 2,
                 status: 1,
                 table_use_sqlite_id: data[0].table_use_sqlite_id!,
@@ -448,22 +470,21 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     }
   }
 
-  syncTableUseDetailToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().SyncTableUseDetailToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int syncData = await PosDatabase.instance
-              .updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-        }
-      }
-    }
-  }
+  // syncTableUseDetailToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().SyncTableUseDetailToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         int syncData = await PosDatabase.instance
+  //             .updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
-  deleteCurrentTableUseId() async {
-    String dateTime = dateFormat.format(DateTime.now());
+  deleteCurrentTableUseId({required String dateTime}) async {
     List<String> _value = [];
     try {
       if (widget.orderCacheIdList.isNotEmpty) {
@@ -471,6 +492,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           List<OrderCache> data = await PosDatabase.instance.readSpecificOrderCache(widget.orderCacheIdList[j]);
           TableUse tableUseCheckData = await PosDatabase.instance.readSpecificTableUseIdByLocalId(int.parse(data[0].table_use_sqlite_id!));
           TableUse tableUseObject = TableUse(
+              updated_at: dateTime,
               sync_status: tableUseCheckData.sync_status == 0 ? 0 : 2,
               status: 1,
               table_use_sqlite_id: int.parse(data[0].table_use_sqlite_id!)
@@ -494,22 +516,21 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     }
   }
 
-  syncUpdatedTableUseIdToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().SyncTableUseToCloud(value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int tablaUseData = await PosDatabase.instance
-              .updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
-        }
-      }
-    }
-  }
+  // syncUpdatedTableUseIdToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map data = await Domain().SyncTableUseToCloud(value);
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         int tablaUseData = await PosDatabase.instance
+  //             .updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
-  updateOrderCache() async {
-    String dateTime = dateFormat.format(DateTime.now());
+  updateOrderCache({required String dateTime}) async {
     List<String> _value = [];
     if (widget.orderCacheIdList.isNotEmpty) {
       for (int j = 0; j < widget.orderCacheIdList.length; j++) {
@@ -532,38 +553,38 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     }
   }
 
-  syncUpdatedOrderCacheToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().SyncOrderCacheToCloud(value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (int i = 0; i < responseJson.length; i++) {
-          int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
-        }
-      }
-    }
-  }
+  // syncUpdatedOrderCacheToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map data = await Domain().SyncOrderCacheToCloud(value);
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       for (int i = 0; i < responseJson.length; i++) {
+  //         int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
-  deleteOrderCache() async {
-    String dateTime = dateFormat.format(DateTime.now());
-    if (widget.orderCacheIdList.length > 0) {
-      for (int j = 0; j < widget.orderCacheIdList.length; j++) {
-        OrderCache orderCacheObject = OrderCache(
-            soft_delete: dateTime, order_cache_sqlite_id: int.parse(widget.orderCacheIdList[j]));
-        int data = await PosDatabase.instance.deletePaidOrderCache(orderCacheObject);
-      }
-    }
-  }
+  // deleteOrderCache() async {
+  //   String dateTime = dateFormat.format(DateTime.now());
+  //   if (widget.orderCacheIdList.length > 0) {
+  //     for (int j = 0; j < widget.orderCacheIdList.length; j++) {
+  //       OrderCache orderCacheObject = OrderCache(
+  //           soft_delete: dateTime, order_cache_sqlite_id: int.parse(widget.orderCacheIdList[j]));
+  //       int data = await PosDatabase.instance.deletePaidOrderCache(orderCacheObject);
+  //     }
+  //   }
+  // }
 
-  updatePosTableStatus(int status) async {
+  updatePosTableStatus({required String dateTime}) async {
     List<String> _value = [];
-    String dateTime = dateFormat.format(DateTime.now());
-    if (widget.selectedTableList.length > 0) {
+    if (widget.selectedTableList.isNotEmpty) {
       for (int i = 0; i < widget.selectedTableList.length; i++) {
         PosTable posTableData = PosTable(
             table_use_detail_key: '',
-            status: status,
+            table_use_key: '',
+            status: 0,
             updated_at: dateTime,
             table_sqlite_id: widget.selectedTableList[i].table_sqlite_id);
         int updatedStatus = await PosDatabase.instance.updatePosTableStatus(posTableData);
@@ -581,18 +602,18 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     }
   }
 
-  syncUpdatedPosTableToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().SyncUpdatedPosTableToCloud(value);
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-        }
-      }
-    }
-  }
+  // syncUpdatedPosTableToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().SyncUpdatedPosTableToCloud(value);
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+  //       }
+  //     }
+  //   }
+  // }
 
   generateCashRecordKey(CashRecord cashRecord) async {
     final prefs = await SharedPreferences.getInstance();
@@ -622,11 +643,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     return _record;
   }
 
-  createCashRecord() async {
+  createCashRecord({required String dateTime}) async {
     try {
       List<String> _value = [];
-      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-      String dateTime = dateFormat.format(DateTime.now());
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
       final String? pos_user = prefs.getString('pos_pin_user');
@@ -668,77 +687,95 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     }
   }
 
-  syncCashRecordToCloud(CashRecord updatedData) async {
-    List<String> _value = [];
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      _value.add(jsonEncode(updatedData));
-      Map response = await Domain().SyncCashRecordToCloud(_value.toString());
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
-        }
-      }
-    }
-  }
+  // syncCashRecordToCloud(CashRecord updatedData) async {
+  //   List<String> _value = [];
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     _value.add(jsonEncode(updatedData));
+  //     Map response = await Domain().SyncCashRecordToCloud(_value.toString());
+  //     if (response['status'] == '1') {
+  //       List responseJson = response['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         int cashRecordData = await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[0]['cash_record_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   readAllPrinters() async {
     printerList = await PrintReceipt().readAllPrinters();
   }
 
   syncAllToCloud() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().syncLocalUpdateToCloud(
-        device_id: device_id.toString(),
-        value: login_value,
-        order_value:  this.order_value,
-        order_cache_value: this.order_cache_value,
-        table_use_detail_value: this.table_use_detail_value,
-        table_use_value: this.table_use_value,
-        table_value: this.table_value,
-        cash_record_value: this.cash_record_value
-      );
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for(int i = 0; i < responseJson.length; i++){
-          switch(responseJson[i]['table_name']){
-            case 'tb_order': {
-              await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
-            }
-            break;
-            case 'tb_table_use': {
-              await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
-            }
-            break;
-            case 'tb_table_use_detail': {
-              await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-            }
-            break;
-            case 'tb_order_cache': {
-              await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
-            }
-            break;
-            case 'tb_table': {
-              await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-            }
-            break;
-            case 'tb_cash_record': {
-              await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
-            }
-            break;
-            default: {
-              return;
+    try{
+      if(mainSyncToCloud.count == 0) {
+        mainSyncToCloud.count = 1;
+        final prefs = await SharedPreferences.getInstance();
+        final int? device_id = prefs.getInt('device_id');
+        final String? login_value = prefs.getString('login_value');
+        Map data = await Domain().syncLocalUpdateToCloud(
+            device_id: device_id.toString(),
+            value: login_value,
+            order_value:  this.order_value,
+            order_cache_value: this.order_cache_value,
+            table_use_detail_value: this.table_use_detail_value,
+            table_use_value: this.table_use_value,
+            table_value: this.table_value,
+            cash_record_value: this.cash_record_value
+        );
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          for(int i = 0; i < responseJson.length; i++){
+            switch(responseJson[i]['table_name']){
+              case 'tb_order': {
+                await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+              }
+              break;
+              case 'tb_table_use': {
+                await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[i]['table_use_key']);
+              }
+              break;
+              case 'tb_table_use_detail': {
+                await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
+              }
+              break;
+              case 'tb_order_cache': {
+                await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
+              }
+              break;
+              case 'tb_table': {
+                await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
+              }
+              break;
+              case 'tb_cash_record': {
+                await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
+              }
+              break;
+              default: {
+                return;
+              }
             }
           }
+          mainSyncToCloud.resetCount();
+        } else if(data['status'] == '7'){
+          mainSyncToCloud.resetCount();
+          this.isLogOut = true;
+        }else if (data['status'] == '8'){
+          print('payment time out');
+          mainSyncToCloud.resetCount();
+          throw TimeoutException("Time out");
+        } else {
+          mainSyncToCloud.resetCount();
         }
-      } else if(data['status'] == '7'){
-        this.isLogOut = true;
       }
+      // bool _hasInternetAccess = await Domain().isHostReachable();
+      // if (_hasInternetAccess) {
+      //
+      // }
+    }catch(e){
+      print('payment success error: $e');
+      mainSyncToCloud.resetCount();
     }
+
   }
 }

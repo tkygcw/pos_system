@@ -137,7 +137,8 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
         if(userData.user_id == userObject['user_id']){
-          await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+          await callOpenCashDrawer();
+          //await PrintReceipt().cashDrawer(context, printerList: this.printerList);
           closeDialog(context);
           //ReceiptLayout().openCashDrawer();
         } else {
@@ -156,6 +157,25 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
       }
     } catch (e) {
       print('pos pin error ${e}');
+    }
+  }
+
+  callOpenCashDrawer() async{
+    int printStatus = await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+    if(printStatus == 1){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (printStatus == 2){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    }else if(printStatus == 3){
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "No cashier printer added");
+    } else if(printStatus == 4){
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg: "${AppLocalizations.of(context)?.translate('no_cashier_printer')}");
     }
   }
 }

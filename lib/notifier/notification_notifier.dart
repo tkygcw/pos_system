@@ -10,7 +10,7 @@ class NotificationModel extends ChangeNotifier {
   bool cartContentLoaded = false;
   List<Display?> displays = [];
   bool hasSecondScreen = false;
-  bool secondScreenEnable = true;
+  bool secondScreenEnable = false;
 
   void setNotification(bool status){
     notificationStatus = status;

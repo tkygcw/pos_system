@@ -167,7 +167,7 @@ class _QrMainPageState extends State<QrMainPage> {
       if (data[0].stock_type == '2') {
         orderDetailList[i].available_stock = data[0].stock_quantity!;
       } else {
-        orderDetailList[i].available_stock = data[0].daily_limit_amount!;
+        orderDetailList[i].available_stock = data[0].daily_limit!;
       }
       orderDetailList[i].isRemove = false;
     }
@@ -198,10 +198,10 @@ class _QrMainPageState extends State<QrMainPage> {
     }
   }
 
-  callUpdateCloud(String key) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map response = await Domain().updateCloudOrderCacheSyncStatus(key);
-    }
-  }
+  // callUpdateCloud(String key) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if (_hasInternetAccess) {
+  //     Map response = await Domain().updateCloudOrderCacheSyncStatus(key);
+  //   }
+  // }
 }

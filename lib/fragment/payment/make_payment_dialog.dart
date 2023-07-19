@@ -104,6 +104,7 @@ class _MakePaymentState extends State<MakePayment> {
   String? order_value, order_tax_value, order_promotion_value;
   int myCount = 0, initLoad = 0;
   late Map branchObject;
+  bool isButtonDisable = false, willPop = true;
 
   // Array of button
   final List<String> buttons = [
@@ -222,20 +223,21 @@ class _MakePaymentState extends State<MakePayment> {
         getReceiptPaymentDetail(cart);
         //getSubTotal(cart);
         getCartItemList(cart);
-        if(initLoad == 0 && notificationModel.hasSecondScreen == true){
-          if(notificationModel.secondScreenEnable == true){
-            reInitSecondDisplay(cart: cart);
-          }
+        if(initLoad == 0 && notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true){
+          reInitSecondDisplay(cart: cart);
+          // if(notificationModel.secondScreenEnable == true){
+          //   reInitSecondDisplay(cart: cart);
+          // }
           initLoad++;
         }
         return LayoutBuilder(builder: (context,  constraints) {
           if(constraints.maxWidth > 800){
             return WillPopScope(
                 onWillPop: () async {
-                  if(notificationModel.hasSecondScreen == true){
+                  if(notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true){
                     reInitSecondDisplay(isWillPop: true);
                   }
-                  return true;
+                  return willPop;
                 },
                 child: Center(
                   child: SingleChildScrollView(
@@ -246,8 +248,14 @@ class _MakePaymentState extends State<MakePayment> {
                           Text('Payment Detail'),
                           Spacer(),
                           IconButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
+                            onPressed: isButtonDisable ? null : () {
+                              setState(() {
+                                if(notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true){
+                                  reInitSecondDisplay(isWillPop: true);
+                                }
+                                willPop = true;
+                                Navigator.of(context).pop();
+                              });
                             },
                             color: Colors.red,
                             icon: Icon(Icons.close),
@@ -264,11 +272,11 @@ class _MakePaymentState extends State<MakePayment> {
                                     children: [
                                       Container(
                                         margin: EdgeInsets.only(bottom: 20),
-                                        alignment: Alignment.centerLeft,
-                                        child: Text('Table No: ${getSelectedTable(cart)}', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20)),
+                                        alignment: Alignment.center,
+                                        child: Text('Table No: ${getSelectedTable(cart)}', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 24)),
                                       ),
                                       Container(
-                                        margin: EdgeInsets.fromLTRB(30, 0.0, 30, 0.0),
+                                        //margin: EdgeInsets.fromLTRB(30, 0.0, 30, 0.0),
                                         child: Card(
                                           elevation: 5,
                                           child: Column(
@@ -310,7 +318,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                             child: Row(
                                                               children: [
                                                                 Text('x${cart.cartNotifierItem[index].quantity.toString()}',
-                                                                  style: TextStyle(color: color.backgroundColor),
+                                                                  style: TextStyle(color: color.backgroundColor, fontWeight: FontWeight.bold, fontSize: 20),
                                                                 ),
                                                               ],
                                                             ),
@@ -553,8 +561,12 @@ class _MakePaymentState extends State<MakePayment> {
                                                   height: 70,
                                                   width: 150,
                                                   child: ElevatedButton.icon(
-                                                      onPressed: () async {
+                                                      onPressed: isButtonDisable ? null : () async {
                                                         if(inputController.text.isNotEmpty && double.parse(inputController.text) >= double.parse(finalAmount)){
+                                                          setState(() {
+                                                            willPop = false;
+                                                            isButtonDisable = true;
+                                                          });
                                                           await callCreateOrder(inputController.text, connectivity, orderChange: change);
                                                           if(this.isLogOut == true){
                                                             openLogOutDialog();
@@ -638,7 +650,11 @@ class _MakePaymentState extends State<MakePayment> {
                                                 backgroundColor: MaterialStateProperty.all(Colors.green),
                                                 padding: MaterialStateProperty.all(EdgeInsets.all(20))
                                             ),
-                                            onPressed: () async {
+                                            onPressed: isButtonDisable ? null : () async {
+                                              setState(() {
+                                                willPop = false;
+                                                isButtonDisable = true;
+                                              });
                                               await callCreateOrder(finalAmount, connectivity);
                                               if(this.isLogOut == true){
                                                 openLogOutDialog();
@@ -692,6 +708,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                 style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                                                 onPressed: () async {
                                                   setState(() {
+                                                    willPop = false;
                                                     scanning = true;
                                                   });
                                                   //await controller?.resumeCamera();
@@ -724,8 +741,29 @@ class _MakePaymentState extends State<MakePayment> {
               child: SingleChildScrollView(
                 // physics: NeverScrollableScrollPhysics(),
                 child: AlertDialog(
+                  titlePadding: EdgeInsets.fromLTRB(15, 5, 15, 0),
+                  contentPadding: EdgeInsets.only(left: 15, right: 15, bottom: 10),
                   insetPadding: EdgeInsets.zero,
-                  title: Text('Payment Detail'),
+                  title: Row(
+                    children: [
+                      Text('Payment Detail'),
+                      Spacer(),
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: isButtonDisable ? null : () {
+                          setState(() {
+                            if(notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true){
+                              reInitSecondDisplay(isWillPop: true);
+                            }
+                            willPop = true;
+                            Navigator.of(context).pop();
+                          });
+                        },
+                        color: Colors.red,
+                        icon: Icon(Icons.close),
+                      ),
+                    ],
+                  ),
                   content: Container(
                       width: 650,
                       height: 250,
@@ -736,60 +774,58 @@ class _MakePaymentState extends State<MakePayment> {
                                 child: Column(
                                   children: [
                                     Container(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text('Table No: ${getSelectedTable(cart)}', style: TextStyle(fontWeight: FontWeight.bold)),
+                                      alignment: Alignment.center,
+                                      child: Text('Table No: ${getSelectedTable(cart)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                                     ),
                                     Container(
-                                      margin: EdgeInsets.all(25),
+                                      //margin: EdgeInsets.all(25),
                                       child: Card(
                                         elevation: 5,
                                         child: Column(
                                           children: [
-                                            Container(
-                                              child: ListView.builder(
-                                                  shrinkWrap: true,
-                                                  physics: NeverScrollableScrollPhysics(),
-                                                  itemCount: cart.cartNotifierItem.length,
-                                                  padding: EdgeInsets.only(top: 10),
-                                                  itemBuilder: (context, index) {
-                                                    return ListTile(
-                                                      onTap: null,
-                                                      isThreeLine: true,
-                                                      title: RichText(
-                                                        text: TextSpan(
-                                                          children: <TextSpan>[
-                                                            TextSpan(
-                                                              text: cart.cartNotifierItem[index].product_name! +'\n',
-                                                              style: TextStyle(
-                                                                  fontSize: 15 ,
-                                                                  color: color.backgroundColor,
-                                                                  fontWeight: FontWeight.bold),
+                                            ListView.builder(
+                                                shrinkWrap: true,
+                                                physics: NeverScrollableScrollPhysics(),
+                                                itemCount: cart.cartNotifierItem.length,
+                                                padding: EdgeInsets.only(top: 10),
+                                                itemBuilder: (context, index) {
+                                                  return ListTile(
+                                                    onTap: null,
+                                                    isThreeLine: true,
+                                                    title: RichText(
+                                                      text: TextSpan(
+                                                        children: <TextSpan>[
+                                                          TextSpan(
+                                                            text: cart.cartNotifierItem[index].product_name! +'\n',
+                                                            style: TextStyle(
+                                                                fontSize: 15 ,
+                                                                color: color.backgroundColor,
+                                                                fontWeight: FontWeight.bold),
+                                                          ),
+                                                          TextSpan(
+                                                              text: "RM" + cart.cartNotifierItem[index].price!,
+                                                              style: TextStyle(fontSize: 15, color: color.backgroundColor,
+                                                              )),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    subtitle: Text(getVariant(cart.cartNotifierItem[index]) +
+                                                        getModifier(cart.cartNotifierItem[index]) +
+                                                        getRemark(cart.cartNotifierItem[index]),
+                                                        style: TextStyle(fontSize: 12)),
+                                                    trailing: Container(
+                                                      child: FittedBox(
+                                                        child: Row(
+                                                          children: [
+                                                            Text('x${cart.cartNotifierItem[index].quantity.toString()}',
+                                                              style: TextStyle(color: color.backgroundColor, fontWeight: FontWeight.bold),
                                                             ),
-                                                            TextSpan(
-                                                                text: "RM" + cart.cartNotifierItem[index].price!,
-                                                                style: TextStyle(fontSize: 15, color: color.backgroundColor,
-                                                                )),
                                                           ],
                                                         ),
                                                       ),
-                                                      subtitle: Text(getVariant(cart.cartNotifierItem[index]) +
-                                                          getModifier(cart.cartNotifierItem[index]) +
-                                                          getRemark(cart.cartNotifierItem[index]),
-                                                          style: TextStyle(fontSize: 12)),
-                                                      trailing: Container(
-                                                        child: FittedBox(
-                                                          child: Row(
-                                                            children: [
-                                                              Text('x${cart.cartNotifierItem[index].quantity.toString()}',
-                                                                style: TextStyle(color: color.backgroundColor),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    );
-                                                  }
-                                              ),
+                                                    ),
+                                                  );
+                                                }
                                             ),
                                             SizedBox(height: 5),
                                             Divider(
@@ -921,7 +957,7 @@ class _MakePaymentState extends State<MakePayment> {
                           ),
                           Container(
                             margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
-                            height: 250,
+                            height: 200,
                             child: VerticalDivider(
                                 color: Colors.grey, thickness: 1),
                           ),
@@ -976,15 +1012,17 @@ class _MakePaymentState extends State<MakePayment> {
                                                 child: Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
                                                   return ElevatedButton(
                                                       style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                                      onPressed: () async {
+                                                      onPressed: isButtonDisable ? null : () async {
                                                         if(double.parse(inputController.text) >= double.parse(finalAmount)){
+                                                          setState(() {
+                                                            isButtonDisable = true;
+                                                          });
                                                           await callCreateOrder(inputController.text, connectivity, orderChange: change);
                                                           if(this.isLogOut == true){
                                                             openLogOutDialog();
                                                             return;
                                                           }
                                                           openPaymentSuccessDialog(widget.dining_id, isCashMethod: true, diningName: widget.dining_name);
-                                                          await PrintReceipt().cashDrawer(context, printerList: this.printerList);
                                                         } else {
                                                           Fluttertoast.showToast(
                                                               backgroundColor: Color(0xFFFF0000),
@@ -1036,7 +1074,10 @@ class _MakePaymentState extends State<MakePayment> {
                                   Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
                                     return ElevatedButton(
                                       style: ButtonStyle(backgroundColor: MaterialStateProperty.all(color.backgroundColor)),
-                                      onPressed: () async {
+                                      onPressed: isButtonDisable ? null : () async {
+                                        setState(() {
+                                          isButtonDisable = true;
+                                        });
                                         await callCreateOrder(finalAmount, connectivity);
                                         if(this.isLogOut == true){
                                           openLogOutDialog();
@@ -1798,7 +1839,7 @@ class _MakePaymentState extends State<MakePayment> {
             sync_status: 0,
             created_at: dateTime,
             updated_at: '',
-            soft_delete: dateTime
+            soft_delete: ''
         );
         Order data = await PosDatabase.instance.insertSqliteOrder(orderObject);
         print('data: ${data}');
@@ -1927,18 +1968,18 @@ class _MakePaymentState extends State<MakePayment> {
     // }
   }
 
-  syncOrderPromotionDetailToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess){
-      Map data = await Domain().SyncOrderPromotionDetailToCloud(value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int orderPromoData = await PosDatabase.instance.updateOrderPromotionDetailSyncStatusFromCloud(responseJson[i]['order_promotion_detail_key']);
-        }
-      }
-    }
-  }
+  // syncOrderPromotionDetailToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if(_hasInternetAccess){
+  //     Map data = await Domain().SyncOrderPromotionDetailToCloud(value);
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         int orderPromoData = await PosDatabase.instance.updateOrderPromotionDetailSyncStatusFromCloud(responseJson[i]['order_promotion_detail_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   generateOrderTaxDetailKey(OrderTaxDetail orderTaxDetail) async  {
     final prefs = await SharedPreferences.getInstance();
@@ -2012,18 +2053,18 @@ class _MakePaymentState extends State<MakePayment> {
     // }
   }
 
-  syncOrderTaxDetailToCloud(String value) async {
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if(_hasInternetAccess){
-      Map data = await Domain().SyncOrderTaxDetailToCloud(value);
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          int syncData = await PosDatabase.instance.updateOrderTaxDetailSyncStatusFromCloud(responseJson[i]['order_tax_detail_key']);
-        }
-      }
-    }
-  }
+  // syncOrderTaxDetailToCloud(String value) async {
+  //   bool _hasInternetAccess = await Domain().isHostReachable();
+  //   if(_hasInternetAccess){
+  //     Map data = await Domain().SyncOrderTaxDetailToCloud(value);
+  //     if (data['status'] == '1') {
+  //       List responseJson = data['data'];
+  //       for (var i = 0; i < responseJson.length; i++) {
+  //         int syncData = await PosDatabase.instance.updateOrderTaxDetailSyncStatusFromCloud(responseJson[i]['order_tax_detail_key']);
+  //       }
+  //     }
+  //   }
+  // }
 
   readSpecificPaymentMethod() async {
     List<PaymentLinkCompany> data = await PosDatabase.instance.readPaymentMethodByType(widget.type.toString());
@@ -2039,58 +2080,82 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   syncAllToCloud() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
-      Map data = await Domain().syncLocalUpdateToCloud(
-        device_id: device_id.toString(),
-        value: login_value,
-        order_value:  this.order_value,
-        order_promotion_value: this.order_promotion_value,
-        order_tax_value: this.order_tax_value
-      );
-      if (data['status'] == '1') {
-        List responseJson = data['data'];
-        for(int i = 0; i < responseJson.length; i++){
-          switch(responseJson[i]['table_name']){
-            case 'tb_order': {
-              await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
-            }
-            break;
-            case 'tb_order_promotion_detail': {
-              await PosDatabase.instance.updateOrderPromotionDetailSyncStatusFromCloud(responseJson[i]['order_promotion_detail_key']);
-            }
-            break;
-            case 'tb_order_tax_detail': {
-              await PosDatabase.instance.updateOrderTaxDetailSyncStatusFromCloud(responseJson[i]['order_tax_detail_key']);
-            }
-            break;
-            default: {
-              return;
+    try{
+      if(mainSyncToCloud.count == 0){
+        mainSyncToCloud.count = 1;
+        final prefs = await SharedPreferences.getInstance();
+        final int? device_id = prefs.getInt('device_id');
+        final String? login_value = prefs.getString('login_value');
+        Map data = await Domain().syncLocalUpdateToCloud(
+            device_id: device_id.toString(),
+            value: login_value,
+            order_value:  this.order_value,
+            order_promotion_value: this.order_promotion_value,
+            order_tax_value: this.order_tax_value
+        );
+        if (data['status'] == '1') {
+          List responseJson = data['data'];
+          for(int i = 0; i < responseJson.length; i++){
+            switch(responseJson[i]['table_name']){
+              case 'tb_order': {
+                await PosDatabase.instance.updateOrderSyncStatusFromCloud(responseJson[i]['order_key']);
+              }
+              break;
+              case 'tb_order_promotion_detail': {
+                await PosDatabase.instance.updateOrderPromotionDetailSyncStatusFromCloud(responseJson[i]['order_promotion_detail_key']);
+              }
+              break;
+              case 'tb_order_tax_detail': {
+                await PosDatabase.instance.updateOrderTaxDetailSyncStatusFromCloud(responseJson[i]['order_tax_detail_key']);
+              }
+              break;
+              default: {
+                return;
+              }
             }
           }
+          mainSyncToCloud.resetCount();
+        } else if(data['status'] == '7'){
+          mainSyncToCloud.resetCount();
+          this.isLogOut = true;
+        }else if (data['status'] == '8'){
+          print('payment time out');
+          mainSyncToCloud.resetCount();
+          throw TimeoutException("Timeout");
+        } else {
+          mainSyncToCloud.resetCount();
         }
-      } else if(data['status'] == '7'){
-        this.isLogOut = true;
       }
+      // bool _hasInternetAccess = await Domain().isHostReachable();
+      // if (_hasInternetAccess) {
+      //
+      // }
+    } catch(e){
+      print('make payment sync to cloud error ${e}');
+      mainSyncToCloud.resetCount();
     }
   }
 
   checkDeviceLogin() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-    final String? login_value = prefs.getString('login_value');
-    bool _hasInternetAccess = await Domain().isHostReachable();
-    if (_hasInternetAccess) {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? device_id = prefs.getInt('device_id');
+      final String? login_value = prefs.getString('login_value');
       Map data = await Domain().checkDeviceLogin(device_id: device_id.toString(), value: login_value);
       if(data['status'] == '1'){
         this.isLogOut = false;
       } else if(data['status'] == '7') {
         this.isLogOut = true;
+      } else if(data['status'] == '8'){
+        throw TimeoutException("Timeout");
       }
+    }catch(e) {
+      Navigator.of(context).pop();
     }
+    // bool _hasInternetAccess = await Domain().isHostReachable();
+    // if (_hasInternetAccess) {
+    //
+    // }
   }
 
 /*

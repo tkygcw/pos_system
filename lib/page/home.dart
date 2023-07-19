@@ -28,6 +28,7 @@ import '../fragment/settlement/cash_dialog.dart';
 import '../object/app_setting.dart';
 import '../object/branch.dart';
 import '../object/user.dart';
+import '../translation/AppLocalizations.dart';
 
 //11
 class HomePage extends StatefulWidget {
@@ -46,7 +47,7 @@ class _HomePageState extends State<HomePage> {
   late String role;
   String? branchName;
   Timer? timer, notificationTimer;
-  bool hasNotification = false;
+  bool hasNotification = false, willPop = false;
   int loaded = 0;
   late ThemeColor themeColor;
   List<AppSetting> appSettingList = [];
@@ -94,6 +95,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   initSecondDisplay() async {
+    List<AppSetting> data = await PosDatabase.instance.readAllAppSetting();
+    if(data.isNotEmpty){
+      if(data[0].show_second_display == 1){
+        notificationModel.secondScreenEnable = true;
+      } else {
+        notificationModel.secondScreenEnable = false;
+      }
+    }
     if(notificationModel.hasSecondScreen == true){
       await displayManager.showSecondaryDisplay(displayId: notificationModel.displays[1]!.displayId, routerName: "presentation");
     }
@@ -143,7 +152,10 @@ class _HomePageState extends State<HomePage> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       this.themeColor = color;
       return WillPopScope(
-        onWillPop: () async => false,
+        onWillPop: () async {
+          showSecondDialog(context, color);
+          return willPop;
+        },
         child: Scaffold(
             resizeToAvoidBottomInset: false,
             body: SafeArea(
@@ -330,6 +342,7 @@ class _HomePageState extends State<HomePage> {
       * */
       if (message.data['type'] == '0') {
         if(qrOrder.count == 0){
+          qrOrder.count = 1;
           qrOrder.getQrOrder();
           manageNotificationTimer();
           qrOrder.count = 0;
@@ -360,6 +373,26 @@ class _HomePageState extends State<HomePage> {
     }
     //set timer when new order come in
     int no = 1;
+    if(no == 1){
+      snackBarKey.currentState!.showSnackBar(SnackBar(
+        content: const Text('New order is received!'),
+        backgroundColor: themeColor.backgroundColor,
+        action: SnackBarAction(
+          textColor: themeColor.iconColor,
+          label: 'Check it now!',
+          onPressed: () {
+            if(mounted){
+              setState(() {
+                currentPage = 'qr_order';
+                notificationTimer!.cancel();
+              });
+            }
+            no = 3;
+          },
+        ),
+      ));
+      playSound();
+    }
     notificationTimer = Timer.periodic(Duration(seconds: 5), (timer) async {
       if (no <= 3) {
         //showSnackBar();
@@ -410,6 +443,46 @@ class _HomePageState extends State<HomePage> {
     final assetsAudioPlayer = AssetsAudioPlayer();
     assetsAudioPlayer.open(
       Audio("audio/notification.mp3"),
+    );
+  }
+
+  Future showSecondDialog(BuildContext context, ThemeColor color) {
+    return showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return StatefulBuilder(builder: (context, StateSetter setState){
+            return Center(
+              child: SingleChildScrollView(
+                physics: NeverScrollableScrollPhysics(),
+                child: AlertDialog(
+                  title: Text('Exit app'),
+                  content: SizedBox(
+                    height: 100.0,
+                    width: 350.0,
+                    child: Text('Are you sure to exit app?'),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: () {
+                        willPop = false;
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                      onPressed: () {
+                        willPop = true;
+                        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          });
+        }
     );
   }
 }
