@@ -274,6 +274,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           category_id: orderDetailList[i].product_category_id!,
           price: orderDetailList[i].price!,
           quantity: int.parse(orderDetailList[i].quantity!),
+          checkedModifierItem: [],
           modifier: getModifierGroupItem(orderDetailList[i]),
           variant: getVariantGroupItem(orderDetailList[i]),
           remark: orderDetailList[i].remark!,
