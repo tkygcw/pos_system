@@ -699,6 +699,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       List<TableUseDetail> checkData  = await PosDatabase.instance.readAllTableUseDetail(currentTableUseId);
       for(int i = 0; i < checkData.length; i++){
         TableUseDetail tableUseDetailObject = TableUseDetail(
+          updated_at: dateTime,
           sync_status: checkData[i].sync_status == 0 ? 0 : 2,
           status: 1,
           table_use_sqlite_id: currentTableUseId,
@@ -739,6 +740,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     try {
       TableUse checkData = await PosDatabase.instance.readSpecificTableUseIdByLocalId(currentTableUseId);
       TableUse tableUseObject = TableUse(
+        updated_at: dateTime,
         sync_status: checkData.sync_status == 0 ? 0 : 2,
         status: 1,
         table_use_sqlite_id: currentTableUseId,
