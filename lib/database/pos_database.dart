@@ -3469,6 +3469,21 @@ class PosDatabase {
   }
 
 /*
+  read specific cash record(with deleted)
+*/
+  Future<CashRecord?> readSpecificCashRecordByRemark(String remark) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableCashRecord WHERE remark = ? AND soft_delete = ? ',
+        [remark, '']);
+    if(result.isNotEmpty){
+      return CashRecord.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
   -----------------------Order part-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -3502,6 +3517,21 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? ', ['']);
     return result.map((json) => PaymentLinkCompany.fromJson(json)).toList();
+  }
+
+/*
+  read specific payment link company
+*/
+  Future<PaymentLinkCompany?> readSpecificPaymentLinkCompany(int payment_link_company_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePaymentLinkCompany WHERE payment_link_company_id = ? AND soft_delete = ? ', [payment_link_company_id, '']);
+    if(result.isNotEmpty){
+      return PaymentLinkCompany.fromJson(result.first);
+    } else {
+      return null;
+    }
+
   }
 
 /*
@@ -5580,6 +5610,35 @@ class PosDatabase {
         ]
     );
   }
+
+/*
+  update order payment method
+*/
+  Future<int> updatePaymentMethod(Order data) async {
+    final db = await instance.database;
+    return await db.rawUpdate("UPDATE $tableOrder SET updated_at = ?, sync_status = ?, payment_link_company_id = ? WHERE order_key = ?",
+        [
+          data.updated_at,
+          data.sync_status,
+          data.payment_link_company_id,
+          data.order_key,
+        ]);
+  }
+
+/*
+  update cash record payment type
+*/
+  Future<int> updatePaymentTypeId(CashRecord data) async {
+    final db = await instance.database;
+    return await db.rawUpdate("UPDATE $tableCashRecord SET updated_at = ?, sync_status = ?, payment_type_id = ? WHERE cash_record_key = ?",
+        [
+          data.updated_at,
+          data.sync_status,
+          data.payment_type_id,
+          data.cash_record_key,
+        ]);
+  }
+
 
 /*
   ------------------unique key part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

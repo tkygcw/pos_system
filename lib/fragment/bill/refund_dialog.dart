@@ -60,6 +60,7 @@ class _RefundDialogState extends State<RefundDialog> {
       if(this.isLogOut == false){
         Navigator.of(context).pop();
         Navigator.of(context).pop();
+        Navigator.of(context).pop();
       }
       return;
     }

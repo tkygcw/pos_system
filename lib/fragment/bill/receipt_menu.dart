@@ -28,6 +28,8 @@ import '../../object/table.dart';
 import '../../object/table_use_detail.dart';
 import '../../object/variant_group.dart';
 import '../../object/variant_item.dart';
+import '../../translation/AppLocalizations.dart';
+import '../payment/payment_select_dialog.dart';
 
 class ReceiptMenu extends StatefulWidget {
   final CartModel cartModel;
@@ -211,12 +213,15 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                           cart.initialLoad();
                                         }
                                       },
-                                      onLongPress: paidOrderList[index].payment_status == 1
-                                          ? () {
-                                              openRefundDialog(paidOrderList[index], orderCacheList);
-                                              print('refund bill');
-                                            }
-                                          : null,
+                                      onLongPress: paidOrderList[index].payment_status == 1 ? () {
+                                        //openRefundDialog(paidOrderList[index], orderCacheList);
+                                        print('refund bill');
+                                        showSecondDialog(context, color,
+                                            order: paidOrderList[index],
+                                            orderCacheList: orderCacheList,
+                                        );
+                                      }
+                                      : null,
                                     ),
                                   );
                                 })
@@ -361,8 +366,10 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                     },
                                     onLongPress: paidOrderList[index].payment_status == 1
                                         ? () {
-                                      openRefundDialog(paidOrderList[index], orderCacheList);
-                                      print('refund bill');
+                                      showSecondDialog(context, color,
+                                        order: paidOrderList[index],
+                                        orderCacheList: orderCacheList,
+                                      );
                                     }
                                         : null,
                                   ),
@@ -390,6 +397,91 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
         });
       });
     });
+  }
+  Future showSecondDialog(BuildContext context, ThemeColor color, {required Order order, required List<OrderCache> orderCacheList}) {
+    return showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return StatefulBuilder(builder: (context, StateSetter setState){
+            return Center(
+              child: AlertDialog(
+                content: SizedBox(
+                  width: 360,
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    children: [
+                      Card(
+                        elevation: 5,
+                        child: ListTile(
+                          leading: CircleAvatar(
+                              backgroundColor: Colors.grey.shade200,
+                              child: Icon(
+                                Icons.refresh,
+                                color: Colors.grey,
+                              )),
+                          title: Text("Refund"),
+                          onTap: (){
+                            openRefundDialog(order, orderCacheList);
+                          },
+                          trailing: Icon(Icons.navigate_next),
+                        )
+                      ),
+                      Card(
+                          elevation: 5,
+                          child: ListTile(
+                            leading: CircleAvatar(
+                                backgroundColor: Colors.grey.shade200,
+                                child: Icon(
+                                  Icons.edit,
+                                  color: Colors.grey,
+                                )),
+                            title: Text("Edit Payment Method"),
+                            onTap: (){
+                              openPaymentSelect(order: order);
+                            },
+                            trailing: Icon(Icons.navigate_next),
+                          )
+                      ),
+                    ]
+                  ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  )
+                ],
+              )
+            );
+          });
+        }
+    );
+  }
+
+  openPaymentSelect({required Order order}) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: PaymentSelect(dining_id: '', dining_name: '', isUpdate: true, currentOrder: order,),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   Future<Future<Object?>> openRefundDialog(Order order, List<OrderCache> orderCacheList) async {
@@ -634,7 +726,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     paidOrderList = [];
     if (selectedOption == 'Paid') {
       List<Order> data = await PosDatabase.instance.readAllPaidOrder();
-      if (data.length > 0) {
+      if (data.isNotEmpty) {
         paidOrderList = List.from(data);
       }
     } else {

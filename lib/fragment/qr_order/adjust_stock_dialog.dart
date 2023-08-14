@@ -656,7 +656,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   }
 
   callPrinter() async {
-    int printStatus = await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId, context);
+    int printStatus = await PrintReceipt().printCheckList(printerList, widget.orderCacheLocalId);
     if(printStatus == 1){
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
@@ -666,7 +666,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     }
-    int kitchenPrintStatus = await PrintReceipt().printQrKitchenList(printerList, context, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+    int kitchenPrintStatus = await PrintReceipt().printQrKitchenList(printerList, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
     if(kitchenPrintStatus == 1){
       Fluttertoast.showToast(
           backgroundColor: Colors.red,

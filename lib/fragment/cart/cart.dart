@@ -2159,7 +2159,7 @@ class CartPageState extends State<CartPage> {
     await createOrderCache(cart, isAddOrder: false);
     await createOrderDetail(cart);
     int printStatus =
-        await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId), context);
+        await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
     if (printStatus == 1) {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
@@ -2172,7 +2172,7 @@ class CartPageState extends State<CartPage> {
       Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Printing error");
     }
     int kitchenPrintStatus = await printReceipt.printKitchenList(
-        printerList, context, cart, int.parse(this.orderCacheId));
+        printerList, cart, int.parse(this.orderCacheId));
     if (kitchenPrintStatus == 1) {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
@@ -2203,7 +2203,7 @@ class CartPageState extends State<CartPage> {
     await createOrderDetail(cart);
     await updatePosTable(cart);
     int printStatus =
-        await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId), context);
+        await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
     if (printStatus == 1) {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
@@ -2216,7 +2216,7 @@ class CartPageState extends State<CartPage> {
       Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Printing error");
     }
     int kitchenPrintStatus = await printReceipt.printKitchenList(
-        printerList, context, cart, int.parse(this.orderCacheId));
+        printerList, cart, int.parse(this.orderCacheId));
     if (kitchenPrintStatus == 1) {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
@@ -2244,7 +2244,7 @@ class CartPageState extends State<CartPage> {
     await createOrderCache(cart, isAddOrder: true);
     await createOrderDetail(cart);
     int printStatus =
-        await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId), context);
+        await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
     if (printStatus == 1) {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
@@ -2257,7 +2257,7 @@ class CartPageState extends State<CartPage> {
       Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Printing error");
     }
     int kitchenPrintStatus = await printReceipt.printKitchenList(
-        printerList, context, cart, int.parse(this.orderCacheId));
+        printerList, cart, int.parse(this.orderCacheId));
     if (kitchenPrintStatus == 1) {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
