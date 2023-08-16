@@ -69,7 +69,14 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 2, onCreate: _createDB);
+    return await openDatabase(path, version: 3, onCreate: _createDB, onUpgrade: _onUpgrade);
+  }
+
+  void _onUpgrade(Database db, int oldVersion, int newVersion) {
+    if (oldVersion < newVersion) {
+      // you can execute drop table and create table
+      db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.header_font_size} INTEGER NOT NULL DEFAULT 0");
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -545,6 +552,7 @@ class PosDatabase {
           ${ReceiptFields.header_image_status} $integerType,
           ${ReceiptFields.header_text} $textType,
           ${ReceiptFields.header_text_status} $integerType,
+          ${ReceiptFields.header_font_size} $integerType,
           ${ReceiptFields.show_address} $integerType,
           ${ReceiptFields.show_email} $integerType,
           ${ReceiptFields.receipt_email} $textType,
@@ -1681,14 +1689,15 @@ class PosDatabase {
   Future<Receipt> insertReceipt(Receipt data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, status, paper_size, promotion_detail_status, '
+        'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, header_font_size, status, paper_size, promotion_detail_status, '
             'footer_text_status, footer_text, footer_image_status, footer_image, receipt_email, show_email, show_address, '
-            'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
           data.created_at,
           data.sync_status,
+          data.header_font_size,
           data.status,
           data.paper_size,
           data.promotion_detail_status,
@@ -2327,6 +2336,21 @@ class PosDatabase {
         ['', branch_id, product_id]);
 
     return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
+  }
+
+/*
+  read branch link product by product variant
+*/
+  Future<BranchLinkProduct?> readBranchLinkProductByProductVariant(String product_variant_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND product_variant_sqlite_id = ?',
+        ['', product_variant_sqlite_id]);
+    if(result.isNotEmpty){
+      return BranchLinkProduct.fromJson(result.first);
+    } else {
+      return null;
+    }
   }
 
 /*
@@ -5589,13 +5613,14 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tableReceipt SET header_image = ?, header_image_status = ?, header_text = ?, header_text_status = ?, '
-            'show_address = ?, show_email = ?, receipt_email = ?, '
+            'header_font_size = ?, show_address = ?, show_email = ?, receipt_email = ?, '
             'footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, promotion_detail_status = ?, sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
         [
           data.header_image,
           data.header_image_status,
           data.header_text,
           data.header_text_status,
+          data.header_font_size,
           data.show_address,
           data.show_email,
           data.receipt_email,

@@ -145,10 +145,6 @@ class PrintReceipt{
               }
             }
           }
-        } else {
-          Fluttertoast.showToast(
-              backgroundColor: Colors.red,
-              msg: "No cashier printer added");
         }
       }
     } else {

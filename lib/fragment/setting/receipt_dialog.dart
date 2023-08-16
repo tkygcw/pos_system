@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/domain.dart';
+import '../../enumClass/receipt_dialog_enum.dart';
 import '../../main.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/print_receipt.dart';
@@ -40,6 +41,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   String? footerDir;
   String headerText = '';
   String footerTextString = '';
+  ReceiptDialogEnum? headerFontSize;
   String? emailAddress;
   bool isLoad = false;
   bool _isUpdate = false;
@@ -54,6 +56,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   bool _submitted = false;
   bool isLogOut = false;
   Map? branchObject;
+  double? fontSize;
   Receipt? testReceipt;
   Receipt receipt = Receipt();
   String receiptView = "80";
@@ -146,6 +149,8 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     receipt.show_email == 1 ? emailTextController.text = receipt.receipt_email! : '';
     footerTextString = receipt.footer_text!;
     footerTextController.text = receipt.footer_text!;
+    receipt.header_font_size == 0 ? headerFontSize = ReceiptDialogEnum.big : headerFontSize = ReceiptDialogEnum.small;
+    receipt.header_font_size == 0 ? fontSize = 30.0 : fontSize = 12.0;
   }
 
   getSharePreferences() async {
@@ -229,6 +234,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       footer_text_status: footerText == true ? 1 : 0,
       header_image_status: logoImage == true ? 1 : 0,
       footer_image_status: footerImage == true ? 1 : 0,
+      header_font_size: headerFontSize == ReceiptDialogEnum.big ? 0 : 1,
       promotion_detail_status: promoDetail == true ? 1 : 0,
       show_address: showAddress == true ? 1 : 0,
       show_email: showEmail == true ? 1 : 0,
@@ -324,83 +330,77 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
           );
         } else {
           ///mobile layout
-          return SingleChildScrollView(
-            //physics: NeverScrollableScrollPhysics(),
-            child: Center(
-              child: AlertDialog(
-                scrollable: true,
-                actionsPadding: EdgeInsets.all(5),
-                insetPadding: EdgeInsets.only(top: 20),
-                contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-                title: !_isUpdate ? Text('Add receipt layout') : Text("Receipt Layout"),
-                content: isLoad ?
-                Container(
-                  height: 200,
-                  width: 500,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Align(
-                          alignment: Alignment.topLeft,
-                          child: SegmentedButton(
-                            style: ButtonStyle(
-                                side: MaterialStateProperty.all(
-                                  BorderSide.lerp(BorderSide(
+          return AlertDialog(
+            // scrollable: true,
+            // actionsPadding: EdgeInsets.all(5),
+            // insetPadding: EdgeInsets.only(top: 20),
+            // contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+            title: !_isUpdate ? Text('Add receipt layout') : Text("Receipt Layout"),
+            content: isLoad ?
+            Container(
+              width: 500,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: SegmentedButton(
+                        style: ButtonStyle(
+                            side: MaterialStateProperty.all(
+                              BorderSide.lerp(BorderSide(
+                                style: BorderStyle.solid,
+                                color: Colors.blueGrey,
+                                width: 1,
+                              ),
+                                  BorderSide(
                                     style: BorderStyle.solid,
                                     color: Colors.blueGrey,
                                     width: 1,
                                   ),
-                                      BorderSide(
-                                        style: BorderStyle.solid,
-                                        color: Colors.blueGrey,
-                                        width: 1,
-                                      ),
-                                      1),
-                                )
-                            ),
-                            segments: <ButtonSegment<String>>[
-                              ButtonSegment(value: "80", label: Text("80mm")),
-                              ButtonSegment(value: "58", label: Text("58mm"))
-                            ],
-                            onSelectionChanged: (Set<String> newSelection) async{
-                              receiptView = newSelection.first;
-                              isLoad = false;
-                              reload();
-
-                            },
-                            selected: <String>{receiptView},
-                          ),
+                                  1),
+                            )
                         ),
-                        receiptView == "80" ?
-                        MobileReceiptView1(color) :
-                        MobileReceiptView2(color)
-                      ],
+                        segments: <ButtonSegment<String>>[
+                          ButtonSegment(value: "80", label: Text("80mm")),
+                          ButtonSegment(value: "58", label: Text("58mm"))
+                        ],
+                        onSelectionChanged: (Set<String> newSelection) async{
+                          receiptView = newSelection.first;
+                          isLoad = false;
+                          reload();
+                        },
+                        selected: <String>{receiptView},
+                      ),
                     ),
-                  ),
-                ) : CustomProgressBar(),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                    onPressed: () {
-                      closeDialog(context);
-                    },
-                  ),
-                  TextButton(
-                    child: Text('Test Print'),
-                    onPressed: () {
-                      testReceiptLayout();
-                      PrintReceipt().printTestPrintReceipt(printerList, testReceipt!, this.receipt.paper_size!, context);
-                    },
-                  ),
-                  TextButton(
-                    child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text("Update"),
-                    onPressed: () {
-                      _submit(context);
-                    },
-                  ),
-                ],
+                    SizedBox(height: 20.0),
+                    receiptView == "80" ?
+                    MobileReceiptView1(color) :
+                    MobileReceiptView2(color)
+                  ],
+                ),
               ),
-            ),
+            ) : CustomProgressBar(),
+            actions: <Widget>[
+              TextButton(
+                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                onPressed: () {
+                  closeDialog(context);
+                },
+              ),
+              TextButton(
+                child: Text('Test Print'),
+                onPressed: () {
+                  testReceiptLayout();
+                  PrintReceipt().printTestPrintReceipt(printerList, testReceipt!, this.receipt.paper_size!, context);
+                },
+              ),
+              TextButton(
+                child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text("Update"),
+                onPressed: () {
+                  _submit(context);
+                },
+              ),
+            ],
           );
         }
       });
@@ -417,6 +417,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       receipt_key: receipt.receipt_key,
       header_text: logoText == true ? headerTextController.text : '',
       footer_text: footerText == true ? footerTextController.text : '',
+      header_font_size: headerFontSize == ReceiptDialogEnum.big ? 0 : 1,
       header_image: logoImage == true ? 'branchLogo.jpg' : '',
       footer_image: footerImage == true ? 'branchFooter.jpg' : '',
       header_text_status: logoText == true ? 1 : 0,
@@ -435,6 +436,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       widget.callBack();
       Receipt? receipt = await PosDatabase.instance.readSpecificReceiptByKey(data.receipt_key!);
       receiptValue.add(jsonEncode(receipt));
+      print("receipt value: ${receiptValue.toString()}");
       await syncAllToCloud(receiptValue: receiptValue.toString());
     }
     print('update status: $status');
@@ -500,7 +502,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Visibility(
                     visible: logoText ? true : false,
                     child: Center(
-                      child: Text('${headerText}', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                      child: Text('${headerText}', style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold)),
                     )
                 ),
                 Center(
@@ -889,6 +891,41 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     }),
               ),
             ),
+            Visibility(
+                visible: logoText ? true : false,
+                child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Text('Logo font size', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.big,
+                      groupValue: headerFontSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerFontSize = value;
+                          fontSize = 30.0;
+                        });
+                      },
+                      title: Text("Big"),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.small,
+                      groupValue: headerFontSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerFontSize = value;
+                          fontSize = 12.0;
+                        });
+                      },
+                      title: Text("Small"),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                  ],
+                )
+            ),
             Row(
               children: [
                 Container(
@@ -1118,7 +1155,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Visibility(
                     visible: logoText ? true : false,
                     child: Center(
-                      child: Text('${headerText}', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                      child: Text('${headerText}', style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold)),
                     )
                 ),
                 Center(
@@ -1469,6 +1506,41 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     );
                   }),
             ),
+            Visibility(
+                visible: logoText ? true : false,
+                child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Text('Logo font size', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.big,
+                      groupValue: headerFontSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerFontSize = value;
+                          fontSize = 30.0;
+                        });
+                      },
+                      title: Text("Big"),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.small,
+                      groupValue: headerFontSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerFontSize = value;
+                          fontSize = 12.0;
+                        });
+                      },
+                      title: Text("Small"),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                  ],
+                )
+            ),
             Row(
               children: [
                 Container(
@@ -1689,6 +1761,32 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       //     )
       //   ],
       // ),
+      Container(
+        alignment: Alignment.topLeft,
+        child: Text('Logo font size', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.big,
+        groupValue: headerFontSize,
+        onChanged: (value) async  {
+          setState(() {
+            headerFontSize = value;
+          });
+        },
+        title: Text("Big"),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.small,
+        groupValue: headerFontSize,
+        onChanged: (value) async  {
+         setState(() {
+           headerFontSize = value;
+         });
+        },
+        title: Text("Small"),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
       Row(
         children: [
           Container(
@@ -1933,6 +2031,32 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       //     )
       //   ],
       // ),
+      Container(
+        alignment: Alignment.topLeft,
+        child: Text('Logo font size', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.big,
+        groupValue: headerFontSize,
+        onChanged: (value) async  {
+          setState(() {
+            headerFontSize = value;
+          });
+        },
+        title: Text("Big"),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.small,
+        groupValue: headerFontSize,
+        onChanged: (value) async  {
+          setState(() {
+            headerFontSize = value;
+          });
+        },
+        title: Text("Small"),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
       Row(
         children: [
           Container(

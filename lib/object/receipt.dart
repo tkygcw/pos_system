@@ -10,6 +10,7 @@ class ReceiptFields {
     header_image_status,
     header_text,
     header_text_status,
+    header_font_size,
     show_address,
     show_email,
     receipt_email,
@@ -34,6 +35,7 @@ class ReceiptFields {
   static String header_image_status = 'header_image_status';
   static String header_text = 'header_text';
   static String header_text_status = 'header_text_status';
+  static String header_font_size = 'header_font_size';
   static String show_address = 'show_address';
   static String show_email = 'show_email';
   static String receipt_email = 'receipt_email';
@@ -60,6 +62,7 @@ class Receipt {
   int? header_image_status;
   String? header_text;
   int? header_text_status;
+  int? header_font_size;
   int? show_address;
   int? show_email;
   String? receipt_email;
@@ -84,6 +87,7 @@ class Receipt {
         this.header_image_status,
         this.header_text,
         this.header_text_status,
+        this.header_font_size,
         this.show_address,
         this.show_email,
         this.receipt_email,
@@ -108,6 +112,7 @@ class Receipt {
     int? header_image_status,
     String? header_text,
     int? header_text_status,
+    int? header_font_size,
     int? show_address,
     int? show_email,
     String? receipt_email,
@@ -132,6 +137,7 @@ class Receipt {
           header_image_status: header_image_status ?? this.header_image_status,
           header_text: header_text ?? this.header_text,
           header_text_status: header_text_status ?? this.header_text_status,
+          header_font_size: header_font_size ?? this.header_font_size,
           show_address: show_address ?? this.show_address,
           show_email: show_email ?? this.show_email,
           receipt_email: receipt_email ?? this.receipt_email,
@@ -156,6 +162,7 @@ class Receipt {
     header_image_status: json[ReceiptFields.header_image_status] as int?,
     header_text: json[ReceiptFields.header_text] as String?,
     header_text_status: json[ReceiptFields.header_text_status] as int?,
+    header_font_size: json[ReceiptFields.header_font_size] as int?,
     show_address: json[ReceiptFields.show_address] as int?,
     show_email: json[ReceiptFields.show_email] as int?,
     receipt_email: json[ReceiptFields.receipt_email] as String?,
@@ -181,6 +188,7 @@ class Receipt {
     ReceiptFields.header_image_status: header_image_status,
     ReceiptFields.header_text: header_text,
     ReceiptFields.header_text_status: header_text_status,
+    ReceiptFields.header_font_size: header_font_size,
     ReceiptFields.show_address: show_address,
     ReceiptFields.show_email: show_email,
     ReceiptFields.receipt_email: receipt_email,
