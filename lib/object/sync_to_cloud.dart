@@ -63,6 +63,7 @@ class SyncToCloud {
     Map data = await Domain().syncLocalUpdateToCloud(
         device_id: device_id.toString(),
         value: login_value,
+        isSync: true,
         table_use_value: this.table_use_value,
         table_use_detail_value: this.table_use_detail_value,
         order_cache_value: this.order_cache_value,

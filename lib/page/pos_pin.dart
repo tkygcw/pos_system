@@ -107,7 +107,7 @@ class _PosPinPageState extends State<PosPinPage> {
     int timerCount = 0;
     notificationModel.setSyncCountAsStarted();
     notificationModel.resetTimer();
-    Timer.periodic(Duration(seconds: 15), (timer) async {
+    Timer.periodic(Duration(seconds: 30), (timer) async {
       print('sync record count: ${syncRecord.count}');
       bool _status = notificationModel.notificationStatus;
       bool stopTimer = notificationModel.stopTimer;

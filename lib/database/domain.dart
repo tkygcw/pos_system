@@ -4,12 +4,12 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
 class Domain {
-  // static var domain = 'https://pos.lkmng.com/';
-  // static var backend_domain = 'https://pos.lkmng.com/';
-  // static var qr_domain = 'https://pos-qr.lkmng.com/';
-  static var domain = 'https://pos.optimy.com.my/';
-  static var backend_domain = 'https://api.optimy.com.my/';
-  static var qr_domain = 'https://qr.optimy.com.my/';
+  static var domain = 'https://pos.lkmng.com/';
+  static var backend_domain = 'https://pos.lkmng.com/';
+  static var qr_domain = 'https://pos-qr.lkmng.com/';
+  // static var domain = 'https://pos.optimy.com.my/';
+  // static var backend_domain = 'https://api.optimy.com.my/';
+  // static var qr_domain = 'https://qr.optimy.com.my/';
   static Uri login = Uri.parse(domain + 'mobile-api/login/index.php');
   static Uri branch = Uri.parse(domain + 'mobile-api/branch/index.php');
   static Uri device = Uri.parse(domain + 'mobile-api/device/index.php');
@@ -333,6 +333,7 @@ class Domain {
   syncLocalUpdateToCloud(
       {device_id,
         value,
+        isSync,
         order_value,
         order_tax_value,
         order_promotion_value,
@@ -384,7 +385,7 @@ class Domain {
         'tb_printer_link_category_delete': printer_link_category_delete_value != null ? printer_link_category_delete_value : [].toString(),
         'tb_table_sync': table_value != null ? table_value : [].toString(),
         'tb_user_sync': user_value != null ? user_value : [].toString()
-      }).timeout(Duration(milliseconds: 3000), onTimeout: () => throw TimeoutException("Time out"));
+      }).timeout(Duration(seconds: isSync != null ? 25 : 3), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);
     } on TimeoutException catch(_){
