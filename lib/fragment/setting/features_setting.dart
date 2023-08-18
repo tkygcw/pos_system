@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
+import 'package:pos_system/controller/controllerObject.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/logout_dialog.dart';
 import 'package:pos_system/main.dart';
@@ -18,20 +21,44 @@ class FeaturesSetting extends StatefulWidget {
 }
 
 class _FeaturesSettingState extends State<FeaturesSetting> {
+  ControllerClass controller = ControllerClass();
+  StreamController actionController = StreamController();
+  late StreamController streamController;
+  late Stream actionStream;
   late ThemeColor color;
   late Color _mainColor;
   late Color _buttonColor;
   late Color _iconColor;
   List<AppSetting> appSettingList = [];
-  bool cashDrawer = false;
+  bool directPayment = false;
   bool _isLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    getAllAppSetting();
+    streamController = controller.appDeviceController;
+    actionStream = actionController.stream.asBroadcastStream();
+    listenAction();
   }
 
+
+  listenAction(){
+    actionController.sink.add("init");
+    actionStream.listen((event) async {
+      switch(event){
+        case 'init':{
+          await getAllAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
+        case 'direct_payment':{
+          await updateAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
+      }
+    });
+  }
 
   void _openDialog(String title, Widget content) {
     showDialog(
@@ -109,130 +136,164 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
       this.color = color;
       //print(color.backgroundColor);
       return Scaffold(
-        body: _isLoaded ?
-        SingleChildScrollView(
-          child: Container(
-            child: Column(
-              children: [
-                ListTile(
-                  title: Text("Change Background Color"),
-                  subtitle: Text("Main Color for the appearance of app"),
-                  trailing: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.black,
-                        width: 1.5,
+        body: StreamBuilder(
+          stream: controller.appDeviceStream,
+          builder: (context, snapshot){
+            if(snapshot.hasData){
+              return SingleChildScrollView(
+                child: Container(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        title: Text("Change Background Color"),
+                        subtitle: Text("Main Color for the appearance of app"),
+                        trailing: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.black,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            backgroundColor: color.backgroundColor,
+                            child: InkWell(
+                              onTap: () {
+                                _openMainColorPicker();
+                              },
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    child: CircleAvatar(
-                      backgroundColor: color.backgroundColor,
-                      child: InkWell(
+                      ListTile(
+                        title: Text("Change Button Color"),
+                        subtitle: Text("Button Color for the appearance of app"),
+                        trailing: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.black,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            backgroundColor: color.buttonColor,
+                            child: InkWell(
+                              onTap: () {
+                                _openButtonColorPicker();
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      ListTile(
+                        title: Text("Change Icon Color"),
+                        subtitle: Text("Icon Color for the appearance of app"),
+                        trailing: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.black,
+                              width: 1.0,
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            backgroundColor: color.iconColor,
+                            child: InkWell(
+                              onTap: () {
+                                _openIconColorPicker();
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      Divider(
+                        color: Colors.grey,
+                        height: 1,
+                        thickness: 1,
+                        indent: 20,
+                        endIndent: 20,
+                      ),
+                      ListTile(
+                        title: Text('Place order payment'),
+                        subtitle: Text('direct make payment when oder placed'),
+                        trailing: Switch(
+                          value: directPayment,
+                          activeColor: color.backgroundColor,
+                          onChanged: (value) async {
+                            directPayment = value;
+                            actionController.sink.add("direct_payment");
+                            //await getAllAppSetting();
+                            // if(appSettingList.isEmpty){
+                            //   await createAppSetting();
+                            // } else {
+                            //   await updateAppSetting();
+                            // }
+                          },
+                        ),
+                      ),
+                      Divider(
+                        color: Colors.grey,
+                        height: 1,
+                        thickness: 1,
+                        indent: 20,
+                        endIndent: 20,
+                      ),
+                      ListTile(
+                        title: Text('Wi-Fi setting'),
+                        subtitle: Text('open wi-fi setting'),
+                        trailing: Icon(Icons.wifi),
                         onTap: () {
-                          _openMainColorPicker();
+                          AppSettings.openWIFISettings();
                         },
                       ),
-                    ),
-                  ),
-                ),
-                ListTile(
-                  title: Text("Change Button Color"),
-                  subtitle: Text("Button Color for the appearance of app"),
-                  trailing: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.black,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: CircleAvatar(
-                      backgroundColor: color.buttonColor,
-                      child: InkWell(
+                      ListTile(
+                        title: Text('App Notification setting'),
+                        subtitle: Text('open app notification setting'),
+                        trailing: Icon(Icons.notifications_on),
                         onTap: () {
-                          _openButtonColorPicker();
+                          AppSettings.openNotificationSettings();
                         },
                       ),
-                    ),
-                  ),
-                ),
-                ListTile(
-                  title: Text("Change Icon Color"),
-                  subtitle: Text("Icon Color for the appearance of app"),
-                  trailing: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.black,
-                        width: 1.0,
-                      ),
-                    ),
-                    child: CircleAvatar(
-                      backgroundColor: color.iconColor,
-                      child: InkWell(
+                      ListTile(
+                        title: Text('Device Sound setting'),
+                        subtitle: Text('open device sound setting'),
+                        trailing: Icon(Icons.volume_up),
                         onTap: () {
-                          _openIconColorPicker();
+                          AppSettings.openSoundSettings();
                         },
                       ),
-                    ),
+                      Divider(
+                        color: Colors.grey,
+                        height: 1,
+                        thickness: 1,
+                        indent: 20,
+                        endIndent: 20,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(15),
+                        child: Card(
+                          color: Colors.redAccent,
+                          child: ListTile(
+                            title: Text('Log Out', style: TextStyle(color: Colors.white)),
+                            subtitle: Text('Reset Pos', style: TextStyle(color: Colors.white)),
+                            trailing: Icon(Icons.logout, color: Colors.white),
+                            onTap: () {
+                              openLogoutDialog();
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                Divider(
-                  color: Colors.grey,
-                  height: 1,
-                  thickness: 1,
-                  indent: 20,
-                  endIndent: 20,
-                ),
-                ListTile(
-                  title: Text('Wi-Fi setting'),
-                  subtitle: Text('open wi-fi setting'),
-                  trailing: Icon(Icons.wifi),
-                  onTap: () {
-                    AppSettings.openWIFISettings();
-                  },
-                ),
-                ListTile(
-                  title: Text('App Notification setting'),
-                  subtitle: Text('open app notification setting'),
-                  trailing: Icon(Icons.notifications_on),
-                  onTap: () {
-                    AppSettings.openNotificationSettings();
-                  },
-                ),
-                ListTile(
-                  title: Text('Device Sound setting'),
-                  subtitle: Text('open device sound setting'),
-                  trailing: Icon(Icons.volume_up),
-                  onTap: () {
-                    AppSettings.openSoundSettings();
-                  },
-                ),
-                Divider(
-                  color: Colors.grey,
-                  height: 1,
-                  thickness: 1,
-                  indent: 20,
-                  endIndent: 20,
-                ),
-                Padding(
-                  padding: EdgeInsets.all(15),
-                  child: Card(
-                    color: Colors.redAccent,
-                    child: ListTile(
-                      title: Text('Log Out', style: TextStyle(color: Colors.white)),
-                      subtitle: Text('Reset Pos', style: TextStyle(color: Colors.white)),
-                      trailing: Icon(Icons.logout, color: Colors.white),
-                      onTap: () {
-                        openLogoutDialog();
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ) : CustomProgressBar(),
+              );
+            } else {
+              return CustomProgressBar();
+            }
+          },
+        )
+
       );
     });
   }
@@ -258,20 +319,14 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
         });
   }
 
-  // updateAppSetting() async {
-  //   print('update called');
-  //   AppSetting appSetting = AppSetting(
-  //     open_cash_drawer: this.cashDrawer == true ? 1 : 0,
-  //     show_second_display: this.secondDisplay == true ? 1 : 0,
-  //     app_setting_sqlite_id: appSettingList[0].app_setting_sqlite_id
-  //   );
-  //   int data = await PosDatabase.instance.updateAppSettings(appSetting);
-  //   if(appSetting.show_second_display == 0){
-  //     notificationModel.disableSecondDisplay();
-  //   } else {
-  //     notificationModel.enableSecondDisplay();
-  //   }
-  // }
+  updateAppSetting() async {
+    print('update called');
+    AppSetting appSetting = AppSetting(
+      direct_payment: directPayment ? 1 : 0,
+      app_setting_sqlite_id: appSettingList[0].app_setting_sqlite_id
+    );
+    int data = await PosDatabase.instance.updateDirectPaymentSettings(appSetting);
+  }
 
   // createAppSetting() async {
   //   AppSetting appSetting = AppSetting(
@@ -285,21 +340,12 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
   getAllAppSetting() async {
     List<AppSetting> data = await PosDatabase.instance.readAllAppSetting();
     if(data.length > 0){
-      appSettingList = List.from(data);
-      if(appSettingList[0].open_cash_drawer == 1){
-        this.cashDrawer = true;
+      appSettingList = data;
+      if(appSettingList[0].direct_payment == 1){
+        directPayment = true;
       } else {
-        this.cashDrawer = false;
+        directPayment = false;
       }
-
-      // if(appSettingList[0].show_second_display == 1){
-      //   this.secondDisplay = true;
-      // } else {
-      //   this.secondDisplay = false;
-      // }
     }
-    setState(() {
-      _isLoaded = true;
-    });
   }
 }

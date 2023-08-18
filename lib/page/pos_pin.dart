@@ -321,7 +321,7 @@ class _PosPinPageState extends State<PosPinPage> {
                           child: Theme(
                             data: Theme.of(context).copyWith(
                                 textTheme: TextTheme(
-                              bodyText2: TextStyle(color: Colors.white),
+                              bodyMedium: TextStyle(color: Colors.white),
                             )),
                             child: PinAuthentication(
                               pinTheme: PinTheme(

@@ -136,8 +136,9 @@ class _LoadingPageState extends State<LoadingPage> {
 */
   createAppSetting() async {
     AppSetting appSetting = AppSetting(
-        open_cash_drawer: 1,
-        show_second_display: notificationModel.hasSecondScreen ? 1 : 0
+      open_cash_drawer: 1,
+      show_second_display: notificationModel.hasSecondScreen ? 1 : 0,
+      direct_payment: 0,
     );
     AppSetting data = await PosDatabase.instance.insertSetting(appSetting);
     //notificationModel.enableSecondDisplay();
