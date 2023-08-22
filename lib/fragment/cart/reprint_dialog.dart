@@ -40,14 +40,14 @@ class _ReprintDialogState extends State<ReprintDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Confirm reprint check list?'),
+      title: Text(AppLocalizations.of(context)!.translate('confirm_reprint_check_list')),
       content: Container(
         height: 150,
         // width: MediaQuery.of(context).size.width / 3,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Would you like to reprint check list?'),
+            Text(AppLocalizations.of(context)!.translate('would_you_like_to_reprint_check_list')),
             // Row(
             //   children: [
             //     Text('reprint kitchen check list'),

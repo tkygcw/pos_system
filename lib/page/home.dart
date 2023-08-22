@@ -29,13 +29,15 @@ import '../object/app_setting.dart';
 import '../object/branch.dart';
 import '../object/user.dart';
 import '../translation/AppLocalizations.dart';
+import 'progress_bar.dart';
 
 //11
 class HomePage extends StatefulWidget {
   final User? user;
   final bool isNewDay;
 
-  const HomePage({Key? key, this.user, required this.isNewDay}) : super(key: key);
+  const HomePage({Key? key, this.user, required this.isNewDay})
+      : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -47,7 +49,7 @@ class _HomePageState extends State<HomePage> {
   late String role;
   String? branchName;
   Timer? timer, notificationTimer;
-  bool hasNotification = false, willPop = false;
+  bool hasNotification = false, willPop = false, isLoad = false;
   int loaded = 0;
   late ThemeColor themeColor;
   List<AppSetting> appSettingList = [];
@@ -56,25 +58,36 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    if(notificationModel.notificationStarted == false){
+    if (notificationModel.notificationStarted == false) {
       setupFirebaseMessaging();
     }
     initSecondDisplay();
-    _items = _generateItems;
-    currentPage = 'menu';
+
     getRoleName();
+
     getBranchName();
-    if (widget.isNewDay) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+    //callback after context is build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      currentPage = 'menu';
+      _items = _generateItems;
+      isLoad = true;
+
+      if (widget.isNewDay) {
         showDialog(
             barrierDismissible: false,
             context: context,
             builder: (BuildContext context) {
-              return WillPopScope(child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true), onWillPop: () async => false);
+              return WillPopScope(
+                  child: CashDialog(
+                      isCashIn: true,
+                      callBack: () {},
+                      isCashOut: false,
+                      isNewDay: true),
+                  onWillPop: () async => false);
               //CashDialog(isCashIn: true, callBack: (){}, isCashOut: false, isNewDay: true,);
             });
-      });
-    }
+      }
+    });
     setScreenLayout();
   }
 
@@ -96,15 +109,17 @@ class _HomePageState extends State<HomePage> {
 
   initSecondDisplay() async {
     List<AppSetting> data = await PosDatabase.instance.readAllAppSetting();
-    if(data.isNotEmpty){
-      if(data[0].show_second_display == 1){
+    if (data.isNotEmpty) {
+      if (data[0].show_second_display == 1) {
         notificationModel.secondScreenEnable = true;
       } else {
         notificationModel.secondScreenEnable = false;
       }
     }
-    if(notificationModel.hasSecondScreen == true){
-      await displayManager.showSecondaryDisplay(displayId: notificationModel.displays[1]!.displayId, routerName: "presentation");
+    if (notificationModel.hasSecondScreen == true) {
+      await displayManager.showSecondaryDisplay(
+          displayId: notificationModel.displays[1]!.displayId,
+          routerName: "presentation");
     }
   }
 
@@ -149,109 +164,123 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
-    return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      this.themeColor = color;
-      return WillPopScope(
-        onWillPop: () async {
-          showSecondDialog(context, color);
-          return willPop;
-        },
-        child: Scaffold(
-            resizeToAvoidBottomInset: false,
-            body: SafeArea(
-              //side nav bar
-              child: CollapsibleSidebar(
-                  sidebarBoxShadow: [
-                    BoxShadow(
-                      color: Colors.transparent,
-                    ),
-                  ],
-                  // maxWidth: 80,
-                  isCollapsed: true,
-                  items: _items,
-                  avatarImg: AssetImage("drawable/logo.png"),
-                  title: widget.user!.name! + "\n" + (branchName ?? '') + " - " + role,
-                  backgroundColor: color.backgroundColor,
-                  selectedTextColor: color.iconColor,
-                  textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
-                  titleStyle: TextStyle(fontSize: 17, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
-                  toggleTitleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  selectedIconColor: color.iconColor,
-                  selectedIconBox: color.buttonColor,
-                  unselectedIconColor: Colors.white,
-                  body: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: _body(size, context),
-                      ),
-                      //cart page
-                      Visibility(
-                        visible: currentPage != 'product' &&
-                            currentPage != 'setting' &&
-                            currentPage != 'settlement' &&
-                            currentPage != 'qr_order' &&
-                            currentPage != 'report'
-                            ? true
-                            : false,
-                        child: Expanded(
-                            flex: MediaQuery.of(context).size.height > 500 ? 1 : 2,
-                            child: CartPage(
-                              currentPage: currentPage,
-                            )),
-                      )
-                    ],
+    return isLoad
+        ? Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
+            this.themeColor = color;
+            return WillPopScope(
+              onWillPop: () async {
+                showSecondDialog(context, color);
+                return willPop;
+              },
+              child: Scaffold(
+                  resizeToAvoidBottomInset: false,
+                  body: SafeArea(
+                    //side nav bar
+                    child: CollapsibleSidebar(
+                        sidebarBoxShadow: [
+                          BoxShadow(
+                            color: Colors.transparent,
+                          ),
+                        ],
+                        // maxWidth: 80,
+                        isCollapsed: true,
+                        items: _items,
+                        avatarImg: AssetImage("drawable/logo.png"),
+                        title: widget.user!.name! +
+                            "\n" +
+                            (branchName ?? '') +
+                            " - " +
+                            AppLocalizations.of(context)!
+                                .translate(role.toLowerCase()),
+                        backgroundColor: color.backgroundColor,
+                        selectedTextColor: color.iconColor,
+                        textStyle: TextStyle(
+                            fontSize: 15, fontStyle: FontStyle.italic),
+                        titleStyle: TextStyle(
+                            fontSize: 17,
+                            fontStyle: FontStyle.italic,
+                            fontWeight: FontWeight.bold),
+                        toggleTitleStyle: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                        selectedIconColor: color.iconColor,
+                        selectedIconBox: color.buttonColor,
+                        unselectedIconColor: Colors.white,
+                        body: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: _body(size, context),
+                            ),
+                            //cart page
+                            Visibility(
+                              visible: currentPage != 'product' &&
+                                      currentPage != 'setting' &&
+                                      currentPage != 'settlement' &&
+                                      currentPage != 'qr_order' &&
+                                      currentPage != 'report'
+                                  ? true
+                                  : false,
+                              child: Expanded(
+                                  flex: MediaQuery.of(context).size.height > 500
+                                      ? 1
+                                      : 2,
+                                  child: CartPage(
+                                    currentPage: currentPage,
+                                  )),
+                            )
+                          ],
+                        )),
                   )),
-            )),
-      );
-    });
+            );
+          })
+        : CustomProgressBar();
   }
 
   List<CollapsibleItem> get _generateItems {
     return [
       CollapsibleItem(
-        text: 'Menu',
+        text: AppLocalizations.of(context)!.translate('menu'),
         icon: Icons.add_shopping_cart,
         onPressed: () => setState(() => currentPage = 'menu'),
         isSelected: true,
       ),
       CollapsibleItem(
-        text: 'Table',
+        text: AppLocalizations.of(context)!.translate('table'),
         icon: Icons.table_restaurant,
         onPressed: () => setState(() => currentPage = 'table'),
       ),
       CollapsibleItem(
-        text: 'Qr Order',
+        text: AppLocalizations.of(context)!.translate('qr_order'),
         icon: Icons.qr_code_2,
         onPressed: () => setState(() => currentPage = 'qr_order'),
       ),
       CollapsibleItem(
-        text: 'Other Order',
+        text: AppLocalizations.of(context)!.translate('other_order'),
         icon: Icons.delivery_dining,
         onPressed: () => setState(() => currentPage = 'other_order'),
       ),
       CollapsibleItem(
-        text: 'Bill',
+        text: AppLocalizations.of(context)!.translate('bill'),
         icon: Icons.receipt_long,
         onPressed: () => setState(() => currentPage = 'bill'),
       ),
       CollapsibleItem(
-        text: 'Counter',
+        text: AppLocalizations.of(context)!.translate('counter'),
         icon: Icons.point_of_sale,
         onPressed: () => setState(() => currentPage = 'settlement'),
       ),
       CollapsibleItem(
-        text: 'Report',
+        text: AppLocalizations.of(context)!.translate('report'),
         icon: Icons.monetization_on,
         onPressed: () => setState(() => currentPage = 'report'),
       ),
       CollapsibleItem(
-        text: 'Product',
+        text: AppLocalizations.of(context)!.translate('product'),
         icon: Icons.fastfood,
         onPressed: () => setState(() => currentPage = 'product'),
       ),
       CollapsibleItem(
-        text: 'Setting',
+        text: AppLocalizations.of(context)!.translate('setting'),
         icon: Icons.settings,
         onPressed: () => setState(() => currentPage = 'setting'),
       ),
@@ -259,6 +288,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _body(Size size, BuildContext context) {
+    print(currentPage);
     switch (currentPage) {
       case 'menu':
         return OrderPage();
@@ -296,7 +326,8 @@ class _HomePageState extends State<HomePage> {
   getBranchName() async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    Branch? data = await PosDatabase.instance.readBranchName(branch_id.toString());
+    Branch? data =
+        await PosDatabase.instance.readBranchName(branch_id.toString());
     setState(() {
       branchName = data!.name!;
     });
@@ -313,7 +344,8 @@ class _HomePageState extends State<HomePage> {
     notificationModel.setNotificationAsStarted();
     // Update the iOS foreground notification presentation options to allow
     // heads up notifications.
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
@@ -328,7 +360,9 @@ class _HomePageState extends State<HomePage> {
       print('testing purpose on app open');
     });
 
-    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+    FirebaseMessaging.instance
+        .getInitialMessage()
+        .then((RemoteMessage? message) {
       if (message != null) {}
     });
   }
@@ -341,7 +375,7 @@ class _HomePageState extends State<HomePage> {
       * qr ordering come in
       * */
       if (message.data['type'] == '0') {
-        if(qrOrder.count == 0){
+        if (qrOrder.count == 0) {
           qrOrder.count = 1;
           qrOrder.getQrOrder();
           manageNotificationTimer();
@@ -354,9 +388,12 @@ class _HomePageState extends State<HomePage> {
       else {
         notificationModel.setNotification(true);
         notificationModel.setContentLoad();
-        Fluttertoast.showToast(backgroundColor: Colors.green, msg: "Cloud db change! sync from cloud");
+        Fluttertoast.showToast(
+            backgroundColor: Colors.green,
+            msg: AppLocalizations.of(context)!
+                .translate('cloud_db_change_sync_from_cloud'));
         // await SyncRecord().syncFromCloud();
-        if(syncRecord.count == 0){
+        if (syncRecord.count == 0) {
           await syncRecord.syncFromCloud();
           syncRecord.count = 0;
         }
@@ -373,15 +410,16 @@ class _HomePageState extends State<HomePage> {
     }
     //set timer when new order come in
     int no = 1;
-    if(no == 1){
+    if (no == 1) {
       snackBarKey.currentState!.showSnackBar(SnackBar(
-        content: const Text('New order is received!'),
+        content: Text(
+            AppLocalizations.of(context)!.translate('new_order_is_received')),
         backgroundColor: themeColor.backgroundColor,
         action: SnackBarAction(
           textColor: themeColor.iconColor,
           label: 'Check it now!',
           onPressed: () {
-            if(mounted){
+            if (mounted) {
               setState(() {
                 currentPage = 'qr_order';
                 notificationTimer!.cancel();
@@ -397,13 +435,14 @@ class _HomePageState extends State<HomePage> {
       if (no <= 3) {
         //showSnackBar();
         snackBarKey.currentState!.showSnackBar(SnackBar(
-          content: const Text('New order is received!'),
+          content: Text(
+              AppLocalizations.of(context)!.translate('new_order_is_received')),
           backgroundColor: themeColor.backgroundColor,
           action: SnackBarAction(
             textColor: themeColor.iconColor,
             label: 'Check it now!',
             onPressed: () {
-              if(mounted){
+              if (mounted) {
                 setState(() {
                   currentPage = 'qr_order';
                   notificationTimer!.cancel();
@@ -422,13 +461,14 @@ class _HomePageState extends State<HomePage> {
 
   showSnackBar() {
     snackBarKey.currentState!.showSnackBar(SnackBar(
-      content: const Text('New order is received!'),
+      content: Text(
+          AppLocalizations.of(context)!.translate('new_order_is_received')),
       backgroundColor: themeColor.backgroundColor,
       action: SnackBarAction(
         textColor: themeColor.iconColor,
         label: 'Check it now!',
         onPressed: () {
-          if(mounted){
+          if (mounted) {
             setState(() {
               currentPage = 'qr_order';
               notificationTimer!.cancel();
@@ -451,30 +491,35 @@ class _HomePageState extends State<HomePage> {
         barrierDismissible: false,
         context: context,
         builder: (BuildContext context) {
-          return StatefulBuilder(builder: (context, StateSetter setState){
+          return StatefulBuilder(builder: (context, StateSetter setState) {
             return Center(
               child: SingleChildScrollView(
                 physics: NeverScrollableScrollPhysics(),
                 child: AlertDialog(
-                  title: Text('Exit app'),
+                  title:
+                      Text(AppLocalizations.of(context)!.translate('exit_app')),
                   content: SizedBox(
                     height: 100.0,
                     width: 350.0,
-                    child: Text('Are you sure to exit app?'),
+                    child: Text(AppLocalizations.of(context)!
+                        .translate('are_you_sure_to_exit_app')),
                   ),
                   actions: <Widget>[
                     TextButton(
-                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      child: Text(
+                          '${AppLocalizations.of(context)?.translate('close')}'),
                       onPressed: () {
                         willPop = false;
                         Navigator.of(context).pop();
                       },
                     ),
                     TextButton(
-                      child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                      child: Text(
+                          '${AppLocalizations.of(context)?.translate('yes')}'),
                       onPressed: () {
                         willPop = true;
-                        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+                        SystemChannels.platform
+                            .invokeMethod('SystemNavigator.pop');
                       },
                     ),
                   ],
@@ -482,7 +527,6 @@ class _HomePageState extends State<HomePage> {
               ),
             );
           });
-        }
-    );
+        });
   }
 }

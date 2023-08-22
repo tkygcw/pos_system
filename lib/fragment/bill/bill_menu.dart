@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:grouped_list/grouped_list.dart';
 import '../../notifier/theme_color.dart';
@@ -32,8 +33,7 @@ class _BillMenuState extends State<BillMenu> {
                 padding: EdgeInsets.fromLTRB(11, 15, 11, 4),
                 child: Row(
                   children: [
-                    Text(
-                      "Receipt",
+                    Text(AppLocalizations.of(context)!.translate('receipt'),
                       style: TextStyle(fontSize: 25),
                     ),
                     SizedBox(width: 500),
@@ -42,7 +42,7 @@ class _BillMenuState extends State<BillMenu> {
                         decoration: InputDecoration(
                           isDense: true,
                           border: InputBorder.none,
-                          labelText: 'Search',
+                          labelText: AppLocalizations.of(context)!.translate('search'),
                           focusedBorder: OutlineInputBorder(
                             borderSide: const BorderSide(
                                 color: Colors.grey, width: 2.0),

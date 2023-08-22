@@ -58,7 +58,7 @@ class _PosPinDialogState extends State<PosPinDialog> {
       return Center(
         child: SingleChildScrollView(
           child: AlertDialog(
-            title: Text('Enter Current User PIN'),
+            title: Text(AppLocalizations.of(context)!.translate('enter_current_user_pin')),
             content: SizedBox(
               height: 100.0,
               width: 350.0,

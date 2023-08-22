@@ -63,7 +63,7 @@ class _logout_dialogState extends State<logout_dialog> {
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: Text('Enter admin PIN'),
+        title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
         content: SizedBox(
           height: 100.0,
           width: 350.0,
@@ -99,14 +99,14 @@ class _logout_dialogState extends State<logout_dialog> {
         ),
         actions: <Widget>[
           TextButton(
-            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+            child: Text(AppLocalizations.of(context)!.translate('close')),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           TextButton(
             child:
-                Text('${AppLocalizations.of(context)?.translate('confirm_logout')}'),
+                Text(AppLocalizations.of(context)!.translate('confirm_logout')),
             onPressed: () async {
               _submit(context);
             },
@@ -132,7 +132,7 @@ class _logout_dialogState extends State<logout_dialog> {
           ),
         ),
         content:
-            Text('${AppLocalizations.of(context)?.translate('logout-Desc')}'),
+            Text('${AppLocalizations.of(context)?.translate('confirm_logout_desc')}'),
         actions: <Widget>[
           TextButton(
             child: Text('${AppLocalizations.of(context)?.translate('no')}'),
@@ -170,11 +170,11 @@ class _logout_dialogState extends State<logout_dialog> {
       logout();
       Fluttertoast.showToast(
           backgroundColor: Color(0xFF24EF10),
-          msg: "Log out success");
+          msg: AppLocalizations.of(context)!.translate('log_out_success'));
     }else{
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Password incorrect");
+          msg: AppLocalizations.of(context)!.translate('password_incorrect'));
     }
   }
 

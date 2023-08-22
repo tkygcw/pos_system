@@ -155,9 +155,9 @@ class CartPageState extends State<CartPage> {
         child: SingleChildScrollView(
           physics: NeverScrollableScrollPhysics(),
           child: AlertDialog(
-            title: Text('Confirm change dining option'),
+            title: Text(AppLocalizations.of(context)!.translate('confirm_change_dining_option')),
             content: SizedBox(
-                child: Text('All your cart item will remove, confirm change dining option?')),
+                child: Text(AppLocalizations.of(context)!.translate('all_your_cart_item_will_remove_confirm_change_dining_option'))),
             actions: <Widget>[
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('close')}'),
@@ -219,12 +219,12 @@ class CartPageState extends State<CartPage> {
               title: Row(
                 children: [
                   MediaQuery.of(context).size.height > 500
-                      ? Text('Bill', style: TextStyle(fontSize: 20, color: Colors.black))
+                      ? Text(AppLocalizations.of(context)!.translate('bill'), style: TextStyle(fontSize: 20, color: Colors.black))
                       : SizedBox.shrink(),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text('Table: ${getSelectedTable(cart)}'),
+                      child: Text(AppLocalizations.of(context)!.translate('table')+': ${getSelectedTable(cart)}'),
                     ),
                   ),
                 ],
@@ -438,7 +438,7 @@ class CartPageState extends State<CartPage> {
                                                           : cart.cartNotifierItem[index].status != 0
                                                               ? Fluttertoast.showToast(
                                                                   backgroundColor: Colors.red,
-                                                                  msg: "order already placed!")
+                                                                  msg: AppLocalizations.of(context)!.translate('order_already_placed'))
                                                               : cart.removeItem(
                                                                   cart.cartNotifierItem[index]);
                                                     }),
@@ -468,12 +468,12 @@ class CartPageState extends State<CartPage> {
                                                           } else {
                                                             Fluttertoast.showToast(
                                                                 backgroundColor: Colors.red,
-                                                                msg: "product out of stock");
+                                                                msg: AppLocalizations.of(context)!.translate('product_out_of_stock'));
                                                           }
                                                         } else {
                                                           Fluttertoast.showToast(
                                                               backgroundColor: Colors.red,
-                                                              msg: "order already placed!");
+                                                              msg: AppLocalizations.of(context)!.translate('order_already_placed'));
                                                         }
                                                         controller.add('refresh');
                                                       })
@@ -511,7 +511,7 @@ class CartPageState extends State<CartPage> {
                             physics: ClampingScrollPhysics(),
                             children: [
                               ListTile(
-                                title: Text("Subtotal", style: TextStyle(fontSize: 14)),
+                                title: Text('Subtotal', style: TextStyle(fontSize: 14)),
                                 trailing: Text('${total.toStringAsFixed(2)}',
                                     style: TextStyle(fontSize: 14)),
                                 visualDensity: VisualDensity(vertical: -4),
@@ -627,14 +627,14 @@ class CartPageState extends State<CartPage> {
                                     }),
                               ),
                               ListTile(
-                                title: Text("Amount", style: TextStyle(fontSize: 14)),
+                                title: Text('Amount', style: TextStyle(fontSize: 14)),
                                 trailing: Text('${totalAmount.toStringAsFixed(2)}',
                                     style: TextStyle(fontSize: 14)),
                                 visualDensity: VisualDensity(vertical: -4),
                                 dense: true,
                               ),
                               ListTile(
-                                title: Text("Rounding", style: TextStyle(fontSize: 14)),
+                                title: Text('Rounding', style: TextStyle(fontSize: 14)),
                                 trailing: Text('${rounding.toStringAsFixed(2)}',
                                     style: TextStyle(fontSize: 14)),
                                 visualDensity: VisualDensity(vertical: -4),
@@ -642,7 +642,7 @@ class CartPageState extends State<CartPage> {
                               ),
                               ListTile(
                                 visualDensity: VisualDensity(vertical: -4),
-                                title: Text("Final Amount",
+                                title: Text('Final Amount',
                                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                                 trailing: Text("${finalAmount}",
                                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -655,7 +655,7 @@ class CartPageState extends State<CartPage> {
                                       Container(
                                         child: ListTile(
                                           visualDensity: VisualDensity(vertical: -4),
-                                          title: Text("Payment received",
+                                          title: Text('Payment received',
                                               style: TextStyle(fontSize: 14)),
                                           trailing: Text("${paymentReceived.toStringAsFixed(2)}",
                                               style: TextStyle(fontSize: 14)),
@@ -665,7 +665,7 @@ class CartPageState extends State<CartPage> {
                                       Container(
                                         child: ListTile(
                                           visualDensity: VisualDensity(vertical: -4),
-                                          title: Text("Change", style: TextStyle(fontSize: 14)),
+                                          title: Text('Change', style: TextStyle(fontSize: 14)),
                                           trailing: Text("${paymentChange.toStringAsFixed(2)}",
                                               style: TextStyle(fontSize: 14)),
                                           dense: true,
@@ -735,7 +735,7 @@ class CartPageState extends State<CartPage> {
                                                       } else {
                                                         Fluttertoast.showToast(
                                                             backgroundColor: Colors.red,
-                                                            msg: "Cannot replace same order");
+                                                            msg: AppLocalizations.of(context)!.translate('cannot_replace_same_order'));
                                                       }
                                                       cart.removeAllCartItem();
                                                       cart.removeAllTable();
@@ -746,7 +746,7 @@ class CartPageState extends State<CartPage> {
                                                       Fluttertoast.showToast(
                                                           backgroundColor: Colors.red,
                                                           msg:
-                                                              "make sure cart is not empty and table is selected");
+                                                          AppLocalizations.of(context)!.translate('make_sure_cart_is_not_empty_and_table_is_selected'));
                                                     }
                                                   } else {
                                                     // not dine in call
@@ -828,18 +828,18 @@ class CartPageState extends State<CartPage> {
                                       child: MediaQuery.of(context).size.height > 500
                                           ? widget.currentPage == 'menu' ||
                                                   widget.currentPage == 'qr_order'
-                                              ? Text('Place Order\n (RM ${this.finalAmount})')
+                                              ? Text(AppLocalizations.of(context)!.translate('place_order')+'\n (RM ${this.finalAmount})')
                                               : widget.currentPage == 'table' ||
                                                       widget.currentPage == 'other_order'
-                                                  ? Text('Make payment (RM ${this.finalAmount})')
-                                                  : Text('Print Receipt')
+                                                  ? Text(AppLocalizations.of(context)!.translate('pay')+' (RM ${this.finalAmount})')
+                                                  : Text(AppLocalizations.of(context)!.translate('print_receipt'))
                                           : widget.currentPage == 'menu' ||
                                                   widget.currentPage == 'qr_order'
-                                              ? Text('Place Order')
+                                              ? Text(AppLocalizations.of(context)!.translate('place_order'))
                                               : widget.currentPage == 'table' ||
                                                       widget.currentPage == 'other_order'
-                                                  ? Text('Make payment')
-                                                  : Text('Print Receipt'))),
+                                                  ? Text(AppLocalizations.of(context)!.translate('pay'))
+                                                  : Text(AppLocalizations.of(context)!.translate('print_receipt')))),
                               Visibility(
                                   child: SizedBox(
                                     width: 10,
@@ -870,12 +870,12 @@ class CartPageState extends State<CartPage> {
                                       if (hasNotPlacedOrder) {
                                         Fluttertoast.showToast(
                                             backgroundColor: Colors.red,
-                                            msg: "Make sure all product is placed order!");
+                                            msg: AppLocalizations.of(context)!.translate('make_sure_all_product_is_placed_order'));
                                       } else {
                                         openReprintDialog(printerList, cart);
                                       }
                                     },
-                                    child: Text('Print Check List'),
+                                    child: Text(AppLocalizations.of(context)!.translate('print_check_list')),
                                   ),
                                 ),
                               ),
@@ -897,7 +897,7 @@ class CartPageState extends State<CartPage> {
                                         printerList, cart.selectedTable, cart, context);
                                     checkPrinterStatus(printStatus);
                                   },
-                                  child: Text('Print Receipt'),
+                                  child: Text(AppLocalizations.of(context)!.translate('print_receipt')),
                                 )),
                               )
                             ],
@@ -1026,7 +1026,7 @@ class CartPageState extends State<CartPage> {
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     } else if (printStatus == 3) {
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "No printer added");
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('no_printer_added'));
     } else if (printStatus == 4) {
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
@@ -2169,7 +2169,7 @@ class CartPageState extends State<CartPage> {
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     } else if (printStatus == 5) {
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Printing error");
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
     }
     int kitchenPrintStatus = await printReceipt.printKitchenList(
         printerList, cart, int.parse(this.orderCacheId));
@@ -2182,7 +2182,7 @@ class CartPageState extends State<CartPage> {
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     } else if (printStatus == 5) {
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Printing error");
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
     }
     await syncAllToCloud();
     if (this.isLogOut == true) {
@@ -2213,7 +2213,7 @@ class CartPageState extends State<CartPage> {
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     } else if (printStatus == 5) {
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Printing error");
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
     }
     int kitchenPrintStatus = await printReceipt.printKitchenList(
         printerList, cart, int.parse(this.orderCacheId));
@@ -2222,9 +2222,9 @@ class CartPageState extends State<CartPage> {
           backgroundColor: Colors.red,
           msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
     } else if (kitchenPrintStatus == 2) {
-      Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "kitchen printer timeout");
+      Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('kitchen_printer_timeout'));
     } else if (printStatus == 5) {
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Printing error");
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
     }
     print('start sync to cloud');
     await syncAllToCloud();
@@ -2254,7 +2254,7 @@ class CartPageState extends State<CartPage> {
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     } else if (printStatus == 5) {
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Printing error");
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
     }
     int kitchenPrintStatus = await printReceipt.printKitchenList(
         printerList, cart, int.parse(this.orderCacheId));
@@ -2267,7 +2267,7 @@ class CartPageState extends State<CartPage> {
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     } else if (printStatus == 5) {
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Printing error");
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
     }
     await syncAllToCloud();
     if (this.isLogOut == true) {
@@ -2414,7 +2414,7 @@ class CartPageState extends State<CartPage> {
     } catch (e) {
       print(e);
       Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000), msg: "Create table id error: ${e}");
+          backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_table_id_error')+" ${e}");
     }
   }
 
@@ -2517,7 +2517,7 @@ class CartPageState extends State<CartPage> {
     } catch (e) {
       print(e);
       Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000), msg: "Create table detail error: ${e}");
+          backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_table_detail_error')+" ${e}");
     }
   }
 
@@ -2612,7 +2612,7 @@ class CartPageState extends State<CartPage> {
     } catch (e) {
       print('error: ${e}');
       Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000), msg: "Create order cache error: ${e}");
+          backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_order_cache_error')+" ${e}");
     }
   }
 
@@ -2974,7 +2974,7 @@ class CartPageState extends State<CartPage> {
         //syncUpdatedTableToCloud(_value.toString());
       }
     } catch (e) {
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "update table error: ${e}");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('update_table_error')+" ${e}");
       print("update table error: $e");
     }
   }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -113,7 +114,7 @@ class _FoodSettingState extends State<FoodSetting> {
                                 contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 isDense: true,
                                 border: InputBorder.none,
-                                labelText: 'Search',
+                                labelText: AppLocalizations.of(context)!.translate('search'),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide: const BorderSide(color: Colors.grey, width: 2.0),
                                   borderRadius: BorderRadius.circular(25.0),

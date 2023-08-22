@@ -125,12 +125,12 @@ class _PrinterDialogState extends State<PrinterDialog> {
         } else {
           Fluttertoast.showToast(
               backgroundColor: Color(0xFFFF0000),
-              msg: "Please set the printer setting or category");
+              msg: AppLocalizations.of(context)!.translate('please_set_the_printer_setting_or_category'));
         }
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000),
-            msg: "Make sure printer is selected");
+            msg: AppLocalizations.of(context)!.translate('make_sure_printer_is_selected'));
       }
     }
   }
@@ -148,7 +148,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
             child: SingleChildScrollView(
               physics: NeverScrollableScrollPhysics(),
               child: AlertDialog(
-                title: _isUpdate ? Text('Edit printer') : Text('Add printer'),
+                title: _isUpdate ? Text(AppLocalizations.of(context)!.translate('edit_printer')) : Text(AppLocalizations.of(context)!.translate('add_printer')),
                 content: isLoad ?
                 Container(
                   height: MediaQuery.of(context).size.height / 1.5,
@@ -182,7 +182,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                         borderSide: BorderSide(
                                             color: color.backgroundColor),
                                       ),
-                                      labelText: 'Printer label',
+                                      labelText: AppLocalizations.of(context)!.translate('printer_label'),
                                     ),
                                   ),
                                 ),
@@ -217,7 +217,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                             Expanded(
                               child: RadioListTile<int>(
                                 activeColor: color.backgroundColor,
-                                title: const Text('LAN',
+                                title: Text(AppLocalizations.of(context)!.translate('lan'),
                                     style: TextStyle(fontSize: 15)),
                                 value: 1,
                                 groupValue: _typeStatus,
@@ -244,7 +244,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                     openAddDeviceDialog(_typeStatus!);
                                   });
                                 },
-                                child: Text('Add New Device')),
+                                child: Text(AppLocalizations.of(context)!.translate('add_new_device'))),
                           ),
                         ),
                         ListView.builder(
@@ -265,7 +265,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                     ? Text(
                                     '${jsonDecode(printerValue[index])["manufacturer"] + jsonDecode(printerValue[index])["productName"]}')
                                     : Text('${jsonDecode(printerValue[index])}'),
-                                title: Text('Printer'));
+                                title: Text(AppLocalizations.of(context)!.translate('printer')));
                           },
                         ),
                         SizedBox(
@@ -319,7 +319,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Set as cashier printer'),
+                              child: Text(AppLocalizations.of(context)!.translate('set_as_cashier_printer')),
                             ),
                             Spacer(),
                             Container(
@@ -346,7 +346,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Category',
+                                  AppLocalizations.of(context)!.translate('category'),
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.blueGrey),
@@ -402,7 +402,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Active'),
+                              child: Text(AppLocalizations.of(context)!.translate('active')),
                             ),
                             Spacer(),
                             Container(
@@ -464,7 +464,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
               physics: ClampingScrollPhysics(),
               child: AlertDialog(
                 actionsPadding: EdgeInsets.zero,
-                title: _isUpdate ? Text('Edit Printer') : Text('Add Printer'),
+                title: _isUpdate ? Text(AppLocalizations.of(context)!.translate('edit_printer')) : Text(AppLocalizations.of(context)!.translate('add_printer')),
                 content: isLoad ?
                 Container(
                   height: MediaQuery.of(context).size.height / 2,
@@ -498,7 +498,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                         borderSide: BorderSide(
                                             color: color.backgroundColor),
                                       ),
-                                      labelText: 'Printer label',
+                                      labelText: AppLocalizations.of(context)!.translate('printer_label'),
                                     ),
                                   ),
                                 ),
@@ -533,7 +533,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                             Expanded(
                               child: RadioListTile<int>(
                                 activeColor: color.backgroundColor,
-                                title: const Text('LAN',
+                                title: Text(AppLocalizations.of(context)!.translate('lan'),
                                     style: TextStyle(fontSize: 15)),
                                 value: 1,
                                 groupValue: _typeStatus,
@@ -560,7 +560,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                     openAddDeviceDialog(_typeStatus!);
                                   });
                                 },
-                                child: Text('Add New Device')),
+                                child: Text(AppLocalizations.of(context)!.translate('add_new_device'))),
                           ),
                         ),
                         ListView.builder(
@@ -582,7 +582,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                     ? Text(
                                     '${jsonDecode(printerValue[index])["manufacturer"] + jsonDecode(printerValue[index])["productName"]}')
                                     : Text('${jsonDecode(printerValue[index])}'),
-                                title: Text('Printer'));
+                                title: Text(AppLocalizations.of(context)!.translate('printer')));
                           },
                         ),
                         SizedBox(
@@ -636,7 +636,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Set as cashier printer'),
+                              child: Text(AppLocalizations.of(context)!.translate('set_as_cashier_printer')),
                             ),
                             Spacer(),
                             Container(
@@ -660,7 +660,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Category',
+                                AppLocalizations.of(context)!.translate('category'),
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.blueGrey),
@@ -715,7 +715,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Active'),
+                              child: Text(AppLocalizations.of(context)!.translate('active')),
                             ),
                             Spacer(),
                             Container(
@@ -741,7 +741,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                   Visibility(
                     visible: _isUpdate ? true : false,
                     child: TextButton(
-                      child: Text('test print'),
+                      child: Text(AppLocalizations.of(context)!.translate('test_print')),
                       onPressed: () {
                         if (_typeStatus == 0) {
                           _print();
@@ -760,7 +760,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                   ),
                   TextButton(
                     child: _isUpdate
-                        ? Text('Update')
+                        ? Text(AppLocalizations.of(context)!.translate('update'))
                         : Text('${AppLocalizations.of(context)?.translate('add')}', style: TextStyle(color: color.backgroundColor)),
                     onPressed: () {
                       _submit(context);
@@ -862,7 +862,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       print('create printer error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Something went wrong, Please try again $e");
+          msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later')+" $e");
     }
   }
 
@@ -935,7 +935,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       print('error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Something went wrong, Please try again $e");
+          msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later')+" $e");
     }
   }
 
@@ -964,7 +964,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Read printer_category went wrong, Please try again $e");
+          msg: AppLocalizations.of(context)!.translate('read_printer_category_went_wrong_please_try_again')+" $e");
     }
   }
 
@@ -1001,7 +1001,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Update printer category error, Please try again $e");
+          msg: AppLocalizations.of(context)!.translate('update_printer_category_error_please_try_again')+" $e");
       print('"Update printer category error, Please try again $e"');
     }
   }
@@ -1028,7 +1028,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Clear printer category, Please try again $e");
+          msg: AppLocalizations.of(context)!.translate('clear_printer_category_please_try_again')+" $e");
     }
   }
 
@@ -1060,7 +1060,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "update printer error, Please try again $e");
+          msg: AppLocalizations.of(context)!.translate('update_printer_error_please_try_again')+" $e");
       print('$e');
     }
   }

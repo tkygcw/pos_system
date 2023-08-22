@@ -16,6 +16,7 @@ import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/printer.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:presentation_displays/displays_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
@@ -245,7 +246,7 @@ class _MakePaymentState extends State<MakePayment> {
                     child: AlertDialog(
                       title: Row(
                         children: [
-                          Text('Payment Detail'),
+                          Text(AppLocalizations.of(context)!.translate('payment_detail')),
                           Spacer(),
                           IconButton(
                             onPressed: isButtonDisable ? null : () {
@@ -273,7 +274,7 @@ class _MakePaymentState extends State<MakePayment> {
                                       Container(
                                         margin: EdgeInsets.only(bottom: 20),
                                         alignment: Alignment.center,
-                                        child: Text('Table No: ${getSelectedTable(cart)}', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 24)),
+                                        child: Text(AppLocalizations.of(context)!.translate('table_no')+': ${getSelectedTable(cart)}', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 24)),
                                       ),
                                       Container(
                                         //margin: EdgeInsets.fromLTRB(30, 0.0, 30, 0.0),
@@ -351,7 +352,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                   physics: ClampingScrollPhysics(),
                                                   children: [
                                                     ListTile(
-                                                      title: Text("Subtotal",
+                                                      title: Text('Subtotal',
                                                           style: TextStyle(fontSize: 14)),
                                                       trailing: Text('${total.toStringAsFixed(2)}',
                                                           style: TextStyle(fontSize: 14)),
@@ -411,7 +412,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                         }
                                                     ),
                                                     ListTile(
-                                                      title: Text("Total",
+                                                      title: Text('Total',
                                                           style: TextStyle(fontSize: 14)),
                                                       trailing: Text('${totalAmount.toStringAsFixed(2)}',
                                                           style: TextStyle(fontSize: 14)),
@@ -419,7 +420,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       dense: true,
                                                     ),
                                                     ListTile(
-                                                      title: Text("Rounding",
+                                                      title: Text('Rounding',
                                                           style: TextStyle(fontSize: 14)),
                                                       trailing: Text('${rounding.toStringAsFixed(2)}',
                                                           style: TextStyle(fontSize: 14)),
@@ -428,7 +429,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                     ),
                                                     ListTile(
                                                       visualDensity: VisualDensity(vertical: -4),
-                                                      title: Text("Final amount",
+                                                      title: Text('Final Amount',
                                                           style: TextStyle(
                                                               fontSize: 18,
                                                               fontWeight: FontWeight.bold)),
@@ -576,14 +577,14 @@ class _MakePaymentState extends State<MakePayment> {
                                                         } else if(inputController.text.isEmpty) {
                                                           Fluttertoast.showToast(
                                                               backgroundColor: Color(0xFFFF0000),
-                                                              msg: "Please enter an amount");
+                                                              msg: AppLocalizations.of(context)!.translate('please_enter_an_amount'));
                                                           setState(() {
                                                             inputController.clear();
                                                           });
                                                         } else {
                                                           Fluttertoast.showToast(
                                                               backgroundColor: Color(0xFFFF0000),
-                                                              msg: "Insufficient balance");
+                                                              msg: AppLocalizations.of(context)!.translate('insufficient_balance'));
                                                           setState(() {
                                                             inputController.clear();
                                                           });
@@ -594,7 +595,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                         elevation: 5,
                                                       ),
                                                       icon: Icon(Icons.payments, size: 24),
-                                                      label: Text('Pay', style: TextStyle(fontSize: 20),)),
+                                                      label: Text(AppLocalizations.of(context)!.translate('make_payment'), style: TextStyle(fontSize: 20),)),
                                                 );
                                               }),
 
@@ -612,7 +613,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                     elevation: 5, backgroundColor: color.buttonColor,
                                                   ),
                                                   icon: Icon(Icons.backspace),
-                                                  label: Text('Clear', style: TextStyle(fontSize: 20)),
+                                                  label: Text(AppLocalizations.of(context)!.translate('clear'), style: TextStyle(fontSize: 20)),
                                               ),
                                             ),
                                           ],
@@ -662,7 +663,7 @@ class _MakePaymentState extends State<MakePayment> {
                                               }
                                               openPaymentSuccessDialog(widget.dining_id, isCashMethod: false, diningName: widget.dining_name);
                                             }, icon: Icon(Icons.call_received),
-                                            label: Text("Received payment",style:TextStyle(fontSize: 20)),
+                                            label: Text(AppLocalizations.of(context)!.translate('payment_received'),style:TextStyle(fontSize: 20)),
                                           );
                                         }),
                                       ),
@@ -746,7 +747,7 @@ class _MakePaymentState extends State<MakePayment> {
                   insetPadding: EdgeInsets.zero,
                   title: Row(
                     children: [
-                      Text('Payment Detail'),
+                      Text(AppLocalizations.of(context)!.translate('payment_detail')),
                       Spacer(),
                       IconButton(
                         padding: EdgeInsets.zero,
@@ -775,7 +776,7 @@ class _MakePaymentState extends State<MakePayment> {
                                   children: [
                                     Container(
                                       alignment: Alignment.center,
-                                      child: Text('Table No: ${getSelectedTable(cart)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                                      child: Text(AppLocalizations.of(context)!.translate('table_no')+': ${getSelectedTable(cart)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                                     ),
                                     Container(
                                       //margin: EdgeInsets.all(25),
@@ -849,7 +850,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                 physics: ClampingScrollPhysics(),
                                                 children: [
                                                   ListTile(
-                                                    title: Text("Subtotal",
+                                                    title: Text('Subtotal',
                                                         style: TextStyle(fontSize: 14)),
                                                     trailing: Text('${total.toStringAsFixed(2)}',
                                                         style: TextStyle(fontSize: 14)),
@@ -910,7 +911,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       }
                                                   ),
                                                   ListTile(
-                                                    title: Text("Total",
+                                                    title: Text('Total',
                                                         style: TextStyle(fontSize: 14)),
                                                     trailing: Text('${totalAmount.toStringAsFixed(2)}',
                                                         style: TextStyle(fontSize: 14)),
@@ -918,7 +919,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                     dense: true,
                                                   ),
                                                   ListTile(
-                                                    title: Text("Rounding",
+                                                    title: Text('Rounding',
                                                         style: TextStyle(fontSize: 14)),
                                                     trailing: Text('${rounding.toStringAsFixed(2)}',
                                                         style: TextStyle(fontSize: 14)),
@@ -927,7 +928,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                   ),
                                                   ListTile(
                                                     visualDensity: VisualDensity(vertical: -4),
-                                                    title: Text("Final amount",
+                                                    title: Text('Final Amount',
                                                         style: TextStyle(
                                                             fontSize: 18,
                                                             fontWeight: FontWeight.bold)),
@@ -1026,13 +1027,13 @@ class _MakePaymentState extends State<MakePayment> {
                                                         } else {
                                                           Fluttertoast.showToast(
                                                               backgroundColor: Color(0xFFFF0000),
-                                                              msg: "Insufficient balance");
+                                                              msg: AppLocalizations.of(context)!.translate('insufficient_balance'));
                                                           setState(() {
                                                             inputController.text = '0.00';
                                                           });
                                                         }
                                                       },
-                                                      child: Text('Pay'));
+                                                      child: Text(AppLocalizations.of(context)!.translate('make_payment')));
                                                 }),
 
                                               ),
@@ -1043,7 +1044,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                     inputController.clear();
                                                     change = '0.00';
                                                   },
-                                                  child: Text('Clear')),
+                                                  child: Text(AppLocalizations.of(context)!.translate('clear'))),
                                             ],
                                           ),
                                         )
@@ -1084,7 +1085,7 @@ class _MakePaymentState extends State<MakePayment> {
                                           return;
                                         }
                                         openPaymentSuccessDialog(widget.dining_id, isCashMethod: false, diningName: widget.dining_name);
-                                      }, child: Text("Received payment",style:TextStyle(fontSize: 20)),
+                                      }, child: Text(AppLocalizations.of(context)!.translate('payment_received'),style:TextStyle(fontSize: 20)),
                                     );
                                   }),
                                 ],
@@ -1131,7 +1132,7 @@ class _MakePaymentState extends State<MakePayment> {
                                               openLogOutDialog();
                                               return;
                                             }
-                                          }, child: Text("Start Scan",style:TextStyle(fontSize: 20)),
+                                          }, child: Text(AppLocalizations.of(context)!.translate('start_scan'),style:TextStyle(fontSize: 20)),
                                         );
                                       }),
 
@@ -1197,7 +1198,7 @@ class _MakePaymentState extends State<MakePayment> {
     log('${DateTime.now().toIso8601String()}_onPermissionSet $p');
     if (!p) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('no Permission')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.translate('no_permission'))),
       );
     }
   }
@@ -1300,7 +1301,7 @@ class _MakePaymentState extends State<MakePayment> {
       return 'N/A';
     }
 
-  }  
+  }
 
 /*
   Get Cart product modifier
@@ -1850,12 +1851,12 @@ class _MakePaymentState extends State<MakePayment> {
         //await syncOrderToCloud(updatedOrder);
 
       }
-      
+
     }catch(e){
       print('create order error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Create order error: ${e}");
+          msg: AppLocalizations.of(context)!.translate('create_order_error')+" ${e}");
     }
   }
 

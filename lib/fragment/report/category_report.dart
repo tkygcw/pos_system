@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -56,7 +57,7 @@ class _CategoryReportState extends State<CategoryReport> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Category Report',
+                              child: Text(AppLocalizations.of(context)!.translate('category_report'),
                                   style: TextStyle(fontSize: 25, color: Colors.black)),
                             ),
                           ],
@@ -79,7 +80,14 @@ class _CategoryReportState extends State<CategoryReport> {
                                 DataColumn(
                                   label: Expanded(
                                     child: Text(
-                                      'Category',
+                                      AppLocalizations.of(context)!.translate('category'),
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Expanded(
+                                    child: Text(AppLocalizations.of(context)!.translate('quantity'),
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -87,7 +95,7 @@ class _CategoryReportState extends State<CategoryReport> {
                                 DataColumn(
                                   label: Expanded(
                                     child: Text(
-                                      'Quantity',
+                                      AppLocalizations.of(context)!.translate('net_sales'),
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -95,15 +103,7 @@ class _CategoryReportState extends State<CategoryReport> {
                                 DataColumn(
                                   label: Expanded(
                                     child: Text(
-                                      'Net sales',
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      'Gross sales',
+                                      AppLocalizations.of(context)!.translate('gross_sales'),
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -120,7 +120,7 @@ class _CategoryReportState extends State<CategoryReport> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(Icons.menu),
-                              Text('NO RECORD FOUND'),
+                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
                             ],
                           ),
                         )
@@ -142,7 +142,7 @@ class _CategoryReportState extends State<CategoryReport> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Category Report',
+                              child: Text(AppLocalizations.of(context)!.translate('category_report'),
                                   style: TextStyle(fontSize: 25, color: Colors.black)),
                             ),
                           ],
@@ -167,7 +167,14 @@ class _CategoryReportState extends State<CategoryReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Category',
+                                        AppLocalizations.of(context)!.translate('category'),
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(AppLocalizations.of(context)!.translate('quantity'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -175,7 +182,7 @@ class _CategoryReportState extends State<CategoryReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Quantity',
+                                        AppLocalizations.of(context)!.translate('net_sales'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -183,15 +190,7 @@ class _CategoryReportState extends State<CategoryReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Net sales',
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        'Gross sales',
+                                        AppLocalizations.of(context)!.translate('gross_sales'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -209,7 +208,7 @@ class _CategoryReportState extends State<CategoryReport> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(Icons.menu),
-                              Text('NO RECORD FOUND'),
+                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
                             ],
                           ),
                         )
@@ -248,7 +247,7 @@ class _CategoryReportState extends State<CategoryReport> {
           DataRow(
             cells: <DataCell>[
               DataCell(
-                Text('Category - ${orderDetailCategoryData[i].category_name}'),
+                Text(AppLocalizations.of(context)!.translate('category')+' - ${orderDetailCategoryData[i].category_name}'),
               ),
               DataCell(Text('${orderDetailCategoryData[i].category_item_sum}')),
               DataCell(Text('${orderDetailCategoryData[i].category_net_sales!.toStringAsFixed(2)}')),

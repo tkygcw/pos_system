@@ -72,7 +72,7 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
       return Center(
         child: SingleChildScrollView(
           child: AlertDialog(
-            title: Text('Enter Current User PIN'),
+            title: Text(AppLocalizations.of(context)!.translate('enter_current_user_pin')),
             content: SizedBox(
               height: 100.0,
               width: 350.0,
@@ -171,7 +171,7 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     }else if(printStatus == 3){
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "No cashier printer added");
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('no_cashier_printer_added'));
     } else if(printStatus == 4){
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,

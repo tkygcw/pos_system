@@ -121,7 +121,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
               child: SingleChildScrollView(
                 physics: NeverScrollableScrollPhysics(),
                 child: AlertDialog(
-                  title: Text('Enter Current User PIN'),
+                  title: Text(AppLocalizations.of(context)!.translate('enter_current_user_pin')),
                   content: SizedBox(
                     height: 100.0,
                     width: 350.0,
@@ -215,7 +215,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
         return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
           this.tableModel = tableModel;
           return AlertDialog(
-            title: Text('Confirm remove item ?'),
+            title: Text(AppLocalizations.of(context)!.translate('confirm_remove_item')),
             content: Container(
               child: Text('${widget.cartItem!.product_name} ${AppLocalizations.of(context)?.translate('confirm_delete')}'),
             ),
@@ -351,7 +351,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           //
           //   //syncUpdatedPosTableToCloud(_posTableValue.toString());
           // }
-          Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: "delete successful");
+          Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(context)!.translate('delete_successful'));
           tableModel.changeContent(true);
           cart.removeAllTable();
           cart.removeAllCartItem();
@@ -718,7 +718,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       print(e);
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Delete current table use detail error: $e");
+          msg: AppLocalizations.of(context)!.translate('delete_current_table_use_detail_error')+" $e");
     }
   }
 
@@ -756,7 +756,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Delete current table use id error: ${e}");
+          msg: AppLocalizations.of(context)!.translate('delete_current_table_use_id_error')+" ${e}");
     }
   }
 

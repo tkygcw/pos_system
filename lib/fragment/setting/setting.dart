@@ -116,7 +116,7 @@ class _SettingMenuState extends State<SettingMenu> {
               resizeToAvoidBottomInset: false,
               appBar: AppBar(
                 automaticallyImplyLeading: false,
-                title: Text('Setting',
+                title: Text(AppLocalizations.of(context)!.translate('setting'),
                     style: TextStyle(fontSize: 25, color: Colors.black)),
                 backgroundColor: Color(0xffFAFAFA),
                 elevation: 0,
@@ -152,7 +152,7 @@ class _SettingMenuState extends State<SettingMenu> {
                                 }
 
                               },
-                              child: Text('Close Counter'),
+                              child: Text(AppLocalizations.of(context)!.translate('close_counter')),
                             ),
                           ],
                         )),
@@ -165,10 +165,10 @@ class _SettingMenuState extends State<SettingMenu> {
                       dividerTheme: SideNavigationBarDividerTheme.standard(),
                     ),
                     selectedIndex: selectedIndex,
-                    items: const [
+                    items: [
                       SideNavigationBarItem(
                         icon: Icons.print,
-                        label: 'Printer Setting',
+                        label: AppLocalizations.of(context)!.translate('printer_setting'),
                       ),
                       // SideNavigationBarItem(
                       //   icon: Icons.receipt,
@@ -176,15 +176,15 @@ class _SettingMenuState extends State<SettingMenu> {
                       // ),
                       SideNavigationBarItem(
                         icon: Icons.table_restaurant,
-                        label: 'Table Setting',
+                        label: AppLocalizations.of(context)!.translate('table_setting'),
                       ),
                       SideNavigationBarItem(
                         icon: Icons.devices,
-                        label: 'Hardware Setting',
+                        label: AppLocalizations.of(context)!.translate('hardware_setting'),
                       ),
                       SideNavigationBarItem(
                         icon: Icons.settings,
-                        label: 'App-Device setting',
+                        label: AppLocalizations.of(context)!.translate('app_device_setting'),
                       ),
                       // SideNavigationBarItem(
                       //   icon: Icons.settings,
@@ -231,7 +231,7 @@ class _SettingMenuState extends State<SettingMenu> {
               resizeToAvoidBottomInset: false,
               appBar: AppBar(
                 automaticallyImplyLeading: false,
-                title: Text('Setting',
+                title: Text(AppLocalizations.of(context)!.translate('setting'),
                     style: TextStyle(fontSize: 25, color: Colors.black)),
                 backgroundColor: Color(0xffFAFAFA),
                 elevation: 0,
@@ -269,7 +269,7 @@ class _SettingMenuState extends State<SettingMenu> {
                                   }
 
                                 },
-                                child: Text('Close Counter'),
+                                child: Text(AppLocalizations.of(context)!.translate('close_counter')),
                               ),
                             ],
                           )),
@@ -282,10 +282,10 @@ class _SettingMenuState extends State<SettingMenu> {
                         dividerTheme: SideNavigationBarDividerTheme.standard(),
                       ),
                       selectedIndex: selectedIndex,
-                      items: const [
+                      items: [
                         SideNavigationBarItem(
                           icon: Icons.print,
-                          label: 'Printer',
+                          label: AppLocalizations.of(context)!.translate('printer'),
                         ),
                         // SideNavigationBarItem(
                         //   icon: Icons.receipt,
@@ -293,15 +293,15 @@ class _SettingMenuState extends State<SettingMenu> {
                         // ),
                         SideNavigationBarItem(
                           icon: Icons.table_restaurant,
-                          label: 'Table Setting',
+                          label: AppLocalizations.of(context)!.translate('table_setting'),
                         ),
                         SideNavigationBarItem(
                           icon: Icons.devices,
-                          label: 'Hardware Setting',
+                          label: AppLocalizations.of(context)!.translate('hardware_setting'),
                         ),
                         SideNavigationBarItem(
                           icon: Icons.settings,
-                          label: 'App-Device setting',
+                          label: AppLocalizations.of(context)!.translate('app_device_setting'),
                         ),
                         // SideNavigationBarItem(
                         //   icon: Icons.list,

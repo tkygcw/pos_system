@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/transfer_owner.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -56,7 +57,7 @@ class _TransferRecordState extends State<TransferRecord> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Transfer Owner Report (${deviceModel})',
+                              child: Text(AppLocalizations.of(context)!.translate('transfer_owner_report')+' (${deviceModel})',
                                   style: TextStyle(fontSize: 25, color: Colors.black)),
                             ),
                           ],
@@ -77,8 +78,8 @@ class _TransferRecordState extends State<TransferRecord> {
                                 return Card(
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text('From: ${dateTransferOwnerList[index].fromUsername} to ${dateTransferOwnerList[index].toUsername}'),
-                                    subtitle: Text('Transfer date time: ${Utils.formatDate(dateTransferOwnerList[index].created_at)}'),
+                                    title: Text(AppLocalizations.of(context)!.translate('from')+': ${dateTransferOwnerList[index].fromUsername} to ${dateTransferOwnerList[index].toUsername}'),
+                                    subtitle: Text(AppLocalizations.of(context)!.translate('transfer_date_time')+': ${Utils.formatDate(dateTransferOwnerList[index].created_at)}'),
                                     leading:  CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.compare_arrows, color: Colors.grey,)),
                                     trailing: Text('${dateTransferOwnerList[index].cash_balance}'),
                                   ),
@@ -93,7 +94,7 @@ class _TransferRecordState extends State<TransferRecord> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(Icons.menu),
-                              Text('NO RECORD FOUND'),
+                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
                             ],
                           ),
                         )
@@ -114,7 +115,7 @@ class _TransferRecordState extends State<TransferRecord> {
                       Row(
                         children: [
                           Container(
-                            child: Text('Transfer Owner Report (${deviceModel})',
+                            child: Text(AppLocalizations.of(context)!.translate('transfer_owner_report')+' (${deviceModel})',
                                 style: TextStyle(fontSize: 25, color: Colors.black)),
                           ),
                         ],
@@ -133,8 +134,8 @@ class _TransferRecordState extends State<TransferRecord> {
                               return Card(
                                 elevation: 5,
                                 child: ListTile(
-                                  title: Text('From: ${dateTransferOwnerList[index].fromUsername} to ${dateTransferOwnerList[index].toUsername}'),
-                                  subtitle: Text('Transfer date time: ${dateTransferOwnerList[index].created_at}'),
+                                  title: Text(AppLocalizations.of(context)!.translate('from')+': ${dateTransferOwnerList[index].fromUsername} to ${dateTransferOwnerList[index].toUsername}'),
+                                  subtitle: Text(AppLocalizations.of(context)!.translate('transfer_date_time')+': ${dateTransferOwnerList[index].created_at}'),
                                   leading:  CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.compare_arrows, color: Colors.grey,)),
                                   trailing: Text('${dateTransferOwnerList[index].cash_balance}'),
                                 ),

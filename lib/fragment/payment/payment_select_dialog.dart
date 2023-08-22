@@ -64,7 +64,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
           return WillPopScope(
             onWillPop: () async => willPop ,
             child: AlertDialog(
-              title: Text('Select Payment Method'),
+              title: Text(AppLocalizations.of(context)!.translate('select_payment_method')),
               content: isload ? Container(
                 // width: MediaQuery.of(context).size.width / 2,
                 // height: MediaQuery.of(context).size.height / 2,
@@ -77,7 +77,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                         children: [
                           Visibility(
                             visible: currentMethod != ''? true : false,
-                            child: Text('Current payment method: ${currentMethod}'),
+                            child: Text(AppLocalizations.of(context)!.translate('current_payment_method')+': ${currentMethod}'),
                           ),
                           GridView.count(
                               shrinkWrap: true,
@@ -116,7 +116,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                   },
                                   child: Card(
                                     elevation: 5,
-                                    color: Colors.black,
+                                    color: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16.0),
                                     ),
@@ -167,7 +167,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                       });
                       Navigator.of(context).pop();
                     },
-                    child: Text("Close"))
+                    child: Text(AppLocalizations.of(context)!.translate('close')))
               ],
             ),
           );
@@ -177,7 +177,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
             child: WillPopScope(
               onWillPop: () async => willPop,
               child: AlertDialog(
-                title: Text('Select Payment Method'),
+                title: Text(AppLocalizations.of(context)!.translate('select_payment_method')),
                 content: isload ? Container(
                   margin: EdgeInsets.all(2),
                   width: MediaQuery.of(context).size.width / 2,
@@ -186,7 +186,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                     children: [
                       Visibility(
                         visible: currentMethod != ''? true : false,
-                        child: Text('Current payment method: ${currentMethod}'),
+                        child: Text(AppLocalizations.of(context)!.translate('current_payment_method')+': ${currentMethod}'),
                       ),
                       SizedBox(height: 10,),
                       GridView.count(
@@ -279,7 +279,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                         });
                         Navigator.of(context).pop();
                       },
-                      child: Text("Close"))
+                      child: Text(AppLocalizations.of(context)!.translate('close')))
                 ],
               ),
             ),

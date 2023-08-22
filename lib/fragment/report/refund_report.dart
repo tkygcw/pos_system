@@ -3,6 +3,7 @@ import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 
@@ -55,7 +56,7 @@ class _RefundReportState extends State<RefundReport> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Refund Report',
+                              child: Text(AppLocalizations.of(context)!.translate('refund_report'),
                                   style: TextStyle(fontSize: 25, color: Colors.black)),
                             ),
                           ],
@@ -80,7 +81,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Bill No.',
+                                        AppLocalizations.of(context)!.translate('bill_no'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -88,7 +89,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Subtotal',
+                                        AppLocalizations.of(context)!.translate('subtotal'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -96,7 +97,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Total Discount',
+                                        AppLocalizations.of(context)!.translate('total_discount'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -113,7 +114,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Amount',
+                                        AppLocalizations.of(context)!.translate('amount'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -121,7 +122,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Rounding',
+                                        AppLocalizations.of(context)!.translate('rounding'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -129,7 +130,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Final Amount',
+                                        AppLocalizations.of(context)!.translate('final_amount'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -137,7 +138,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Refund By',
+                                        AppLocalizations.of(context)!.translate('refund_by'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -145,7 +146,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Refund At',
+                                        AppLocalizations.of(context)!.translate('refund_at'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -163,7 +164,7 @@ class _RefundReportState extends State<RefundReport> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(Icons.menu),
-                              Text('NO RECORD FOUND'),
+                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
                             ],
                           ),
                         )
@@ -185,7 +186,7 @@ class _RefundReportState extends State<RefundReport> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Refund Report',
+                              child: Text(AppLocalizations.of(context)!.translate('refund_report'),
                                   style: TextStyle(fontSize: 25, color: Colors.black)),
                             ),
                           ],
@@ -210,7 +211,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Bill No.',
+                                        AppLocalizations.of(context)!.translate('bill_no'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -218,7 +219,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Subtotal',
+                                        AppLocalizations.of(context)!.translate('subtotal'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -226,7 +227,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Total Discount',
+                                        AppLocalizations.of(context)!.translate('total_discount'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -243,7 +244,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Amount',
+                                        AppLocalizations.of(context)!.translate('amount'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -251,7 +252,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Rounding',
+                                        AppLocalizations.of(context)!.translate('rounding'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -259,7 +260,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Final Amount',
+                                        AppLocalizations.of(context)!.translate('final_amount'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -267,7 +268,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Refund By',
+                                        AppLocalizations.of(context)!.translate('refund_by'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -275,7 +276,7 @@ class _RefundReportState extends State<RefundReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Refund At',
+                                        AppLocalizations.of(context)!.translate('refund_at'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -293,7 +294,7 @@ class _RefundReportState extends State<RefundReport> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(Icons.menu),
-                              Text('NO RECORD FOUND'),
+                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
                             ],
                           ),
                         )

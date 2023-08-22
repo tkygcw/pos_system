@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lan_scanner/lan_scanner.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 
 
 class MyHomePage extends StatefulWidget {
@@ -17,7 +18,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('lan_scanner example'),
+        title: Text(AppLocalizations.of(context)!.translate('lan_scanner_example')),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -42,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     });
                   });
                 },
-                child: const Text('Scan'),
+                child: Text(AppLocalizations.of(context)!.translate('scan')),
               ),
               ListView.builder(
                 physics: const NeverScrollableScrollPhysics(),

@@ -93,16 +93,16 @@ class _HardwareSettingState extends State<HardwareSetting> {
           child: Column(
             children: [
               ListTile(
-                title: Text('Receipt Setting'),
-                subtitle: Text('Customize your receipt look'),
+                title: Text(AppLocalizations.of(context)!.translate('receipt_setting')),
+                subtitle: Text(AppLocalizations.of(context)!.translate('customize_your_receipt_look')),
                 trailing: Icon(Icons.navigate_next),
                 onTap: (){
                   openReceiptDialog();
                 },
               ),
               ListTile(
-                title: Text('Auto open cash drawer'),
-                subtitle: Text('Auto open cash drawer after insert opening balance'),
+                title: Text(AppLocalizations.of(context)!.translate('auto_open_cash_drawer')),
+                subtitle: Text(AppLocalizations.of(context)!.translate('auto_open_cash_drawer_after_insert_opening_balance')),
                 trailing: Switch(
                   value: this.cashDrawer,
                   activeColor: color.backgroundColor,
@@ -120,8 +120,8 @@ class _HardwareSettingState extends State<HardwareSetting> {
                 ),
               ),
               ListTile(
-                title: Text('Enable Second Display'),
-                subtitle: Text('Show device second display (if have)'),
+                title: Text(AppLocalizations.of(context)!.translate('enable_Second_display')),
+                subtitle: Text(AppLocalizations.of(context)!.translate('show_device_second_display')),
                 trailing: Switch(
                   value: this.secondDisplay,
                   activeColor: color.backgroundColor,

@@ -8,6 +8,8 @@ import 'package:pos_system/fragment/logout_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
+import 'package:pos_system/translation/language_setting.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import '../../notifier/theme_color.dart';
@@ -70,11 +72,11 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
           content: content,
           actions: [
             TextButton(
-              child: Text('CANCEL'),
+              child: Text(AppLocalizations.of(context)!.translate('cancel')),
               onPressed: Navigator.of(context).pop,
             ),
             TextButton(
-              child: Text('SUBMIT'),
+              child: Text(AppLocalizations.of(context)!.translate('submit')),
               onPressed: () {
                 print('color selected');
                 Navigator.of(context).pop();
@@ -95,7 +97,7 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
 
   void _openMainColorPicker() async {
     _openDialog(
-      "Background Color picker",
+      AppLocalizations.of(context)!.translate('background_color_picker'),
       MaterialColorPicker(
         colors: fullMaterialColors,
         selectedColor: color.backgroundColor,
@@ -108,7 +110,7 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
 
   void _openButtonColorPicker() async {
     _openDialog(
-      "Button Color picker",
+      AppLocalizations.of(context)!.translate('button_color_picker'),
       MaterialColorPicker(
         colors: fullMaterialColors,
         selectedColor: color.buttonColor,
@@ -120,7 +122,7 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
 
   void _openIconColorPicker() async {
     _openDialog(
-      "Icon Color picker",
+      AppLocalizations.of(context)!.translate('icon_color_picker'),
       MaterialColorPicker(
         colors: fullMaterialColors,
         selectedColor: color.iconColor,
@@ -145,8 +147,8 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                   child: Column(
                     children: [
                       ListTile(
-                        title: Text("Change Background Color"),
-                        subtitle: Text("Main Color for the appearance of app"),
+                        title: Text(AppLocalizations.of(context)!.translate('change_background_color')),
+                        subtitle: Text(AppLocalizations.of(context)!.translate('main_color_for_the_appearance_of_app')),
                         trailing: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
@@ -166,8 +168,8 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                         ),
                       ),
                       ListTile(
-                        title: Text("Change Button Color"),
-                        subtitle: Text("Button Color for the appearance of app"),
+                        title: Text(AppLocalizations.of(context)!.translate('change_button_color')),
+                        subtitle: Text(AppLocalizations.of(context)!.translate('button_color_for_appearance_of_app')),
                         trailing: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
@@ -187,8 +189,8 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                         ),
                       ),
                       ListTile(
-                        title: Text("Change Icon Color"),
-                        subtitle: Text("Icon Color for the appearance of app"),
+                        title: Text(AppLocalizations.of(context)!.translate('change_icon_color')),
+                        subtitle: Text(AppLocalizations.of(context)!.translate('icon_color_for_appearance_of_app')),
                         trailing: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
@@ -240,27 +242,35 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                         endIndent: 20,
                       ),
                       ListTile(
-                        title: Text('Wi-Fi setting'),
-                        subtitle: Text('open wi-fi setting'),
+                        title: Text(AppLocalizations.of(context)!.translate('wifi_setting')),
+                        subtitle: Text(AppLocalizations.of(context)!.translate('open_wifi_setting')),
                         trailing: Icon(Icons.wifi),
                         onTap: () {
                           AppSettings.openWIFISettings();
                         },
                       ),
                       ListTile(
-                        title: Text('App Notification setting'),
-                        subtitle: Text('open app notification setting'),
+                        title: Text(AppLocalizations.of(context)!.translate('app_notification_setting')),
+                        subtitle: Text(AppLocalizations.of(context)!.translate('open_app_notification_setting')),
                         trailing: Icon(Icons.notifications_on),
                         onTap: () {
                           AppSettings.openNotificationSettings();
                         },
                       ),
                       ListTile(
-                        title: Text('Device Sound setting'),
-                        subtitle: Text('open device sound setting'),
+                        title: Text(AppLocalizations.of(context)!.translate('device_sound_setting')),
+                        subtitle: Text(AppLocalizations.of(context)!.translate('open_device_sound_setting')),
                         trailing: Icon(Icons.volume_up),
                         onTap: () {
                           AppSettings.openSoundSettings();
+                        },
+                      ),
+                      ListTile(
+                        title: Text(AppLocalizations.of(context)!.translate('device_language_setting')),
+                        subtitle: Text(AppLocalizations.of(context)!.translate('open_device_language_setting')),
+                        trailing: Icon(Icons.language),
+                        onTap: () {
+                          openLanguageDialog();
                         },
                       ),
                       Divider(
@@ -275,8 +285,8 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                         child: Card(
                           color: Colors.redAccent,
                           child: ListTile(
-                            title: Text('Log Out', style: TextStyle(color: Colors.white)),
-                            subtitle: Text('Reset Pos', style: TextStyle(color: Colors.white)),
+                            title: Text(AppLocalizations.of(context)!.translate('logout'), style: TextStyle(color: Colors.white)),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('reset_pos'), style: TextStyle(color: Colors.white)),
                             trailing: Icon(Icons.logout, color: Colors.white),
                             onTap: () {
                               openLogoutDialog();
@@ -308,6 +318,27 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
             child: Opacity(
                 opacity: a1.value,
                 child: LogoutConfirmDialog(currentPage: 'Setting')),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
+  Future<Future<Object?>> openLanguageDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: LanguageDialog()),
           );
         },
         transitionDuration: Duration(milliseconds: 200),

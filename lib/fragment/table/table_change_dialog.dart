@@ -136,7 +136,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       print('Update order cache table use id error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Update order cache table use id error: ${e}");
+          msg: AppLocalizations.of(context)!.translate('update_order_cache_table_use_id_error')+" ${e}");
     }
   }
 
@@ -186,7 +186,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     } catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Delete current table use detail error: $e");
+          msg: AppLocalizations.of(context)!.translate('delete_current_table_use_detail_error')+" $e");
     }
   }
 
@@ -231,7 +231,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     }catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Delete current table use id error: ${e}");
+          msg: AppLocalizations.of(context)!.translate('delete_current_table_use_id_error')+" ${e}");
     }
   }
 
@@ -420,7 +420,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       return WillPopScope(
         onWillPop: () async => willPop,
         child: AlertDialog(
-          title: Text("Change table to?"),
+          title: Text(AppLocalizations.of(context)!.translate('change_table_to')),
           content: Container(
             width: 350.0,
             height: 100.0,
@@ -446,7 +446,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: color.backgroundColor),
                         ),
-                        labelText: 'Table No.',
+                        labelText: AppLocalizations.of(context)!.translate('table_no')+'.',
                       ),
                     ),
                   );
@@ -463,7 +463,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
               },
             ),
             TextButton(
-              child: Text("Submit"),
+              child: Text(AppLocalizations.of(context)!.translate('submit')),
               onPressed: isButtonDisabled ? null : () {
                 setState(() {
                   isButtonDisabled = true;

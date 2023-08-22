@@ -90,7 +90,7 @@ class _TableDialogState extends State<TableDialog> {
     List<PosTable> tableList = widget.allTableList;
     bool tbNumberRepeated = tableList.any((item) => item.number == tableNoController.text);
     if(tbNumberRepeated){
-      Fluttertoast.showToast(msg: "Table number repeated", backgroundColor: Colors.red);
+      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('table_number_repeated'), backgroundColor: Colors.red);
       isButtonDisabled = false;
       return;
     } else {
@@ -133,15 +133,15 @@ class _TableDialogState extends State<TableDialog> {
               soft_delete: ''));
 
           if (data.table_sqlite_id != '') {
-            Fluttertoast.showToast(msg: 'Successfully create');
+            Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('successfully_create'));
             widget.callBack();
             closeDialog(context);
           } else {
-            Fluttertoast.showToast(msg: 'Fail create');
+            Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('fail_create'));
           }
         }
       } else {
-        Fluttertoast.showToast(msg: 'No Internet access');
+        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_internet_access'));
       }
 
 
@@ -162,7 +162,7 @@ class _TableDialogState extends State<TableDialog> {
 */
     } catch (error) {
       print('error: ${error}');
-      Fluttertoast.showToast(msg: 'Something went wrong, please try again');
+      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later'));
     }
   }
 
@@ -197,14 +197,14 @@ class _TableDialogState extends State<TableDialog> {
       ---------------------------------end sync--------------------------------
 */
       if (data == 1) {
-        Fluttertoast.showToast(msg: 'Successfully edit');
+        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('successfully_edit'));
         widget.callBack();
         closeDialog(context);
       } else {
-        Fluttertoast.showToast(msg: 'Fail edit');
+        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('fail_edit'));
       }
     } catch (error) {
-      Fluttertoast.showToast(msg: 'Something went wrong, please try again');
+      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later'));
     }
   }
 
@@ -235,14 +235,14 @@ class _TableDialogState extends State<TableDialog> {
       ---------------------------------end sync-------------------------------
 */
       if (data == 1) {
-        Fluttertoast.showToast(msg: 'Successfully delete');
+        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('successfully_delete'));
         widget.callBack();
         closeDialog(context);
       } else {
-        Fluttertoast.showToast(msg: 'Fail delete');
+        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('fail_delete'));
       }
     } catch (error) {
-      Fluttertoast.showToast(msg: 'Something went wrong, please try again');
+      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later'));
     }
   }
 
@@ -335,7 +335,7 @@ class _TableDialogState extends State<TableDialog> {
                                   borderSide:
                                       BorderSide(color: color.backgroundColor),
                                 ),
-                                labelText: 'Table No.',
+                                labelText: AppLocalizations.of(context)!.translate('table_no')+'.',
                               ),
                             ),
                           );
@@ -374,7 +374,7 @@ class _TableDialogState extends State<TableDialog> {
                                   borderSide:
                                       BorderSide(color: color.backgroundColor),
                                 ),
-                                labelText: 'Seat',
+                                labelText: AppLocalizations.of(context)!.translate('seat'),
                               ),
                             ),
                           );
@@ -406,7 +406,7 @@ class _TableDialogState extends State<TableDialog> {
                   style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                   child: widget.object.table_id == null
                       ? Text('${AppLocalizations.of(context)?.translate('add')}')
-                      : Text("Submit"),
+                      : Text(AppLocalizations.of(context)!.translate('submit')),
                   onPressed: isButtonDisabled ? null : () async {
                     _submit(context);
                   },

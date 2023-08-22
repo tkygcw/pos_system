@@ -11,6 +11,7 @@ import 'package:pos_system/fragment/update_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/transfer_owner.dart';
 import 'package:pos_system/page/home.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:custom_pin_screen/custom_pin_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -449,7 +450,7 @@ class _PosPinPageState extends State<PosPinPage> {
         );
       }
     } else {
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Wrong pin. Please insert valid pin");
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('wrong_pin_please_insert_valid_pin'));
 
     }
   }

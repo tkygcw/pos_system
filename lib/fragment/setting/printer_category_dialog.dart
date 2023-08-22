@@ -35,7 +35,7 @@ class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return AlertDialog(
-        title: Text('Select category '),
+        title: Text(AppLocalizations.of(context)!.translate('select_category')),
         content: isLoad
             ? Container(
                 height: MediaQuery.of(context).size.height / 3,

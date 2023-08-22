@@ -43,7 +43,7 @@ class _DeviceCheckDialogState extends State<DeviceCheckDialog> {
       return Center(
         child: SingleChildScrollView(
           child: AlertDialog(
-            title: Text('Multi device login confirmation'),
+            title: Text(AppLocalizations.of(context)!.translate('multi_device_login')),
             content: Container(
               height: 225,
               width: 400,
@@ -61,7 +61,7 @@ class _DeviceCheckDialogState extends State<DeviceCheckDialog> {
                             //inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
                             controller: adminPosPinController,
                             decoration: InputDecoration(
-                              labelText: "YES",
+                              labelText: AppLocalizations.of(context)!.translate('yes'),
                               errorText: _submitted
                                   ? errorPassword == null ? errorPassword : AppLocalizations.of(context)?.translate(errorPassword!)
                                   : null,

@@ -45,7 +45,7 @@ class _PromotionDialogState extends State<PromotionDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return AlertDialog(
-        title: Text("Select Promotion"),
+        title: Text(AppLocalizations.of(context)!.translate('select_promotion')),
         content: Container(
           width: 350,
           height: 350,
@@ -76,7 +76,7 @@ class _PromotionDialogState extends State<PromotionDialog> {
                                 if(outstanding){
                                   Fluttertoast.showToast(
                                       backgroundColor: Color(0xFFFF0000),
-                                      msg: "Outstanding promotion");
+                                      msg: AppLocalizations.of(context)!.translate('outstanding_promotion'));
                                 } else {
                                   if(cart.cartNotifierItem.isNotEmpty){
                                     if(promotionList[index].specific_category == '1'){
@@ -95,7 +95,7 @@ class _PromotionDialogState extends State<PromotionDialog> {
                                       } else {
                                         Fluttertoast.showToast(
                                             backgroundColor: Color(0xFFFF0000),
-                                            msg: "No Product match with promotion category");
+                                            msg: AppLocalizations.of(context)!.translate('no_product_match_with_promotion_category'));
                                       }
                                     } else {
                                       if(promotionList[index].all_time == '0') {

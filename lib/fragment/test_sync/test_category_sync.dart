@@ -27,6 +27,7 @@ import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/tax.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:presentation_displays/display.dart';
 import 'package:presentation_displays/displays_manager.dart';
 import 'package:printing/printing.dart';
@@ -107,7 +108,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
                   QrOrder().getQrOrder();
                  //openLogOutDialog();
                 },  //await displayManager.showSecondaryDisplay(displayId: 1, routerName: "presentation"),
-                child: Text('current screen height/width: ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
+                child: Text(AppLocalizations.of(context)!.translate('current_screen_height_width')+': ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
             ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -118,7 +119,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
                     ),
                   );
                 },
-                child: Text('pdf generate'))
+                child: Text(AppLocalizations.of(context)!.translate('pdf_generate')))
           ],
         ),
       ) : CustomProgressBar(),

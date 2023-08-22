@@ -108,7 +108,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
               if (constraints.maxWidth > 800) {
                 return AlertDialog(
                   //contentPadding: EdgeInsets.zero,
-                  title: Text('Payment success'),
+                  title: Text(AppLocalizations.of(context)!.translate('payment_success')),
                   content: isLoaded
                       ? Container(
                           width: 360,
@@ -156,7 +156,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                         },
                                         child: Row(
                                           children: [
-                                            Text('Print receipt'),
+                                            Text(AppLocalizations.of(context)!.translate('print_receipt')),
                                             Spacer(),
                                             Icon(Icons.print),
                                           ],
@@ -250,7 +250,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                 ///Mobile layout
                 return AlertDialog(
                   contentPadding: EdgeInsets.zero,
-                  title: Text('Payment success'),
+                  title: Text(AppLocalizations.of(context)!.translate('payment_success')),
                   content: isLoaded ?
                   Container(
                     width: MediaQuery.of(context).size.width / 2,
@@ -355,7 +355,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     }else if(printStatus == 3){
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "No cashier printer added");
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('no_cashier_printer_added'));
     } else if(printStatus == 4){
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
@@ -399,7 +399,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     }else if(printStatus == 3){
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "No cashier printer added");
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('no_cashier_printer_added'));
     } else if(printStatus == 4){
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
@@ -466,7 +466,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     } catch (e) {
       print('Delete current table use detail error: ${e}');
       Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000), msg: "Delete current table use detail error: $e");
+          backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('delete_current_table_use_detail_error')+" $e");
     }
   }
 
@@ -512,7 +512,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     } catch (e) {
       print('Delete current table use id error: ${e}');
       Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000), msg: "Delete current table use id error: ${e}");
+          backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('delete_current_table_use_id_error')+" ${e}");
     }
   }
 
@@ -683,7 +683,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     } catch (e) {
       print(e);
       Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000), msg: "Create cash record error: ${e}");
+          backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_cash_record_error'));
     }
   }
 

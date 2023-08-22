@@ -41,7 +41,7 @@ class _TableSettingState extends State<TableSetting> {
             appBar: AppBar(
               primary: false,
               automaticallyImplyLeading: false,
-              title: Text('Table QR Generate', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+              title: Text(AppLocalizations.of(context)!.translate('table_qr_generate'), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
               elevation: 0,
               actions: [
                 Container(
@@ -72,7 +72,7 @@ class _TableSettingState extends State<TableSetting> {
                           }
                         });
                       },
-                      child: Text('${btnText}')),
+                      child: Text(AppLocalizations.of(context)!.translate(checkedTable.length > 0 ? 'unselect' : 'select_all'))),
                 )
               ],
             ),
@@ -115,7 +115,7 @@ class _TableSettingState extends State<TableSetting> {
                       child: CheckboxListTile(
                           value: tableList[index].isSelected,
                           activeColor: color.backgroundColor,
-                          title: Text('Table No: ${tableList[index].number}'),
+                          title: Text(AppLocalizations.of(context)!.translate('table_no') +': ${tableList[index].number}'),
                           onChanged: (value){
                             setState(() {
                               if(value!){
@@ -140,7 +140,7 @@ class _TableSettingState extends State<TableSetting> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.table_restaurant, size: 36.0),
-                          Text('NO TABLE FOUND', style: TextStyle(fontSize: 24)),
+                          Text(AppLocalizations.of(context)!.translate('no_table_found'), style: TextStyle(fontSize: 24)),
                         ],
                       ),
                     ),
@@ -155,7 +155,7 @@ class _TableSettingState extends State<TableSetting> {
             appBar: AppBar(
               primary: false,
               automaticallyImplyLeading: false,
-              title: Text('Table QR Generate', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+              title: Text(AppLocalizations.of(context)!.translate('table_qr_generate'), style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
               elevation: 0,
               actions: [
                 Container(
@@ -230,7 +230,7 @@ class _TableSettingState extends State<TableSetting> {
                       child: CheckboxListTile(
                           value: tableList[index].isSelected,
                           activeColor: color.backgroundColor,
-                          title: Text('Table NO: ${tableList[index].number}'),
+                          title: Text(AppLocalizations.of(context)!.translate('table_no') + ': ${tableList[index].number}'),
                           onChanged: (value){
                             setState(() {
                               if(value!){
@@ -255,7 +255,7 @@ class _TableSettingState extends State<TableSetting> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.table_restaurant, size: 36.0),
-                          Text('NO TABLE FOUND', style: TextStyle(fontSize: 24)),
+                          Text(AppLocalizations.of(context)!.translate('no_table_found'), style: TextStyle(fontSize: 24)),
                         ],
                       ),
                     ),

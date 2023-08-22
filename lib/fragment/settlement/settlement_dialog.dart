@@ -198,7 +198,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
             child: Center(
               child: SingleChildScrollView(
                 child: AlertDialog(
-                  title: Text('Enter Current User PIN'),
+                  title: Text(AppLocalizations.of(context)!.translate('enter_current_user_pin')),
                   content: SizedBox(
                     height: 100.0,
                     width: 350.0,
@@ -264,7 +264,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
         return AlertDialog(
-          title: Text('Confirm do settlement'),
+          title: Text(AppLocalizations.of(context)!.translate('confirm_do_settlement')),
           content: Container(
             child: Text('${AppLocalizations.of(context)?.translate('settlement_desc')}'),
           ),
@@ -374,7 +374,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
     }else if(printStatus == 3){
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
-          msg: "No cashier printer added");
+          msg: AppLocalizations.of(context)!.translate('no_cashier_printer_added'));
     }
   }
 

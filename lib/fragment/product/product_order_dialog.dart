@@ -245,7 +245,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                           mainAxisAlignment: MainAxisAlignment.start,
                                           children: [
                                             Text(
-                                              "Quantity",
+                                              AppLocalizations.of(context)!.translate('quantity'),
                                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                             ),
                                           ],
@@ -275,7 +275,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                           mainAxisAlignment: MainAxisAlignment.start,
                                           children: [
                                             Text(
-                                              "Remark",
+                                              AppLocalizations.of(context)!.translate('remark'),
                                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                             ),
                                           ],
@@ -306,7 +306,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                   backgroundColor: color.backgroundColor,
                                 ),
                                 child: Text(
-                                  'Close',
+                                  AppLocalizations.of(context)!.translate('close'),
                                   style: TextStyle(color: Colors.white),
                                 ),
                                 onPressed: isButtonDisabled
@@ -329,7 +329,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                   backgroundColor: color.buttonColor,
                                 ),
                                 child: Text(
-                                  'ADD',
+                                  AppLocalizations.of(context)!.translate('add'),
                                   style: TextStyle(color: Colors.white),
                                 ),
                                 onPressed: isButtonDisabled
@@ -351,7 +351,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                           openChooseTableDialog(cart);
                                         }
                                       } else {
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Invalid qty input");
+                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
                                       }
                                     } else {
                                       // Disable the button after it has been pressed
@@ -362,7 +362,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                       Navigator.of(context).pop();
                                     }
                                   } else {
-                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Product variant sold out!");
+                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
                                   }
                                 },
                               ),
@@ -435,7 +435,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
                                       Text(
-                                        "Quantity",
+                                        AppLocalizations.of(context)!.translate('quantity'),
                                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                       ),
                                     ],
@@ -464,7 +464,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
                                       Text(
-                                        "Remark",
+                                        AppLocalizations.of(context)!.translate('remark'),
                                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                       ),
                                     ],
@@ -531,7 +531,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                     openChooseTableDialog(cart);
                                   }
                                 } else {
-                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Invalid qty input");
+                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
                                 }
                               } else {
                                 // Disable the button after it has been pressed
@@ -542,7 +542,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                 Navigator.of(context).pop();
                               }
                             } else {
-                              Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Product variant sold out!");
+                              Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
                             }
                           },
                         ),
@@ -837,7 +837,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       print("branchLinkProduct_id: ${branchLinkProduct_id}");
       return branchLinkProduct_id;
     } catch (e) {
-      Fluttertoast.showToast(msg: 'Make sure stock is restock');
+      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('make_sure_stock_is_restock'));
       return null;
     }
   }

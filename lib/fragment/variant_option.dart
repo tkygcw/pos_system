@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 
 import '../notifier/theme_color.dart';
@@ -37,7 +38,7 @@ class _VariantOptionDialogState extends State<VariantOptionDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return AlertDialog(
-        title: Text("Option"),
+        title: Text(AppLocalizations.of(context)!.translate('option')),
         content: Container(
           // Change as per your requirement
           height: 400,
@@ -57,7 +58,7 @@ class _VariantOptionDialogState extends State<VariantOptionDialog> {
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: color.backgroundColor),
                         ),
-                        labelText: 'Variant Group Name'),
+                        labelText: AppLocalizations.of(context)!.translate('variant_group_name')),
                   ),
                 ),
                 Padding(
@@ -84,7 +85,7 @@ class _VariantOptionDialogState extends State<VariantOptionDialog> {
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: color.backgroundColor),
                         ),
-                        labelText: 'Variant Item Name'),
+                        labelText: AppLocalizations.of(context)!.translate('variant_item_name')),
                   ),
                 ),
                 Expanded(
@@ -117,13 +118,13 @@ class _VariantOptionDialogState extends State<VariantOptionDialog> {
         ),
         actions: <Widget>[
           TextButton(
-            child: Text('Close'),
+            child: Text(AppLocalizations.of(context)!.translate('close')),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           TextButton(
-            child: const Text('Add'),
+            child: Text(AppLocalizations.of(context)!.translate('add')),
             onPressed: () {
               addOption();
             },
@@ -137,12 +138,12 @@ class _VariantOptionDialogState extends State<VariantOptionDialog> {
     if(modGroupNameController.text == null || modGroupNameController.text == ''){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFFC107),
-          msg: "Please fill the name");
+          msg: AppLocalizations.of(context)!.translate('please_fill_the_name'));
     }
     else if(selected.length<=0){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFFC107),
-          msg: "Please set the option");
+          msg: AppLocalizations.of(context)!.translate('please_set_the_option'));
     }
     else{
       Map productVariantList = new Map();

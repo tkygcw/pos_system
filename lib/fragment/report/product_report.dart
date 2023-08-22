@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/order_detail.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 
@@ -56,7 +57,7 @@ class _ProductReportState extends State<ProductReport> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Product Report',
+                              child: Text(AppLocalizations.of(context)!.translate('product_report'),
                                   style: TextStyle(fontSize: 25, color: Colors.black)),
                             ),
                           ],
@@ -80,7 +81,7 @@ class _ProductReportState extends State<ProductReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Product',
+                                        AppLocalizations.of(context)!.translate('product'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -88,7 +89,14 @@ class _ProductReportState extends State<ProductReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Variant',
+                                        AppLocalizations.of(context)!.translate('variant'),
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(AppLocalizations.of(context)!.translate('quantity'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -96,7 +104,7 @@ class _ProductReportState extends State<ProductReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Quantity',
+                                        AppLocalizations.of(context)!.translate('net_sales'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -104,15 +112,7 @@ class _ProductReportState extends State<ProductReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Net sales',
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        'Gross sales',
+                                        AppLocalizations.of(context)!.translate('gross_sales'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -130,7 +130,7 @@ class _ProductReportState extends State<ProductReport> {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Icon(Icons.menu),
-                                    Text('NO RECORD FOUND'),
+                                    Text(AppLocalizations.of(context)!.translate('no_record_found')),
                                   ],
                                 ),
                             )
@@ -154,7 +154,7 @@ class _ProductReportState extends State<ProductReport> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Product Report',
+                              child: Text(AppLocalizations.of(context)!.translate('product_report'),
                                   style: TextStyle(fontSize: 25, color: Colors.black)),
                             ),
                           ],
@@ -179,7 +179,7 @@ class _ProductReportState extends State<ProductReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Product',
+                                        AppLocalizations.of(context)!.translate('product'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -187,7 +187,14 @@ class _ProductReportState extends State<ProductReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Variant',
+                                        AppLocalizations.of(context)!.translate('variant'),
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(AppLocalizations.of(context)!.translate('quantity'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -195,7 +202,7 @@ class _ProductReportState extends State<ProductReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Quantity',
+                                        AppLocalizations.of(context)!.translate('net_sales'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -203,15 +210,7 @@ class _ProductReportState extends State<ProductReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Net sales',
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        'Gross sales',
+                                        AppLocalizations.of(context)!.translate('gross_sales'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -227,7 +226,7 @@ class _ProductReportState extends State<ProductReport> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(Icons.menu),
-                              Text('NO RECORD FOUND'),
+                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
                             ],
                           ),
                         )
@@ -273,10 +272,10 @@ class _ProductReportState extends State<ProductReport> {
             cells: <DataCell>[
               orderDetailCategoryData[i].category_name != ''?
               DataCell(
-                Text('Category - ${orderDetailCategoryData[i].category_name}', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(AppLocalizations.of(context)!.translate('category')+' - ${orderDetailCategoryData[i].category_name}', style: TextStyle(fontWeight: FontWeight.bold)),
               ) :
               DataCell(
-                Text('Category - Other', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(AppLocalizations.of(context)!.translate('category_other'), style: TextStyle(fontWeight: FontWeight.bold)),
               ),
               DataCell(Text('')),
               DataCell(Text('${orderDetailCategoryData[i].category_item_sum}')),

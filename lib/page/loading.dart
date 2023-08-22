@@ -45,6 +45,7 @@ import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -219,7 +220,7 @@ class _LoadingPageState extends State<LoadingPage> {
           soft_delete: ''));
       await insertReceiptKey(data, dateTime);
     } catch (e) {
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Fail to add receipt layout, Please try again $e");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('fail_to_add_receipt_layout_please_try_again')+" $e");
       print('$e');
     }
   }
@@ -275,7 +276,7 @@ class _LoadingPageState extends State<LoadingPage> {
           soft_delete: ''));
       await insertReceiptKey(data, dateTime);
     } catch (e) {
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Fail to add receipt layout, Please try again $e");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('fail_to_add_receipt_layout_please_try_again')+" $e");
       print('$e');
     }
   }

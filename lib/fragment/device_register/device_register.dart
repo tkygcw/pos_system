@@ -1,5 +1,6 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/domain.dart';
@@ -153,7 +154,7 @@ class _DeviceRegisterState extends State<DeviceRegister> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Colors.red,
-          content: const Text('No POS device is set in this branch'),
+          content: Text(AppLocalizations.of(context)!.translate('no_pos_device_is_set_in_this_branch')),
           action: SnackBarAction(
             label: 'Action',
             onPressed: () {

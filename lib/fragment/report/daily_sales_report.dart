@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -69,7 +70,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                       Row(
                         children: [
                           Container(
-                            child: Text('Daily Sales Report',
+                            child: Text(AppLocalizations.of(context)!.translate('daily_sales_report'),
                                 style: TextStyle(fontSize: 25, color: Colors.black)),
                           ),
                         ],
@@ -94,7 +95,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                 DataColumn(
                                   label: Expanded(
                                     child: Text(
-                                      'Date',
+                                      AppLocalizations.of(context)!.translate('date'),
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -102,7 +103,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                 DataColumn(
                                   label: Expanded(
                                     child: Text(
-                                      'Total Bills',
+                                      AppLocalizations.of(context)!.translate('total_bills'),
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -110,7 +111,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                 DataColumn(
                                   label: Expanded(
                                     child: Text(
-                                      'Total Sales',
+                                      AppLocalizations.of(context)!.translate('total_sales'),
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -118,7 +119,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                 DataColumn(
                                   label: Expanded(
                                     child: Text(
-                                      'Total Refund bill',
+                                      AppLocalizations.of(context)!.translate('total_refund_bill'),
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -126,7 +127,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                 DataColumn(
                                   label: Expanded(
                                     child: Text(
-                                      'Total Refund',
+                                      AppLocalizations.of(context)!.translate('total_refund'),
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -134,7 +135,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                 DataColumn(
                                   label: Expanded(
                                     child: Text(
-                                      'Total Discount',
+                                      AppLocalizations.of(context)!.translate('total_discount'),
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -142,7 +143,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                 DataColumn(
                                   label: Expanded(
                                     child: Text(
-                                      'Total Tax',
+                                      AppLocalizations.of(context)!.translate('total_tax'),
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -150,7 +151,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                 DataColumn(
                                   label: Expanded(
                                     child: Text(
-                                      'Total Cancellation',
+                                      AppLocalizations.of(context)!.translate('total_cancellation'),
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -177,7 +178,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Icon(Icons.menu),
-                            Text('NO RECORD FOUND'),
+                            Text(AppLocalizations.of(context)!.translate('no_record_found')),
                           ],
                         ),
                       )
@@ -197,7 +198,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                       Row(
                         children: [
                           Container(
-                            child: Text('Daily Sales Report',
+                            child: Text(AppLocalizations.of(context)!.translate('daily_sales_report'),
                                 style: TextStyle(fontSize: 25, color: Colors.black)),
                           ),
                         ],
@@ -221,7 +222,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Date',
+                                        AppLocalizations.of(context)!.translate('date'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -229,7 +230,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Total Bills',
+                                        AppLocalizations.of(context)!.translate('total_bills'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -237,7 +238,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Total Sales',
+                                        AppLocalizations.of(context)!.translate('total_sales'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -245,7 +246,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Total Refund bill',
+                                        AppLocalizations.of(context)!.translate('total_refund_bill'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -253,7 +254,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Total Refund',
+                                        AppLocalizations.of(context)!.translate('total_refund'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -261,7 +262,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Total Discount',
+                                        AppLocalizations.of(context)!.translate('total_discount'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -269,7 +270,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Total Tax',
+                                        AppLocalizations.of(context)!.translate('total_tax'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -277,7 +278,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Total Cancellation',
+                                        AppLocalizations.of(context)!.translate('total_cancellation'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -302,7 +303,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Icon(Icons.menu),
-                            Text('NO RECORD FOUND'),
+                            Text(AppLocalizations.of(context)!.translate('no_record_found')),
                           ],
                         ),
                       )

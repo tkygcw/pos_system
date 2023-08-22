@@ -106,8 +106,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
             child: AlertDialog(
               title: Row(
                 children: [
-                  Text(
-                    "Order detail",
+                  Text(AppLocalizations.of(context)!.translate('order_detail'),
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -255,12 +254,12 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                                       widget.orderDetailList[index].quantity = totalQty.toString();
                                                     });
                                                   } else {
-                                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Out of stock!");
+                                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('out_of_stock'));
                                                   }
                                                 })
                                           ],
                                         ),
-                                        Text('Available stock: ${widget.orderDetailList[index].available_stock}')
+                                        Text(AppLocalizations.of(context)!.translate('available_stock')+': ${widget.orderDetailList[index].available_stock}')
                                       ],
                                     ),
                                   ),
@@ -280,8 +279,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: color.backgroundColor,
                     ),
-                    child: Text(
-                      'Close',
+                    child: Text(AppLocalizations.of(context)!.translate('close'),
                       style: TextStyle(color: Colors.white),
                     ),
                     onPressed: isButtonDisabled
@@ -302,8 +300,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.redAccent,
                     ),
-                    child: Text(
-                      'Reject',
+                    child: Text(AppLocalizations.of(context)!.translate('reject'),
                       style: TextStyle(color: Colors.white),
                     ),
                     onPressed: isButtonDisabled
@@ -325,8 +322,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: color.buttonColor,
                     ),
-                    child: Text(
-                      'Add',
+                    child: Text(AppLocalizations.of(context)!.translate('add'),
                       style: TextStyle(color: Colors.white),
                     ),
                     onPressed: isButtonDisabled
@@ -336,9 +332,9 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                 await checkOrderDetailStock();
                                 print('available check: ${hasNotAvailableProduct}');
                                 if (hasNoStockProduct) {
-                                  Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "Contain out of stock product");
+                                  Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
                                 } else if(hasNotAvailableProduct){
-                                  Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Contain not available product");
+                                  Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
                                 } else {
                                   // Disable the button after it has been pressed
                                   setState(() {
@@ -394,8 +390,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
         } else {
           ///mobile view
           return AlertDialog(
-            title: Text(
-              "Order Detail",
+            title: Text(AppLocalizations.of(context)!.translate('order_detail'),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -525,12 +520,12 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                                       widget.orderDetailList[index].quantity = totalQty.toString();
                                                     });
                                                   } else {
-                                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Out of stock!");
+                                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('out_of_stock'));
                                                   }
                                                 })
                                           ],
                                         ),
-                                        Text('Available stock: ${widget.orderDetailList[index].available_stock}')
+                                        Text(AppLocalizations.of(context)!.translate('available_stock')+': ${widget.orderDetailList[index].available_stock}')
                                       ],
                                     ),
                                   ),
@@ -551,7 +546,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: color.backgroundColor,
                   ),
-                  child: Text('Close'),
+                  child: Text(AppLocalizations.of(context)!.translate('close')),
                   onPressed: isButtonDisabled
                       ? null
                       : () {
@@ -570,7 +565,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
                   ),
-                  child: const Text('Reject'),
+                  child: Text(AppLocalizations.of(context)!.translate('reject')),
                   onPressed: isButtonDisabled
                       ? null
                       : () async {
@@ -589,16 +584,16 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: color.buttonColor,
                   ),
-                  child: Text('Add'),
+                  child: Text(AppLocalizations.of(context)!.translate('add')),
                   onPressed: isButtonDisabled
                       ? null
                       : widget.orderDetailList.isNotEmpty
                           ? () async {
                               await checkOrderDetailStock();
                               if (hasNoStockProduct) {
-                                Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "Contain out of stock product");
+                                Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
                               } else if (hasNotAvailableProduct){
-                                Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Contain not available product");
+                                Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
                               } else {
                                 // Disable the button after it has been pressed
                                 setState(() {
@@ -782,7 +777,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       this.table_value = _value.toString();
       //syncUpdatedTableToCloud(_value.toString());
     } catch (e) {
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "update table error: ${e}");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('update_table_error')+" ${e}");
       print("update table error: $e");
     }
   }
@@ -808,7 +803,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     OrderCache orderCache = OrderCache(
         updated_at: dateTime,
         sync_status: 2,
-        order_by: 'Qr order',
+        order_by: AppLocalizations.of(context)!.translate('qr_order'),
         order_by_user_id: '',
         accepted: 0,
         total_amount: newSubtotal.toStringAsFixed(2),
@@ -882,7 +877,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       //syncTableUseDetailToCloud(_value.toString());
     } catch (e) {
       print(e);
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Create table detail error: ${e}");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_table_detail_error')+" ${e}");
     }
   }
 
@@ -958,7 +953,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       }
     } catch (e) {
       print(e);
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Create table id error: ${e}");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_table_id_error')+" ${e}");
     }
   }
 

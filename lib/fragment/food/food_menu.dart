@@ -8,6 +8,7 @@ import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/pos_database.dart';
@@ -79,8 +80,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
               appBar: AppBar(
                 automaticallyImplyLeading: false,
                 elevation: 0,
-                title: Text(
-                  "Menu",
+                title: Text(AppLocalizations.of(context)!.translate('menu'),
                   style: TextStyle(fontSize: 25, color: color.backgroundColor),
                 ),
                 actions: [
@@ -156,9 +156,9 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     await getPreferences();
     List<Categories> data = await PosDatabase.instance.readAllCategories();
     categoryTab.add(Tab(
-      text: 'All Category',
+      text: AppLocalizations.of(context)!.translate('all_category'),
     ));
-    categoryList.add('All Category');
+    categoryList.add(AppLocalizations.of(context)!.translate('all_category'));
     for (int i = 0; i < data.length; i++) {
       categoryTab.add(Tab(
         text: data[i].name!,
@@ -167,7 +167,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     }
 
     for (int i = 0; i < categoryList.length; i++) {
-      if (categoryList[i] == 'All Category') {
+      if (categoryList[i] == AppLocalizations.of(context)!.translate('all_category')) {
         List<Product> data = await PosDatabase.instance.readAllProduct();
         allProduct = data;
         categoryTabContent.add(GridView.count(

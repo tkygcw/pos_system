@@ -24,11 +24,11 @@ class _MergeBillDialogState extends State<MergeBillDialog> {
       return Consumer<CartModel>(
         builder: (context, CartModel cart, child) {
           return AlertDialog(
-            title: Text('Confirm merge bill?'),
+            title: Text(AppLocalizations.of(context)!.translate('confirm_merge_bill')),
             content: Container(
               child: Row(
                 children: [
-                  Text("Confirm merge bill?")
+                  Text(AppLocalizations.of(context)!.translate('confirm_merge_bill'))
                 ],
               ),
             ),
@@ -51,7 +51,7 @@ class _MergeBillDialogState extends State<MergeBillDialog> {
                     } else {
                       Fluttertoast.showToast(
                           backgroundColor: Color(0xFFFF0000),
-                          msg: "Cannot merge same table");
+                          msg: AppLocalizations.of(context)!.translate('merge_error'));
                     }
                   })
             ],

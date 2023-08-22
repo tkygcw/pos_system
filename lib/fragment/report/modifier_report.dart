@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pos_system/object/modifier_group.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../notifier/report_notifier.dart';
@@ -49,7 +50,7 @@ class _ModifierReportState extends State<ModifierReport> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Modifier Report',
+                              child: Text(AppLocalizations.of(context)!.translate('modifier_report'),
                                   style: TextStyle(fontSize: 25, color: Colors.black)),
                             ),
                           ],
@@ -71,24 +72,21 @@ class _ModifierReportState extends State<ModifierReport> {
                               columns: <DataColumn>[
                                 DataColumn(
                                   label: Expanded(
-                                    child: Text(
-                                      'Modifier',
+                                    child: Text(AppLocalizations.of(context)!.translate('modifier'),
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                 ),
                                 DataColumn(
                                   label: Expanded(
-                                    child: Text(
-                                      'Quantity',
+                                    child: Text(AppLocalizations.of(context)!.translate('quantity'),
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                 ),
                                 DataColumn(
                                   label: Expanded(
-                                    child: Text(
-                                      'Net Sales',
+                                    child: Text(AppLocalizations.of(context)!.translate('net_sales'),
                                       style: TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -105,7 +103,7 @@ class _ModifierReportState extends State<ModifierReport> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(Icons.menu),
-                              Text('NO RECORD FOUND'),
+                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
                             ],
                           ),
                         )
@@ -126,7 +124,7 @@ class _ModifierReportState extends State<ModifierReport> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Modifier Report',
+                              child: Text(AppLocalizations.of(context)!.translate('modifier_report'),
                                   style: TextStyle(fontSize: 25, color: Colors.black)),
                             ),
                           ],
@@ -150,24 +148,21 @@ class _ModifierReportState extends State<ModifierReport> {
                                 columns: <DataColumn>[
                                   DataColumn(
                                     label: Expanded(
-                                      child: Text(
-                                        'Modifier',
+                                      child: Text(AppLocalizations.of(context)!.translate('modifier'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
                                   ),
                                   DataColumn(
                                     label: Expanded(
-                                      child: Text(
-                                        'Quantity',
+                                      child: Text(AppLocalizations.of(context)!.translate('quantity'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
                                   ),
                                   DataColumn(
                                     label: Expanded(
-                                      child: Text(
-                                        'Net Sales',
+                                      child: Text(AppLocalizations.of(context)!.translate('net_sales'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -185,7 +180,7 @@ class _ModifierReportState extends State<ModifierReport> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(Icons.menu),
-                              Text('NO RECORD FOUND'),
+                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
                             ],
                           ),
                         )
@@ -226,7 +221,7 @@ class _ModifierReportState extends State<ModifierReport> {
             color: MaterialStateColor.resolveWith((states) {return Colors.grey;},),
             cells: <DataCell>[
               DataCell(
-                Text('Group - ${modGroupData[i].name}', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(AppLocalizations.of(context)!.translate('group')+' - ${modGroupData[i].name}', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
               DataCell(Text('${modGroupData[i].item_sum}')),
               DataCell(Text('${modGroupData[i].net_sales!.toStringAsFixed(2)}')),

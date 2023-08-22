@@ -145,12 +145,16 @@ class PrintReceipt{
               }
             }
           }
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Colors.red,
+              msg: AppLocalizations.of(context)!.translate('no_cashier_printer_added'));
         }
       }
     } else {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
-          msg: "No cashier printer added");
+          msg: AppLocalizations.of(context)!.translate('no_cashier_printer_added'));
     }
   }
 

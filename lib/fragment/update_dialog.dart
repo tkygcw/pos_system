@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UpdateDialog extends StatefulWidget {
@@ -20,7 +21,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text("New Version Available!"),
+      title: Text(AppLocalizations.of(context)!.translate('new_version_available')),
       content: WillPopScope(
           onWillPop: () async {
             if(versionData[0]['force_update'] == 1){
@@ -37,14 +38,14 @@ class _UpdateDialogState extends State<UpdateDialog> {
               onPressed: (){
                 Navigator.of(context).pop();
               },
-              child: Text('close')),
+              child: Text(AppLocalizations.of(context)!.translate('close'))),
         ),
         ElevatedButton(
             onPressed: (){
               final Uri _url = Uri.parse('${versionData[0]['app_url']}');
               launchUrl(_url, mode: LaunchMode.externalApplication);
             },
-            child: Text('Update'))
+            child: Text(AppLocalizations.of(context)!.translate('update')))
       ],
     );
   }
