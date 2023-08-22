@@ -88,6 +88,7 @@ class _LoadingPageState extends State<LoadingPage> {
 
   startLoad() async {
     try{
+      await createDeviceLogin();
       await _createProductImgFolder();
       await getAllUser();
       await getAllSettlement();
@@ -110,7 +111,6 @@ class _LoadingPageState extends State<LoadingPage> {
       await getTransferOwner();
       await clearCloudSyncRecord();
       await getAllReceipt();
-      await createDeviceLogin();
       await createAppSetting();
     }catch(e){
       Navigator.of(context).pushAndRemoveUntil(

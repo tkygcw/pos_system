@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:intl/intl.dart';
-import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/bill.dart';
 import 'package:pos_system/object/branch.dart';
@@ -69,13 +67,22 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 3, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 4, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
-  void _onUpgrade(Database db, int oldVersion, int newVersion) {
+  void _onUpgrade(Database db, int oldVersion, int newVersion) async  {
     if (oldVersion < newVersion) {
       // you can execute drop table and create table
-      db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.header_font_size} INTEGER NOT NULL DEFAULT 0");
+      switch(oldVersion) {
+        case 2: {
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.header_font_size} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.direct_payment} INTEGER NOT NULL DEFAULT 0");
+        }break;
+        case 3: {
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.direct_payment} INTEGER NOT NULL DEFAULT 0");
+        }break;
+      }
+
     }
   }
 
@@ -638,7 +645,8 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableAppSetting(
           ${AppSettingFields.app_setting_sqlite_id} $idType,
           ${AppSettingFields.open_cash_drawer} $integerType,
-          ${AppSettingFields.show_second_display} $integerType)''');
+          ${AppSettingFields.show_second_display} $integerType,
+          ${AppSettingFields.direct_payment} $integerType)''');
 /*
     create transfer owner table
 */
@@ -2014,8 +2022,8 @@ class PosDatabase {
       String variant_group_id) async {
     final db = await instance.database;
     final maps = await db.rawQuery(
-        'SELECT * FROM $tableVariantGroup WHERE soft_delete = ? AND variant_group_id = ?',
-        ['', variant_group_id]);
+        'SELECT * FROM $tableVariantGroup WHERE variant_group_id = ?',
+        [variant_group_id]);
     if (maps.isNotEmpty) {
       return VariantGroup.fromJson(maps.first);
     }
@@ -2036,8 +2044,8 @@ class PosDatabase {
       String product_variant_id) async {
     final db = await instance.database;
     final maps = await db.rawQuery(
-        'SELECT * FROM $tableProductVariant WHERE soft_delete = ? AND product_variant_id = ?',
-        ['', product_variant_id]);
+        'SELECT * FROM $tableProductVariant WHERE product_variant_id = ?',
+        [product_variant_id]);
     if (maps.isNotEmpty) {
       return ProductVariant.fromJson(maps.first);
     } else {
@@ -2060,8 +2068,8 @@ class PosDatabase {
       String variant_item_id) async {
     final db = await instance.database;
     final maps = await db.rawQuery(
-        'SELECT * FROM $tableVariantItem WHERE soft_delete = ? AND variant_item_id = ?',
-        ['', variant_item_id]);
+        'SELECT * FROM $tableVariantItem WHERE variant_item_id = ?',
+        [variant_item_id]);
     if (maps.isNotEmpty) {
       return VariantItem.fromJson(maps.first);
     }
@@ -2082,8 +2090,8 @@ class PosDatabase {
   Future<BranchLinkProduct> readBranchLinkProductSqliteID(String branch_link_product_id) async {
     final db = await instance.database;
     final maps = await db.rawQuery(
-        'SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND branch_link_product_id = ?',
-        ['', branch_link_product_id]
+        'SELECT * FROM $tableBranchLinkProduct WHERE branch_link_product_id = ?',
+        [branch_link_product_id]
     );
     return BranchLinkProduct.fromJson(maps.first);
   }
@@ -2216,8 +2224,8 @@ class PosDatabase {
       String product_variant_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableProductVariantDetail WHERE soft_delete = ? AND product_variant_id = ?',
-        ['', product_variant_id]);
+        'SELECT * FROM $tableProductVariantDetail WHERE product_variant_id = ?',
+        [product_variant_id]);
 
     return result.map((json) => ProductVariantDetail.fromJson(json)).toList();
   }
@@ -2229,8 +2237,8 @@ class PosDatabase {
       String variant_item_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableVariantItem WHERE soft_delete = ? AND variant_item_id = ?',
-        ['', variant_item_id]);
+        'SELECT * FROM $tableVariantItem WHERE variant_item_id = ?',
+        [variant_item_id]);
     return result.map((json) => VariantItem.fromJson(json)).toList();
   }
 
@@ -2399,8 +2407,8 @@ class PosDatabase {
       String branch_link_product_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableBranchLinkProduct AS a JOIN $tableProduct AS b ON a.product_id = b.product_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_link_product_sqlite_id = ?',
-        ['', '', branch_link_product_sqlite_id]);
+        'SELECT a.*, b.name FROM $tableBranchLinkProduct AS a JOIN $tableProduct AS b ON a.product_id = b.product_id WHERE b.soft_delete = ? AND a.branch_link_product_sqlite_id = ?',
+        ['', branch_link_product_sqlite_id]);
 
     return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
   }
@@ -2430,8 +2438,8 @@ class PosDatabase {
       String branch_link_product_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.variant_name FROM $tableBranchLinkProduct AS a JOIN $tableProductVariant AS b ON a.product_variant_id = b.product_variant_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_link_product_sqlite_id = ?',
-        ['', '', branch_link_product_sqlite_id]);
+        'SELECT a.*, b.variant_name FROM $tableBranchLinkProduct AS a JOIN $tableProductVariant AS b ON a.product_variant_id = b.product_variant_id WHERE a.branch_link_product_sqlite_id = ?',
+        [branch_link_product_sqlite_id]);
 
     return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
   }
@@ -2819,7 +2827,7 @@ class PosDatabase {
   Future<List<PosTable>> readAllTable() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tablePosTable WHERE soft_delete = ? ORDER BY table_sqlite_id',
+        'SELECT * FROM $tablePosTable WHERE soft_delete = ? ORDER BY table_sqlite_id ',
         ['']);
     return result.map((json) => PosTable.fromJson(json)).toList();
   }
@@ -3143,8 +3151,8 @@ class PosDatabase {
             'a.order_detail_key, IFNULL( (SELECT category_id FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), 0) AS category_id,'
             'c.branch_link_product_id FROM $tableOrderDetail AS a '
             'LEFT JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
-            'WHERE c.soft_delete = ? AND a.order_detail_sqlite_id = ? ',
-        ['', order_detail_sqlite_id]);
+            'WHERE a.order_detail_sqlite_id = ? ',
+        [order_detail_sqlite_id]);
 
     return OrderDetail.fromJson(result.first);
   }

@@ -274,6 +274,7 @@ class _TableSettingState extends State<TableSetting> {
     this.checkedTable.clear();
     List<PosTable> data = await PosDatabase.instance.readAllTable();
     tableList = data;
+    tableList.sort((a, b) => int.parse(a.number!).compareTo(int.parse(b.number!)));
     setState(() {
       _isLoad = true;
     });

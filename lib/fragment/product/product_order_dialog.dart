@@ -573,6 +573,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       //loop variant child based on variant group id
       List<VariantItem> itemData = await PosDatabase.instance.readProductVariantItem(data[i].variant_group_sqlite_id!);
       List<VariantItem> itemChild = [];
+      itemData.sort((a, b) => a.name!.compareTo(b.name!));
       for (int j = 0; j < itemData.length; j++) {
         //pre-check radio button
         if (j == 0) {
@@ -588,6 +589,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       }
       //assign list into group child
       variantGroup[i].child = itemChild;
+      variantGroup[i].child!.sort((a, b) => a.name!.compareTo(b.name!));
     }
   }
 

@@ -454,7 +454,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                     ElevatedButton(
                                       child: Text(AppLocalizations.of(context)!.translate('cash_out')),
                                       onPressed: () {
-                                        if (cashRecordList.length > 0) {
+                                        if (cashRecordList.isNotEmpty) {
                                           openCashOutDialog();
                                           // openCashDialog(false, true);
                                         } else {
@@ -905,6 +905,12 @@ class _SettlementPageState extends State<SettlementPage> {
           cashRecordList.add(data[i]);
         }
       }
+    } else if (selectedPayment == 'E-Wallet') {
+      for (int i = 0; i < data.length; i++) {
+        if (data[i].payment_type_id == '3') {
+          cashRecordList.add(data[i]);
+        }
+      }
     }
 
     setState(() {
@@ -1103,6 +1109,11 @@ class _SettlementPageState extends State<SettlementPage> {
       case 'ipay tng scanner':
         {
           total = 'ipay tng scanner: ' + calcTotalAmount('6');
+        }
+        break;
+      case 'E-Wallet':
+        {
+          total = 'E-Wallet: ' + calcTotalAmount('3');
         }
         break;
       default:

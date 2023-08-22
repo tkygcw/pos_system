@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/table/table_change_dialog.dart';
@@ -481,7 +482,9 @@ class _TableMenuState extends State<TableMenu> {
 
     List<PosTable> data = await PosDatabase.instance.readAllTable();
 
-    tableList = List.from(data);
+    // tableList = List.from(data);
+    tableList = data;
+    tableList.sort((a, b) => int.parse(a.number!).compareTo(int.parse(b.number!)));
     await readAllTableGroup();
     if(mounted){
       setState(() {

@@ -194,7 +194,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                           width: 200,
                           alignment: Alignment.center,
                           child: Text(
-                            data[index].SKU! + ' ' + data[index].name!,
+                            data[index].name!,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -237,7 +237,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                           width: 200,
                           alignment: Alignment.center,
                           child: Text(
-                            data[index].SKU! + ' ' + data[index].name!,
+                            data[index].name!,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -308,7 +308,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                       width: 200,
                       alignment: Alignment.center,
                       child: Text(
-                        data[index].SKU! + ' ' + data[index].name!,
+                        data[index].name!,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
