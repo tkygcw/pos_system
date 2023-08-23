@@ -14,6 +14,7 @@ import '../../translation/AppLocalizations.dart';
 
 class PosPinDialog extends StatefulWidget {
   final Function() callBack;
+
   const PosPinDialog({Key? key, required this.callBack}) : super(key: key);
 
   @override
@@ -24,7 +25,6 @@ class _PosPinDialogState extends State<PosPinDialog> {
   final adminPosPinController = TextEditingController();
   bool _submitted = false;
   bool isButtonDisabled = false;
-
 
   @override
   void dispose() {
@@ -41,7 +41,7 @@ class _PosPinDialogState extends State<PosPinDialog> {
     return null;
   }
 
-  _submit(BuildContext context) async  {
+  _submit(BuildContext context) async {
     setState(() => _submitted = true);
     if (errorPassword == null) {
       await readAdminData(adminPosPinController.text);
@@ -58,32 +58,41 @@ class _PosPinDialogState extends State<PosPinDialog> {
       return Center(
         child: SingleChildScrollView(
           child: AlertDialog(
-            title: Text(AppLocalizations.of(context)!.translate('enter_current_user_pin')),
+            title: Text(AppLocalizations.of(context)!
+                .translate('enter_current_user_pin')),
             content: SizedBox(
               height: 100.0,
               width: 350.0,
               child: ValueListenableBuilder(
-                // Note: pass _controller to the animation argument
+                  // Note: pass _controller to the animation argument
                   valueListenable: adminPosPinController,
                   builder: (context, TextEditingValue value, __) {
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
+                        onSubmitted: (input) {
+                          _submit(context);
+                        },
                         obscureText: true,
-                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))
+                        ],
                         keyboardType: TextInputType.number,
                         controller: adminPosPinController,
                         decoration: InputDecoration(
                           errorText: _submitted
-                              ? errorPassword == null ? errorPassword : AppLocalizations.of(context)?.translate(errorPassword!)
+                              ? errorPassword == null
+                                  ? errorPassword
+                                  : AppLocalizations.of(context)
+                                      ?.translate(errorPassword!)
                               : null,
                           border: OutlineInputBorder(
                             borderSide:
-                            BorderSide(color: color.backgroundColor),
+                                BorderSide(color: color.backgroundColor),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide:
-                            BorderSide(color: color.backgroundColor),
+                                BorderSide(color: color.backgroundColor),
                           ),
                           labelText: 'PIN',
                         ),
@@ -93,20 +102,26 @@ class _PosPinDialogState extends State<PosPinDialog> {
             ),
             actions: <Widget>[
               TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: isButtonDisabled ? null : () {
-                  // Disable the button after it has been pressed
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  closeDialog(context);
-                },
+                child:
+                    Text('${AppLocalizations.of(context)?.translate('close')}'),
+                onPressed: isButtonDisabled
+                    ? null
+                    : () {
+                        // Disable the button after it has been pressed
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        closeDialog(context);
+                      },
               ),
               TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                onPressed: isButtonDisabled ? null : () async {
-                  _submit(context);
-                },
+                child:
+                    Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                onPressed: isButtonDisabled
+                    ? null
+                    : () async {
+                        _submit(context);
+                      },
               ),
             ],
           ),
@@ -123,7 +138,7 @@ class _PosPinDialogState extends State<PosPinDialog> {
       Map userObject = json.decode(pos_user!);
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
-        if(userData.user_id == userObject['user_id']){
+        if (userData.user_id == userObject['user_id']) {
           // Disable the button after it has been pressed
           setState(() {
             isButtonDisabled = true;
@@ -133,11 +148,15 @@ class _PosPinDialogState extends State<PosPinDialog> {
           widget.callBack();
         } else {
           Fluttertoast.showToast(
-              backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('pin_not_match')}");
+              backgroundColor: Color(0xFFFF0000),
+              msg:
+                  "${AppLocalizations.of(context)?.translate('pin_not_match')}");
         }
       } else {
         Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");
+            backgroundColor: Color(0xFFFF0000),
+            msg:
+                "${AppLocalizations.of(context)?.translate('user_not_found')}");
       }
     } catch (e) {
       print('pos pin error ${e}');

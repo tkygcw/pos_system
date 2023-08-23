@@ -50,56 +50,53 @@ class _TransferRecordState extends State<TransferRecord> {
                 resizeToAvoidBottomInset: false,
                 body: Container(
                   padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      children: [
-                        Row(
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            child: Text(AppLocalizations.of(context)!.translate('transfer_owner_report')+' (${deviceModel})',
+                                style: TextStyle(fontSize: 25, color: Colors.black)),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 5),
+                      Divider(
+                        height: 10,
+                        color: Colors.grey,
+                      ),
+                      SizedBox(height: 5),
+                      dateTransferOwnerList.isNotEmpty
+                          ?
+                      Expanded(
+                        child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: dateTransferOwnerList.length,
+                            itemBuilder: (BuildContext context,int index){
+                              return Card(
+                                elevation: 5,
+                                child: ListTile(
+                                  title: Text(AppLocalizations.of(context)!.translate('from')+': ${dateTransferOwnerList[index].fromUsername} to ${dateTransferOwnerList[index].toUsername}'),
+                                  subtitle: Text(AppLocalizations.of(context)!.translate('transfer_date_time')+': ${Utils.formatDate(dateTransferOwnerList[index].created_at)}'),
+                                  leading:  CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.compare_arrows, color: Colors.grey,)),
+                                  trailing: Text('${dateTransferOwnerList[index].cash_balance}'),
+                                ),
+                              );
+                            }
+                        ),
+                      )
+                      :
+                      Center(
+                        heightFactor: 12,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Container(
-                              child: Text(AppLocalizations.of(context)!.translate('transfer_owner_report')+' (${deviceModel})',
-                                  style: TextStyle(fontSize: 25, color: Colors.black)),
-                            ),
+                            Icon(Icons.menu),
+                            Text(AppLocalizations.of(context)!.translate('no_record_found')),
                           ],
                         ),
-                        SizedBox(height: 5),
-                        Divider(
-                          height: 10,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 5),
-                        dateTransferOwnerList.isNotEmpty
-                            ?
-                        Expanded(
-                          child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: dateTransferOwnerList.length,
-                              itemBuilder: (BuildContext context,int index){
-                                return Card(
-                                  elevation: 5,
-                                  child: ListTile(
-                                    title: Text(AppLocalizations.of(context)!.translate('from')+': ${dateTransferOwnerList[index].fromUsername} to ${dateTransferOwnerList[index].toUsername}'),
-                                    subtitle: Text(AppLocalizations.of(context)!.translate('transfer_date_time')+': ${Utils.formatDate(dateTransferOwnerList[index].created_at)}'),
-                                    leading:  CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.compare_arrows, color: Colors.grey,)),
-                                    trailing: Text('${dateTransferOwnerList[index].cash_balance}'),
-                                  ),
-                                );
-                              }
-                          ),
-                        )
-                        :
-                        Center(
-                          heightFactor: 12,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Icon(Icons.menu),
-                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
+                      )
+                    ],
                   ),
                 ),
               ) : CustomProgressBar();

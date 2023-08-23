@@ -137,6 +137,8 @@ class _ReportPageState extends State<ReportPage> {
                                               onSelectionChanged: _onSelectionChanged,
                                               maxDate: DateTime.now(),
                                               showActionButtons: true,
+                                              confirmText: AppLocalizations.of(context)!.translate('ok'),
+                                              cancelText: AppLocalizations.of(context)!.translate('cancel'),
                                               onSubmit: (object) {
                                                 _controller = _range != '' ?
                                                 new TextEditingController(text: '${_range}')

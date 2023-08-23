@@ -417,7 +417,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: themeColor.backgroundColor,
         action: SnackBarAction(
           textColor: themeColor.iconColor,
-          label: 'Check it now!',
+          label: AppLocalizations.of(context)!.translate('check_it_now'),
           onPressed: () {
             if (mounted) {
               setState(() {
@@ -440,7 +440,7 @@ class _HomePageState extends State<HomePage> {
           backgroundColor: themeColor.backgroundColor,
           action: SnackBarAction(
             textColor: themeColor.iconColor,
-            label: 'Check it now!',
+            label: AppLocalizations.of(context)!.translate('check_it_now'),
             onPressed: () {
               if (mounted) {
                 setState(() {
@@ -466,7 +466,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: themeColor.backgroundColor,
       action: SnackBarAction(
         textColor: themeColor.iconColor,
-        label: 'Check it now!',
+        label: AppLocalizations.of(context)!.translate('check_it_now'),
         onPressed: () {
           if (mounted) {
             setState(() {

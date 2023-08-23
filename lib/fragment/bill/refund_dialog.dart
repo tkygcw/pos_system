@@ -105,6 +105,10 @@ class _RefundDialogState extends State<RefundDialog> {
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
+                        autofocus: true,
+                        onSubmitted: (input){
+                          _submit(context);
+                        },
                         obscureText: true,
                         inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
                         controller: adminPosPinController,

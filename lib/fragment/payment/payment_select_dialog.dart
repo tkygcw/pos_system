@@ -79,82 +79,84 @@ class _PaymentSelectState extends State<PaymentSelect> {
                             visible: currentMethod != ''? true : false,
                             child: Text(AppLocalizations.of(context)!.translate('current_payment_method')+': ${currentMethod}'),
                           ),
-                          GridView.count(
-                              shrinkWrap: true,
-                              crossAxisCount: 4,
-                              children: List.generate(PaymentLists.length, (index) {
-                                return GestureDetector(
-                                  onTap: () async {
-                                    if(widget.isUpdate == null){
-                                      openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name);
-                                    } else {
-                                      setState(() {
-                                        willPop = false;
-                                        isButtonDisable = true;
-                                      });
-                                      if(order?.payment_link_company_id != PaymentLists[index].payment_link_company_id.toString()){
-                                        await updatePaymentMethod(paymentLinkCompany: PaymentLists[index]);
-                                        if(isLogOut){
-                                          openLogOutDialog();
-                                        }
-                                        Navigator.of(context).pop();
-                                        Navigator.of(context).pop();
-                                        cart.changInit(true);
-                                        Fluttertoast.showToast(
-                                            backgroundColor: Colors.green,
-                                            msg: "${AppLocalizations.of(context)?.translate('update_success')}");
+                          Expanded(
+                            child: GridView.count(
+                                shrinkWrap: true,
+                                crossAxisCount: 4,
+                                children: List.generate(PaymentLists.length, (index) {
+                                  return GestureDetector(
+                                    onTap: () async {
+                                      if(widget.isUpdate == null){
+                                        openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name);
                                       } else {
                                         setState(() {
-                                          willPop = true;
-                                          isButtonDisable = false;
+                                          willPop = false;
+                                          isButtonDisable = true;
                                         });
-                                        Fluttertoast.showToast(
-                                            backgroundColor: Colors.orangeAccent,
-                                            msg: "${AppLocalizations.of(context)?.translate('same_payment_method_error')}");
+                                        if(order?.payment_link_company_id != PaymentLists[index].payment_link_company_id.toString()){
+                                          await updatePaymentMethod(paymentLinkCompany: PaymentLists[index]);
+                                          if(isLogOut){
+                                            openLogOutDialog();
+                                          }
+                                          Navigator.of(context).pop();
+                                          Navigator.of(context).pop();
+                                          cart.changInit(true);
+                                          Fluttertoast.showToast(
+                                              backgroundColor: Colors.green,
+                                              msg: "${AppLocalizations.of(context)?.translate('update_success')}");
+                                        } else {
+                                          setState(() {
+                                            willPop = true;
+                                            isButtonDisable = false;
+                                          });
+                                          Fluttertoast.showToast(
+                                              backgroundColor: Colors.orangeAccent,
+                                              msg: "${AppLocalizations.of(context)?.translate('same_payment_method_error')}");
+                                        }
                                       }
-                                    }
-                                  },
-                                  child: Card(
-                                    elevation: 5,
-                                    color: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16.0),
-                                    ),
-                                    child: Container(
-                                      height: MediaQuery.of(context).size.height / 3,
-                                      width: MediaQuery.of(context).size.width / 3,
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          // ClipRRect(
-                                          //   borderRadius: BorderRadius.circular(16.0),
-                                          //   child:///***If you have exported images you must have to copy those images in assets/images directory.
-                                          //   Image(
-                                          //     image: AssetImage("drawable/payment_method.png"),
-                                          //     // NetworkImage(
-                                          //     //     "https://image.freepik.com/free-photo/close-up-people-training-with-ball_23-2149049821.jpg"),
-                                          //     height: MediaQuery.of(context).size.height,
-                                          //     width: MediaQuery.of(context).size.width,
-                                          //     fit: BoxFit.cover,
-                                          //   ),
-                                          // ),
-                                          Text(
-                                            '${PaymentLists[index].name}',
-                                            textAlign: TextAlign.start,
-                                            overflow: TextOverflow.clip,
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              fontStyle: FontStyle.normal,
-                                              fontSize: 16,
-                                              color: Colors.blueGrey,
+                                    },
+                                    child: Card(
+                                      elevation: 5,
+                                      color: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16.0),
+                                      ),
+                                      child: Container(
+                                        height: MediaQuery.of(context).size.height / 3,
+                                        width: MediaQuery.of(context).size.width / 3,
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            // ClipRRect(
+                                            //   borderRadius: BorderRadius.circular(16.0),
+                                            //   child:///***If you have exported images you must have to copy those images in assets/images directory.
+                                            //   Image(
+                                            //     image: AssetImage("drawable/payment_method.png"),
+                                            //     // NetworkImage(
+                                            //     //     "https://image.freepik.com/free-photo/close-up-people-training-with-ball_23-2149049821.jpg"),
+                                            //     height: MediaQuery.of(context).size.height,
+                                            //     width: MediaQuery.of(context).size.width,
+                                            //     fit: BoxFit.cover,
+                                            //   ),
+                                            // ),
+                                            Text(
+                                              '${PaymentLists[index].name}',
+                                              textAlign: TextAlign.start,
+                                              overflow: TextOverflow.clip,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                fontStyle: FontStyle.normal,
+                                                fontSize: 16,
+                                                color: Colors.blueGrey,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              })
+                                  );
+                                })
+                            ),
                           ),
                     ]),
                   ))

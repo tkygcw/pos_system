@@ -803,7 +803,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     OrderCache orderCache = OrderCache(
         updated_at: dateTime,
         sync_status: 2,
-        order_by: AppLocalizations.of(context)!.translate('qr_order'),
+        order_by: 'Qr order',
         order_by_user_id: '',
         accepted: 0,
         total_amount: newSubtotal.toStringAsFixed(2),

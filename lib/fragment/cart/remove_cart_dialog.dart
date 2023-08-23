@@ -131,6 +131,14 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                           return Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: TextField(
+                              autofocus: true,
+                              onSubmitted: (input) {
+                                setState(() {
+                                  isButtonDisabled = true;
+                                  willPop = false;
+                                });
+                                _submit(context, cart);
+                              },
                               obscureText: true,
                               controller: adminPosPinController,
                               keyboardType: TextInputType.number,

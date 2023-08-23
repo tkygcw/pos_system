@@ -431,6 +431,13 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextField(
+                      onSubmitted: (input) {
+                        setState(() {
+                          isButtonDisabled = true;
+                          willPop = false;
+                        });
+                        _submit(context);
+                      },
                       controller: tableNoController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(

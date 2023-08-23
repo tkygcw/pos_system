@@ -169,6 +169,17 @@ class _CashDialogState extends State<CashDialog> {
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: TextField(
+                                        onSubmitted: (input) async {
+                                          try {
+                                            double.parse(input);
+                                            await _submit(context);
+                                          } catch (e) {
+                                            Fluttertoast.showToast(
+                                              backgroundColor: Color(0xFFFF0000),
+                                              msg: AppLocalizations.of(context)!.translate('invalid_input'),
+                                            );
+                                          }
+                                        },
                                         inputFormatters: [
                                           FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
                                         ],

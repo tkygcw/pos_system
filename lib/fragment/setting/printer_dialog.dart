@@ -189,7 +189,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                               );
                             }),
                         Text(
-                          'Type',
+                            AppLocalizations.of(context)!.translate('type'),
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.blueGrey),
@@ -272,7 +272,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                           height: 10,
                         ),
                         Text(
-                          'Paper size',
+                          AppLocalizations.of(context)!.translate('paper_size'),
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.blueGrey),
@@ -311,7 +311,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                           height: 10,
                         ),
                         Text(
-                          'Setting',
+                          AppLocalizations.of(context)!.translate('setting'),
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.blueGrey),
@@ -391,7 +391,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                           ),
                         ),
                         Text(
-                          'Status',
+                          AppLocalizations.of(context)!.translate('status'),
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.blueGrey),
@@ -505,7 +505,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                               );
                             }),
                         Text(
-                          'Type',
+                          AppLocalizations.of(context)!.translate('type'),
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.blueGrey),
@@ -589,7 +589,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                           height: 10,
                         ),
                         Text(
-                          'Paper size',
+                          AppLocalizations.of(context)!.translate('paper_size'),
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.blueGrey),
@@ -628,7 +628,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                           height: 10,
                         ),
                         Text(
-                          'Setting',
+                          AppLocalizations.of(context)!.translate('setting'),
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.blueGrey),
@@ -704,7 +704,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                           ),
                         ),
                         Text(
-                          'Status',
+                          AppLocalizations.of(context)!.translate('status'),
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.blueGrey),
