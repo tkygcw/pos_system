@@ -27,7 +27,7 @@ class PrintReceipt{
    * printStatus = 5, printing error
    */
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
-  Duration duration = Duration(seconds: 1);
+  Duration duration = Duration(seconds: 3);
 
   getDeviceList() async {
     var devices;

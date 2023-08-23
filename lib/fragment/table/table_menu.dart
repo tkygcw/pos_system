@@ -143,23 +143,23 @@ class _TableMenuState extends State<TableMenu> {
                                   AppLocalizations.of(context)!.translate('table'),
                                   style: TextStyle(fontSize: 25),
                                 ),
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(18, 0, 0, 0),
-                                  child: ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: color.backgroundColor),
-                                      onPressed: () async  {
-                                        bool hasInternetAccess = await Domain().isHostReachable();
-                                        if(hasInternetAccess){
-                                          openAddTableDialog(PosTable());
-                                        } else {
-                                          Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('internet_access_required'));
-                                        }
-                                      },
-                                      icon: Icon(Icons.add),
-                                      label: Text(AppLocalizations.of(context)!.translate('table'))),
-                                ),
+                                // Padding(
+                                //   padding:
+                                //       const EdgeInsets.fromLTRB(18, 0, 0, 0),
+                                //   child: ElevatedButton.icon(
+                                //       style: ElevatedButton.styleFrom(
+                                //           backgroundColor: color.backgroundColor),
+                                //       onPressed: () async  {
+                                //         bool hasInternetAccess = await Domain().isHostReachable();
+                                //         if(hasInternetAccess){
+                                //           openAddTableDialog(PosTable());
+                                //         } else {
+                                //           Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('internet_access_required'));
+                                //         }
+                                //       },
+                                //       icon: Icon(Icons.add),
+                                //       label: Text(AppLocalizations.of(context)!.translate('table'))),
+                                // ),
                                 SizedBox(
                                     width: MediaQuery.of(context).size.height > 500
                                         ? 500
@@ -212,7 +212,7 @@ class _TableMenuState extends State<TableMenu> {
                                     splashColor: Colors.blue.withAlpha(30),
                                     onDoubleTap: () {
                                       if (tableList[index].status != 1) {
-                                        openAddTableDialog(tableList[index]);
+                                        //openAddTableDialog(tableList[index]);
                                       } else {
                                         openChangeTableDialog(tableList[index], cart);
                                       }
