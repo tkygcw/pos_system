@@ -216,31 +216,31 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                         indent: 20,
                         endIndent: 20,
                       ),
-                      ListTile(
-                        title: Text(AppLocalizations.of(context)!.translate('place_order_payment')),
-                        subtitle: Text(AppLocalizations.of(context)!.translate('direct_make_payment_when_oder_placed')),
-                        trailing: Switch(
-                          value: directPayment,
-                          activeColor: color.backgroundColor,
-                          onChanged: (value) async {
-                            directPayment = value;
-                            actionController.sink.add("direct_payment");
-                            //await getAllAppSetting();
-                            // if(appSettingList.isEmpty){
-                            //   await createAppSetting();
-                            // } else {
-                            //   await updateAppSetting();
-                            // }
-                          },
-                        ),
-                      ),
-                      Divider(
-                        color: Colors.grey,
-                        height: 1,
-                        thickness: 1,
-                        indent: 20,
-                        endIndent: 20,
-                      ),
+                      // ListTile(
+                      //   title: Text(AppLocalizations.of(context)!.translate('place_order_payment')),
+                      //   subtitle: Text(AppLocalizations.of(context)!.translate('direct_make_payment_when_oder_placed')),
+                      //   trailing: Switch(
+                      //     value: directPayment,
+                      //     activeColor: color.backgroundColor,
+                      //     onChanged: (value) async {
+                      //       directPayment = value;
+                      //       actionController.sink.add("direct_payment");
+                      //       //await getAllAppSetting();
+                      //       // if(appSettingList.isEmpty){
+                      //       //   await createAppSetting();
+                      //       // } else {
+                      //       //   await updateAppSetting();
+                      //       // }
+                      //     },
+                      //   ),
+                      // ),
+                      // Divider(
+                      //   color: Colors.grey,
+                      //   height: 1,
+                      //   thickness: 1,
+                      //   indent: 20,
+                      //   endIndent: 20,
+                      // ),
                       ListTile(
                         title: Text(AppLocalizations.of(context)!.translate('wifi_setting')),
                         subtitle: Text(AppLocalizations.of(context)!.translate('open_wifi_setting')),
