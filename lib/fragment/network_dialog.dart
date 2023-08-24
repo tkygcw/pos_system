@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 
-import '../database/domain.dart';
-
 class NetworkDialog extends StatefulWidget {
   final Function() callback;
   const NetworkDialog({Key? key, required this.callback}) : super(key: key);

@@ -17,7 +17,6 @@ import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
-import 'package:presentation_displays/displays_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';

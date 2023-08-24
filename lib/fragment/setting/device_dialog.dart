@@ -1,8 +1,5 @@
 import 'dart:convert';
-
-import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
-
 import 'package:lan_scanner/lan_scanner.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:location/location.dart';

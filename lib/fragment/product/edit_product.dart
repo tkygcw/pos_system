@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:checkbox_grouped/checkbox_grouped.dart';
-import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

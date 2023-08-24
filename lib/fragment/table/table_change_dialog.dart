@@ -1,9 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
-import 'package:esc_pos_printer/esc_pos_printer.dart';
-import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -21,7 +18,6 @@ import '../../database/pos_database.dart';
 import '../../main.dart';
 import '../../object/print_receipt.dart';
 import '../../object/printer.dart';
-import '../../object/receipt_layout.dart';
 import '../../translation/AppLocalizations.dart';
 import '../logout_dialog.dart';
 

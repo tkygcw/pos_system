@@ -12,8 +12,6 @@ import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
-
-import '../../database/domain.dart';
 import '../../notifier/theme_color.dart';
 
 class QrMainPage extends StatefulWidget {

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:pos_system/controller/controllerObject.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/logout_dialog.dart';
-import 'package:pos_system/main.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
@@ -13,7 +12,6 @@ import 'package:pos_system/translation/language_setting.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import '../../notifier/theme_color.dart';
-import 'logout_dialog.dart';
 
 class FeaturesSetting extends StatefulWidget {
   const FeaturesSetting({Key? key}) : super(key: key);

@@ -2,18 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:pos_system/fragment/printer/test_print.dart';
-import 'package:pos_system/fragment/qr_order/test_qrcode.dart';
-import 'package:pos_system/fragment/report/print_report_page.dart';
-// import 'package:pos_system/fragment/printer/test_scanner.dart';
 import 'package:pos_system/fragment/setting/features_setting.dart';
 import 'package:pos_system/fragment/setting/hardware_setting.dart';
 import 'package:pos_system/fragment/setting/logout_dialog.dart';
 import 'package:pos_system/fragment/setting/printer_setting.dart';
-import 'package:pos_system/fragment/setting/receipt_setting.dart';
 import 'package:pos_system/fragment/setting/table_setting.dart';
-import 'package:pos_system/fragment/test_sync/test_category_sync.dart';
-import 'package:pos_system/object/user.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -27,7 +20,6 @@ import '../../object/cash_record.dart';
 import '../../page/pos_pin.dart';
 import '../../translation/AppLocalizations.dart';
 import '../multi_device/multi_device.dart';
-import '../test_dual_screen/test_display.dart';
 
 class SettingMenu extends StatefulWidget {
   const SettingMenu({Key? key}) : super(key: key);

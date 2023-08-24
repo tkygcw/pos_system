@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/food/food_menu.dart';
-import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import '../../notifier/cart_notifier.dart';
 import '../../notifier/theme_color.dart';
-import '../../object/print_receipt.dart';
-import '../../object/printer.dart';
 
 class OrderPage extends StatefulWidget {
   const OrderPage({Key? key}) : super(key: key);

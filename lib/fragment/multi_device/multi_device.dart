@@ -1,13 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
-
-import '../../object/product.dart';
 import '../../object/server_action.dart';
 
 class MultiDevicePage extends StatefulWidget {

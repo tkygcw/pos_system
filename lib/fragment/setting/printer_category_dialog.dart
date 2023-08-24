@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
-
-import '../../notifier/printer_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/categories.dart';
 import '../../translation/AppLocalizations.dart';
