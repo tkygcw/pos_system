@@ -1392,7 +1392,7 @@ class ReceiptLayout{
             //modifier
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}', width: 10, styles: PosStyles(align: PosAlign.left)),
+              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}', containsChinese: true, width: 10, styles: PosStyles(align: PosAlign.left)),
             ]);
           }
         }

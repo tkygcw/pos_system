@@ -388,10 +388,10 @@ class _HomePageState extends State<HomePage> {
       else {
         notificationModel.setNotification(true);
         notificationModel.setContentLoad();
-        Fluttertoast.showToast(
-            backgroundColor: Colors.green,
-            msg: AppLocalizations.of(context)!
-                .translate('cloud_db_change_sync_from_cloud'));
+        // Fluttertoast.showToast(
+        //     backgroundColor: Colors.green,
+        //     msg: AppLocalizations.of(context)!
+        //         .translate('cloud_db_change_sync_from_cloud'));
         // await SyncRecord().syncFromCloud();
         if (syncRecord.count == 0) {
           await syncRecord.syncFromCloud();
