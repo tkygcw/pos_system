@@ -24,7 +24,7 @@ class _DetailRemoveDialogState extends State<DetailRemoveDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
         return AlertDialog(
-          title: Text('Confirm remove item ?'),
+          title: Text(AppLocalizations.of(context)!.translate('confirm_remove_item')),
           content: Container(
             child: Row(
               children: [

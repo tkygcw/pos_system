@@ -58,7 +58,7 @@ class _CancelDialogState extends State<CancelDialog> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
         return AlertDialog(
-          title: Text('Enter admin PIN'),
+          title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
           content: SizedBox(
             height: 100.0,
             width: 350.0,
@@ -126,12 +126,12 @@ class _CancelDialogState extends State<CancelDialog> {
 
       Fluttertoast.showToast(
           backgroundColor: Color(0xFF24EF10),
-          msg: "delete successful");
+          msg: AppLocalizations.of(context)!.translate('delete_successful'));
       // Navigator.of(context).pop();
     }else{
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Password incorrect");
+          msg: AppLocalizations.of(context)!.translate('password_incorrect'));
     }
   }
 

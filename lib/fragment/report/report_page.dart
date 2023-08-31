@@ -13,6 +13,7 @@ import 'package:pos_system/fragment/report/product_report.dart';
 import 'package:pos_system/fragment/report/refund_report.dart';
 import 'package:pos_system/fragment/report/report_overview.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:side_navigation/side_navigation.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -82,7 +83,7 @@ class _ReportPageState extends State<ReportPage> {
                   automaticallyImplyLeading: false,
                   title: Row(
                     children: [
-                      Text('Report', style: TextStyle(fontSize: 25, color: Colors.black)),
+                      Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
                       Spacer(),
                       Visibility(
                         visible: this.currentPage != 10 ? true : false,
@@ -122,7 +123,7 @@ class _ReportPageState extends State<ReportPage> {
                                       return true;
                                     },
                                     child: AlertDialog(
-                                      title: Text('Select a date range'),
+                                      title: Text(AppLocalizations.of(context)!.translate('select_a_date_range')),
                                       content: Container(
                                         height: 350,
                                         width: 350,
@@ -136,6 +137,8 @@ class _ReportPageState extends State<ReportPage> {
                                               onSelectionChanged: _onSelectionChanged,
                                               maxDate: DateTime.now(),
                                               showActionButtons: true,
+                                              confirmText: AppLocalizations.of(context)!.translate('ok'),
+                                              cancelText: AppLocalizations.of(context)!.translate('cancel'),
                                               onSubmit: (object) {
                                                 _controller = _range != '' ?
                                                 new TextEditingController(text: '${_range}')
@@ -198,50 +201,50 @@ class _ReportPageState extends State<ReportPage> {
                           dividerTheme: SideNavigationBarDividerTheme.standard(),
                         ),
                         selectedIndex: selectedIndex,
-                        items: const [
+                        items: [
                           SideNavigationBarItem(
                             icon: Icons.view_comfy_alt,
-                            label: 'Overview',
+                            label: AppLocalizations.of(context)!.translate('overview'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.list_alt,
-                            label: 'Daily Sales',
+                            label: AppLocalizations.of(context)!.translate('daily_sales'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.fastfood,
-                            label: 'Product Report',
+                            label: AppLocalizations.of(context)!.translate('product_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.fastfood,
-                            label: 'Category Report',
+                            label: AppLocalizations.of(context)!.translate('category_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.fastfood,
-                            label: 'Modifier Report',
+                            label: AppLocalizations.of(context)!.translate('modifier_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.no_food,
-                            label: 'Cancel Report',
+                            label: AppLocalizations.of(context)!.translate('cancel_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.no_food,
-                            label: 'Cancel Modifier Report',
+                            label: AppLocalizations.of(context)!.translate('cancel_modifier_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.local_dining,
-                            label: 'Dining Report',
+                            label: AppLocalizations.of(context)!.translate('dining_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.payment,
-                            label: 'Payment Report',
+                            label: AppLocalizations.of(context)!.translate('payment_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.refresh,
-                            label: 'Refund Report',
+                            label: AppLocalizations.of(context)!.translate('refund_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.compare_arrows,
-                            label: 'Transfer Report',
+                            label: AppLocalizations.of(context)!.translate('transfer_report'),
                           ),
                         ],
                         onTap: (index) {
@@ -269,7 +272,7 @@ class _ReportPageState extends State<ReportPage> {
                   automaticallyImplyLeading: false,
                   title: Row(
                     children: [
-                      Text('Report', style: TextStyle(fontSize: 25, color: Colors.black)),
+                      Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
                       Spacer(),
                       Visibility(
                         visible: this.currentPage != 10 ? true : false,
@@ -383,30 +386,30 @@ class _ReportPageState extends State<ReportPage> {
                           dividerTheme: SideNavigationBarDividerTheme.standard(),
                         ),
                         selectedIndex: selectedIndex,
-                        items: const [
+                        items: [
                           SideNavigationBarItem(
                             icon: Icons.view_comfy_alt,
-                            label: 'Overview',
+                            label: AppLocalizations.of(context)!.translate('overview'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.list_alt,
-                            label: 'Daily Sales',
+                            label: AppLocalizations.of(context)!.translate('daily_sales'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.fastfood,
-                            label: 'Product Report',
+                            label: AppLocalizations.of(context)!.translate('product_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.fastfood,
-                            label: 'Category Report',
+                            label: AppLocalizations.of(context)!.translate('category_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.fastfood,
-                            label: 'Modifier Report',
+                            label: AppLocalizations.of(context)!.translate('modifier_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.no_food,
-                            label: 'Cancel Report',
+                            label: AppLocalizations.of(context)!.translate('cancel_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.no_food,
@@ -414,19 +417,19 @@ class _ReportPageState extends State<ReportPage> {
                           ),
                           SideNavigationBarItem(
                             icon: Icons.local_dining,
-                            label: 'Dining Report',
+                            label: AppLocalizations.of(context)!.translate('dining_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.payment,
-                            label: 'Payment Report',
+                            label: AppLocalizations.of(context)!.translate('payment_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.refresh,
-                            label: 'Refund Report',
+                            label: AppLocalizations.of(context)!.translate('refund_report'),
                           ),
                           SideNavigationBarItem(
                             icon: Icons.compare_arrows,
-                            label: 'Transfer Report',
+                            label: AppLocalizations.of(context)!.translate('transfer_report'),
                           ),
                         ],
                         onTap: (index) {

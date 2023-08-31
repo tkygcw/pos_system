@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pos_system/notifier/theme_color.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 
 class LoadingDialog extends StatefulWidget {
@@ -21,7 +22,7 @@ class _LoadingDialogState extends State<LoadingDialog> {
               CircularProgressIndicator(
                 color: color.backgroundColor,
               ),
-              Container(margin: EdgeInsets.only(left: 15),child:Text("Placing order, Please wait..." )),
+              Container(margin: EdgeInsets.only(left: 15),child:Text(AppLocalizations.of(context)!.translate('placing_order_please_wait') )),
             ],
           ),
         ),

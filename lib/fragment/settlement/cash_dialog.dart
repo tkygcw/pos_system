@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/object/cash_record.dart';
-import 'package:pos_system/object/receipt_layout.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -115,10 +114,10 @@ class _CashDialogState extends State<CashDialog> {
               if (constraints.maxWidth > 800) {
                 return AlertDialog(
                   title: widget.isNewDay
-                      ? Text('Opening Balance')
+                      ? Text(AppLocalizations.of(context)!.translate('opening_balance'))
                       : widget.isCashIn
-                          ? Text('Cash-in')
-                          : Text('Cash-out'),
+                          ? Text(AppLocalizations.of(context)!.translate('cash_in'))
+                          : Text(AppLocalizations.of(context)!.translate('cash_out')),
                   content: Container(
                     height: widget.isNewDay ? MediaQuery.of(context).size.height / 6 : MediaQuery.of(context).size.height / 4,
                     width: widget.isNewDay ? MediaQuery.of(context).size.height / 2 : MediaQuery.of(context).size.width / 4,
@@ -151,7 +150,7 @@ class _CashDialogState extends State<CashDialog> {
                                             focusedBorder: OutlineInputBorder(
                                               borderSide: BorderSide(color: color.backgroundColor),
                                             ),
-                                            labelText: 'Remark',
+                                            labelText: AppLocalizations.of(context)!.translate('remark'),
                                           ),
                                         ),
                                       ),
@@ -169,6 +168,17 @@ class _CashDialogState extends State<CashDialog> {
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: TextField(
+                                        onSubmitted: (input) async {
+                                          try {
+                                            double.parse(input);
+                                            await _submit(context);
+                                          } catch (e) {
+                                            Fluttertoast.showToast(
+                                              backgroundColor: Color(0xFFFF0000),
+                                              msg: AppLocalizations.of(context)!.translate('invalid_input'),
+                                            );
+                                          }
+                                        },
                                         inputFormatters: [
                                           FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
                                         ],
@@ -186,7 +196,7 @@ class _CashDialogState extends State<CashDialog> {
                                           focusedBorder: OutlineInputBorder(
                                             borderSide: BorderSide(color: color.backgroundColor),
                                           ),
-                                          labelText: 'Amount',
+                                          labelText: AppLocalizations.of(context)!.translate('amount'),
                                         ),
                                       ),
                                     ),
@@ -200,7 +210,7 @@ class _CashDialogState extends State<CashDialog> {
                                   height: MediaQuery.of(context).size.height / 18,
                                   child: Row(
                                     children: [
-                                      Container(child: Text('Last settlement opening balance: ${amount}')),
+                                      Container(child: Text(AppLocalizations.of(context)!.translate('last_settlement_opening_balance')+': ${amount}')),
                                       Spacer(),
                                       Container(
                                           child: ElevatedButton(
@@ -253,7 +263,7 @@ class _CashDialogState extends State<CashDialog> {
                               double.parse(amountController.text);
                               await _submit(context);
                             } catch (e) {
-                              Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Invalid Input!");
+                              Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_input'));
                             }
                           },
                         ),
@@ -272,7 +282,7 @@ class _CashDialogState extends State<CashDialog> {
                                   double.parse(amountController.text);
                                   await _submit(context);
                                 } catch (e) {
-                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Invalid Input!");
+                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_input'));
                                 }
                               },
                       ),
@@ -284,10 +294,10 @@ class _CashDialogState extends State<CashDialog> {
                 return SingleChildScrollView(
                   child: AlertDialog(
                     title: widget.isNewDay
-                        ? Text('Opening Balance')
+                        ? Text(AppLocalizations.of(context)!.translate('opening_balance'))
                         : widget.isCashIn
-                            ? Text('Cash-in')
-                            : Text('Cash-out'),
+                            ? Text(AppLocalizations.of(context)!.translate('cash_in'))
+                            : Text(AppLocalizations.of(context)!.translate('cash_out')),
                     content: Container(
                       height: widget.isNewDay ? MediaQuery.of(context).size.height / 3 : 150,
                       width: widget.isNewDay ? MediaQuery.of(context).size.height / 1 : MediaQuery.of(context).size.width / 2,
@@ -320,7 +330,7 @@ class _CashDialogState extends State<CashDialog> {
                                             focusedBorder: OutlineInputBorder(
                                               borderSide: BorderSide(color: color.backgroundColor),
                                             ),
-                                            labelText: 'Remark',
+                                            labelText: AppLocalizations.of(context)!.translate('remark'),
                                           ),
                                         ),
                                       );
@@ -350,7 +360,7 @@ class _CashDialogState extends State<CashDialog> {
                                           focusedBorder: OutlineInputBorder(
                                             borderSide: BorderSide(color: color.backgroundColor),
                                           ),
-                                          labelText: 'Amount',
+                                          labelText: AppLocalizations.of(context)!.translate('amount'),
                                         ),
                                       ),
                                     );
@@ -364,7 +374,7 @@ class _CashDialogState extends State<CashDialog> {
                                   height: MediaQuery.of(context).size.height / 9,
                                   child: Row(
                                     children: [
-                                      Container(child: Text('Last settlement opening balance: ${amount}')),
+                                      Container(child: Text(AppLocalizations.of(context)!.translate('last_settlement_opening_balance')+': ${amount}')),
                                       Spacer(),
                                       Container(
                                           child: ElevatedButton(
@@ -499,7 +509,7 @@ class _CashDialogState extends State<CashDialog> {
         });
       }
       print('cash record error: ${e}');
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Create cash record error: ${e}");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_cash_record_error'));
     }
   }
 
@@ -514,7 +524,7 @@ class _CashDialogState extends State<CashDialog> {
           backgroundColor: Colors.orangeAccent,
           msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     }else if(printStatus == 3){
-      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "No cashier printer added");
+      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('no_cashier_printer_added'));
     } else if(printStatus == 4){
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,

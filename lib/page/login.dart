@@ -10,6 +10,7 @@ import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/page/setup.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../fragment/network_dialog.dart';
@@ -54,13 +55,13 @@ class _LoginPageState extends State<LoginPage> {
     return Future.delayed(loginTime).then((_) async {
       Map data = await Domain().forgetPassword(name);
       if (data['status'] == '2') {
-        return 'User not Found.';
+        return AppLocalizations.of(context)!.translate('user_not_found');
       }
       if (data['status'] == '3') {
-        return 'Please wait for 1 minute to send again.';
+        return AppLocalizations.of(context)!.translate('please_wait_for_1_minute_to_send_again');
       }
       if (data['status'] == '4') {
-        return 'Please try again later';
+        return AppLocalizations.of(context)!.translate('please_try_again_later');
       }
       return null;
     });
@@ -71,10 +72,10 @@ class _LoginPageState extends State<LoginPage> {
       try{
         Map data = await Domain().userlogin(loginInfo.name, loginInfo.password);
         if (data['status'] == '2') {
-          return 'Please check your email or password.';
+          return AppLocalizations.of(context)!.translate('please_check_your_email_or_password');
         }
         if (data['status'] == '4') {
-          return 'Please try again later';
+          return AppLocalizations.of(context)!.translate('please_try_again_later');
         }
         if(data['status'] == '8'){
           throw TimeoutException("Time out");
@@ -86,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
         await prefs.setString("user", json.encode(data['user']));
         return null;
       } catch(e){
-        Fluttertoast.showToast(msg: "Please try again later");
+        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_try_again_later'));
         toNextPage = false;
       }
     });

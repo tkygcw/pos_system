@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/domain.dart';
+import '../../enumClass/receipt_dialog_enum.dart';
 import '../../main.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/print_receipt.dart';
@@ -40,6 +41,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   String? footerDir;
   String headerText = '';
   String footerTextString = '';
+  ReceiptDialogEnum? headerFontSize;
   String? emailAddress;
   bool isLoad = false;
   bool _isUpdate = false;
@@ -54,6 +56,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   bool _submitted = false;
   bool isLogOut = false;
   Map? branchObject;
+  double? fontSize;
   Receipt? testReceipt;
   Receipt receipt = Receipt();
   String receiptView = "80";
@@ -146,6 +149,8 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
     receipt.show_email == 1 ? emailTextController.text = receipt.receipt_email! : '';
     footerTextString = receipt.footer_text!;
     footerTextController.text = receipt.footer_text!;
+    receipt.header_font_size == 0 ? headerFontSize = ReceiptDialogEnum.big : headerFontSize = ReceiptDialogEnum.small;
+    receipt.header_font_size == 0 ? fontSize = 30.0 : fontSize = 12.0;
   }
 
   getSharePreferences() async {
@@ -229,6 +234,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       footer_text_status: footerText == true ? 1 : 0,
       header_image_status: logoImage == true ? 1 : 0,
       footer_image_status: footerImage == true ? 1 : 0,
+      header_font_size: headerFontSize == ReceiptDialogEnum.big ? 0 : 1,
       promotion_detail_status: promoDetail == true ? 1 : 0,
       show_address: showAddress == true ? 1 : 0,
       show_email: showEmail == true ? 1 : 0,
@@ -249,7 +255,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
             child: SingleChildScrollView(
               //physics: NeverScrollableScrollPhysics(),
               child: AlertDialog(
-                title: !_isUpdate ? Text('Add receipt layout') : Text("Receipt Layout"),
+                title: !_isUpdate ? Text(AppLocalizations.of(context)!.translate('add_receipt_layout')) : Text(AppLocalizations.of(context)!.translate('receipt_layout')),
                 content: isLoad ?
                 Container(
                   height: 500,
@@ -305,7 +311,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     },
                   ),
                   TextButton(
-                    child: Text('Test Print'),
+                    child: Text(AppLocalizations.of(context)!.translate('test_print')),
                     onPressed: () {
                       testReceiptLayout();
                       PrintReceipt().printTestPrintReceipt(printerList, testReceipt!, this.receipt.paper_size!, context);
@@ -313,7 +319,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     },
                   ),
                   TextButton(
-                    child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text("Update"),
+                    child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text(AppLocalizations.of(context)!.translate('update')),
                     onPressed: () {
                       _submit(context);
                     },
@@ -324,83 +330,77 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
           );
         } else {
           ///mobile layout
-          return SingleChildScrollView(
-            //physics: NeverScrollableScrollPhysics(),
-            child: Center(
-              child: AlertDialog(
-                scrollable: true,
-                actionsPadding: EdgeInsets.all(5),
-                insetPadding: EdgeInsets.only(top: 20),
-                contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-                title: !_isUpdate ? Text('Add receipt layout') : Text("Receipt Layout"),
-                content: isLoad ?
-                Container(
-                  height: 200,
-                  width: 500,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Align(
-                          alignment: Alignment.topLeft,
-                          child: SegmentedButton(
-                            style: ButtonStyle(
-                                side: MaterialStateProperty.all(
-                                  BorderSide.lerp(BorderSide(
+          return AlertDialog(
+            // scrollable: true,
+            // actionsPadding: EdgeInsets.all(5),
+            // insetPadding: EdgeInsets.only(top: 20),
+            // contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+            title: !_isUpdate ? Text(AppLocalizations.of(context)!.translate('add_receipt_layout')) : Text(AppLocalizations.of(context)!.translate('receipt_layout')),
+            content: isLoad ?
+            Container(
+              width: 500,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: SegmentedButton(
+                        style: ButtonStyle(
+                            side: MaterialStateProperty.all(
+                              BorderSide.lerp(BorderSide(
+                                style: BorderStyle.solid,
+                                color: Colors.blueGrey,
+                                width: 1,
+                              ),
+                                  BorderSide(
                                     style: BorderStyle.solid,
                                     color: Colors.blueGrey,
                                     width: 1,
                                   ),
-                                      BorderSide(
-                                        style: BorderStyle.solid,
-                                        color: Colors.blueGrey,
-                                        width: 1,
-                                      ),
-                                      1),
-                                )
-                            ),
-                            segments: <ButtonSegment<String>>[
-                              ButtonSegment(value: "80", label: Text("80mm")),
-                              ButtonSegment(value: "58", label: Text("58mm"))
-                            ],
-                            onSelectionChanged: (Set<String> newSelection) async{
-                              receiptView = newSelection.first;
-                              isLoad = false;
-                              reload();
-
-                            },
-                            selected: <String>{receiptView},
-                          ),
+                                  1),
+                            )
                         ),
-                        receiptView == "80" ?
-                        MobileReceiptView1(color) :
-                        MobileReceiptView2(color)
-                      ],
+                        segments: <ButtonSegment<String>>[
+                          ButtonSegment(value: "80", label: Text("80mm")),
+                          ButtonSegment(value: "58", label: Text("58mm"))
+                        ],
+                        onSelectionChanged: (Set<String> newSelection) async{
+                          receiptView = newSelection.first;
+                          isLoad = false;
+                          reload();
+                        },
+                        selected: <String>{receiptView},
+                      ),
                     ),
-                  ),
-                ) : CustomProgressBar(),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                    onPressed: () {
-                      closeDialog(context);
-                    },
-                  ),
-                  TextButton(
-                    child: Text('Test Print'),
-                    onPressed: () {
-                      testReceiptLayout();
-                      PrintReceipt().printTestPrintReceipt(printerList, testReceipt!, this.receipt.paper_size!, context);
-                    },
-                  ),
-                  TextButton(
-                    child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text("Update"),
-                    onPressed: () {
-                      _submit(context);
-                    },
-                  ),
-                ],
+                    SizedBox(height: 20.0),
+                    receiptView == "80" ?
+                    MobileReceiptView1(color) :
+                    MobileReceiptView2(color)
+                  ],
+                ),
               ),
-            ),
+            ) : CustomProgressBar(),
+            actions: <Widget>[
+              TextButton(
+                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                onPressed: () {
+                  closeDialog(context);
+                },
+              ),
+              TextButton(
+                child: Text(AppLocalizations.of(context)!.translate('test_print')),
+                onPressed: () {
+                  testReceiptLayout();
+                  PrintReceipt().printTestPrintReceipt(printerList, testReceipt!, this.receipt.paper_size!, context);
+                },
+              ),
+              TextButton(
+                child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text(AppLocalizations.of(context)!.translate('update')),
+                onPressed: () {
+                  _submit(context);
+                },
+              ),
+            ],
           );
         }
       });
@@ -417,6 +417,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       receipt_key: receipt.receipt_key,
       header_text: logoText == true ? headerTextController.text : '',
       footer_text: footerText == true ? footerTextController.text : '',
+      header_font_size: headerFontSize == ReceiptDialogEnum.big ? 0 : 1,
       header_image: logoImage == true ? 'branchLogo.jpg' : '',
       footer_image: footerImage == true ? 'branchFooter.jpg' : '',
       header_text_status: logoText == true ? 1 : 0,
@@ -435,6 +436,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       widget.callBack();
       Receipt? receipt = await PosDatabase.instance.readSpecificReceiptByKey(data.receipt_key!);
       receiptValue.add(jsonEncode(receipt));
+      print("receipt value: ${receiptValue.toString()}");
       await syncAllToCloud(receiptValue: receiptValue.toString());
     }
     print('update status: $status');
@@ -493,14 +495,14 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: CircleAvatar(
                         radius: 30,
                         backgroundColor: Colors.black,
-                        child: Text('Logo'),
+                        child: Text(AppLocalizations.of(context)!.translate('logo')),
                       ),
                     )
                 ),
                 Visibility(
                     visible: logoText ? true : false,
                     child: Center(
-                      child: Text('${headerText}', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                      child: Text('${headerText}', style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold)),
                     )
                 ),
                 Center(
@@ -526,10 +528,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Receipt No.: #00001-001-12345678', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text('Close at: 31/12/2021 00:00 AM'),
-                    Text('Close by: Waiter'),
+                    Text('Close At: 31/12/2021 00:00 AM'),
+                    Text('Close By: Waiter'),
                     Text('Table No: 1'),
-                    Text('Dine in'),
+                    Text('Dine In'),
                   ],
                 ),
                 DottedLine(),
@@ -563,7 +565,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         children: [
                           Expanded(
                             flex: 2,
-                            child: Text('product1', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: Text('Product1', style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                           Expanded(
                             flex: 1,
@@ -579,7 +581,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         children: [
                           Expanded(
                             flex: 2,
-                            child: Text('product2', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: Text('Product2', style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                           Expanded(
                             flex: 1,
@@ -633,7 +635,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 DottedLine(),
                 Container(
                   padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
-                  child: Text('Item count: 2'),
+                  child: Text('Item Count: 2'),
                 ),
                 DottedLine(),
                 Container(
@@ -769,7 +771,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: Text('Payment method', textAlign: TextAlign.right),
+                        child: Text('Payment Method', textAlign: TextAlign.right),
                       ),
                       SizedBox(width: 75),
                       Text('Cash')
@@ -779,7 +781,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Row(
                   children: [
                     Expanded(
-                      child: Text('Payment received', textAlign: TextAlign.right,),
+                      child: Text('Payment Received', textAlign: TextAlign.right,),
                     ),
                     SizedBox(width: 80),
                     Text('5.00')
@@ -802,7 +804,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: CircleAvatar(
                         radius: 30,
                         backgroundColor: Colors.black,
-                        child: Text('footer'),
+                        child: Text(AppLocalizations.of(context)!.translate('footer')),
                       ),
                     )
                 ),
@@ -835,7 +837,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('logo_text'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Switch(
@@ -881,7 +883,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                                 borderSide: BorderSide(
                                     color: color.backgroundColor),
                               ),
-                              labelText: 'Logo text here',
+                              labelText: AppLocalizations.of(context)!.translate('logo_text_here'),
                             ),
                           ),
                         ),
@@ -889,11 +891,46 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     }),
               ),
             ),
+            Visibility(
+                visible: logoText ? true : false,
+                child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Text('Logo font size', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.big,
+                      groupValue: headerFontSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerFontSize = value;
+                          fontSize = 30.0;
+                        });
+                      },
+                      title: Text("Big"),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.small,
+                      groupValue: headerFontSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerFontSize = value;
+                          fontSize = 12.0;
+                        });
+                      },
+                      title: Text("Small"),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                  ],
+                )
+            ),
             Row(
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Show address', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('show_address'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Container(
@@ -906,7 +943,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         });
                       } :
                           (bool value){
-                        Fluttertoast.showToast(msg: "No branch address added");
+                        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_address_added'));
                       }
                   ),
                 )
@@ -916,7 +953,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Show email', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('show_email'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Switch(
@@ -967,7 +1004,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                               borderSide: BorderSide(
                                   color: color.backgroundColor),
                             ),
-                            labelText: 'email here',
+                            labelText: AppLocalizations.of(context)!.translate('email_here'),
                           ),
                         ),
                       ),
@@ -978,7 +1015,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('footer_text'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Container(
@@ -1009,7 +1046,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                           },
                           controller: footerTextController,
                           decoration: InputDecoration(
-                            helperText: "Max 3 lines",
+                            helperText: AppLocalizations.of(context)!.translate('max_3_lines'),
                             isDense: true,
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: color.backgroundColor),
@@ -1071,7 +1108,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Show promotion detail (80mm)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('show_promotion_detail'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Container(
@@ -1111,14 +1148,14 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: CircleAvatar(
                         radius: 30,
                         backgroundColor: Colors.black,
-                        child: Text('Logo'),
+                        child: Text(AppLocalizations.of(context)!.translate('logo')),
                       ),
                     )
                 ),
                 Visibility(
                     visible: logoText ? true : false,
                     child: Center(
-                      child: Text('${headerText}', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                      child: Text('${headerText}', style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold)),
                     )
                 ),
                 Center(
@@ -1146,12 +1183,12 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                   children: [
                     Text('Receipt No:', style: TextStyle(fontWeight: FontWeight.bold)),
                     Text('#00001-001-12345678', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text('Close at:'),
+                    Text('Close At:'),
                     Text('31/12/2021 00:00 AM'),
-                    Text('Close by:'),
+                    Text('Close By:'),
                     Text('Waiter'),
                     Text('Table No: 1', textAlign: TextAlign.center),
-                    Text('Dine in', textAlign: TextAlign.center),
+                    Text('Dine In', textAlign: TextAlign.center),
                   ],
                 ),
                 Padding(
@@ -1183,7 +1220,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     Row(
                       children: [
                         Expanded(
-                          child: Text('product1', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text('Product1', style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                         Expanded(
                           child: Text('2'),
@@ -1196,7 +1233,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     Row(
                       children: [
                         Expanded(
-                          child: Text('product2', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text('Product2', style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                         Expanded(
                           child: Text('1'),
@@ -1250,7 +1287,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 ),
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Item count: 2', textAlign: TextAlign.left),
+                  child: Text('Item Count: 2', textAlign: TextAlign.left),
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
@@ -1355,14 +1392,14 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 ),
                 Row(
                   children: [
-                    Text('Payment method', textAlign: TextAlign.left),
+                    Text('Payment Method', textAlign: TextAlign.left),
                     Expanded(child: Text('')),
                     Expanded(child: Text('Cash'))
                   ],
                 ),
                 Row(
                   children: [
-                    Text('Payment received', textAlign: TextAlign.left),
+                    Text('Payment Received', textAlign: TextAlign.left),
                     // SizedBox(width: 80),
                     Expanded(child: Text('')),
                     Expanded(child: Text('5.00')),
@@ -1384,7 +1421,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: CircleAvatar(
                         radius: 30,
                         backgroundColor: Colors.black,
-                        child: Text('footer'),
+                        child: Text(AppLocalizations.of(context)!.translate('footer')),
                       ),
                     )
                 ),
@@ -1417,7 +1454,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('logo_text'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Switch(
@@ -1462,18 +1499,53 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                               borderSide: BorderSide(
                                   color: color.backgroundColor),
                             ),
-                            labelText: 'Logo text here',
+                            labelText: AppLocalizations.of(context)!.translate('logo_text_here'),
                           ),
                         ),
                       ),
                     );
                   }),
             ),
+            Visibility(
+                visible: logoText ? true : false,
+                child: Column(
+                  children: [
+                    Container(
+                      alignment: Alignment.topLeft,
+                      child: Text('Logo font size', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.big,
+                      groupValue: headerFontSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerFontSize = value;
+                          fontSize = 30.0;
+                        });
+                      },
+                      title: Text("Big"),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                    RadioListTile<ReceiptDialogEnum?>(
+                      value: ReceiptDialogEnum.small,
+                      groupValue: headerFontSize,
+                      onChanged: (value) async  {
+                        setState(() {
+                          headerFontSize = value;
+                          fontSize = 12.0;
+                        });
+                      },
+                      title: Text("Small"),
+                      controlAffinity: ListTileControlAffinity.trailing,
+                    ),
+                  ],
+                )
+            ),
             Row(
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Show address', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('show_address'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Switch(
@@ -1485,7 +1557,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       });
                     } :
                         (bool value){
-                      Fluttertoast.showToast(msg: "No branch address added");
+                      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_address_added'));
                     }
                 )
               ],
@@ -1494,7 +1566,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Show email', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('show_email'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Switch(
@@ -1545,7 +1617,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                               borderSide: BorderSide(
                                   color: color.backgroundColor),
                             ),
-                            labelText: 'email here',
+                            labelText: AppLocalizations.of(context)!.translate('email_here'),
                           ),
                         ),
                       ),
@@ -1556,7 +1628,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               children: [
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  child: Text(AppLocalizations.of(context)!.translate('footer_text'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                 ),
                 Spacer(),
                 Switch(
@@ -1585,7 +1657,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                           },
                           controller: footerTextController,
                           decoration: InputDecoration(
-                            helperText: "Max 3 lines",
+                            helperText: AppLocalizations.of(context)!.translate('max_3_lines'),
                             isDense: true,
                             focusedBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: color.backgroundColor),
@@ -1689,11 +1761,37 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       //     )
       //   ],
       // ),
+      Container(
+        alignment: Alignment.topLeft,
+        child: Text('Logo font size', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.big,
+        groupValue: headerFontSize,
+        onChanged: (value) async  {
+          setState(() {
+            headerFontSize = value;
+          });
+        },
+        title: Text("Big"),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.small,
+        groupValue: headerFontSize,
+        onChanged: (value) async  {
+         setState(() {
+           headerFontSize = value;
+         });
+        },
+        title: Text("Small"),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
       Row(
         children: [
           Container(
             alignment: Alignment.topLeft,
-            child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            child: Text(AppLocalizations.of(context)!.translate('logo_text'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
           ),
           Spacer(),
           Switch(
@@ -1733,7 +1831,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         borderSide: BorderSide(
                             color: color.backgroundColor),
                       ),
-                      labelText: 'Logo text here',
+                      labelText: AppLocalizations.of(context)!.translate('logo_text_here'),
                     ),
                   ),
                 ),
@@ -1744,7 +1842,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         children: [
           Container(
             alignment: Alignment.topLeft,
-            child: Text('Show address', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            child: Text(AppLocalizations.of(context)!.translate('show_address'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
           ),
           Spacer(),
           Switch(
@@ -1756,7 +1854,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 });
               } :
                   (bool value){
-                Fluttertoast.showToast(msg: "No branch address added");
+                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_address_added'));
               }
           )
         ],
@@ -1765,7 +1863,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         children: [
           Container(
             alignment: Alignment.topLeft,
-            child: Text('Show email', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            child: Text(AppLocalizations.of(context)!.translate('show_email'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
           ),
           Spacer(),
           Switch(
@@ -1816,7 +1914,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         borderSide: BorderSide(
                             color: color.backgroundColor),
                       ),
-                      labelText: 'email here',
+                      labelText: AppLocalizations.of(context)!.translate('email_here'),
                     ),
                   ),
                 ),
@@ -1827,7 +1925,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         children: [
           Container(
             alignment: Alignment.topLeft,
-            child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            child: Text(AppLocalizations.of(context)!.translate('footer_text'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
           ),
           Spacer(),
           Switch(
@@ -1867,7 +1965,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         borderSide: BorderSide(
                             color: color.backgroundColor),
                       ),
-                      labelText: 'footer text here',
+                      labelText: AppLocalizations.of(context)!.translate('footer_text_here'),
                     ),
                   ),
                 ),
@@ -1877,7 +1975,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       Row(
         children: [
           Expanded(
-            child: Text('Show promotion detail (80mm)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            child: Text(AppLocalizations.of(context)!.translate('show_promotion_detail'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
           ),
           Spacer(),
           Switch(
@@ -1933,11 +2031,37 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       //     )
       //   ],
       // ),
+      Container(
+        alignment: Alignment.topLeft,
+        child: Text('Logo font size', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.big,
+        groupValue: headerFontSize,
+        onChanged: (value) async  {
+          setState(() {
+            headerFontSize = value;
+          });
+        },
+        title: Text("Big"),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
+      RadioListTile<ReceiptDialogEnum?>(
+        value: ReceiptDialogEnum.small,
+        groupValue: headerFontSize,
+        onChanged: (value) async  {
+          setState(() {
+            headerFontSize = value;
+          });
+        },
+        title: Text("Small"),
+        controlAffinity: ListTileControlAffinity.trailing,
+      ),
       Row(
         children: [
           Container(
             alignment: Alignment.topLeft,
-            child: Text('Logo text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            child: Text(AppLocalizations.of(context)!.translate('logo_text'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
           ),
           Spacer(),
           Switch(
@@ -1977,7 +2101,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         borderSide: BorderSide(
                             color: color.backgroundColor),
                       ),
-                      labelText: 'Logo text here',
+                      labelText: AppLocalizations.of(context)!.translate('logo_text_here'),
                     ),
                   ),
                 ),
@@ -1988,7 +2112,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         children: [
           Container(
             alignment: Alignment.topLeft,
-            child: Text('Show address', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            child: Text(AppLocalizations.of(context)!.translate('show_address'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
           ),
           Spacer(),
           Switch(
@@ -2000,7 +2124,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 });
               } :
                   (bool value){
-                Fluttertoast.showToast(msg: "No branch address added");
+                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_branch_address_added'));
               }
           )
         ],
@@ -2009,7 +2133,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         children: [
           Container(
             alignment: Alignment.topLeft,
-            child: Text('Show email', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            child: Text(AppLocalizations.of(context)!.translate('show_email'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
           ),
           Spacer(),
           Switch(
@@ -2060,7 +2184,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         borderSide: BorderSide(
                             color: color.backgroundColor),
                       ),
-                      labelText: 'email here',
+                      labelText: AppLocalizations.of(context)!.translate('email_here'),
                     ),
                   ),
                 ),
@@ -2071,7 +2195,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         children: [
           Container(
             alignment: Alignment.topLeft,
-            child: Text('Footer text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            child: Text(AppLocalizations.of(context)!.translate('footer_text'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
           ),
           Spacer(),
           Switch(
@@ -2111,7 +2235,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         borderSide: BorderSide(
                             color: color.backgroundColor),
                       ),
-                      labelText: 'footer text here',
+                      labelText: AppLocalizations.of(context)!.translate('footer_text_here'),
                     ),
                   ),
                 ),

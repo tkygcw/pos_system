@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:checkbox_grouped/checkbox_grouped.dart';
-import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -218,21 +217,21 @@ class _EditProductDialogState extends State<EditProductDialog> {
         if (selectStock == 'Daily Limit' && errorDailyLimitText != null) {
           Fluttertoast.showToast(
               backgroundColor: Color(0xFFFFC107),
-              msg: "Please fill in all the required field");
+              msg: AppLocalizations.of(context)!.translate('please_fill_in_all_the_required_field'));
         } else if (selectStock == 'Stock' && errorStockQuantityText != null) {
           Fluttertoast.showToast(
               backgroundColor: Color(0xFFFFC107),
-              msg: "Please fill in all the required field");
+              msg: AppLocalizations.of(context)!.translate('please_fill_in_all_the_required_field'));
         } else {
           if (selectGraphic == 'Image' && imageDir == null) {
             Fluttertoast.showToast(
                 backgroundColor: Color(0xFFFFC107),
-                msg: "Please pick product image");
+                msg: AppLocalizations.of(context)!.translate('please_pick_product_image'));
           } else {
             if (productVariantListIsEmpty && selectVariant == 'Have Variant') {
               Fluttertoast.showToast(
                   backgroundColor: Color(0xFFFFC107),
-                  msg: "Please fill in all the variant list info");
+                  msg: AppLocalizations.of(context)!.translate('please_fill_in_all_the_variant_list_info'));
             } else {
               createProduct(context);
             }
@@ -241,7 +240,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFFC107),
-            msg: "Please fill in all the required field");
+            msg: AppLocalizations.of(context)!.translate('please_fill_in_all_the_required_field'));
       }
     } else {
       updateProductAvailability();
@@ -1199,12 +1198,12 @@ class _EditProductDialogState extends State<EditProductDialog> {
 */
       }
       Fluttertoast.showToast(
-          backgroundColor: Color(0xff0c1f32), msg: "Edit Product Success");
+          backgroundColor: Color(0xff0c1f32), msg: AppLocalizations.of(context)!.translate('edit_product_success'));
       widget.callBack();
       closeDialog(context);
     } catch (error) {
       Fluttertoast.showToast(
-          msg: 'something went wrong, please try again later');
+          msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later'));
       print(error);
     }
   }
@@ -1509,11 +1508,11 @@ class _EditProductDialogState extends State<EditProductDialog> {
         }
       }
       Fluttertoast.showToast(
-          backgroundColor: Color(0xff0c1f32), msg: "Create Product Success");
+          backgroundColor: Color(0xff0c1f32), msg: AppLocalizations.of(context)!.translate('create_product_success'));
       widget.callBack();
       closeDialog(context);
     } catch (error) {
-      Fluttertoast.showToast(msg: 'Something went wrong. Please try again');
+      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later'));
       print(error);
     }
   }
@@ -1668,7 +1667,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
 */
       widget.callBack();
       closeDialog(context);
-      Fluttertoast.showToast(msg: "delete Product Success");
+      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('delete_product_success'));
     } catch (error) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFFC107), msg: error.toString());
@@ -1683,7 +1682,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
               title: Row(
                 children: [
                   Text(
-                    isAdd ? "Add Product" : "Edit Product",
+                    isAdd ? AppLocalizations.of(context)!.translate('add_product') : AppLocalizations.of(context)!.translate('edit_product'),
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -1740,7 +1739,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                     borderSide: BorderSide(
                                         color: color.backgroundColor),
                                   ),
-                                  labelText: 'Name',
+                                  labelText: AppLocalizations.of(context)!.translate('name'),
                                 ),
                               ),
                             );
@@ -1768,7 +1767,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                     borderSide: BorderSide(
                                         color: color.backgroundColor),
                                   ),
-                                  labelText: 'Description(Optional)',
+                                  labelText: AppLocalizations.of(context)!.translate('description_optional'),
                                 ),
                               ),
                             );
@@ -1856,7 +1855,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                         borderSide: BorderSide(
                                             color: color.backgroundColor),
                                       ),
-                                      labelText: 'Daily Limit Amount',
+                                      labelText: AppLocalizations.of(context)!.translate('daily_limit_amount'),
                                     ),
                                   ),
                                 );
@@ -1885,7 +1884,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                         borderSide: BorderSide(
                                             color: color.backgroundColor),
                                       ),
-                                      labelText: 'Stock Quantity',
+                                      labelText: AppLocalizations.of(context)!.translate('stock_quantity'),
                                     ),
                                   ),
                                 );
@@ -1913,7 +1912,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                     borderSide: BorderSide(
                                         color: color.backgroundColor),
                                   ),
-                                  labelText: 'Price',
+                                  labelText: AppLocalizations.of(context)!.translate('price'),
                                 ),
                               ),
                             );
@@ -1940,7 +1939,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                     borderSide: BorderSide(
                                         color: color.backgroundColor),
                                   ),
-                                  labelText: 'SKU',
+                                  labelText: AppLocalizations.of(context)!.translate('sku'),
                                 ),
                               ),
                             );
@@ -1949,8 +1948,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.fromLTRB(15, 10, 15, 0),
-                            child: Text(
-                              'Modifier',
+                            child: Text(AppLocalizations.of(context)!.translate('modifier'),
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -2005,8 +2003,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                 Padding(
                                   padding:
                                       const EdgeInsets.fromLTRB(15, 15, 15, 0),
-                                  child: Text(
-                                    'Variant',
+                                  child: Text(AppLocalizations.of(context)!.translate('variant'),
                                     style:
                                         TextStyle(fontWeight: FontWeight.bold),
                                   ),
@@ -2060,8 +2057,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                               child: DataTable(
                                                   columns: <DataColumn>[
                                                     DataColumn(
-                                                      label: Text(
-                                                        'Product Variant',
+                                                      label: Text(AppLocalizations.of(context)!.translate('product_variant'),
                                                         style: TextStyle(
                                                             fontStyle: FontStyle
                                                                 .italic),
@@ -2070,17 +2066,16 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                                     DataColumn(
                                                       label: Text(
                                                         selectStock ==
-                                                                'Daily Limit'
-                                                            ? 'Daily limit'
-                                                            : 'Stock',
+                                                            AppLocalizations.of(context)!.translate('daily_limit')
+                                                            ? AppLocalizations.of(context)!.translate('daily_limit')
+                                                            : AppLocalizations.of(context)!.translate('stock'),
                                                         style: TextStyle(
                                                             fontStyle: FontStyle
                                                                 .italic),
                                                       ),
                                                     ),
                                                     DataColumn(
-                                                      label: Text(
-                                                        'Price',
+                                                      label: Text(AppLocalizations.of(context)!.translate('price'),
                                                         style: TextStyle(
                                                             fontStyle: FontStyle
                                                                 .italic),
@@ -2186,7 +2181,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                         SizedBox(
                                           width: 10,
                                         ),
-                                        Text("Pick Image from Gallery"),
+                                        Text(AppLocalizations.of(context)!.translate('pick_image_from_gallery')),
                                       ],
                                     ),
                                     onPressed: isAdd? () {
@@ -2205,7 +2200,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                         SizedBox(
                                           width: 10,
                                         ),
-                                        Text("Pick Image from Camera"),
+                                        Text(AppLocalizations.of(context)!.translate('pick_image_from_camera')),
                                       ],
                                     ),
                                     onPressed: isAdd? () {
@@ -2260,19 +2255,19 @@ class _EditProductDialogState extends State<EditProductDialog> {
               ),
               actions: <Widget>[
                 TextButton(
-                  child: Text('Close'),
+                  child: Text(AppLocalizations.of(context)!.translate('close')),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
                 TextButton(
-                  child: isAdd ? Text('Add') : Text('Edit'),
+                  child: isAdd ? Text(AppLocalizations.of(context)!.translate('add')) : Text(AppLocalizations.of(context)!.translate('edit')),
                   onPressed: () async {
                     await checKProductSKU();
                     if (skuInUsed) {
                       Fluttertoast.showToast(
                           backgroundColor: Color(0xFFFFC107),
-                          msg: "SKU already in used");
+                          msg: AppLocalizations.of(context)!.translate('sku_already_in_used'));
                     } else {
                       _submit(context);
                     }

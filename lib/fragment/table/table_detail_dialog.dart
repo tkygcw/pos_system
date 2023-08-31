@@ -1,12 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/fragment/table/merge_bill_dialog.dart';
 import 'package:pos_system/fragment/table/remove_detail_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
-import 'package:pos_system/object/order.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/product.dart';
@@ -14,8 +12,8 @@ import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/product_variant_detail.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
@@ -70,7 +68,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
         return AlertDialog(
-          title: Text("table ${widget.object.number} detail"),
+          title: Text(AppLocalizations.of(context)!.translate('table')+" ${widget.object.number} "+AppLocalizations.of(context)!.translate('detail')),
           content: isLoad == true
               ? Container(
                       width: 350.0,
@@ -185,7 +183,7 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
                           child: Card(
                             elevation: 5,
                             child: ListTile(
-                              title: Text("Total",
+                              title: Text(AppLocalizations.of(context)!.translate('total'),
                                   style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold)),
@@ -197,14 +195,14 @@ class _TableDetailDialogState extends State<TableDetailDialog> {
               : CustomProgressBar(),
           actions: <Widget>[
             TextButton(
-              child: Text('Close'),
+              child: Text(AppLocalizations.of(context)!.translate('close')),
               onPressed: () {
                 widget.callBack();
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Make payment'),
+              child: Text(AppLocalizations.of(context)!.translate('make_payment')),
               onPressed: () async {
                 if(cart.cartNotifierItem.isEmpty){
                   addToPaymentCart(cart);

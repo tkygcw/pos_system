@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/report/print_report_page.dart';
-import 'package:pos_system/fragment/test_dual_screen/test_display.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
@@ -20,16 +19,15 @@ import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
-import 'package:pos_system/object/pdf_format.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/tax.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:presentation_displays/display.dart';
 import 'package:presentation_displays/displays_manager.dart';
-import 'package:printing/printing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/domain.dart';
@@ -107,7 +105,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
                   QrOrder().getQrOrder();
                  //openLogOutDialog();
                 },  //await displayManager.showSecondaryDisplay(displayId: 1, routerName: "presentation"),
-                child: Text('current screen height/width: ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
+                child: Text(AppLocalizations.of(context)!.translate('current_screen_height_width')+': ${MediaQuery.of(context).size.height}, ${MediaQuery.of(context).size.width}')),
             ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -118,7 +116,7 @@ class _TestCategorySyncState extends State<TestCategorySync> {
                     ),
                   );
                 },
-                child: Text('pdf generate'))
+                child: Text(AppLocalizations.of(context)!.translate('pdf_generate')))
           ],
         ),
       ) : CustomProgressBar(),

@@ -6,6 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/object/categories.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -112,12 +113,12 @@ class _CategoryDialogState extends State<CategoryDialog> {
       if (data == 1) {
         widget.callBack();
         Navigator.of(context).pop(true);
-        Fluttertoast.showToast(msg: 'Successfully update');
+        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('successfully_update'));
       } else {
-        Fluttertoast.showToast(msg: 'Fail update');
+        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('fail_update'));
       }
     } catch (error) {
-      Fluttertoast.showToast(msg: 'Something went wrong.');
+      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('something_went_wrong'));
     }
   }
 
@@ -155,12 +156,12 @@ class _CategoryDialogState extends State<CategoryDialog> {
       if (data == 1) {
         widget.callBack();
         Navigator.of(context).pop(true);
-        Fluttertoast.showToast(msg: 'Successfully delete');
+        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('successfully_delete'));
       } else {
-        Fluttertoast.showToast(msg: 'Fail delete');
+        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('fail_delete'));
       }
     } catch (error) {
-      Fluttertoast.showToast(msg: 'Something went wrong.');
+      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('something_went_wrong'));
     }
   }
 
@@ -205,14 +206,14 @@ class _CategoryDialogState extends State<CategoryDialog> {
       -----------------------------sync end----------------------------------
 */
       if (data.category_sqlite_id != '') {
-        Fluttertoast.showToast(msg: 'Successfully Add');
+        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('successfully_add'));
         widget.callBack();
         Navigator.of(context).pop(true);
       } else {
-        Fluttertoast.showToast(msg: 'Fail Insert');
+        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('fail_insert'));
       }
     } catch (error) {
-      Fluttertoast.showToast(msg: 'Something went wrong.');
+      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('something_went_wrong'));
     }
   }
 
@@ -238,10 +239,10 @@ class _CategoryDialogState extends State<CategoryDialog> {
                     onPressed: () async {
                       if (await confirm(
                         context,
-                        title: const Text('Confirm'),
-                        content: const Text('Do you want to delete?(The others branch will not appear this category if delete)'),
-                        textOK: const Text('Yes'),
-                        textCancel: const Text('No'),
+                        title: Text(AppLocalizations.of(context)!.translate('confirm')),
+                        content: Text(AppLocalizations.of(context)!.translate('category_do_you_want_to_delete')),
+                        textOK: Text(AppLocalizations.of(context)!.translate('yes')),
+                        textCancel: Text(AppLocalizations.of(context)!.translate('no')),
                       )) {
                         return deleteCategory();
                       }
@@ -276,7 +277,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
                               borderSide:
                                   BorderSide(color: color.backgroundColor),
                             ),
-                            labelText: 'Category Name',
+                            labelText: AppLocalizations.of(context)!.translate('category_name'),
                           ),
                         ),
                       );
@@ -306,13 +307,13 @@ class _CategoryDialogState extends State<CategoryDialog> {
         ),
         actions: <Widget>[
           TextButton(
-            child: Text('Close'),
+            child: Text(AppLocalizations.of(context)!.translate('close')),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           TextButton(
-            child: const Text('Submit'),
+            child: Text(AppLocalizations.of(context)!.translate('submit')),
             onPressed: () {
               _submit();
             },

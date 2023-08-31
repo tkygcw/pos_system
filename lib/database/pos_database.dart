@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:intl/intl.dart';
-import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/bill.dart';
 import 'package:pos_system/object/branch.dart';
@@ -69,7 +67,23 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 2, onCreate: _createDB);
+    return await openDatabase(path, version: 4, onCreate: _createDB, onUpgrade: _onUpgrade);
+  }
+
+  void _onUpgrade(Database db, int oldVersion, int newVersion) async  {
+    if (oldVersion < newVersion) {
+      // you can execute drop table and create table
+      switch(oldVersion) {
+        case 2: {
+          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.header_font_size} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.direct_payment} INTEGER NOT NULL DEFAULT 0");
+        }break;
+        case 3: {
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.direct_payment} INTEGER NOT NULL DEFAULT 0");
+        }break;
+      }
+
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -545,6 +559,7 @@ class PosDatabase {
           ${ReceiptFields.header_image_status} $integerType,
           ${ReceiptFields.header_text} $textType,
           ${ReceiptFields.header_text_status} $integerType,
+          ${ReceiptFields.header_font_size} $integerType,
           ${ReceiptFields.show_address} $integerType,
           ${ReceiptFields.show_email} $integerType,
           ${ReceiptFields.receipt_email} $textType,
@@ -630,7 +645,8 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableAppSetting(
           ${AppSettingFields.app_setting_sqlite_id} $idType,
           ${AppSettingFields.open_cash_drawer} $integerType,
-          ${AppSettingFields.show_second_display} $integerType)''');
+          ${AppSettingFields.show_second_display} $integerType,
+          ${AppSettingFields.direct_payment} $integerType)''');
 /*
     create transfer owner table
 */
@@ -1681,14 +1697,15 @@ class PosDatabase {
   Future<Receipt> insertReceipt(Receipt data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, status, paper_size, promotion_detail_status, '
+        'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, header_font_size, status, paper_size, promotion_detail_status, '
             'footer_text_status, footer_text, footer_image_status, footer_image, receipt_email, show_email, show_address, '
-            'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
           data.created_at,
           data.sync_status,
+          data.header_font_size,
           data.status,
           data.paper_size,
           data.promotion_detail_status,
@@ -2005,8 +2022,8 @@ class PosDatabase {
       String variant_group_id) async {
     final db = await instance.database;
     final maps = await db.rawQuery(
-        'SELECT * FROM $tableVariantGroup WHERE soft_delete = ? AND variant_group_id = ?',
-        ['', variant_group_id]);
+        'SELECT * FROM $tableVariantGroup WHERE variant_group_id = ?',
+        [variant_group_id]);
     if (maps.isNotEmpty) {
       return VariantGroup.fromJson(maps.first);
     }
@@ -2027,8 +2044,8 @@ class PosDatabase {
       String product_variant_id) async {
     final db = await instance.database;
     final maps = await db.rawQuery(
-        'SELECT * FROM $tableProductVariant WHERE soft_delete = ? AND product_variant_id = ?',
-        ['', product_variant_id]);
+        'SELECT * FROM $tableProductVariant WHERE product_variant_id = ?',
+        [product_variant_id]);
     if (maps.isNotEmpty) {
       return ProductVariant.fromJson(maps.first);
     } else {
@@ -2051,8 +2068,8 @@ class PosDatabase {
       String variant_item_id) async {
     final db = await instance.database;
     final maps = await db.rawQuery(
-        'SELECT * FROM $tableVariantItem WHERE soft_delete = ? AND variant_item_id = ?',
-        ['', variant_item_id]);
+        'SELECT * FROM $tableVariantItem WHERE variant_item_id = ?',
+        [variant_item_id]);
     if (maps.isNotEmpty) {
       return VariantItem.fromJson(maps.first);
     }
@@ -2073,8 +2090,8 @@ class PosDatabase {
   Future<BranchLinkProduct> readBranchLinkProductSqliteID(String branch_link_product_id) async {
     final db = await instance.database;
     final maps = await db.rawQuery(
-        'SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND branch_link_product_id = ?',
-        ['', branch_link_product_id]
+        'SELECT * FROM $tableBranchLinkProduct WHERE branch_link_product_id = ?',
+        [branch_link_product_id]
     );
     return BranchLinkProduct.fromJson(maps.first);
   }
@@ -2207,8 +2224,8 @@ class PosDatabase {
       String product_variant_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableProductVariantDetail WHERE soft_delete = ? AND product_variant_id = ?',
-        ['', product_variant_id]);
+        'SELECT * FROM $tableProductVariantDetail WHERE product_variant_id = ?',
+        [product_variant_id]);
 
     return result.map((json) => ProductVariantDetail.fromJson(json)).toList();
   }
@@ -2220,8 +2237,8 @@ class PosDatabase {
       String variant_item_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableVariantItem WHERE soft_delete = ? AND variant_item_id = ?',
-        ['', variant_item_id]);
+        'SELECT * FROM $tableVariantItem WHERE variant_item_id = ?',
+        [variant_item_id]);
     return result.map((json) => VariantItem.fromJson(json)).toList();
   }
 
@@ -2330,6 +2347,21 @@ class PosDatabase {
   }
 
 /*
+  read branch link product by product variant
+*/
+  Future<BranchLinkProduct?> readBranchLinkProductByProductVariant(String product_variant_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND product_variant_sqlite_id = ?',
+        ['', product_variant_sqlite_id]);
+    if(result.isNotEmpty){
+      return BranchLinkProduct.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
   read all product variant
 */
   Future<List<ProductVariant>> readAllProductVariant() async {
@@ -2375,8 +2407,8 @@ class PosDatabase {
       String branch_link_product_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.name FROM $tableBranchLinkProduct AS a JOIN $tableProduct AS b ON a.product_id = b.product_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_link_product_sqlite_id = ?',
-        ['', '', branch_link_product_sqlite_id]);
+        'SELECT a.*, b.name FROM $tableBranchLinkProduct AS a JOIN $tableProduct AS b ON a.product_id = b.product_id WHERE b.soft_delete = ? AND a.branch_link_product_sqlite_id = ?',
+        ['', branch_link_product_sqlite_id]);
 
     return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
   }
@@ -2406,8 +2438,8 @@ class PosDatabase {
       String branch_link_product_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.variant_name FROM $tableBranchLinkProduct AS a JOIN $tableProductVariant AS b ON a.product_variant_id = b.product_variant_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_link_product_sqlite_id = ?',
-        ['', '', branch_link_product_sqlite_id]);
+        'SELECT a.*, b.variant_name FROM $tableBranchLinkProduct AS a JOIN $tableProductVariant AS b ON a.product_variant_id = b.product_variant_id WHERE a.branch_link_product_sqlite_id = ?',
+        [branch_link_product_sqlite_id]);
 
     return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
   }
@@ -2795,7 +2827,7 @@ class PosDatabase {
   Future<List<PosTable>> readAllTable() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tablePosTable WHERE soft_delete = ? ORDER BY table_sqlite_id',
+        'SELECT * FROM $tablePosTable WHERE soft_delete = ? ORDER BY table_sqlite_id ',
         ['']);
     return result.map((json) => PosTable.fromJson(json)).toList();
   }
@@ -3119,8 +3151,8 @@ class PosDatabase {
             'a.order_detail_key, IFNULL( (SELECT category_id FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), 0) AS category_id,'
             'c.branch_link_product_id FROM $tableOrderDetail AS a '
             'LEFT JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
-            'WHERE c.soft_delete = ? AND a.order_detail_sqlite_id = ? ',
-        ['', order_detail_sqlite_id]);
+            'WHERE a.order_detail_sqlite_id = ? ',
+        [order_detail_sqlite_id]);
 
     return OrderDetail.fromJson(result.first);
   }
@@ -3469,6 +3501,21 @@ class PosDatabase {
   }
 
 /*
+  read specific cash record(with deleted)
+*/
+  Future<CashRecord?> readSpecificCashRecordByRemark(String remark) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableCashRecord WHERE remark = ? AND soft_delete = ? ',
+        [remark, '']);
+    if(result.isNotEmpty){
+      return CashRecord.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
   -----------------------Order part-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -3502,6 +3549,21 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? ', ['']);
     return result.map((json) => PaymentLinkCompany.fromJson(json)).toList();
+  }
+
+/*
+  read specific payment link company
+*/
+  Future<PaymentLinkCompany?> readSpecificPaymentLinkCompany(int payment_link_company_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tablePaymentLinkCompany WHERE payment_link_company_id = ? AND soft_delete = ? ', [payment_link_company_id, '']);
+    if(result.isNotEmpty){
+      return PaymentLinkCompany.fromJson(result.first);
+    } else {
+      return null;
+    }
+
   }
 
 /*
@@ -5257,6 +5319,19 @@ class PosDatabase {
   }
 
 /*
+  update direct payment Setting
+*/
+  Future<int> updateDirectPaymentSettings(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableAppSetting SET direct_payment = ? WHERE app_setting_sqlite_id = ?',
+        [
+          data.direct_payment,
+          data.app_setting_sqlite_id
+        ]);
+  }
+
+/*
   update Pos Table sync from cloud
 */
   Future<int> updatePosTableSyncRecord(PosTable data) async {
@@ -5559,13 +5634,14 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tableReceipt SET header_image = ?, header_image_status = ?, header_text = ?, header_text_status = ?, '
-            'show_address = ?, show_email = ?, receipt_email = ?, '
+            'header_font_size = ?, show_address = ?, show_email = ?, receipt_email = ?, '
             'footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, promotion_detail_status = ?, sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
         [
           data.header_image,
           data.header_image_status,
           data.header_text,
           data.header_text_status,
+          data.header_font_size,
           data.show_address,
           data.show_email,
           data.receipt_email,
@@ -5580,6 +5656,35 @@ class PosDatabase {
         ]
     );
   }
+
+/*
+  update order payment method
+*/
+  Future<int> updatePaymentMethod(Order data) async {
+    final db = await instance.database;
+    return await db.rawUpdate("UPDATE $tableOrder SET updated_at = ?, sync_status = ?, payment_link_company_id = ? WHERE order_key = ?",
+        [
+          data.updated_at,
+          data.sync_status,
+          data.payment_link_company_id,
+          data.order_key,
+        ]);
+  }
+
+/*
+  update cash record payment type
+*/
+  Future<int> updatePaymentTypeId(CashRecord data) async {
+    final db = await instance.database;
+    return await db.rawUpdate("UPDATE $tableCashRecord SET updated_at = ?, sync_status = ?, payment_type_id = ? WHERE cash_record_key = ?",
+        [
+          data.updated_at,
+          data.sync_status,
+          data.payment_type_id,
+          data.cash_record_key,
+        ]);
+  }
+
 
 /*
   ------------------unique key part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -6829,7 +6934,7 @@ class PosDatabase {
   Future<List<PosTable>> readAllNotSyncUpdatedPosTable() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tablePosTable WHERE soft_delete = ? AND sync_status != ? ',
+        'SELECT * FROM $tablePosTable WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ',
         ['', 1]);
 
     return result.map((json) => PosTable.fromJson(json)).toList();
@@ -6946,7 +7051,7 @@ class PosDatabase {
   Future<List<Receipt>> readAllNotSyncReceipt() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableReceipt WHERE sync_status != ? ',
+        'SELECT * FROM $tableReceipt WHERE sync_status != ? LIMIT 10 ',
         [1]);
 
     return result.map((json) => Receipt.fromJson(json)).toList();
@@ -6959,7 +7064,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.* FROM $tablePrinterLinkCategory AS a JOIN $tablePrinter AS b ON a.printer_key = b.printer_key '
-            'WHERE b.soft_delete = ? AND b.type = ? AND a.sync_status != ? ',
+            'WHERE b.soft_delete = ? AND b.type = ? AND a.sync_status != ? LIMIT 10 ',
         ['', 1, 1]);
 
     return result.map((json) => PrinterLinkCategory.fromJson(json)).toList();
@@ -6983,7 +7088,7 @@ class PosDatabase {
   Future<List<BranchLinkProduct>> readAllNotSyncBranchLinkProduct() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND sync_status != ? ',
+        'SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ',
         ['', 1]);
 
     return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
@@ -6996,7 +7101,7 @@ class PosDatabase {
   Future<List<Refund>> readAllNotSyncRefund() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableRefund WHERE soft_delete = ? AND sync_status != ? ',
+        'SELECT * FROM $tableRefund WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ',
         ['', 1]);
 
     return result.map((json) => Refund.fromJson(json)).toList();
@@ -7008,7 +7113,7 @@ class PosDatabase {
   Future<List<SettlementLinkPayment>> readAllNotSyncSettlementLinkPayment() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableSettlementLinkPayment WHERE soft_delete = ? AND sync_status != ? ',
+        'SELECT * FROM $tableSettlementLinkPayment WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ',
         ['', 1]);
 
     return result.map((json) => SettlementLinkPayment.fromJson(json)).toList();
@@ -7020,7 +7125,7 @@ class PosDatabase {
   Future<List<Settlement>> readAllNotSyncSettlement() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableSettlement WHERE soft_delete = ? AND sync_status != ? ',
+        'SELECT * FROM $tableSettlement WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ',
         ['', 1]);
 
     return result.map((json) => Settlement.fromJson(json)).toList();
@@ -7032,7 +7137,7 @@ class PosDatabase {
   Future<List<TransferOwner>> readAllNotSyncTransferOwner() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableTransferOwner WHERE soft_delete = ? AND sync_status != ? ',
+        'SELECT * FROM $tableTransferOwner WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ',
         ['', 1]);
 
     return result.map((json) => TransferOwner.fromJson(json)).toList();
@@ -7044,7 +7149,7 @@ class PosDatabase {
   Future<List<CashRecord>> readAllNotSyncCashRecord() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableCashRecord WHERE soft_delete = ? AND sync_status != ? ',
+        'SELECT * FROM $tableCashRecord WHERE soft_delete = ? AND sync_status != ? LIMIT 10',
         ['', 1]);
 
     return result.map((json) => CashRecord.fromJson(json)).toList();
@@ -7058,7 +7163,7 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.table_use_key, a.table_use_detail_key, CAST(b.table_id AS TEXT) AS table_id '
             'FROM $tableTableUseDetail AS a JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
-            'WHERE b.soft_delete = ? AND a.sync_status != ? ',
+            'WHERE b.soft_delete = ? AND a.sync_status != ? LIMIT 10 ',
         ['', 1]);
 
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
@@ -7070,7 +7175,7 @@ class PosDatabase {
   Future<List<TableUse>> readAllNotSyncTableUse() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableTableUse WHERE sync_status != ? ',
+        'SELECT * FROM $tableTableUse WHERE sync_status != ? LIMIT 10 ',
         [1]);
 
     return result.map((json) => TableUse.fromJson(json)).toList();
@@ -7082,7 +7187,7 @@ class PosDatabase {
   Future<List<OrderModifierDetail>> readAllNotSyncOrderModDetail() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableOrderModifierDetail WHERE soft_delete = ? AND sync_status != ? ',
+        'SELECT * FROM $tableOrderModifierDetail WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ',
         ['', 1]);
 
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
@@ -7094,7 +7199,7 @@ class PosDatabase {
   Future<List<OrderDetailCancel>> readAllNotSyncOrderDetailCancel() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-      'SELECT * FROM $tableOrderDetailCancel WHERE soft_delete = ? AND sync_status != ? ',
+      'SELECT * FROM $tableOrderDetailCancel WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ',
       ['', 1]
     );
     return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
@@ -7116,7 +7221,7 @@ class PosDatabase {
             'a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, 0 AS category_id, b.branch_link_product_id '
             'FROM $tableOrderDetail AS a '
             'JOIN $tableBranchLinkProduct AS b ON a.branch_link_product_sqlite_id = b.branch_link_product_sqlite_id '
-            'WHERE a.category_sqlite_id = ? AND a.soft_delete = ? AND b.soft_delete = ? AND a.sync_status != ? ',
+            'WHERE a.category_sqlite_id = ? AND a.soft_delete = ? AND b.soft_delete = ? AND a.sync_status != ? LIMIT 10 ',
         ['', '', '', 1, 0, '', '', 1]);
 
     return result.map((json) => OrderDetail.fromJson(json)).toList();
@@ -7128,7 +7233,7 @@ class PosDatabase {
   Future<List<OrderCache>> readAllNotSyncOrderCache() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND sync_status != ? ',
+        'SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ',
         ['', 1]);
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
@@ -7139,7 +7244,7 @@ class PosDatabase {
   Future<List<OrderPromotionDetail>> readAllNotSyncOrderPromotionDetail() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableOrderPromotionDetail WHERE soft_delete = ? AND sync_status != ? ',
+        'SELECT * FROM $tableOrderPromotionDetail WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ',
         ['', 1]);
 
     return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
@@ -7151,7 +7256,7 @@ class PosDatabase {
   Future<List<OrderTaxDetail>> readAllNotSyncOrderTaxDetail() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableOrderTaxDetail WHERE soft_delete = ? AND sync_status != ? ',
+        'SELECT * FROM $tableOrderTaxDetail WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ',
         ['', 1]);
 
     return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
@@ -7163,7 +7268,7 @@ class PosDatabase {
   Future<List<Order>> readAllNotSyncOrder() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT * FROM $tableOrder WHERE soft_delete = ? AND sync_status != ? ',
+        'SELECT * FROM $tableOrder WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ',
         ['', 1]);
 
     return result.map((json) => Order.fromJson(json)).toList();

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pos_system/fragment/display_order/other_order.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -89,7 +90,7 @@ class _MobileHomePageState extends State<MobileHomePage> {
                   accountEmail: Text('${widget.user!.name!}-${role}'),
                 ),
                 ListTile(
-                  title: const Text('Menu'),
+                  title: Text(AppLocalizations.of(context)!.translate('menu')),
                   leading: Icon(Icons.add_shopping_cart),
                   onTap: () {
                     setState(() => currentPage = 'menu');
@@ -97,7 +98,7 @@ class _MobileHomePageState extends State<MobileHomePage> {
                   },
                 ),
                 ListTile(
-                  title: const Text('Product'),
+                  title: Text(AppLocalizations.of(context)!.translate('product')),
                   leading: Icon(Icons.fastfood),
                   onTap: () {
                     setState(() => currentPage = 'product');
@@ -105,7 +106,7 @@ class _MobileHomePageState extends State<MobileHomePage> {
                   },
                 ),
                 ListTile(
-                  title: const Text('Table'),
+                  title: Text(AppLocalizations.of(context)!.translate('table')),
                   leading: Icon(Icons.table_restaurant),
                   onTap: () {
                     setState(() => currentPage = 'table');
@@ -113,7 +114,7 @@ class _MobileHomePageState extends State<MobileHomePage> {
                   },
                 ),
                 ListTile(
-                  title: const Text('Qr order'),
+                  title: Text(AppLocalizations.of(context)!.translate('qr_order')),
                   leading: Icon(Icons.qr_code),
                   onTap: () {
                     setState(() => currentPage = 'qr_order');
@@ -121,7 +122,7 @@ class _MobileHomePageState extends State<MobileHomePage> {
                   },
                 ),
                 ListTile(
-                  title: const Text('Bill'),
+                  title: Text(AppLocalizations.of(context)!.translate('bill')),
                   leading: Icon(Icons.receipt_long),
                   onTap: () {
                     setState(() => currentPage = 'bill');
@@ -129,7 +130,7 @@ class _MobileHomePageState extends State<MobileHomePage> {
                   },
                 ),
                 ListTile(
-                  title: const Text('Other order'),
+                  title: Text(AppLocalizations.of(context)!.translate('other_order')),
                   leading: Icon(Icons.receipt),
                   onTap: () {
                     setState(() => currentPage = 'other_order');
@@ -137,7 +138,7 @@ class _MobileHomePageState extends State<MobileHomePage> {
                   },
                 ),
                 ListTile(
-                  title: const Text('Settlement'),
+                  title: Text(AppLocalizations.of(context)!.translate('settlement')),
                   leading: Icon(Icons.monetization_on),
                   onTap: () {
                     setState(() => currentPage = 'settlement');
@@ -145,7 +146,7 @@ class _MobileHomePageState extends State<MobileHomePage> {
                   },
                 ),
                 ListTile(
-                  title: const Text('Setting'),
+                  title: Text(AppLocalizations.of(context)!.translate('setting')),
                   leading: Icon(Icons.settings),
                   onTap: () {
                     setState(() => currentPage = 'setting');

@@ -12,6 +12,7 @@ import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/report_class.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -71,7 +72,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                           Row(
                             children: [
                               Container(
-                                child: Text('Overview',
+                                child: Text(AppLocalizations.of(context)!.translate('overview'),
                                     style: TextStyle(fontSize: 25, color: Colors.black)),
                               ),
                             ],
@@ -96,7 +97,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   color: color.iconColor,
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text('Total Bills'),
+                                    title: Text(AppLocalizations.of(context)!.translate('total_bills')),
                                     subtitle: Text('${dateOrderList.length}',
                                         style: TextStyle(color: Colors.black, fontSize: 24)),
                                     trailing: Icon(Icons.receipt_long),
@@ -108,7 +109,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   color: color.iconColor,
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text('Total Sales (MYR)'),
+                                    title: Text(AppLocalizations.of(context)!.translate('total_sales')+' (MYR)'),
                                     subtitle: Text('${totalSales.toStringAsFixed(2)}',
                                         style: TextStyle(color: Colors.black, fontSize: 24)),
                                     trailing: Icon(Icons.monetization_on),
@@ -120,7 +121,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   color: color.iconColor,
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text('Total Refund Bill'),
+                                    title: Text(AppLocalizations.of(context)!.translate('total_refund_bill')),
                                     subtitle: Text('${dateRefundList.length}',
                                         style: TextStyle(color: Colors.black, fontSize: 24)),
                                     trailing: Icon(Icons.refresh),
@@ -132,7 +133,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   color: color.iconColor,
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text('Total Refund'),
+                                    title: Text(AppLocalizations.of(context)!.translate('total_refund')),
                                     subtitle: Text('${totalRefundAmount.toStringAsFixed(2)}',
                                         style: TextStyle(color: Colors.black, fontSize: 24)),
                                     trailing: Icon(Icons.cancel),
@@ -144,7 +145,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   color: color.iconColor,
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text('Total Discount'),
+                                    title: Text(AppLocalizations.of(context)!.translate('total_discount')),
                                     subtitle: Text('${totalPromotionAmount.toStringAsFixed(2)}',
                                         style: TextStyle(color: Colors.black, fontSize: 24)),
                                     trailing: Icon(Icons.discount),
@@ -156,7 +157,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   color: color.iconColor,
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text('Total Cancelled item'),
+                                    title: Text(AppLocalizations.of(context)!.translate('total_cancelled_item')),
                                     subtitle: dateOrderDetailCancel[0].total_item != null
                                         ? Text('${dateOrderDetailCancel[0].total_item}',
                                             style: TextStyle(color: Colors.black, fontSize: 24))
@@ -190,7 +191,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                         children: [
                                           Container(
                                             margin: EdgeInsets.only(bottom: 20),
-                                            child: Text('Payment Overview',
+                                            child: Text(AppLocalizations.of(context)!.translate('payment_overview'),
                                                 style: TextStyle(fontSize: 20)),
                                           ),
                                           Container(
@@ -231,7 +232,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                         children: [
                                           Container(
                                             margin: EdgeInsets.only(bottom: 20),
-                                            child: Text('Charges Overview',
+                                            child: Text(AppLocalizations.of(context)!.translate('charges_overview'),
                                                 style: TextStyle(fontSize: 20)),
                                           ),
                                           branchTaxList.isNotEmpty
@@ -258,7 +259,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                                   child: Column(
                                                     children: [
                                                       Icon(Icons.no_meals_ouline),
-                                                      Text('No Charges Record')
+                                                      Text(AppLocalizations.of(context)!.translate('no_charges_record'))
                                                     ],
                                                   ),
                                                 )
@@ -287,7 +288,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              child: Text('Overview',
+                              child: Text(AppLocalizations.of(context)!.translate('overview'),
                                   style: TextStyle(fontSize: 25, color: Colors.black)),
                             ),
                             SizedBox(height: 5),
@@ -308,7 +309,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   color: color.iconColor,
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text('Total bills'),
+                                    title: Text(AppLocalizations.of(context)!.translate('total_bills')),
                                     subtitle: Text('${dateOrderList.length}',
                                         style: TextStyle(color: Colors.black, fontSize: 24)),
                                   ),
@@ -317,7 +318,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   color: color.iconColor,
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text('Total Sales (MYR)'),
+                                    title: Text(AppLocalizations.of(context)!.translate('total_sales')+' (MYR)'),
                                     subtitle: Text('${totalSales.toStringAsFixed(2)}',
                                         style: TextStyle(color: Colors.black, fontSize: 24)),
                                   ),
@@ -326,7 +327,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   color: color.iconColor,
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text('Total Refund bill'),
+                                    title: Text(AppLocalizations.of(context)!.translate('total_refund_bill')),
                                     subtitle: Text('${dateRefundList.length}',
                                         style: TextStyle(color: Colors.black, fontSize: 24)),
                                   ),
@@ -335,7 +336,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   color: color.iconColor,
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text('Total Refund'),
+                                    title: Text(AppLocalizations.of(context)!.translate('total_refund')),
                                     subtitle: Text('${totalRefundAmount.toStringAsFixed(2)}',
                                         style: TextStyle(color: Colors.black, fontSize: 24)),
                                   ),
@@ -344,7 +345,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   color: color.iconColor,
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text('Total Discount'),
+                                    title: Text(AppLocalizations.of(context)!.translate('total_discount')),
                                     subtitle: Text('${totalPromotionAmount.toStringAsFixed(2)}',
                                         style: TextStyle(color: Colors.black, fontSize: 24)),
                                   ),
@@ -353,7 +354,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   color: color.iconColor,
                                   elevation: 5,
                                   child: ListTile(
-                                    title: Text('Total Cancelled Item'),
+                                    title: Text(AppLocalizations.of(context)!.translate('total_cancelled_item')),
                                     subtitle: dateOrderDetailCancel[0].total_item != null
                                         ? Text('${dateOrderDetailCancel[0].total_item}',
                                         style: TextStyle(color: Colors.black, fontSize: 24))
@@ -379,7 +380,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                     child: Stack(children: [
                                       Container(
                                         margin: EdgeInsets.only(bottom: 20),
-                                        child: Text('Payment Overview',
+                                        child: Text(AppLocalizations.of(context)!.translate('payment_overview'),
                                             style: TextStyle(fontSize: 20)),
                                       ),
                                       Column(
@@ -421,7 +422,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                         children: [
                                           Container(
                                             margin: EdgeInsets.only(bottom: 20),
-                                            child: Text('Charges Overview',
+                                            child: Text(AppLocalizations.of(context)!.translate('charges_overview'),
                                                 style: TextStyle(fontSize: 20)),
                                           ),
                                           Column(
@@ -454,7 +455,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                                       child: Column(
                                                         children: [
                                                           Icon(Icons.no_meals_ouline),
-                                                          Text('No Charges Record')
+                                                          Text(AppLocalizations.of(context)!.translate('no_charges_record'))
                                                         ],
                                                       ),
                                                     )

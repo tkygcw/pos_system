@@ -1,9 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
-import 'package:esc_pos_printer/esc_pos_printer.dart';
-import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -21,7 +18,6 @@ import '../../database/pos_database.dart';
 import '../../main.dart';
 import '../../object/print_receipt.dart';
 import '../../object/printer.dart';
-import '../../object/receipt_layout.dart';
 import '../../translation/AppLocalizations.dart';
 import '../logout_dialog.dart';
 
@@ -136,7 +132,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       print('Update order cache table use id error: ${e}');
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Update order cache table use id error: ${e}");
+          msg: AppLocalizations.of(context)!.translate('update_order_cache_table_use_id_error')+" ${e}");
     }
   }
 
@@ -186,7 +182,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     } catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Delete current table use detail error: $e");
+          msg: AppLocalizations.of(context)!.translate('delete_current_table_use_detail_error')+" $e");
     }
   }
 
@@ -231,7 +227,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     }catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Delete current table use id error: ${e}");
+          msg: AppLocalizations.of(context)!.translate('delete_current_table_use_id_error')+" ${e}");
     }
   }
 
@@ -420,7 +416,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       return WillPopScope(
         onWillPop: () async => willPop,
         child: AlertDialog(
-          title: Text("Change table to?"),
+          title: Text(AppLocalizations.of(context)!.translate('change_table_to')),
           content: Container(
             width: 350.0,
             height: 100.0,
@@ -431,6 +427,13 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextField(
+                      onSubmitted: (input) {
+                        setState(() {
+                          isButtonDisabled = true;
+                          willPop = false;
+                        });
+                        _submit(context);
+                      },
                       controller: tableNoController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
@@ -446,7 +449,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: color.backgroundColor),
                         ),
-                        labelText: 'Table No.',
+                        labelText: AppLocalizations.of(context)!.translate('table_no')+'.',
                       ),
                     ),
                   );
@@ -463,7 +466,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
               },
             ),
             TextButton(
-              child: Text("Submit"),
+              child: Text(AppLocalizations.of(context)!.translate('submit')),
               onPressed: isButtonDisabled ? null : () {
                 setState(() {
                   isButtonDisabled = true;

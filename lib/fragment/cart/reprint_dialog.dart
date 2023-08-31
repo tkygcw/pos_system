@@ -1,17 +1,9 @@
-import 'dart:convert';
-import 'dart:typed_data';
 
-import 'package:esc_pos_printer/esc_pos_printer.dart';
-import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:pos_system/object/print_receipt.dart';
-
-import '../../database/pos_database.dart';
 import '../../notifier/cart_notifier.dart';
 import '../../object/printer.dart';
-import '../../object/printer_link_category.dart';
-import '../../object/receipt_layout.dart';
 import '../../translation/AppLocalizations.dart';
 
 class ReprintDialog extends StatefulWidget {
@@ -40,14 +32,14 @@ class _ReprintDialogState extends State<ReprintDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Confirm reprint check list?'),
+      title: Text(AppLocalizations.of(context)!.translate('confirm_reprint_check_list')),
       content: Container(
         height: 150,
         // width: MediaQuery.of(context).size.width / 3,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Would you like to reprint check list?'),
+            Text(AppLocalizations.of(context)!.translate('would_you_like_to_reprint_check_list')),
             // Row(
             //   children: [
             //     Text('reprint kitchen check list'),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:presentation_displays/display.dart';
 import 'package:presentation_displays/displays_manager.dart';
 import 'package:presentation_displays/secondary_display.dart';
@@ -88,7 +89,7 @@ class _DisplayManagerScreenState extends State<DisplayManagerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Plugin example app'),
+        title: Text(AppLocalizations.of(context)!.translate('plugin_example_app')),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -115,7 +116,7 @@ class _DisplayManagerScreenState extends State<DisplayManagerScreen> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Button(
-            title: "Get Displays",
+            title: AppLocalizations.of(context)!.translate('get_displays'),
             onPressed: () async {
               final values = await displayManager.getDisplays();
               displays.clear();
@@ -146,7 +147,7 @@ class _DisplayManagerScreenState extends State<DisplayManagerScreen> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Button(
-            title: "Reset Screen",
+            title: AppLocalizations.of(context)!.translate('reset_screen'),
             onPressed: () async {
               String data = "init";
               await displayManager.transferDataToPresentation(data);
@@ -165,14 +166,14 @@ class _DisplayManagerScreenState extends State<DisplayManagerScreen> {
           padding: const EdgeInsets.all(8.0),
           child: TextField(
             controller: _indexToShareController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               border: OutlineInputBorder(),
-              labelText: 'Index to share screen',
+              labelText: AppLocalizations.of(context)!.translate('index_to_share_screen'),
             ),
           ),
         ),
         Button(
-            title: "Show presentation",
+            title: AppLocalizations.of(context)!.translate('show_presentation'),
             onPressed: () async  {
               int? displayId = int.tryParse(_indexToShareController.text);
               if (displayId != null) {
@@ -197,14 +198,14 @@ class _DisplayManagerScreenState extends State<DisplayManagerScreen> {
           padding: const EdgeInsets.all(8.0),
           child: TextField(
             controller: _dataToTransferController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               border: OutlineInputBorder(),
-              labelText: 'Data to transfer',
+              labelText: AppLocalizations.of(context)!.translate('data_to_transfer'),
             ),
           ),
         ),
         Button(
-            title: "TransferData",
+            title: AppLocalizations.of(context)!.translate('transfer_data'),
             onPressed: () async {
               String data = _dataToTransferController.text;
               await displayManager.transferDataToPresentation(data);
@@ -329,8 +330,8 @@ class _SecondaryScreenState extends State<SecondaryScreen> {
               Container(
                 color: Colors.white24,
                 child: Center(
-                    child: Text('This is payment screen: cart notifier item: ${obj?.tableNo}\n'
-                        'Item: ${obj?.itemList?[0].product_name}', style: TextStyle(fontSize: 35),)
+                    child: Text(AppLocalizations.of(context)!.translate('this_is_payment_screen_cart_notifier_item')+': ${obj?.tableNo}\n'
+                        +AppLocalizations.of(context)!.translate('item')+': ${obj?.itemList?[0].product_name}', style: TextStyle(fontSize: 35),)
                 ),
               )
           ));

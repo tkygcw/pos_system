@@ -9,10 +9,9 @@ import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
-
-import '../../database/domain.dart';
 import '../../notifier/theme_color.dart';
 
 class QrMainPage extends StatefulWidget {
@@ -49,7 +48,7 @@ class _QrMainPageState extends State<QrMainPage> {
             primary: false,
             elevation: 0,
             automaticallyImplyLeading: false,
-            title: Text("Qr order", style: TextStyle(fontSize: 25)),
+            title: Text(AppLocalizations.of(context)!.translate('qr_order'), style: TextStyle(fontSize: 25)),
           ),
           body: StreamBuilder(
               stream: controller.stream,
@@ -70,20 +69,20 @@ class _QrMainPageState extends State<QrMainPage> {
                             contentPadding: EdgeInsets.all(10),
                             //isThreeLine: true,
                             title: qrOrderCacheList[index].dining_name == 'Dine in'
-                                ? Text('Table No: ${qrOrderCacheList[index].table_number}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
+                                ? Text(AppLocalizations.of(context)!.translate('table_no')+': ${qrOrderCacheList[index].table_number}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
                                 : qrOrderCacheList[index].dining_name == 'Take Away'
-                                ? Text('Take Away', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
-                                : Text('Delivery', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                                ? Text(AppLocalizations.of(context)!.translate('take_away'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
+                                : Text(AppLocalizations.of(context)!.translate('delivery'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                             subtitle: RichText(
                               text: TextSpan(
                                 style: TextStyle(color: Colors.black, fontSize: 16),
                                 children: <TextSpan>[
                                   TextSpan(
-                                      text: 'Date: ${Utils.formatDate(qrOrderCacheList[index].created_at)}',
+                                      text: AppLocalizations.of(context)!.translate('date')+': ${Utils.formatDate(qrOrderCacheList[index].created_at)}',
                                       style: TextStyle(color: Colors.blueGrey, fontSize: 14)),
                                   TextSpan(text: '\n'),
                                   TextSpan(
-                                    text: 'Amount: ${Utils.convertTo2Dec(qrOrderCacheList[index].total_amount)}',
+                                    text: AppLocalizations.of(context)!.translate('amount')+': ${Utils.convertTo2Dec(qrOrderCacheList[index].total_amount)}',
                                     style: TextStyle(color: Colors.black87, fontSize: 14),
                                   ),
                                 ],
@@ -111,7 +110,7 @@ class _QrMainPageState extends State<QrMainPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.qr_code_2, size: 40.0),
-                        Text('NO ORDER', style: TextStyle(fontSize: 24)),
+                        Text(AppLocalizations.of(context)!.translate('no_order'), style: TextStyle(fontSize: 24)),
                       ],
                     ),
                   ),

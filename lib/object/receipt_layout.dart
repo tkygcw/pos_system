@@ -191,8 +191,10 @@ class ReceiptLayout{
     List<int> bytes = [];
     try {
       //bytes += generator.image(decodedImage);
-      if(receipt!.header_text_status == 1){
+      if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
         bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+      } else if(receipt!.header_text_status == 1 && receipt!.header_font_size == 1) {
+        bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
       }
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
@@ -389,8 +391,10 @@ class ReceiptLayout{
       List<int> bytes = [];
       try {
         //bytes += generator.image(image);
-        if(receipt!.header_text_status == 1){
+        if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
           bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+        } else if (receipt!.header_text_status == 1 && receipt!.header_font_size == 1){
+          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
         }
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
@@ -1388,7 +1392,7 @@ class ReceiptLayout{
             //modifier
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}', width: 10, styles: PosStyles(align: PosAlign.left)),
+              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}', containsChinese: true, width: 10, styles: PosStyles(align: PosAlign.left)),
             ]);
           }
         }

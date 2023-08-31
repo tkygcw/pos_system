@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../database/domain.dart';
@@ -41,7 +42,7 @@ class _ChooseBranchState extends State<ChooseBranch> {
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: Text(
-                'Choose your branch',
+                AppLocalizations.of(context)!.translate('choose_your_branch'),
                 style: TextStyle(color: color.iconColor, fontSize: 30),
               ),
             ),
@@ -67,7 +68,7 @@ class _ChooseBranchState extends State<ChooseBranch> {
                               ),
                               Expanded(
                                 child: Text(
-                                  'Choose your store',
+                                  AppLocalizations.of(context)!.translate('choose_your_store'),
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,

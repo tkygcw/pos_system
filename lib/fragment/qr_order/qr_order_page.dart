@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/qr_order/qr_main_page.dart';
-import 'package:pos_system/page/progress_bar.dart';
 
 class QrOrderPage extends StatefulWidget {
   const QrOrderPage({Key? key}) : super(key: key);

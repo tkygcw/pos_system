@@ -1,11 +1,8 @@
-
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/order.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import '../../notifier/report_notifier.dart';
 import '../../notifier/theme_color.dart';
@@ -53,7 +50,7 @@ class _DiningReportState extends State<DiningReport> {
                       Row(
                         children: [
                           Container(
-                            child: Text('Dining Report',
+                            child: Text(AppLocalizations.of(context)!.translate('dining_report'),
                                 style: TextStyle(fontSize: 25, color: Colors.black)),
                           ),
                         ],
@@ -75,7 +72,21 @@ class _DiningReportState extends State<DiningReport> {
                               DataColumn(
                                 label: Expanded(
                                   child: Text(
-                                    'Dining Option',
+                                    AppLocalizations.of(context)!.translate('dining_option'),
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(AppLocalizations.of(context)!.translate('quantity'),
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(AppLocalizations.of(context)!.translate('net_sales'),
                                     style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
@@ -83,23 +94,7 @@ class _DiningReportState extends State<DiningReport> {
                               DataColumn(
                                 label: Expanded(
                                   child: Text(
-                                    'Quantity',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    'Net Sales',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    'Gross Sales',
+                                    AppLocalizations.of(context)!.translate('gross_sales'),
                                     style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
@@ -114,7 +109,7 @@ class _DiningReportState extends State<DiningReport> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Icon(Icons.menu),
-                            Text('NO RECORD FOUND'),
+                            Text(AppLocalizations.of(context)!.translate('no_record_found')),
                           ],
                         ),
                       )
@@ -134,7 +129,7 @@ class _DiningReportState extends State<DiningReport> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Dining Report',
+                              child: Text(AppLocalizations.of(context)!.translate('dining_report'),
                                   style: TextStyle(fontSize: 25, color: Colors.black)),
                             ),
                           ],
@@ -158,7 +153,21 @@ class _DiningReportState extends State<DiningReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Dining Option',
+                                        AppLocalizations.of(context)!.translate('dining_option'),
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(AppLocalizations.of(context)!.translate('quantity'),
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(AppLocalizations.of(context)!.translate('net_sales'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -166,23 +175,7 @@ class _DiningReportState extends State<DiningReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Quantity',
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        'Net Sales',
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        'Gross Sales',
+                                        AppLocalizations.of(context)!.translate('gross_sales'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -198,7 +191,7 @@ class _DiningReportState extends State<DiningReport> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(Icons.menu),
-                              Text('NO RECORD FOUND'),
+                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
                             ],
                           ),
                         )

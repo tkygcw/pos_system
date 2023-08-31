@@ -3,7 +3,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:grouped_list/grouped_list.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -42,7 +41,7 @@ class _HistoryDialogState extends State<HistoryDialog> {
       return LayoutBuilder(builder: (context, constraints) {
         if(constraints.maxWidth > 800){
           return AlertDialog(
-            title: Text('Cash Record History'),
+            title: Text(AppLocalizations.of(context)!.translate('cash_record_history')),
             content: isLoaded ?
             Container(
               height: MediaQuery.of(context).size.height / 2,
@@ -126,12 +125,12 @@ class _HistoryDialogState extends State<HistoryDialog> {
                             title: Text('${cashRecordList[index].remark}', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                             subtitle: cashRecordList[index].type == 1
                                 ? Text(
-                                'Date Time: ${Utils.formatDate(cashRecordList[index].created_at)}\nCash in by: ${cashRecordList[index].userName}')
+                                AppLocalizations.of(context)!.translate('date_time')+': ${Utils.formatDate(cashRecordList[index].created_at)}\nCash in by: ${cashRecordList[index].userName}')
                                 : cashRecordList[index].type == 2
                                 ? Text(
-                                'Date Time: ${Utils.formatDate(cashRecordList[index].created_at)}\nCash-out by: ${cashRecordList[index].userName}')
+                                AppLocalizations.of(context)!.translate('date_time')+': ${Utils.formatDate(cashRecordList[index].created_at)}\nCash-out by: ${cashRecordList[index].userName}')
                                 : Text(
-                                'Date Time: ${Utils.formatDate(cashRecordList[index].created_at)}\nClose By: ${cashRecordList[index].userName}'),
+                                AppLocalizations.of(context)!.translate('date_time')+': ${Utils.formatDate(cashRecordList[index].created_at)}\nClose By: ${cashRecordList[index].userName}'),
                             trailing: cashRecordList[index].type == 2 || cashRecordList[index].type == 4
                                 ? Text(
                                 '-${cashRecordList[index].amount}',
@@ -150,7 +149,7 @@ class _HistoryDialogState extends State<HistoryDialog> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.list, size: 28),
-                          Text('NO RECORD', style: TextStyle(fontSize: 16)),
+                          Text(AppLocalizations.of(context)!.translate('no_record'), style: TextStyle(fontSize: 16)),
                         ],
                       ),
                     ),
@@ -176,7 +175,7 @@ class _HistoryDialogState extends State<HistoryDialog> {
           return AlertDialog(
             contentPadding: EdgeInsets.only(top: 15),
             //actionsPadding: EdgeInsets.zero,
-            title: Text('Settlement History'),
+            title: Text(AppLocalizations.of(context)!.translate('settlement_history')),
             content: isLoaded ?
             Container(
               height: MediaQuery.of(context).size.height / 2,
@@ -197,12 +196,12 @@ class _HistoryDialogState extends State<HistoryDialog> {
                           '${cashRecordList[index].remark}'),
                       subtitle: cashRecordList[index].type == 1
                           ? Text(
-                          'Cash in by: ${cashRecordList[index].userName}')
+                          AppLocalizations.of(context)!.translate('cash_in_by')+': ${cashRecordList[index].userName}')
                           : cashRecordList[index].type == 2
                           ? Text(
-                          'Cash-out by: ${cashRecordList[index].userName}')
+                          AppLocalizations.of(context)!.translate('cash_out_by')+': ${cashRecordList[index].userName}')
                           : Text(
-                          'close By: ${cashRecordList[index].userName}'),
+                          AppLocalizations.of(context)!.translate('close_by')+': ${cashRecordList[index].userName}'),
                       trailing: cashRecordList[index].type == 2 || cashRecordList[index].type == 4
                           ? Text(
                           '-${cashRecordList[index].amount}',
@@ -221,7 +220,7 @@ class _HistoryDialogState extends State<HistoryDialog> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.list, size: 36.0),
-                          Text('NO RECORD', style: TextStyle(fontSize: 24)),
+                          Text(AppLocalizations.of(context)!.translate('no_record'), style: TextStyle(fontSize: 24)),
                         ],
                       ),
                     ),

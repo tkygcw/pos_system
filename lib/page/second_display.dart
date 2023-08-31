@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:presentation_displays/secondary_display.dart';
 
 import '../object/cart_product.dart';
@@ -104,16 +105,16 @@ class _SecondDisplayState extends State<SecondDisplay> {
                     padding: EdgeInsets.all(10),
                     child: Column(
                       children: [
-                        Text('Table No: ${obj?.tableNo}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                        Text(AppLocalizations.of(context)!.translate('table_no')+': ${obj?.tableNo}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                         Card(
                           elevation: 5,
                           child: Container(
                             padding: EdgeInsets.all(5),
                             child: Row(
                               children: [
-                                Expanded(flex: 1, child: Text('Qty'),),
-                                Expanded(flex: 4, child: Text('Item'),),
-                                Expanded(flex: 1, child: Text('Price/Unit')),
+                                Expanded(flex: 1, child: Text(AppLocalizations.of(context)!.translate('qty')),),
+                                Expanded(flex: 4, child: Text(AppLocalizations.of(context)!.translate('item')),),
+                                Expanded(flex: 1, child: Text(AppLocalizations.of(context)!.translate('unit_price'))),
                               ],
                             ),
                           ),
@@ -147,9 +148,9 @@ class _SecondDisplayState extends State<SecondDisplay> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text('Subtotal: ${obj?.subtotal}', style: TextStyle(fontSize: 12)),
+                                        Text(AppLocalizations.of(context)!.translate('subtotal')+': ${obj?.subtotal}', style: TextStyle(fontSize: 12)),
                                         SizedBox(height: 5),
-                                        Text('Total Discount: ${obj?.totalDiscount}', style: TextStyle(fontSize: 12))
+                                        Text(AppLocalizations.of(context)!.translate('total_discount')+': ${obj?.totalDiscount}', style: TextStyle(fontSize: 12))
                                       ],
                                     ),
                                   )
@@ -163,9 +164,9 @@ class _SecondDisplayState extends State<SecondDisplay> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text('Total Tax: ${obj?.totalTax}', style: TextStyle(fontSize: 12)),
+                                        Text(AppLocalizations.of(context)!.translate('total_tax')+': ${obj?.totalTax}', style: TextStyle(fontSize: 12)),
                                         SizedBox(height: 5),
-                                        Text('Rounding: ${obj?.rounding}', style: TextStyle(fontSize: 12)),
+                                        Text(AppLocalizations.of(context)!.translate('rounding')+': ${obj?.rounding}', style: TextStyle(fontSize: 12)),
                                       ],
                                     ),
                                   )
@@ -183,7 +184,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
-                                    Text('Total Amount: ${obj?.finalAmount}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                                    Text(AppLocalizations.of(context)!.translate('total_amount')+': ${obj?.finalAmount}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                                   ],
                                 )
                               ),

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
-
-import '../../notifier/printer_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/categories.dart';
 import '../../translation/AppLocalizations.dart';
@@ -35,7 +33,7 @@ class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return AlertDialog(
-        title: Text('Select category '),
+        title: Text(AppLocalizations.of(context)!.translate('select_category')),
         content: isLoad
             ? Container(
                 height: MediaQuery.of(context).size.height / 3,

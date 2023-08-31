@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:pos_system/fragment/category/category_setting.dart';
 import 'package:pos_system/fragment/food/food_setting.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:side_navigation/side_navigation.dart';
 import '../../notifier/theme_color.dart';
@@ -33,7 +33,7 @@ class _ProductPageState extends State<ProductPage> {
           resizeToAvoidBottomInset: false,
           appBar: AppBar(
             automaticallyImplyLeading: false,
-            title: Text('Food',
+            title: Text(AppLocalizations.of(context)!.translate('food'),
                 style: TextStyle(fontSize: 25, color: Colors.black)),
             backgroundColor: Color(0xffFAFAFA),
             elevation: 0,
@@ -53,10 +53,10 @@ class _ProductPageState extends State<ProductPage> {
                   dividerTheme: SideNavigationBarDividerTheme.standard(),
                 ),
                 selectedIndex: selectedIndex,
-                items: const [
+                items: [
                   SideNavigationBarItem(
                     icon: Icons.food_bank,
-                    label: 'Food and Beverage',
+                    label: AppLocalizations.of(context)!.translate('food_and_beverage'),
                   ),
                   // SideNavigationBarItem(
                   //   icon: Icons.list,

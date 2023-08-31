@@ -60,6 +60,7 @@ class _RefundDialogState extends State<RefundDialog> {
       if(this.isLogOut == false){
         Navigator.of(context).pop();
         Navigator.of(context).pop();
+        Navigator.of(context).pop();
       }
       return;
     }
@@ -94,7 +95,7 @@ class _RefundDialogState extends State<RefundDialog> {
       builder: (BuildContext context) => Center(
         child: SingleChildScrollView(
           child: AlertDialog(
-            title: Text('Enter Current User PIN'),
+            title: Text(AppLocalizations.of(context)!.translate('enter_current_user_pin')),
             content: SizedBox(
               height: 100.0,
               width: 350.0,
@@ -104,6 +105,10 @@ class _RefundDialogState extends State<RefundDialog> {
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextField(
+                        autofocus: true,
+                        onSubmitted: (input){
+                          _submit(context);
+                        },
                         obscureText: true,
                         inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
                         controller: adminPosPinController,
@@ -159,7 +164,7 @@ class _RefundDialogState extends State<RefundDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return AlertDialog(
-        title: Text('Confirm refund this Order?'),
+        title: Text(AppLocalizations.of(context)!.translate('refund_desc')),
         content: Container(
           child: Text('${AppLocalizations.of(context)?.translate('refund_desc')}'),
         ),
@@ -193,11 +198,11 @@ class _RefundDialogState extends State<RefundDialog> {
           await callRefund(userData);
         } else {
           Fluttertoast.showToast(
-              backgroundColor: Color(0xFFFF0000), msg: "Password incorrect");
+              backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('password_incorrect'));
         }
       } else {
         Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000), msg: "PIN incorrect, User not found");
+            backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('pin_incorrect_user_not_found'));
       }
     } catch (e) {
       print('delete error ${e}');

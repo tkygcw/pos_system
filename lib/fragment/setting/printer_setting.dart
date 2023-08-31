@@ -72,9 +72,9 @@ class _PrinterSettingState extends State<PrinterSetting> {
                         title:Text("${printerList[index].printer_label}", style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold)),
                         subtitle: printerList[index].type == 0
                             ?
-                        Text("Type: USB")
+                        Text(AppLocalizations.of(context)!.translate('type_usb'))
                             :
-                        Text('Type: LAN\nIP: ${jsonDecode(printerList[index].value!)} '),
+                        Text(AppLocalizations.of(context)!.translate('type_lan')+'\nIP: ${jsonDecode(printerList[index].value!)} '),
                         trailing: Container(
                           child: FittedBox(
                             child: printerList[index].type == 0 ? Icon(Icons.usb) : Icon(Icons.wifi),
@@ -108,7 +108,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.print_disabled, size: 36.0),
-                          Text('NO PRINTER', style: TextStyle(fontSize: 24)),
+                          Text(AppLocalizations.of(context)!.translate('no_printer'), style: TextStyle(fontSize: 24)),
                         ],
                       ),
                     ),
@@ -142,7 +142,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
                         contentPadding: EdgeInsets.all(10),
                         leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.print, color: Colors.grey,)),
                         title:Text("${printerList[index].printer_label}", style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold)),
-                        subtitle: printerList[index].type == 0 ? Text("Type: USB") : Text('Type: LAN\nIP: ${jsonDecode(printerList[index].value!)} '),
+                        subtitle: printerList[index].type == 0 ? Text(AppLocalizations.of(context)!.translate('type_usb')) : Text(AppLocalizations.of(context)!.translate('type_lan')+'\nIP: ${jsonDecode(printerList[index].value!)} '),
                         trailing: Container(
                           child: FittedBox(
                             child: printerList[index].type == 0 ? Icon(Icons.usb) : Icon(Icons.wifi),
@@ -177,7 +177,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.print_disabled, size: 36.0),
-                    Text('NO PRINTER', style: TextStyle(fontSize: 24)),
+                    Text(AppLocalizations.of(context)!.translate('no_printer'), style: TextStyle(fontSize: 24)),
                   ],
                 ),
               ),
@@ -252,7 +252,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
     }catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Something went wrong, Please try again $e");
+          msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later')+" $e");
     }
   }
 
@@ -277,7 +277,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
     }catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: "Clear printer category, Please try again $e");
+          msg: AppLocalizations.of(context)!.translate('clear_printer_category_please_try_again')+" $e");
     }
   }
 

@@ -61,7 +61,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                           borderRadius: BorderRadius.circular(4.0)),
                       elevation: 5,
                       child: ListTile(
-                        title: Text('Layout ${index +1}'),
+                        title: Text(AppLocalizations.of(context)!.translate('layout')+' ${index +1}'),
                         leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.receipt, color: Colors.grey,)),
                         onTap: () {
                           openReceiptDialog(receiptList[index], receiptList);
@@ -91,7 +91,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.receipt, size: 36.0),
-                          Text('NO LAYOUT', style: TextStyle(fontSize: 24)),
+                          Text(AppLocalizations.of(context)!.translate('no_layout'), style: TextStyle(fontSize: 24)),
                         ],
                       ),
                     ),
@@ -129,7 +129,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                           borderRadius: BorderRadius.circular(4.0)),
                       elevation: 5,
                       child: ListTile(
-                        title: Text('Layout ${index +1}'),
+                        title: Text(AppLocalizations.of(context)!.translate('layout') + ' ${index +1}'),
                         leading: CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.receipt, color: Colors.grey,)),
                         onTap: () {
                           openReceiptDialog(receiptList[index], receiptList);
@@ -159,7 +159,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.receipt, size: 36.0),
-                        Text('NO LAYOUT', style: TextStyle(fontSize: 24)),
+                        Text(AppLocalizations.of(context)!.translate('no_layout'), style: TextStyle(fontSize: 24)),
                       ],
                     ),
                   ]
@@ -202,7 +202,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
      } else {
        Fluttertoast.showToast(
            backgroundColor: Color(0xFFFF0000),
-           msg: "Cannot remove in-use layout");
+           msg: AppLocalizations.of(context)!.translate('cannot_remove_in_use_layout'));
      }
    }catch(e){
      Fluttertoast.showToast(

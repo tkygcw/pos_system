@@ -11,9 +11,9 @@ import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 
-import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/table_notifier.dart';
 import '../../notifier/theme_color.dart';
@@ -138,26 +138,26 @@ class _TableMenuState extends State<TableMenu> {
                             child: Row(
                               children: [
                                 Text(
-                                  "Table",
+                                  AppLocalizations.of(context)!.translate('table'),
                                   style: TextStyle(fontSize: 25),
                                 ),
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(18, 0, 0, 0),
-                                  child: ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: color.backgroundColor),
-                                      onPressed: () async  {
-                                        bool hasInternetAccess = await Domain().isHostReachable();
-                                        if(hasInternetAccess){
-                                          openAddTableDialog(PosTable());
-                                        } else {
-                                          Fluttertoast.showToast(msg: "Internet access required");
-                                        }
-                                      },
-                                      icon: Icon(Icons.add),
-                                      label: Text("Table")),
-                                ),
+                                // Padding(
+                                //   padding:
+                                //       const EdgeInsets.fromLTRB(18, 0, 0, 0),
+                                //   child: ElevatedButton.icon(
+                                //       style: ElevatedButton.styleFrom(
+                                //           backgroundColor: color.backgroundColor),
+                                //       onPressed: () async  {
+                                //         bool hasInternetAccess = await Domain().isHostReachable();
+                                //         if(hasInternetAccess){
+                                //           openAddTableDialog(PosTable());
+                                //         } else {
+                                //           Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('internet_access_required'));
+                                //         }
+                                //       },
+                                //       icon: Icon(Icons.add),
+                                //       label: Text(AppLocalizations.of(context)!.translate('table'))),
+                                // ),
                                 SizedBox(
                                     width: MediaQuery.of(context).size.height > 500
                                         ? 500
@@ -170,7 +170,7 @@ class _TableMenuState extends State<TableMenu> {
                                     decoration: InputDecoration(
                                       isDense: true,
                                       border: InputBorder.none,
-                                      labelText: 'Search',
+                                      labelText: AppLocalizations.of(context)!.translate('search'),
                                       focusedBorder: OutlineInputBorder(
                                         borderSide: const BorderSide(color: Colors.grey, width: 2.0),
                                         borderRadius: BorderRadius.circular(25.0),
@@ -210,7 +210,7 @@ class _TableMenuState extends State<TableMenu> {
                                     splashColor: Colors.blue.withAlpha(30),
                                     onDoubleTap: () {
                                       if (tableList[index].status != 1) {
-                                        openAddTableDialog(tableList[index]);
+                                        //openAddTableDialog(tableList[index]);
                                       } else {
                                         openChangeTableDialog(tableList[index], cart);
                                       }
@@ -252,7 +252,7 @@ class _TableMenuState extends State<TableMenu> {
                                               cart.removeSpecificTable(tableList[j]);
                                             }
                                           }
-                                          Fluttertoast.showToast(backgroundColor: Color(0xFF07F107), msg: "Table not in use");
+                                          Fluttertoast.showToast(backgroundColor: Color(0xFF07F107), msg: AppLocalizations.of(context)!.translate('table_not_in_use'));
                                         }
                                         if (tableList[index].status == 1 && tableList[index].isSelected == true) {
                                           //await readSpecificTableDetail(tableList[index]);
@@ -303,7 +303,7 @@ class _TableMenuState extends State<TableMenu> {
                                                             borderRadius: BorderRadius.circular(5.0)
                                                         ),
                                                         child: Text(
-                                                          "Group: ${tableList[index].group}",
+                                                          AppLocalizations.of(context)!.translate('group')+": ${tableList[index].group}",
                                                           style:
                                                           TextStyle(fontSize: 18, color: fontColor(posTable: tableList[index])),
                                                         ),
@@ -480,7 +480,9 @@ class _TableMenuState extends State<TableMenu> {
 
     List<PosTable> data = await PosDatabase.instance.readAllTable();
 
-    tableList = List.from(data);
+    // tableList = List.from(data);
+    tableList = data;
+    tableList.sort((a, b) => int.parse(a.number!).compareTo(int.parse(b.number!)));
     await readAllTableGroup();
     if(mounted){
       setState(() {

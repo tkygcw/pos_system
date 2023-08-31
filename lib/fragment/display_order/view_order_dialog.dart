@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../database/domain.dart';
@@ -86,10 +87,10 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
               onPressed: () async {
                 if (await confirm(
                   context,
-                  title: const Text('Confirm'),
-                  content: const Text('Would you like to remove?'),
-                  textOK: const Text('Yes'),
-                  textCancel: const Text('No'),
+                  title: Text(AppLocalizations.of(context)!.translate('confirm')),
+                  content: Text(AppLocalizations.of(context)!.translate('would_you_like_to_remove')),
+                  textOK: Text(AppLocalizations.of(context)!.translate('yes')),
+                  textCancel: Text(AppLocalizations.of(context)!.translate('no')),
                 )) {
                   return deleteWholeOrder();
                 }
@@ -177,7 +178,7 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: ListTile(title: Text('Total', style: TextStyle(fontSize: 24,fontWeight: FontWeight.bold)) ,trailing: Text(widget.orderCache!.total_amount!,style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold))),
+                  child: ListTile(title: Text(AppLocalizations.of(context)!.translate('total'), style: TextStyle(fontSize: 24,fontWeight: FontWeight.bold)) ,trailing: Text(widget.orderCache!.total_amount!,style: TextStyle(fontSize: 22,fontWeight: FontWeight.bold))),
                 ),
               )
             ],
@@ -185,13 +186,13 @@ class _ViewOrderDialogPageState extends State<ViewOrderDialogPage> {
         ),
         actions: <Widget>[
           TextButton(
-            child: Text('Close'),
+            child: Text(AppLocalizations.of(context)!.translate('close')),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           TextButton(
-            child: const Text('Make Payment'),
+            child: Text(AppLocalizations.of(context)!.translate('make_payment')),
             onPressed: () {
               Navigator.of(context).pop();
             },

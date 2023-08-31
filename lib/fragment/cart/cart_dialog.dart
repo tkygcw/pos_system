@@ -102,9 +102,9 @@ class CartDialogState extends State<CartDialog> {
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        title: Text('Confirm merge table'),
+        title: Text(AppLocalizations.of(context)!.translate('confirm_merge_table')),
         content: SizedBox(
-            height: 100.0, width: 350.0, child: Text('merge table ${tableList[dragIndex].number} with table ${tableList[targetIndex].number} ?')),
+            height: 100.0, width: 350.0, child: Text(AppLocalizations.of(context)!.translate('merge_table')+' ${tableList[dragIndex].number} with table ${tableList[targetIndex].number} ?')),
         actions: <Widget>[
           TextButton(
             child: Text('${AppLocalizations.of(context)?.translate('close')}'),
@@ -160,7 +160,7 @@ class CartDialogState extends State<CartDialog> {
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("Select Table"),
+                    Text(AppLocalizations.of(context)!.translate('select_table')),
                     Visibility(
                       visible: checkIsSelected(),
                       child: SizedBox(
@@ -172,7 +172,7 @@ class CartDialogState extends State<CartDialog> {
                             backgroundColor: Colors.red,
                           ),
                           child: Text(
-                            'Clear All',
+                            AppLocalizations.of(context)!.translate('clear_all'),
                             style: TextStyle(color: Colors.white),
                           ),
                           onPressed: () {
@@ -215,8 +215,7 @@ class CartDialogState extends State<CartDialog> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: color.backgroundColor,
                       ),
-                      child: Text(
-                        'Close',
+                      child: Text(AppLocalizations.of(context)!.translate('close'),
                         style: TextStyle(color: Colors.white),
                       ),
                       onPressed: isButtonDisabled
@@ -234,8 +233,7 @@ class CartDialogState extends State<CartDialog> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: color.buttonColor,
                       ),
-                      child: Text(
-                        'Select Table',
+                      child: Text(AppLocalizations.of(context)!.translate('select_table'),
                         style: TextStyle(color: Colors.white),
                       ),
                       onPressed: !checkIsSelected()
@@ -315,7 +313,7 @@ class CartDialogState extends State<CartDialog> {
                   cart.removeAllTable();
                   cart.removeAllCartItem();
                 } else {
-                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "table not in use");
+                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('table_not_in_use'));
                 }
               },
               onTap: () async {
@@ -399,7 +397,7 @@ class CartDialogState extends State<CartDialog> {
                                     cart.removeAllTable();
                                     cart.removeAllCartItem();
                                   } else {
-                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Cannot remove this table");
+                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('cannot_remove_this_table'));
                                   }
                                 },
                               ))
@@ -853,7 +851,7 @@ class CartDialogState extends State<CartDialog> {
       //   int tablaUseDetailData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[0]['table_use_detail_key']);
       // }
     } catch (e) {
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Delete current table use detail error: ${e}");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('delete_current_table_use_detail_error')+": ${e}");
     }
   }
 
@@ -978,7 +976,7 @@ class CartDialogState extends State<CartDialog> {
       //syncTableUseDetailToCloud(_value.toString());
     } catch (e) {
       print('create table use detail error: $e');
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "Create table detail error: ${e}");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_table_detail_error')+" ${e}");
     }
   }
 

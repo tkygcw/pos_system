@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/category/category_dialog.dart';
 import 'package:pos_system/object/colorCode.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/theme_color.dart';
@@ -47,7 +48,7 @@ class _CategorySettingState extends State<CategorySetting> {
                                   openEditCategoryDialog(Categories());
                                 },
                                 icon: Icon(Icons.add),
-                                label: Text("Category")),
+                                label: Text(AppLocalizations.of(context)!.translate('category'))),
                           ),
                           SizedBox(width: MediaQuery.of(context).size.height > 500 ? 544 : 150),
                           Expanded(
@@ -60,7 +61,7 @@ class _CategorySettingState extends State<CategorySetting> {
                                     EdgeInsets.fromLTRB(10, 10, 10, 10),
                                 isDense: true,
                                 border: InputBorder.none,
-                                labelText: 'Search',
+                                labelText: AppLocalizations.of(context)!.translate('search'),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide: const BorderSide(
                                       color: Colors.grey, width: 2.0),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../database/domain.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 
 class NetworkDialog extends StatefulWidget {
   final Function() callback;
@@ -16,9 +15,9 @@ class _NetworkDialogState extends State<NetworkDialog> {
     return WillPopScope(
       onWillPop: () async => false,
       child: AlertDialog(
-        title: Text('Connection failed'),
+        title: Text(AppLocalizations.of(context)!.translate('connection_failed')),
         content: Container(
-          child: Text('Network Connection failed. Please check your devices wireless or mobile network setting and reconnect'),
+          child: Text(AppLocalizations.of(context)!.translate('network_connection_failed')),
         ),
         actions: [
           Center(
@@ -34,7 +33,7 @@ class _NetworkDialogState extends State<NetworkDialog> {
                   //   return;
                   // }
                 }, 
-                child: Text('Retry')
+                child: Text(AppLocalizations.of(context)!.translate('retry'))
             ),
           )
         ],

@@ -146,7 +146,7 @@ class _SetupPageState extends State<SetupPage> {
       onPressed: () {
         backToLogin();
       },
-      child: Text('Back to login'));
+      child: Text(AppLocalizations.of(context)!.translate('back_to_login')));
 
   Widget buildButtons() =>
       Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
@@ -161,7 +161,7 @@ class _SetupPageState extends State<SetupPage> {
                   child: TextButton(
                     style: TextButton.styleFrom(foregroundColor: Colors.white),
                     onPressed: isFirstPage ? null : () => togglePage(true),
-                    child: Text('BACK'),
+                    child: Text(AppLocalizations.of(context)!.translate('back')),
                   ),
                 ),
                 ElevatedButton(
@@ -169,7 +169,7 @@ class _SetupPageState extends State<SetupPage> {
                   onPressed: () async  {
                     await checkBranchSelected();
                   },
-                  child: Text('NEXT'),
+                  child: Text(AppLocalizations.of(context)!.translate('next')),
                 ),
               ],
             ),
@@ -201,7 +201,7 @@ class _SetupPageState extends State<SetupPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.red,
-            content: const Text('Please select your branch'),
+            content: Text(AppLocalizations.of(context)!.translate('please_select_your_branch')),
             action: SnackBarAction(
               label: 'Close',
               onPressed: () {
@@ -218,7 +218,7 @@ class _SetupPageState extends State<SetupPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.red,
-            content: const Text('Please select your device'),
+            content: Text(AppLocalizations.of(context)!.translate('please_select_your_device')),
             action: SnackBarAction(
               label: 'Close',
               onPressed: () {

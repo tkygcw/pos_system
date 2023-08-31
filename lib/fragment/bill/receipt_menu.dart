@@ -28,6 +28,8 @@ import '../../object/table.dart';
 import '../../object/table_use_detail.dart';
 import '../../object/variant_group.dart';
 import '../../object/variant_item.dart';
+import '../../translation/AppLocalizations.dart';
+import '../payment/payment_select_dialog.dart';
 
 class ReceiptMenu extends StatefulWidget {
   final CartModel cartModel;
@@ -77,7 +79,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                   elevation: 0,
                   automaticallyImplyLeading: false,
                   title: Text(
-                    "Receipt",
+                    AppLocalizations.of(context)!.translate('receipt'),
                     style: TextStyle(fontSize: 25),
                   ),
                   actions: [
@@ -92,7 +94,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                         decoration: InputDecoration(
                           isDense: true,
                           border: InputBorder.none,
-                          labelText: 'Search',
+                          labelText: AppLocalizations.of(context)!.translate('search'),
                           focusedBorder: OutlineInputBorder(
                             borderSide: const BorderSide(color: Colors.grey, width: 2.0),
                             borderRadius: BorderRadius.circular(25.0),
@@ -128,14 +130,14 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                           child: Container(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              e,
+                              AppLocalizations.of(context)!.translate(getSelectedOption(e)),
                               style: TextStyle(fontSize: 18),
                             ),
                           ),
                         ))
                             .toList(),
                         // Customize the selected item
-                        selectedItemBuilder: (BuildContext context) => optionList.map((e) => Center(child: Text(e))).toList(),
+                        selectedItemBuilder: (BuildContext context) => optionList.map((e) => Center(child: Text(AppLocalizations.of(context)!.translate(getSelectedOption(e))))).toList(),
                       ),
                     ),
                   ],
@@ -175,18 +177,18 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                                 style: TextStyle(color: Colors.black, fontSize: 16),
                                                 children: <TextSpan>[
                                                   TextSpan(
-                                                    text: 'Date: ${Utils.formatDate(paidOrderList[index].created_at)}',
+                                                    text: AppLocalizations.of(context)!.translate('date')+': ${Utils.formatDate(paidOrderList[index].created_at)}',
                                                     style: TextStyle(color: Colors.black87, fontSize: 14),
                                                   ),
                                                   TextSpan(text: '\n'),
                                                   TextSpan(
-                                                      text: 'Close By: ${paidOrderList[index].close_by}',
+                                                      text: AppLocalizations.of(context)!.translate('close_by')+': ${paidOrderList[index].close_by}',
                                                       style: TextStyle(color: Colors.grey, fontSize: 12)),
                                                 ],
                                               ),
                                             )
-                                          : Text('Refund By: ${paidOrderList[index].refund_by}\nRefund At: ${paidOrderList[index].refund_at}'),
-                                      trailing: Text('Receipt No: ${paidOrderList[index].generateOrderNumber()}'),
+                                          : Text(AppLocalizations.of(context)!.translate('refund_by')+': ${paidOrderList[index].refund_by}\n'+AppLocalizations.of(context)!.translate('refund_at')+': ${paidOrderList[index].refund_at}'),
+                                      trailing: Text(AppLocalizations.of(context)!.translate('receipt_no')+': ${paidOrderList[index].generateOrderNumber()}'),
                                       onTap: () async {
                                         if (paidOrderList[index].isSelected == false) {
                                           //reset other selected order
@@ -211,12 +213,15 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                           cart.initialLoad();
                                         }
                                       },
-                                      onLongPress: paidOrderList[index].payment_status == 1
-                                          ? () {
-                                              openRefundDialog(paidOrderList[index], orderCacheList);
-                                              print('refund bill');
-                                            }
-                                          : null,
+                                      onLongPress: paidOrderList[index].payment_status == 1 ? () {
+                                        //openRefundDialog(paidOrderList[index], orderCacheList);
+                                        print('refund bill');
+                                        showSecondDialog(context, color,
+                                            order: paidOrderList[index],
+                                            orderCacheList: orderCacheList,
+                                        );
+                                      }
+                                      : null,
                                     ),
                                   );
                                 })
@@ -225,7 +230,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(Icons.receipt_long, size: 36.0),
-                                    Text('NO RECORD', style: TextStyle(fontSize: 24)),
+                                    Text(AppLocalizations.of(context)!.translate('no_record'), style: TextStyle(fontSize: 24)),
                                   ],
                                 ),
                               ),
@@ -239,7 +244,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                   elevation: 0,
                   automaticallyImplyLeading: false,
                   title: Text(
-                    "Receipt",
+                    AppLocalizations.of(context)!.translate('receipt'),
                     style: TextStyle(fontSize: 25),
                   ),
                   actions: [
@@ -254,7 +259,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                         decoration: InputDecoration(
                           isDense: true,
                           border: InputBorder.none,
-                          labelText: 'Search',
+                          labelText: AppLocalizations.of(context)!.translate('search'),
                           focusedBorder: OutlineInputBorder(
                             borderSide: const BorderSide(color: Colors.grey, width: 2.0),
                             borderRadius: BorderRadius.circular(25.0),
@@ -332,9 +337,9 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                           color: Colors.grey,
                                         )),
                                     subtitle: paidOrderList[index].payment_status == 1
-                                        ? Text('Close By: ${paidOrderList[index].close_by}\nClose At: ${Utils.formatDate(paidOrderList[index].created_at)}')
-                                        : Text('Refund By: ${paidOrderList[index].refund_by}\nRefund At: ${paidOrderList[index].refund_at}'),
-                                    trailing: Text('Order: #${paidOrderList[index].order_number}'),
+                                        ? Text(AppLocalizations.of(context)!.translate('close_by')+': ${paidOrderList[index].close_by}\n' +AppLocalizations.of(context)!.translate('close_at')+': ${Utils.formatDate(paidOrderList[index].created_at)}')
+                                        : Text(AppLocalizations.of(context)!.translate('refund_by')+': ${paidOrderList[index].refund_by}\n'+AppLocalizations.of(context)!.translate('refund_at')+': ${paidOrderList[index].refund_at}'),
+                                    trailing: Text(AppLocalizations.of(context)!.translate('order')+': #${paidOrderList[index].order_number}'),
                                     onTap: () async {
                                       if (paidOrderList[index].isSelected == false) {
                                         //reset other selected order
@@ -361,8 +366,10 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                                     },
                                     onLongPress: paidOrderList[index].payment_status == 1
                                         ? () {
-                                      openRefundDialog(paidOrderList[index], orderCacheList);
-                                      print('refund bill');
+                                      showSecondDialog(context, color,
+                                        order: paidOrderList[index],
+                                        orderCacheList: orderCacheList,
+                                      );
                                     }
                                         : null,
                                   ),
@@ -379,7 +386,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.receipt_long, size: 36.0),
-                                Text('NO RECORD', style: TextStyle(fontSize: 24)),
+                                Text(AppLocalizations.of(context)!.translate('no_record'), style: TextStyle(fontSize: 24)),
                               ],
                             ),
                           ),
@@ -390,6 +397,97 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
         });
       });
     });
+  }
+
+  getSelectedOption(selectedOptionValue){
+    if(selectedOptionValue == 'Paid') return 'paid';
+    else return 'refunded';
+  }
+
+  Future showSecondDialog(BuildContext context, ThemeColor color, {required Order order, required List<OrderCache> orderCacheList}) {
+    return showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return StatefulBuilder(builder: (context, StateSetter setState){
+            return Center(
+              child: AlertDialog(
+                content: SizedBox(
+                  width: 360,
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    children: [
+                      Card(
+                        elevation: 5,
+                        child: ListTile(
+                          leading: CircleAvatar(
+                              backgroundColor: Colors.grey.shade200,
+                              child: Icon(
+                                Icons.refresh,
+                                color: Colors.grey,
+                              )),
+                          title: Text(AppLocalizations.of(context)!.translate('refund')),
+                          onTap: (){
+                            openRefundDialog(order, orderCacheList);
+                          },
+                          trailing: Icon(Icons.navigate_next),
+                        )
+                      ),
+                      Card(
+                          elevation: 5,
+                          child: ListTile(
+                            leading: CircleAvatar(
+                                backgroundColor: Colors.grey.shade200,
+                                child: Icon(
+                                  Icons.edit,
+                                  color: Colors.grey,
+                                )),
+                            title: Text(AppLocalizations.of(context)!.translate('edit_payment_method')),
+                            onTap: (){
+                              openPaymentSelect(order: order);
+                            },
+                            trailing: Icon(Icons.navigate_next),
+                          )
+                      ),
+                    ]
+                  ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  )
+                ],
+              )
+            );
+          });
+        }
+    );
+  }
+
+  openPaymentSelect({required Order order}) async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: PaymentSelect(dining_id: '', dining_name: '', isUpdate: true, currentOrder: order,),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   Future<Future<Object?>> openRefundDialog(Order order, List<OrderCache> orderCacheList) async {
@@ -634,7 +732,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     paidOrderList = [];
     if (selectedOption == 'Paid') {
       List<Order> data = await PosDatabase.instance.readAllPaidOrder();
-      if (data.length > 0) {
+      if (data.isNotEmpty) {
         paidOrderList = List.from(data);
       }
     } else {

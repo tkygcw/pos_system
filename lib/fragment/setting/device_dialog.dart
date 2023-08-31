@@ -1,8 +1,5 @@
 import 'dart:convert';
-
-import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
-
 import 'package:lan_scanner/lan_scanner.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:location/location.dart';
@@ -130,7 +127,7 @@ class _DeviceDialogState extends State<DeviceDialog> {
     final stream = scanner.icmpScan(subnet, progressCallback: (progress) {
       if (this.mounted) {
         setState(() {
-          info = Text('Scanning device within $wifiName');
+          info = Text("${AppLocalizations.of(context)?.translate('scanning_device_within')} "+"$wifiName");
           percentage = progress;
           if (percentage == 1.0) {
             isLoad = true;
@@ -162,7 +159,7 @@ class _DeviceDialogState extends State<DeviceDialog> {
         return AlertDialog(
           insetPadding: EdgeInsets.all(0),
           actionsPadding: EdgeInsets.zero,
-          title: Text('Device list'),
+          title: Text(AppLocalizations.of(context)!.translate('device_list')),
           content: isLoad
               ? SizedBox(
                   height: MediaQuery.of(context).size.height / 2.5,

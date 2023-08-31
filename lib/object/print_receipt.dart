@@ -27,7 +27,7 @@ class PrintReceipt{
    * printStatus = 5, printing error
    */
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
-  Duration duration = Duration(seconds: 1);
+  Duration duration = Duration(seconds: 3);
 
   getDeviceList() async {
     var devices;
@@ -148,13 +148,13 @@ class PrintReceipt{
         } else {
           Fluttertoast.showToast(
               backgroundColor: Colors.red,
-              msg: "No cashier printer added");
+              msg: AppLocalizations.of(context)!.translate('no_cashier_printer_added'));
         }
       }
     } else {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
-          msg: "No cashier printer added");
+          msg: AppLocalizations.of(context)!.translate('no_cashier_printer_added'));
     }
   }
 
@@ -455,7 +455,7 @@ class PrintReceipt{
     }
   }
 
-  printCheckList(List<Printer> printerList, int orderCacheLocalId, context) async {
+  printCheckList(List<Printer> printerList, int orderCacheLocalId) async {
     print('check list call');
     try {
       int printStatus = 0;
@@ -633,7 +633,7 @@ class PrintReceipt{
     }
   }
 
-  printKitchenList(List<Printer> printerList, context, CartModel cart, int orderCacheLocalId) async {
+  printKitchenList(List<Printer> printerList, CartModel cart, int orderCacheLocalId) async {
     try{
       int printStatus = 0;
       for (int i = 0; i < printerList.length; i++) {
@@ -747,7 +747,7 @@ class PrintReceipt{
     }
   }
 
-  printQrKitchenList(List<Printer> printerList, context, int orderCacheLocalId, {orderDetailList}) async {
+  printQrKitchenList(List<Printer> printerList, int orderCacheLocalId, {orderDetailList}) async {
     try{
       int printStatus = 0;
       for (int i = 0; i < printerList.length; i++) {

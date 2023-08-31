@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
-
 import '../../notifier/report_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/categories.dart';
@@ -56,7 +54,7 @@ class _CancellationReportState extends State<CancellationReport> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Cancellation Report',
+                              child: Text(AppLocalizations.of(context)!.translate('cancellation_report'),
                                   style: TextStyle(fontSize: 25, color: Colors.black)),
                             ),
                           ],
@@ -81,7 +79,7 @@ class _CancellationReportState extends State<CancellationReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Product',
+                                        AppLocalizations.of(context)!.translate('product'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -89,7 +87,21 @@ class _CancellationReportState extends State<CancellationReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Variant',
+                                        AppLocalizations.of(context)!.translate('variant'),
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(AppLocalizations.of(context)!.translate('quantity'),
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(AppLocalizations.of(context)!.translate('net_sales'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -97,7 +109,7 @@ class _CancellationReportState extends State<CancellationReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Quantity',
+                                        AppLocalizations.of(context)!.translate('gross_sales'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -105,23 +117,7 @@ class _CancellationReportState extends State<CancellationReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Net Sales',
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        'Gross Sales',
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        'Cancel By',
+                                        AppLocalizations.of(context)!.translate('cancel_by'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -139,7 +135,7 @@ class _CancellationReportState extends State<CancellationReport> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(Icons.menu),
-                              Text('NO RECORD FOUND'),
+                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
                             ],
                           ),
                         )
@@ -162,7 +158,7 @@ class _CancellationReportState extends State<CancellationReport> {
                         Row(
                           children: [
                             Container(
-                              child: Text('Cancellation Report',
+                              child: Text(AppLocalizations.of(context)!.translate('cancellation_report'),
                                   style: TextStyle(fontSize: 25, color: Colors.black)),
                             ),
                           ],
@@ -187,7 +183,7 @@ class _CancellationReportState extends State<CancellationReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Product',
+                                        AppLocalizations.of(context)!.translate('product'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -195,7 +191,21 @@ class _CancellationReportState extends State<CancellationReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Variant',
+                                        AppLocalizations.of(context)!.translate('variant'),
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(AppLocalizations.of(context)!.translate('quantity'),
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Expanded(
+                                      child: Text(AppLocalizations.of(context)!.translate('net_sales'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -203,7 +213,7 @@ class _CancellationReportState extends State<CancellationReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Quantity',
+                                        AppLocalizations.of(context)!.translate('gross_sales'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -211,23 +221,7 @@ class _CancellationReportState extends State<CancellationReport> {
                                   DataColumn(
                                     label: Expanded(
                                       child: Text(
-                                        'Net Sales',
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        'Gross Sales',
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        'Cancel By',
+                                        AppLocalizations.of(context)!.translate('cancel_by'),
                                         style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -245,7 +239,7 @@ class _CancellationReportState extends State<CancellationReport> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Icon(Icons.menu),
-                              Text('NO RECORD FOUND'),
+                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
                             ],
                           ),
                         )
@@ -291,9 +285,9 @@ class _CancellationReportState extends State<CancellationReport> {
             cells: <DataCell>[
               orderDetailCategoryData[i].category_name != '' ?
               DataCell(
-                Text('Category - ${orderDetailCategoryData[i].category_name}', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(AppLocalizations.of(context)!.translate('category')+' - ${orderDetailCategoryData[i].category_name}', style: TextStyle(fontWeight: FontWeight.bold)),
               ): DataCell(
-                Text('Category - Other', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(AppLocalizations.of(context)!.translate('category_other'), style: TextStyle(fontWeight: FontWeight.bold)),
               ),
               DataCell(Text('')),
               DataCell(Text('${orderDetailCategoryData[i].category_item_sum}')),
