@@ -274,10 +274,31 @@ class _TableSettingState extends State<TableSetting> {
     this.checkedTable.clear();
     List<PosTable> data = await PosDatabase.instance.readAllTable();
     tableList = data;
-    tableList.sort((a, b) => int.parse(a.number!).compareTo(int.parse(b.number!)));
+    sortTable();
     setState(() {
       _isLoad = true;
     });
 
+  }
+
+  sortTable(){
+    tableList.sort((a, b) {
+      final aNumber = a.number!;
+      final bNumber = b.number!;
+
+      bool isANumeric = int.tryParse(aNumber) != null;
+      bool isBNumeric = int.tryParse(bNumber) != null;
+
+      if (isANumeric && isBNumeric) {
+        return int.parse(aNumber).compareTo(int.parse(bNumber));
+      } else if (isANumeric) {
+        return -1; // Numeric before alphanumeric
+      } else if (isBNumeric) {
+        return 1; // Alphanumeric before numeric
+      } else {
+        // Custom alphanumeric sorting logic
+        return aNumber.compareTo(bNumber);
+      }
+    });
   }
 }

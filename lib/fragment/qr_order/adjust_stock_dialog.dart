@@ -246,20 +246,30 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                                   size: 40,
                                                 ),
                                                 onPressed: () {
-                                                  if (int.parse(widget.orderDetailList[index].quantity!) <
-                                                      int.parse(widget.orderDetailList[index].available_stock!)) {
+                                                  if(widget.orderDetailList[index].available_stock != ''){
+                                                    if (int.parse(widget.orderDetailList[index].quantity!) < int.parse(widget.orderDetailList[index].available_stock!)) {
+                                                      setState(() {
+                                                        int qty = int.parse(widget.orderDetailList[index].quantity!);
+                                                        int totalQty = qty + 1;
+                                                        widget.orderDetailList[index].quantity = totalQty.toString();
+                                                      });
+                                                    } else {
+                                                      Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('out_of_stock'));
+                                                    }
+                                                  } else {
                                                     setState(() {
                                                       int qty = int.parse(widget.orderDetailList[index].quantity!);
                                                       int totalQty = qty + 1;
                                                       widget.orderDetailList[index].quantity = totalQty.toString();
                                                     });
-                                                  } else {
-                                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('out_of_stock'));
                                                   }
                                                 })
                                           ],
                                         ),
-                                        Text(AppLocalizations.of(context)!.translate('available_stock')+': ${widget.orderDetailList[index].available_stock}')
+                                        Visibility(
+                                            visible: widget.orderDetailList[index].available_stock != '' ? true : false,
+                                            child: Text(AppLocalizations.of(context)!.translate('available_stock')+': ${widget.orderDetailList[index].available_stock}')
+                                        )
                                       ],
                                     ),
                                   ),
@@ -709,32 +719,44 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     List<String> _branchLinkProductValue = [];
     int _totalStockQty = 0, updateStock = 0;
     BranchLinkProduct? object;
-    for (int i = 0; i < orderDetailList.length; i++) {
-      List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
-      if (checkData[0].stock_type == '2') {
-        _totalStockQty = int.parse(checkData[0].stock_quantity!) - int.parse(orderDetailList[i].quantity!);
-        object = BranchLinkProduct(
-            updated_at: dateTime,
-            sync_status: 2,
-            stock_quantity: _totalStockQty.toString(),
-            branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
-        updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
-      } else {
-        _totalStockQty = int.parse(checkData[0].daily_limit!) - int.parse(orderDetailList[i].quantity!);
-        object = BranchLinkProduct(
-            updated_at: dateTime,
-            sync_status: 2,
-            daily_limit: _totalStockQty.toString(),
-            branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
-        updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+    try{
+      for (int i = 0; i < orderDetailList.length; i++) {
+        List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
+        switch(checkData[0].stock_type){
+          case '1': {
+            _totalStockQty = int.parse(checkData[0].daily_limit!) - int.parse(orderDetailList[i].quantity!);
+            object = BranchLinkProduct(
+                updated_at: dateTime,
+                sync_status: 2,
+                daily_limit: _totalStockQty.toString(),
+                branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
+            updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+          }break;
+          case '2' :{
+            _totalStockQty = int.parse(checkData[0].stock_quantity!) - int.parse(orderDetailList[i].quantity!);
+            object = BranchLinkProduct(
+                updated_at: dateTime,
+                sync_status: 2,
+                stock_quantity: _totalStockQty.toString(),
+                branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
+            updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+          }break;
+          default: {
+            updateStock = 0;
+          }
+        }
+        if (updateStock == 1) {
+          List<BranchLinkProduct> updatedData =
+          await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
+          _branchLinkProductValue.add(jsonEncode(updatedData[0]));
+        }
       }
-      if (updateStock == 1) {
-        List<BranchLinkProduct> updatedData =
-            await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
-        _branchLinkProductValue.add(jsonEncode(updatedData[0]));
-      }
+      this.branch_link_product_value = _branchLinkProductValue.toString();
+    } catch(e){
+      print("update product stock in adjust stock dialog error: $e");
+      branch_link_product_value = null;
     }
-    this.branch_link_product_value = _branchLinkProductValue.toString();
+
     //sync to cloud
     //syncBranchLinkProductStock(_branchLinkProductValue.toString());
   }
@@ -1117,18 +1139,24 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     for (int i = 0; i < orderDetailList.length; i++) {
       BranchLinkProduct? data = await PosDatabase.instance.readSpecificAvailableBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
       if(data != null){
-        if (data.stock_type == '2') {
-          orderDetailList[i].available_stock = data.stock_quantity!;
-          if (int.parse(orderDetailList[i].quantity!) > int.parse(data.stock_quantity!)) {
-            hasNoStockProduct = true;
-          } else {
-            hasNoStockProduct = false;
-          }
-        } else {
-          orderDetailList[i].available_stock = data.daily_limit_amount!;
-          if (int.parse(orderDetailList[i].quantity!) > int.parse(data.daily_limit_amount!)) {
-            hasNoStockProduct = true;
-          } else {
+        switch(data.stock_type){
+          case '1':{
+            orderDetailList[i].available_stock = data.daily_limit_amount!;
+            if (int.parse(orderDetailList[i].quantity!) > int.parse(data.daily_limit_amount!)) {
+              hasNoStockProduct = true;
+            } else {
+              hasNoStockProduct = false;
+            }
+          }break;
+          case '2': {
+            orderDetailList[i].available_stock = data.stock_quantity!;
+            if (int.parse(orderDetailList[i].quantity!) > int.parse(data.stock_quantity!)) {
+              hasNoStockProduct = true;
+            } else {
+              hasNoStockProduct = false;
+            }
+          }break;
+          default: {
             hasNoStockProduct = false;
           }
         }

@@ -661,43 +661,45 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     //syncUpdatedOrderDetailToCloud(_value.toString());
   }
 
-  updateProductStock(String branch_link_product_sqlite_id, int quantity,
-      String dateTime) async {
-    print('update stock called');
+  updateProductStock(String branch_link_product_sqlite_id, int quantity, String dateTime) async {
     List<String> _value = [];
     int _totalStockQty = 0, updateStock = 0;
     BranchLinkProduct? object;
-    List<BranchLinkProduct> checkData = await PosDatabase.instance
-        .readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-    if (checkData[0].stock_type == '2') {
-      _totalStockQty = int.parse(checkData[0].stock_quantity!) + quantity;
-      object = BranchLinkProduct(
-          updated_at: dateTime,
-          sync_status: 2,
-          stock_quantity: _totalStockQty.toString(),
-          branch_link_product_sqlite_id:
-              int.parse(branch_link_product_sqlite_id));
-      updateStock =
-          await PosDatabase.instance.updateBranchLinkProductStock(object);
-    } else {
-      _totalStockQty = int.parse(checkData[0].daily_limit!) + quantity;
-      object = BranchLinkProduct(
-          updated_at: dateTime,
-          sync_status: 2,
-          daily_limit: _totalStockQty.toString(),
-          branch_link_product_sqlite_id:
-              int.parse(branch_link_product_sqlite_id));
-      updateStock =
-          await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+    try{
+      List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+      switch(checkData[0].stock_type){
+        case '1': {
+          _totalStockQty = int.parse(checkData[0].daily_limit!) + quantity;
+          object = BranchLinkProduct(
+              updated_at: dateTime,
+              sync_status: 2,
+              daily_limit: _totalStockQty.toString(),
+              branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+          updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+        }break;
+        case'2': {
+          _totalStockQty = int.parse(checkData[0].stock_quantity!) + quantity;
+          object = BranchLinkProduct(
+              updated_at: dateTime,
+              sync_status: 2,
+              stock_quantity: _totalStockQty.toString(),
+              branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+          updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+        }break;
+        default: {
+          updateStock = 0;
+        }
+      }
+      if (updateStock == 1) {
+        List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+        _value.add(jsonEncode(updatedData[0]));
+        branch_link_product_value = _value.toString();
+      }
+    }catch(e){
+      print("adjust stock dialog update stock error: $e");
     }
-    if (updateStock == 1) {
-      List<BranchLinkProduct> updatedData = await PosDatabase.instance
-          .readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-      _value.add(jsonEncode(updatedData[0]));
-      branch_link_product_value = _value.toString();
-    }
-    print(
-        'branch link product value in function: ${branch_link_product_value}');
+
+    //print('branch link product value in function: ${branch_link_product_value}');
     //sync to cloud
     //syncBranchLinkProductStock(value.toString());
   }

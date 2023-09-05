@@ -62,7 +62,6 @@ class _RefundDialogState extends State<RefundDialog> {
         Navigator.of(context).pop();
         Navigator.of(context).pop();
       }
-      return;
     }
   }
 
@@ -92,70 +91,77 @@ class _RefundDialogState extends State<RefundDialog> {
     return showDialog(
       barrierDismissible: false,
       context: context,
-      builder: (BuildContext context) => Center(
-        child: SingleChildScrollView(
-          child: AlertDialog(
-            title: Text(AppLocalizations.of(context)!.translate('enter_current_user_pin')),
-            content: SizedBox(
-              height: 100.0,
-              width: 350.0,
-              child: ValueListenableBuilder(
-                  valueListenable: adminPosPinController,
-                  builder: (context, TextEditingValue value, __) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        autofocus: true,
-                        onSubmitted: (input){
-                          _submit(context);
-                        },
-                        obscureText: true,
-                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
-                        controller: adminPosPinController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          errorText: _submitted
-                              ? errorPassword == null
-                              ? errorPassword
-                              : AppLocalizations.of(context)
-                              ?.translate(errorPassword!)
-                              : null,
-                          border: OutlineInputBorder(
-                            borderSide:
-                            BorderSide(color: color.backgroundColor),
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, StateSetter setState){
+          return Center(
+            child: SingleChildScrollView(
+              child: AlertDialog(
+                title: Text(AppLocalizations.of(context)!.translate('enter_current_user_pin')),
+                content: SizedBox(
+                  height: 100.0,
+                  width: 350.0,
+                  child: ValueListenableBuilder(
+                      valueListenable: adminPosPinController,
+                      builder: (context, TextEditingValue value, __) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextField(
+                            autofocus: true,
+                            onSubmitted: (input){
+                              setState(() {
+                                isButtonDisabled = true;
+                              });
+                              _submit(context);
+                            },
+                            obscureText: true,
+                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
+                            controller: adminPosPinController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              errorText: _submitted
+                                  ? errorPassword == null
+                                  ? errorPassword
+                                  : AppLocalizations.of(context)
+                                  ?.translate(errorPassword!)
+                                  : null,
+                              border: OutlineInputBorder(
+                                borderSide:
+                                BorderSide(color: color.backgroundColor),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide:
+                                BorderSide(color: color.backgroundColor),
+                              ),
+                              labelText: "PIN",
+                            ),
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide:
-                            BorderSide(color: color.backgroundColor),
-                          ),
-                          labelText: "PIN",
-                        ),
-                      ),
-                    );
-                  }),
+                        );
+                      }),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                    onPressed: isButtonDisabled ? null : () {
+                      // Disable the button after it has been pressed
+                      setState(() {
+                        isButtonDisabled = true;
+                      });
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  TextButton(
+                    child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                    onPressed: isButtonDisabled ? null : () async {
+                      _submit(context);
+                    },
+                  ),
+                ],
+              ),
             ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: isButtonDisabled ? null : () {
-                  // Disable the button after it has been pressed
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
-              ),
-              TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                onPressed: isButtonDisabled ? null : () async {
-                  _submit(context);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
+          );
+        });
+      }
     );
   }
 
@@ -177,8 +183,8 @@ class _RefundDialogState extends State<RefundDialog> {
           ),
           TextButton(
             child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-            onPressed: () {
-              showSecondDialog(context, color);
+            onPressed: () async  {
+              await showSecondDialog(context, color);
             },
           ),
         ],

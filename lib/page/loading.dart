@@ -357,11 +357,11 @@ class _LoadingPageState extends State<LoadingPage> {
           soft_delete: item.soft_delete,
         ));
       }
-      getAllOrder();
+      await getAllOrder();
       getAllTable();
       getSettlementLinkPayment();
     } else {
-      getAllOrder();
+      await getAllOrder();
       getAllTable();
       getSettlementLinkPayment();
     }
@@ -379,11 +379,11 @@ class _LoadingPageState extends State<LoadingPage> {
       for (var i = 0; i < responseJson.length; i++) {
         PosTable table = await PosDatabase.instance.insertPosTable(PosTable.fromJson(responseJson[i]));
       }
+      await getAllTableUse();
       getAllCategory();
-      getAllTableUse();
     } else {
+      await getAllTableUse();
       getAllCategory();
-      getAllTableUse();
     }
   }
 
@@ -1177,6 +1177,7 @@ getAllOrderCache() async {
     for (var i = 0; i < responseJson.length; i++) {
       OrderCache cloudData = OrderCache.fromJson(responseJson[i]);
       if (cloudData.table_use_key != '' && cloudData.table_use_key != null) {
+        // print("table use key: ${cloudData.table_use_key}");
         TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(cloudData.table_use_key!);
         tableUseLocalId = tableUseData!.table_use_sqlite_id.toString();
       } else {
@@ -1184,6 +1185,7 @@ getAllOrderCache() async {
       }
 
       if (cloudData.order_key != '' && cloudData.order_key != null) {
+        // print("order key in order cache sync: ${cloudData.order_key}");
         Order orderData = await PosDatabase.instance.readOrderSqliteID(cloudData.order_key!);
         orderLocalId = orderData.order_sqlite_id.toString();
       } else {
@@ -1236,13 +1238,13 @@ getAllOrderDetail() async {
       //OrderDetail item = OrderDetail.fromJson(responseJson[i]);
       OrderCache cacheData = await PosDatabase.instance.readOrderCacheSqliteID(responseJson[i]['order_cache_key']);
       Categories? categoriesData = await PosDatabase.instance.readCategorySqliteID(responseJson[i]['category_id'].toString());
-      BranchLinkProduct branchLinkProductData = await PosDatabase.instance.readBranchLinkProductSqliteID(responseJson[i]['branch_link_product_id'].toString());
+      BranchLinkProduct? branchLinkProductData = await PosDatabase.instance.readBranchLinkProductSqliteID(responseJson[i]['branch_link_product_id'].toString());
       OrderDetail data = await PosDatabase.instance.insertOrderDetail(OrderDetail(
           order_detail_id: responseJson[i]['order_detail_id'],
           order_detail_key: responseJson[i]['order_detail_key'].toString(),
           order_cache_sqlite_id: cacheData.order_cache_sqlite_id.toString(),
           order_cache_key: responseJson[i]['order_cache_key'],
-          branch_link_product_sqlite_id: branchLinkProductData.branch_link_product_sqlite_id.toString(),
+          branch_link_product_sqlite_id: branchLinkProductData != null ? branchLinkProductData.branch_link_product_sqlite_id.toString() : '',
           category_sqlite_id: categoriesData != null ? categoriesData.category_sqlite_id.toString() : '0',
           category_name: responseJson[i]['category_name'],
           productName: responseJson[i]['product_name'],

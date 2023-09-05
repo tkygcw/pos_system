@@ -43,7 +43,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   String footerTextString = '';
   ReceiptDialogEnum? headerFontSize;
   String? emailAddress;
-  bool isLoad = false;
+  bool isLoad = false, isButtonDisabled = false;
   bool _isUpdate = false;
   bool logoImage = false;
   bool footerImage = false;
@@ -208,6 +208,9 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       } else if(errorHeaderText == null && errorFooterText == null) {
         //createReceiptLayout();
       } else {
+        setState(() {
+          isButtonDisabled = false;
+        });
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000),
             msg: "${AppLocalizations.of(context)?.translate('submit_fail')}");
@@ -218,6 +221,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
         //update receipt layout
         await updateReceiptLayout();
         Navigator.of(context).pop();
+      } else {
+        setState(() {
+          isButtonDisabled = false;
+        });
       }
 
       //setLayoutInUse(widget.receiptObject!);
@@ -306,7 +313,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 actions: <Widget>[
                   TextButton(
                     child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                    onPressed: () {
+                    onPressed: isButtonDisabled ? null : () {
+                      setState(() {
+                        isButtonDisabled = true;
+                      });
                       closeDialog(context);
                     },
                   ),
@@ -315,12 +325,14 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     onPressed: () {
                       testReceiptLayout();
                       PrintReceipt().printTestPrintReceipt(printerList, testReceipt!, this.receipt.paper_size!, context);
-
                     },
                   ),
                   TextButton(
                     child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text(AppLocalizations.of(context)!.translate('update')),
-                    onPressed: () {
+                    onPressed: isButtonDisabled ? null : () {
+                      setState(() {
+                        isButtonDisabled = true;
+                      });
                       _submit(context);
                     },
                   ),
@@ -383,7 +395,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
             actions: <Widget>[
               TextButton(
                 child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: () {
+                onPressed: isButtonDisabled ? null : () {
+                  setState(() {
+                    isButtonDisabled = true;
+                  });
                   closeDialog(context);
                 },
               ),
@@ -396,7 +411,10 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
               ),
               TextButton(
                 child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text(AppLocalizations.of(context)!.translate('update')),
-                onPressed: () {
+                onPressed: isButtonDisabled ? null : () {
+                  setState(() {
+                    isButtonDisabled = true;
+                  });
                   _submit(context);
                 },
               ),

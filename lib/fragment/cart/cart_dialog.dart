@@ -218,10 +218,10 @@ class CartDialogState extends State<CartDialog> {
                       child: Text(AppLocalizations.of(context)!.translate('close'),
                         style: TextStyle(color: Colors.white),
                       ),
-                      onPressed: isButtonDisabled
-                          ? null
-                          : () {
-                              print('called');
+                      onPressed: isButtonDisabled ? null : () {
+                              setState(() {
+                                isButtonDisabled = true;
+                              });
                               Navigator.of(context).pop();
                             },
                     ),
@@ -236,9 +236,12 @@ class CartDialogState extends State<CartDialog> {
                       child: Text(AppLocalizations.of(context)!.translate('select_table'),
                         style: TextStyle(color: Colors.white),
                       ),
-                      onPressed: !checkIsSelected()
+                      onPressed: !checkIsSelected() || isButtonDisabled
                           ? null
                           : () async {
+                              setState(() {
+                                isButtonDisabled = true;
+                              });
                               cart.removeAllTable();
                               cart.removeAllCartItem();
                               for (int index = 0; index < tableList.length; index++) {
