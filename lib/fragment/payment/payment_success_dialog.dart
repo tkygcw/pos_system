@@ -667,30 +667,34 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   // }
 
   updatePosTableStatus({required String dateTime}) async {
-    List<String> _value = [];
-    if (widget.selectedTableList.isNotEmpty) {
-      for (int i = 0; i < widget.selectedTableList.length; i++) {
-        PosTable posTableData = PosTable(
-            table_use_detail_key: '',
-            table_use_key: '',
-            status: 0,
-            updated_at: dateTime,
-            table_sqlite_id: widget.selectedTableList[i].table_sqlite_id);
-        int updatedStatus =
-            await PosDatabase.instance.updatePosTableStatus(posTableData);
-        int removeKey = await PosDatabase.instance
-            .removePosTableTableUseDetailKey(posTableData);
-        if (updatedStatus == 1 && removeKey == 1) {
-          List<PosTable> posTable = await PosDatabase.instance
-              .readSpecificTable(posTableData.table_sqlite_id.toString());
-          if (posTable[0].sync_status == 2) {
-            _value.add(jsonEncode(posTable[0]));
+    try{
+      List<String> _value = [];
+      if (widget.selectedTableList.isNotEmpty) {
+        for (int i = 0; i < widget.selectedTableList.length; i++) {
+          PosTable posTableData = PosTable(
+              table_use_detail_key: '',
+              table_use_key: '',
+              status: 0,
+              updated_at: dateTime,
+              table_sqlite_id: widget.selectedTableList[i].table_sqlite_id);
+          int updatedStatus =
+          await PosDatabase.instance.updatePosTableStatus(posTableData);
+          int removeKey = await PosDatabase.instance
+              .removePosTableTableUseDetailKey(posTableData);
+          if (updatedStatus == 1 && removeKey == 1) {
+            List<PosTable> posTable = await PosDatabase.instance
+                .readSpecificTable(posTableData.table_sqlite_id.toString());
+            if (posTable[0].sync_status == 2) {
+              _value.add(jsonEncode(posTable[0]));
+            }
           }
         }
+        table_value = _value.toString();
+        //sync to cloud
+        //syncUpdatedPosTableToCloud(_value.toString());
       }
-      table_value = _value.toString();
-      //sync to cloud
-      //syncUpdatedPosTableToCloud(_value.toString());
+    }catch(e){
+      print("payment success update table error ${e}");
     }
   }
 

@@ -24,6 +24,7 @@ class CartModel extends ChangeNotifier {
     removeAllTable();
     removeAllCartItem();
     removePromotion();
+    removeAutoPromotion();
     removePaymentDetail();
     selectedOption = 'Dine in';
     //selectedOptionId = '1';
@@ -33,6 +34,7 @@ class CartModel extends ChangeNotifier {
   void notDineInInitLoad(){
     removeAllTable();
     removeAllCartItem();
+    removeAutoPromotion();
     removePromotion();
     removePaymentDetail();
     selectedOption = 'Take Away';

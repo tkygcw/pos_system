@@ -218,10 +218,10 @@ class CartDialogState extends State<CartDialog> {
                       child: Text(AppLocalizations.of(context)!.translate('close'),
                         style: TextStyle(color: Colors.white),
                       ),
-                      onPressed: isButtonDisabled
-                          ? null
-                          : () {
-                              print('called');
+                      onPressed: isButtonDisabled ? null : () {
+                              setState(() {
+                                isButtonDisabled = true;
+                              });
                               Navigator.of(context).pop();
                             },
                     ),
@@ -236,9 +236,12 @@ class CartDialogState extends State<CartDialog> {
                       child: Text(AppLocalizations.of(context)!.translate('select_table'),
                         style: TextStyle(color: Colors.white),
                       ),
-                      onPressed: !checkIsSelected()
+                      onPressed: !checkIsSelected() || isButtonDisabled
                           ? null
                           : () async {
+                              setState(() {
+                                isButtonDisabled = true;
+                              });
                               cart.removeAllTable();
                               cart.removeAllCartItem();
                               for (int index = 0; index < tableList.length; index++) {
@@ -469,7 +472,7 @@ class CartDialogState extends State<CartDialog> {
                           //                   "https://png.pngtree.com/png-vector/20190820/ourmid/pngtree-no-image-vector-illustration-isolated-png-image_1694547.jpg"),
                           //   fit: BoxFit.cover,
                           // ),
-                          Container(alignment: Alignment.center, child: Text("#" + tableList[index].number!)),
+                          Container(alignment: Alignment.center, child: Text(tableList[index].number!)),
                         ],
                       ),
                     ),
@@ -594,6 +597,7 @@ class CartDialogState extends State<CartDialog> {
     List<PosTable> data = await PosDatabase.instance.readAllTable();
 
     tableList = data;
+    sortTable();
     await readAllTableAmount();
     if(isServerCall == null){
       if (widget.selectedTableList.isNotEmpty) {
@@ -615,6 +619,27 @@ class CartDialogState extends State<CartDialog> {
         isLoad = true;
       });
     }
+  }
+
+  sortTable(){
+    tableList.sort((a, b) {
+      final aNumber = a.number!;
+      final bNumber = b.number!;
+
+      bool isANumeric = int.tryParse(aNumber) != null;
+      bool isBNumeric = int.tryParse(bNumber) != null;
+
+      if (isANumeric && isBNumeric) {
+        return int.parse(aNumber).compareTo(int.parse(bNumber));
+      } else if (isANumeric) {
+        return -1; // Numeric before alphanumeric
+      } else if (isBNumeric) {
+        return 1; // Alphanumeric before numeric
+      } else {
+        // Custom alphanumeric sorting logic
+        return aNumber.compareTo(bNumber);
+      }
+    });
   }
 
   resetAllTable() async {

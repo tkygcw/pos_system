@@ -207,11 +207,14 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       )),
-                                  Text("In stock: ${dialogStock}",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      )),
+                                  Visibility(
+                                    visible: dialogStock != '' ? true : false,
+                                    child: Text("In stock: ${dialogStock}",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        )),
+                                  )
 
                                 ],
                               )
@@ -402,11 +405,14 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 )),
-                            Text("In stock: ${dialogStock}",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                )),
+                            Visibility(
+                              visible: dialogStock != '' ? true : false,
+                              child: Text("In stock: ${dialogStock}",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  )),
+                            )
 
                           ],
                         )
@@ -693,18 +699,30 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     final int? branch_id = prefs.getInt('branch_id');
     if (product.has_variant == 0) {
       List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
-      if(data1[0].stock_type == '2') {
-        dialogStock = data1[0].stock_quantity.toString();
-      } else {
-        dialogStock = data1[0].daily_limit.toString();
+      switch(data1[0].stock_type){
+        case '1': {
+          dialogStock = data1[0].daily_limit.toString();
+        }break;
+        case '2': {
+          dialogStock = data1[0].stock_quantity.toString();
+        }break;
+        default:{
+          dialogStock = '';
+        }
       }
     } else {
       //check has variant product stock
       List<BranchLinkProduct> data = await PosDatabase.instance.checkProductVariant(await getProductVariant(product.product_sqlite_id!), product.product_sqlite_id.toString());
-      if (data[0].stock_type == '2') {
-        dialogStock = data[0].stock_quantity.toString();
-      } else {
-        dialogStock = data[0].daily_limit.toString();
+      switch(data[0].stock_type){
+        case '1': {
+          dialogStock = data[0].daily_limit.toString();
+        }break;
+        case '2': {
+          dialogStock = data[0].stock_quantity.toString();
+        }break;
+        default:{
+          dialogStock = '';
+        }
       }
     }
     print('has stock ${hasStock}');
@@ -729,56 +747,67 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     final int? branch_id = prefs.getInt('branch_id');
     if (product.has_variant == 0) {
       List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
-      if(data1[0].stock_type == '2') {
-        if (int.parse(data1[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data1[0].stock_quantity!)) {
-          int stockLeft =  int.parse(data1[0].stock_quantity!) - checkCartProductQuantity(cart, data1[0]);
-          if(stockLeft > 0){
-            hasStock = true;
+      switch(data1[0].stock_type){
+        case '1' :{
+          if (int.parse(data1[0].daily_limit!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit!)) {
+            int stockLeft =  int.parse(data1[0].daily_limit!) - checkCartProductQuantity(cart, data1[0]);
+            print('stock left: ${stockLeft}');
+            if(stockLeft > 0){
+              hasStock = true;
+            } else {
+              hasStock = false;
+            }
           } else {
             hasStock = false;
           }
-        } else {
-          hasStock = false;
-        }
-      } else {
-        if (int.parse(data1[0].daily_limit!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit!)) {
-          int stockLeft =  int.parse(data1[0].daily_limit!) - checkCartProductQuantity(cart, data1[0]);
-          print('stock left: ${stockLeft}');
-          if(stockLeft > 0){
-            hasStock = true;
+        }break;
+        case '2': {
+          if (int.parse(data1[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data1[0].stock_quantity!)) {
+            int stockLeft =  int.parse(data1[0].stock_quantity!) - checkCartProductQuantity(cart, data1[0]);
+            if(stockLeft > 0){
+              hasStock = true;
+            } else {
+              hasStock = false;
+            }
           } else {
             hasStock = false;
           }
-        } else {
-          hasStock = false;
+        }break;
+        default: {
+          hasStock = true;
         }
       }
     } else {
       //check has variant product stock
       List<BranchLinkProduct> data = await PosDatabase.instance.checkProductVariant(await getProductVariant(product.product_sqlite_id!), product.product_sqlite_id.toString());
-      if (data[0].stock_type == '2') {
-        if (int.parse(data[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data[0].stock_quantity!)) {
-          int stockLeft =  int.parse(data[0].stock_quantity!) - checkCartProductQuantity(cart, data[0]);
-          print('stock left: ${stockLeft}');
-          if(stockLeft > 0){
-            hasStock = true;
+      switch(data[0].stock_type){
+        case '1' :{
+          if (int.parse(data[0].daily_limit!) > 0 && simpleIntInput <= int.parse(data[0].daily_limit!)) {
+            int stockLeft =  int.parse(data[0].daily_limit!) - checkCartProductQuantity(cart, data[0]);
+            print('stock left: ${stockLeft}');
+            if(stockLeft > 0){
+              hasStock = true;
+            } else {
+              hasStock = false;
+            }
           } else {
             hasStock = false;
           }
-        } else {
-          hasStock = false;
-        }
-      } else {
-        if (int.parse(data[0].daily_limit_amount!) > 0 && simpleIntInput <= int.parse(data[0].daily_limit_amount!)) {
-          int stockLeft =  int.parse(data[0].daily_limit_amount!) - checkCartProductQuantity(cart, data[0]);
-          print('stock left: ${stockLeft}');
-          if(stockLeft > 0){
-            hasStock = true;
+        }break;
+        case '2': {
+          if (int.parse(data[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data[0].stock_quantity!)) {
+            int stockLeft =  int.parse(data[0].stock_quantity!) - checkCartProductQuantity(cart, data[0]);
+            if(stockLeft > 0){
+              hasStock = true;
+            } else {
+              hasStock = false;
+            }
           } else {
             hasStock = false;
           }
-        } else {
-          hasStock = false;
+        }break;
+        default: {
+          hasStock = true;
         }
       }
     }

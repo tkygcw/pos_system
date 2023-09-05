@@ -119,22 +119,31 @@ class ReceiptLayout{
     //LOGO
     bytes += generator.text('Self test print', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
     bytes += generator.text(
-        '22-2, Jalan Permas 11/1A, Bandar Permas Baru, 81750, Masai',
+        'Optimy pos',
         styles: PosStyles(align: PosAlign.center));
     //telephone
-    bytes += generator.text('Tel: 07-3504533',
+    bytes += generator.text('Tel: 012-3456789',
         styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1));
-    bytes += generator.text('Lucky8@hotmail.com',
+    bytes += generator.text('optimy@hotmail.com',
         styles: PosStyles(align: PosAlign.center));
     bytes += generator.hr();
     bytes += generator.reset();
     //receipt no
-    bytes += generator.text('Receipt No.: 17-200-000056',
+    bytes += generator.text('abcdefghijk',
         styles: PosStyles(
             align: PosAlign.left,
             width: PosTextSize.size1,
-            height: PosTextSize.size1,
-            bold: true));
+            height: PosTextSize.size1));
+    bytes += generator.text('lmnopqrstu',
+        styles: PosStyles(
+            align: PosAlign.center,
+            width: PosTextSize.size1,
+            height: PosTextSize.size1));
+    bytes += generator.text('vwxyz',
+        styles: PosStyles(
+            align: PosAlign.right,
+            width: PosTextSize.size1,
+            height: PosTextSize.size1));
     bytes += generator.reset();
 
     bytes += generator.feed(1);
@@ -190,11 +199,12 @@ class ReceiptLayout{
 
     List<int> bytes = [];
     try {
+      bytes += generator.reset();
       //bytes += generator.image(decodedImage);
       if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
-        bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+        bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
       } else if(receipt!.header_text_status == 1 && receipt!.header_font_size == 1) {
-        bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
+        bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
       }
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
@@ -391,10 +401,11 @@ class ReceiptLayout{
       List<int> bytes = [];
       try {
         //bytes += generator.image(image);
+        bytes += generator.reset();
         if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
-          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         } else if (receipt!.header_text_status == 1 && receipt!.header_font_size == 1){
-          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
+          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
         }
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
@@ -572,13 +583,16 @@ class ReceiptLayout{
       List<int> bytes = [];
       try {
         //bytes += generator.image(decodedImage);
+        bytes += generator.reset();
         if(paidOrder!.payment_status == 2) {
           bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
         }
         bytes += generator.emptyLines(1);
-        if(receipt!.header_text_status == 1){
-          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
-        }  else if(receipt!.header_image_status == 1 && paidOrder!.payment_status == 1){
+        bytes += generator.reset();
+        if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
+          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+        } else if(receipt!.header_text_status == 1 && receipt!.header_font_size == 1) {
+          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
         }
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
@@ -794,13 +808,16 @@ class ReceiptLayout{
       List<int> bytes = [];
       try {
         //bytes += generator.image(image);
+        bytes += generator.reset();
         if(paidOrder!.payment_status == 2){
           bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
         }
         bytes += generator.emptyLines(1);
-        if(receipt!.header_text_status == 1){
-          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
-        } else if(receipt!.header_image_status == 1 && paidOrder!.payment_status == 1) {
+        bytes += generator.reset();
+        if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
+          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+        } else if(receipt!.header_text_status == 1 && receipt!.header_font_size == 1) {
+          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
         }
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
@@ -2993,6 +3010,17 @@ class ReceiptLayout{
 
   }
 
+  formatTableList(String tableList){
+    String result = '';
+    try{
+      result = tableList.toString().replaceAll('[', '').replaceAll(']', '');
+      return result;
+    }catch(e){
+      print("format table error");
+      return result;
+    }
+  }
+
 /*
   change table list layout 80mm
 */
@@ -3021,7 +3049,7 @@ class ReceiptLayout{
     *
     * */
       bytes += generator.hr();
-      bytes += generator.text('Table ${fromTable} change to Table ${toTable}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size1));
+      bytes += generator.text('Table ${formatTableList(fromTable.toString())} change to Table ${toTable}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size1));
       bytes += generator.reset();
 
       //final part

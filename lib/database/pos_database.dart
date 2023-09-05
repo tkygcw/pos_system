@@ -2087,13 +2087,17 @@ class PosDatabase {
     }
   }
 
-  Future<BranchLinkProduct> readBranchLinkProductSqliteID(String branch_link_product_id) async {
+  Future<BranchLinkProduct?> readBranchLinkProductSqliteID(String branch_link_product_id) async {
     final db = await instance.database;
     final maps = await db.rawQuery(
         'SELECT * FROM $tableBranchLinkProduct WHERE branch_link_product_id = ?',
         [branch_link_product_id]
     );
-    return BranchLinkProduct.fromJson(maps.first);
+    if(maps.isNotEmpty){
+      return BranchLinkProduct.fromJson(maps.first);
+    } else {
+      return null;
+    }
   }
 
 
@@ -2926,6 +2930,19 @@ class PosDatabase {
 
     return TableUse.fromJson(result.first);
   }
+
+/*
+  read use table detail by table use key
+*/
+  Future<List<TableUseDetail>> readTableUseDetailByTableUseKey(String table_use_key) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableTableUseDetail WHERE soft_delete = ? AND table_use_key = ? ',
+        ['', table_use_key]);
+
+    return result.map((json) => TableUseDetail.fromJson(json)).toList();
+  }
+
 
 /*
   read specific use table detail based on table id

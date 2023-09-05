@@ -769,25 +769,29 @@ class CartPageState extends State<CartPage> {
                                                   }
                                                 }
                                               } else if (widget.currentPage == 'table') {
-                                                if (cart.selectedTable.isNotEmpty) {
-                                                  if (cart.selectedTable.length > 1) {
-                                                    if (await confirm(
-                                                      context,
-                                                      title: Text(
-                                                          '${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
-                                                      content: Text(
-                                                          '${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
-                                                      textOK: Text(
-                                                          '${AppLocalizations.of(context)?.translate('yes')}'),
-                                                      textCancel: Text(
-                                                          '${AppLocalizations.of(context)?.translate('no')}'),
-                                                    )) {
+                                                if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
+                                                  if(total == 0.0 && double.parse(finalAmount) == 0.0 || total != 0.0 && double.parse(finalAmount) != 0.0) {
+                                                    if (cart.selectedTable.length > 1) {
+                                                      if (await confirm(
+                                                        context,
+                                                        title: Text(
+                                                            '${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
+                                                        content: Text(
+                                                            '${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
+                                                        textOK: Text(
+                                                            '${AppLocalizations.of(context)?.translate('yes')}'),
+                                                        textCancel: Text(
+                                                            '${AppLocalizations.of(context)?.translate('no')}'),
+                                                      )) {
+                                                        paymentAddToCart(cart);
+                                                        return openPaymentSelect(cart);
+                                                      }
+                                                    } else {
                                                       paymentAddToCart(cart);
-                                                      return openPaymentSelect(cart);
+                                                      openPaymentSelect(cart);
                                                     }
                                                   } else {
-                                                    paymentAddToCart(cart);
-                                                    openPaymentSelect(cart);
+                                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Payment not match");
                                                   }
                                                 } else {
                                                   Fluttertoast.showToast(
@@ -797,8 +801,12 @@ class CartPageState extends State<CartPage> {
                                                 }
                                               } else if (widget.currentPage == 'other_order') {
                                                 if (cart.cartNotifierItem.isNotEmpty) {
-                                                  paymentAddToCart(cart);
-                                                  openPaymentSelect(cart);
+                                                  if(total == 0.0 && double.parse(finalAmount) == 0.0 || total != 0.0 && double.parse(finalAmount) != 0.0) {
+                                                    paymentAddToCart(cart);
+                                                    openPaymentSelect(cart);
+                                                  } else {
+                                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Payment not match");
+                                                  }
                                                 } else {
                                                   Fluttertoast.showToast(
                                                       backgroundColor: Colors.red,
@@ -1806,6 +1814,7 @@ class CartPageState extends State<CartPage> {
     this.paymentChange = 0.0;
     this.orderTaxList = [];
     this.orderPromotionList = [];
+    autoApplyPromotionList = [];
     this.localOrderId = '';
 
     for (int i = 0; i < cart.cartNotifierPayment.length; i++) {
@@ -1894,9 +1903,12 @@ class CartPageState extends State<CartPage> {
   }
 
   getRounding() {
+    getAllTaxAmount();
     double _round = 0.0;
-    _round =
-        double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
+    totalAmount = 0.0;
+    discountPrice = total - promoAmount;
+    totalAmount = discountPrice + priceIncAllTaxes;
+    _round = double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
     if (_round.toStringAsFixed(2) != '0.05' && _round.toStringAsFixed(2) != '-0.05') {
       rounding = _round;
     } else {
@@ -1909,12 +1921,7 @@ class CartPageState extends State<CartPage> {
   }
 
   getAllTotal() {
-    getAllTaxAmount();
     try {
-      totalAmount = 0.0;
-      discountPrice = total - promoAmount;
-      totalAmount = discountPrice + priceIncAllTaxes;
-
       if (rounding == 0.0) {
         finalAmount = totalAmount.toStringAsFixed(2);
       } else {
@@ -2109,8 +2116,7 @@ class CartPageState extends State<CartPage> {
   readAllBranchLinkDiningOption({serverCall, cart}) async {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      List<BranchLinkDining> data =
-          await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
+      List<BranchLinkDining> data = await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
 
       diningList.clear();
       branchLinkDiningIdList.clear();

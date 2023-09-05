@@ -163,10 +163,16 @@ class _QrMainPageState extends State<QrMainPage> {
           await PosDatabase.instance.readOrderModifierDetail(orderDetailList[i].order_detail_sqlite_id.toString());
 
       orderDetailList[i].orderModifierDetail = modDetailData;
-      if (data[0].stock_type == '2') {
-        orderDetailList[i].available_stock = data[0].stock_quantity!;
-      } else {
-        orderDetailList[i].available_stock = data[0].daily_limit!;
+      switch(data[0].stock_type){
+        case '1': {
+          orderDetailList[i].available_stock = data[0].daily_limit!;
+        }break;
+        case '2': {
+          orderDetailList[i].available_stock = data[0].stock_quantity!;
+        } break;
+        default: {
+          orderDetailList[i].available_stock = '';
+        }
       }
       orderDetailList[i].isRemove = false;
     }

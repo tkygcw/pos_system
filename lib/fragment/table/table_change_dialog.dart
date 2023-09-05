@@ -245,10 +245,10 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   /**
    * concurrent here
    */
-  changeToUnusedTable(int currentDetailTableId, String table_local_id, String table_id, String dateTime) async {
+  changeToUnusedTable(int currentDetailTableSqliteId, String table_local_id, String table_id, String dateTime) async {
     print('table local id : ${table_local_id}');
     List<String> _value = [];
-    List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(currentDetailTableId);
+    List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(currentDetailTableSqliteId);
     TableUseDetail tableUseDetailObject = TableUseDetail(
         table_use_detail_key: checkData[0].table_use_detail_key,
         table_sqlite_id: table_local_id,
@@ -275,34 +275,57 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     // }
   }
 
-  // syncTableUseDetailToCloud(String value) async {
-  //   bool _hasInternetAccess = await Domain().isHostReachable();
-  //   if(_hasInternetAccess){
-  //     Map data = await Domain().SyncTableUseDetailToCloud(value);
-  //     if (data['status'] == '1') {
-  //       List responseJson = data['data'];
-  //       for (var i = 0; i < responseJson.length; i++) {
-  //         int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-  //       }
-  //     }
-  //   }
-  // }
+  deleteOtherTableUseDetail({required List<TableUseDetail> tableUseDetailList, required String dateTime}) async {
+    List<String> _value = [];
+    try{
+      List<TableUseDetail> otherTableUseDetail = tableUseDetailList.where((item) => item.table_use_detail_key != widget.object.table_use_detail_key).toList();
+      // print("tableUseDetailList length: ${otherTableUseDetail.length}");
+      // print("tableUseDetailList id: ${otherTableUseDetail[0].table_use_detail_id}");
+      if(otherTableUseDetail.isNotEmpty){
+        for(int i = 0; i < otherTableUseDetail.length; i++){
+          TableUseDetail checkData  = await PosDatabase.instance.readSpecificTableUseDetailByLocalId(otherTableUseDetail[i].table_use_detail_sqlite_id!);
+          TableUseDetail tableUseDetailObject =  TableUseDetail(
+              soft_delete: dateTime,
+              sync_status: checkData.sync_status == 0 ?  0 : 2,
+              status: 1,
+              table_use_detail_key: checkData.table_use_detail_key,
+              table_use_detail_sqlite_id: checkData.table_use_detail_sqlite_id
+          );
+          int updatedData = await PosDatabase.instance.deleteTableUseDetailByKey(tableUseDetailObject);
+          //int updatedData = await PosDatabase.instance.deleteTableUseDetail(tableUseDetailObject);
+          if(updatedData == 1){
+            TableUseDetail detailData =  await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
+            _value.add(jsonEncode(detailData));
+          }
+        }
+
+      }
+      this.table_use_detail_value = _value.toString();
+    } catch(e){
+      print("delete other table use detail error: ${e}");
+      // Fluttertoast.showToast(
+      //     backgroundColor: Color(0xFFFF0000),
+      //     msg: AppLocalizations.of(context)!.translate('delete_current_table_use_detail_error')+" $e");
+    }
+  }
 
   updateTable() async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     try{
+      List<TableUseDetail> tableUseDetailList = await PosDatabase.instance.readTableUseDetailByTableUseKey(widget.object.table_use_key!);
       List<TableUseDetail> NowUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(widget.object.table_sqlite_id!);
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(tableNoController.text);
       List<TableUseDetail> NewUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableData[0].table_sqlite_id!);
       //check new table is in use or not
       if(NewUseDetailData.isNotEmpty){
         await callChangeToTableInUse(NowUseDetailData[0].table_use_key!, NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
-        await updatePosTable(NewUseDetailData[0].table_use_detail_key!, dateTime, NowUseDetailData[0].table_use_key!);
+        await updatePosTable(NewUseDetailData[0].table_use_detail_key!, dateTime, NowUseDetailData[0].table_use_key!, tableUseDetailList: tableUseDetailList);
 
       } else {
         await changeToUnusedTable(widget.object.table_sqlite_id!, tableData[0].table_sqlite_id.toString(), tableData[0].table_id.toString(), dateTime);
-        await updatePosTable(NowUseDetailData[0].table_use_detail_key!, dateTime, NowUseDetailData[0].table_use_key!);
+        await deleteOtherTableUseDetail(tableUseDetailList: tableUseDetailList, dateTime: dateTime);
+        await updatePosTable(NowUseDetailData[0].table_use_detail_key!, dateTime, NowUseDetailData[0].table_use_key!, tableUseDetailList: tableUseDetailList);
       }
       await syncAllToCloud();
       if(this.isLogOut == true){
@@ -347,9 +370,10 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   }
 
 
-  updatePosTable(String key, String dateTime, String currantTableUseKey) async {
+  updatePosTable(String key, String dateTime, String currantTableUseKey, {required List<TableUseDetail> tableUseDetailList}) async {
+    List<String> _value = [];
+    List<String> _tableNumberList = [];
     try{
-      List<String> _value = [];
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(tableNoController.text);
       //update new table status
       List<PosTable> newTable = await PosDatabase.instance.checkPosTableStatus(tableData[0].table_sqlite_id!);
@@ -358,15 +382,19 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
         _value.add(jsonEncode(updateNewTableData));
       }
       //update previous table status
-      List<PosTable> lastTable = await PosDatabase.instance.checkPosTableStatus(widget.object.table_sqlite_id!);
-      if (lastTable[0].status == 1) {
-        PosTable updatedLastTableData = await updatePosTableStatusAndDetailKey(widget.object.table_sqlite_id!, 0, dateTime, '', '');
-        _value.add(jsonEncode(updatedLastTableData));
+      for(int i = 0; i < tableUseDetailList.length; i++){
+        List<PosTable> lastTable = await PosDatabase.instance.checkPosTableStatus(int.parse(tableUseDetailList[i].table_sqlite_id!));
+        if (lastTable[0].status == 1) {
+          PosTable updatedLastTableData = await updatePosTableStatusAndDetailKey(int.parse(tableUseDetailList[i].table_sqlite_id!), 0, dateTime, '', '');
+          _value.add(jsonEncode(updatedLastTableData));
+          _tableNumberList.add(lastTable[0].number!);
+        }
       }
+
       this.table_value = _value.toString();
       //sync to cloud
       //syncUpdatedTableToCloud(_value.toString());
-      await callPrinter(lastTable: lastTable[0].number, newTable: newTable[0].number);
+      await callPrinter(lastTable: _tableNumberList, newTable: newTable[0].number);
     }catch(e){
      print('update pos table function error: $e');
     }
@@ -435,7 +463,6 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
                         _submit(context);
                       },
                       controller: tableNoController,
-                      keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                         errorText: _submitted
                             ? errorTableNo == null

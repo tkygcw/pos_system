@@ -8,6 +8,7 @@ import 'package:presentation_displays/secondary_display.dart';
 import '../object/cart_product.dart';
 import '../object/second_display_data.dart';
 import '../object/variant_group.dart';
+import '../utils/Utils.dart';
 
 class SecondDisplay extends StatefulWidget {
   const SecondDisplay({Key? key}) : super(key: key);
@@ -44,14 +45,18 @@ class _SecondDisplayState extends State<SecondDisplay> {
     return Scaffold(
       body: SecondaryDisplay(
           callback: (argument){
-            setState(() {
-              if(argument != 'init'){
-                var decode = jsonDecode(argument);
-                obj = SecondDisplayData.fromJson(decode);
-                isLoaded = true;
-              }
-              value = argument;
-            });
+            try{
+              setState(() {
+                if(argument != 'init'){
+                  var decode = jsonDecode(argument);
+                  obj = SecondDisplayData.fromJson(decode);
+                  isLoaded = true;
+                }
+                value = argument;
+              });
+            } catch(e){
+              print("second display callback error: $e");
+            }
           },
           child: value == "init" ?
           Container(
@@ -132,7 +137,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                                     visualDensity: VisualDensity(horizontal: 0, vertical: -4),
                                     title: Text('${obj!.itemList![index].product_name} ${getVariant(obj!.itemList![index])}'),
                                     leading: Text('${obj!.itemList![index].quantity}'),
-                                    trailing: Text('${obj!.itemList![index].price}'),
+                                    trailing: Text('${Utils.to2Decimal(double.parse(obj!.itemList![index].price!))}'),
                                   ),
                                 );
                               }
@@ -184,7 +189,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
-                                    Text(AppLocalizations.of(context)!.translate('total_amount')+': ${obj?.finalAmount}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                                    Text('Total Amount: ${obj?.finalAmount}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                                   ],
                                 )
                               ),

@@ -294,8 +294,15 @@ class _PosPinPageState extends State<PosPinPage> {
         if(device != null){
           openPrinterDialog(devices: device);
         }
+      } else {
+        await testPrintAllUsbPrinter();
       }
     }
+  }
+
+  testPrintAllUsbPrinter() async {
+    List<Printer> usbPrinter = printerList.where((item) => item.type == 0).toList();
+    await printReceipt.selfTest(usbPrinter);
   }
 
   @override
