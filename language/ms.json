@@ -33,6 +33,7 @@
   "cancel_report": "Laporan Pembatalan",
   "cancellation_report": "Laporan pembatalan",
   "cancelled_modifier_report": "Laporan penambahan yang dibatalkan",
+  "cannot_change_to_merged_table": "Gagal bertukar ke meja sama kumpulan",
   "cannot_do_settlement_with_opening_balance": "Gagal melakukan penyelesaian dengan baki pembukaan",
   "cannot_remove_in_use_layout": "Gagal menghapuskan susunan yang digunakan",
   "cannot_remove_this_table": "Gagal menghapuskan meja ini",

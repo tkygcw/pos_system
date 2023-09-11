@@ -33,6 +33,7 @@
   "cancel_report": "取消报告",
   "cancellation_report": "取消报告",
   "cancelled_modifier_report": "已取消的附加产品报告",
+  "cannot_change_to_merged_table": "无法更改为同一组合桌号",
   "cannot_do_settlement_with_opening_balance": "无法使用期初余额进行结算",
   "cannot_remove_in_use_layout": "无法删除正在使用的布局",
   "cannot_remove_this_table": "无法删除此桌位",

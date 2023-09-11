@@ -33,6 +33,7 @@
   "cancel_report": "Cancel Report",
   "cancellation_report": "Cancellation Report",
   "cancelled_modifier_report": "Cancelled Modifier Report",
+  "cannot_change_to_merged_table": "Cannot change to same group table",
   "cannot_do_settlement_with_opening_balance": "Cannot do settlement with opening balance",
   "cannot_remove_in_use_layout": "Cannot remove in-use layout",
   "cannot_remove_this_table": "Cannot remove this table",

@@ -119,15 +119,6 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
         }
       }
       this.order_cache_value = _value.toString();
-      //sync to cloud
-      //syncOrderCacheToCloud(_value.toString());
-      // Map response = await Domain().SyncOrderCacheToCloud(_value.toString());
-      // if(response['status'] == '1'){
-      //   List responseJson = response['data'];
-      //   for(int i = 0 ; i <responseJson.length; i++){
-      //     int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
-      //   }
-      // }
     } catch(e){
       print('Update order cache table use id error: ${e}');
       Fluttertoast.showToast(
@@ -135,19 +126,6 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
           msg: AppLocalizations.of(context)!.translate('update_order_cache_table_use_id_error')+" ${e}");
     }
   }
-
-  // syncOrderCacheToCloud(String value) async {
-  //   bool _hasInternetAccess = await Domain().isHostReachable();
-  //   if(_hasInternetAccess){
-  //     Map response = await Domain().SyncOrderCacheToCloud(value);
-  //     if(response['status'] == '1'){
-  //       List responseJson = response['data'];
-  //       for(int i = 0 ; i <responseJson.length; i++){
-  //         int syncData = await PosDatabase.instance.updateOrderCacheSyncStatusFromCloud(responseJson[i]['order_cache_key']);
-  //       }
-  //     }
-  //   }
-  // }
 
   deleteCurrentTableUseDetail(String currentTableUseId, String dateTime) async {
     List<String> _value = [];
@@ -170,34 +148,12 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
         }
       }
       this.table_use_detail_value = _value.toString();
-      //sync to cloud
-      //syncDeletedTableUseDetailToCloud(_value.toString());
-      // Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
-      // if (data['status'] == '1') {
-      //   List responseJson = data['data'];
-      //   for (var i = 0; i < responseJson.length; i++) {
-      //     int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-      //   }
-      // }
     } catch(e){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: AppLocalizations.of(context)!.translate('delete_current_table_use_detail_error')+" $e");
     }
   }
-
-  // syncDeletedTableUseDetailToCloud(String value) async {
-  //   bool _hasInternetAccess = await Domain().isHostReachable();
-  //   if(_hasInternetAccess){
-  //     Map data = await Domain().SyncTableUseDetailToCloud(value);
-  //     if (data['status'] == '1') {
-  //       List responseJson = data['data'];
-  //       for (var i = 0; i < responseJson.length; i++) {
-  //         int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-  //       }
-  //     }
-  //   }
-  // }
 
   deleteCurrentTableUseId(int currentTableUseId, String dateTime) async {
     List<String> _value = [];
@@ -231,17 +187,6 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     }
   }
 
-  // syncTableUseIdToCloud(String value) async {
-  //   bool _hasInternetAccess = await Domain().isHostReachable();
-  //   if(_hasInternetAccess){
-  //     Map data = await Domain().SyncTableUseToCloud(value);
-  //     if (data['status'] == '1') {
-  //       List responseJson = data['data'];
-  //       int syncData = await PosDatabase.instance.updateTableUseSyncStatusFromCloud(responseJson[0]['table_use_key']);
-  //     }
-  //   }
-  // }
-
   /**
    * concurrent here
    */
@@ -264,15 +209,6 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       }
     }
     this.table_use_detail_value = _value.toString();
-    //sync to cloud
-    //syncTableUseDetailToCloud(_value.toString());
-    // Map data = await Domain().SyncTableUseDetailToCloud(_value.toString());
-    // if (data['status'] == '1') {
-    //   List responseJson = data['data'];
-    //   for (var i = 0; i < responseJson.length; i++) {
-    //     int syncData = await PosDatabase.instance.updateTableUseDetailSyncStatusFromCloud(responseJson[i]['table_use_detail_key']);
-    //   }
-    // }
   }
 
   deleteOtherTableUseDetail({required List<TableUseDetail> tableUseDetailList, required String dateTime}) async {
@@ -303,9 +239,21 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       this.table_use_detail_value = _value.toString();
     } catch(e){
       print("delete other table use detail error: ${e}");
-      // Fluttertoast.showToast(
-      //     backgroundColor: Color(0xFFFF0000),
-      //     msg: AppLocalizations.of(context)!.translate('delete_current_table_use_detail_error')+" $e");
+    }
+  }
+
+  checkTableUseKey({required String currentTableUseKey, required String targetTableUseKey}){
+    bool isMergedTable = false;
+    try{
+      if(targetTableUseKey == currentTableUseKey){
+        isMergedTable = true;
+      } else {
+        isMergedTable = false;
+      }
+      return isMergedTable;
+    }catch(e){
+      print("check table use key error: $e");
+      return isMergedTable = true;
     }
   }
 
@@ -319,8 +267,15 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       List<TableUseDetail> NewUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableData[0].table_sqlite_id!);
       //check new table is in use or not
       if(NewUseDetailData.isNotEmpty){
-        await callChangeToTableInUse(NowUseDetailData[0].table_use_key!, NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
-        await updatePosTable(NewUseDetailData[0].table_use_detail_key!, dateTime, NowUseDetailData[0].table_use_key!, tableUseDetailList: tableUseDetailList);
+        //check is user change to same group merged table
+        if(checkTableUseKey(currentTableUseKey: NowUseDetailData[0].table_use_key!, targetTableUseKey: NewUseDetailData[0].table_use_key!) == false){
+          await callChangeToTableInUse(NowUseDetailData[0].table_use_key!, NowUseDetailData[0].table_use_sqlite_id!, NewUseDetailData[0].table_use_sqlite_id!, dateTime);
+          await updatePosTable(NewUseDetailData[0].table_use_detail_key!, dateTime, NowUseDetailData[0].table_use_key!, tableUseDetailList: tableUseDetailList);
+        } else {
+          Fluttertoast.showToast(
+              backgroundColor: Colors.red,
+              msg: "${AppLocalizations.of(context)?.translate("cannot_change_to_merged_table")}");
+        }
 
       } else {
         await changeToUnusedTable(widget.object.table_sqlite_id!, tableData[0].table_sqlite_id.toString(), tableData[0].table_id.toString(), dateTime);
@@ -400,19 +355,6 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
     }
   }
 
-  // syncUpdatedTableToCloud(String value) async {
-  //   bool _hasInternetAccess = await Domain().isHostReachable();
-  //   if(_hasInternetAccess){
-  //     Map response = await Domain().SyncUpdatedPosTableToCloud(value);
-  //     if (response['status'] == '1') {
-  //       List responseJson = response['data'];
-  //       for (var i = 0; i < responseJson.length; i++) {
-  //         int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-  //       }
-  //     }
-  //   }
-  // }
-
   callPrinter({lastTable, newTable}) async {
     int printStatus = await printReceipt.printChangeTableList(printerList, lastTable: lastTable, newTable: newTable);
     if(printStatus == 1){
@@ -441,70 +383,143 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return WillPopScope(
-        onWillPop: () async => willPop,
-        child: AlertDialog(
-          title: Text(AppLocalizations.of(context)!.translate('change_table_to')),
-          content: Container(
-            width: 350.0,
-            height: 100.0,
-            child: ValueListenableBuilder(
-                // Note: pass _controller to the animation argument
-                valueListenable: tableNoController,
-                builder: (context, TextEditingValue value, __) {
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      onSubmitted: (input) {
+      return LayoutBuilder(builder: (context, constraints) {
+        if(constraints.maxWidth > 800){
+          return WillPopScope(
+            onWillPop: () async => willPop,
+            child: AlertDialog(
+              title: Text(AppLocalizations.of(context)!.translate('change_table_to')),
+              content: Container(
+                width: 350.0,
+                height: 100.0,
+                child: ValueListenableBuilder(
+                  // Note: pass _controller to the animation argument
+                    valueListenable: tableNoController,
+                    builder: (context, TextEditingValue value, __) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextField(
+                          onSubmitted: (input) {
+                            setState(() {
+                              isButtonDisabled = true;
+                              willPop = false;
+                            });
+                            _submit(context);
+                          },
+                          controller: tableNoController,
+                          decoration: InputDecoration(
+                            errorText: _submitted
+                                ? errorTableNo == null
+                                ? errorTableNo
+                                : AppLocalizations.of(context)
+                                ?.translate(errorTableNo!)
+                                : null,
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(color: color.backgroundColor),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: color.backgroundColor),
+                            ),
+                            labelText: AppLocalizations.of(context)!.translate('table_no')+'.',
+                          ),
+                        ),
+                      );
+                    }),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                  onPressed: isButtonDisabled ? null : () {
+                    setState(() {
+                      isButtonDisabled = true;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text(AppLocalizations.of(context)!.translate('submit')),
+                  onPressed: isButtonDisabled ? null : () {
+                    setState(() {
+                      isButtonDisabled = true;
+                      willPop = false;
+                    });
+                    _submit(context);
+                  },
+                ),
+              ],
+            ),
+          );
+        } else {
+          return Center(
+            child: WillPopScope(
+              onWillPop: () async => willPop,
+              child: SingleChildScrollView(
+                child: AlertDialog(
+                  title: Text(AppLocalizations.of(context)!.translate('change_table_to')),
+                  content: Container(
+                    width: 350.0,
+                    height: 100.0,
+                    child: ValueListenableBuilder(
+                      // Note: pass _controller to the animation argument
+                        valueListenable: tableNoController,
+                        builder: (context, TextEditingValue value, __) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextField(
+                              onSubmitted: (input) {
+                                setState(() {
+                                  isButtonDisabled = true;
+                                  willPop = false;
+                                });
+                                _submit(context);
+                              },
+                              controller: tableNoController,
+                              decoration: InputDecoration(
+                                errorText: _submitted
+                                    ? errorTableNo == null
+                                    ? errorTableNo
+                                    : AppLocalizations.of(context)
+                                    ?.translate(errorTableNo!)
+                                    : null,
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(color: color.backgroundColor),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: color.backgroundColor),
+                                ),
+                                labelText: AppLocalizations.of(context)!.translate('table_no')+'.',
+                              ),
+                            ),
+                          );
+                        }),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: isButtonDisabled ? null : () {
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    TextButton(
+                      child: Text(AppLocalizations.of(context)!.translate('submit')),
+                      onPressed: isButtonDisabled ? null : () {
                         setState(() {
                           isButtonDisabled = true;
                           willPop = false;
                         });
                         _submit(context);
                       },
-                      controller: tableNoController,
-                      decoration: InputDecoration(
-                        errorText: _submitted
-                            ? errorTableNo == null
-                                ? errorTableNo
-                                : AppLocalizations.of(context)
-                                    ?.translate(errorTableNo!)
-                            : null,
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: color.backgroundColor),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: color.backgroundColor),
-                        ),
-                        labelText: AppLocalizations.of(context)!.translate('table_no')+'.',
-                      ),
                     ),
-                  );
-                }),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-              onPressed: isButtonDisabled ? null : () {
-                setState(() {
-                  isButtonDisabled = true;
-                });
-                Navigator.of(context).pop();
-              },
+                  ],
+                ),
+              ),
             ),
-            TextButton(
-              child: Text(AppLocalizations.of(context)!.translate('submit')),
-              onPressed: isButtonDisabled ? null : () {
-                setState(() {
-                  isButtonDisabled = true;
-                  willPop = false;
-                });
-                _submit(context);
-              },
-            ),
-          ],
-        ),
-      );
+          );
+        }
+      });
     });
   }
 

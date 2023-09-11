@@ -1506,7 +1506,7 @@ class ReceiptLayout{
             //modifier
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}', width: 10),
+              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}', containsChinese: true, width: 10),
             ]);
           }
         }
@@ -1517,7 +1517,7 @@ class ReceiptLayout{
         if (orderDetailList[i].remark != '') {
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '**${orderDetailList[i].remark}', width: 8),
+            PosColumn(text: '**${orderDetailList[i].remark}', containsChinese: true, width: 8),
             PosColumn(text: '', width: 2),
           ]);
         }
@@ -3091,7 +3091,8 @@ class ReceiptLayout{
     *
     * */
       bytes += generator.hr();
-      bytes += generator.text('Table ${fromTable} change to Table ${toTable}', styles: PosStyles(bold: true));
+      bytes += generator.text('Table ${formatTableList(fromTable.toString())} change to Table ${toTable}',
+          styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size1));
       bytes += generator.reset();
 
       //final part
