@@ -403,6 +403,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: TextField(
+                          autofocus: true,
                           onSubmitted: (input) {
                             setState(() {
                               isButtonDisabled = true;

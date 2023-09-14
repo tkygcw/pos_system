@@ -407,7 +407,7 @@
   "variant": "Varian",
   "waiter": "Pelayan",
   "wifi_setting": "Tetapan Wi-Fi",
-  "would you like to remove?": "Adakah anda ingin memadam?",
+  "would_you_like_to_remove": "Adakah anda ingin memadam?",
   "would_you_like_to_reprint_check_list": "Adakah anda ingin mencetak semula senarai semak?",
   "wrong_pin_please_insert_valid_pin": "PIN salah. Sila masukkan PIN yang sah",
   "yes": "Ya",
@@ -434,5 +434,12 @@
   "status": "Status",
   "other_uncategorized": "Lain-lain/tidak dikategorikan",
   "check_it_now": "Semak sekarang!",
-  "change_quantity_to": "Tukar Kuantiti kepada: "
+  "change_quantity_to": "Tukar Kuantiti kepada: ",
+  "advanced": "Anjutan",
+  "delete_table": "Padamkan Meja",
+  "confirm_delete_table": "Meja akan dipadamkan, klik 'ya' untuk meneruskan",
+  "update_table_layout": "Kemas kini susun atur meja",
+  "confirm_update_table_layout": "Susun atur meja akan dikemas kini, klik 'Sahkan' untuk meneruskan",
+  "with_table": "dengan meja",
+  "feature_not_supported_on_phone": "Ciri tidak disokong pada telefon!"
 }

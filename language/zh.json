@@ -407,7 +407,7 @@
   "variant": "规格",
   "waiter": "服务员",
   "wifi_setting": "Wi-Fi 设置",
-  "would you like to remove?": "确定是否删除？",
+  "would_you_like_to_remove": "确定是否删除？",
   "would_you_like_to_reprint_check_list": "您想重新打印检查清单吗？",
   "wrong_pin_please_insert_valid_pin": "PIN 错误，请输入有效的 PIN",
   "yes": "是",
@@ -434,5 +434,12 @@
   "status": "状态",
   "other_uncategorized": "其他/未分类",
   "check_it_now": "立即查看！",
-  "change_quantity_to": "将数量更改为: "
+  "change_quantity_to": "将数量更改为: ",
+  "advanced": "高级",
+  "delete_table": "删除桌子",
+  "confirm_delete_table": "桌子将被删除，点击“是”继续",
+  "update_table_layout": "更新桌位布局",
+  "confirm_update_table_layout": "桌位布局将被更新，点击“确认”继续",
+  "with_table": "与桌子",
+  "feature_not_supported_on_phone": "手机不支持该功能!"
 }

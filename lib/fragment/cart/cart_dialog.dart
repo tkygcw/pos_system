@@ -37,6 +37,7 @@ import '../../translation/AppLocalizations.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 
 import '../logout_dialog.dart';
+import '../table/advanced_table/advanced_table_view.dart';
 import '../table/table_change_dialog.dart';
 
 class CartDialog extends StatefulWidget {
@@ -59,13 +60,17 @@ class CartDialogState extends State<CartDialog> {
   List<PosTable> sameGroupTbList = [];
   List<Printer> printerList = [];
   late StreamController controller;
+  late SharedPreferences prefs;
+  double scrollContainerHeight = 0.0;
   double priceSST = 0.0;
   double priceServeTax = 0.0;
+  bool showAdvanced = false;
   bool isLoad = false;
   bool isFinish = false;
   bool isButtonDisabled = false, isMergeButtonDisabled = false, isLogOut = false;
   Color cardColor = Colors.white;
   String? table_use_detail_value, table_value, tableUseDetailKey, tableUseKey;
+  String group = '';
 
   @override
   void initState() {
@@ -73,6 +78,7 @@ class CartDialogState extends State<CartDialog> {
     super.initState();
     controller = StreamController();
     readAllTable();
+    getPreData();
   }
 
   Future<Future<Object?>> openLogOutDialog() async {
@@ -104,11 +110,17 @@ class CartDialogState extends State<CartDialog> {
       builder: (BuildContext context) => AlertDialog(
         title: Text(AppLocalizations.of(context)!.translate('confirm_merge_table')),
         content: SizedBox(
-            height: 100.0, width: 350.0, child: Text(AppLocalizations.of(context)!.translate('merge_table')+' ${tableList[dragIndex].number} with table ${tableList[targetIndex].number} ?')),
+            height: 100.0, width: 350.0, child: Text(AppLocalizations.of(context)!.translate('merge_table')+' ${tableList[dragIndex].number} ${AppLocalizations.of(context)!.translate('with_table')} ${tableList[targetIndex].number} ?')),
         actions: <Widget>[
           TextButton(
             child: Text('${AppLocalizations.of(context)?.translate('close')}'),
             onPressed: () {
+              setState(() {
+                for (int i = 0; i < tableList.length; i++) {
+                  tableList[i].isSelected = false;
+                }
+                cart.initialLoad();
+              });
               Navigator.of(context).pop();
             },
           ),
@@ -153,122 +165,164 @@ class CartDialogState extends State<CartDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
-        return StreamBuilder(
-            stream: controller.stream,
-            builder: (context, snapshot) {
-              return AlertDialog(
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(AppLocalizations.of(context)!.translate('select_table')),
-                    Visibility(
-                      visible: checkIsSelected(),
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width / 10,
-                        height: MediaQuery.of(context).size.height / 20,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            backgroundColor: Colors.red,
+          return StreamBuilder(
+              stream: controller.stream,
+              builder: (context, snapshot) {
+                return AlertDialog(
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(AppLocalizations.of(context)!.translate('select_table')),
+                      Visibility(
+                        visible: checkIsSelected(),
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width / 10,
+                          height: MediaQuery.of(context).size.height / 20,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              backgroundColor: Colors.red,
+                            ),
+                            child: Text(
+                              AppLocalizations.of(context)!.translate('clear_all'),
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                for (int i = 0; i < tableList.length; i++) {
+                                  tableList[i].isSelected = false;
+                                }
+                                cart.initialLoad();
+                              });
+                              //Navigator.of(context).pop();
+                            },
                           ),
-                          child: Text(
-                            AppLocalizations.of(context)!.translate('clear_all'),
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              for (int i = 0; i < tableList.length; i++) {
-                                tableList[i].isSelected = false;
-                              }
-                              cart.initialLoad();
-                            });
-                            //Navigator.of(context).pop();
-                          },
                         ),
                       ),
+                    ],
+                  ),
+                  content: isLoad
+                      ? !showAdvanced
+                        ? Container(
+                            // height: 650,
+                            width: MediaQuery.of(context).size.width / 2,
+                            child: ReorderableGridView.count(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              crossAxisCount: MediaQuery.of(context).size.height > 500 ? 4 : 3,
+                              children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, color, index))).values.toList(),
+                              onReorder: (int oldIndex, int newIndex) {
+                                if (oldIndex != newIndex) {
+                                  showSecondDialog(context, color, oldIndex, newIndex, cart);
+                                }
+                              },
+                            ))
+                      : Column(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Stack(
+                            children: [
+                              Container(
+                                height: getScrollContainerHeight(),
+                                // width: 900,
+                                width: MediaQuery.of(context).size.width / 1.4,
+                              ),
+                              for (int i = 0; i < tableList.length; i++)
+                                AdvancedTableView(
+                                  cart: cart,
+                                  position: i,
+                                  table: tableList[i],
+                                  tableList: tableList,
+                                  tableLength: tableList.length,
+                                  editingMode: false,
+                                  callBack: (action, value) {
+                                    if (action == 'on_tap')
+                                      onSelect(i, cart, color);
+                                    else if (action == 'on_double_tap')
+                                      openChangeTableDialog(tableList[i], printerList: printerList);
+                                    },
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Other widgets you may want to include in the Column
+                    ],
+                  )
+
+
+                      : CustomProgressBar(),
+
+                  actions: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.height / 12,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: color.backgroundColor,
+                              ),
+                              child: Text(AppLocalizations.of(context)!.translate('close'),
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: isButtonDisabled
+                                  ? null
+                                  : () {
+                                      print('called');
+                                      Navigator.of(context).pop();
+                                    },
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 20),
+                        Expanded(
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.height / 12,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: color.buttonColor,
+                              ),
+                              child: Text(AppLocalizations.of(context)!.translate('select_table'),
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: !checkIsSelected()
+                                  ? null
+                                  : () async {
+                                      cart.removeAllTable();
+                                      cart.removeAllCartItem();
+                                      for (int index = 0; index < tableList.length; index++) {
+                                        //if using table is selected
+                                        if (tableList[index].status == 1 && tableList[index].isSelected == true) {
+                                          this.isLoad = false;
+                                          await readSpecificTableDetail(tableList[index]);
+                                          this.isLoad = true;
+                                        }
+                                        //if non-using table is selected
+                                        else if (tableList[index].status == 0 && tableList[index].isSelected == true) {
+                                          //merge all table
+                                          cart.addTable(tableList[index]);
+                                        } else {
+                                          cart.removeSpecificTable(tableList[index]);
+                                        }
+                                      }
+                                      if(orderDetailList.isNotEmpty){
+                                        addToCart(cart);
+                                      }
+                                      Navigator.of(context).pop();
+                                    },
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
-                ),
-                content: isLoad
-                    ? Container(
-                        // height: 650,
-                        width: MediaQuery.of(context).size.width / 2,
-                        child: ReorderableGridView.count(
-                          padding: EdgeInsets.zero,
-                          shrinkWrap: true,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          crossAxisCount: MediaQuery.of(context).size.height > 500 ? 4 : 3,
-                          children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, color, index))).values.toList(),
-                          onReorder: (int oldIndex, int newIndex) {
-                            if (oldIndex != newIndex) {
-                              showSecondDialog(context, color, oldIndex, newIndex, cart);
-                            }
-                          },
-                        ))
-                    : CustomProgressBar(),
-                actions: <Widget>[
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.height / 12,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color.backgroundColor,
-                      ),
-                      child: Text(AppLocalizations.of(context)!.translate('close'),
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onPressed: isButtonDisabled ? null : () {
-                              setState(() {
-                                isButtonDisabled = true;
-                              });
-                              Navigator.of(context).pop();
-                            },
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.height / 12,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color.buttonColor,
-                      ),
-                      child: Text(AppLocalizations.of(context)!.translate('select_table'),
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onPressed: !checkIsSelected() || isButtonDisabled
-                          ? null
-                          : () async {
-                              setState(() {
-                                isButtonDisabled = true;
-                              });
-                              cart.removeAllTable();
-                              cart.removeAllCartItem();
-                              for (int index = 0; index < tableList.length; index++) {
-                                //if using table is selected
-                                if (tableList[index].status == 1 && tableList[index].isSelected == true) {
-                                  this.isLoad = false;
-                                  await readSpecificTableDetail(tableList[index]);
-                                  this.isLoad = true;
-                                }
-                                //if non-using table is selected
-                                else if (tableList[index].status == 0 && tableList[index].isSelected == true) {
-                                  //merge all table
-                                  cart.addTable(tableList[index]);
-                                } else {
-                                  cart.removeSpecificTable(tableList[index]);
-                                }
-                              }
-                              if(orderDetailList.isNotEmpty){
-                                addToCart(cart);
-                              }
-                              Navigator.of(context).pop();
-                            },
-                    ),
-                  ),
-                ],
-              );
-            });
+                );
+              });
       });
     });
   }
@@ -444,8 +498,10 @@ class CartDialogState extends State<CartDialog> {
           ),
         ),
       ),
+      // need to apply changes
     );
   }
+// end of changes
 
   Future<Future<Object?>> openChangeTableDialog(PosTable posTable, {printerList}) async {
     return showGeneralDialog(
@@ -543,9 +599,9 @@ class CartDialogState extends State<CartDialog> {
           tableList[i].group = data[0].table_use_sqlite_id;
           tableList[i].card_color = data[0].card_color;
 
-          // for (int j = 0; j < data.length; j++) {
-          //   tableList[i].total_Amount += double.parse(data[j].total_amount!);
-          // }
+          for (int j = 0; j < data.length; j++) {
+            tableList[i].total_Amount += double.parse(data[j].total_amount!);
+          }
         }
       }
     }
@@ -942,5 +998,92 @@ class CartDialogState extends State<CartDialog> {
     }catch(e){
       mainSyncToCloud.resetCount();
     }
+  }
+
+  void getPreData() async {
+    try {
+      prefs = await SharedPreferences.getInstance();
+      showAdvanced = prefs.getBool('show_advanced')!;
+    } catch (e) {
+      showAdvanced = false;
+    }
+  }
+
+  void onSelect(int index, CartModel cart, ThemeColor color) {
+    //check selected table is in use or not
+    if (tableList[index].status == 1) {
+      print('Group: '+ getSelectedTableGroup(tableList[index].group.toString()));
+      // table in use (colored)
+      for (int i = 0; i < tableList.length; i++) {
+        //check all group
+        if (tableList[index].group == tableList[i].group) {
+
+          if (tableList[i].isSelected == false) {
+            tableList[i].isSelected = true;
+          } else {
+            tableList[i].isSelected = false;
+          }
+        } else {
+          tableList[i].isSelected = false;
+        }
+      }
+    } else {
+      print('Group: '+ getSelectedTableGroup(''));
+
+      if (getSelectedTableGroup('') == ''){
+        //table not in use (white)
+        for (int j = 0; j < tableList.length; j++) {
+          //reset all using table to un-select (table status == 1)
+          if (tableList[j].status == 1) {
+            tableList[j].isSelected = false;
+          }
+        }
+      }
+
+      //for table not in use
+      if (tableList[index].isSelected == false) {
+        setState(() {
+          tableList[index].isSelected = true;
+        });
+      } else if (tableList[index].isSelected == true) {
+        setState(() {
+          tableList[index].isSelected = false;
+        });
+      }
+    }
+    int dragIndex = -1;
+    int targetIndex = -1;
+    for (int j = 0; j < tableList.length; j++) {
+      if(tableList[j].isSelected == true) {
+
+        // table have group/ target index
+        if (tableList[j].group == getSelectedTableGroup('')) {
+          targetIndex = j;
+        }
+        else {
+          dragIndex = j;
+        }
+      }
+    }
+    if(dragIndex != -1 && targetIndex != -1 )
+      showSecondDialog(context, color, dragIndex, targetIndex, cart);
+  }
+
+  String getSelectedTableGroup(String selectedTableGroup) {
+    if(selectedTableGroup != '')
+      group = selectedTableGroup;
+    return group;
+  }
+
+  getScrollContainerHeight() {
+    if(scrollContainerHeight == 0){
+      double maxDy = tableList
+          .where((posTable) => posTable.dy != null && posTable.dy!.isNotEmpty)
+          .map((posTable) => double.tryParse(posTable.dy ?? '') ?? 0.0)
+          .fold(0.0, (max, dyValue) => max > dyValue ? max : dyValue);
+
+      scrollContainerHeight = maxDy + 130;
+    }
+    return scrollContainerHeight;
   }
 }

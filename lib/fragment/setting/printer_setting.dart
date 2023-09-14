@@ -86,7 +86,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
                             title: Text(
                                 '${AppLocalizations.of(context)?.translate('remove_printer')}'),
                             content: Text(
-                                '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                                '${AppLocalizations.of(context)?.translate('would_you_like_to_remove')}'),
                             textOK:
                             Text('${AppLocalizations.of(context)?.translate('yes')}'),
                             textCancel:
@@ -154,7 +154,7 @@ class _PrinterSettingState extends State<PrinterSetting> {
                             title: Text(
                                 '${AppLocalizations.of(context)?.translate('remove_printer')}'),
                             content: Text(
-                                '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                                '${AppLocalizations.of(context)?.translate('would_you_like_to_remove')}'),
                             textOK:
                             Text('${AppLocalizations.of(context)?.translate('yes')}'),
                             textCancel:
