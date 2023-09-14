@@ -13,7 +13,6 @@ import 'package:pos_system/fragment/cart/remove_cart_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
-import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
@@ -742,12 +741,10 @@ class CartPageState extends State<CartPage> {
                                                     Fluttertoast.showToast(
                                                         backgroundColor: Colors.red,
                                                         msg: AppLocalizations.of(context)!.translate('cannot_replace_same_order'));
+                                                    Navigator.of(context).pop();
                                                   }
                                                   cart.removeAllCartItem();
                                                   cart.removeAllTable();
-                                                  // _isProcessComplete = true;
-                                                  // _timer?.cancel();
-                                                  // Navigator.of(context).pop();
                                                 } else {
                                                   Fluttertoast.showToast(
                                                       backgroundColor: Colors.red,
