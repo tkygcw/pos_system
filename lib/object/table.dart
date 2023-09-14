@@ -12,9 +12,11 @@ class PosTableFields {
     table_use_key,
     status,
     sync_status,
+    dx,
+    dy,
     created_at,
     updated_at,
-    soft_delete
+    soft_delete,
   ];
 
   static String table_sqlite_id = 'table_sqlite_id';
@@ -27,6 +29,8 @@ class PosTableFields {
   static String table_use_key = 'table_use_key';
   static String status = 'status';
   static String sync_status = 'sync_status';
+  static String dx = 'table_dx';
+  static String dy = 'table_dy';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -43,6 +47,8 @@ class PosTable{
   String? table_use_key;
   int? status;
   int? sync_status;
+  String? dx;
+  String? dy;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -51,6 +57,7 @@ class PosTable{
   String? card_color;
   bool isSelected = false;
   String? qrOrderUrl;
+
 
   PosTable(
       {this.table_sqlite_id,
@@ -63,6 +70,8 @@ class PosTable{
         this.table_use_key,
         this.status,
         this.sync_status,
+        this.dx,
+        this.dy,
         this.created_at,
         this.updated_at,
         this.soft_delete,
@@ -82,9 +91,12 @@ class PosTable{
     String? table_use_key,
     int? status,
     int? sync_status,
+    String? dx,
+    String? dy,
     String? created_at,
     String? updated_at,
     String? soft_delete,
+
   }) =>
       PosTable(
           table_sqlite_id: table_sqlite_id ?? this.table_sqlite_id,
@@ -94,12 +106,16 @@ class PosTable{
           number: number ?? this.number,
           seats: seats ?? this.seats,
           status: status ?? this.status,
+          dx: dx ?? this.dx,
+          dy: dy ?? this.dy,
           table_use_detail_key: table_use_detail_key ?? this.table_use_detail_key,
           table_use_key: table_use_key ?? this.table_use_key,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
-          soft_delete: soft_delete ?? this.soft_delete);
+          soft_delete: soft_delete ?? this.soft_delete,
+
+      );
 
   static PosTable fromJson(Map<String, Object?> json) => PosTable(
     table_sqlite_id: json[PosTableFields.table_sqlite_id] as int?,
@@ -112,11 +128,14 @@ class PosTable{
     table_use_key: json[PosTableFields.table_use_key] as String?,
     status: json[PosTableFields.status] as int?,
     sync_status: json[PosTableFields.sync_status] as int?,
+    dx: json[PosTableFields.dx] as String?,
+    dy: json[PosTableFields.dy] as String?,
     created_at: json[PosTableFields.created_at] as String?,
     updated_at: json[PosTableFields.updated_at] as String?,
     soft_delete: json[PosTableFields .soft_delete] as String?,
     group: json['group'] as String?,
-    card_color: json['card_color'] as String?
+    card_color: json['card_color'] as String?,
+
   );
 
   Map<String, Object?> toJson() => {
@@ -130,11 +149,14 @@ class PosTable{
     PosTableFields.table_use_key: table_use_key,
     PosTableFields.status: status,
     PosTableFields.sync_status: sync_status,
+    PosTableFields.dx: dx,
+    PosTableFields.dy: dy,
     PosTableFields.created_at: created_at,
     PosTableFields.updated_at: updated_at,
     PosTableFields.soft_delete: soft_delete,
     'group': group,
-    'card_color': card_color
+    'card_color': card_color,
+
   };
 
 

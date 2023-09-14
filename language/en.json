@@ -199,7 +199,7 @@
   "menu": "Menu",
   "merge_error": "Cannot merge same table!",
   "merge_error_2": "Cannot join with table not in use or table in use",
-  "merge_table": "merge table",
+  "merge_table": "Merge table",
   "modifier": "Modifier",
   "modifier_report": "Modifier Report",
   "multi_device_login": "Multi Device Login Confirmation",
@@ -407,7 +407,7 @@
   "variant": "Variant",
   "waiter": "Waiter",
   "wifi_setting": "Wi-Fi setting",
-  "would you like to remove?": "Would you like to remove?",
+  "would_you_like_to_remove": "Would you like to remove?",
   "would_you_like_to_reprint_check_list": "Would you like to reprint check list?",
   "wrong_pin_please_insert_valid_pin": "Wrong pin. Please insert valid pin",
   "yes": "Yes",
@@ -435,5 +435,11 @@
   "other_uncategorized": "Other/uncategorized",
   "check_it_now": "Check it now!",
   "change_quantity_to": "Change Quantity To: ",
-  "": ""
+  "advanced": "Advanced",
+  "delete_table": "Delete Table",
+  "confirm_delete_table": "The table will be deleted, click 'Yes' to continue",
+  "update_table_layout": "Update Table Layout",
+  "confirm_update_table_layout": "The table layout will be updated, click 'Confirm' to continue",
+  "with_table": "with table",
+  "feature_not_supported_on_phone": "Feature not supported on phone!"
 }

@@ -119,7 +119,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                               children: [
                                 Expanded(flex: 1, child: Text(AppLocalizations.of(context)!.translate('qty')),),
                                 Expanded(flex: 4, child: Text(AppLocalizations.of(context)!.translate('item')),),
-                                Expanded(flex: 1, child: Text(AppLocalizations.of(context)!.translate('unit_price'))),
+                                Expanded(flex: 1, child: Text(AppLocalizations.of(context)!.translate('price_unit'))),
                               ],
                             ),
                           ),

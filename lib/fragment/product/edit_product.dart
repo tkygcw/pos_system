@@ -1700,7 +1700,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                   //             title: Text(
                   //                 '${AppLocalizations.of(context)?.translate('confirm')}'),
                   //             content: Text(
-                  //                 '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                  //                 '${AppLocalizations.of(context)?.translate('would_you_like_to_remove')}'),
                   //             textOK: Text(
                   //                 '${AppLocalizations.of(context)?.translate('yes')}'),
                   //             textCancel: Text(
