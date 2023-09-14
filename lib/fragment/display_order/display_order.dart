@@ -225,9 +225,16 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                     '#'+orderCacheList[index].batch_id.toString(),
                                     style: TextStyle(fontSize: 20),
                                   ),
-                                  subtitle: Text(AppLocalizations.of(context)!.translate('order_by')+': ' +
-                                    orderCacheList[index].order_by!,
-                                    style: TextStyle(fontSize: 16),
+                                  subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(AppLocalizations.of(context)!.translate('order_by')+': ' + orderCacheList[index].order_by!,
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                      Text(AppLocalizations.of(context)!.translate('order_at')+': ' + Utils.formatDate(orderCacheList[index].created_at!),
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                    ],
                                   ),
                                   title: Text(
                                     "${Utils.convertTo2Dec(orderCacheList[index].total_amount!,)}",

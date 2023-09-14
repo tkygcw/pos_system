@@ -915,7 +915,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                   children: [
                     Container(
                       alignment: Alignment.topLeft,
-                      child: Text('Logo font size', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                      child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
                       value: ReceiptDialogEnum.big,
@@ -926,7 +926,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                           fontSize = 30.0;
                         });
                       },
-                      title: Text("Big"),
+                      title: Text(AppLocalizations.of(context)!.translate('big')),
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
@@ -938,7 +938,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                           fontSize = 12.0;
                         });
                       },
-                      title: Text("Small"),
+                      title: Text(AppLocalizations.of(context)!.translate('small')),
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
                   ],
@@ -1530,7 +1530,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                   children: [
                     Container(
                       alignment: Alignment.topLeft,
-                      child: Text('Logo font size', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                      child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
                       value: ReceiptDialogEnum.big,
@@ -1541,7 +1541,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                           fontSize = 30.0;
                         });
                       },
-                      title: Text("Big"),
+                      title: Text(AppLocalizations.of(context)!.translate('big')),
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
                     RadioListTile<ReceiptDialogEnum?>(
@@ -1553,7 +1553,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                           fontSize = 12.0;
                         });
                       },
-                      title: Text("Small"),
+                      title: Text(AppLocalizations.of(context)!.translate('small')),
                       controlAffinity: ListTileControlAffinity.trailing,
                     ),
                   ],
@@ -1741,47 +1741,9 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
 
   Widget MobileReceiptView1(ThemeColor color) => Column(
     children: [
-      // Row(
-      //   children: [
-      //     Container(
-      //       alignment: Alignment.topLeft,
-      //       child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-      //     ),
-      //     Spacer(),
-      //     Container(
-      //       child: Switch(
-      //           value: logoImage,
-      //           activeColor: color.backgroundColor,
-      //           onChanged: (bool value){
-      //             setState(() {
-      //               logoImage = value;
-      //             });
-      //           }),
-      //     )
-      //   ],
-      // ),
-      // Row(
-      //   children: [
-      //     Container(
-      //       alignment: Alignment.topLeft,
-      //       child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-      //     ),
-      //     Spacer(),
-      //     Container(
-      //       child: Switch(
-      //           value: footerImage,
-      //           activeColor: color.backgroundColor,
-      //           onChanged: (bool value){
-      //             setState(() {
-      //               footerImage = value;
-      //             });
-      //           }),
-      //     )
-      //   ],
-      // ),
       Container(
         alignment: Alignment.topLeft,
-        child: Text('Logo font size', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+        child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
       ),
       RadioListTile<ReceiptDialogEnum?>(
         value: ReceiptDialogEnum.big,
@@ -1791,7 +1753,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
             headerFontSize = value;
           });
         },
-        title: Text("Big"),
+        title: Text(AppLocalizations.of(context)!.translate('big')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
@@ -1802,7 +1764,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
            headerFontSize = value;
          });
         },
-        title: Text("Small"),
+        title: Text(AppLocalizations.of(context)!.translate('small')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       Row(
@@ -2011,47 +1973,9 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
 
   Widget MobileReceiptView2(ThemeColor color) => Column(
     children: [
-      // Row(
-      //   children: [
-      //     Container(
-      //       alignment: Alignment.topLeft,
-      //       child: Text('Logo image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-      //     ),
-      //     Spacer(),
-      //     Container(
-      //       child: Switch(
-      //           value: logoImage,
-      //           activeColor: color.backgroundColor,
-      //           onChanged: (bool value){
-      //             setState(() {
-      //               logoImage = value;
-      //             });
-      //           }),
-      //     )
-      //   ],
-      // ),
-      // Row(
-      //   children: [
-      //     Container(
-      //       alignment: Alignment.topLeft,
-      //       child: Text('Footer image', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-      //     ),
-      //     Spacer(),
-      //     Container(
-      //       child: Switch(
-      //           value: footerImage,
-      //           activeColor: color.backgroundColor,
-      //           onChanged: (bool value){
-      //             setState(() {
-      //               footerImage = value;
-      //             });
-      //           }),
-      //     )
-      //   ],
-      // ),
       Container(
         alignment: Alignment.topLeft,
-        child: Text('Logo font size', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+        child: Text(AppLocalizations.of(context)!.translate('logo_font_size'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
       ),
       RadioListTile<ReceiptDialogEnum?>(
         value: ReceiptDialogEnum.big,
@@ -2061,7 +1985,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
             headerFontSize = value;
           });
         },
-        title: Text("Big"),
+        title: Text(AppLocalizations.of(context)!.translate('big')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       RadioListTile<ReceiptDialogEnum?>(
@@ -2072,7 +1996,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
             headerFontSize = value;
           });
         },
-        title: Text("Small"),
+        title: Text(AppLocalizations.of(context)!.translate('small')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
       Row(
@@ -2262,84 +2186,5 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
       ),
     ],
   );
-
-  // createReceiptLayout() async {
-  //   try{
-  //     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-  //     String dateTime = dateFormat.format(DateTime.now());
-  //     final prefs = await SharedPreferences.getInstance();
-  //     final int? branch_id = prefs.getInt('branch_id');
-  //
-  //     Receipt data = await PosDatabase.instance.insertSqliteReceipt(Receipt(
-  //       receipt_id: 0,
-  //       branch_id: branch_id.toString(),
-  //       company_id: '6',
-  //       header_text: logoText == true ? headerTextController.text : '',
-  //       footer_text: footerText == true ? footerTextController.text : '',
-  //       header_image: logoImage == true ? 'branchLogo.jpg' : '',
-  //       footer_image: footerImage == true ? 'branchFooter.jpg' : '',
-  //       header_text_status: logoText == true ? 1 : 0,
-  //       footer_text_status: footerText == true ? 1 : 0,
-  //       header_image_status: logoImage == true ? 1 : 0,
-  //       footer_image_status: footerImage == true ? 1 : 0,
-  //       promotion_detail_status: promoDetail == true ? 1 : 0,
-  //       status: widget.allReceiptList.length == 0 ? 1 : 0,
-  //       sync_status: 0,
-  //       created_at: dateTime,
-  //       updated_at: '',
-  //       soft_delete: ''
-  //     ));
-  //     widget.callBack();
-  //     closeDialog(context);
-  //   }catch(e){
-  //     Fluttertoast.showToast(
-  //         backgroundColor: Color(0xFFFF0000),
-  //         msg: "Fail to add receipt layout, Please try again $e");
-  //     print('$e');
-  //   }
-  // }
-
-  // setLayoutInUse(Receipt receipt) async {
-  //   print('called');
-  //   try{
-  //     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-  //     String dateTime = dateFormat.format(DateTime.now());
-  //
-  //     for(int i = 0; i < widget.allReceiptList.length; i++){
-  //       if(widget.allReceiptList[i].status == 1){
-  //         int data = await PosDatabase.instance.updateReceiptStatus(Receipt(
-  //             status: 0,
-  //             sync_status: 0,
-  //             updated_at: dateTime,
-  //             receipt_sqlite_id: widget.allReceiptList[i].receipt_sqlite_id
-  //         ));
-  //       }
-  //     }
-  //
-  //     if(receipt.status == 0){
-  //       int data = await PosDatabase.instance.updateReceiptStatus(Receipt(
-  //           status: 1,
-  //           sync_status: 0,
-  //           updated_at: dateTime,
-  //           receipt_sqlite_id: receipt.receipt_sqlite_id
-  //       ));
-  //       widget.callBack();
-  //       closeDialog(context);
-  //       Fluttertoast.showToast(
-  //           backgroundColor: Color(0xFF07F107),
-  //           msg: "Receipt layout apply");
-  //     } else {
-  //       closeDialog(context);
-  //       Fluttertoast.showToast(
-  //           backgroundColor: Color(0xFFFF0000),
-  //           msg: "receipt already in-use");
-  //     }
-  //   }catch(e){
-  //     Fluttertoast.showToast(
-  //         backgroundColor: Color(0xFFFF0000),
-  //         msg: "Fail set layout in use, Please try again $e");
-  //     print('$e');
-  //   }
-  // }
 
 }

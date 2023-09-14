@@ -39,6 +39,7 @@ class Domain {
   static Uri printer = Uri.parse(domain + 'mobile-api/printer/index.php');
   static Uri app_version = Uri.parse(domain + 'mobile-api/app_version/index.php');
   static Uri receipt = Uri.parse(domain + 'mobile-api/receipt/index.php');
+  static Uri checklist = Uri.parse(domain + 'mobile-api/checklist/index.php');
 
 /*
   get app version
@@ -356,6 +357,7 @@ class Domain {
         printer_link_category_delete_value,
         table_value,
         user_value,
+        checklist_value
       }) async {
     try {
       //print('order cache value 15 sync: ${order_cache_value}');
@@ -384,7 +386,8 @@ class Domain {
         'tb_printer_link_category_sync': printer_link_category_value != null ? printer_link_category_value : [].toString(),
         'tb_printer_link_category_delete': printer_link_category_delete_value != null ? printer_link_category_delete_value : [].toString(),
         'tb_table_sync': table_value != null ? table_value : [].toString(),
-        'tb_user_sync': user_value != null ? user_value : [].toString()
+        'tb_user_sync': user_value != null ? user_value : [].toString(),
+        'tb_checklist_create': checklist_value != null ? checklist_value : [].toString()
       }).timeout(Duration(seconds: isSync != null ? 25 : 3), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);
@@ -1998,6 +2001,21 @@ class Domain {
     }
   }
 
+  /**
+   * get checklist
+   * */
+  getChecklist(branch_id) async {
+    try {
+      var response = await http.post(Domain.checklist, body: {
+        'getAllChecklist': '1',
+        'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
   /*
   * store image to cloud
   * */
@@ -2033,7 +2051,7 @@ class Domain {
 
   isHostReachable() async {
     try {
-      await http.get(Uri.parse('https://pos.optimy.com.my/mobile-api/login/index.php')).timeout(Duration(seconds: 2), onTimeout: () => throw TimeoutException("Timeout"));
+      await http.post(Domain.login).timeout(Duration(seconds: 2), onTimeout: () => throw TimeoutException("Timeout"));
       return true;
     } catch (e) {
       print('host check error: $e');

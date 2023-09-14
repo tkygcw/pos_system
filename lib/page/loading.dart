@@ -53,6 +53,7 @@ import '../database/domain.dart';
 import '../notifier/theme_color.dart';
 import '../object/app_setting.dart';
 import '../object/branch_link_user.dart';
+import '../object/checklist.dart';
 import '../object/customer.dart';
 import '../object/dining_option.dart';
 import '../object/receipt.dart';
@@ -89,6 +90,7 @@ class _LoadingPageState extends State<LoadingPage> {
   startLoad() async {
     try{
       await createDeviceLogin();
+      await getAllChecklist();
       await _createProductImgFolder();
       await getAllUser();
       await getAllSettlement();
@@ -136,12 +138,19 @@ class _LoadingPageState extends State<LoadingPage> {
   create app setting
 */
   createAppSetting() async {
-    AppSetting appSetting = AppSetting(
-      open_cash_drawer: 1,
-      show_second_display: notificationModel.hasSecondScreen ? 1 : 0,
-      direct_payment: 0,
-    );
-    AppSetting data = await PosDatabase.instance.insertSetting(appSetting);
+    try{
+      AppSetting appSetting = AppSetting(
+        open_cash_drawer: 1,
+        show_second_display: notificationModel.hasSecondScreen ? 1 : 0,
+        direct_payment: 0,
+        print_checklist: 1,
+        show_sku: 0
+      );
+      AppSetting data = await PosDatabase.instance.insertSetting(appSetting);
+    } catch(e){
+      print("create app setting fail: $e");
+    }
+
     //notificationModel.enableSecondDisplay();
   }
 
@@ -164,6 +173,22 @@ class _LoadingPageState extends State<LoadingPage> {
       }
     } else {
       await prefs.setString('login_value', 'demo12345');
+    }
+  }
+
+  getAllChecklist() async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      Map response = await Domain().getChecklist(branch_id.toString());
+      if(response['status'] == '1'){
+        List responseJson = response['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          Checklist insertData = await PosDatabase.instance.insertChecklist(Checklist.fromJson(responseJson[i]));
+        }
+      }
+    } catch (e){
+      print("get all checklist error: ${e}");
     }
   }
 
@@ -1177,7 +1202,7 @@ getAllOrderCache() async {
     for (var i = 0; i < responseJson.length; i++) {
       OrderCache cloudData = OrderCache.fromJson(responseJson[i]);
       if (cloudData.table_use_key != '' && cloudData.table_use_key != null) {
-        // print("table use key: ${cloudData.table_use_key}");
+        print("table use key: ${cloudData.table_use_key}");
         TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(cloudData.table_use_key!);
         tableUseLocalId = tableUseData!.table_use_sqlite_id.toString();
       } else {

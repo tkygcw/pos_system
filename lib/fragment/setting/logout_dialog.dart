@@ -216,10 +216,28 @@ class _logout_dialogState extends State<logout_dialog> {
     //clear order
     PosDatabase.instance.clearAllOrderCache();
     PosDatabase.instance.clearAllOrderDetail();
+    PosDatabase.instance.clearAllOrderDetailCancel();
     PosDatabase.instance.clearAllOrderModifierDetail();
     PosDatabase.instance.clearAllOrder();
     PosDatabase.instance.clearAllOrderTax();
     PosDatabase.instance.clearAllOrderPromotion();
+    //clear refund
+    PosDatabase.instance.clearAllRefund();
+    //clear settlement
+    PosDatabase.instance.clearAllSettlement();
+    PosDatabase.instance.clearAllSettlementLinkPayment();
+    //clear customer
+    PosDatabase.instance.clearAllCustomer();
+    //clear receipt layout
+    PosDatabase.instance.clearAllReceiptLayout();
+    //clear cash record
+    PosDatabase.instance.clearAllCashRecord();
+    //clear printer
+    PosDatabase.instance.clearAllPrinter();
+    //clear printer category
+    PosDatabase.instance.clearAllPrinterCategory();
+    //clear checklist layout
+    PosDatabase.instance.clearAllChecklist();
   }
 
   Future<String> get _localPath async {

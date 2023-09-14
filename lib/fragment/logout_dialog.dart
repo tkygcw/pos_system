@@ -181,6 +181,8 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
     PosDatabase.instance.clearAllPrinter();
     //clear printer category
     PosDatabase.instance.clearAllPrinterCategory();
+    //clear checklist layout
+    PosDatabase.instance.clearAllChecklist();
   }
 
   Future<String> get _localPath async {

@@ -191,24 +191,28 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
    * concurrent here
    */
   changeToUnusedTable(int currentDetailTableSqliteId, String table_local_id, String table_id, String dateTime) async {
-    print('table local id : ${table_local_id}');
     List<String> _value = [];
-    List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(currentDetailTableSqliteId);
-    TableUseDetail tableUseDetailObject = TableUseDetail(
-        table_use_detail_key: checkData[0].table_use_detail_key,
-        table_sqlite_id: table_local_id,
-        table_id: table_id,
-        sync_status: checkData[0].sync_status == 0 ? 0 : 2,
-        updated_at: dateTime
-    );
-    int updatedData = await PosDatabase.instance.updateTableUseDetail(tableUseDetailObject);
-    if(updatedData == 1){
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(int.parse(tableUseDetailObject.table_sqlite_id!));
-      if(tableUseDetailData[0].soft_delete == ''){
-        _value.add(jsonEncode(tableUseDetailData[0]));
+    try{
+      List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(currentDetailTableSqliteId);
+      TableUseDetail tableUseDetailObject = TableUseDetail(
+          table_use_detail_key: checkData[0].table_use_detail_key,
+          table_sqlite_id: table_local_id,
+          table_id: table_id,
+          sync_status: checkData[0].sync_status == 0 ? 0 : 2,
+          updated_at: dateTime
+      );
+      int updatedData = await PosDatabase.instance.updateTableUseDetail(tableUseDetailObject);
+      if(updatedData == 1){
+        List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(int.parse(tableUseDetailObject.table_sqlite_id!));
+        if(tableUseDetailData[0].soft_delete == ''){
+          _value.add(jsonEncode(tableUseDetailData[0]));
+        }
       }
+      this.table_use_detail_value = _value.toString();
+    }catch(e){
+      print("change to unused table error: $e");
+      table_use_detail_value = null;
     }
-    this.table_use_detail_value = _value.toString();
   }
 
   deleteOtherTableUseDetail({required List<TableUseDetail> tableUseDetailList, required String dateTime}) async {

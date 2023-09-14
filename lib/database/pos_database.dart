@@ -45,6 +45,7 @@ import '../object/branch_link_modifier.dart';
 import '../object/branch_link_product.dart';
 import '../object/branch_link_promotion.dart';
 import '../object/branch_link_tax.dart';
+import '../object/checklist.dart';
 import '../object/color.dart';
 import '../object/order_detail_link_promotion.dart';
 import '../object/order_promotion_detail.dart';
@@ -67,10 +68,14 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 4, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 5, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async  {
+    final idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
+    final textType = 'TEXT NOT NULL';
+    final integerType = 'INTEGER NOT NULL';
+
     if (oldVersion < newVersion) {
       // you can execute drop table and create table
       switch(oldVersion) {
@@ -80,6 +85,22 @@ class PosDatabase {
         }break;
         case 3: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.direct_payment} INTEGER NOT NULL DEFAULT 0");
+        }break;
+        case 4: {
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_checklist} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_sku} INTEGER NOT NULL DEFAULT 0");
+          await db.execute('''CREATE TABLE $tableChecklist(
+          ${ChecklistFields.checklist_sqlite_id} $idType,
+          ${ChecklistFields.checklist_id} $integerType,
+          ${ChecklistFields.checklist_key} $textType,
+          ${ChecklistFields.branch_id} $textType,
+          ${ChecklistFields.product_name_font_size} $integerType,
+          ${ChecklistFields.other_font_size} $integerType,
+          ${ChecklistFields.paper_size} $textType,
+          ${ChecklistFields.sync_status} $integerType,
+          ${ChecklistFields.created_at} $textType,
+          ${ChecklistFields.updated_at} $textType,
+          ${ChecklistFields.soft_delete} $textType)''');
         }break;
       }
 
@@ -646,7 +667,9 @@ class PosDatabase {
           ${AppSettingFields.app_setting_sqlite_id} $idType,
           ${AppSettingFields.open_cash_drawer} $integerType,
           ${AppSettingFields.show_second_display} $integerType,
-          ${AppSettingFields.direct_payment} $integerType)''');
+          ${AppSettingFields.direct_payment} $integerType,
+          ${AppSettingFields.print_checklist} $integerType,
+          ${AppSettingFields.show_sku} $integerType)''');
 /*
     create transfer owner table
 */
@@ -725,6 +748,22 @@ class PosDatabase {
           ${OrderDetailCancelFields.created_at} $textType,
           ${OrderDetailCancelFields.updated_at} $textType,
           ${OrderDetailCancelFields.soft_delete} $textType)''');
+
+/*
+    create checklist table
+*/
+    await db.execute('''CREATE TABLE $tableChecklist(
+          ${ChecklistFields.checklist_sqlite_id} $idType,
+          ${ChecklistFields.checklist_id} $integerType,
+          ${ChecklistFields.checklist_key} $textType,
+          ${ChecklistFields.branch_id} $textType,
+          ${ChecklistFields.product_name_font_size} $integerType,
+          ${ChecklistFields.other_font_size} $integerType,
+          ${ChecklistFields.paper_size} $textType,
+          ${ChecklistFields.sync_status} $integerType,
+          ${ChecklistFields.created_at} $textType,
+          ${ChecklistFields.updated_at} $textType,
+          ${ChecklistFields.soft_delete} $textType)''');
   }
 
 /*
@@ -1969,6 +2008,40 @@ class PosDatabase {
         ]
     );
     return data.copy(order_detail_cancel_sqlite_id: await id);
+  }
+
+/*
+  add checklist data into sqlite(cloud)
+*/
+  Future<Checklist> insertChecklist(Checklist data) async {
+    final db = await instance.database;
+    final id = db.rawInsert(
+        'INSERT INTO $tableChecklist(soft_delete, updated_at, created_at, sync_status, paper_size, '
+            'other_font_size, product_name_font_size, branch_id, checklist_key, checklist_id) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          '',
+          data.updated_at,
+          data.created_at,
+          data.sync_status,
+          data.paper_size,
+          data.other_font_size,
+          data.product_name_font_size,
+          data.branch_id,
+          data.checklist_key,
+          data.checklist_id
+        ]
+    );
+    return data.copy(checklist_sqlite_id: await id);
+  }
+
+/*
+  add checklist data into local db
+*/
+  Future<Checklist> insertSqliteChecklist(Checklist data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableChecklist!, data.toJson());
+    return data.copy(checklist_sqlite_id: id);
   }
 
 
@@ -3418,6 +3491,36 @@ class PosDatabase {
     return Receipt.fromJson(result.first);
   }
 
+/*
+  ----------------------------Checklist layout part------------------------------------------------------------------------------------------------
+*/
+
+/*
+  read specific checklist layout by key
+*/
+  Future<Checklist?> readSpecificChecklistByKey(String key) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableChecklist WHERE soft_delete = ? AND checklist_key = ? ', ['', key]);
+    if(result.isNotEmpty){
+      return Checklist.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific checklist layout
+*/
+  Future<Checklist?> readSpecificChecklist(String paperSize) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableChecklist WHERE soft_delete = ? AND paper_size = ? ORDER BY checklist_sqlite_id ', ['', paperSize]);
+    if(result.isNotEmpty){
+      return Checklist.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
 
 /*
   ----------------------------Cash record part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3746,6 +3849,19 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableAppSetting');
     return result.map((json) => AppSetting.fromJson(json)).toList();
+  }
+
+/*
+  read latest app setting
+*/
+  Future<AppSetting?> readAppSetting() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableAppSetting');
+    if(result.isNotEmpty){
+      return AppSetting.fromJson(result.first);
+    } else {
+      return null;
+    }
   }
 
 /*
@@ -5327,10 +5443,11 @@ class PosDatabase {
   Future<int> updateAppSettings(AppSetting data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tableAppSetting SET open_cash_drawer = ?, show_second_display = ? WHERE app_setting_sqlite_id = ?',
+        'UPDATE $tableAppSetting SET open_cash_drawer = ?, show_second_display = ?, print_checklist = ? WHERE app_setting_sqlite_id = ?',
         [
           data.open_cash_drawer,
           data.show_second_display,
+          data.print_checklist,
           data.app_setting_sqlite_id
         ]);
   }
@@ -5344,6 +5461,19 @@ class PosDatabase {
         'UPDATE $tableAppSetting SET direct_payment = ? WHERE app_setting_sqlite_id = ?',
         [
           data.direct_payment,
+          data.app_setting_sqlite_id
+        ]);
+  }
+
+/*
+  update show sku Setting
+*/
+  Future<int> updateShowSKUSettings(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableAppSetting SET show_sku = ? WHERE app_setting_sqlite_id = ?',
+        [
+          data.show_sku,
           data.app_setting_sqlite_id
         ]);
   }
@@ -5702,10 +5832,41 @@ class PosDatabase {
         ]);
   }
 
+/*
+  update checklist layout
+*/
+  Future<int> updateChecklist(Checklist data) async {
+    final db = await instance.database;
+    return await db.rawUpdate("UPDATE $tableChecklist SET updated_at = ?, sync_status = ?, product_name_font_size = ?, other_font_size = ? WHERE checklist_sqlite_id = ?",
+      [
+        data.updated_at,
+        data.sync_status,
+        data.product_name_font_size,
+        data.other_font_size,
+        data.checklist_sqlite_id
+      ]
+    );
+  }
+
 
 /*
   ------------------unique key part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  update checklist unique key
+*/
+  Future<int> updateChecklistUniqueKey(Checklist data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableChecklist SET checklist_key = ?, sync_status = ?, updated_at = ? WHERE checklist_sqlite_id = ?',
+        [
+          data.checklist_key,
+          data.sync_status,
+          data.updated_at,
+          data.checklist_sqlite_id,
+        ]);
+  }
 
 /*
   update receipt unique key
@@ -6659,6 +6820,14 @@ class PosDatabase {
     return await db.rawDelete('DELETE FROM $tableRefund');
   }
 
+/*
+  Delete All local checklist
+*/
+  Future clearAllChecklist() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableChecklist');
+  }
+
 
 
 /*
@@ -6928,6 +7097,19 @@ class PosDatabase {
         ]);
   }
 
+/*
+  update checklist sync status (from cloud)
+*/
+  Future<int> updateChecklistSyncStatusFromCloud(String checklist_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableChecklist SET sync_status = ? WHERE checklist_key = ?',
+        [
+          1,
+          checklist_key
+        ]);
+  }
+
 
 /*
   ----------------------Sync to cloud(update)--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -7061,6 +7243,18 @@ class PosDatabase {
 /*
   ----------------------Sync to cloud(create)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
+
+/*
+  read all not yet sync checklist
+*/
+  Future<List<Checklist>> readAllNotSyncChecklist() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableChecklist WHERE sync_status != ? LIMIT 10 ',
+        [1]);
+
+    return result.map((json) => Checklist.fromJson(json)).toList();
+  }
 
 /*
   read all not yet sync receipt

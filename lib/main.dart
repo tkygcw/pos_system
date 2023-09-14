@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
@@ -136,6 +137,13 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => ReportModel(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            AppSettingModel appSettingModel = AppSettingModel();
+            appSettingModel.initialLoad();
+            return appSettingModel;
+          },
         ),
       ],
       child: Consumer<AppLanguage>(builder: (context, model, child) {

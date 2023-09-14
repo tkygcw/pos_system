@@ -2085,14 +2085,15 @@ class _MakePaymentState extends State<MakePayment> {
     orderCacheIdList = [];
     selectedTableList = [];
     for (int i = 0; i < cart.cartNotifierItem.length; i++) {
-      if (!orderCacheIdList
-          .contains(cart.cartNotifierItem[i].order_cache_sqlite_id!)) {
+      if (!orderCacheIdList.contains(cart.cartNotifierItem[i].order_cache_sqlite_id!)) {
         orderCacheIdList.add(cart.cartNotifierItem[i].order_cache_sqlite_id!);
       }
     }
-    for (int j = 0; j < cart.selectedTable.length; j++) {
-      if (!selectedTableList.contains(cart.selectedTable[j].table_sqlite_id)) {
-        selectedTableList.add(cart.selectedTable[j]);
+    if(cart.selectedTable.isNotEmpty){
+      for (int j = 0; j < cart.selectedTable.length; j++) {
+        if (!selectedTableList.contains(cart.selectedTable[j].table_sqlite_id)) {
+          selectedTableList.add(cart.selectedTable[j]);
+        }
       }
     }
   }

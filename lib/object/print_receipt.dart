@@ -6,6 +6,7 @@ import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pos_system/object/checklist.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/receipt.dart';
@@ -115,6 +116,62 @@ class PrintReceipt{
     }catch(e){
       print('Open Cash Drawer Error: ${e}');
       return 1;
+    }
+  }
+
+  printTestPrintChecklist(List<Printer> cashierPrinter, Checklist checklistLayout, String paperSize) async {
+    try{
+      for (int i = 0; i < cashierPrinter.length; i++) {
+        var printerDetail = jsonDecode(cashierPrinter[i].value!);
+        if (cashierPrinter[i].type == 0) {
+          if (paperSize == '80') {
+            //print 80mm
+            var data = Uint8List.fromList(await ReceiptLayout().printTestCheckList80mm(true, checklistLayout: checklistLayout));
+            bool? isConnected = await flutterUsbPrinter.connect(
+                int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+            if (isConnected == true) {
+              await flutterUsbPrinter.write(data);
+            } else {
+            }
+          } else {
+            //print 58mm
+            var data = Uint8List.fromList(
+                await ReceiptLayout().printTestCheckList58mm(true, checklistLayout: checklistLayout));
+            bool? isConnected = await flutterUsbPrinter.connect(
+                int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+            if (isConnected == true) {
+              await flutterUsbPrinter.write(data);
+            } else {
+            }
+          }
+        } else {
+          if (paperSize == '80') {
+            //print LAN 80mm
+            final profile = await CapabilityProfile.load();
+            final printer = NetworkPrinter(PaperSize.mm80, profile);
+            final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+
+            if (res == PosPrintResult.success) {
+              await ReceiptLayout().printTestCheckList80mm(false, value: printer, checklistLayout: checklistLayout);
+              printer.disconnect();
+            } else {
+            }
+          } else {
+            //print LAN 58mm
+            final profile = await CapabilityProfile.load();
+            final printer = NetworkPrinter(PaperSize.mm58, profile);
+            final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+
+            if (res == PosPrintResult.success) {
+              await ReceiptLayout().printTestCheckList58mm(false, value: printer, checklistLayout: checklistLayout);
+              printer.disconnect();
+            } else {
+            }
+          }
+        }
+      }
+    } catch(e){
+      print("test print fail: ${e}");
     }
   }
 
