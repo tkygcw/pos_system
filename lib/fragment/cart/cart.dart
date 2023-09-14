@@ -2081,7 +2081,13 @@ class CartPageState extends State<CartPage> {
             child: Opacity(
               opacity: a1.value,
               child: PaymentSelect(
-                  dining_id: diningOptionID.toString(), dining_name: cart.selectedOption, callBack: () => cart.removeAllCartItem()),
+                  dining_id: diningOptionID.toString(),
+                  dining_name: cart.selectedOption,
+                  callBack: () {
+                    if(this.widget.currentPage == "menu"){
+                      cart.removeAllCartItem();
+                    }
+                  }),
             ),
           );
         },
