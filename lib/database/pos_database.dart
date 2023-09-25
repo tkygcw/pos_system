@@ -101,6 +101,8 @@ class PosDatabase {
           ${ChecklistFields.created_at} $textType,
           ${ChecklistFields.updated_at} $textType,
           ${ChecklistFields.soft_delete} $textType)''');
+          await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dy} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dx} TEXT NOT NULL DEFAULT '' ");
         }break;
         case 5: {
           await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dy} TEXT NOT NULL DEFAULT '' ");

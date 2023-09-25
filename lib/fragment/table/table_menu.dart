@@ -662,7 +662,7 @@ class _TableMenuState extends State<TableMenu> {
       }
     } else {
       if (tableList[index].status != 1) {
-        openEditTableDialog(tableList[index]);
+        //openEditTableDialog(tableList[index]);
       } else
         Fluttertoast.showToast(backgroundColor: Color(0xFF07F107), msg: AppLocalizations.of(context)!.translate('table_is_used'));
     }
