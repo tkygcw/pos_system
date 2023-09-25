@@ -5,6 +5,7 @@ import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/variant_group.dart';
 
 import 'order_detail.dart';
+import 'order_modifier_detail.dart';
 
 class cartProductItem{
    String? branch_link_product_sqlite_id;
@@ -17,6 +18,7 @@ class cartProductItem{
    List<ModifierItem>? checkedModifierItem;
    List<ModifierGroup>? modifier;
    List<VariantGroup>? variant;
+   String? productVariantName;
    String? remark;
    int? status = 0;
    String? order_cache_sqlite_id;
@@ -31,6 +33,7 @@ class cartProductItem{
    String? subtotal;
    String? first_cache_batch;
    String? first_cache_order_by;
+   List<OrderModifierDetail>? orderModifierDetail;
 
    cartProductItem(
        {
@@ -44,6 +47,7 @@ class cartProductItem{
          this.checkedModifierItem,
          this.modifier,
          this.variant,
+         this.productVariantName,
          this.remark,
          this.status,
          this.order_cache_sqlite_id,
@@ -57,16 +61,19 @@ class cartProductItem{
          this.subtotal,
          this.first_cache_batch,
          this.first_cache_order_by,
-         this.refColor
+         this.refColor,
+         this.orderModifierDetail
        });
 
    static cartProductItem fromJson(Map<String, Object?> json) {
-     var modItemJson = json['checkedModifierItem'] as List;
-     var modJson = json['modifier'] as List;
-     var variantJson = json['variant'] as List;
-     List<ModifierItem> modItem = modItemJson.map((tagJson) => ModifierItem.fromJson(tagJson)).toList();
-     List<ModifierGroup> modGroup = modJson.map((tagJson) => ModifierGroup.fromJson(tagJson)).toList();
-     List<VariantGroup> variantGroup = variantJson.map((tagJson) => VariantGroup.fromJson(tagJson)).toList();
+     var modItemJson = json['checkedModifierItem'] as List?;
+     var modJson = json['modifier'] as List?;
+     var variantJson = json['variant'] as List?;
+     var orderModDetail = json['orderModifierDetail'] as List?;
+     List<ModifierItem>? modItem = modItemJson != null ? modItemJson.map((tagJson) => ModifierItem.fromJson(tagJson)).toList() : null;
+     List<ModifierGroup>? modGroup = modJson != null ? modJson.map((tagJson) => ModifierGroup.fromJson(tagJson)).toList() : null;
+     List<VariantGroup>? variantGroup = variantJson != null ? variantJson.map((tagJson) => VariantGroup.fromJson(tagJson)).toList() : null;
+     List<OrderModifierDetail>? orderModifierDetailList = orderModDetail != null ? orderModDetail.map((tagJson) => OrderModifierDetail.fromJson(tagJson)).toList() : null;
      return cartProductItem(
          branch_link_product_sqlite_id: json['branch_link_product_sqlite_id'] as String?,
          product_name: json['product_name'] as String?,
@@ -78,6 +85,7 @@ class cartProductItem{
          checkedModifierItem: modItem,
          modifier: modGroup,
          variant: variantGroup,
+         productVariantName: json['productVariantName'] as String?,
          remark: json['remark'] as String?,
          status: json['status'] as int?,
          order_cache_sqlite_id: json['orderCacheId'] as String?,
@@ -91,7 +99,8 @@ class cartProductItem{
          subtotal: json['subtotal'] as String?,
          first_cache_batch: json['first_cache_batch'] as String?,
          first_cache_order_by: json['first_cache_order_by'] as String?,
-         refColor: json['refColor'] as Color?
+         refColor: json['refColor'] as Color?,
+         orderModifierDetail: orderModifierDetailList
      );
    }
 
@@ -107,6 +116,7 @@ class cartProductItem{
      'checkedModifierItem': checkedModifierItem,
      'modifier': modifier,
      'variant': variant,
+     'productVariantName': productVariantName,
      'remark': remark,
      'status': status,
      'order_cache_sqlite_id': order_cache_sqlite_id,
@@ -119,7 +129,8 @@ class cartProductItem{
      'subtotal': subtotal,
      'first_cache_batch': first_cache_batch,
      'first_cache_order_by': first_cache_order_by,
-     'refColor': null
+     'refColor': null,
+     'orderModifierDetail': orderModifierDetail
    };
 
 }

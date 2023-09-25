@@ -242,8 +242,12 @@ class _CategoryReportState extends State<CategoryReport> {
         _dataRow.addAll([
           DataRow(
             cells: <DataCell>[
+              orderDetailCategoryData[i].category_name != ''?
               DataCell(
                 Text(AppLocalizations.of(context)!.translate('category')+' - ${orderDetailCategoryData[i].category_name}'),
+              ) :
+              DataCell(
+                Text(AppLocalizations.of(context)!.translate('category')+' - Other'),
               ),
               DataCell(Text('${orderDetailCategoryData[i].category_item_sum}')),
               DataCell(Text('${orderDetailCategoryData[i].category_net_sales!.toStringAsFixed(2)}')),

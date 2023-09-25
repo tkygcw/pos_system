@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/payment_link_company.dart';
+import 'package:pos_system/object/printer_link_category.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/product_variant_detail.dart';
@@ -20,6 +21,7 @@ import 'package:http/http.dart' as http;
 
 import '../database/domain.dart';
 import '../database/pos_database.dart';
+import 'branch.dart';
 import 'branch_link_dining_option.dart';
 import 'branch_link_modifier.dart';
 import 'branch_link_product.dart';
@@ -49,13 +51,17 @@ class SyncRecord {
       final int? device_id = prefs.getInt('device_id');
       final String? login_value = prefs.getString('login_value');
       Map branchObject = json.decode(branch!);
+      print("branch id: ${branchObject['branchID']}");
+      print("device id: ${device_id.toString()}");
+      print("login value: ${login_value.toString()}");
       ///get data
       Map data = await Domain().getAllSyncRecord('${branchObject['branchID']}', device_id.toString(), login_value.toString());
+      print('data: ${data}');
       List<int> syncRecordIdList = [];
       if (data['status'] == '1') {
         print('status 1 called!');
         List responseJson = data['data'];
-        print('data: ${data['data']}');
+
         for (var i = 0; i < responseJson.length; i++) {
           switch(responseJson[i]['type']){
             case '0':
@@ -199,11 +205,29 @@ class SyncRecord {
                 syncRecordIdList.add(responseJson[i]['id']);
               }
               break;
+            case '23':
+              bool status = await callBranchQuery(data: responseJson[i]['data']);
+              if(status == true){
+                syncRecordIdList.add(responseJson[i]['id']);
+              }
+              break;
+            case '24':
+              //second screen image
+              syncRecordIdList.add(responseJson[i]['id']);
+              break;
+            case '25':
+              //printer link category
+              bool status = await callPrinterLinkCategoryQuery(data: responseJson[i]['data']);
+              if(status == true){
+                syncRecordIdList.add(responseJson[i]['id']);
+              }
+              break;
           }
         }
         print('sync record length: ${syncRecordIdList.length}');
         //update sync record
         Map updateResponse = await Domain().updateAllCloudSyncRecord('${branchObject['branchID']}', syncRecordIdList.toString());
+        notificationModel.setContentLoad();
         notificationModel.setContentLoaded();
         notificationModel.setCartContentLoaded();
         status = 0;
@@ -222,16 +246,49 @@ class SyncRecord {
       // }
     }on TimeoutException catch(_){
       print('sync record 15 timeout');
-      notificationModel.setContentLoaded();
+      //notificationModel.setContentLoaded();
       //notificationModel.setCartContentLoaded();
       return 2;
     }catch(e){
       print("sync record 15 error: $e");
-      notificationModel.setContentLoaded();
+      //notificationModel.setContentLoaded();
       //notificationModel.setCartContentLoaded();
       return 3;
     }
 
+  }
+
+  callPrinterLinkCategoryQuery({data}) async {
+    bool isComplete = false;
+    try{
+      PrinterLinkCategory printerCategoryData = PrinterLinkCategory.fromJson(data[0]);
+      int status = await PosDatabase.instance.updatePrinterLinkCategorySoftDelete(printerCategoryData);
+      if(status == 1){
+        isComplete = true;
+      }
+    }catch(e){
+      print("sync record printerLinkCategory error: $e");
+      isComplete = true;
+    }
+    return isComplete;
+  }
+
+  callBranchQuery({data}) async {
+    bool isComplete = false;
+    Branch branchData = Branch.fromJson(data[0]);
+    final prefs = await SharedPreferences.getInstance();
+    try{
+      int data = await PosDatabase.instance.updateBranch(branchData);
+      Branch? branch = await PosDatabase.instance.readSpecificBranch(branchData.branchID!);
+      await prefs.setString('branch', json.encode(branch!));
+      if(data == 1){
+        isComplete = true;
+      }
+    } catch(e){
+      print("sync record branch error: ${e}");
+      isComplete = true;
+    }
+    return isComplete;
   }
 
   callBranchLinkPromotionQuery({data, method}) async {
@@ -872,7 +929,7 @@ class SyncRecord {
     Product productObject = Product(
         product_id: productItem.product_id,
         category_id: productItem.category_id,
-        category_sqlite_id: categoryData != null ? categoryData.category_sqlite_id.toString(): '0' ,
+        category_sqlite_id: categoryData != null ? categoryData.category_sqlite_id.toString(): '0',
         company_id: productItem.company_id,
         name: productItem.name,
         price: productItem.price,

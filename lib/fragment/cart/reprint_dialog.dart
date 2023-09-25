@@ -18,7 +18,7 @@ class ReprintDialog extends StatefulWidget {
 class _ReprintDialogState extends State<ReprintDialog> {
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   PrintReceipt printReceipt = PrintReceipt();
-  bool _isChecked = false;
+  bool _isChecked = false, isButtonDisable = false;
 
   void _submit(BuildContext context) async  {
     await printReceipt.reprintCheckList(widget.printerList, widget.cart, context);
@@ -33,38 +33,22 @@ class _ReprintDialogState extends State<ReprintDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(AppLocalizations.of(context)!.translate('confirm_reprint_check_list')),
-      content: Container(
-        height: 150,
-        // width: MediaQuery.of(context).size.width / 3,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(AppLocalizations.of(context)!.translate('would_you_like_to_reprint_check_list')),
-            // Row(
-            //   children: [
-            //     Text('reprint kitchen check list'),
-            //     Checkbox(
-            //         value: _isChecked,
-            //         onChanged: (value) {
-            //           setState(() {
-            //             _isChecked = value!;
-            //           });
-            //         }
-            //     )
-            //   ],
-            // )
-          ],
-        ),
-      ),
+      content: Text(AppLocalizations.of(context)!.translate('would_you_like_to_reprint_check_list')),
       actions: [
         TextButton(
-            onPressed: (){
+            onPressed: isButtonDisable ? null : () {
+              setState(() {
+                isButtonDisable = true;
+              });
               Navigator.of(context).pop();
             },
             child: Text('${AppLocalizations.of(context)?.translate('close')}')
         ),
         TextButton(
-            onPressed: () async{
+            onPressed: isButtonDisable ? null : (){
+              setState(() {
+                isButtonDisable = true;
+              });
               _submit(context);
             },
             child: Text('${AppLocalizations.of(context)?.translate('yes')}'))

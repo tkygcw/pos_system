@@ -201,7 +201,9 @@ class CartPageState extends State<CartPage> {
                 print('cart delay refresh!');
                 if (mounted) {
                   setState(() {
-                    readAllBranchLinkDiningOption();
+                    cart.removeAllCartItem();
+                    cart.removeAllTable();
+                    readAllBranchLinkDiningOption(cart: cart);
                     getPromotionData();
                     getSubTotal(cart);
                     getReceiptPaymentDetail(cart);
@@ -725,6 +727,7 @@ class CartPageState extends State<CartPage> {
                                                   });
                                               _isSettlement = false;
                                             } else {
+                                              disableButton();
                                               if (cart.selectedOption == 'Dine in') {
                                                 if (cart.selectedTable.isNotEmpty &&
                                                     cart.cartNotifierItem.isNotEmpty) {
@@ -945,70 +948,100 @@ class CartPageState extends State<CartPage> {
 
   checkProductStock(CartModel cart, cartProductItem cartItem) async {
     bool hasStock = true;
-    List<BranchLinkProduct> data = await PosDatabase.instance
-        .readSpecificBranchLinkProduct(cartItem.branch_link_product_sqlite_id!);
-    BranchLinkProduct product = data[0];
-    if (product.has_variant == 0) {
-      if (product.stock_type == '2') {
-        if (int.parse(product.stock_quantity!) > 0 &&
-            simpleIntInput <= int.parse(product.stock_quantity!)) {
-          int stockLeft =
-              int.parse(product.stock_quantity!) - checkCartProductQuantity(cart, product);
-          if (stockLeft > 0) {
-            hasStock = true;
+    List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(cartItem.branch_link_product_sqlite_id!);
+    if(data.isNotEmpty){
+      BranchLinkProduct product = data[0];
+      switch(product.stock_type){
+        case '1': {
+          if (int.parse(product.daily_limit!) > 0 && simpleIntInput <= int.parse(product.daily_limit!)) {
+            int stockLeft = int.parse(product.daily_limit!) - checkCartProductQuantity(cart, product);
+            print('stock left: ${stockLeft}');
+            if (stockLeft > 0) {
+              hasStock = true;
+            } else {
+              hasStock = false;
+            }
           } else {
             hasStock = false;
           }
-        } else {
-          hasStock = false;
-        }
-      } else {
-        if (int.parse(product.daily_limit!) > 0 &&
-            simpleIntInput <= int.parse(product.daily_limit!)) {
-          int stockLeft = int.parse(product.daily_limit!) - checkCartProductQuantity(cart, product);
-          print('stock left: ${stockLeft}');
-          if (stockLeft > 0) {
-            hasStock = true;
+        }break;
+        case '2': {
+          if (int.parse(product.stock_quantity!) > 0 && simpleIntInput <= int.parse(product.stock_quantity!)) {
+            int stockLeft = int.parse(product.stock_quantity!) - checkCartProductQuantity(cart, product);
+            if (stockLeft > 0) {
+              hasStock = true;
+            } else {
+              hasStock = false;
+            }
           } else {
             hasStock = false;
           }
-        } else {
-          hasStock = false;
-        }
-      }
-    } else {
-      //check has variant product stock
-      if (product.stock_type == '2') {
-        if (int.parse(product.stock_quantity!) > 0 &&
-            simpleIntInput <= int.parse(product.stock_quantity!)) {
-          int stockLeft =
-              int.parse(product.stock_quantity!) - checkCartProductQuantity(cart, product);
-          print('stock left: ${stockLeft}');
-          if (stockLeft > 0) {
-            hasStock = true;
-          } else {
-            hasStock = false;
-          }
-        } else {
-          hasStock = false;
-        }
-      } else {
-        if (int.parse(product.daily_limit_amount!) > 0 &&
-            simpleIntInput <= int.parse(product.daily_limit_amount!)) {
-          int stockLeft =
-              int.parse(product.daily_limit_amount!) - checkCartProductQuantity(cart, product);
-          print('stock left: ${stockLeft}');
-          if (stockLeft > 0) {
-            hasStock = true;
-          } else {
-            hasStock = false;
-          }
-        } else {
-          hasStock = false;
+        }break;
+        default: {
+          hasStock = true;
         }
       }
     }
-    print('has stock ${hasStock}');
+    // BranchLinkProduct product = data[0];
+    // if (product.has_variant == 0) {
+    //   if (product.stock_type == '2') {
+    //     if (int.parse(product.stock_quantity!) > 0 && simpleIntInput <= int.parse(product.stock_quantity!)) {
+    //       int stockLeft =
+    //           int.parse(product.stock_quantity!) - checkCartProductQuantity(cart, product);
+    //       if (stockLeft > 0) {
+    //         hasStock = true;
+    //       } else {
+    //         hasStock = false;
+    //       }
+    //     } else {
+    //       hasStock = false;
+    //     }
+    //   } else {
+    //     if (int.parse(product.daily_limit!) > 0 && simpleIntInput <= int.parse(product.daily_limit!)) {
+    //       int stockLeft = int.parse(product.daily_limit!) - checkCartProductQuantity(cart, product);
+    //       print('stock left: ${stockLeft}');
+    //       if (stockLeft > 0) {
+    //         hasStock = true;
+    //       } else {
+    //         hasStock = false;
+    //       }
+    //     } else {
+    //       hasStock = false;
+    //     }
+    //   }
+    // } else {
+    //   //check has variant product stock
+    //   if (product.stock_type == '2') {
+    //     if (int.parse(product.stock_quantity!) > 0 &&
+    //         simpleIntInput <= int.parse(product.stock_quantity!)) {
+    //       int stockLeft =
+    //           int.parse(product.stock_quantity!) - checkCartProductQuantity(cart, product);
+    //       print('stock left: ${stockLeft}');
+    //       if (stockLeft > 0) {
+    //         hasStock = true;
+    //       } else {
+    //         hasStock = false;
+    //       }
+    //     } else {
+    //       hasStock = false;
+    //     }
+    //   } else {
+    //     if (int.parse(product.daily_limit_amount!) > 0 &&
+    //         simpleIntInput <= int.parse(product.daily_limit_amount!)) {
+    //       int stockLeft =
+    //           int.parse(product.daily_limit_amount!) - checkCartProductQuantity(cart, product);
+    //       print('stock left: ${stockLeft}');
+    //       if (stockLeft > 0) {
+    //         hasStock = true;
+    //       } else {
+    //         hasStock = false;
+    //       }
+    //     } else {
+    //       hasStock = false;
+    //     }
+    //   }
+    // }
+    // print('has stock ${hasStock}');
     return hasStock;
   }
 
@@ -1022,6 +1055,12 @@ class CartPageState extends State<CartPage> {
   //     }
   //   });
   // }
+
+  disableButton() {
+    setState(() {
+      isButtonDisabled = true;
+    });
+  }
 
   enableButton() {
     setState(() {
@@ -1092,13 +1131,27 @@ class CartPageState extends State<CartPage> {
   getModifier(cartProductItem object) {
     List<String?> modifier = [];
     String result = '';
-    var length = object.modifier!.length;
-    for (int i = 0; i < length; i++) {
-      ModifierGroup group = object.modifier![i];
-      var length = group.modifierChild!.length;
-      for (int j = 0; j < length; j++) {
-        if (group.modifierChild![j].isChecked!) {
-          modifier.add(group.modifierChild![j].name! + '\n');
+    if(object.modifier != null){
+      var length = object.modifier!.length;
+      for (int i = 0; i < length; i++) {
+        ModifierGroup group = object.modifier![i];
+        var length = group.modifierChild!.length;
+        for (int j = 0; j < length; j++) {
+          if (group.modifierChild![j].isChecked!) {
+            modifier.add(group.modifierChild![j].name! + '\n');
+            result = modifier
+                .toString()
+                .replaceAll('[', '')
+                .replaceAll(']', '')
+                .replaceAll(',', '+')
+                .replaceFirst('', '+ ');
+          }
+        }
+      }
+    } else {
+      if(object.orderModifierDetail != null && object.orderModifierDetail!.isNotEmpty){
+        for(int i = 0; i < object.orderModifierDetail!.length; i++){
+          modifier.add(object.orderModifierDetail![i].mod_name! + '\n');
           result = modifier
               .toString()
               .replaceAll('[', '')
@@ -1117,20 +1170,26 @@ class CartPageState extends State<CartPage> {
   getVariant(cartProductItem object) {
     List<String?> variant = [];
     String result = '';
-    var length = object.variant!.length;
-    for (int i = 0; i < length; i++) {
-      VariantGroup group = object.variant![i];
-      for (int j = 0; j < group.child!.length; j++) {
-        if (group.child![j].isSelected!) {
-          variant.add(group.child![j].name! + '\n');
-          result = variant
-              .toString()
-              .replaceAll('[', '')
-              .replaceAll(']', '')
-              .replaceAll(',', '+')
-              .replaceAll('|', '\n+')
-              .replaceFirst('', '+ ');
+    if(object.variant != null){
+      var length = object.variant!.length;
+      for (int i = 0; i < length; i++) {
+        VariantGroup group = object.variant![i];
+        for (int j = 0; j < group.child!.length; j++) {
+          if (group.child![j].isSelected!) {
+            variant.add(group.child![j].name! + '\n');
+            result = variant
+                .toString()
+                .replaceAll('[', '')
+                .replaceAll(']', '')
+                .replaceAll(',', '+')
+                .replaceAll('|', '\n+')
+                .replaceFirst('', '+ ');
+          }
         }
+      }
+    } else {
+      if(object.productVariantName != null && object.productVariantName != ''){
+        result = object.productVariantName!.replaceAll('|', '\n+').replaceFirst('', '+ ') + "\n";
       }
     }
     return result;
@@ -1158,7 +1217,7 @@ class CartPageState extends State<CartPage> {
   getRemark(cartProductItem object) {
     String result = '';
     if (object.remark != '') {
-      result = '*' + object.remark.toString();
+      result = '**' + object.remark.toString();
     }
     return result;
   }
@@ -1210,7 +1269,7 @@ class CartPageState extends State<CartPage> {
           rate = double.parse(cart.selectedPromotion!.amount!) / 100;
           cart.selectedPromotion!.promoRate = selectedPromoRate;
         } else {
-          selectedPromoRate = cart.selectedPromotion!.amount! + '.00';
+          selectedPromoRate = double.parse(cart.selectedPromotion!.amount!).toStringAsFixed(2);
           rate = double.parse(cart.selectedPromotion!.amount!);
           cart.selectedPromotion!.promoRate = selectedPromoRate;
         }
@@ -2084,7 +2143,7 @@ class CartPageState extends State<CartPage> {
                   dining_id: diningOptionID.toString(),
                   dining_name: cart.selectedOption,
                   callBack: () {
-                    if(this.widget.currentPage == "menu"){
+                    if(this.widget.currentPage == "menu" || this.widget.currentPage == 'bill'){
                       cart.removeAllCartItem();
                     }
                   }),
@@ -2148,7 +2207,12 @@ class CartPageState extends State<CartPage> {
           controller.sink.add('refresh');
         }
       }
-      cart.selectedOption = diningList.first.name;
+      if(diningList.length == 3){
+        cart.selectedOption = 'Dine in';
+      } else {
+        cart.selectedOption = "Take Away";
+      }
+      //cart.selectedOption = diningList.first.name;
       lastDiningOption = true;
   }
 
@@ -2759,13 +2823,14 @@ class CartPageState extends State<CartPage> {
           updated_at: '',
           soft_delete: '');
       OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(object);
-      BranchLinkProduct branchLinkProductData = await updateProductStock(
+      BranchLinkProduct? branchLinkProductData = await updateProductStock(
           orderDetailData.branch_link_product_sqlite_id.toString(),
           int.parse(orderDetailData.quantity!),
           dateTime);
-      _branchLinkProductValue.add(jsonEncode(branchLinkProductData.toJson()));
-      branch_link_product_value = _branchLinkProductValue.toString();
-
+      if(branchLinkProductData != null){
+        _branchLinkProductValue.add(jsonEncode(branchLinkProductData.toJson()));
+        branch_link_product_value = _branchLinkProductValue.toString();
+      }
       ///insert order detail key
       OrderDetail updatedOrderDetailData = await insertOrderDetailKey(orderDetailData, dateTime);
       _orderDetailValue.add(jsonEncode(updatedOrderDetailData.syncJson()));
@@ -2838,30 +2903,43 @@ class CartPageState extends State<CartPage> {
   updateProductStock(String branch_link_product_sqlite_id, int quantity, String dateTime) async {
     int _totalStockQty = 0, updateStock = 0;
     BranchLinkProduct? object;
-    List<BranchLinkProduct> checkData =
-        await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-    if (checkData[0].stock_type == '2') {
-      _totalStockQty = int.parse(checkData[0].stock_quantity!) - quantity;
-      object = BranchLinkProduct(
-          updated_at: dateTime,
-          sync_status: 2,
-          stock_quantity: _totalStockQty.toString(),
-          branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
-      updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
-    } else {
-      _totalStockQty = int.parse(checkData[0].daily_limit!) - quantity;
-      object = BranchLinkProduct(
-          updated_at: dateTime,
-          sync_status: 2,
-          daily_limit: _totalStockQty.toString(),
-          branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
-      updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
-    }
-    //return updated value
-    if (updateStock == 1) {
-      List<BranchLinkProduct> updatedData =
-          await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-      return updatedData[0];
+    try{
+      List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+      if(checkData.isNotEmpty){
+        switch(checkData[0].stock_type){
+          case '1': {
+            _totalStockQty = int.parse(checkData[0].daily_limit!) - quantity;
+            object = BranchLinkProduct(
+                updated_at: dateTime,
+                sync_status: 2,
+                daily_limit: _totalStockQty.toString(),
+                branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+            updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+          }break;
+          case'2': {
+            _totalStockQty = int.parse(checkData[0].stock_quantity!) - quantity;
+            object = BranchLinkProduct(
+                updated_at: dateTime,
+                sync_status: 2,
+                stock_quantity: _totalStockQty.toString(),
+                branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+            updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+          }break;
+          default: {
+            updateStock = 0;
+          }break;
+
+        }
+        //return updated value
+        if (updateStock == 1) {
+          List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+          return updatedData[0];
+        } else {
+          return null;
+        }
+      }
+    }catch(e){
+      print("cart update product stock error: $e");
     }
   }
 

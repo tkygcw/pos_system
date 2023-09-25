@@ -410,20 +410,27 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
 
   updateOrderDetailQuantity(String dateTime, CartModel cart) async {
     List<String> _value = [];
-    OrderDetail orderDetailObject = OrderDetail(
-        updated_at: dateTime,
-        sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
-        status: 0,
-        quantity: '0',
-        order_detail_sqlite_id: int.parse(widget.cartItem!.order_detail_sqlite_id!),
-        branch_link_product_sqlite_id: widget.cartItem!.branch_link_product_sqlite_id);
+    try{
+      OrderDetail orderDetailObject = OrderDetail(
+          updated_at: dateTime,
+          sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
+          status: 0,
+          quantity: '0',
+          order_detail_sqlite_id: int.parse(widget.cartItem!.order_detail_sqlite_id!),
+          branch_link_product_sqlite_id: widget.cartItem!.branch_link_product_sqlite_id);
 
-    int data = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObject);
-    if(data == 1){
-      OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
-      await updateProductStock(orderDetailObject.branch_link_product_sqlite_id!, 1, dateTime);
-      _value.add(jsonEncode(detailData.syncJson()));
+      int data = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObject);
+      if(data == 1){
+        OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
+        if(orderDetailObject.branch_link_product_sqlite_id != null && orderDetailObject.branch_link_product_sqlite_id != ''){
+          await updateProductStock(orderDetailObject.branch_link_product_sqlite_id!, 1, dateTime);
+        }
+        _value.add(jsonEncode(detailData.syncJson()));
+      }
+    } catch(e){
+      print("update order detail quantity error: $e");
     }
+
     // order_detail_value = _value.toString();
     //syncUpdatedOrderDetailToCloud(_value.toString());
   }
@@ -534,7 +541,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
         cancel_by: user.name,
         cancel_by_user_id: user.user_id.toString(),
         order_detail_sqlite_id: int.parse(widget.cartItem!.order_detail_sqlite_id!),
-        branch_link_product_sqlite_id: widget.cartItem!.branch_link_product_sqlite_id);
+    );
 
     int deleteOrderDetailData = await PosDatabase.instance.updateOrderDetailStatus(orderDetailObject);
     if(deleteOrderDetailData == 1){
@@ -570,37 +577,39 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       int _totalStockQty = 0, updateStock = 0;
       BranchLinkProduct? object;
       List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-      switch(checkData[0].stock_type){
-        case '1': {
-          _totalStockQty = int.parse(checkData[0].daily_limit!) + quantity;
-          object = BranchLinkProduct(
-              updated_at: dateTime,
-              sync_status: 2,
-              daily_limit: _totalStockQty.toString(),
-              branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
-          );
-          updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
-        }break;
-        case '2': {
-          _totalStockQty = int.parse(checkData[0].stock_quantity!) + quantity;
-          object = BranchLinkProduct(
-              updated_at: dateTime,
-              sync_status: 2,
-              stock_quantity: _totalStockQty.toString(),
-              branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
-          );
-          updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
-        }break;
-        default: {
-          updateStock = 0;
-          _value = [];
+      if(checkData.isNotEmpty){
+        switch(checkData[0].stock_type){
+          case '1': {
+            _totalStockQty = int.parse(checkData[0].daily_limit!) + quantity;
+            object = BranchLinkProduct(
+                updated_at: dateTime,
+                sync_status: 2,
+                daily_limit: _totalStockQty.toString(),
+                branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
+            );
+            updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+          }break;
+          case '2': {
+            _totalStockQty = int.parse(checkData[0].stock_quantity!) + quantity;
+            object = BranchLinkProduct(
+                updated_at: dateTime,
+                sync_status: 2,
+                stock_quantity: _totalStockQty.toString(),
+                branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id)
+            );
+            updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+          }break;
+          default: {
+            updateStock = 0;
+            _value = [];
+          }
         }
+        if(updateStock == 1){
+          List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+          _value.add(jsonEncode(updatedData[0].toJson()));
+        }
+        branch_link_product_value = _value.toString();
       }
-      if(updateStock == 1){
-        List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-        _value.add(jsonEncode(updatedData[0].toJson()));
-      }
-      branch_link_product_value = _value.toString();
     } catch(e){
       print("remove cart dialog update product stock error: $e");
       branch_link_product_value = null;

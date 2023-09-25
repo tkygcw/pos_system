@@ -269,6 +269,7 @@ class Domain {
   * */
   getAllSyncRecord(branch_id, device_id, value) async {
     try {
+      print("sync record domain called!");
       var response = await http.post(Domain.sync_record, body: {
         'sync': '1',
         'branch_id': branch_id,
@@ -843,7 +844,7 @@ class Domain {
         'get_new_qr_order': '1',
         'branch_id': branch_id,
         'company_id': company_id
-      }).timeout(Duration(milliseconds: 3000), onTimeout: ()=> throw TimeoutException("Timeout"));
+      }).timeout(Duration(seconds: 10), onTimeout: ()=> throw TimeoutException("Timeout"));
 
       return jsonDecode(response.body);
     } on TimeoutException catch(_){

@@ -159,20 +159,23 @@ class _QrMainPageState extends State<QrMainPage> {
     orderDetailList = detailData;
     for (int i = 0; i < orderDetailList.length; i++) {
       List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
-      List<OrderModifierDetail> modDetailData =
-          await PosDatabase.instance.readOrderModifierDetail(orderDetailList[i].order_detail_sqlite_id.toString());
+      List<OrderModifierDetail> modDetailData = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[i].order_detail_sqlite_id.toString());
 
       orderDetailList[i].orderModifierDetail = modDetailData;
-      switch(data[0].stock_type){
-        case '1': {
-          orderDetailList[i].available_stock = data[0].daily_limit!;
-        }break;
-        case '2': {
-          orderDetailList[i].available_stock = data[0].stock_quantity!;
-        } break;
-        default: {
-          orderDetailList[i].available_stock = '';
+      if(data.isNotEmpty){
+        switch(data[0].stock_type){
+          case '1': {
+            orderDetailList[i].available_stock = data[0].daily_limit!;
+          }break;
+          case '2': {
+            orderDetailList[i].available_stock = data[0].stock_quantity!;
+          } break;
+          default: {
+            orderDetailList[i].available_stock = '';
+          }
         }
+      } else {
+        orderDetailList[i].available_stock = '';
       }
       orderDetailList[i].isRemove = false;
     }

@@ -84,16 +84,32 @@ class ReportObject{
     return value;
   }
 
-  getAllSettlementPaymentDetail(String settlement_date) async {
+  getAllSettlementPaymentDetail(String settlement_date, List<PaymentLinkCompany> paymentLinkCompanyList) async {
     dateSettlementPaymentList = [];
-    List<SettlementLinkPayment> settlementData = await PosDatabase.instance.readSpecificSettlementLinkPayment(settlement_date);
-    settlementPaymentList = settlementData;
+    // List<SettlementLinkPayment> settlementData = await PosDatabase.instance.readSpecificSettlementLinkPayment(settlement_date);
+    // settlementPaymentList = settlementData;
     //print('length: ${settlementPaymentList.length}');
-    if (settlementPaymentList.isNotEmpty) {
-      for (int i = 0; i < settlementPaymentList.length; i++) {
-        dateSettlementPaymentList!.add(settlementPaymentList[i]);
-        //print('payment method: ${settlementPaymentList[i].payment_link_company_id}');
+    // if (settlementPaymentList.isNotEmpty) {
+    //   for (int i = 0; i < settlementPaymentList.length; i++) {
+    //     dateSettlementPaymentList!.add(settlementPaymentList[i]);
+    //     //print('payment method: ${settlementPaymentList[i].payment_link_company_id}');
+    //   }
+    // }
+    print("settlement date: ${settlement_date}");
+    for(int i = 0; i < paymentLinkCompanyList.length; i++){
+      print("payment link company id: ${paymentLinkCompanyList[i].payment_link_company_id}");
+      List<SettlementLinkPayment> settlementData = await PosDatabase.instance.readSpecificSettlementLinkPayment(settlement_date, paymentLinkCompanyList[i].payment_link_company_id.toString());
+      print("settlement data: ${settlementData.length}");
+      settlementPaymentList = settlementData;
+      if (settlementPaymentList.isNotEmpty) {
+        for (int i = 0; i < settlementPaymentList.length; i++) {
+          dateSettlementPaymentList!.add(settlementPaymentList[i]);
+          //print('payment method: ${settlementPaymentList[i].payment_link_company_id}');
+        }
+      } else {
+        dateSettlementPaymentList!.add(SettlementLinkPayment(all_payment_sales: 0.0));
       }
+
     }
     ReportObject value = ReportObject(dateSettlementPaymentList: dateSettlementPaymentList);
     return value;

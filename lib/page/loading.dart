@@ -741,7 +741,7 @@ updateOrderRefundSqliteId(String refundLocalId, int orderLocalId) async {
 /*
   save modifier group to database
 */
-getModifierGroup() async {
+  getModifierGroup() async {
   final prefs = await SharedPreferences.getInstance();
   final String? user = prefs.getString('user');
   Map userObject = json.decode(user!);

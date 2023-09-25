@@ -365,16 +365,9 @@ class _MakePaymentState extends State<MakePayment> {
                                                           ],
                                                         ),
                                                       ),
-                                                      subtitle: Text(
-                                                          getVariant(
-                                                                  cart.cartNotifierItem[
-                                                                      index]) +
-                                                              getModifier(
-                                                                  cart.cartNotifierItem[
-                                                                      index]) +
-                                                              getRemark(
-                                                                  cart.cartNotifierItem[
-                                                                      index]),
+                                                      subtitle: Text(getVariant(cart.cartNotifierItem[index]) +
+                                                              getModifier(cart.cartNotifierItem[index]) +
+                                                              getRemark(cart.cartNotifierItem[index]),
                                                           style: TextStyle(
                                                               fontSize: 12)),
                                                       trailing: Container(
@@ -1816,12 +1809,26 @@ class _MakePaymentState extends State<MakePayment> {
   getModifier(cartProductItem object) {
     List<String?> modifier = [];
     String result = '';
-    var length = object.modifier!.length;
-    for (int i = 0; i < length; i++) {
-      ModifierGroup group = object.modifier![i];
-      for (int j = 0; j < group.modifierChild!.length; j++) {
-        if (group.modifierChild![j].isChecked!) {
-          modifier.add(group.modifierChild![j].name! + '\n');
+    if(object.modifier != null){
+      var length = object.modifier!.length;
+      for (int i = 0; i < length; i++) {
+        ModifierGroup group = object.modifier![i];
+        for (int j = 0; j < group.modifierChild!.length; j++) {
+          if (group.modifierChild![j].isChecked!) {
+            modifier.add(group.modifierChild![j].name! + '\n');
+            result = modifier
+                .toString()
+                .replaceAll('[', '')
+                .replaceAll(']', '')
+                .replaceAll(',', '+')
+                .replaceFirst('', '+ ');
+          }
+        }
+      }
+    } else {
+      if(object.orderModifierDetail != null && object.orderModifierDetail!.isNotEmpty){
+        for(int i = 0; i < object.orderModifierDetail!.length; i++){
+          modifier.add(object.orderModifierDetail![i].mod_name! + '\n');
           result = modifier
               .toString()
               .replaceAll('[', '')
@@ -1840,16 +1847,22 @@ class _MakePaymentState extends State<MakePayment> {
   getVariant(cartProductItem object) {
     List<String?> variant = [];
     String result = '';
-    var length = object.variant!.length;
-    for (int i = 0; i < length; i++) {
-      VariantGroup group = object.variant![i];
-      for (int j = 0; j < group.child!.length; j++) {
-        if (group.child![j].isSelected!) {
-          variant.add(group.child![j].name! + '\n');
-          result = variant.toString().replaceAll('[', '').replaceAll(']', '');
-          //.replaceAll(',', '+')
-          //.replaceAll('|', '\n+')
+    if(object.variant != null){
+      var length = object.variant!.length;
+      for (int i = 0; i < length; i++) {
+        VariantGroup group = object.variant![i];
+        for (int j = 0; j < group.child!.length; j++) {
+          if (group.child![j].isSelected!) {
+            variant.add(group.child![j].name! + '\n');
+            result = variant.toString().replaceAll('[', '').replaceAll(']', '');
+            //.replaceAll(',', '+')
+            //.replaceAll('|', '\n+')
+          }
         }
+      }
+    } else {
+      if(object.productVariantName != null && object.productVariantName != ''){
+        result = object.productVariantName!.replaceAll('|', '\n+').replaceFirst('', '+ ');
       }
     }
     return result;

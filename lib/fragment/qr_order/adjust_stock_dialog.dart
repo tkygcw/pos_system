@@ -722,33 +722,35 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     try{
       for (int i = 0; i < orderDetailList.length; i++) {
         List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
-        switch(checkData[0].stock_type){
-          case '1': {
-            _totalStockQty = int.parse(checkData[0].daily_limit!) - int.parse(orderDetailList[i].quantity!);
-            object = BranchLinkProduct(
-                updated_at: dateTime,
-                sync_status: 2,
-                daily_limit: _totalStockQty.toString(),
-                branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
-            updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
-          }break;
-          case '2' :{
-            _totalStockQty = int.parse(checkData[0].stock_quantity!) - int.parse(orderDetailList[i].quantity!);
-            object = BranchLinkProduct(
-                updated_at: dateTime,
-                sync_status: 2,
-                stock_quantity: _totalStockQty.toString(),
-                branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
-            updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
-          }break;
-          default: {
-            updateStock = 0;
+        if(checkData.isNotEmpty){
+          switch(checkData[0].stock_type){
+            case '1': {
+              _totalStockQty = int.parse(checkData[0].daily_limit!) - int.parse(orderDetailList[i].quantity!);
+              object = BranchLinkProduct(
+                  updated_at: dateTime,
+                  sync_status: 2,
+                  daily_limit: _totalStockQty.toString(),
+                  branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
+              updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+            }break;
+            case '2' :{
+              _totalStockQty = int.parse(checkData[0].stock_quantity!) - int.parse(orderDetailList[i].quantity!);
+              object = BranchLinkProduct(
+                  updated_at: dateTime,
+                  sync_status: 2,
+                  stock_quantity: _totalStockQty.toString(),
+                  branch_link_product_sqlite_id: int.parse(orderDetailList[i].branch_link_product_sqlite_id!));
+              updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+            }break;
+            default: {
+              updateStock = 0;
+            }
           }
-        }
-        if (updateStock == 1) {
-          List<BranchLinkProduct> updatedData =
-          await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
-          _branchLinkProductValue.add(jsonEncode(updatedData[0]));
+          if (updateStock == 1) {
+            List<BranchLinkProduct> updatedData =
+            await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
+            _branchLinkProductValue.add(jsonEncode(updatedData[0]));
+          }
         }
       }
       this.branch_link_product_value = _branchLinkProductValue.toString();
@@ -1089,7 +1091,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           cancel_by_user_id: '',
           order_detail_key: removeDetailList[i].order_detail_key,
           order_detail_sqlite_id: removeDetailList[i].order_detail_sqlite_id,
-          branch_link_product_sqlite_id: removeDetailList[i].branch_link_product_sqlite_id);
+      );
       int deleteOrderDetail = await PosDatabase.instance.updateOrderDetailStatus(orderDetail);
       if (deleteOrderDetail == 1) {
         OrderDetail data = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetail.order_detail_sqlite_id!);

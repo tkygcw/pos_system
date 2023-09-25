@@ -280,8 +280,8 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
             })));
       }
     }
-    refresh();
     _tabController = TabController(length: categoryTab.length, vsync: this);
+    refresh();
   }
 
   getPreferences() async {

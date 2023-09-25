@@ -25,17 +25,8 @@ class _SecondDisplayState extends State<SecondDisplay> {
   getVariant(cartProductItem object) {
     List<String?> variant = [];
     String result = '';
-    var length = object.variant!.length;
-    for (int i = 0; i < length ; i++) {
-      VariantGroup group = object.variant![i];
-      for (int j = 0; j < group.child!.length; j++) {
-        if (group.child![j].isSelected!) {
-          variant.add(group.child![j].name!);
-          result = '(${variant.toString().replaceAll('[', '').replaceAll(']', '')})';
-          //.replaceAll(',', '+')
-          //.replaceAll('|', '\n+')
-        }
-      }
+    if(object.productVariantName != ''){
+      result = "(${object.productVariantName!})";
     }
     return result;
   }
@@ -56,6 +47,9 @@ class _SecondDisplayState extends State<SecondDisplay> {
               });
             } catch(e){
               print("second display callback error: $e");
+              // setState(() {
+              //   value == "init";
+              // });
             }
           },
           child: value == "init" ?

@@ -308,9 +308,6 @@ class _TableDialogState extends State<TableDialog> {
                             child: TextField(
                               controller: tableNoController,
                               inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'[0-9]'),
-                                ),
                                 FilteringTextInputFormatter.deny(
                                   RegExp(r'^0+'), //users can't type 0 at 1st position
                                 ),

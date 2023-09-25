@@ -388,6 +388,7 @@ class _HomePageState extends State<HomePage> {
       else {
         notificationModel.setNotification(true);
         notificationModel.setContentLoad();
+        notificationModel.setContentLoaded();
         // Fluttertoast.showToast(
         //     backgroundColor: Colors.green,
         //     msg: AppLocalizations.of(context)!

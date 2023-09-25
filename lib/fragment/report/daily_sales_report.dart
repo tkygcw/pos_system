@@ -319,8 +319,8 @@ class _DailySalesReportState extends State<DailySalesReport> {
     });
   }
   preload(ReportModel reportModel) async {
-    await getTotalSales();
     await getAllPaymentLinkCompany();
+    await getTotalSales();
     reportModel.addOtherValue(headerValue: paymentLinkCompanyList, valueList: settlementList);
     if(mounted){
       setState(() {
@@ -333,7 +333,8 @@ class _DailySalesReportState extends State<DailySalesReport> {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);
-    List<PaymentLinkCompany> data = await PosDatabase.instance.readAllPaymentLinkCompany(userObject['company_id']);
+    List<PaymentLinkCompany> data = await PosDatabase.instance.readAllPaymentLinkCompanyWithDeleted(userObject['company_id']);
+    print("payment link company length: ${data.length}");
     if(data.isNotEmpty){
       paymentLinkCompanyList = data;
       for(int i = 0 ; i < paymentLinkCompanyList.length; i++){
@@ -352,7 +353,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
       for(int i = 0; i < settlementList.length; i++){
         settlementStringList.add(jsonEncode(settlementList[i]));
         //print('settlement key: ${settlementList[i].settlement_key}');
-        ReportObject object = await ReportObject().getAllSettlementPaymentDetail(settlementList[i].created_at!);
+        ReportObject object = await ReportObject().getAllSettlementPaymentDetail(settlementList[i].created_at!, paymentLinkCompanyList);
         settlementLinkPaymentList = object.dateSettlementPaymentList!;
         //add settlement payment into settlement object
         settlementList[i].settlementPayment = settlementLinkPaymentList;
@@ -373,7 +374,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
               DataCell(Text('${settlementList[i].all_discount?.toStringAsFixed(2)}')),
               DataCell(Text('${settlementList[i].all_tax_amount?.toStringAsFixed(2)}')),
               DataCell(Text('${settlementList[i].all_cancellation}')),
-              for(int j = 0; j < settlementLinkPaymentList.length; j++)
+              for(int j = 0; j < paymentLinkCompanyList.length; j++)
                 DataCell(Text('${settlementLinkPaymentList[j].all_payment_sales?.toStringAsFixed(2)}')),
 
             ],
