@@ -524,21 +524,22 @@ class _ReportOverviewState extends State<ReportOverview> {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);
-    List<PaymentLinkCompany> data =
-        await PosDatabase.instance.readAllPaymentLinkCompany(userObject['company_id']);
+    List<PaymentLinkCompany> data = await PosDatabase.instance.readAllPaymentLinkCompanyWithDeleted(userObject['company_id']);
     if (data.isNotEmpty) {
       paymentList = data;
       for (int j = 0; j < paymentList.length; j++) {
         for (int i = 0; i < dateOrderList.length; i++) {
           if (dateOrderList[i].payment_status == 1) {
-            if (paymentList[j].payment_link_company_id ==
-                int.parse(dateOrderList[i].payment_link_company_id!)) {
+            if (paymentList[j].payment_link_company_id == int.parse(dateOrderList[i].payment_link_company_id!)) {
               paymentList[j].total_bill++;
               paymentList[j].totalAmount += double.parse(dateOrderList[i].final_amount!);
             }
           }
         }
-        stringList.add(jsonEncode(paymentList[j].tableJson()));
+      }
+      paymentList = paymentList.where((item) => item.total_bill != 0).toList();
+      for(int i = 0; i < paymentList.length; i++){
+        stringList.add(jsonEncode(paymentList[i].tableJson()));
       }
     }
   }

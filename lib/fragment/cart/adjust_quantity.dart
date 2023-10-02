@@ -572,47 +572,41 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   updateOrderDetailQuantity(String dateTime, CartModel cart) async {
     List<String> _value = [];
     int totalQty = 0;
-    totalQty = widget.cartItem.quantity! - simpleIntInput;
-    OrderDetail orderDetailObject = OrderDetail(
+    try{
+      totalQty = widget.cartItem.quantity! - simpleIntInput;
+      OrderDetail orderDetailObject = OrderDetail(
         updated_at: dateTime,
         sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
         status: 0,
         quantity: totalQty.toString(),
-        order_detail_sqlite_id:
-            int.parse(widget.cartItem.order_detail_sqlite_id!),
-        branch_link_product_sqlite_id:
-            widget.cartItem.branch_link_product_sqlite_id);
-
-    int data =
-        await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObject);
-    if (data == 1) {
-      OrderDetail detailData = await PosDatabase.instance
-          .readSpecificOrderDetailByLocalId(
-              orderDetailObject.order_detail_sqlite_id!);
-      await updateOrderCacheSubtotal(detailData.order_cache_sqlite_id!,
-          detailData.price, simpleIntInput, dateTime);
-      await updateProductStock(widget.cartItem.branch_link_product_sqlite_id!,
-          simpleIntInput, dateTime);
-      _value.add(jsonEncode(detailData.syncJson()));
+        order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
+        branch_link_product_sqlite_id: widget.cartItem.branch_link_product_sqlite_id,
+      );
+      int data = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObject);
+      if (data == 1) {
+        OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
+        await updateOrderCacheSubtotal(detailData.order_cache_sqlite_id!, detailData.price, simpleIntInput, dateTime);
+        if(orderDetailObject.branch_link_product_sqlite_id != null && orderDetailObject.branch_link_product_sqlite_id != ''){
+          await updateProductStock(orderDetailObject.branch_link_product_sqlite_id!, simpleIntInput, dateTime);
+        }
+        _value.add(jsonEncode(detailData.syncJson()));
+      }
+      order_detail_value = _value.toString();
+    }catch(e){
+      print("adjust quantity update order detail quantity error: $e");
     }
-    order_detail_value = _value.toString();
-    //syncUpdatedOrderDetailToCloud(_value.toString());
   }
 
-  updateOrderCacheSubtotal(
-      String orderCacheLocalId, price, quantity, String dateTime) async {
+  updateOrderCacheSubtotal(String orderCacheLocalId, price, quantity, String dateTime) async {
     double subtotal = 0.0;
-    OrderCache data = await PosDatabase.instance
-        .readSpecificOrderCacheByLocalId(int.parse(orderCacheLocalId));
-    subtotal =
-        double.parse(data.total_amount!) - double.parse(price) * quantity;
+    OrderCache data = await PosDatabase.instance.readSpecificOrderCacheByLocalId(int.parse(orderCacheLocalId));
+    subtotal = double.parse(data.total_amount!) - double.parse(price) * quantity;
     OrderCache orderCache = OrderCache(
         order_cache_sqlite_id: data.order_cache_sqlite_id,
         total_amount: subtotal.toStringAsFixed(2),
         sync_status: data.sync_status == 0 ? 0 : 2,
         updated_at: dateTime);
-    int status =
-        await PosDatabase.instance.updateOrderCacheSubtotal(orderCache);
+    int status = await PosDatabase.instance.updateOrderCacheSubtotal(orderCache);
     if (status == 1) {
       getOrderCacheValue(orderCache);
     }
@@ -641,19 +635,15 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         status: 1,
         cancel_by: user.name,
         cancel_by_user_id: user.user_id.toString(),
-        order_detail_sqlite_id:
-            int.parse(widget.cartItem.order_detail_sqlite_id!),
-        branch_link_product_sqlite_id:
-            widget.cartItem.branch_link_product_sqlite_id);
+        order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
+    );
 
     int deleteOrderDetailData =
         await PosDatabase.instance.updateOrderDetailStatus(orderDetailObject);
     if (deleteOrderDetailData == 1) {
       //await updateProductStock(orderDetailObject.branch_link_product_sqlite_id!, int.parse(orderDetailObject.quantity!), dateTime);
       //sync to cloud
-      OrderDetail detailData = await PosDatabase.instance
-          .readSpecificOrderDetailByLocalId(
-              orderDetailObject.order_detail_sqlite_id!);
+      OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
       _value.add(jsonEncode(detailData.syncJson()));
       order_detail_value = _value.toString();
       //print('value: ${_value.toString()}');
@@ -667,33 +657,35 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     BranchLinkProduct? object;
     try{
       List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-      switch(checkData[0].stock_type){
-        case '1': {
-          _totalStockQty = int.parse(checkData[0].daily_limit!) + quantity;
-          object = BranchLinkProduct(
-              updated_at: dateTime,
-              sync_status: 2,
-              daily_limit: _totalStockQty.toString(),
-              branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
-          updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
-        }break;
-        case'2': {
-          _totalStockQty = int.parse(checkData[0].stock_quantity!) + quantity;
-          object = BranchLinkProduct(
-              updated_at: dateTime,
-              sync_status: 2,
-              stock_quantity: _totalStockQty.toString(),
-              branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
-          updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
-        }break;
-        default: {
-          updateStock = 0;
+      if(checkData.isNotEmpty){
+        switch(checkData[0].stock_type){
+          case '1': {
+            _totalStockQty = int.parse(checkData[0].daily_limit!) + quantity;
+            object = BranchLinkProduct(
+                updated_at: dateTime,
+                sync_status: 2,
+                daily_limit: _totalStockQty.toString(),
+                branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+            updateStock = await PosDatabase.instance.updateBranchLinkProductDailyLimit(object);
+          }break;
+          case'2': {
+            _totalStockQty = int.parse(checkData[0].stock_quantity!) + quantity;
+            object = BranchLinkProduct(
+                updated_at: dateTime,
+                sync_status: 2,
+                stock_quantity: _totalStockQty.toString(),
+                branch_link_product_sqlite_id: int.parse(branch_link_product_sqlite_id));
+            updateStock = await PosDatabase.instance.updateBranchLinkProductStock(object);
+          }break;
+          default: {
+            updateStock = 0;
+          }
         }
-      }
-      if (updateStock == 1) {
-        List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
-        _value.add(jsonEncode(updatedData[0]));
-        branch_link_product_value = _value.toString();
+        if (updateStock == 1) {
+          List<BranchLinkProduct> updatedData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
+          _value.add(jsonEncode(updatedData[0]));
+          branch_link_product_value = _value.toString();
+        }
       }
     }catch(e){
       print("adjust stock dialog update stock error: $e");

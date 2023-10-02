@@ -610,27 +610,31 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           dining_id: data[i].dining_id,
           compulsory: data[i].compulsory,
         ));
-
+        print("data: ${modifierGroup.length}");
         List<ModifierItem> itemData = await PosDatabase.instance.readProductModifierItem(data[i].mod_group_id!);
+        print("mod item data: ${itemData}");
         List<ModifierItem> modItemChild = [];
-
-        for (int j = 0; j < itemData.length; j++) {
-          modItemChild.add(ModifierItem(
-              mod_group_id: data[i].mod_group_id.toString(),
-              name: itemData[j].name!,
-              mod_item_id: itemData[j].mod_item_id,
-              mod_status: itemData[j].mod_status,
-              isChecked: false));
-        }
-        if(modifierGroup[i].compulsory == '1' && modifierGroup[i].dining_id == widget.cartModel.selectedOptionId){
-          for(int k = 0; k < modItemChild.length; k++){
-            modItemChild[k].isChecked = true;
+        if(itemData.isNotEmpty){
+          for (int j = 0; j < itemData.length; j++) {
+            modItemChild.add(ModifierItem(
+                mod_group_id: data[i].mod_group_id.toString(),
+                name: itemData[j].name!,
+                mod_item_id: itemData[j].mod_item_id,
+                mod_status: itemData[j].mod_status,
+                isChecked: false));
+          }
+          if(modifierGroup[i].compulsory == '1' && modifierGroup[i].dining_id == widget.cartModel.selectedOptionId){
+            for(int k = 0; k < modItemChild.length; k++){
+              modItemChild[k].isChecked = true;
+            }
+            modifierGroup[i].modifierChild = modItemChild;
           }
           modifierGroup[i].modifierChild = modItemChild;
+          await readProductModifierItemPrice(modifierGroup[i]);
         }
-        modifierGroup[i].modifierChild = modItemChild;
-        await readProductModifierItemPrice(modifierGroup[i]);
       }
+      //filter not have mod item mod group
+      modifierGroup = modifierGroup.where((item) => item.modifierChild!.isNotEmpty).toList();
     }
   }
 
@@ -725,7 +729,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         }
       }
     }
-    print('has stock ${hasStock}');
   }
 
   int checkCartProductQuantity(CartModel cart, BranchLinkProduct branchLinkProduct){

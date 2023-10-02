@@ -808,18 +808,15 @@ class _SettlementDialogState extends State<SettlementDialog> {
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);
-    List<PaymentLinkCompany> data = await PosDatabase.instance
-        .readAllPaymentLinkCompany(userObject['company_id']);
+    List<PaymentLinkCompany> data = await PosDatabase.instance.readAllPaymentLinkCompanyWithDeleted(userObject['company_id']);
     if (data.isNotEmpty) {
       paymentList = data;
       for (int j = 0; j < paymentList.length; j++) {
         for (int i = 0; i < orderList.length; i++) {
           if (orderList[i].payment_status != 2) {
-            if (paymentList[j].payment_link_company_id ==
-                int.parse(orderList[i].payment_link_company_id!)) {
+            if (paymentList[j].payment_link_company_id == int.parse(orderList[i].payment_link_company_id!)) {
               paymentList[j].total_bill++;
-              paymentList[j].totalAmount +=
-                  double.parse(orderList[i].final_amount!);
+              paymentList[j].totalAmount += double.parse(orderList[i].final_amount!);
             }
           }
         }

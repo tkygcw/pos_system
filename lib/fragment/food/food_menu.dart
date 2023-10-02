@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/pos_database.dart';
 import '../../main.dart';
+import '../../notifier/app_setting_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/colorCode.dart';
 import '../../object/search_delegate.dart';
@@ -32,6 +33,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   List<String> categoryList = [];
   late TabController _tabController;
   late String companyID;
+  late AppSettingModel _appSettingModel;
   List<Product> allProduct = [];
   List<Product> specificProduct = [];
   TextEditingController searchController = new TextEditingController();
@@ -59,62 +61,64 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      if(notificationModel.contentLoad == true) {
-        isLoading = true;
-        //print('notification refresh called!');
-      }
-      if(notificationModel.contentLoad == true && notificationModel.contentLoaded == true){
-        notificationModel.resetContentLoaded();
-        notificationModel.resetContentLoad();
-        Future.delayed(const Duration(seconds: 1), () {
-          if(mounted){
-            setState(() {
-              readAllCategories(hasNotification: true);
-            });
-          }
-        });
-      }
-      return isLoading
-          ? CustomProgressBar()
-          : Scaffold(
-              appBar: AppBar(
-                automaticallyImplyLeading: false,
-                elevation: 0,
-                title: Text(AppLocalizations.of(context)!.translate('menu'),
-                  style: TextStyle(fontSize: 25, color: color.backgroundColor),
-                ),
-                actions: [
-                  IconButton(
-                      color: color.buttonColor,
-                      onPressed: (){
-                        showSearch(context: context, delegate: ProductSearchDelegate(productList: allProduct, imagePath: imagePath, cartModel: widget.cartModel));
-                      },
-                      icon: Icon(Icons.search),
-                  )
-                ],
-              ),
-              resizeToAvoidBottomInset: false,
-              body: Container(
-                child: Column(
-                    children: [
-                      TabBar(
-                        isScrollable: true,
-                        unselectedLabelColor: Colors.black,
-                        labelColor: color.buttonColor,
-                        indicatorColor: color.buttonColor,
-                        tabs: categoryTab,
-                        controller: _tabController,
-                        indicatorSize: TabBarIndicatorSize.tab,
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: TabBarView(controller: _tabController, children: categoryTabContent),
-                        ),
-                      ),
+      return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
+        _appSettingModel = appSettingModel;
+        if(notificationModel.contentLoad == true) {
+          isLoading = true;
+          //print('notification refresh called!');
+        }
+        if(notificationModel.contentLoad == true && notificationModel.contentLoaded == true){
+          notificationModel.resetContentLoaded();
+          notificationModel.resetContentLoad();
+          Future.delayed(const Duration(seconds: 1), () {
+            if(mounted){
+              setState(() {
+                readAllCategories(hasNotification: true);
+              });
+            }
+          });
+        }
+        return isLoading ? CustomProgressBar() :
+        Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            elevation: 0,
+            title: Text(AppLocalizations.of(context)!.translate('menu'),
+              style: TextStyle(fontSize: 25, color: color.backgroundColor),
+            ),
+            actions: [
+              IconButton(
+                color: color.buttonColor,
+                onPressed: (){
+                  showSearch(context: context, delegate: ProductSearchDelegate(productList: allProduct, imagePath: imagePath, cartModel: widget.cartModel));
+                },
+                icon: Icon(Icons.search),
+              )
+            ],
+          ),
+          resizeToAvoidBottomInset: false,
+          body: Container(
+            child: Column(
+                children: [
+                  TabBar(
+                    isScrollable: true,
+                    unselectedLabelColor: Colors.black,
+                    labelColor: color.buttonColor,
+                    indicatorColor: color.buttonColor,
+                    tabs: categoryTab,
+                    controller: _tabController,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TabBarView(controller: _tabController, children: categoryTabContent),
+                    ),
+                  ),
                 ]),
-              ),
-            );
+          ),
+        );
+      });
     });
   }
 
@@ -193,7 +197,18 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                           color: Colors.black.withOpacity(0.5),
                           width: 200,
                           alignment: Alignment.center,
-                          child: Text(
+                          child: _appSettingModel.show_sku! ?
+                          Text(
+                            data[index].SKU! + ' ' + data[index].name!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 13,
+                            ),
+                          ) :
+                          Text(
                             data[index].name!,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -236,7 +251,17 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
                           height: 50,
                           width: 200,
                           alignment: Alignment.center,
-                          child: Text(
+                          child:  _appSettingModel.show_sku! ? Text(
+                            data[index].SKU! + ' ' + data[index].name!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 13,
+                            ),
+                          ) :
+                          Text(
                             data[index].name!,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -255,8 +280,8 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
             })));
       }
     }
-    refresh();
     _tabController = TabController(length: categoryTab.length, vsync: this);
+    refresh();
   }
 
   getPreferences() async {

@@ -8,12 +8,14 @@ import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/cash_record.dart';
+import 'package:pos_system/object/checklist.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/report_class.dart';
 import 'package:pos_system/object/settlement.dart';
+import 'package:pos_system/object/settlement_link_payment.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
@@ -177,6 +179,312 @@ class ReceiptLayout{
   }
 
 /*
+  Test print checklist layout 80mm
+*/
+  printTestCheckList80mm(bool isUSB, {value, required Checklist checklistLayout}) async {
+    Checklist checklist = checklistLayout;
+    var generator;
+    if (isUSB) {
+      final profile = await CapabilityProfile.load();
+      generator = Generator(PaperSize.mm80, profile);
+    } else {
+      generator = value;
+    }
+    List<int> bytes = [];
+    try {
+      bytes += generator.text('** ORDER LIST **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+      bytes += generator.emptyLines(1);
+      bytes += generator.reset();
+
+      bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
+
+      // bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
+      bytes += generator.text('Batch No: #123456-005');
+      bytes += generator.text('Order By: Demo');
+      bytes += generator.text('Order time: DD/MM/YY hh:mm PM');
+      bytes += generator.hr();
+      bytes += generator.reset();
+
+      //order product
+      bytes += generator.row([
+        PosColumn(text: '1',
+            width: 2,
+            styles: PosStyles(
+                bold: true,
+                height: PosTextSize.size1,
+                width: PosTextSize.size1)),
+        PosColumn(
+            text: 'Product 1',
+            width: 10,
+            containsChinese: true,
+            styles: PosStyles(
+                align: PosAlign.left,
+                height:  checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '1',
+            width: 2,
+            styles: PosStyles(
+                bold: true,
+                height: PosTextSize.size1,
+                width: PosTextSize.size1)),
+        PosColumn(
+            text: 'Product 2',
+            width: 10,
+            containsChinese: true,
+            styles: PosStyles(
+                height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
+      ]);
+      bytes += generator.reset();
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '**Remark',
+            width: 10,
+            containsChinese: true,
+            styles: PosStyles(
+              align: PosAlign.left,
+              height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+              width: PosTextSize.size1)),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '1',
+            width: 2,
+            styles: PosStyles(
+                bold: true,
+                height: PosTextSize.size1,
+                width: PosTextSize.size1)),
+        PosColumn(
+            text: 'Product 3',
+            width: 10,
+            containsChinese: true,
+            styles: PosStyles(
+                height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '(big | small)',
+            containsChinese: true,
+            width: 10,
+            styles: PosStyles(
+                align: PosAlign.left,
+                height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '1',
+            width: 2,
+            styles: PosStyles(
+                bold: true,
+                height: PosTextSize.size1,
+                width: PosTextSize.size1)),
+        PosColumn(
+            text: 'Product 4',
+            width: 10,
+            containsChinese: true,
+            styles: PosStyles(
+                height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
+      ]);
+      //modifier
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '+add-on1',
+            containsChinese: true,
+            width: 10,
+            styles: PosStyles(
+                align: PosAlign.left,
+                height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '1',
+            width: 2,
+            styles: PosStyles(
+                bold: true,
+                height: PosTextSize.size1,
+                width: PosTextSize.size1)),
+        PosColumn(
+            text: 'Product 5',
+            width: 10,
+            containsChinese: true,
+            styles: PosStyles(
+                height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '(big | small)',
+            containsChinese: true,
+            width: 10,
+            styles: PosStyles(
+                align: PosAlign.left,
+                height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '+add-on2',
+            containsChinese: true,
+            width: 10,
+            styles: PosStyles(
+                align: PosAlign.left,
+                height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
+      ]);
+
+      bytes += generator.feed(1);
+      bytes += generator.cut(mode: PosCutMode.partial);
+      return bytes;
+    } catch (e) {
+      print('layout error: $e');
+      return null;
+    }
+  }
+
+/*
+  Test print checklist layout 58mm
+*/
+  printTestCheckList58mm(bool isUSB, {value, required Checklist checklistLayout}) async {
+    Checklist checklist = checklistLayout;
+    var generator;
+    if (isUSB) {
+      final profile = await CapabilityProfile.load();
+      generator = Generator(PaperSize.mm58, profile);
+    } else {
+      generator = value;
+    }
+
+    List<int> bytes = [];
+    try {
+      bytes += generator.reset();
+      bytes += generator.text('** ORDER LIST **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+      bytes += generator.emptyLines(1);
+      bytes += generator.reset();
+      //other order detail
+      bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+      bytes += generator.text('Batch No', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('#123456-005', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('Order By', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('Demo', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('Order time', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('DD/MM/YY hh:mm PM', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.hr();
+      bytes += generator.reset();
+
+      //order product
+      bytes += generator.row([
+        PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
+        PosColumn(
+            text: 'Product 1',
+            width: 10,
+            containsChinese: true,
+            styles: PosStyles(
+                height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)
+        ),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
+        PosColumn(
+            text: 'Product 2',
+            width: 10,
+            containsChinese: true,
+            styles: PosStyles(
+                height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)
+        ),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '**Remark',
+            width: 10,
+            styles: PosStyles(
+                height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
+        PosColumn(
+            text: 'Product 3',
+            width: 10,
+            containsChinese: true,
+            styles: PosStyles(
+                height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)
+        ),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '(big | small)',
+            containsChinese: true,
+            width: 10,
+            styles: PosStyles(
+                height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
+        PosColumn(
+            text: 'Product 4',
+            width: 10,
+            containsChinese: true,
+            styles: PosStyles(
+                height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)
+        ),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '+add-on1',
+            containsChinese: true,
+            width: 10,
+            styles: PosStyles(
+                height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
+        PosColumn(
+            text: 'Product 5',
+            width: 10,
+            containsChinese: true,
+            styles: PosStyles(
+                height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)
+        ),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '(big | small)',
+            containsChinese: true,
+            width: 10,
+            styles: PosStyles(
+                height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '+add-on2',
+            containsChinese: true,
+            width: 10,
+            styles: PosStyles(
+                height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
+      ]);
+
+      bytes += generator.feed(1);
+      bytes += generator.cut(mode: PosCutMode.partial);
+      return bytes;
+    } catch (e) {
+      print('layout error: $e');
+      return null;
+    }
+  }
+
+/*
   Test print Receipt layout 80mm
 */
   printTestReceipt80mm(bool isUSB, Receipt receipt2, {value}) async {
@@ -185,10 +493,6 @@ class ReceiptLayout{
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
     this.receipt = receipt2;
-    //await readReceiptLayout();
-    // final ByteData data = await rootBundle.load('drawable/logo2.png');
-    // final Uint8List bytes = data.buffer.asUint8List();
-    // final decodedImage = img.decodeImage(bytes);
     var generator;
     if (isUSB) {
       final profile = await CapabilityProfile.load();
@@ -374,20 +678,6 @@ class ReceiptLayout{
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
     this.receipt = receipt2;
-    // await readReceiptLayout();
-    // if(isRefund != null && isRefund == true){
-    //   await getRefundOrder(orderId);
-    //   await callOrderTaxPromoDetail();
-    //   await callRefundOrderDetail(orderId);
-    // } else {
-    //   await getPaidOrder(orderId);
-    //   await callOrderTaxPromoDetail();
-    //   await callPaidOrderDetail(orderId);
-    // }
-    // final ByteData data = await rootBundle.load('drawable/logo1.jpg');
-    // final Uint8List bytes = data.buffer.asUint8List();
-    // final image = img.decodeImage(bytes);
-    // print('image byte: ${image}');
 
     if(_isLoad = true){
       var generator;
@@ -554,7 +844,6 @@ class ReceiptLayout{
   Receipt layout 80mm
 */
   printReceipt80mm(bool isUSB, String orderId, List<PosTable> selectedTableList, {value, isRefund}) async {
-    String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final String? branch = prefs.getString('branch');
     Map branchObject = json.decode(branch!);
@@ -665,7 +954,7 @@ class ReceiptLayout{
             for(int j = 0; j < orderModifierDetailList.length; j++){
               //modifier
               bytes += generator.row([
-                PosColumn(text: '-${orderModifierDetailList[j].modifier_name}', width: 6, containsChinese: true),
+                PosColumn(text: '+${orderModifierDetailList[j].mod_name}', width: 6, containsChinese: true),
                 PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
                 PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
               ]);
@@ -871,7 +1160,7 @@ class ReceiptLayout{
         for(int i = 0; i < orderDetailList.length; i++){
           bytes += generator.row([
             PosColumn(
-                text: '${orderDetailList[i].productName}',
+                text: '${orderDetailList[i].productName!.trim()}',
                 width: 6,
                 containsChinese: true,
                 styles: PosStyles(bold: true)),
@@ -891,7 +1180,7 @@ class ReceiptLayout{
             for(int j = 0; j < orderModifierDetailList.length; j++){
               //modifier
               bytes += generator.row([
-                PosColumn(text: '-${orderModifierDetailList[j].modifier_name}', width: 10, containsChinese: true),
+                PosColumn(text: '+${orderModifierDetailList[j].mod_name}', width: 10, containsChinese: true),
                 PosColumn(text: '', width: 2)
               ]);
             }
@@ -995,11 +1284,6 @@ class ReceiptLayout{
   Review Receipt layout 80mm
 */
   printPreviewReceipt80mm(bool isUSB, List<PosTable> selectedTableList, CartModel cartModel, {value}) async {
-    print('item: ${cartModel.cartNotifierItem.length}');
-    String dateTime = dateFormat.format(DateTime.now());
-    final prefs = await SharedPreferences.getInstance();
-    final String? branch = prefs.getString('branch');
-    Map branchObject = json.decode(branch!);
     await readReceiptLayout('80');
 
     // final ByteData data = await rootBundle.load('drawable/logo2.png');
@@ -1016,6 +1300,7 @@ class ReceiptLayout{
 
       List<int> bytes = [];
       try {
+        bytes += generator.reset();
         //bytes += generator.image(decodedImage);
         bytes += generator.text('** Review Receipt **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
         bytes += generator.emptyLines(1);
@@ -1056,27 +1341,43 @@ class ReceiptLayout{
                 styles: PosStyles(align: PosAlign.right)),
           ]);
           bytes += generator.reset();
-          if(cartModel.cartNotifierItem[i].variant!.isNotEmpty){
+          if(cartModel.cartNotifierItem[i].productVariantName != null && cartModel.cartNotifierItem[i].productVariantName != ''){
             bytes += generator.row([
-              PosColumn(text: '(${getVariant(cartModel.cartNotifierItem[i])})', width: 6, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+              PosColumn(text: '(${cartModel.cartNotifierItem[i].productVariantName})', width: 6, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
               PosColumn(text: '', width: 2),
               PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
             ]);
           }
+          // if(cartModel.cartNotifierItem[i].variant!.isNotEmpty){
+          //   bytes += generator.row([
+          //     PosColumn(text: '(${getVariant(cartModel.cartNotifierItem[i])})', width: 6, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+          //     PosColumn(text: '', width: 2),
+          //     PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
+          //   ]);
+          // }
           bytes += generator.reset();
           //product modifier
-          if(cartModel.cartNotifierItem[i].modifier!.isNotEmpty){
-            for (int j = 0; j < cartModel.cartNotifierItem[i].modifier!.length; j++) {
-              ModifierGroup group = cartModel.cartNotifierItem[i].modifier![j];
-              for (int k = 0; k < group.modifierChild!.length; k++) {
-                if (group.modifierChild![k].isChecked!) {
-                  bytes += generator.row([
-                    PosColumn(text: '+${group.modifierChild![k].name!}', width: 12, containsChinese: true, styles: PosStyles(align: PosAlign.left))
-                  ]);
-                }
-              }
-            }
+          if(cartModel.cartNotifierItem[i].orderModifierDetail!.isNotEmpty){
+            cartProductItem cartItem = cartModel.cartNotifierItem[i];
+            for(int j = 0; j < cartItem.orderModifierDetail!.length; j++)
+            bytes += generator.row([
+              PosColumn(text: '+${cartItem.orderModifierDetail![j].mod_name!}', width: 6, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+              PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
+              PosColumn(text: '', width: 4, styles: PosStyles(align: PosAlign.right)),
+            ]);
           }
+          // if(cartModel.cartNotifierItem[i].modifier!.isNotEmpty){
+          //   for (int j = 0; j < cartModel.cartNotifierItem[i].modifier!.length; j++) {
+          //     ModifierGroup group = cartModel.cartNotifierItem[i].modifier![j];
+          //     for (int k = 0; k < group.modifierChild!.length; k++) {
+          //       if (group.modifierChild![k].isChecked!) {
+          //         bytes += generator.row([
+          //           PosColumn(text: '+${group.modifierChild![k].name!}', width: 12, containsChinese: true, styles: PosStyles(align: PosAlign.left))
+          //         ]);
+          //       }
+          //     }
+          //   }
+          // }
           //product remark
           bytes += generator.reset();
           if (cartModel.cartNotifierItem[i].remark != '') {
@@ -1170,12 +1471,7 @@ class ReceiptLayout{
   Review Receipt layout 58mm
 */
   printPreviewReceipt58mm(bool isUSB, List<PosTable> selectedTableList, CartModel cartModel, {value}) async {
-    String dateTime = dateFormat.format(DateTime.now());
-    final prefs = await SharedPreferences.getInstance();
-    final String? branch = prefs.getString('branch');
-    Map branchObject = json.decode(branch!);
     await readReceiptLayout('58');
-
     if(_isLoad = true){
       var generator;
       if (isUSB) {
@@ -1187,6 +1483,7 @@ class ReceiptLayout{
 
       List<int> bytes = [];
       try {
+        bytes += generator.reset();
         bytes += generator.text('** Review Receipt **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
@@ -1215,7 +1512,7 @@ class ReceiptLayout{
         for(int i = 0; i < cartModel.cartNotifierItem.length; i++){
           bytes += generator.row([
             PosColumn(
-                text: '${cartModel.cartNotifierItem[i].product_name}',
+                text: '${cartModel.cartNotifierItem[i].product_name!.trim()}',
                 width: 6,
                 containsChinese: true,
                 styles: PosStyles(bold: true)),
@@ -1225,28 +1522,34 @@ class ReceiptLayout{
                 width: 4,
             ),
           ]);
-          bytes += generator.reset();
-          if(cartModel.cartNotifierItem[i].variant!.isNotEmpty){
+          //bytes += generator.reset();
+          if(cartModel.cartNotifierItem[i].productVariantName != null && cartModel.cartNotifierItem[i].productVariantName != ''){
             bytes += generator.row([
-              PosColumn(text: '(${getVariant(cartModel.cartNotifierItem[i])})', width: 6, containsChinese: true),
-              PosColumn(text: '', width: 2),
-              PosColumn(text: '', width: 4),
+              PosColumn(text: '(${cartModel.cartNotifierItem[i].productVariantName})', width: 10, containsChinese: true, styles: PosStyles()),
+              PosColumn(text: '', width: 2)
             ]);
           }
-          bytes += generator.reset();
           //product modifier
-          if(cartModel.cartNotifierItem[i].modifier!.isNotEmpty){
-            for (int j = 0; j < cartModel.cartNotifierItem[i].modifier!.length; j++) {
-              ModifierGroup group = cartModel.cartNotifierItem[i].modifier![j];
-              for (int k = 0; k < group.modifierChild!.length; k++) {
-                if (group.modifierChild![k].isChecked!) {
-                  bytes += generator.row([
-                    PosColumn(text: '+${group.modifierChild![k].name!}', width: 12, containsChinese: true)
-                  ]);
-                }
-              }
+          if(cartModel.cartNotifierItem[i].orderModifierDetail!.isNotEmpty){
+            cartProductItem cartItem = cartModel.cartNotifierItem[i];
+            for(int j = 0; j < cartItem.orderModifierDetail!.length; j++){
+              bytes += generator.row([
+                PosColumn(text: '+${cartItem.orderModifierDetail![j].mod_name!}', width: 12, containsChinese: true),
+              ]);
             }
           }
+          // if(cartModel.cartNotifierItem[i].modifier!.isNotEmpty){
+          //   for (int j = 0; j < cartModel.cartNotifierItem[i].modifier!.length; j++) {
+          //     ModifierGroup group = cartModel.cartNotifierItem[i].modifier![j];
+          //     for (int k = 0; k < group.modifierChild!.length; k++) {
+          //       if (group.modifierChild![k].isChecked!) {
+          //         bytes += generator.row([
+          //           PosColumn(text: '+${group.modifierChild![k].name!}', width: 12, containsChinese: true)
+          //         ]);
+          //       }
+          //     }
+          //   }
+          // }
           //product remark
           bytes += generator.reset();
           if (cartModel.cartNotifierItem[i].remark != '') {
@@ -1344,7 +1647,7 @@ class ReceiptLayout{
   Check list layout 80mm
 */
   printCheckList80mm(bool isUSB, int localId, {value, isQrOrder}) async {
-    String dateTime = dateFormat.format(DateTime.now());
+    Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('80');
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     await readOrderCache(localId);
@@ -1358,6 +1661,7 @@ class ReceiptLayout{
     }
     List<int> bytes = [];
     try {
+      bytes += generator.reset();
       bytes += generator.text('** ORDER LIST **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
@@ -1391,16 +1695,24 @@ class ReceiptLayout{
           PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(bold: true)),
           PosColumn(
               text: '${orderDetailList[i].productName}',
-              width: 8,
+              width: 10,
               containsChinese: true,
-              styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1)),
-          PosColumn(text: '', width: 2),
+              styles: PosStyles(
+                  bold: true,
+                  align: PosAlign.left,
+                  height: checklistLayout != null && checklistLayout.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: PosTextSize.size1)),
         ]);
         bytes += generator.reset();
         if(orderDetailList[i].has_variant == '1'){
           bytes += generator.row([
             PosColumn(text: '', width: 2, styles: PosStyles(bold: true)),
-            PosColumn(text: '(${orderDetailList[i].product_variant_name})', containsChinese: true, width: 10, styles: PosStyles(align: PosAlign.left)),
+            PosColumn(text: '(${orderDetailList[i].product_variant_name})',
+                containsChinese: true, width: 10,
+                styles: PosStyles(
+                    align: PosAlign.left,
+                    height: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                    width: PosTextSize.size1)),
           ]);
         }
         await getPaidOrderModifierDetail(orderDetailList[i]);
@@ -1409,7 +1721,13 @@ class ReceiptLayout{
             //modifier
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}', containsChinese: true, width: 10, styles: PosStyles(align: PosAlign.left)),
+              PosColumn(text: '+${orderModifierDetailList[j].mod_name}',
+                  containsChinese: true,
+                  width: 10,
+                  styles: PosStyles(
+                      align: PosAlign.left,
+                      height:  checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                      width: PosTextSize.size1)),
             ]);
           }
         }
@@ -1420,8 +1738,13 @@ class ReceiptLayout{
         if (orderDetailList[i].remark != '') {
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '**${orderDetailList[i].remark}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '', width: 2),
+            PosColumn(text: '**${orderDetailList[i].remark}',
+                width: 10,
+                containsChinese: true,
+                styles: PosStyles(
+                    align: PosAlign.left,
+                    height:  checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                    width: PosTextSize.size1)),
           ]);
         }
       }
@@ -1438,7 +1761,7 @@ class ReceiptLayout{
   Check list layout 58mm
 */
   printCheckList58mm(bool isUSB, int localId, {value}) async {
-    String dateTime = dateFormat.format(DateTime.now());
+    Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('58');
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     await readOrderCache(localId);
@@ -1453,6 +1776,7 @@ class ReceiptLayout{
 
     List<int> bytes = [];
     try {
+      bytes += generator.reset();
       bytes += generator.text('** ORDER LIST **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
@@ -1489,7 +1813,10 @@ class ReceiptLayout{
               text: '${orderDetailList[i].productName}',
               width: 10,
               containsChinese: true,
-              styles: PosStyles(bold: true)
+              styles: PosStyles(
+                  bold: true,
+                  height: checklistLayout != null && checklistLayout.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: PosTextSize.size1)
           ),
 
         ]);
@@ -1497,7 +1824,12 @@ class ReceiptLayout{
         if(orderDetailList[i].has_variant == '1'){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '(${orderDetailList[i].product_variant_name})', containsChinese: true, width: 10),
+            PosColumn(text: '(${orderDetailList[i].product_variant_name})',
+                containsChinese: true,
+                width: 10,
+                styles: PosStyles(
+                    height: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                    width: PosTextSize.size1)),
           ]);
         }
         await getPaidOrderModifierDetail(orderDetailList[i]);
@@ -1506,7 +1838,12 @@ class ReceiptLayout{
             //modifier
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}', width: 10),
+              PosColumn(text: '+${orderModifierDetailList[j].mod_name}',
+                  containsChinese: true,
+                  width: 10,
+                  styles: PosStyles(
+                      height: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                      width: PosTextSize.size1)),
             ]);
           }
         }
@@ -1517,8 +1854,12 @@ class ReceiptLayout{
         if (orderDetailList[i].remark != '') {
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '**${orderDetailList[i].remark}', width: 8),
-            PosColumn(text: '', width: 2),
+            PosColumn(text: '**${orderDetailList[i].remark}',
+                containsChinese: true,
+                width: 10,
+                styles: PosStyles(
+                    height: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                    width: PosTextSize.size1)),
           ]);
         }
       }
@@ -1535,6 +1876,7 @@ class ReceiptLayout{
   reprint check list layout 80mm
 */
   reprintCheckList80mm(bool isUSB, CartModel cartModel, {value}) async {
+    Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('80');
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     var generator;
@@ -1547,6 +1889,7 @@ class ReceiptLayout{
 
     List<int> bytes = [];
     try {
+      bytes += generator.reset();
       bytes += generator.text('** Reprint List **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
@@ -1574,32 +1917,63 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: '${cartModel.cartNotifierItem[i].product_name}',
-              width: 8,
+              text: '${cartModel.cartNotifierItem[i].product_name!.trim()}',
+              width: 10,
               containsChinese: true,
-              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1)),
-          PosColumn(text: '', width: 2),
+              styles: PosStyles(
+                  bold: true,
+                  align: PosAlign.left,
+                  height: checklistLayout != null && checklistLayout.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: PosTextSize.size1)),
         ]);
         bytes += generator.reset();
-        if(cartModel.cartNotifierItem[i].variant!.isNotEmpty){
+        if(cartModel.cartNotifierItem[i].productVariantName != null && cartModel.cartNotifierItem[i].productVariantName != ''){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '(${getVariant(cartModel.cartNotifierItem[i])})', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+            PosColumn(text: '(${cartModel.cartNotifierItem[i].productVariantName})',
+                width: 10,
+                containsChinese: true,
+                styles: PosStyles(
+                    align: PosAlign.left,
+                    height: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                    width: PosTextSize.size1)),
           ]);
         }
-        if(cartModel.cartNotifierItem[i].modifier!.isNotEmpty){
-          for (int j = 0; j < cartModel.cartNotifierItem[i].modifier!.length; j++) {
-            ModifierGroup group = cartModel.cartNotifierItem[i].modifier![j];
-            for (int k = 0; k < group.modifierChild!.length; k++) {
-              if (group.modifierChild![k].isChecked!) {
-                bytes += generator.row([
-                  PosColumn(text: '', width: 2),
-                  PosColumn(text: '+${group.modifierChild![k].name!}', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left))
-                ]);
-              }
-            }
+        bytes += generator.reset();
+        if(cartModel.cartNotifierItem[i].orderModifierDetail!.isNotEmpty){
+          cartProductItem cartItem = cartModel.cartNotifierItem[i];
+          for(int j = 0; j < cartItem.orderModifierDetail!.length; j++){
+            bytes += generator.row([
+              PosColumn(text: '', width: 2),
+              PosColumn(text: '+${cartItem.orderModifierDetail![j].mod_name!}',
+                  width: 10,
+                  containsChinese: true,
+                  styles: PosStyles(
+                      align: PosAlign.left,
+                      height: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                      width: PosTextSize.size1)),
+            ]);
           }
         }
+        // if(cartModel.cartNotifierItem[i].modifier!.isNotEmpty){
+        //   for (int j = 0; j < cartModel.cartNotifierItem[i].modifier!.length; j++) {
+        //     ModifierGroup group = cartModel.cartNotifierItem[i].modifier![j];
+        //     for (int k = 0; k < group.modifierChild!.length; k++) {
+        //       if (group.modifierChild![k].isChecked!) {
+        //         bytes += generator.row([
+        //           PosColumn(text: '', width: 2),
+        //           PosColumn(text: '+${group.modifierChild![k].name!}',
+        //               width: 10,
+        //               containsChinese: true,
+        //               styles: PosStyles(
+        //                   align: PosAlign.left,
+        //                   height: checklistLayout != null && checklistLayout.other_font_size == 0 ?  PosTextSize.size2 : PosTextSize.size1,
+        //                   width: PosTextSize.size1))
+        //         ]);
+        //       }
+        //     }
+        //   }
+        // }
         /*
         * product remark
         * */
@@ -1607,8 +1981,13 @@ class ReceiptLayout{
         if (cartModel.cartNotifierItem[i].remark != '') {
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '**${cartModel.cartNotifierItem[i].remark}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '', width: 2),
+            PosColumn(text: '**${cartModel.cartNotifierItem[i].remark}',
+                width: 10,
+                containsChinese: true,
+                styles: PosStyles(
+                    align: PosAlign.left,
+                    height: checklistLayout != null && checklistLayout.other_font_size == 0 ?  PosTextSize.size2 : PosTextSize.size1,
+                    width: PosTextSize.size1)),
           ]);
         }
       }
@@ -1625,6 +2004,7 @@ class ReceiptLayout{
   reprint check list layout 58mm
 */
   reprintCheckList58mm(bool isUSB, CartModel cartModel, {value}) async {
+    Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('58');
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
 
@@ -1638,6 +2018,7 @@ class ReceiptLayout{
 
     List<int> bytes = [];
     try {
+      bytes += generator.reset();
       bytes += generator.text('** Reprint List **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
@@ -1666,26 +2047,39 @@ class ReceiptLayout{
               text: '${cartModel.cartNotifierItem[i].product_name}',
               width: 10,
               containsChinese: true,
-              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1)),
+              styles: PosStyles(
+                  bold: true,
+                  align: PosAlign.left,
+                  height: checklistLayout != null && checklistLayout.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: PosTextSize.size1)),
         ]);
         bytes += generator.reset();
-        if(cartModel.cartNotifierItem[i].variant!.isNotEmpty){
+        if(cartModel.cartNotifierItem[i].productVariantName != null && cartModel.cartNotifierItem[i].productVariantName != ''){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '(${getVariant(cartModel.cartNotifierItem[i])})', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+            PosColumn(text: '(${cartModel.cartNotifierItem[i].productVariantName})',
+                width: 10,
+                containsChinese: true,
+                styles: PosStyles(
+                  width: PosTextSize.size1,
+                  height: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                )),
           ]);
         }
-        if(cartModel.cartNotifierItem[i].modifier!.isNotEmpty){
-          for (int j = 0; j < cartModel.cartNotifierItem[i].modifier!.length; j++) {
-            ModifierGroup group = cartModel.cartNotifierItem[i].modifier![j];
-            for (int k = 0; k < group.modifierChild!.length; k++) {
-              if (group.modifierChild![k].isChecked!) {
-                bytes += generator.row([
-                  PosColumn(text: '', width: 2),
-                  PosColumn(text: '+${group.modifierChild![k].name!}', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left))
-                ]);
-              }
-            }
+        //product modifier
+        if(cartModel.cartNotifierItem[i].orderModifierDetail!.isNotEmpty){
+          cartProductItem cartItem = cartModel.cartNotifierItem[i];
+          for(int j = 0; j < cartItem.orderModifierDetail!.length; j++){
+            bytes += generator.row([
+              PosColumn(text: '', width: 2),
+              PosColumn(text: '+${cartItem.orderModifierDetail![j].mod_name!}',
+                  width: 10,
+                  containsChinese: true,
+                  styles: PosStyles(
+                    width: PosTextSize.size1,
+                    height: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  )),
+            ]);
           }
         }
         /*
@@ -1695,8 +2089,13 @@ class ReceiptLayout{
         if (cartModel.cartNotifierItem[i].remark != '') {
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '**${cartModel.cartNotifierItem[i].remark}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '', width: 2),
+            PosColumn(text: '**${cartModel.cartNotifierItem[i].remark}',
+                width: 10,
+                containsChinese: true,
+                styles: PosStyles(
+                    align: PosAlign.left,
+                    height: checklistLayout != null && checklistLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                    width: PosTextSize.size1)),
           ]);
         }
       }
@@ -1779,7 +2178,7 @@ class ReceiptLayout{
             //modifier
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}',
+              PosColumn(text: '+${orderModifierDetailList[j].mod_name}',
                   width: 8,
                   containsChinese: true,
                   styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2)),
@@ -1880,7 +2279,7 @@ class ReceiptLayout{
           for (int j = 0; j < orderModifierDetailList.length; j++) {
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '+${orderModifierDetailList[j].modifier_name}',
+              PosColumn(text: '+${orderModifierDetailList[j].mod_name}',
                 width: 8,
                 styles: PosStyles(height: PosTextSize.size2, width: PosTextSize.size2),
                 containsChinese: true
@@ -2198,7 +2597,7 @@ class ReceiptLayout{
             for(int j = 0; j < orderModifierDetailList.length; j++){
               //modifier
               bytes += generator.row([
-                PosColumn(text: '-${orderModifierDetailList[j].modifier_name}', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+                PosColumn(text: '+${orderModifierDetailList[j].mod_name}', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
                 PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
               ]);
             }
@@ -2293,7 +2692,7 @@ class ReceiptLayout{
             for(int j = 0; j < orderModifierDetailList.length; j++){
               //modifier
               bytes += generator.row([
-                PosColumn(text: '-${orderModifierDetailList[j].modifier_name}', width: 12, containsChinese: true,),
+                PosColumn(text: '+${orderModifierDetailList[j].mod_name}', width: 12, containsChinese: true,),
               ]);
             }
           }
@@ -2489,23 +2888,24 @@ class ReceiptLayout{
         bytes += generator.hr();
         //Payment link company
         for(int i = 0; i < paymentList.length; i++){
-          bytes += generator.row([
-            PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
-            PosColumn(
-                text: '${paymentList[i].name}',
-                width: 8,
-                containsChinese: true,
-                styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
-            PosColumn(
-                text: '${paymentList[i].totalAmount.toStringAsFixed(2)}',
-                width: 2,
-                styles: PosStyles(align: PosAlign.right)),
-            PosColumn(
-                text: '',
-                width: 1,
-                styles: PosStyles(align: PosAlign.right)),
-          ]);
-
+          if(paymentList[i].soft_delete == '' || (paymentList[i].soft_delete != '' && paymentList[i].totalAmount != 0.0)){
+            bytes += generator.row([
+              PosColumn(text: '', width: 1, styles: PosStyles(align: PosAlign.left, bold: true)),
+              PosColumn(
+                  text: '${paymentList[i].name}',
+                  width: 8,
+                  containsChinese: true,
+                  styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size1)),
+              PosColumn(
+                  text: '${paymentList[i].totalAmount.toStringAsFixed(2)}',
+                  width: 2,
+                  styles: PosStyles(align: PosAlign.right)),
+              PosColumn(
+                  text: '',
+                  width: 1,
+                  styles: PosStyles(align: PosAlign.right)),
+            ]);
+          }
         }
         bytes += generator.hr();
         bytes += generator.text('Counter Overview', styles: PosStyles(align: PosAlign.left, bold: true));
@@ -2795,16 +3195,17 @@ class ReceiptLayout{
         bytes += generator.hr();
         //Payment link company
         for(int i = 0; i < paymentList.length; i++){
-          bytes += generator.row([
-            PosColumn(
-                text: '${paymentList[i].name}',
-                width: 8,
-                containsChinese: true),
-            PosColumn(
-                text: '${paymentList[i].totalAmount.toStringAsFixed(2)}',
-                width: 4)
-          ]);
-
+          if(paymentList[i].soft_delete == '' || (paymentList[i].soft_delete != '' && paymentList[i].totalAmount != 0.0)){
+            bytes += generator.row([
+              PosColumn(
+                  text: '${paymentList[i].name}',
+                  width: 8,
+                  containsChinese: true),
+              PosColumn(
+                  text: '${paymentList[i].totalAmount.toStringAsFixed(2)}',
+                  width: 4)
+            ]);
+          }
         }
         bytes += generator.hr();
         bytes += generator.text('Counter Overview', styles: PosStyles(align: PosAlign.left, bold: true));
@@ -3091,7 +3492,8 @@ class ReceiptLayout{
     *
     * */
       bytes += generator.hr();
-      bytes += generator.text('Table ${fromTable} change to Table ${toTable}', styles: PosStyles(bold: true));
+      bytes += generator.text('Table ${formatTableList(fromTable.toString())} change to Table ${toTable}',
+          styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size1));
       bytes += generator.reset();
 
       //final part
@@ -3243,7 +3645,7 @@ class ReceiptLayout{
     Map userObject = json.decode(user!);
 
     settlement_By = userObject['name'];
-    List<PaymentLinkCompany> data = await PosDatabase.instance.readAllPaymentLinkCompany(userObject['company_id']);
+    List<PaymentLinkCompany> data = await PosDatabase.instance.readAllPaymentLinkCompanyWithDeleted(userObject['company_id']);
     print('data length: ${data.length}');
     if(data.isNotEmpty){
       paymentList = List.from(data);
@@ -3262,17 +3664,21 @@ class ReceiptLayout{
       for (int j = 0; j < paymentList.length; j++) {
         double total = 0.0;
         double totalRefund = 0.0;
-        List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime, settlement.settlement_key!);
-
-        for(int i = 0; i < data.length; i++){
-          if(data[i].type == 3 && data[i].payment_type_id == paymentList[j].payment_type_id){
-            total += double.parse(data[i].amount!);
-          } else if(data[i].type == 4 && data[i].payment_type_id == paymentList[j].payment_type_id){
-            totalRefund += double.parse(data[i].amount!);
-          }
-
+        List<SettlementLinkPayment> data = await PosDatabase.instance.readSpecificSettlementLinkPaymentBySettlementKey(settlement.settlement_key!, paymentList[j].payment_link_company_id.toString());
+        // List<CashRecord> data = await PosDatabase.instance.readSpecificSettlementCashRecord(branch_id.toString(), dateTime, settlement.settlement_key!);
+        if(data.isNotEmpty){
+          // for(int i = 0; i < data.length; i++){
+          //   if(data[i].type == 3 && data[i].payment_type_id == paymentList[j].payment_type_id){
+          //     total += double.parse(data[i].amount!);
+          //   } else if(data[i].type == 4 && data[i].payment_type_id == paymentList[j].payment_type_id){
+          //     totalRefund += double.parse(data[i].amount!);
+          //   }
+          //
+          // }
+          paymentList[j].totalAmount = data[0].all_payment_sales!;
+        } else {
+          paymentList[j].totalAmount = 0.0;
         }
-        paymentList[j].totalAmount = total - totalRefund;
       }
       _isLoad = true;
     }catch(e){

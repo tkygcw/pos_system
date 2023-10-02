@@ -325,7 +325,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                                 if (await confirm(
                                                   context,
                                                   title: Text('${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
-                                                  content: Text('${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                                                  content: Text('${AppLocalizations.of(context)?.translate('would_you_like_to_remove')}'),
                                                   textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                                                   textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
                                                 )) {
@@ -646,7 +646,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                                   if (await confirm(
                                                     context,
                                                     title: Text('${AppLocalizations.of(context)?.translate('remove_cash_record')}'),
-                                                    content: Text('${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                                                    content: Text('${AppLocalizations.of(context)?.translate('would_you_like_to_remove')}'),
                                                     textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                                                     textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
                                                   )) {

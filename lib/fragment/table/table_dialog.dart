@@ -19,8 +19,7 @@ class TableDialog extends StatefulWidget {
   final Function() callBack;
   final PosTable object;
 
-  const TableDialog({required this.callBack, required this.object, Key? key, required this.allTableList})
-      : super(key: key);
+  const TableDialog({required this.callBack, required this.object, Key? key, required this.allTableList}) : super(key: key);
 
   @override
   _TableDialogState createState() => _TableDialogState();
@@ -32,7 +31,6 @@ class _TableDialogState extends State<TableDialog> {
   bool _submitted = false;
   bool isUpdate = false;
   bool isButtonDisabled = false;
-
 
   @override
   void initState() {
@@ -86,10 +84,10 @@ class _TableDialogState extends State<TableDialog> {
     }
   }
 
-  checkRepeatedTableNumber(){
+  checkRepeatedTableNumber() {
     List<PosTable> tableList = widget.allTableList;
     bool tbNumberRepeated = tableList.any((item) => item.number == tableNoController.text);
-    if(tbNumberRepeated){
+    if (tbNumberRepeated) {
       Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('table_number_repeated'), backgroundColor: Colors.red);
       isButtonDisabled = false;
       return;
@@ -114,7 +112,7 @@ class _TableDialogState extends State<TableDialog> {
       var url = await generateUrl(dateTime);
 
       bool _hasInternetAccess = await Domain().isHostReachable();
-      if(_hasInternetAccess){
+      if (_hasInternetAccess) {
         Map response = await Domain().insertTable(seatController.text, tableNoController.text, branch_id.toString(), url);
         if (response['status'] == '1') {
           //create local
@@ -128,14 +126,16 @@ class _TableDialogState extends State<TableDialog> {
               table_use_key: '',
               status: 0,
               sync_status: 1,
+              dx: '',
+              dy: '',
               created_at: dateTime,
               updated_at: '',
               soft_delete: ''));
 
-          if (data.table_sqlite_id != '') {
-            Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('successfully_create'));
+          if (data.created_at != '') {
             widget.callBack();
-            closeDialog(context);
+            Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('successfully_create'));
+            Navigator.of(context).pop();
           } else {
             Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('fail_create'));
           }
@@ -143,7 +143,6 @@ class _TableDialogState extends State<TableDialog> {
       } else {
         Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_internet_access'));
       }
-
 
 /*
       -------------------------sync to cloud-----------------------------------
@@ -166,56 +165,49 @@ class _TableDialogState extends State<TableDialog> {
     }
   }
 
-  void updatePosTable() async {
+  Future<int> updatePosTable() async {
+    int data = 0;
     try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-      int data = await PosDatabase.instance.updatePosTable(PosTable(
-          table_sqlite_id: widget.object.table_sqlite_id,
-          number: tableNoController.text,
-          seats: seatController.text,
-          sync_status: 2,
-          updated_at: dateTime));
-/*
-      --------------------------------sync to cloud----------------------------
-*/
-      bool _hasInternetAccess = await Domain().isHostReachable();
-      if(_hasInternetAccess){
-        Map response = await Domain().editTable(seatController.text,
-            tableNoController.text, widget.object.table_id.toString());
-        if (response['status'] == '1') {
-          int syncData = await PosDatabase.instance.updateSyncPosTable(PosTable(
-            table_id: widget.object.table_id,
-            sync_status: 1,
-            updated_at: dateTime,
-            table_sqlite_id: widget.object.table_sqlite_id,
-          ));
-        }
-      }
 
-/*
-      ---------------------------------end sync--------------------------------
-*/
-      if (data == 1) {
-        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('successfully_edit'));
-        widget.callBack();
-        closeDialog(context);
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if (_hasInternetAccess) {
+        Map response = await Domain().editTable(seatController.text, tableNoController.text, widget.object.table_id.toString());
+        if (response['status'] == '1') {
+          //update local
+          data = await PosDatabase.instance.updatePosTable(PosTable(
+              table_sqlite_id: widget.object.table_sqlite_id,
+              number: tableNoController.text,
+              seats: seatController.text,
+              sync_status: 1,
+              updated_at: dateTime));
+
+          if (data == 1) {
+            widget.callBack();
+            Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('successfully_update'));
+            Navigator.of(context).pop();
+          } else {
+            Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('fail_update'));
+          }
+        }
       } else {
-        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('fail_edit'));
+        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_internet_access'));
       }
     } catch (error) {
       Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later'));
     }
+    return data;
   }
 
-  void deletePosTable() async {
+
+
+  Future<int> deletePosTable() async {
+    int data = 0;
     try {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-      int data = await PosDatabase.instance.deletePosTable(PosTable(
-          soft_delete: dateTime,
-          sync_status: 2,
-          table_sqlite_id: widget.object.table_sqlite_id));
+      // data = await PosDatabase.instance.deletePosTable(PosTable(soft_delete: dateTime, sync_status: 1, table_sqlite_id: widget.object.table_sqlite_id));
 /*
       -------------------------------sync to cloud----------------------------
 */
@@ -223,27 +215,29 @@ class _TableDialogState extends State<TableDialog> {
       if(_hasInternetAccess){
         Map response = await Domain().deleteBranchTable(widget.object.table_id.toString());
         if (response['status'] == '1') {
-          int syncData = await PosDatabase.instance.updateSyncPosTable(PosTable(
-            table_id: widget.object.table_id,
+          int data = await PosDatabase.instance.deletePosTable(PosTable(
+            soft_delete: dateTime,
             sync_status: 1,
-            updated_at: dateTime,
-            table_sqlite_id: widget.object.table_sqlite_id,
+            table_sqlite_id: widget.object.table_sqlite_id
           ));
-        }
-      }
-/*
+          /*
       ---------------------------------end sync-------------------------------
 */
-      if (data == 1) {
-        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('successfully_delete'));
-        widget.callBack();
-        closeDialog(context);
-      } else {
-        Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('fail_delete'));
+          if (data == 1) {
+            Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('successfully_delete'));
+            widget.callBack();
+            closeDialog(context);
+          } else {
+            Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('fail_delete'));
+          }
+        }
       }
+
     } catch (error) {
+      print('error: ' + error.toString());
       Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later'));
     }
+    return data;
   }
 
   closeDialog(BuildContext context) {
@@ -259,9 +253,7 @@ class _TableDialogState extends State<TableDialog> {
             title: Row(
               children: [
                 Text(
-                  widget.object.table_id == null
-                      ? '${AppLocalizations.of(context)?.translate('create_table')}'
-                      : '${AppLocalizations.of(context)?.translate('edit_table')}',
+                  widget.object.table_id == null ? '${AppLocalizations.of(context)?.translate('create_table')}' : '${AppLocalizations.of(context)?.translate('edit_table')}',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -274,20 +266,26 @@ class _TableDialogState extends State<TableDialog> {
                         icon: const Icon(Icons.delete_outlined),
                         padding: EdgeInsets.zero,
                         constraints: BoxConstraints(),
-                        color: color.backgroundColor,
+                        color: Colors.red,
                         onPressed: () async {
-                          if (await confirm(
+                          bool confirmation = await confirm(
                             context,
                             title: Text(
-                                '${AppLocalizations.of(context)?.translate('confirm')}'),
+                              '${AppLocalizations.of(context)?.translate('delete_table')}',
+                            ),
                             content: Text(
-                                '${AppLocalizations.of(context)?.translate('would you like to remove?')}'),
+                              '${AppLocalizations.of(context)?.translate('would_you_like_to_remove')}',
+                            ),
                             textOK: Text(
-                                '${AppLocalizations.of(context)?.translate('yes')}'),
+                              '${AppLocalizations.of(context)?.translate('yes')}',
+                            ),
                             textCancel: Text(
-                                '${AppLocalizations.of(context)?.translate('no')}'),
-                          )) {
-                            return deletePosTable();
+                              '${AppLocalizations.of(context)?.translate('no')}',
+                            ),
+                          );
+
+                          if (confirmation) {
+                            await deletePosTable();
                           }
                         },
                       ),
@@ -309,14 +307,9 @@ class _TableDialogState extends State<TableDialog> {
                             padding: const EdgeInsets.all(8.0),
                             child: TextField(
                               controller: tableNoController,
-                              keyboardType: TextInputType.number,
                               inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'[0-9]'),
-                                ),
                                 FilteringTextInputFormatter.deny(
-                                  RegExp(
-                                      r'^0+'), //users can't type 0 at 1st position
+                                  RegExp(r'^0+'), //users can't type 0 at 1st position
                                 ),
                               ],
                               maxLength: 3,
@@ -324,18 +317,15 @@ class _TableDialogState extends State<TableDialog> {
                                 errorText: _submitted
                                     ? errorTableNo == null
                                         ? errorTableNo
-                                        : AppLocalizations.of(context)
-                                            ?.translate(errorTableNo!)
+                                        : AppLocalizations.of(context)?.translate(errorTableNo!)
                                     : null,
                                 border: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: color.backgroundColor),
+                                  borderSide: BorderSide(color: color.backgroundColor),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: color.backgroundColor),
+                                  borderSide: BorderSide(color: color.backgroundColor),
                                 ),
-                                labelText: AppLocalizations.of(context)!.translate('table_no')+'.',
+                                labelText: AppLocalizations.of(context)!.translate('table_no') + '.',
                               ),
                             ),
                           );
@@ -354,8 +344,7 @@ class _TableDialogState extends State<TableDialog> {
                                   RegExp(r'[0-9]'),
                                 ),
                                 FilteringTextInputFormatter.deny(
-                                  RegExp(
-                                      r'^0+'), //users can't type 0 at 1st position
+                                  RegExp(r'^0+'), //users can't type 0 at 1st position
                                 ),
                               ],
                               maxLength: 2,
@@ -363,16 +352,13 @@ class _TableDialogState extends State<TableDialog> {
                                 errorText: _submitted
                                     ? errorSeat == null
                                         ? errorSeat
-                                        : AppLocalizations.of(context)
-                                            ?.translate(errorSeat!)
+                                        : AppLocalizations.of(context)?.translate(errorSeat!)
                                     : null,
                                 border: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: color.backgroundColor),
+                                  borderSide: BorderSide(color: color.backgroundColor),
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: color.backgroundColor),
+                                  borderSide: BorderSide(color: color.backgroundColor),
                                 ),
                                 labelText: AppLocalizations.of(context)!.translate('seat'),
                               ),
@@ -390,13 +376,15 @@ class _TableDialogState extends State<TableDialog> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                   child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                  onPressed: isButtonDisabled ? null : () {
-                    // Disable the button after it has been pressed
-                    setState(() {
-                      isButtonDisabled = true;
-                    });
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: isButtonDisabled
+                      ? null
+                      : () {
+                          // Disable the button after it has been pressed
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
+                          Navigator.of(context).pop();
+                        },
                 ),
               ),
               SizedBox(
@@ -404,12 +392,12 @@ class _TableDialogState extends State<TableDialog> {
                 height: MediaQuery.of(context).size.height / 12,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
-                  child: widget.object.table_id == null
-                      ? Text('${AppLocalizations.of(context)?.translate('add')}')
-                      : Text(AppLocalizations.of(context)!.translate('submit')),
-                  onPressed: isButtonDisabled ? null : () async {
-                    _submit(context);
-                  },
+                  child: widget.object.table_id == null ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text(AppLocalizations.of(context)!.translate('submit')),
+                  onPressed: isButtonDisabled
+                      ? null
+                      : () async {
+                          _submit(context);
+                        },
                 ),
               ),
             ],

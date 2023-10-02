@@ -25,13 +25,14 @@ class PaymentSelect extends StatefulWidget {
   final String dining_name;
   final bool? isUpdate;
   final Order? currentOrder;
+  final Function()? callBack;
   const PaymentSelect(
       {
         Key? key,
         required this.dining_id,
         required this.dining_name,
         this.isUpdate,
-        this.currentOrder
+        this.currentOrder, this.callBack
       }) : super(key: key);
 
   @override
@@ -62,7 +63,12 @@ class _PaymentSelectState extends State<PaymentSelect> {
       return LayoutBuilder(builder: (context,  constraints) {
         if(constraints.maxWidth > 800){
           return WillPopScope(
-            onWillPop: () async => willPop ,
+            onWillPop: () async {
+              if(widget.callBack != null){
+                widget.callBack!();
+              }
+              return willPop;
+            },
             child: AlertDialog(
               title: Text(AppLocalizations.of(context)!.translate('select_payment_method')),
               content: isload ? Container(
@@ -167,6 +173,9 @@ class _PaymentSelectState extends State<PaymentSelect> {
                       setState(() {
                         isButtonDisable = true;
                       });
+                      if(widget.callBack != null){
+                        widget.callBack!();
+                      }
                       Navigator.of(context).pop();
                     },
                     child: Text(AppLocalizations.of(context)!.translate('close')))
@@ -279,6 +288,9 @@ class _PaymentSelectState extends State<PaymentSelect> {
                         setState(() {
                           isButtonDisable = true;
                         });
+                        if(widget.callBack != null){
+                          widget.callBack!();
+                        }
                         Navigator.of(context).pop();
                       },
                       child: Text(AppLocalizations.of(context)!.translate('close')))

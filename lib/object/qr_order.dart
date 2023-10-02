@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -64,7 +65,7 @@ class QrOrder {
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(orderCache);
 
         for(int j = 0; j < response['data'][i]['order_detail'].length; j++){
-          BranchLinkProduct branchLinkProductData =
+          BranchLinkProduct? branchLinkProductData =
           await PosDatabase.instance.readSpecificBranchLinkProductByCloudId(response['data'][i]['order_detail'][j]['branch_link_product_id'].toString());
           print('category id: ${response['data'][i]['order_detail'][j]['category_id'].toString()}');
           if(response['data'][i]['order_detail'][j]['category_id'].toString() != '0'){
@@ -79,14 +80,14 @@ class QrOrder {
             order_detail_key: response['data'][i]['order_detail'][j]['order_detail_key'],
             order_cache_sqlite_id: data.order_cache_sqlite_id.toString(),
             order_cache_key: response['data'][i]['order_cache_key'].toString(),
-            branch_link_product_sqlite_id: branchLinkProductData.branch_link_product_sqlite_id.toString(),
+            branch_link_product_sqlite_id: branchLinkProductData != null ? branchLinkProductData.branch_link_product_sqlite_id.toString() : '',
             category_sqlite_id: categoryLocalId,
             category_name: response['data'][i]['order_detail'][j]['category_name'],
             productName: response['data'][i]['order_detail'][j]['product_name'],
             has_variant: response['data'][i]['order_detail'][j]['has_variant'],
             product_variant_name: response['data'][i]['order_detail'][j]['product_variant_name'],
             price: response['data'][i]['order_detail'][j]['price'],
-            original_price: branchLinkProductData.price,
+            original_price: response['data'][i]['order_detail'][j]['original_price'],
             quantity: response['data'][i]['order_detail'][j]['quantity'],
             remark: response['data'][i]['order_detail'][j]['remark'],
             account: '',
@@ -124,8 +125,16 @@ class QrOrder {
           }
         }
       }
+      playSound();
     } else {
       return 1;
     }
+  }
+
+  playSound() {
+    final assetsAudioPlayer = AssetsAudioPlayer();
+    assetsAudioPlayer.open(
+      Audio("audio/notification.mp3"),
+    );
   }
 }
