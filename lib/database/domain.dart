@@ -33,7 +33,7 @@ class Domain {
   static Uri table_use = Uri.parse(domain + 'mobile-api/table_use/index.php');
   static Uri transfer_owner = Uri.parse(domain + 'mobile-api/transfer_owner/index.php');
   static Uri cash_record = Uri.parse(domain + 'mobile-api/cash_record/index.php');
-  static Uri sync_record = Uri.parse(backend_domain + 'mobile-api/sync/index.php');
+  static Uri sync_record = Uri.parse(domain + 'mobile-api/sync/index.php');
   static Uri sync_to_cloud = Uri.parse(domain + 'mobile-api/sync_to_cloud/index.php');
   static Uri qr_order_sync = Uri.parse(domain + 'mobile-api/qr_order_sync/index.php');
   static Uri printer = Uri.parse(domain + 'mobile-api/printer/index.php');
@@ -275,7 +275,7 @@ class Domain {
         'branch_id': branch_id,
         'device_id': device_id,
         'value': value
-      }).timeout(Duration(seconds: 5), onTimeout: ()=> throw TimeoutException("Timeout"));
+      }).timeout(Duration(seconds: 8), onTimeout: ()=> throw TimeoutException("Timeout"));
       return jsonDecode(response.body);
     } on TimeoutException catch(_){
       print('domain sync record time out');

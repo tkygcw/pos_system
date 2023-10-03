@@ -20,6 +20,7 @@ import '../../object/cash_record.dart';
 import '../../page/pos_pin.dart';
 import '../../translation/AppLocalizations.dart';
 import '../multi_device/multi_device.dart';
+import 'data_process_setting.dart';
 
 class SettingMenu extends StatefulWidget {
   const SettingMenu({Key? key}) : super(key: key);
@@ -52,8 +53,11 @@ class _SettingMenuState extends State<SettingMenu> {
       child: FeaturesSetting(),
     ),
     Container(
-      child: MultiDevicePage(),
+      child: DataProcessingSetting(),
     ),
+    // Container(
+    //   child: MultiDevicePage(),
+    // ),
     // Container(
     //   child: TestCategorySync(),
     // ),
@@ -177,6 +181,10 @@ class _SettingMenuState extends State<SettingMenu> {
                       SideNavigationBarItem(
                         icon: Icons.settings,
                         label: AppLocalizations.of(context)!.translate('app_device_setting'),
+                      ),
+                      SideNavigationBarItem(
+                        icon: Icons.sync,
+                        label: AppLocalizations.of(context)!.translate('data_processing'),
                       ),
                       // SideNavigationBarItem(
                       //   icon: Icons.settings,
