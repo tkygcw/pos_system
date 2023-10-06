@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -574,7 +575,7 @@ class CartDialogState extends State<CartDialog> {
         return 1; // Alphanumeric before numeric
       } else {
         // Custom alphanumeric sorting logic
-        return aNumber.compareTo(bNumber);
+        return compareNatural(aNumber, bNumber);
       }
     });
   }

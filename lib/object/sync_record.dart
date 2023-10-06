@@ -953,7 +953,7 @@ class SyncRecord {
       //create
       Product? checkData = await PosDatabase.instance.checkSpecificProductId(productItem.product_id!);
       if(checkData == null){
-        if(productObject.image != ''){
+        if(productObject.graphic_type == '2' && productObject.image != ''){
           await downloadProductImage();
         }
         Product productData = await PosDatabase.instance.insertProduct(productObject);
@@ -966,8 +966,8 @@ class SyncRecord {
     } else {
       //update
       Product? checkData = await PosDatabase.instance.checkSpecificProductId(productItem.product_id!);
-      if(checkData != null && checkData.updated_at != productObject.updated_at) {
-        if(productObject.image != ''){
+      if(checkData != null) {
+        if(productObject.graphic_type == '2' && productObject.image != ''){
           await downloadProductImage();
         }
         int data = await PosDatabase.instance.updateProduct(productObject);
@@ -985,26 +985,30 @@ class SyncRecord {
   download product image
 */
   downloadProductImage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? user = prefs.getString('user');
-    final String? path = prefs.getString('local_path');
-    Map userObject = json.decode(user!);
-    Map data = await Domain().getAllProduct(userObject['company_id']);
-    String url = '';
-    String name = '';
-    if (data['status'] == '1') {
-      List responseJson = data['product'];
-      for (var i = 0; i < responseJson.length; i++) {
-        Product data = Product.fromJson(responseJson[i]);
-        name = data.image!;
-        if (data.image != '') {
-          url = '${Domain.backend_domain}api/gallery/' + userObject['company_id'] + '/' + name;
-          final response = await http.get(Uri.parse(url));
-          var localPath = path! + '/' + name;
-          final imageFile = File(localPath);
-          await imageFile.writeAsBytes(response.bodyBytes);
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final String? user = prefs.getString('user');
+      final String? path = prefs.getString('local_path');
+      Map userObject = json.decode(user!);
+      Map data = await Domain().getAllProduct(userObject['company_id']);
+      String url = '';
+      String name = '';
+      if (data['status'] == '1') {
+        List responseJson = data['product'];
+        for (var i = 0; i < responseJson.length; i++) {
+          Product data = Product.fromJson(responseJson[i]);
+          name = data.image!;
+          if (data.image != '') {
+            url = '${Domain.backend_domain}api/gallery/' + userObject['company_id'] + '/' + name;
+            final response = await http.get(Uri.parse(url));
+            var localPath = path! + '/' + name;
+            final imageFile = File(localPath);
+            await imageFile.writeAsBytes(response.bodyBytes);
+          }
         }
       }
+    }catch(e){
+      print("download product image error: $e");
     }
   }
 }

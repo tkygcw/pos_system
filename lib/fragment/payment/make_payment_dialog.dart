@@ -1853,16 +1853,17 @@ class _MakePaymentState extends State<MakePayment> {
         VariantGroup group = object.variant![i];
         for (int j = 0; j < group.child!.length; j++) {
           if (group.child![j].isSelected!) {
-            variant.add(group.child![j].name! + '\n');
-            result = variant.toString().replaceAll('[', '').replaceAll(']', '');
-            //.replaceAll(',', '+')
-            //.replaceAll('|', '\n+')
+            variant.add(group.child![j].name!);
+            result = "(${variant.toString().replaceAll('[', '').replaceAll(']', '').replaceAll(',', ' |')})\n";
+            //     variant.toString().replaceAll('[', '').replaceAll(']', '')
+            // .replaceAll(',', '+')
+            // .replaceAll('|', '\n+').replaceFirst('', '+ ');
           }
         }
       }
     } else {
       if(object.productVariantName != null && object.productVariantName != ''){
-        result = object.productVariantName!.replaceAll('|', '\n+').replaceFirst('', '+ ');
+        result = "(${object.productVariantName!})\n";
       }
     }
     return result;

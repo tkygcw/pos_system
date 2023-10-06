@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:animations/animations.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -64,10 +65,14 @@ class _SetupPageState extends State<SetupPage> {
 
   getToken() async {
     try{
+      bool _hasInternetAccess = await Domain().isHostReachable();
+      if(_hasInternetAccess == false){
+        throw SocketException("Connection failed");
+      }
       token = await FirebaseMessaging.instance.getToken();
       print('token: ${token}');
       //token = 'testing';
-    }catch(e){
+    }on SocketException catch(_){
       Navigator.of(context).pushAndRemoveUntil(
         // the new route
         MaterialPageRoute(
@@ -79,8 +84,9 @@ class _SetupPageState extends State<SetupPage> {
         // always return false
             (Route route) => false,
       );
+    } catch(e){
+      print("get token error: ${e}");
     }
-    return;
   }
 
   @override
@@ -255,18 +261,9 @@ class _SetupPageState extends State<SetupPage> {
       await PosDatabase.instance.insertBranch(selectedBranch!);
       await updateBranchToken();
     } else {
-      Fluttertoast.showToast(msg: '${AppLocalizations.of(context)?.translate('fail_get_token')}');
-      Navigator.of(context).pushAndRemoveUntil(
-        // the new route
-        MaterialPageRoute(
-          builder: (BuildContext context) => LoginPage(),
-        ),
-
-        // this function should return true when we're done removing routes
-        // but because we want to remove all other screens, we make it
-        // always return false
-            (Route route) => false,
-      );
+      savePref();
+      await PosDatabase.instance.insertBranch(selectedBranch!);
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));
     }
   }
 
