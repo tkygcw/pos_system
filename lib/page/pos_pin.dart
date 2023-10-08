@@ -159,6 +159,7 @@ class _PosPinPageState extends State<PosPinPage> {
         // }
         //sync from cloud
         if(syncRecord.count == 0){
+          syncRecord.count = 1;
           int syncStatus = await syncRecord.syncFromCloud();
           print('is log out: ${syncStatus}');
           if (syncStatus == 1) {

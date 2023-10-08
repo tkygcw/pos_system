@@ -25,8 +25,26 @@ class _SecondDisplayState extends State<SecondDisplay> {
   getVariant(cartProductItem object) {
     List<String?> variant = [];
     String result = '';
-    if(object.productVariantName != ''){
-      result = "(${object.productVariantName!})";
+    try{
+      if(object.productVariantName != '' && object.productVariantName != null){
+        result = "(${object.productVariantName!})";
+      } else if(object.variant != null) {
+        var length = object.variant!.length;
+        for (int i = 0; i < length ; i++) {
+          VariantGroup group = object.variant![i];
+          for (int j = 0; j < group.child!.length; j++) {
+            if (group.child![j].isSelected!) {
+              variant.add(group.child![j].name!);
+              result = '(${variant.toString().replaceAll('[', '').replaceAll(']', '')})'
+                  .replaceAll(',', ' |');
+              //.replaceAll('|', '\n+')
+            }
+          }
+        }
+      }
+    }catch(e){
+      print("second display get variant error: ${e}");
+      result = "";
     }
     return result;
   }

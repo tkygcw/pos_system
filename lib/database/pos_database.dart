@@ -2932,7 +2932,7 @@ class PosDatabase {
           'a.order_by, a.total_amount, a.customer_id, a.created_at, a.updated_at, a.soft_delete, b.name AS name '
           'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
           'WHERE a.order_key = ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
-          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND b.name != ? ORDER BY a.order_cache_sqlite_id DESC ',
+          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND b.name != ? ORDER BY a.created_at DESC  ',
           ['', '', '', branch_id, company_id, 0, '', 'Dine in']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
@@ -4562,7 +4562,7 @@ class PosDatabase {
     return await db.rawUpdate(
         'UPDATE $tableProduct SET category_sqlite_id = ?, category_id = ?, name = ?, price = ?, description = ?, SKU = ?, '
         'image = ?, has_variant = ?, stock_type = ?, stock_quantity = ?, available = ?, graphic_type = ?, color = ?, '
-        'daily_limit_amount = ?, daily_limit = ?, sync_status = ?,  updated_at = ?, soft_delete = ? WHERE product_id = ?',
+        'daily_limit_amount = ?, daily_limit = ?, sync_status = ?, updated_at = ?, soft_delete = ? WHERE product_id = ?',
         [
           data.category_sqlite_id,
           data.category_id,
@@ -6481,8 +6481,8 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.table_use_key, a.table_use_detail_key, CAST(b.table_id AS TEXT) AS table_id '
         'FROM $tableTableUseDetail AS a JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
-        'WHERE b.soft_delete = ? AND a.sync_status != ? LIMIT 10 ',
-        ['', 1]);
+        'WHERE b.soft_delete = ? AND a.table_use_detail_key != ? AND a.sync_status != ? LIMIT 10 ',
+        ['', '', 1]);
 
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
   }
@@ -6492,7 +6492,7 @@ class PosDatabase {
 */
   Future<List<TableUse>> readAllNotSyncTableUse() async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableTableUse WHERE sync_status != ? LIMIT 10 ', [1]);
+    final result = await db.rawQuery('SELECT * FROM $tableTableUse WHERE table_use_key != ? AND sync_status != ? LIMIT 10 ', ['', 1]);
 
     return result.map((json) => TableUse.fromJson(json)).toList();
   }
@@ -6502,7 +6502,8 @@ class PosDatabase {
 */
   Future<List<OrderModifierDetail>> readAllNotSyncOrderModDetail() async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderModifierDetail WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableOrderModifierDetail WHERE order_modifier_detail_key != ? AND soft_delete = ? AND sync_status != ? LIMIT 10 ',
+        ['', '', 1]);
 
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
   }
@@ -6512,7 +6513,8 @@ class PosDatabase {
 */
   Future<List<OrderDetailCancel>> readAllNotSyncOrderDetailCancel() async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderDetailCancel WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableOrderDetailCancel WHERE soft_delete = ? AND order_detail_cancel_key != ? AND sync_status != ? LIMIT 10 ',
+        ['', '', 1]);
     return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
   }
 
@@ -6526,14 +6528,14 @@ class PosDatabase {
         'a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id '
         'FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id '
         'JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.sync_status != ? '
+        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.order_detail_key != ? AND a.sync_status != ? '
         'UNION ALL '
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.cancel_by_user_id, a.cancel_by, a.account, a.remark, a.quantity, a.original_price, a.price, '
         'a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, 0 AS category_id, b.branch_link_product_id '
         'FROM $tableOrderDetail AS a '
         'JOIN $tableBranchLinkProduct AS b ON a.branch_link_product_sqlite_id = b.branch_link_product_sqlite_id '
-        'WHERE a.category_sqlite_id = ? AND a.soft_delete = ? AND b.soft_delete = ? AND a.sync_status != ? LIMIT 10 ',
-        ['', '', '', 1, 0, '', '', 1]);
+        'WHERE a.category_sqlite_id = ? AND a.soft_delete = ? AND b.soft_delete = ? AND a.order_detail_key != ? AND a.sync_status != ? LIMIT 10 ',
+        ['', '', '', '', 1, 0, '', '', '', 1]);
 
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
@@ -6543,7 +6545,7 @@ class PosDatabase {
 */
   Future<List<OrderCache>> readAllNotSyncOrderCache() async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND order_cache_key != ? AND sync_status != ? LIMIT 10 ', ['', '', 1]);
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
@@ -6572,7 +6574,7 @@ class PosDatabase {
 */
   Future<List<Order>> readAllNotSyncOrder() async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrder WHERE soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableOrder WHERE soft_delete = ? AND order_key != ? AND sync_status != ? LIMIT 10 ', ['', '', 1]);
 
     return result.map((json) => Order.fromJson(json)).toList();
   }

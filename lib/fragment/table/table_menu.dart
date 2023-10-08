@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/database/domain.dart';
@@ -776,6 +777,17 @@ class _TableMenuState extends State<TableMenu> {
     initialTableList = await PosDatabase.instance.readAllTable();
 
     //table number sorting
+    sortTable();
+
+    await readAllTableGroup();
+    if (mounted) {
+      setState(() {
+        isLoaded = true;
+      });
+    }
+  }
+
+  sortTable(){
     tableList.sort((a, b) {
       final aNumber = a.number!;
       final bNumber = b.number!;
@@ -791,16 +803,9 @@ class _TableMenuState extends State<TableMenu> {
         return 1; // Alphanumeric before numeric
       } else {
         // Custom alphanumeric sorting logic
-        return aNumber.compareTo(bNumber);
+        return compareNatural(aNumber, bNumber);
       }
     });
-
-    await readAllTableGroup();
-    if (mounted) {
-      setState(() {
-        isLoaded = true;
-      });
-    }
   }
 
   bool isUpdated() {

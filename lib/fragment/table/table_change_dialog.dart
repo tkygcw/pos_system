@@ -353,7 +353,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       this.table_value = _value.toString();
       //sync to cloud
       //syncUpdatedTableToCloud(_value.toString());
-      await callPrinter(lastTable: _tableNumberList, newTable: newTable[0].number);
+      callPrinter(lastTable: _tableNumberList, newTable: newTable[0].number);
     }catch(e){
      print('update pos table function error: $e');
     }
@@ -362,13 +362,17 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   callPrinter({lastTable, newTable}) async {
     int printStatus = await printReceipt.printChangeTableList(printerList, lastTable: lastTable, newTable: newTable);
     if(printStatus == 1){
-      Fluttertoast.showToast(
-          backgroundColor: Colors.red,
-          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+      if(mounted){
+        Fluttertoast.showToast(
+            backgroundColor: Colors.red,
+            msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+      }
     } else if (printStatus == 2){
-      Fluttertoast.showToast(
-          backgroundColor: Colors.orangeAccent,
-          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+      if(mounted){
+        Fluttertoast.showToast(
+            backgroundColor: Colors.orangeAccent,
+            msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+      }
     }
   }
 
