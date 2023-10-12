@@ -367,6 +367,8 @@
   "successfully_update": "Successfully update",
   "sync": "Sync",
   "sync_done": "Sync complete",
+  "sync_reset": "Sync reset",
+  "sync_reset_success": "Sync reset success",
   "table": "Table",
   "table_is_used": "Table is in used",
   "table_no": "Table No",

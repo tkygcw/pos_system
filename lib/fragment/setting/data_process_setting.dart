@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
 
+import '../../main.dart';
 import '../../translation/AppLocalizations.dart';
 
 class DataProcessingSetting extends StatefulWidget {
@@ -22,6 +24,15 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
               trailing: Icon(Icons.sync),
               onTap: () async {
                 openSyncDialog();
+              },
+            ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('sync_reset')),
+              trailing: Icon(Icons.refresh),
+              onTap: () async {
+                syncRecord.count = 0;
+                qrOrder.count = 0;
+                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('sync_reset_success'));
               },
             ),
             Divider(

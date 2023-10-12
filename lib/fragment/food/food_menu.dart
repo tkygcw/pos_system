@@ -31,7 +31,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   List<Tab> categoryTab = [];
   List<Widget> categoryTabContent = [];
   List<String> categoryList = [];
-  late TabController _tabController;
+  TabController? _tabController;
   late String companyID;
   late AppSettingModel _appSettingModel;
   List<Product> allProduct = [];
@@ -44,17 +44,21 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    readAllCategories();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.cartModel.initialLoad();
-    });
+    if(mounted){
+      readAllCategories();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.cartModel.initialLoad();
+      });
+    }
     // _tabController = TabController(length: 0, vsync: this);
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
-    _tabController.dispose();
+    if(_tabController != null){
+      _tabController!.dispose();
+    }
     super.dispose();
   }
 

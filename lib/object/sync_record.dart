@@ -226,7 +226,7 @@ class SyncRecord {
         }
         print('sync record length: ${syncRecordIdList.length}');
         //update sync record
-        Map updateResponse = await Domain().updateAllCloudSyncRecord('${branchObject['branchID']}', syncRecordIdList.toString());
+        await Domain().updateAllCloudSyncRecord('${branchObject['branchID']}', syncRecordIdList.toString());
         notificationModel.setContentLoad();
         notificationModel.setContentLoaded();
         notificationModel.setCartContentLoaded();
@@ -829,37 +829,43 @@ class SyncRecord {
 
   callVariantGroupQuery({data, method}) async {
     bool isComplete = false;
-    VariantGroup variantData = VariantGroup.fromJson(data[0]);
-    Product? productData = await PosDatabase.instance.readProductSqliteID(variantData.product_id!);
-    VariantGroup object = VariantGroup(
-        child: [],
-        variant_group_id: variantData.variant_group_id,
-        product_id: variantData.product_id,
-        product_sqlite_id: productData!.product_sqlite_id.toString(),
-        name: variantData.name,
-        sync_status: 1,
-        created_at: variantData.created_at,
-        updated_at: variantData.updated_at,
-        soft_delete: variantData.soft_delete
-    );
-    if(method == '0'){
-      //create
-      VariantGroup? checkData = await PosDatabase.instance.checkSpecificVariantGroupId(object.variant_group_id!);
-      if(checkData == null){
-        VariantGroup data = await PosDatabase.instance.insertVariantGroup(object);
-        if(data.variant_group_sqlite_id != null){
+    try{
+      VariantGroup variantData = VariantGroup.fromJson(data[0]);
+      Product? productData = await PosDatabase.instance.readProductSqliteID(variantData.product_id!);
+      VariantGroup object = VariantGroup(
+          child: [],
+          variant_group_id: variantData.variant_group_id,
+          product_id: variantData.product_id,
+          product_sqlite_id: productData!.product_sqlite_id.toString(),
+          name: variantData.name,
+          sync_status: 1,
+          created_at: variantData.created_at,
+          updated_at: variantData.updated_at,
+          soft_delete: variantData.soft_delete
+      );
+      if(method == '0'){
+        //create
+        VariantGroup? checkData = await PosDatabase.instance.checkSpecificVariantGroupId(object.variant_group_id!);
+        if(checkData == null){
+          VariantGroup data = await PosDatabase.instance.insertVariantGroup(object);
+          if(data.variant_group_sqlite_id != null){
+            isComplete = true;
+          }
+        } else {
           isComplete = true;
         }
       } else {
-        isComplete = true;
+        //update
+        int data = await PosDatabase.instance.updateVariantGroup(object);
+        if(data == 1){
+          isComplete = true;
+        }
       }
-    } else {
-      //update
-      int data = await PosDatabase.instance.updateVariantGroup(object);
-      if(data == 1){
-        isComplete = true;
-      }
+    }catch(e){
+      print("callVariantGroupQuery error: ${e}");
+      isComplete = false;
     }
+
     return isComplete;
   }
 

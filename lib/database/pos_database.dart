@@ -1969,7 +1969,7 @@ class PosDatabase {
 
   Future<Product?> readProductSqliteID(String product_id) async {
     final db = await instance.database;
-    final maps = await db.rawQuery('SELECT * FROM $tableProduct WHERE soft_delete = ? AND product_id = ?', ['', product_id]);
+    final maps = await db.rawQuery('SELECT * FROM $tableProduct WHERE product_id = ?', [product_id]);
     if (maps.isNotEmpty) {
       return Product.fromJson(maps.first);
     } else {

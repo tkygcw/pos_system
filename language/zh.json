@@ -367,6 +367,8 @@
   "successfully_update": "成功更新",
   "sync": "同步",
   "sync_done": "同步完成",
+  "sync_reset": "同步重置",
+  "sync_reset_success": "同步重置成功",
   "table": "桌号",
   "table_is_used": "桌位正在使用中",
   "table_no": "桌号",
