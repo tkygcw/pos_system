@@ -276,7 +276,7 @@ class _ProductReportState extends State<ProductReport> {
                 Text(AppLocalizations.of(context)!.translate('category_other'), style: TextStyle(fontWeight: FontWeight.bold)),
               ),
               DataCell(Text('')),
-              DataCell(Text('${orderDetailCategoryData[i].category_item_sum}')),
+              DataCell(Text(orderDetailCategoryData[i].category_item_sum is double ? '${orderDetailCategoryData[i].category_item_sum!.toStringAsFixed(2)}' : '${orderDetailCategoryData[i].category_item_sum}')),
               DataCell(Text('${orderDetailCategoryData[i].category_net_sales!.toStringAsFixed(2)}')),
               //DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
               DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].category_gross_sales!)}'))
@@ -288,7 +288,7 @@ class _ProductReportState extends State<ProductReport> {
                 DataCell(Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].productName}')),
                 DataCell(orderDetailCategoryData[i].categoryOrderDetailList[j].product_variant_name != '' ?
                     Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].product_variant_name}'): Text('-')),
-                DataCell(Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum}')),
+                DataCell(Text(orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum is double ? '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum!.toStringAsFixed(2)}' : '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum}')),
                 DataCell(Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].double_price!.toStringAsFixed(2)}')),
                 //DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
                 DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].categoryOrderDetailList[j].gross_price!)}'))

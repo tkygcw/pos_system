@@ -40,6 +40,7 @@ class Utils {
     try {
       return double.parse(value).toStringAsFixed(2);
     } catch ($e) {
+      print($e);
       return '0.00';
     }
   }

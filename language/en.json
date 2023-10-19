@@ -168,7 +168,7 @@
   "internet_access_required": "Internet access required",
   "invalid_email": "Invalid email",
   "invalid_input": "Invalid Input!",
-  "invalid_qty_input": "Invalid qty input",
+  "invalid_qty_input": "Invalid quantity input",
   "item": "Item",
   "item_count": "Item count",
   "kitchen_printer_timeout": "kitchen printer timeout",
@@ -446,5 +446,7 @@
   "update_table_layout": "Update Table Layout",
   "confirm_update_table_layout": "The table layout will be updated, click 'Confirm' to continue",
   "with_table": "with table",
-  "feature_not_supported_on_phone": "Feature not supported on phone!"
+  "feature_not_supported_on_phone": "Feature not supported on phone!",
+  "quantity_invalid": "Quantity Invalid!",
+  "no_payment_record": "No Payment Record"
 }

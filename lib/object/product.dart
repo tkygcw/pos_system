@@ -20,6 +20,8 @@ class ProductFields {
     color,
     daily_limit,
     daily_limit_amount,
+    unit,
+    per_quantity_unit,
     sync_status,
     created_at,
     updated_at,
@@ -44,6 +46,8 @@ class ProductFields {
   static String color = 'color';
   static String daily_limit = 'daily_limit';
   static String daily_limit_amount = 'daily_limit_amount';
+  static String unit = 'unit';
+  static String per_quantity_unit = 'per_quantity_unit';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -69,6 +73,8 @@ class Product{
   String? color;
   String? daily_limit;
   String? daily_limit_amount;
+  String? unit;
+  String? per_quantity_unit;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -94,6 +100,8 @@ class Product{
         this.color,
         this.daily_limit,
         this.daily_limit_amount,
+        this.unit,
+        this.per_quantity_unit,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -120,6 +128,8 @@ class Product{
     String? color,
     String? daily_limit,
     String? daily_limit_amount,
+    String? unit,
+    String? per_quantity_unit,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -144,6 +154,8 @@ class Product{
           color: color ?? this.color,
           daily_limit: daily_limit ?? this.daily_limit,
           daily_limit_amount: daily_limit_amount ?? this.daily_limit_amount,
+          unit: unit ?? this.unit,
+          per_quantity_unit: per_quantity_unit ?? this.per_quantity_unit,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -168,6 +180,8 @@ class Product{
     color: json[ProductFields.color] as String?,
     daily_limit: json[ProductFields.daily_limit] as String?,
     daily_limit_amount: json[ProductFields.daily_limit_amount] as String?,
+    unit: json[ProductFields.unit] as String?,
+    per_quantity_unit: json[ProductFields.per_quantity_unit] as String?,
     sync_status: json[ProductFields.sync_status] as int?,
     created_at: json[ProductFields.created_at] as String?,
     updated_at: json[ProductFields.updated_at] as String?,
@@ -194,6 +208,8 @@ class Product{
     ProductFields.color: color,
     ProductFields.daily_limit: daily_limit,
     ProductFields.daily_limit_amount: daily_limit_amount,
+    ProductFields.unit: unit,
+    ProductFields.per_quantity_unit: per_quantity_unit,
     ProductFields.sync_status: sync_status,
     ProductFields.created_at: created_at,
     ProductFields.updated_at: updated_at,

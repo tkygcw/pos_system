@@ -446,5 +446,7 @@
   "update_table_layout": "更新桌位布局",
   "confirm_update_table_layout": "桌位布局将被更新，点击“确认”继续",
   "with_table": "与桌子",
-  "feature_not_supported_on_phone": "手机不支持该功能!"
+  "feature_not_supported_on_phone": "手机不支持该功能!",
+  "quantity_invalid": "数量无效!",
+  "no_payment_record": "无付款记录"
 }

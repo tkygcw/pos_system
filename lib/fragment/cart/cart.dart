@@ -103,7 +103,9 @@ class CartPageState extends State<CartPage> {
       order_detail_value,
       order_modifier_detail_value,
       table_value,
-      branch_link_product_value;
+      branch_link_product_value,
+      unit,
+      per_quantity_unit;
   String? orderCacheKey;
   String? orderDetailKey;
   String? tableUseKey;
@@ -407,7 +409,8 @@ class CartPageState extends State<CartPage> {
                                                     fontWeight: FontWeight.bold),
                                               ),
                                               TextSpan(
-                                                  text: "RM" + cart.cartNotifierItem[index].price!,
+                                                  // text: "RM" + cart.cartNotifierItem[index].price! + " (" +  ,
+                                                  text: "RM ${cart.cartNotifierItem[index].price!} (${cart.cartNotifierItem[index].per_quantity_unit!}${cart.cartNotifierItem[index].unit!})",
                                                   style: TextStyle(
                                                     fontSize: 13,
                                                     color: cart.cartNotifierItem[index].status == 1
@@ -433,21 +436,20 @@ class CartPageState extends State<CartPage> {
                                                       hoverColor: Colors.transparent,
                                                       icon: Icon(Icons.remove),
                                                       onPressed: () {
-                                                        cart.cartNotifierItem[index].quantity != 1 &&
-                                                            cart.cartNotifierItem[index].status ==
-                                                                0
-                                                            ? setState(() => cart
-                                                            .cartNotifierItem[index]
-                                                            .quantity = cart
-                                                            .cartNotifierItem[index]
-                                                            .quantity! -
-                                                            1)
-                                                            : cart.cartNotifierItem[index].status != 0
-                                                            ? Fluttertoast.showToast(
+                                                        if (cart.cartNotifierItem[index].quantity != 1 && cart.cartNotifierItem[index].status == 0) {
+                                                          setState(() {
+                                                            cart.cartNotifierItem[index].quantity = (cart.cartNotifierItem[index].quantity! - 1).ceilToDouble();
+                                                          });
+                                                        } else if (cart.cartNotifierItem[index].status != 0) {
+                                                          Fluttertoast.showToast(
                                                             backgroundColor: Colors.red,
-                                                            msg: AppLocalizations.of(context)!.translate('order_already_placed'))
-                                                            : cart.removeItem(
-                                                            cart.cartNotifierItem[index]);
+                                                            msg: AppLocalizations.of(context)!.translate('order_already_placed'),
+                                                          );
+                                                        } else if (cart.cartNotifierItem[index].quantity! < 1) {
+                                                          cart.removeItem(cart.cartNotifierItem[index]);
+                                                        } else {
+                                                        cart.removeItem(cart.cartNotifierItem[index]);
+                                                        }
                                                       }),
                                                 ),
                                                 Text(
@@ -908,9 +910,17 @@ class CartPageState extends State<CartPage> {
                                         ),
                                         onPressed: () async {
                                           paymentAddToCart(cart);
-                                          int printStatus = await printReceipt.printReviewReceipt(
-                                              printerList, cart.selectedTable, cart, context);
-                                          checkPrinterStatus(printStatus);
+                                          if(cart.selectedTable.isNotEmpty) {
+                                            int printStatus = await printReceipt.printReviewReceipt(
+                                                printerList, cart.selectedTable, cart, context);
+                                            checkPrinterStatus(printStatus);
+                                          }
+                                          else {
+                                            Fluttertoast.showToast(
+                                                backgroundColor: Colors.red,
+                                                msg: "${AppLocalizations.of(context)?.translate('no_table')}");
+                                          }
+
                                         },
                                         child: Text(AppLocalizations.of(context)!.translate('print_receipt')),
                                       )),
@@ -929,7 +939,7 @@ class CartPageState extends State<CartPage> {
     });
   }
 
-  int checkCartProductQuantity(CartModel cart, BranchLinkProduct branchLinkProduct) {
+  num checkCartProductQuantity(CartModel cart, BranchLinkProduct branchLinkProduct) {
     ///get all same item in cart
     List<cartProductItem> sameProductList = cart.cartNotifierItem
         .where((item) =>
@@ -939,7 +949,7 @@ class CartPageState extends State<CartPage> {
         .toList();
     if (sameProductList.isNotEmpty) {
       /// sum all quantity
-      int totalQuantity = sameProductList.fold(0, (sum, product) => sum + product.quantity!);
+      num totalQuantity = sameProductList.fold(0, (sum, product) => sum + product.quantity!);
       return totalQuantity;
     } else {
       return 0;
@@ -954,7 +964,7 @@ class CartPageState extends State<CartPage> {
       switch(product.stock_type){
         case '1': {
           if (int.parse(product.daily_limit!) > 0 && simpleIntInput <= int.parse(product.daily_limit!)) {
-            int stockLeft = int.parse(product.daily_limit!) - checkCartProductQuantity(cart, product);
+            num stockLeft = int.parse(product.daily_limit!) - checkCartProductQuantity(cart, product);
             print('stock left: ${stockLeft}');
             if (stockLeft > 0) {
               hasStock = true;
@@ -966,8 +976,9 @@ class CartPageState extends State<CartPage> {
           }
         }break;
         case '2': {
-          if (int.parse(product.stock_quantity!) > 0 && simpleIntInput <= int.parse(product.stock_quantity!)) {
-            int stockLeft = int.parse(product.stock_quantity!) - checkCartProductQuantity(cart, product);
+          num stockQuantity = int.tryParse(product.stock_quantity!) != null ? int.parse(product.stock_quantity!) : double.parse(product.stock_quantity!);
+          if (stockQuantity > 0 && simpleIntInput <= stockQuantity) {
+            num stockLeft = stockQuantity - checkCartProductQuantity(cart, product);
             if (stockLeft > 0) {
               hasStock = true;
             } else {
@@ -2819,22 +2830,28 @@ class CartPageState extends State<CartPage> {
           cancel_by_user_id: '',
           status: 0,
           sync_status: 0,
+          unit: newOrderDetailList[j].unit,
+          per_quantity_unit: newOrderDetailList[j].per_quantity_unit,
           created_at: dateTime,
           updated_at: '',
           soft_delete: '');
+      print("Unit: ${newOrderDetailList[j].unit}");
       OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(object);
       BranchLinkProduct? branchLinkProductData = await updateProductStock(
           orderDetailData.branch_link_product_sqlite_id.toString(),
-          int.parse(orderDetailData.quantity!),
+          int.tryParse(orderDetailData.quantity!) != null ? int.parse(orderDetailData.quantity!): double.parse(orderDetailData.quantity!),
+          // int.parse(orderDetailData.quantity!),
           dateTime);
       if(branchLinkProductData != null){
         _branchLinkProductValue.add(jsonEncode(branchLinkProductData.toJson()));
         branch_link_product_value = _branchLinkProductValue.toString();
       }
+
       ///insert order detail key
       OrderDetail updatedOrderDetailData = await insertOrderDetailKey(orderDetailData, dateTime);
       _orderDetailValue.add(jsonEncode(updatedOrderDetailData.syncJson()));
       order_detail_value = _orderDetailValue.toString();
+      print("Order Detail: ${order_detail_value}");
 
       ///insert order modifier detail
       if (newOrderDetailList[j].checkedModifierItem!.isNotEmpty) {
@@ -2900,8 +2917,8 @@ class CartPageState extends State<CartPage> {
     }
   }
 
-  updateProductStock(String branch_link_product_sqlite_id, int quantity, String dateTime) async {
-    int _totalStockQty = 0, updateStock = 0;
+  updateProductStock(String branch_link_product_sqlite_id, num quantity, String dateTime) async {
+    num _totalStockQty = 0, updateStock = 0;
     BranchLinkProduct? object;
     try{
       List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);
@@ -3013,8 +3030,7 @@ class CartPageState extends State<CartPage> {
             sync_status: 0,
             updated_at: dateTime,
             order_detail_sqlite_id: orderDetail.order_detail_sqlite_id);
-        int updateUniqueKey =
-            await PosDatabase.instance.updateOrderDetailUniqueKey(orderDetailObject);
+        int updateUniqueKey = await PosDatabase.instance.updateOrderDetailUniqueKey(orderDetailObject);
         if (updateUniqueKey == 1) {
           OrderDetail data = await PosDatabase.instance
               .readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);

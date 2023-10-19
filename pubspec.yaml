@@ -96,6 +96,7 @@ dependencies:
   assets_audio_player: ^3.0.6
   dotted_line: ^3.2.0
   package_info_plus: ^4.0.2
+  esc_pos_utils_plus: ^2.0.2
 
 
 dependency_overrides:

@@ -68,7 +68,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 6, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 7, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async  {
@@ -107,6 +107,12 @@ class PosDatabase {
         case 5: {
           await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dy} TEXT NOT NULL DEFAULT '' ");
           await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dx} TEXT NOT NULL DEFAULT '' ");
+        }break;
+        case 6: {
+          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.unit} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.per_quantity_unit} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.unit} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.per_quantity_unit} TEXT NOT NULL DEFAULT '' ");
         }break;
       }
     }
@@ -255,6 +261,8 @@ class PosDatabase {
         ${OrderDetailFields.cancel_by_user_id} $textType,
         ${OrderDetailFields.status} $integerType,
         ${OrderDetailFields.sync_status} $integerType,
+        ${OrderDetailFields.unit} $textType, 
+        ${OrderDetailFields.per_quantity_unit} $textType,
         ${OrderDetailFields.created_at} $textType, 
         ${OrderDetailFields.updated_at} $textType,
         ${OrderDetailFields.soft_delete} $textType)''');
@@ -313,7 +321,8 @@ class PosDatabase {
         '''CREATE TABLE $tableProduct ( ${ProductFields.product_sqlite_id} $idType, ${ProductFields.product_id} $integerType, ${ProductFields.category_id} $textType, ${ProductFields.category_sqlite_id} $textType, ${ProductFields.company_id} $textType,
            ${ProductFields.name} $textType,${ProductFields.price} $textType, ${ProductFields.description} $textType, ${ProductFields.SKU} $textType, ${ProductFields.image} $textType,
            ${ProductFields.has_variant} $integerType,${ProductFields.stock_type} $integerType, ${ProductFields.stock_quantity} $textType, ${ProductFields.available} $integerType,
-           ${ProductFields.graphic_type} $textType, ${ProductFields.color} $textType, ${ProductFields.daily_limit} $textType, ${ProductFields.daily_limit_amount} $textType,${ProductFields.sync_status} $integerType,
+           ${ProductFields.graphic_type} $textType, ${ProductFields.color} $textType, ${ProductFields.daily_limit} $textType, ${ProductFields.daily_limit_amount} $textType, 
+           ${ProductFields.sync_status} $integerType, ${ProductFields.unit} $textType, ${ProductFields.per_quantity_unit} $textType, 
            ${ProductFields.created_at} $textType, ${ProductFields.updated_at} $textType, ${ProductFields.soft_delete} $textType)''');
 /*
     create product variant table
@@ -1017,7 +1026,8 @@ class PosDatabase {
   Future<Product> insertProduct(Product data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableProduct(product_id, category_id, category_sqlite_id, company_id, name, price, description, SKU, image, has_variant, stock_type, stock_quantity, available, graphic_type, color, daily_limit, daily_limit_amount, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO $tableProduct(product_id, category_id, category_sqlite_id, company_id, name, price, description, SKU, image, has_variant, stock_type, stock_quantity, available, graphic_type, color, daily_limit, daily_limit_amount, '
+            'sync_status, unit, per_quantity_unit, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.product_id,
           data.category_id,
@@ -1037,6 +1047,8 @@ class PosDatabase {
           data.daily_limit,
           data.daily_limit_amount,
           data.sync_status,
+          data.unit,
+          data.per_quantity_unit,
           data.created_at,
           data.updated_at,
           data.soft_delete
@@ -1464,8 +1476,8 @@ class PosDatabase {
     final id = db.rawInsert(
         'INSERT INTO $tableOrderDetail(order_detail_id, order_detail_key, order_cache_sqlite_id, order_cache_key, '
         'branch_link_product_sqlite_id, category_sqlite_id, category_name, product_name, has_variant, product_variant_name, price, original_price, quantity, '
-        'remark, account, cancel_by, cancel_by_user_id, status, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
+        'remark, account, cancel_by, cancel_by_user_id, status, sync_status, unit, per_quantity_unit, created_at, updated_at, soft_delete) '
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
         [
           data.order_detail_id,
           data.order_detail_key,
@@ -1486,6 +1498,8 @@ class PosDatabase {
           data.cancel_by_user_id,
           data.status,
           data.sync_status,
+          data.unit,
+          data.per_quantity_unit,
           data.created_at,
           data.updated_at,
           data.soft_delete
@@ -2982,7 +2996,7 @@ class PosDatabase {
   Future<List<OrderDetail>> readDeletedOrderDetail(String order_cache_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.remark, a.product_variant_name, a.has_variant, a.product_name, a.category_sqlite_id, '
+        'SELECT a.remark, a.product_variant_name, a.has_variant, a.product_name, a.category_sqlite_id, a.per_quantity_unit, a.unit, '
         'a.branch_link_product_sqlite_id, a.order_cache_key, a.order_cache_key, a.order_detail_key, a.order_detail_sqlite_id, '
         'b.quantity AS item_cancel, b.cancel_by FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
         'WHERE a.order_cache_sqlite_id = ? AND a.soft_delete = ? ORDER BY b.order_detail_cancel_sqlite_id DESC LIMIT 1',
@@ -2997,7 +3011,7 @@ class PosDatabase {
   Future<OrderDetail> readSpecificOrderDetailByLocalId(int order_detail_sqlite_id) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.cancel_by_user_id, a.cancel_by, a.account, '
+        'SELECT a.soft_delete, a.updated_at, a.created_at, a.per_quantity_unit, a.unit, a.sync_status, a.status, a.cancel_by_user_id, a.cancel_by, a.account, '
         'a.remark, a.quantity, a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_cache_sqlite_id, '
         'a.order_detail_key, IFNULL( (SELECT category_id FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), 0) AS category_id,'
         'c.branch_link_product_id FROM $tableOrderDetail AS a '
