@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/fragment/table/table_change_dialog.dart';
-import 'package:pos_system/fragment/table/table_detail_dialog.dart';
 import 'package:pos_system/fragment/table/table_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
@@ -22,20 +21,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/pos_database.dart';
 import '../../notifier/table_notifier.dart';
 import '../../notifier/theme_color.dart';
-import '../../object/branch_link_product.dart';
 import '../../object/cart_product.dart';
 import '../../object/modifier_group.dart';
 import '../../object/modifier_item.dart';
-import '../../object/modifier_link_product.dart';
 import '../../object/order_detail.dart';
 import '../../object/order_modifier_detail.dart';
 import '../../object/print_receipt.dart';
 import '../../object/printer.dart';
-import '../../object/product.dart';
-import '../../object/product_variant.dart';
-import '../../object/product_variant_detail.dart';
 import '../../object/variant_group.dart';
-import '../../object/variant_item.dart';
+import '../../page/loading_dialog.dart';
 import 'advanced_table/advanced_table_view.dart';
 
 class TableMenu extends StatefulWidget {
@@ -48,6 +42,8 @@ class TableMenu extends StatefulWidget {
 }
 
 class _TableMenuState extends State<TableMenu> {
+  Timer? timer;
+
   List<Printer> printerList = [];
   List<PosTable> tableList = [];
   List<OrderCache> orderCacheList = [];
@@ -60,10 +56,11 @@ class _TableMenuState extends State<TableMenu> {
   double scrollContainerHeight = 130;
   double priceSST = 0.0;
   double priceServeTax = 0.0;
+  int tapCount = 0;
   bool isLoaded = false;
   bool showAdvanced = false;
   bool productDetailLoaded = false;
-  bool editingMode = false, isButtonDisable = false;
+  bool editingMode = false, isButtonDisable = false, onTapDisable = false;
   late SharedPreferences prefs;
 
   @override
@@ -81,6 +78,9 @@ class _TableMenuState extends State<TableMenu> {
   @override
   void dispose() {
     // TODO: implement dispose
+    if(timer != null){
+      timer!.cancel();
+    }
     super.dispose();
   }
 
@@ -306,8 +306,14 @@ class _TableMenuState extends State<TableMenu> {
                                     openChangeTableDialog(tableList[index], cart);
                                   }
                                 },
-                                onTap: () async {
-                                  onSelect(index, cart);
+                                onTap: onTapDisable ? null : () {
+                                  tapCount++;
+                                  setState(() {
+                                    onTapDisable = true;
+                                  });
+                                  if(tapCount == 1){
+                                    onSelect(index, cart);
+                                  }
                                 },
                                 child: Container(
                                   margin: MediaQuery.of(context).size.height > 500 ? EdgeInsets.all(2) : EdgeInsets.all(0),
@@ -494,51 +500,13 @@ class _TableMenuState extends State<TableMenu> {
                                       openChangeTableDialog(tableList[index], cart);
                                     }
                                   },
-                                  onTap: () async {
-                                    await readSpecificTableDetail(tableList[index]);
-                                    if (this.productDetailLoaded) {
-                                      if (tableList[index].status == 1) {
-                                        // table in use (colored)
-                                        for (int i = 0; i < tableList.length; i++) {
-                                          if (tableList[index].group == tableList[i].group) {
-                                            if (tableList[i].isSelected == false) {
-                                              tableList[i].isSelected = true;
-                                            } else if (tableList[i].isSelected == true) {
-                                              if (tableList[index].group == tableList[i].group) {
-                                                setState(() {
-                                                  //removeFromCart(cart, tableList[index]);
-                                                  tableList[i].isSelected = false;
-                                                  //print('table list: ${tableList[i].number}');
-                                                  //cart.removeSpecificTable(tableList[i]);
-                                                });
-                                              } else {
-                                                setState(() {
-                                                  //removeFromCart(cart, tableList[index]);
-                                                  tableList[i].isSelected = false;
-                                                  //cart.removeSpecificTable(tableList[index]);
-                                                });
-                                              }
-                                            }
-                                          }
-                                        }
-                                      } else {
-                                        for (int j = 0; j < tableList.length; j++) {
-                                          //reset all using table to un-select (table status == 1)
-                                          if (tableList[j].status == 1) {
-                                            tableList[j].isSelected = false;
-                                            cart.removeAllCartItem();
-                                            cart.removePromotion();
-                                            cart.removeSpecificTable(tableList[j]);
-                                          }
-                                        }
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFF07F107), msg: AppLocalizations.of(context)!.translate('table_not_in_use'));
-                                      }
-                                      if (tableList[index].status == 1 && tableList[index].isSelected == true) {
-                                        //await readSpecificTableDetail(tableList[index]);
-                                        addToCart(cart, tableList[index]);
-                                      } else {
-                                        removeFromCart(cart, tableList[index]);
-                                      }
+                                  onTap: onTapDisable ? null : () {
+                                    tapCount++;
+                                    setState(() {
+                                      onTapDisable = true;
+                                    });
+                                    if(tapCount == 1){
+                                      onSelect(index, cart);
                                     }
                                   },
                                   child: Container(
@@ -606,67 +574,111 @@ class _TableMenuState extends State<TableMenu> {
                       : CustomProgressBar());
             }
           });
-          // need to apply changes
-
-          // end of apply changes
         });
       });
     });
   }
 
   onSelect(index, cart) async {
-    await readSpecificTableDetail(tableList[index]);
-    if (!editingMode) {
-      if (this.productDetailLoaded) {
-        if (tableList[index].status == 1) {
-          // table in use (colored)
-          for (int i = 0; i < tableList.length; i++) {
-            if (tableList[index].group == tableList[i].group) {
-              if (tableList[i].isSelected == false) {
-                tableList[i].isSelected = true;
-              } else if (tableList[i].isSelected == true) {
-                if (tableList[index].group == tableList[i].group) {
-                  setState(() {
-                    //removeFromCart(cart, tableList[index]);
-                    tableList[i].isSelected = false;
-                    //print('table list: ${tableList[i].number}');
-                    //cart.removeSpecificTable(tableList[i]);
-                  });
-                } else {
-                  setState(() {
-                    //removeFromCart(cart, tableList[index]);
-                    tableList[i].isSelected = false;
-                    //cart.removeSpecificTable(tableList[index]);
-                  });
+    try{
+      openLoadingDialogBox();
+      timer = Timer(Duration(milliseconds: 500), () async {
+        try{
+          await readSpecificTableDetail(tableList[index]);
+          if (!editingMode) {
+            if (this.productDetailLoaded) {
+              if (tableList[index].status == 1) {
+                // table in use (colored)
+                for (int i = 0; i < tableList.length; i++) {
+                  if (tableList[index].group == tableList[i].group) {
+                    if (tableList[i].isSelected == false) {
+                      tableList[i].isSelected = true;
+                    } else if (tableList[i].isSelected == true) {
+                      if (tableList[index].group == tableList[i].group) {
+                        setState(() {
+                          //removeFromCart(cart, tableList[index]);
+                          tableList[i].isSelected = false;
+                          //print('table list: ${tableList[i].number}');
+                          //cart.removeSpecificTable(tableList[i]);
+                        });
+                      } else {
+                        setState(() {
+                          //removeFromCart(cart, tableList[index]);
+                          tableList[i].isSelected = false;
+                          //cart.removeSpecificTable(tableList[index]);
+                        });
+                      }
+                    }
+                  }
                 }
+              } else {
+                for (int j = 0; j < tableList.length; j++) {
+                  //reset all using table to un-select (table status == 1)
+                  if (tableList[j].status == 1) {
+                    tableList[j].isSelected = false;
+                    cart.removeAllCartItem();
+                    cart.removePromotion();
+                    cart.removeSpecificTable(tableList[j]);
+                  }
+                }
+                Fluttertoast.showToast(backgroundColor: Color(0xFF07F107), msg: AppLocalizations.of(context)!.translate('table_not_in_use'));
+              }
+              if (tableList[index].status == 1 && tableList[index].isSelected == true) {
+                //await readSpecificTableDetail(tableList[index]);
+                addToCart(cart, tableList[index]);
+              } else {
+                removeFromCart(cart, tableList[index]);
               }
             }
+          } else {
+            if (tableList[index].status != 1) {
+              //openEditTableDialog(tableList[index]);
+            } else
+              Fluttertoast.showToast(backgroundColor: Color(0xFF07F107), msg: AppLocalizations.of(context)!.translate('table_is_used'));
           }
-        } else {
-          for (int j = 0; j < tableList.length; j++) {
-            //reset all using table to un-select (table status == 1)
-            if (tableList[j].status == 1) {
-              tableList[j].isSelected = false;
-              cart.removeAllCartItem();
-              cart.removePromotion();
-              cart.removeSpecificTable(tableList[j]);
-            }
-          }
-          Fluttertoast.showToast(backgroundColor: Color(0xFF07F107), msg: AppLocalizations.of(context)!.translate('table_not_in_use'));
+          setState(() {
+            tapCount = 0;
+            onTapDisable = false;
+            Navigator.of(context).pop();
+          });
+        }catch(e){
+          print("catch error: $e");
+          setState(() {
+            tapCount = 0;
+            onTapDisable = false;
+            Navigator.of(context).pop();
+          });
         }
-        if (tableList[index].status == 1 && tableList[index].isSelected == true) {
-          //await readSpecificTableDetail(tableList[index]);
-          addToCart(cart, tableList[index]);
-        } else {
-          removeFromCart(cart, tableList[index]);
-        }
-      }
-    } else {
-      if (tableList[index].status != 1) {
-        //openEditTableDialog(tableList[index]);
-      } else
-        Fluttertoast.showToast(backgroundColor: Color(0xFF07F107), msg: AppLocalizations.of(context)!.translate('table_is_used'));
+      });
+    }catch(e){
+      print("on select get table order detail error: $e");
+      setState(() {
+        tapCount = 0;
+        onTapDisable = false;
+        Navigator.of(context).pop();
+      });
     }
+  }
+
+  Future<Future<Object?>> openLoadingDialogBox() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: WillPopScope(child: LoadingDialog(isTableMenu: true), onWillPop: () async => false)),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   Future<Future<Object?>> openAddTableDialog(PosTable posTable) async {
@@ -1081,19 +1093,8 @@ class _TableMenuState extends State<TableMenu> {
       var detailLength = orderDetailList.length;
       for (int i = 0; i < detailLength; i++) {
         value = cartProductItem(
-          branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
-          product_name: orderDetailList[i].productName!,
-          category_id: orderDetailList[i].product_category_id!,
-          price: orderDetailList[i].price!,
           quantity: int.tryParse(orderDetailList[i].quantity!) != null ? int.parse(orderDetailList[i].quantity!) : double.parse(orderDetailList[i].quantity!),
-          modifier: getModifierGroupItem(orderDetailList[i]),
-          variant: getVariantGroupItem(orderDetailList[i]),
-          remark: orderDetailList[i].remark!,
-          status: 0,
           order_cache_sqlite_id: orderDetailList[i].order_cache_sqlite_id,
-          category_sqlite_id: orderDetailList[i].category_sqlite_id,
-          order_detail_sqlite_id: orderDetailList[i].order_detail_sqlite_id.toString(),
-          refColor: toColor(posTable.card_color!),
         );
         cart.removeSpecificItem(value);
         cart.removePromotion();
@@ -1129,11 +1130,19 @@ class _TableMenuState extends State<TableMenu> {
                 tableList: tableList,
                 tableLength: tableList.length,
                 editingMode: editingMode,
-                callBack: (action, value) {
-                  if (action == 'on_tap')
-                    onSelect(i, cart);
-                  else if (action == 'on_double_tap')
+                callBack: onTapDisable ? (action, value){} : (action, value) {
+                  if (action == 'on_tap'){
+                    tapCount++;
+                    setState(() {
+                      onTapDisable = true;
+                    });
+                    if(tapCount == 1){
+                      onSelect(i, cart);
+                    }
+                  }
+                  else if (action == 'on_double_tap') {
                     openChangeTableDialog(tableList[i], cart);
+                  }
                 },
               )
           ],

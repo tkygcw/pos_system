@@ -1,11 +1,12 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/object/cart_payment.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/promotion.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../database/pos_database.dart';
+import '../object/branch_link_dining_option.dart';
 import '../object/table.dart';
 
 class CartModel extends ChangeNotifier {
@@ -14,11 +15,23 @@ class CartModel extends ChangeNotifier {
   List<Promotion> autoPromotion = [];
   Promotion? selectedPromotion ;
   List<PosTable> selectedTable = [];
-  String selectedOption = 'Dine in';
+  String selectedOption = '';
   String selectedOptionId = '';
   bool isInit = false;
   int myCount = 0;
   bool isChange = false;
+
+  readAllBranchLinkDiningOption() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    List<BranchLinkDining> data = await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
+
+    if(data.length == 3){
+      selectedOption = 'Dine in';
+    } else {
+      selectedOption = "Take Away";
+    }
+  }
 
   void initialLoad() {
     removeAllTable();
@@ -26,7 +39,7 @@ class CartModel extends ChangeNotifier {
     removePromotion();
     removeAutoPromotion();
     removePaymentDetail();
-    selectedOption = 'Dine in';
+    readAllBranchLinkDiningOption();
     //selectedOptionId = '1';
     notifyListeners();
   }

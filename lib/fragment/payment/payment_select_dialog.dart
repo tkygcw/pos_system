@@ -93,7 +93,13 @@ class _PaymentSelectState extends State<PaymentSelect> {
                                   return GestureDetector(
                                     onTap: () async {
                                       if(widget.isUpdate == null){
-                                        openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name);
+                                        if(cart.cartNotifierItem.isNotEmpty){
+                                          openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name);
+                                        } else {
+                                          Fluttertoast.showToast(
+                                              backgroundColor: Colors.red,
+                                              msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                        }
                                       } else {
                                         setState(() {
                                           willPop = false;
@@ -208,7 +214,13 @@ class _PaymentSelectState extends State<PaymentSelect> {
                             return GestureDetector(
                               onTap: () async  {
                                 if(widget.isUpdate == null){
-                                  openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name);
+                                  if(cart.cartNotifierItem.isNotEmpty){
+                                    openMakePayment(PaymentLists[index].type!, PaymentLists[index].payment_link_company_id!, widget.dining_id!, widget.dining_name);
+                                  } else {
+                                    Fluttertoast.showToast(
+                                        backgroundColor: Colors.red,
+                                        msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                  }
                                 } else {
                                   setState(() {
                                     willPop = false;

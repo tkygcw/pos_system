@@ -312,13 +312,14 @@ class CartPageState extends State<CartPage> {
                             margin: MediaQuery.of(context).size.height > 500
                                 ? EdgeInsets.only(bottom: 10)
                                 : EdgeInsets.zero,
-                            height: MediaQuery.of(context).size.height > 500 ? 70 : 50,
+                            //height: MediaQuery.of(context).size.height > 500 ? 70 : 50,
                             child: GridView(
                                 physics: NeverScrollableScrollPhysics(),
                                 shrinkWrap: true,
                                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                  childAspectRatio: 1.8,
+                                  crossAxisCount: diningList.length == 3 ?  3 : 2,
+                                  childAspectRatio: 2.0,
+                                  mainAxisExtent: 50
                                 ),
                                 children: List.generate(diningList.length, (index) {
                                   return InkWell(
@@ -511,11 +512,6 @@ class CartPageState extends State<CartPage> {
                                 ? 130
                                 : null
                                 : 25,
-                            // widget.currentPage == 'menu' || widget.currentPage == 'table' && MediaQuery.of(context).size.height > 500
-                            //     ? 130
-                            //     : MediaQuery.of(context).size.height > 500
-                            //         ? null
-                            //         : 25,
                             child: ListView(
                               physics: ClampingScrollPhysics(),
                               children: [
@@ -1920,9 +1916,9 @@ class CartPageState extends State<CartPage> {
 */
   getSubTotal(CartModel cart) async {
     try {
-      widget.currentPage == 'table' || widget.currentPage == 'qr_order'
-          ? cart.selectedOption = 'Dine in'
-          : null;
+      // widget.currentPage == 'table' || widget.currentPage == 'qr_order'
+      //     ? cart.selectedOption = 'Dine in'
+      //     : null;
       total = 0.0;
       newOrderSubtotal = 0.0;
       promo = 0.0;
@@ -2129,7 +2125,7 @@ class CartPageState extends State<CartPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
                 opacity: a1.value,
-                child: WillPopScope(child: LoadingDialog(), onWillPop: () async => false)),
+                child: WillPopScope(child: LoadingDialog(isTableMenu: false), onWillPop: () async => false)),
           );
         },
         transitionDuration: Duration(milliseconds: 200),
