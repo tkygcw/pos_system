@@ -310,13 +310,14 @@ class CartPageState extends State<CartPage> {
                             margin: MediaQuery.of(context).size.height > 500
                                 ? EdgeInsets.only(bottom: 10)
                                 : EdgeInsets.zero,
-                            height: MediaQuery.of(context).size.height > 500 ? 70 : 50,
+                            //height: MediaQuery.of(context).size.height > 500 ? 70 : 50,
                             child: GridView(
                                 physics: NeverScrollableScrollPhysics(),
                                 shrinkWrap: true,
                                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                  childAspectRatio: 1.8,
+                                  crossAxisCount: diningList.length == 3 ?  3 : 2,
+                                  childAspectRatio: 2.0,
+                                  mainAxisExtent: 50
                                 ),
                                 children: List.generate(diningList.length, (index) {
                                   return InkWell(
@@ -358,141 +359,128 @@ class CartPageState extends State<CartPage> {
                                 })),
                           ),
                           Expanded(
-                            child: Container(
-                              height: MediaQuery.of(context).size.height > 500 ? 350 : 250,
-                              child: ListView.builder(
-                                  controller: _scrollController,
-                                  shrinkWrap: true,
-                                  itemCount: cart.cartNotifierItem.length,
-                                  itemBuilder: (context, index) {
-                                    return Dismissible(
-                                      background: Container(
-                                        color: Colors.red,
-                                        padding: EdgeInsets.only(left: 25.0),
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.delete, color: Colors.white),
+                            child: ListView.builder(
+                                controller: _scrollController,
+                                shrinkWrap: true,
+                                itemCount: cart.cartNotifierItem.length,
+                                itemBuilder: (context, index) {
+                                  return Dismissible(
+                                    background: Container(
+                                      color: Colors.red,
+                                      padding: EdgeInsets.only(left: 25.0),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.delete, color: Colors.white),
+                                        ],
+                                      ),
+                                    ),
+                                    key: ValueKey(cart.cartNotifierItem[index].product_name),
+                                    direction: widget.currentPage == 'menu' &&
+                                        cart.cartNotifierItem[index].status == 0 ||
+                                        widget.currentPage == 'table' ||
+                                        widget.currentPage == 'other_order'
+                                        ? DismissDirection.startToEnd
+                                        : DismissDirection.none,
+                                    confirmDismiss: (direction) async {
+                                      if (direction == DismissDirection.startToEnd) {
+                                        await openRemoveCartItemDialog(
+                                            cart.cartNotifierItem[index], widget.currentPage);
+                                      }
+                                      return null;
+                                    },
+                                    child: ListTile(
+                                      hoverColor: Colors.transparent,
+                                      isThreeLine: true,
+                                      title: RichText(
+                                        text: TextSpan(
+                                          children: <TextSpan>[
+                                            TextSpan(
+                                              text:
+                                              cart.cartNotifierItem[index].product_name! + '\n',
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: cart.cartNotifierItem[index].status == 1
+                                                      ? font
+                                                      : cart.cartNotifierItem[index].refColor,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            TextSpan(
+                                                text: "RM" + cart.cartNotifierItem[index].price!,
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: cart.cartNotifierItem[index].status == 1
+                                                      ? font
+                                                      : cart.cartNotifierItem[index].refColor,
+                                                )),
                                           ],
                                         ),
                                       ),
-                                      key: ValueKey(cart.cartNotifierItem[index].product_name),
-                                      direction: widget.currentPage == 'menu' &&
-                                          cart.cartNotifierItem[index].status == 0 ||
-                                          widget.currentPage == 'table' ||
-                                          widget.currentPage == 'other_order'
-                                          ? DismissDirection.startToEnd
-                                          : DismissDirection.none,
-                                      confirmDismiss: (direction) async {
-                                        if (direction == DismissDirection.startToEnd) {
-                                          await openRemoveCartItemDialog(
-                                              cart.cartNotifierItem[index], widget.currentPage);
-                                        }
-                                        return null;
-                                      },
-                                      child: ListTile(
-                                        hoverColor: Colors.transparent,
-                                        onTap: () {},
-                                        isThreeLine: true,
-                                        title: RichText(
-                                          text: TextSpan(
-                                            children: <TextSpan>[
-                                              TextSpan(
-                                                text:
-                                                cart.cartNotifierItem[index].product_name! + '\n',
-                                                style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: cart.cartNotifierItem[index].status == 1
-                                                        ? font
-                                                        : cart.cartNotifierItem[index].refColor,
-                                                    fontWeight: FontWeight.bold),
-                                              ),
-                                              TextSpan(
-                                                  text: "RM" + cart.cartNotifierItem[index].price!,
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                    color: cart.cartNotifierItem[index].status == 1
-                                                        ? font
-                                                        : cart.cartNotifierItem[index].refColor,
-                                                  )),
-                                            ],
-                                          ),
-                                        ),
-                                        subtitle: Text(
-                                            getVariant(cart.cartNotifierItem[index]) +
-                                                getModifier(cart.cartNotifierItem[index]) +
-                                                getRemark(cart.cartNotifierItem[index]),
-                                            style: TextStyle(fontSize: 10)),
-                                        trailing: Container(
-                                          child: FittedBox(
-                                            child: Row(
-                                              children: [
-                                                Visibility(
-                                                  visible:
-                                                  widget.currentPage == 'menu' ? true : false,
-                                                  child: IconButton(
-                                                      hoverColor: Colors.transparent,
-                                                      icon: Icon(Icons.remove),
-                                                      onPressed: () {
-                                                        cart.cartNotifierItem[index].quantity != 1 &&
-                                                            cart.cartNotifierItem[index].status ==
-                                                                0
-                                                            ? setState(() => cart
-                                                            .cartNotifierItem[index]
-                                                            .quantity = cart
-                                                            .cartNotifierItem[index]
-                                                            .quantity! -
-                                                            1)
-                                                            : cart.cartNotifierItem[index].status != 0
-                                                            ? Fluttertoast.showToast(
-                                                            backgroundColor: Colors.red,
-                                                            msg: AppLocalizations.of(context)!.translate('order_already_placed'))
-                                                            : cart.removeItem(
-                                                            cart.cartNotifierItem[index]);
-                                                      }),
-                                                ),
-                                                Text(
-                                                  cart.cartNotifierItem[index].quantity.toString(),
-                                                  style: TextStyle(
-                                                      color: cart.cartNotifierItem[index].refColor),
-                                                ),
-                                                widget.currentPage == 'menu'
-                                                    ? IconButton(
+                                      subtitle: Text(
+                                          getVariant(cart.cartNotifierItem[index]) +
+                                              getModifier(cart.cartNotifierItem[index]) +
+                                              getRemark(cart.cartNotifierItem[index]),
+                                          style: TextStyle(fontSize: 10)),
+                                      trailing: Container(
+                                        child: FittedBox(
+                                          child: Row(
+                                            children: [
+                                              Visibility(
+                                                visible: widget.currentPage == 'menu' ? true : false,
+                                                child: IconButton(
                                                     hoverColor: Colors.transparent,
-                                                    icon: Icon(Icons.add),
-                                                    onPressed: () async {
-                                                      if (cart.cartNotifierItem[index].status ==
-                                                          0) {
-                                                        if (await checkProductStock(cart,
-                                                            cart.cartNotifierItem[index]) ==
-                                                            true) {
-                                                          setState(() {
-                                                            cart.cartNotifierItem[index]
-                                                                .quantity = cart
-                                                                .cartNotifierItem[index]
-                                                                .quantity! +
-                                                                1;
-                                                          });
-                                                        } else {
-                                                          Fluttertoast.showToast(
-                                                              backgroundColor: Colors.red,
-                                                              msg: AppLocalizations.of(context)!.translate('product_out_of_stock'));
-                                                        }
+                                                    icon: Icon(Icons.remove),
+                                                    onPressed: () {
+                                                      cart.cartNotifierItem[index].quantity != 1 && cart.cartNotifierItem[index].status == 0
+                                                          ? setState(() => cart.cartNotifierItem[index].quantity = cart.cartNotifierItem[index].quantity! - 1)
+                                                          : cart.cartNotifierItem[index].status != 0
+                                                          ? Fluttertoast.showToast(
+                                                          backgroundColor: Colors.red,
+                                                          msg: AppLocalizations.of(context)!.translate('order_already_placed'))
+                                                          : cart.removeItem(cart.cartNotifierItem[index]);
+                                                    }),
+                                              ),
+                                              Text(
+                                                cart.cartNotifierItem[index].quantity.toString(),
+                                                style: TextStyle(
+                                                    color: cart.cartNotifierItem[index].refColor),
+                                              ),
+                                              widget.currentPage == 'menu' ?
+                                              IconButton(
+                                                  hoverColor: Colors.transparent,
+                                                  icon: Icon(Icons.add),
+                                                  onPressed: () async {
+                                                    if (cart.cartNotifierItem[index].status ==
+                                                        0) {
+                                                      if (await checkProductStock(cart,
+                                                          cart.cartNotifierItem[index]) ==
+                                                          true) {
+                                                        setState(() {
+                                                          cart.cartNotifierItem[index]
+                                                              .quantity = cart
+                                                              .cartNotifierItem[index]
+                                                              .quantity! +
+                                                              1;
+                                                        });
                                                       } else {
                                                         Fluttertoast.showToast(
                                                             backgroundColor: Colors.red,
-                                                            msg: AppLocalizations.of(context)!.translate('order_already_placed'));
+                                                            msg: AppLocalizations.of(context)!.translate('product_out_of_stock'));
                                                       }
-                                                      controller.add('refresh');
-                                                    })
-                                                    : Container()
-                                              ],
-                                            ),
+                                                    } else {
+                                                      Fluttertoast.showToast(
+                                                          backgroundColor: Colors.red,
+                                                          msg: AppLocalizations.of(context)!.translate('order_already_placed'));
+                                                    }
+                                                    controller.add('refresh');
+                                                  })
+                                                  : Container()
+                                            ],
                                           ),
                                         ),
                                       ),
-                                    );
-                                  }),
-                            ),
+                                    ),
+                                  );
+                                }),
                           ),
                           SizedBox(height: MediaQuery.of(context).size.height > 500 ? 20 : 5),
                           Divider(
@@ -509,11 +497,6 @@ class CartPageState extends State<CartPage> {
                                 ? 130
                                 : null
                                 : 25,
-                            // widget.currentPage == 'menu' || widget.currentPage == 'table' && MediaQuery.of(context).size.height > 500
-                            //     ? 130
-                            //     : MediaQuery.of(context).size.height > 500
-                            //         ? null
-                            //         : 25,
                             child: ListView(
                               physics: ClampingScrollPhysics(),
                               children: [
@@ -1909,9 +1892,9 @@ class CartPageState extends State<CartPage> {
 */
   getSubTotal(CartModel cart) async {
     try {
-      widget.currentPage == 'table' || widget.currentPage == 'qr_order'
-          ? cart.selectedOption = 'Dine in'
-          : null;
+      // widget.currentPage == 'table' || widget.currentPage == 'qr_order'
+      //     ? cart.selectedOption = 'Dine in'
+      //     : null;
       total = 0.0;
       newOrderSubtotal = 0.0;
       promo = 0.0;
@@ -2118,7 +2101,7 @@ class CartPageState extends State<CartPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
                 opacity: a1.value,
-                child: WillPopScope(child: LoadingDialog(), onWillPop: () async => false)),
+                child: WillPopScope(child: LoadingDialog(isTableMenu: false), onWillPop: () async => false)),
           );
         },
         transitionDuration: Duration(milliseconds: 200),

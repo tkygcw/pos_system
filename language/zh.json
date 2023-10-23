@@ -266,6 +266,7 @@
   "pin_incorrect_user_not_found": "PIN不正确，找不到用户",
   "pin_not_match": "用户PIN不匹配",
   "place_order": "下单",
+  "please_wait": "请稍等...",
   "placing_order_please_wait": "正在下订单，请稍等...",
   "please_check_your_email_or_password": "请检查您的电子邮件或密码",
   "please_enter_an_amount": "请输入金额",

@@ -743,7 +743,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       child:
                                                           ElevatedButton.icon(
                                                               onPressed:
-                                                                  isButtonDisable
+                                                                  isButtonDisable || cart.cartNotifierItem.isEmpty
                                                                       ? null
                                                                       : () async {
                                                                           makePayment(
@@ -860,7 +860,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                 .all(EdgeInsets
                                                                     .all(20))),
                                                         onPressed:
-                                                            isButtonDisable
+                                                            isButtonDisable || cart.cartNotifierItem.isEmpty
                                                                 ? null
                                                                 : () async {
                                                                     setState(
@@ -1411,7 +1411,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                                           color
                                                                               .backgroundColor),
                                                               onPressed:
-                                                                  isButtonDisable
+                                                                  isButtonDisable || cart.cartNotifierItem.isEmpty
                                                                       ? null
                                                                       : () async {
                                                                           if (double.parse(inputController.text) >=
@@ -1515,7 +1515,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                           MaterialStateProperty
                                                               .all(color
                                                                   .backgroundColor)),
-                                                  onPressed: isButtonDisable
+                                                  onPressed: isButtonDisable || cart.cartNotifierItem.isEmpty
                                                       ? null
                                                       : () async {
                                                           setState(() {

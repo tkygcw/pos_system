@@ -11,6 +11,8 @@ import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/product_variant_detail.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/table_use.dart';
+import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/tax.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/object/user.dart';
@@ -222,6 +224,20 @@ class SyncRecord {
                 syncRecordIdList.add(responseJson[i]['id']);
               }
               break;
+            case '26':
+              //table use
+              bool status = await callTableUseQuery(data: responseJson[i]['data']);
+              if(status == true){
+                syncRecordIdList.add(responseJson[i]['id']);
+              }
+              break;
+            case '27':
+              //table use detail
+              bool status = await callTableUseDetailQuery(data: responseJson[i]['data']);
+              if(status == true){
+                syncRecordIdList.add(responseJson[i]['id']);
+              }
+              break;
           }
         }
         print('sync record length: ${syncRecordIdList.length}');
@@ -256,6 +272,42 @@ class SyncRecord {
       return 3;
     }
 
+  }
+
+  callTableUseDetailQuery({data}) async {
+    bool isComplete = false;
+    try{
+      TableUseDetail detailData = TableUseDetail.fromJson(data[0]);
+      TableUseDetail? checkData = await PosDatabase.instance.checkSpecificTableUseDetail(detailData.table_use_detail_key!);
+      if(checkData != null){
+        int status = await PosDatabase.instance.updateTableUseDetailFromCloud(detailData);
+        if(status == 1){
+          isComplete = true;
+        }
+      }
+
+    }catch(e){
+      print("call table use detail query error: $e");
+    }
+    return isComplete;
+  }
+
+  callTableUseQuery({data}) async {
+    bool isComplete = false;
+    try{
+      TableUse tableUseData = TableUse.fromJson(data[0]);
+      TableUse? checkData = await PosDatabase.instance.checkSpecificTableUse(tableUseData.table_use_key!);
+      if(checkData != null){
+        int status = await PosDatabase.instance.updateTableUse(tableUseData);
+        if(status == 1){
+          isComplete = true;
+        }
+      }
+
+    }catch(e){
+      print("call table use query error: $e");
+    }
+    return isComplete;
   }
 
   callPrinterLinkCategoryQuery({data}) async {
@@ -407,9 +459,17 @@ class SyncRecord {
         isComplete = true;
       }
     } else {
-      int data = await PosDatabase.instance.updateDiningOption(diningOption);
-      if(data == 1){
-        isComplete = true;
+      DiningOption? checkData = await PosDatabase.instance.checkSpecificDiningOptionByCloudId(diningOption.dining_id.toString());
+      if(checkData != null){
+        int data = await PosDatabase.instance.updateDiningOption(diningOption);
+        if(data == 1){
+          isComplete = true;
+        }
+      } else {
+        DiningOption data = await PosDatabase.instance.insertDiningOption(diningOption);
+        if(data.created_at != ''){
+          isComplete = true;
+        }
       }
     }
     return isComplete;

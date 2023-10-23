@@ -509,10 +509,11 @@ packages:
   flutter_usb_printer:
     dependency: "direct main"
     description:
-      name: flutter_usb_printer
-      sha256: "5e83c1e03cdedd2e41ad3f3a2ce7c628fdcc489d03b5b40e3020e2df4ea1ce40"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "8715c69a8919efb0df6a4cde304c81141e5db74a"
+      url: "https://github.com/tkygcw/flutter_usb_printer.git"
+    source: git
     version: "0.1.0+1"
   flutter_web_plugins:
     dependency: transitive
