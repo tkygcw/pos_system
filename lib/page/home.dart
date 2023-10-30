@@ -225,6 +225,7 @@ class _HomePageState extends State<HomePage> {
                                       : 2,
                                   child: CartPage(
                                     currentPage: currentPage,
+                                    parentContext: context,
                                   )),
                             )
                           ],
