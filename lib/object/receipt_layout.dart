@@ -21,6 +21,7 @@ import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image/image.dart' as img;
 
 import 'modifier_group.dart';
 import 'order.dart';
@@ -2394,11 +2395,19 @@ class ReceiptLayout{
 /*
   kitchen layout 80mm
 */
-  printKitchenList80mm(bool isUSB, cartProductItem cartItem, int localId, {value}) async {
-    String dateTime = dateFormat.format(DateTime.now());
+  printKitchenList80mm(bool isUSB, int localId, {value, required OrderDetail orderDetail}) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     await readOrderCache(localId);
+    cartProductItem cartItem = cartProductItem(
+      quantity: int.parse(orderDetail.quantity!),
+      product_name: orderDetail.productName,
+      productVariantName: orderDetail.product_variant_name,
+      remark: orderDetail.remark,
+      orderModifierDetail: orderDetail.orderModifierDetail,
+      unit: orderDetail.unit,
+      per_quantity_unit: orderDetail.per_quantity_unit
+    );
 
     if(_isLoad == true){
       var generator;
@@ -2446,37 +2455,24 @@ class ReceiptLayout{
         ]);
         bytes += generator.reset();
         //product variant
-        if(cartItem.variant!.isNotEmpty){
+        if(cartItem.productVariantName != ''){
           bytes += generator.row([
             PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '(${getVariant(cartItem)})', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size2)),
+            PosColumn(text: '(${cartItem.productVariantName})', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
           ]);
-          // for (int i = 0; i < cartItem.variant.length; i++) {
-          //   VariantGroup group = cartItem.variant[i];
-          //   for (int j = 0; j < group.child.length; j++) {
-          //     if (group.child[j].isSelected!) {
-          //       bytes += generator.row([
-          //         PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.left)),
-          //         PosColumn(text: '(${group.child[j].name!})', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
-          //         PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.right)),
-          //       ]);
-          //     }
-          //   }
-          // }
         }
         bytes += generator.reset();
         //product modifier
-        if(cartItem.modifier!.isNotEmpty){
-          for (int i = 0; i < cartItem.modifier!.length; i++) {
-            ModifierGroup group = cartItem.modifier![i];
-            for (int j = 0; j < group.modifierChild!.length; j++) {
-              if (group.modifierChild![j].isChecked!) {
-                bytes += generator.row([
-                  PosColumn(text: '', width: 2),
-                  PosColumn(text: '+${group.modifierChild![j].name!}', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size2))
-                ]);
-              }
-            }
+        if(cartItem.orderModifierDetail!.isNotEmpty) {
+          for (int j = 0; j < cartItem.orderModifierDetail!.length; j++) {
+            //modifier
+            bytes += generator.row([
+              PosColumn(text: '', width: 2),
+              PosColumn(text: '+${cartItem.orderModifierDetail![j].mod_name}',
+                  containsChinese: true,
+                  width: 10,
+                  styles: PosStyles(align: PosAlign.left)),
+            ]);
           }
         }
         /*
@@ -2504,11 +2500,18 @@ class ReceiptLayout{
 /*
   kitchen layout 58mm
 */
-  printKitchenList58mm(bool isUSB, cartProductItem cartItem, int localId, {value}) async {
+  printKitchenList58mm(bool isUSB, int localId, {value, required OrderDetail orderDetail}) async {
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     await readOrderCache(localId);
+    cartProductItem cartItem = cartProductItem(
+      quantity: int.parse(orderDetail.quantity!),
+      product_name: orderDetail.productName,
+      productVariantName: orderDetail.product_variant_name,
+      remark: orderDetail.remark,
+      orderModifierDetail: orderDetail.orderModifierDetail,
+    );
 
     if(_isLoad == true){
       var generator;
@@ -2553,39 +2556,24 @@ class ReceiptLayout{
         ]);
         bytes += generator.reset();
         //product variant
-        if(cartItem.variant!.isNotEmpty){
+        if(cartItem.productVariantName != ''){
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '(${getVariant(cartItem)})', width: 10, containsChinese: true)
+            PosColumn(text: '(${cartItem.productVariantName})', width: 10, containsChinese: true)
           ]);
-          // for (int i = 0; i < cartItem.variant.length; i++) {
-          //   VariantGroup group = cartItem.variant[i];
-          //   for (int j = 0; j < group.child.length; j++) {
-          //     if (group.child[j].isSelected!) {
-          //       bytes += generator.row([
-          //         PosColumn(text: '', width: 2),
-          //         PosColumn(text: '-${group.child[j].name!}', width: 8, containsChinese: true,),
-          //         PosColumn(text: '', width: 2),
-          //       ]);
-          //     }
-          //   }
-          // }
         }
         bytes += generator.reset();
         //product modifier
-        if(cartItem.modifier!.isNotEmpty){
-          for (int i = 0; i < cartItem.modifier!.length; i++) {
-            ModifierGroup group = cartItem.modifier![i];
-            for (int j = 0; j < group.modifierChild!.length; j++) {
-              if (group.modifierChild![j].isChecked!) {
-                bytes += generator.row([
-                  PosColumn(text: '', width: 2),
-                  PosColumn(text: '+${group.modifierChild![j].name!}',
-                      width: 10,
-                      containsChinese: true)
-                ]);
-              }
-            }
+        if(cartItem.orderModifierDetail!.isNotEmpty) {
+          for (int j = 0; j < cartItem.orderModifierDetail!.length; j++) {
+            //modifier
+            bytes += generator.row([
+              PosColumn(text: '', width: 2),
+              PosColumn(text: '+${cartItem.orderModifierDetail![j].mod_name}',
+                  width: 10,
+                  containsChinese: true,
+                  styles: PosStyles(height: PosTextSize.size1, width: PosTextSize.size1))
+            ]);
           }
         }
         /*
