@@ -112,6 +112,8 @@ class OrderDetail{
   bool? isRemove;
   String? item_cancel;
   List<OrderDetail> categoryOrderDetailList = [];
+  bool isSelected = true;
+  List<String> tableNumber = [];
 
   OrderDetail(
       {this.order_detail_sqlite_id,

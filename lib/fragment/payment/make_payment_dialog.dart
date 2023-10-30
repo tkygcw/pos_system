@@ -242,8 +242,7 @@ class _MakePaymentState extends State<MakePayment> {
             if (constraints.maxWidth > 800) {
               return WillPopScope(
                   onWillPop: () async {
-                    if (notificationModel.hasSecondScreen == true &&
-                        notificationModel.secondScreenEnable == true) {
+                    if (notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true) {
                       reInitSecondDisplay(isWillPop: true);
                     }
                     return willPop;
@@ -262,11 +261,7 @@ class _MakePaymentState extends State<MakePayment> {
                                   ? null
                                   : () {
                                       setState(() {
-                                        if (notificationModel.hasSecondScreen ==
-                                                true &&
-                                            notificationModel
-                                                    .secondScreenEnable ==
-                                                true) {
+                                        if (notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true) {
                                           reInitSecondDisplay(isWillPop: true);
                                         }
                                         willPop = true;
@@ -289,13 +284,8 @@ class _MakePaymentState extends State<MakePayment> {
                                     Container(
                                       margin: EdgeInsets.only(bottom: 20),
                                       alignment: Alignment.center,
-                                      child: Text(
-                                          AppLocalizations.of(context)!
-                                                  .translate('table_no') +
-                                              ': ${getSelectedTable(cart)}',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 24)),
+                                      child: Text(AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable(cart)}',
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                                     ),
                                     Container(
                                       //margin: EdgeInsets.fromLTRB(30, 0.0, 30, 0.0),
@@ -304,27 +294,15 @@ class _MakePaymentState extends State<MakePayment> {
                                         child: Column(
                                           children: [
                                             Container(
-                                              height: MediaQuery.of(context)
-                                                          .size
-                                                          .width <
-                                                      1300
-                                                  ? MediaQuery.of(context)
-                                                          .size
-                                                          .width /
-                                                      4.5
-                                                  : MediaQuery.of(context)
-                                                          .size
-                                                          .width /
-                                                      5,
+                                              height: MediaQuery.of(context).size.width < 1300
+                                                  ? MediaQuery.of(context).size.width / 4.5
+                                                  : MediaQuery.of(context).size.width / 5,
                                               child: ListView.builder(
                                                   shrinkWrap: true,
-                                                  itemCount: cart
-                                                      .cartNotifierItem.length,
-                                                  itemBuilder:
-                                                      (context, index) {
+                                                  itemCount: cart.cartNotifierItem.length,
+                                                  itemBuilder: (context, index) {
                                                     return ListTile(
-                                                      hoverColor:
-                                                          Colors.transparent,
+                                                      hoverColor: Colors.transparent,
                                                       onTap: null,
                                                       isThreeLine: true,
                                                       title: RichText(
@@ -334,39 +312,21 @@ class _MakePaymentState extends State<MakePayment> {
                                                               text:
                                                                   '${cart.cartNotifierItem[index].product_name!} (${cart.cartNotifierItem[index].price!}/${cart.cartNotifierItem[index].per_quantity_unit!}${cart.cartNotifierItem[index].unit!})\n',
                                                               style: TextStyle(
-                                                                fontSize: MediaQuery.of(context)
-                                                                            .size
-                                                                            .height >
-                                                                        500
-                                                                    ? 20
-                                                                    : 15,
-                                                                color: color
-                                                                    .backgroundColor,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
+                                                                fontSize: MediaQuery.of(context).size.height > 500 ? 20 : 15,
+                                                                color: color.backgroundColor,
+                                                                fontWeight: FontWeight.bold,
                                                               ),
                                                             ),
                                                             TextSpan(
-                                                                text: "RM" +
-                                                                    cart
-                                                                        .cartNotifierItem[
-                                                                            index]
-                                                                        .price!,
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontSize: 15,
-                                                                  color: color
-                                                                      .backgroundColor,
-                                                                )),
+                                                                text: "RM" + cart.cartNotifierItem[index].price!,
+                                                                style: TextStyle(fontSize: 15, color: color.backgroundColor)),
                                                           ],
                                                         ),
                                                       ),
                                                       subtitle: Text(getVariant(cart.cartNotifierItem[index]) +
                                                               getModifier(cart.cartNotifierItem[index]) +
                                                               getRemark(cart.cartNotifierItem[index]),
-                                                          style: TextStyle(
-                                                              fontSize: 12)),
+                                                          style: TextStyle(fontSize: 12)),
                                                       trailing: Container(
                                                         child: FittedBox(
                                                           child: Row(
@@ -374,13 +334,9 @@ class _MakePaymentState extends State<MakePayment> {
                                                               Text(
                                                                 'x${cart.cartNotifierItem[index].quantity.toString()}',
                                                                 style: TextStyle(
-                                                                    color: color
-                                                                        .backgroundColor,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    fontSize:
-                                                                        20),
+                                                                    color: color.backgroundColor,
+                                                                    fontWeight: FontWeight.bold,
+                                                                    fontSize: 20),
                                                               ),
                                                             ],
                                                           ),
@@ -400,43 +356,23 @@ class _MakePaymentState extends State<MakePayment> {
                                             SizedBox(height: 10),
                                             Container(
                                               constraints: new BoxConstraints(
-                                                  maxHeight: MediaQuery.of(
-                                                                      context)
-                                                                  .size
-                                                                  .height <
-                                                              500 &&
-                                                          cart.selectedOption ==
-                                                              'Dine in'
+                                                  maxHeight: MediaQuery.of(context).size.height < 500 && cart.selectedOption == 'Dine in'
                                                       ? 31
-                                                      : MediaQuery.of(context)
-                                                                      .size
-                                                                      .height <
-                                                                  700 &&
-                                                              cart.selectedOption ==
-                                                                  'Dine in'
-                                                          ? 190
-                                                          : 200),
+                                                      : MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Dine in'
+                                                      ? 190
+                                                      : 200),
                                               // height: MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Dine in' ? 190
                                               //         : MediaQuery.of(context).size.height < 700 && cart.selectedOption == 'Take Away' ? 180
                                               //         : 200,
                                               child: ListView(
                                                 controller: _controller,
-                                                padding: EdgeInsets.only(
-                                                    left: 5, right: 5),
-                                                physics:
-                                                    ClampingScrollPhysics(),
+                                                padding: EdgeInsets.only(left: 5, right: 5),
+                                                physics: ClampingScrollPhysics(),
                                                 children: [
                                                   ListTile(
-                                                    title: Text('Subtotal',
-                                                        style: TextStyle(
-                                                            fontSize: 14)),
-                                                    trailing: Text(
-                                                        '${total.toStringAsFixed(2)}',
-                                                        style: TextStyle(
-                                                            fontSize: 14)),
-                                                    visualDensity:
-                                                        VisualDensity(
-                                                            vertical: -4),
+                                                    title: Text('Subtotal', style: TextStyle(fontSize: 14)),
+                                                    trailing: Text('${total.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                                    visualDensity: VisualDensity(vertical: -4),
                                                     dense: true,
                                                   ),
                                                   Visibility(
@@ -444,27 +380,18 @@ class _MakePaymentState extends State<MakePayment> {
                                                         ? true
                                                         : false,
                                                     child: ListTile(
-                                                      title:
-                                                          SingleChildScrollView(
-                                                        scrollDirection:
-                                                            Axis.horizontal,
+                                                      title: SingleChildScrollView(
+                                                        scrollDirection: Axis.horizontal,
                                                         child: Row(
                                                           children: [
-                                                            Text(
-                                                                '${allPromo} (${selectedPromoRate})',
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        14)),
+                                                            Text('${allPromo} (${selectedPromoRate})',
+                                                                style: TextStyle(fontSize: 14)),
                                                           ],
                                                         ),
                                                       ),
-                                                      trailing: Text(
-                                                          '-${selectedPromo.toStringAsFixed(2)}',
-                                                          style: TextStyle(
-                                                              fontSize: 14)),
-                                                      visualDensity:
-                                                          VisualDensity(
-                                                              vertical: -4),
+                                                      trailing: Text('-${selectedPromo.toStringAsFixed(2)}',
+                                                          style: TextStyle(fontSize: 14)),
+                                                      visualDensity: VisualDensity(vertical: -4),
                                                       dense: true,
                                                     ),
                                                   ),
@@ -484,85 +411,51 @@ class _MakePaymentState extends State<MakePayment> {
                                                           itemBuilder:
                                                               (context, index) {
                                                             return ListTile(
-                                                                title: Text(
-                                                                    '${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
-                                                                    style: TextStyle(
-                                                                        fontSize:
-                                                                            14)),
-                                                                visualDensity:
-                                                                    VisualDensity(
-                                                                        vertical:
-                                                                            -4),
+                                                                title: Text('${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})',
+                                                                    style: TextStyle(fontSize: 14)),
+                                                                visualDensity: VisualDensity(vertical: -4),
                                                                 dense: true,
-                                                                trailing: Text(
-                                                                    '-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
-                                                                    style: TextStyle(
-                                                                        fontSize:
-                                                                            14)));
+                                                                trailing: Text('-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}',
+                                                                    style: TextStyle(fontSize: 14)));
                                                           })),
                                                   ListView.builder(
                                                       shrinkWrap: true,
                                                       padding: EdgeInsets.zero,
-                                                      physics:
-                                                          NeverScrollableScrollPhysics(),
+                                                      physics: NeverScrollableScrollPhysics(),
                                                       itemCount: taxList.length,
-                                                      itemBuilder:
-                                                          (context, index) {
+                                                      itemBuilder: (context, index) {
                                                         return ListTile(
-                                                          title: Text(
-                                                              '${taxList[index].name}(${taxList[index].tax_rate}%)'),
-                                                          trailing: Text(
-                                                              '${taxList[index].tax_amount?.toStringAsFixed(2)}'),
+                                                          title: Text('${taxList[index].name}(${taxList[index].tax_rate}%)'),
+                                                          trailing: Text('${taxList[index].tax_amount?.toStringAsFixed(2)}'),
                                                           //Text(''),
-                                                          visualDensity:
-                                                              VisualDensity(
-                                                                  vertical: -4),
+                                                          visualDensity: VisualDensity(vertical: -4),
                                                           dense: true,
                                                         );
                                                       }),
                                                   ListTile(
                                                     title: Text('Total',
-                                                        style: TextStyle(
-                                                            fontSize: 14)),
-                                                    trailing: Text(
-                                                        '${totalAmount.toStringAsFixed(2)}',
-                                                        style: TextStyle(
-                                                            fontSize: 14)),
-                                                    visualDensity:
-                                                        VisualDensity(
-                                                            vertical: -4),
+                                                        style: TextStyle(fontSize: 14)),
+                                                    trailing: Text('${totalAmount.toStringAsFixed(2)}',
+                                                        style: TextStyle(fontSize: 14)),
+                                                    visualDensity: VisualDensity(vertical: -4),
                                                     dense: true,
                                                   ),
                                                   ListTile(
                                                     title: Text('Rounding',
-                                                        style: TextStyle(
-                                                            fontSize: 14)),
+                                                        style: TextStyle(fontSize: 14)),
                                                     trailing: Text(
                                                         '${rounding.toStringAsFixed(2)}',
-                                                        style: TextStyle(
-                                                            fontSize: 14)),
-                                                    visualDensity:
-                                                        VisualDensity(
-                                                            vertical: -4),
+                                                        style: TextStyle(fontSize: 14)),
+                                                    visualDensity: VisualDensity(vertical: -4),
                                                     dense: true,
                                                   ),
                                                   ListTile(
-                                                    visualDensity:
-                                                        VisualDensity(
-                                                            vertical: -4),
+                                                    visualDensity: VisualDensity(vertical: -4),
                                                     title: Text('Final Amount',
-                                                        style: TextStyle(
-                                                            fontSize: 18,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold)),
+                                                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                                                     trailing: Text(
                                                         "${finalAmount}",
-                                                        style: TextStyle(
-                                                            fontSize: 18,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold)),
+                                                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                                                     dense: true,
                                                   ),
                                                 ],
@@ -595,8 +488,7 @@ class _MakePaymentState extends State<MakePayment> {
                                 Expanded(
                                   child: widget.type == 0
                                       ? Container(
-                                          margin:
-                                              EdgeInsets.fromLTRB(30, 0, 25, 0),
+                                          margin: EdgeInsets.fromLTRB(30, 0, 25, 0),
                                           //height: MediaQuery.of(context).size.height / 1,
                                           child: Column(
                                             //mainAxisAlignment: MainAxisAlignment.center,
@@ -619,46 +511,29 @@ class _MakePaymentState extends State<MakePayment> {
                                                 margin:
                                                     EdgeInsets.only(bottom: 10),
                                                 child: ValueListenableBuilder(
-                                                    valueListenable:
-                                                        inputController,
-                                                    builder: (context,
-                                                        TextEditingValue value,
-                                                        __) {
+                                                    valueListenable: inputController,
+                                                    builder: (context, TextEditingValue value, __) {
                                                       return Container(
                                                         child: TextField(
                                                           onSubmitted: (value) {
-                                                            makePayment(
-                                                                connectivity);
+                                                            makePayment(connectivity);
                                                           },
                                                           onChanged: (value) {
                                                             calcChange(value);
                                                           },
                                                           inputFormatters: [
-                                                            FilteringTextInputFormatter
-                                                                .allow(RegExp(
-                                                                    r'[0-9.]'))
+                                                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))
                                                           ],
-                                                          keyboardType:
-                                                              TextInputType
-                                                                  .numberWithOptions(
-                                                                      decimal:
-                                                                          true),
-                                                          textAlign:
-                                                              TextAlign.right,
+                                                          keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                                          textAlign: TextAlign.right,
                                                           maxLines: 1,
-                                                          controller:
-                                                              inputController,
-                                                          decoration:
-                                                              InputDecoration(
+                                                          controller: inputController,
+                                                          decoration: InputDecoration(
                                                             border: OutlineInputBorder(
                                                                 borderSide: BorderSide(
-                                                                    color: color
-                                                                        .backgroundColor)),
-                                                            focusedBorder:
-                                                                OutlineInputBorder(
-                                                              borderSide: BorderSide(
-                                                                  color: color
-                                                                      .backgroundColor),
+                                                                    color: color.backgroundColor)),
+                                                            focusedBorder: OutlineInputBorder(
+                                                              borderSide: BorderSide(color: color.backgroundColor),
                                                             ),
                                                           ),
                                                           style: TextStyle(
@@ -677,52 +552,36 @@ class _MakePaymentState extends State<MakePayment> {
                                                       label: Text('RM 10.00'),
                                                       selected: chipSelected,
                                                       elevation: 5,
-                                                      onSelected:
-                                                          (chipSelected) {
-                                                        inputController.text =
-                                                            '10.00';
-                                                        calcChange(
-                                                            inputController
-                                                                .text);
+                                                      onSelected: (chipSelected) {
+                                                        inputController.text = '10.00';
+                                                        calcChange(inputController.text);
                                                       },
                                                     ),
                                                     ChoiceChip(
                                                       label: Text('RM 20.00'),
                                                       selected: chipSelected,
                                                       elevation: 5,
-                                                      onSelected:
-                                                          (chipSelected) {
-                                                        inputController.text =
-                                                            '20.00';
-                                                        calcChange(
-                                                            inputController
-                                                                .text);
+                                                      onSelected: (chipSelected) {
+                                                        inputController.text = '20.00';
+                                                        calcChange(inputController.text);
                                                       },
                                                     ),
                                                     ChoiceChip(
                                                       label: Text('RM 50.00'),
                                                       selected: chipSelected,
                                                       elevation: 5,
-                                                      onSelected:
-                                                          (chipSelected) {
-                                                        inputController.text =
-                                                            '50.00';
-                                                        calcChange(
-                                                            inputController
-                                                                .text);
+                                                      onSelected: (chipSelected) {
+                                                        inputController.text = '50.00';
+                                                        calcChange(inputController.text);
                                                       },
                                                     ),
                                                     ChoiceChip(
                                                       label: Text('RM 100.00'),
                                                       selected: chipSelected,
                                                       elevation: 5,
-                                                      onSelected:
-                                                          (chipSelected) {
-                                                        inputController.text =
-                                                            '100.00';
-                                                        calcChange(
-                                                            inputController
-                                                                .text);
+                                                      onSelected: (chipSelected) {
+                                                        inputController.text = '100.00';
+                                                        calcChange(inputController.text);
                                                       },
                                                     ),
                                                   ])),
@@ -733,8 +592,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                   mainAxisAlignment:
                                                       MainAxisAlignment.center,
                                                   children: [
-                                                    Container(
-                                                        child: SizedBox(
+                                                    Container(child: SizedBox(
                                                       height: 70,
                                                       width: 150,
                                                       child:
@@ -754,18 +612,10 @@ class _MakePaymentState extends State<MakePayment> {
                                                                         .backgroundColor,
                                                                 elevation: 5,
                                                               ),
-                                                              icon: Icon(
-                                                                  Icons
-                                                                      .payments,
-                                                                  size: 24),
+                                                              icon: Icon(Icons.payments, size: 24),
                                                               label: Text(
-                                                                AppLocalizations.of(
-                                                                        context)!
-                                                                    .translate(
-                                                                        'make_payment'),
-                                                                style: TextStyle(
-                                                                    fontSize:
-                                                                        20),
+                                                                AppLocalizations.of(context)!.translate('make_payment'),
+                                                                style: TextStyle(fontSize: 20),
                                                               )),
                                                     )),
                                                     SizedBox(
@@ -774,28 +624,18 @@ class _MakePaymentState extends State<MakePayment> {
                                                     SizedBox(
                                                       height: 70,
                                                       width: 150,
-                                                      child:
-                                                          ElevatedButton.icon(
+                                                      child: ElevatedButton.icon(
                                                         onPressed: () async {
-                                                          inputController
-                                                              .clear();
+                                                          inputController.clear();
                                                           change = '0.00';
                                                         },
-                                                        style: ElevatedButton
-                                                            .styleFrom(
+                                                        style: ElevatedButton.styleFrom(
                                                           elevation: 5,
-                                                          backgroundColor:
-                                                              color.buttonColor,
+                                                          backgroundColor: color.buttonColor,
                                                         ),
-                                                        icon: Icon(
-                                                            Icons.backspace),
-                                                        label: Text(
-                                                            AppLocalizations.of(
-                                                                    context)!
-                                                                .translate(
-                                                                    'clear'),
-                                                            style: TextStyle(
-                                                                fontSize: 20)),
+                                                        icon: Icon(Icons.backspace),
+                                                        label: Text(AppLocalizations.of(context)!.translate('clear'),
+                                                            style: TextStyle(fontSize: 20)),
                                                       ),
                                                     ),
                                                   ],
@@ -804,22 +644,16 @@ class _MakePaymentState extends State<MakePayment> {
                                             ],
                                           ), // GridView.builder
                                         )
-                                      : widget.type == 1
-                                          ?
-
+                                      : widget.type == 1 ?
                                           ///card payment
                                           Container(
                                               child: Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
+                                                mainAxisAlignment: MainAxisAlignment.center,
                                                 children: [
                                                   Container(
                                                     child: ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              16.0),
+                                                      borderRadius: BorderRadius.circular(16.0),
                                                       child:
-
                                                           ///***If you have exported images you must have to copy those images in assets/images directory.
                                                           Image(
                                                               image: AssetImage(
@@ -831,67 +665,38 @@ class _MakePaymentState extends State<MakePayment> {
                                                   ),
                                                   Container(
                                                     margin: EdgeInsets.all(20),
-                                                    child: Text(
-                                                      'RM${finalAmount}',
-                                                      style: TextStyle(
-                                                          fontSize: 40,
-                                                          fontWeight:
-                                                              FontWeight.bold),
+                                                    child: Text('RM${finalAmount}',
+                                                      style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
                                                     ),
                                                   ),
                                                   Container(
-                                                    child: Consumer<
-                                                            ConnectivityChangeNotifier>(
-                                                        builder: (context,
-                                                            ConnectivityChangeNotifier
-                                                                connectivity,
-                                                            child) {
-                                                      return ElevatedButton
-                                                          .icon(
+                                                    child: Consumer<ConnectivityChangeNotifier>(
+                                                        builder: (context, ConnectivityChangeNotifier connectivity, child) {
+                                                      return ElevatedButton.icon(
                                                         style: ButtonStyle(
-                                                            backgroundColor:
-                                                                MaterialStateProperty
-                                                                    .all(Colors
-                                                                        .green),
-                                                            padding: MaterialStateProperty
-                                                                .all(EdgeInsets
-                                                                    .all(20))),
+                                                            backgroundColor: MaterialStateProperty
+                                                                    .all(Colors.green),
+                                                            padding: MaterialStateProperty.all(EdgeInsets.all(20))),
                                                         onPressed:
                                                             isButtonDisable || cart.cartNotifierItem.isEmpty
                                                                 ? null
                                                                 : () async {
-                                                                    setState(
-                                                                        () {
-                                                                      willPop =
-                                                                          false;
-                                                                      isButtonDisable =
-                                                                          true;
+                                                                    setState(() {
+                                                                      willPop = false;
+                                                                      isButtonDisable = true;
                                                                     });
-                                                                    await callCreateOrder(
-                                                                        finalAmount,
-                                                                        connectivity);
-                                                                    if (this.isLogOut ==
-                                                                        true) {
+                                                                    await callCreateOrder(finalAmount, connectivity);
+                                                                    if (this.isLogOut == true) {
                                                                       openLogOutDialog();
                                                                       return;
                                                                     }
-                                                                    openPaymentSuccessDialog(
-                                                                        widget
-                                                                            .dining_id,
-                                                                        isCashMethod:
-                                                                            false,
-                                                                        diningName:
-                                                                            widget.dining_name);
+                                                                    openPaymentSuccessDialog(widget.dining_id, isCashMethod: false, diningName: widget.dining_name);
                                                                   },
                                                         icon: Icon(Icons
                                                             .call_received),
                                                         label: Text(
-                                                            AppLocalizations.of(
-                                                                    context)!
-                                                                .translate(
-                                                                    'payment_received'),
-                                                            style: TextStyle(
-                                                                fontSize: 20)),
+                                                            AppLocalizations.of(context)!.translate('payment_received'),
+                                                            style: TextStyle(fontSize: 20)),
                                                       );
                                                     }),
                                                   ),
@@ -905,89 +710,60 @@ class _MakePaymentState extends State<MakePayment> {
                                                       Expanded(
                                                           flex: 6,
                                                           child: Container(
-                                                            child:
-                                                                scanning ==
-                                                                        false
+                                                            child: scanning == false
                                                                     ? ClipRRect(
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(16.0),
+                                                                        borderRadius: BorderRadius.circular(16.0),
                                                                         child:
                                                                             Image(
-                                                                          image:
-                                                                              AssetImage("drawable/TNG.jpg"),
+                                                                          image: AssetImage("drawable/TNG.jpg"),
                                                                           // FileImage(File(
                                                                           //     'data/user/0/com.example.pos_system/files/assets/img/TNG.jpg')),
-                                                                          height:
-                                                                              MediaQuery.of(context).size.height / 2,
-                                                                          width:
-                                                                              MediaQuery.of(context).size.width / 2,
+                                                                          height: MediaQuery.of(context).size.height / 2,
+                                                                          width: MediaQuery.of(context).size.width / 2,
                                                                         ),
                                                                       )
                                                                     : Container(
-                                                                        margin:
-                                                                            EdgeInsets.all(25),
-                                                                        child: _buildQrView(
-                                                                            context),
+                                                                        margin: EdgeInsets.all(25),
+                                                                        child: _buildQrView(context),
                                                                       ),
                                                           )),
                                                       Expanded(
                                                           flex: 1,
                                                           child: Container(
-                                                            alignment: Alignment
-                                                                .center,
+                                                            alignment: Alignment.center,
                                                             child: Text(
                                                                 'RM${finalAmount}',
                                                                 style: TextStyle(
-                                                                    fontSize:
-                                                                        40,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold)),
+                                                                    fontSize: 40,
+                                                                    fontWeight: FontWeight.bold)),
                                                           )),
                                                       Expanded(
                                                           flex: 2,
                                                           child: Container(
-                                                            alignment: Alignment
-                                                                .center,
-                                                            child: Consumer<
-                                                                    ConnectivityChangeNotifier>(
-                                                                builder: (context,
-                                                                    ConnectivityChangeNotifier
-                                                                        connectivity,
-                                                                    child) {
+                                                            alignment: Alignment.center,
+                                                            child: Consumer<ConnectivityChangeNotifier>(
+                                                                builder: (context, ConnectivityChangeNotifier connectivity, child) {
                                                               return ElevatedButton(
-                                                                style: ElevatedButton
-                                                                    .styleFrom(
-                                                                        backgroundColor:
-                                                                            color.buttonColor),
+                                                                style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                                                                 onPressed:
                                                                     () async {
                                                                   setState(() {
-                                                                    willPop =
-                                                                        false;
-                                                                    scanning =
-                                                                        true;
+                                                                    willPop = false;
+                                                                    scanning = true;
                                                                   });
                                                                   //await controller?.resumeCamera();
-                                                                  await controller
-                                                                      ?.scannedDataStream;
-                                                                  await callCreateOrder(
-                                                                      finalAmount,
-                                                                      connectivity);
-                                                                  if (this.isLogOut ==
-                                                                      true) {
+                                                                  await controller?.scannedDataStream;
+                                                                  await callCreateOrder(finalAmount, connectivity);
+                                                                  if (this.isLogOut == true) {
                                                                     openLogOutDialog();
                                                                     return;
                                                                   }
                                                                 },
                                                                 child: Text(
-                                                                    scanning ==
-                                                                            false
+                                                                    scanning == false
                                                                         ? "Start Scan"
                                                                         : "Scanning...",
-                                                                    style: TextStyle(
-                                                                        fontSize:
-                                                                            25)),
+                                                                    style: TextStyle(fontSize: 25)),
                                                               );
                                                             }),
                                                           )),
@@ -2794,8 +2570,7 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   void makePayment(ConnectivityChangeNotifier connectivity) async {
-    if (inputController.text.isNotEmpty &&
-        double.parse(inputController.text) >= double.parse(finalAmount)) {
+    if (inputController.text.isNotEmpty && double.parse(inputController.text) >= double.parse(finalAmount)) {
       setState(() {
         willPop = false;
         isButtonDisable = true;

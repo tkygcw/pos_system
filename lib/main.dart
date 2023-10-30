@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
+import 'package:pos_system/notifier/fail_print_notifier.dart';
 import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
@@ -144,6 +145,9 @@ class MyApp extends StatelessWidget {
             appSettingModel.initialLoad();
             return appSettingModel;
           },
+        ),
+        ChangeNotifierProvider(
+          create: (_) => FailPrintModel(),
         ),
       ],
       child: Consumer<AppLanguage>(builder: (context, model, child) {
