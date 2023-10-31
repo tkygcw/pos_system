@@ -11,6 +11,8 @@ import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/product_variant_detail.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/object/table_use.dart';
+import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/tax.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/object/user.dart';
@@ -222,11 +224,25 @@ class SyncRecord {
                 syncRecordIdList.add(responseJson[i]['id']);
               }
               break;
+            case '26':
+              //table use
+              bool status = await callTableUseQuery(data: responseJson[i]['data']);
+              if(status == true){
+                syncRecordIdList.add(responseJson[i]['id']);
+              }
+              break;
+            case '27':
+              //table use detail
+              bool status = await callTableUseDetailQuery(data: responseJson[i]['data']);
+              if(status == true){
+                syncRecordIdList.add(responseJson[i]['id']);
+              }
+              break;
           }
         }
         print('sync record length: ${syncRecordIdList.length}');
         //update sync record
-        Map updateResponse = await Domain().updateAllCloudSyncRecord('${branchObject['branchID']}', syncRecordIdList.toString());
+        await Domain().updateAllCloudSyncRecord('${branchObject['branchID']}', syncRecordIdList.toString());
         notificationModel.setContentLoad();
         notificationModel.setContentLoaded();
         notificationModel.setCartContentLoaded();
@@ -256,6 +272,42 @@ class SyncRecord {
       return 3;
     }
 
+  }
+
+  callTableUseDetailQuery({data}) async {
+    bool isComplete = false;
+    try{
+      TableUseDetail detailData = TableUseDetail.fromJson(data[0]);
+      TableUseDetail? checkData = await PosDatabase.instance.checkSpecificTableUseDetail(detailData.table_use_detail_key!);
+      if(checkData != null){
+        int status = await PosDatabase.instance.updateTableUseDetailFromCloud(detailData);
+        if(status == 1){
+          isComplete = true;
+        }
+      }
+
+    }catch(e){
+      print("call table use detail query error: $e");
+    }
+    return isComplete;
+  }
+
+  callTableUseQuery({data}) async {
+    bool isComplete = false;
+    try{
+      TableUse tableUseData = TableUse.fromJson(data[0]);
+      TableUse? checkData = await PosDatabase.instance.checkSpecificTableUse(tableUseData.table_use_key!);
+      if(checkData != null){
+        int status = await PosDatabase.instance.updateTableUse(tableUseData);
+        if(status == 1){
+          isComplete = true;
+        }
+      }
+
+    }catch(e){
+      print("call table use query error: $e");
+    }
+    return isComplete;
   }
 
   callPrinterLinkCategoryQuery({data}) async {
@@ -407,9 +459,17 @@ class SyncRecord {
         isComplete = true;
       }
     } else {
-      int data = await PosDatabase.instance.updateDiningOption(diningOption);
-      if(data == 1){
-        isComplete = true;
+      DiningOption? checkData = await PosDatabase.instance.checkSpecificDiningOptionByCloudId(diningOption.dining_id.toString());
+      if(checkData != null){
+        int data = await PosDatabase.instance.updateDiningOption(diningOption);
+        if(data == 1){
+          isComplete = true;
+        }
+      } else {
+        DiningOption data = await PosDatabase.instance.insertDiningOption(diningOption);
+        if(data.created_at != ''){
+          isComplete = true;
+        }
       }
     }
     return isComplete;
@@ -829,37 +889,43 @@ class SyncRecord {
 
   callVariantGroupQuery({data, method}) async {
     bool isComplete = false;
-    VariantGroup variantData = VariantGroup.fromJson(data[0]);
-    Product? productData = await PosDatabase.instance.readProductSqliteID(variantData.product_id!);
-    VariantGroup object = VariantGroup(
-        child: [],
-        variant_group_id: variantData.variant_group_id,
-        product_id: variantData.product_id,
-        product_sqlite_id: productData!.product_sqlite_id.toString(),
-        name: variantData.name,
-        sync_status: 1,
-        created_at: variantData.created_at,
-        updated_at: variantData.updated_at,
-        soft_delete: variantData.soft_delete
-    );
-    if(method == '0'){
-      //create
-      VariantGroup? checkData = await PosDatabase.instance.checkSpecificVariantGroupId(object.variant_group_id!);
-      if(checkData == null){
-        VariantGroup data = await PosDatabase.instance.insertVariantGroup(object);
-        if(data.variant_group_sqlite_id != null){
+    try{
+      VariantGroup variantData = VariantGroup.fromJson(data[0]);
+      Product? productData = await PosDatabase.instance.readProductSqliteID(variantData.product_id!);
+      VariantGroup object = VariantGroup(
+          child: [],
+          variant_group_id: variantData.variant_group_id,
+          product_id: variantData.product_id,
+          product_sqlite_id: productData!.product_sqlite_id.toString(),
+          name: variantData.name,
+          sync_status: 1,
+          created_at: variantData.created_at,
+          updated_at: variantData.updated_at,
+          soft_delete: variantData.soft_delete
+      );
+      if(method == '0'){
+        //create
+        VariantGroup? checkData = await PosDatabase.instance.checkSpecificVariantGroupId(object.variant_group_id!);
+        if(checkData == null){
+          VariantGroup data = await PosDatabase.instance.insertVariantGroup(object);
+          if(data.variant_group_sqlite_id != null){
+            isComplete = true;
+          }
+        } else {
           isComplete = true;
         }
       } else {
-        isComplete = true;
+        //update
+        int data = await PosDatabase.instance.updateVariantGroup(object);
+        if(data == 1){
+          isComplete = true;
+        }
       }
-    } else {
-      //update
-      int data = await PosDatabase.instance.updateVariantGroup(object);
-      if(data == 1){
-        isComplete = true;
-      }
+    }catch(e){
+      print("callVariantGroupQuery error: ${e}");
+      isComplete = false;
     }
+
     return isComplete;
   }
 

@@ -144,6 +144,7 @@ class _PosPinPageState extends State<PosPinPage> {
         //SyncToCloud().syncToCloud();
       } else {
         //qr order sync
+        print("qr order count: ${qrOrder.count}");
         if(qrOrder.count == 0){
           print('qr order sync');
           qrOrder.count = 1;
@@ -161,6 +162,7 @@ class _PosPinPageState extends State<PosPinPage> {
         if(syncRecord.count == 0){
           syncRecord.count = 1;
           int syncStatus = await syncRecord.syncFromCloud();
+          syncRecord.count = 0;
           print('is log out: ${syncStatus}');
           if (syncStatus == 1) {
             openLogOutDialog();
@@ -185,7 +187,6 @@ class _PosPinPageState extends State<PosPinPage> {
           //     ),
           //   );
           // }
-          syncRecord.count = 0;
         }
       }
       //add timer and reset hasNotification

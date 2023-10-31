@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 
 import 'package:collapsible_sidebar/collapsible_sidebar.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/bill/bill.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/order/order.dart';
@@ -226,6 +225,7 @@ class _HomePageState extends State<HomePage> {
                                       : 2,
                                   child: CartPage(
                                     currentPage: currentPage,
+                                    parentContext: context,
                                   )),
                             )
                           ],
@@ -368,74 +368,56 @@ class _HomePageState extends State<HomePage> {
   }
 
   void showFlutterNotification(RemoteMessage message) async {
-    RemoteNotification? notification = message.notification;
-    AndroidNotification? android = message.notification?.android;
-    if (notification != null && android != null) {
-      /*
+    try{
+      RemoteNotification? notification = message.notification;
+      AndroidNotification? android = message.notification?.android;
+      if (notification != null && android != null) {
+        /*
       * qr ordering come in
       * */
-      if (message.data['type'] == '0') {
-        if (qrOrder.count == 0) {
-          qrOrder.count = 1;
-          qrOrder.getQrOrder();
-          manageNotificationTimer();
-          qrOrder.count = 0;
+        if (message.data['type'] == '0') {
+          if (qrOrder.count == 0) {
+            qrOrder.count = 1;
+            qrOrder.getQrOrder();
+            manageNotificationTimer();
+            qrOrder.count = 0;
+          }
         }
-      }
-      /*
+        /*
       * sync request
       * */
-      else {
-        notificationModel.setNotification(true);
-        notificationModel.setContentLoad();
-        // notificationModel.setContentLoaded();
-        // Fluttertoast.showToast(
-        //     backgroundColor: Colors.green,
-        //     msg: AppLocalizations.of(context)!
-        //         .translate('cloud_db_change_sync_from_cloud'));
-        // await SyncRecord().syncFromCloud();
-        if (syncRecord.count == 0) {
-          syncRecord.count = 1;
-          await syncRecord.syncFromCloud();
-          syncRecord.count = 0;
+        else {
+          notificationModel.setNotification(true);
+          // notificationModel.setContentLoaded();
+          // Fluttertoast.showToast(
+          //     backgroundColor: Colors.green,
+          //     msg: AppLocalizations.of(context)!
+          //         .translate('cloud_db_change_sync_from_cloud'));
+          // await SyncRecord().syncFromCloud();
+          if (syncRecord.count == 0) {
+            notificationModel.setContentLoad();
+            syncRecord.count = 1;
+            await syncRecord.syncFromCloud();
+            syncRecord.count = 0;
+          }
         }
       }
+    }catch(e){
+      print("show notification error: ${e}");
     }
   }
 
   manageNotificationTimer() {
-    // showSnackBar();
-    // playSound();
-    //cancel previous timer if new order come in
-    if (notificationTimer != null && notificationTimer!.isActive) {
-      notificationTimer!.cancel();
-    }
-    //set timer when new order come in
-    int no = 1;
-    if (no == 1) {
-      snackBarKey.currentState!.showSnackBar(SnackBar(
-        content: Text(
-            AppLocalizations.of(context)!.translate('new_order_is_received')),
-        backgroundColor: themeColor.backgroundColor,
-        action: SnackBarAction(
-          textColor: themeColor.iconColor,
-          label: AppLocalizations.of(context)!.translate('check_it_now'),
-          onPressed: () {
-            if (mounted) {
-              setState(() {
-                currentPage = 'qr_order';
-                notificationTimer!.cancel();
-              });
-            }
-            no = 3;
-          },
-        ),
-      ));
-      playSound();
-    }
-    notificationTimer = Timer.periodic(Duration(seconds: 5), (timer) async {
-      if (no <= 3) {
-        //showSnackBar();
+    try{
+      // showSnackBar();
+      // playSound();
+      //cancel previous timer if new order come in
+      if (notificationTimer != null && notificationTimer!.isActive) {
+        notificationTimer!.cancel();
+      }
+      //set timer when new order come in
+      int no = 1;
+      if(mounted){
         snackBarKey.currentState!.showSnackBar(SnackBar(
           content: Text(
               AppLocalizations.of(context)!.translate('new_order_is_received')),
@@ -454,11 +436,38 @@ class _HomePageState extends State<HomePage> {
             },
           ),
         ));
-        playSound();
-      } else
-        timer.cancel();
-      no++;
-    });
+      }
+      playSound();
+      notificationTimer = Timer.periodic(Duration(seconds: 5), (timer) async {
+        if (no <= 3 && mounted) {
+          //showSnackBar();
+          snackBarKey.currentState!.showSnackBar(SnackBar(
+            content: Text(
+                AppLocalizations.of(context)!.translate('new_order_is_received')),
+            backgroundColor: themeColor.backgroundColor,
+            action: SnackBarAction(
+              textColor: themeColor.iconColor,
+              label: AppLocalizations.of(context)!.translate('check_it_now'),
+              onPressed: () {
+                if (mounted) {
+                  setState(() {
+                    currentPage = 'qr_order';
+                    notificationTimer!.cancel();
+                  });
+                }
+                no = 3;
+              },
+            ),
+          ));
+          playSound();
+        }else{
+          timer.cancel();
+        }
+        no++;
+      });
+    }catch(e){
+      print("manage notification timer error: ${e}");
+    }
   }
 
   showSnackBar() {

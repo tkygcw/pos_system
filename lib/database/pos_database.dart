@@ -1969,7 +1969,7 @@ class PosDatabase {
 
   Future<Product?> readProductSqliteID(String product_id) async {
     final db = await instance.database;
-    final maps = await db.rawQuery('SELECT * FROM $tableProduct WHERE soft_delete = ? AND product_id = ?', ['', product_id]);
+    final maps = await db.rawQuery('SELECT * FROM $tableProduct WHERE product_id = ?', [product_id]);
     if (maps.isNotEmpty) {
       return Product.fromJson(maps.first);
     } else {
@@ -4868,6 +4868,38 @@ class PosDatabase {
   }
 
 /*
+  update table Use
+*/
+  Future<int> updateTableUse(TableUse data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableTableUse SET branch_id = ?, order_cache_key = ?, card_color = ?, '
+        'status = ?, updated_at = ?, soft_delete = ? WHERE table_use_key = ? ',
+        [
+          data.branch_id,
+          data.order_cache_key,
+          data.card_color,
+          data.status,
+          data.updated_at,
+          data.soft_delete,
+          data.table_use_key]);
+
+  }
+
+/*
+  update table Use detail
+*/
+  Future<int> updateTableUseDetailFromCloud(TableUseDetail data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableTableUseDetail SET status = ?, updated_at = ?, soft_delete = ? WHERE table_use_detail_key = ? ',
+        [
+          data.status,
+          data.updated_at,
+          data.soft_delete,
+          data.table_use_detail_key]);
+
+  }
+
+/*
   update App color
 */
   Future<int> updateAppColor(AppColors data) async {
@@ -6841,6 +6873,45 @@ class PosDatabase {
     );
     if (result.isNotEmpty) {
       return BranchLinkPromotion.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read dining option by cloud id
+*/
+  Future<DiningOption?> checkSpecificDiningOptionByCloudId(String id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableDiningOption WHERE dining_id = ?', [id]);
+    if(result.isNotEmpty){
+      return DiningOption.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  check table use
+*/
+  Future<TableUse?> checkSpecificTableUse(String key) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableTableUse WHERE table_use_key = ?', [key]);
+    if(result.isNotEmpty){
+      return TableUse.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  check table use detail
+*/
+  Future<TableUseDetail?> checkSpecificTableUseDetail(String key) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableTableUseDetail WHERE table_use_detail_key = ?', [key]);
+    if(result.isNotEmpty){
+      return TableUseDetail.fromJson(result.first);
     } else {
       return null;
     }

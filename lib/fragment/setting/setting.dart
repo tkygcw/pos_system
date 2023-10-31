@@ -303,6 +303,10 @@ class _SettingMenuState extends State<SettingMenu> {
                           icon: Icons.settings,
                           label: AppLocalizations.of(context)!.translate('app_device_setting'),
                         ),
+                        SideNavigationBarItem(
+                          icon: Icons.sync,
+                          label: AppLocalizations.of(context)!.translate('data_processing'),
+                        ),
                         // SideNavigationBarItem(
                         //   icon: Icons.list,
                         //   label: 'Test sync (temp)',

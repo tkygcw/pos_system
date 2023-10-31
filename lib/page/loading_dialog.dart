@@ -4,7 +4,8 @@ import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 
 class LoadingDialog extends StatefulWidget {
-  const LoadingDialog({Key? key}) : super(key: key);
+  final bool isTableMenu;
+  const LoadingDialog({Key? key, required this.isTableMenu}) : super(key: key);
 
   @override
   State<LoadingDialog> createState() => _LoadingDialogState();
@@ -22,7 +23,11 @@ class _LoadingDialogState extends State<LoadingDialog> {
               CircularProgressIndicator(
                 color: color.backgroundColor,
               ),
-              Container(margin: EdgeInsets.only(left: 15),child:Text(AppLocalizations.of(context)!.translate('placing_order_please_wait') )),
+              Container(
+                  margin: EdgeInsets.only(left: 15),
+                  child: widget.isTableMenu ?
+                  Text(AppLocalizations.of(context)!.translate('please_wait')) :
+                  Text(AppLocalizations.of(context)!.translate('placing_order_please_wait') )),
             ],
           ),
         ),
