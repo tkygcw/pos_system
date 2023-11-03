@@ -1051,13 +1051,15 @@ class _TableMenuState extends State<TableMenu> {
         product_name: orderDetailList[i].productName!,
         category_id: orderDetailList[i].product_category_id!,
         price: orderDetailList[i].price!,
-        quantity: int.parse(orderDetailList[i].quantity!),
+        quantity: int.tryParse(orderDetailList[i].quantity!) != null ? int.parse(orderDetailList[i].quantity!) : double.parse(orderDetailList[i].quantity!),
         // checkedModifierItem: [],
         orderModifierDetail: orderDetailList[i].orderModifierDetail,
         //modifier: getModifierGroupItem(orderDetailList[i]),
         //variant: getVariantGroupItem(orderDetailList[i]),
         productVariantName: orderDetailList[i].product_variant_name,
         remark: orderDetailList[i].remark!,
+        unit: orderDetailList[i].unit,
+        per_quantity_unit: orderDetailList[i].per_quantity_unit,
         status: 0,
         order_cache_sqlite_id: orderDetailList[i].order_cache_sqlite_id,
         order_cache_key: orderDetailList[i].order_cache_key,
@@ -1091,7 +1093,8 @@ class _TableMenuState extends State<TableMenu> {
       var detailLength = orderDetailList.length;
       for (int i = 0; i < detailLength; i++) {
         value = cartProductItem(
-          order_cache_sqlite_id: orderDetailList[i].order_cache_sqlite_id
+          quantity: int.tryParse(orderDetailList[i].quantity!) != null ? int.parse(orderDetailList[i].quantity!) : double.parse(orderDetailList[i].quantity!),
+          order_cache_sqlite_id: orderDetailList[i].order_cache_sqlite_id,
         );
         cart.removeSpecificItem(value);
         cart.removePromotion();

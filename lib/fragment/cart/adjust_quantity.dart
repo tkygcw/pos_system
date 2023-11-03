@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/main.dart';
@@ -43,8 +44,8 @@ class AdjustQuantityDialog extends StatefulWidget {
 }
 
 class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
-  int simpleIntInput = 1;
-  late int currentQuantity;
+  num simpleIntInput = 0;
+  late num currentQuantity;
   final adminPosPinController = TextEditingController();
   List<User> adminData = [];
   List<Printer> printerList = [];
@@ -67,6 +68,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   bool willPop = true;
 
   late TableModel tableModel;
+  TextEditingController quantityController = TextEditingController();
 
   @override
   void initState() {
@@ -74,6 +76,8 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     readAllPrinters();
     readCartItemInfo();
     currentQuantity = widget.cartItem.quantity!;
+    simpleIntInput = widget.cartItem.unit != 'each' ? 0 : 1;
+    quantityController = TextEditingController(text: widget.cartItem.unit != 'each' ? '' : '${simpleIntInput}');
   }
 
   @override
@@ -218,29 +222,103 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                     AppLocalizations.of(context)!.translate('adjust_quantity')),
                 content: Column(
                   children: [
-                    SizedBox(
-                      height: 100.0,
-                      width: 350.0,
-                      child: QuantityInput(
-                        inputWidth: 273,
-                        maxValue: widget.cartItem.quantity,
-                        minValue: 0,
-                        readOnly: true,
-                        acceptsNegatives: false,
-                        decoration: InputDecoration(
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.black,
+                    // quantity input
+                    Container(
+                      width: 400,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // quantity input remove button
+                          Container(
+                            decoration: BoxDecoration(
+                              color: color.backgroundColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: IconButton(
+                              icon: Icon(Icons.remove, color: Colors.white),
+                              onPressed: () {
+                                if(simpleIntInput >= 1){
+                                  setState(() {
+                                    simpleIntInput -= 1;
+                                    quantityController.text = widget.cartItem.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                    simpleIntInput = widget.cartItem.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                  });
+                                } else{
+                                  setState(() {
+                                    simpleIntInput = 0;
+                                    quantityController.text =  widget.cartItem.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                    simpleIntInput = widget.cartItem.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                  });
+                                }
+                              },
                             ),
                           ),
-                        ),
-                        buttonColor: Colors.black,
-                        value: simpleIntInput,
-                        onChanged: (value) => setState(() {
-                          simpleIntInput = int.parse(value.replaceAll(',', ''));
-                        }),
+                          SizedBox(width: 10),
+                          // quantity input text field
+                          Container(
+                            width: 273,
+                            child: TextField(
+                              autofocus: widget.cartItem.unit != 'each' ? true : false,
+                              controller: quantityController,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: widget.cartItem.unit != 'each' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
+                                  : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: color.backgroundColor),
+                                ),
+                              ),
+                              onChanged: (value) => setState(() => simpleIntInput = widget.cartItem.unit != 'each' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', ''))),
+                              onSubmitted: (value) {
+                                () async {
+                                  if(simpleIntInput != 0 && simpleIntInput != 0.00){
+                                    if(simpleIntInput > widget.cartItem.quantity!){
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Color(0xFFFF0000),
+                                          msg:
+                                          AppLocalizations.of(context)!.translate('quantity_invalid'));
+                                    } else {
+                                      await showSecondDialog(context, color, cart);
+                                    }
+                                  } else{ //no changes
+                                    Navigator.of(context).pop();
+                                    Navigator.of(context).pop();
+                                  }
+                                }();
+                              },
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          // quantity input add button
+                          Container(
+                            decoration: BoxDecoration(
+                              color: color.backgroundColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: IconButton(
+                              icon: Icon(Icons.add, color: Colors.white), // Set the icon color to white.
+                              onPressed: () {
+                                if(simpleIntInput+1 < widget.cartItem.quantity!){
+                                  setState(() {
+                                    simpleIntInput += 1;
+                                    quantityController.text = widget.cartItem.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                    simpleIntInput =  widget.cartItem.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                  });
+                                } else{
+                                  setState(() {
+                                    simpleIntInput = widget.cartItem.quantity!;
+                                    quantityController.text = widget.cartItem.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                    simpleIntInput = widget.cartItem.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    SizedBox(height: 40),
                     Container(
                       // Customize your Container's properties here
                       child: Center(
@@ -264,8 +342,20 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                     onPressed: isButtonDisabled
                         ? null
                         : () async {
-                            await showSecondDialog(context, color, cart);
-                          },
+                          if(simpleIntInput != 0 && simpleIntInput != 0.00){
+                            if(simpleIntInput > widget.cartItem.quantity!){
+                              Fluttertoast.showToast(
+                                  backgroundColor: Color(0xFFFF0000),
+                                  msg:
+                                  AppLocalizations.of(context)!.translate('quantity_invalid'));
+                            } else {
+                              await showSecondDialog(context, color, cart);
+                            }
+                          } else{ //no changes
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          }
+                        },
                   ),
                 ],
               ),
@@ -277,11 +367,11 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   }
 
   getFinalQuantity() {
-    int temp = currentQuantity;
+    num temp = currentQuantity;
     try {
       temp -= simpleIntInput;
     } catch (e) {}
-    return temp;
+    return widget.cartItem.unit! != 'each' ? temp.toStringAsFixed(2) : temp;
   }
 
   readAllPrinters() async {
@@ -571,9 +661,9 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
 
   updateOrderDetailQuantity(String dateTime, CartModel cart) async {
     List<String> _value = [];
-    int totalQty = 0;
+    num totalQty = 0;
     try{
-      totalQty = widget.cartItem.quantity! - simpleIntInput;
+      totalQty = widget.cartItem.unit != 'each' ? double.parse((widget.cartItem.quantity! - simpleIntInput).toStringAsFixed(2)): widget.cartItem.quantity! - simpleIntInput;
       OrderDetail orderDetailObject = OrderDetail(
         updated_at: dateTime,
         sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
@@ -582,7 +672,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
         branch_link_product_sqlite_id: widget.cartItem.branch_link_product_sqlite_id,
       );
-      int data = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObject);
+      num data = await PosDatabase.instance.updateOrderDetailQuantity(orderDetailObject);
       if (data == 1) {
         OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
         await updateOrderCacheSubtotal(detailData.order_cache_sqlite_id!, detailData.price, simpleIntInput, dateTime);
@@ -651,9 +741,9 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     //syncUpdatedOrderDetailToCloud(_value.toString());
   }
 
-  updateProductStock(String branch_link_product_sqlite_id, int quantity, String dateTime) async {
+  updateProductStock(String branch_link_product_sqlite_id, num quantity, String dateTime) async {
     List<String> _value = [];
-    int _totalStockQty = 0, updateStock = 0;
+    num _totalStockQty = 0, updateStock = 0;
     BranchLinkProduct? object;
     try{
       List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(branch_link_product_sqlite_id);

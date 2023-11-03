@@ -13,7 +13,7 @@ class cartProductItem{
    String? category_id;
    String? category_name;
    String? price;
-   int? quantity;
+   num? quantity;
    int? checkedModifierLength;
    List<ModifierItem>? checkedModifierItem;
    List<ModifierGroup>? modifier;
@@ -34,6 +34,8 @@ class cartProductItem{
    String? first_cache_batch;
    String? first_cache_order_by;
    List<OrderModifierDetail>? orderModifierDetail;
+   String? unit;
+   String? per_quantity_unit;
 
    cartProductItem(
        {
@@ -62,7 +64,9 @@ class cartProductItem{
          this.first_cache_batch,
          this.first_cache_order_by,
          this.refColor,
-         this.orderModifierDetail
+         this.orderModifierDetail,
+         this.unit,
+         this.per_quantity_unit
        });
 
    static cartProductItem fromJson(Map<String, Object?> json) {
@@ -80,7 +84,7 @@ class cartProductItem{
          category_id: json['category_id'] as String?,
          category_name: json['category_name'] as String?,
          price: json['price'] as String?,
-         quantity: json['quantity'] as int?,
+         quantity: json['quantity'] as num?,
          checkedModifierLength: json['checkedModifierLength'] as int?,
          checkedModifierItem: modItem,
          modifier: modGroup,
@@ -100,7 +104,9 @@ class cartProductItem{
          first_cache_batch: json['first_cache_batch'] as String?,
          first_cache_order_by: json['first_cache_order_by'] as String?,
          refColor: json['refColor'] as Color?,
-         orderModifierDetail: orderModifierDetailList
+         orderModifierDetail: orderModifierDetailList,
+         unit: json['unit'] as String?,
+         per_quantity_unit: json['per_quantity_unit'] as String?
      );
    }
 
@@ -130,7 +136,9 @@ class cartProductItem{
      'first_cache_batch': first_cache_batch,
      'first_cache_order_by': first_cache_order_by,
      'refColor': null,
-     'orderModifierDetail': orderModifierDetail
+     'orderModifierDetail': orderModifierDetail,
+     'unit': unit,
+     'per_quantity_unit': per_quantity_unit
    };
 
 }

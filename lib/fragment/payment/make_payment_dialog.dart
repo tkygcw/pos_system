@@ -308,7 +308,9 @@ class _MakePaymentState extends State<MakePayment> {
                                                       title: RichText(
                                                         text: TextSpan(
                                                           children: <TextSpan>[
-                                                            TextSpan(text: cart.cartNotifierItem[index].product_name! + '\n',
+                                                            TextSpan(
+                                                              text:
+                                                                  '${cart.cartNotifierItem[index].product_name!} (${cart.cartNotifierItem[index].price!}/${cart.cartNotifierItem[index].per_quantity_unit!}${cart.cartNotifierItem[index].unit!})\n',
                                                               style: TextStyle(
                                                                 fontSize: MediaQuery.of(context).size.height > 500 ? 20 : 15,
                                                                 color: color.backgroundColor,
@@ -851,11 +853,8 @@ class _MakePaymentState extends State<MakePayment> {
                                                     text: TextSpan(
                                                       children: <TextSpan>[
                                                         TextSpan(
-                                                          text: cart
-                                                                  .cartNotifierItem[
-                                                                      index]
-                                                                  .product_name! +
-                                                              '\n',
+                                                          text:
+                                                              '${cart.cartNotifierItem[index].product_name!} (${cart.cartNotifierItem[index].price!}/${cart.cartNotifierItem[index].per_quantity_unit!}${cart.cartNotifierItem[index].unit!})\n',
                                                           style: TextStyle(
                                                               fontSize: 15,
                                                               color: color
