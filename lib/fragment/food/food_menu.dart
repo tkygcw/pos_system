@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
@@ -177,6 +178,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     for (int i = 0; i < categoryList.length; i++) {
       if (categoryList[i] == AppLocalizations.of(context)!.translate('all_category')) {
         List<Product> data = await PosDatabase.instance.readAllProduct();
+        data = sortProduct(data);
         allProduct = data;
         categoryTabContent.add(GridView.count(
             shrinkWrap: true,
@@ -231,6 +233,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
             })));
       } else {
         List<Product> data = await PosDatabase.instance.readSpecificProduct(categoryList[i]);
+        data = sortProduct(data);
         categoryTabContent.add(GridView.count(
             shrinkWrap: true,
             padding: const EdgeInsets.all(10),
@@ -286,6 +289,28 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     }
     _tabController = TabController(length: categoryTab.length, vsync: this);
     refresh();
+  }
+
+  sortProduct(List<Product> list){
+    list.sort((a, b) {
+      final aNumber = a.sequence_number!;
+      final bNumber = b.sequence_number!;
+
+      bool isANumeric = int.tryParse(aNumber) != null;
+      bool isBNumeric = int.tryParse(bNumber) != null;
+
+      if (isANumeric && isBNumeric) {
+        return int.parse(aNumber).compareTo(int.parse(bNumber));
+      } else if (isANumeric) {
+        return -1; // Numeric before alphanumeric
+      } else if (isBNumeric) {
+        return 1; // Alphanumeric before numeric
+      } else {
+        // Custom alphanumeric sorting logic
+        return compareNatural(aNumber, bNumber);
+      }
+    });
+    return list;
   }
 
   getPreferences() async {

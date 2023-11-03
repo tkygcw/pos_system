@@ -402,15 +402,8 @@ class PrintReceipt{
               } else if (res == PosPrintResult.timeout){
                 print('printer time out');
                 printStatus = 2;
-                break;
-                // Fluttertoast.showToast(
-                //     backgroundColor: Colors.orangeAccent,
-                //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_timeout')}");
               }else {
                 printStatus = 1;
-                // Fluttertoast.showToast(
-                //     backgroundColor: Colors.red,
-                //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
               }
             } else {
               //print LAN 58mm
@@ -425,15 +418,9 @@ class PrintReceipt{
               } else if (res == PosPrintResult.timeout){
                 print('printer time out');
                 printStatus = 2;
-                // Fluttertoast.showToast(
-                //     backgroundColor: Colors.orangeAccent,
-                //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_timeout')}");
               }
               else {
                 printStatus = 1;
-                // Fluttertoast.showToast(
-                //     backgroundColor: Colors.red,
-                //     msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
               }
             }
           }

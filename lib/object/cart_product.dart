@@ -84,7 +84,7 @@ class cartProductItem{
          category_id: json['category_id'] as String?,
          category_name: json['category_name'] as String?,
          price: json['price'] as String?,
-         quantity: json['quantity'] as int?,
+         quantity: json['quantity'] as num?,
          checkedModifierLength: json['checkedModifierLength'] as int?,
          checkedModifierItem: modItem,
          modifier: modGroup,

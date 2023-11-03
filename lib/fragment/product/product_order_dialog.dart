@@ -307,27 +307,31 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                     borderSide: BorderSide(color: color.backgroundColor),
                                                   ),
                                                 ),
-                                                onChanged: (value) => setState(() => simpleIntInput = widget.productDetail!.unit != 'each' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', ''))),
-                                                onSubmitted: (value) {
-                                                  () async {
-                                                    await checkProductStock(widget.productDetail!, cart);
-                                                    if (hasStock) {
-                                                      if (cart.selectedOption == 'Dine in') {
-                                                        if (simpleIntInput > 0) {
-                                                          if (cart.selectedTable.isNotEmpty) {
-                                                            await addToCart(cart);
-                                                            Navigator.of(context).pop();
-                                                          } else {
-                                                            openChooseTableDialog(cart);
-                                                          }
+                                                onChanged: (value) {
+                                                  if(value != ''){
+                                                    setState(() => simpleIntInput = widget.productDetail!.unit != 'each' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', '')));
+                                                  } else {
+                                                    simpleIntInput = 0;
+                                                  }
+                                                },
+                                                onSubmitted: (value) async {
+                                                  await checkProductStock(widget.productDetail!, cart);
+                                                  if (hasStock) {
+                                                    if (cart.selectedOption == 'Dine in') {
+                                                      if (simpleIntInput > 0) {
+                                                        if (cart.selectedTable.isNotEmpty) {
+                                                          await addToCart(cart);
+                                                          Navigator.of(context).pop();
                                                         } else {
-                                                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
+                                                          openChooseTableDialog(cart);
                                                         }
+                                                      } else {
+                                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
                                                       }
-                                                    } else {
-                                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
                                                     }
-                                                  }();
+                                                  } else {
+                                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
+                                                  }
                                                 },
                                               ),
                                             ),
@@ -343,21 +347,21 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                 onPressed: () {
                                                   // stock disable or in stock
                                                   if(dialogStock == '' || simpleIntInput+1 < int.parse(dialogStock)) {
-                                                    print('stock_quantity: '+dialogStock!);
+                                                    print('stock_quantity: '+dialogStock);
                                                     setState(() {
                                                       simpleIntInput += 1;
                                                       quantityController.text = simpleIntInput.toString();
                                                       simpleIntInput =  int.parse(quantityController.text.replaceAll(',', ''));
                                                     });
                                                   } else{
-                                                    print('stock_quantity: '+dialogStock!);
+                                                    print('stock_quantity: '+dialogStock);
                                                     setState(() {
                                                       simpleIntInput = int.parse(dialogStock);
                                                       quantityController.text = simpleIntInput.toString();
                                                       simpleIntInput = int.parse(quantityController.text.replaceAll(',', ''));
                                                     });
                                                     if(dialogStock == '0'){
-                                                      print('stock_quantity: '+dialogStock!);
+                                                      print('stock_quantity: '+dialogStock);
                                                       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
                                                     }
                                                   }

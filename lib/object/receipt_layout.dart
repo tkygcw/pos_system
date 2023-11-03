@@ -949,9 +949,16 @@ class ReceiptLayout{
           bool productUnitPriceSplit = productNameDisplayOrder(orderDetailList, i, 80);
           bytes += generator.row([
             PosColumn(text: '${orderDetailList[i].quantity}', width: 2),
+            orderDetailList[i].unit != '' ?
             PosColumn(
                 text: productUnitPriceSplit  ? '${orderDetailList[i].productName}'
                     : '${orderDetailList[i].productName} (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
+                width: 7,
+                containsChinese: true,
+                styles: PosStyles(align: PosAlign.left, bold: true))
+                : PosColumn(
+                text: productUnitPriceSplit  ? '${orderDetailList[i].productName}'
+                    : '${orderDetailList[i].productName} (${orderDetailList[i].price}/each)',
                 width: 7,
                 containsChinese: true,
                 styles: PosStyles(align: PosAlign.left, bold: true)),
@@ -965,7 +972,7 @@ class ReceiptLayout{
           if(productUnitPriceSplit){
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '(${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})', width: 7),
+              PosColumn(text: orderDetailList[i].unit != '' ? '(${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})' : '(${orderDetailList[i].price}/each)', width: 7),
               PosColumn(text: '', width: 3, styles: PosStyles(align: PosAlign.right)),
             ]);
           }
@@ -1194,9 +1201,16 @@ class ReceiptLayout{
           bool productUnitPriceSplit = productNameDisplayOrder(orderDetailList, i, 58);
           bytes += generator.row([
             PosColumn(text: '${orderDetailList[i].quantity}', width: 2),
+            orderDetailList[i].unit != '' ?
             PosColumn(
                 text: productUnitPriceSplit  ? '${orderDetailList[i].productName!.trim()}'
                     : '${orderDetailList[i].productName!.trim()} (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
+                width: 6,
+                containsChinese: true,
+                styles: PosStyles(bold: true))
+                : PosColumn(
+                text: productUnitPriceSplit  ? '${orderDetailList[i].productName!.trim()}'
+                    : '${orderDetailList[i].productName!.trim()} (${orderDetailList[i].price}/each)',
                 width: 6,
                 containsChinese: true,
                 styles: PosStyles(bold: true)),
@@ -1207,7 +1221,7 @@ class ReceiptLayout{
           if(productUnitPriceSplit){
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '(${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})', width: 10),
+              PosColumn(text: orderDetailList[i].unit != '' ? '(${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})' : '(${orderDetailList[i].price}/each)', width: 10),
             ]);
           }
           bytes += generator.reset();
@@ -2400,7 +2414,7 @@ class ReceiptLayout{
     final int? branch_id = prefs.getInt('branch_id');
     await readOrderCache(localId);
     cartProductItem cartItem = cartProductItem(
-      quantity: int.parse(orderDetail.quantity!),
+      quantity: int.tryParse(orderDetail.quantity!) != null ? int.parse(orderDetail.quantity!) : double.parse(orderDetail.quantity!),
       product_name: orderDetail.productName,
       productVariantName: orderDetail.product_variant_name,
       remark: orderDetail.remark,
@@ -3975,7 +3989,12 @@ class ReceiptLayout{
 
 bool productNameDisplayOrder(List<OrderDetail> orderDetailList, int i, int paperSize) {
   int productNameWidth = 0;
-  String productUnitPrice = '(${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})';
+  String productUnitPrice = '';
+  if(orderDetailList[i].unit != '')
+    productUnitPrice = ' (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})';
+  else
+    productUnitPrice = ' (${orderDetailList[i].price}/each)';
+
   int productNameSpaceConsumed = calculateSpaceConsumed(orderDetailList[i].productName!);
 
   if(paperSize == 80)

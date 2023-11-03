@@ -529,6 +529,7 @@ getAllProduct() async {
           daily_limit_amount: productItem.daily_limit_amount,
           unit: productItem.unit,
           per_quantity_unit: productItem.per_quantity_unit,
+          sequence_number: productItem.sequence_number,
           sync_status: 1,
           created_at: productItem.created_at,
           updated_at: productItem.updated_at,

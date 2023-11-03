@@ -94,6 +94,8 @@ class QrOrder {
             cancel_by: '',
             cancel_by_user_id: '',
             status: 0,
+            unit: 'each',
+            per_quantity_unit: '',
             sync_status: 1,
             created_at: dateTime,
             updated_at: '',

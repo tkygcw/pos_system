@@ -109,8 +109,9 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dx} TEXT NOT NULL DEFAULT '' ");
         }break;
         case 6: {
-          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.unit} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.unit} TEXT NOT NULL DEFAULT 'each' ");
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.per_quantity_unit} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.sequence_number} TEXT NOT NULL DEFAULT '' ");
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.unit} TEXT NOT NULL DEFAULT '' ");
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.per_quantity_unit} TEXT NOT NULL DEFAULT '' ");
         }break;
@@ -322,7 +323,8 @@ class PosDatabase {
            ${ProductFields.name} $textType,${ProductFields.price} $textType, ${ProductFields.description} $textType, ${ProductFields.SKU} $textType, ${ProductFields.image} $textType,
            ${ProductFields.has_variant} $integerType,${ProductFields.stock_type} $integerType, ${ProductFields.stock_quantity} $textType, ${ProductFields.available} $integerType,
            ${ProductFields.graphic_type} $textType, ${ProductFields.color} $textType, ${ProductFields.daily_limit} $textType, ${ProductFields.daily_limit_amount} $textType, 
-           ${ProductFields.sync_status} $integerType, ${ProductFields.unit} $textType, ${ProductFields.per_quantity_unit} $textType, 
+           ${ProductFields.sync_status} $integerType, 
+           ${ProductFields.unit} $textType, ${ProductFields.per_quantity_unit} $textType, ${ProductFields.sequence_number} $textType,
            ${ProductFields.created_at} $textType, ${ProductFields.updated_at} $textType, ${ProductFields.soft_delete} $textType)''');
 /*
     create product variant table
@@ -1027,7 +1029,7 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableProduct(product_id, category_id, category_sqlite_id, company_id, name, price, description, SKU, image, has_variant, stock_type, stock_quantity, available, graphic_type, color, daily_limit, daily_limit_amount, '
-            'sync_status, unit, per_quantity_unit, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'sync_status, unit, per_quantity_unit, sequence_number, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.product_id,
           data.category_id,
@@ -1049,6 +1051,7 @@ class PosDatabase {
           data.sync_status,
           data.unit,
           data.per_quantity_unit,
+          data.sequence_number,
           data.created_at,
           data.updated_at,
           data.soft_delete
@@ -4576,7 +4579,7 @@ class PosDatabase {
     return await db.rawUpdate(
         'UPDATE $tableProduct SET category_sqlite_id = ?, category_id = ?, name = ?, price = ?, description = ?, SKU = ?, '
         'image = ?, has_variant = ?, stock_type = ?, stock_quantity = ?, available = ?, graphic_type = ?, color = ?, '
-        'daily_limit_amount = ?, daily_limit = ?, sync_status = ?, updated_at = ?, soft_delete = ? WHERE product_id = ?',
+        'daily_limit_amount = ?, daily_limit = ?, sync_status = ?, unit = ?, per_quantity_unit = ?, sequence_number = ?, updated_at = ?, soft_delete = ? WHERE product_id = ?',
         [
           data.category_sqlite_id,
           data.category_id,
@@ -4594,6 +4597,9 @@ class PosDatabase {
           data.daily_limit_amount,
           data.daily_limit,
           data.sync_status,
+          data.unit,
+          data.per_quantity_unit,
+          data.sequence_number,
           data.updated_at,
           data.soft_delete,
           data.product_id,

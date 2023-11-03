@@ -121,6 +121,7 @@ class CartPageState extends State<CartPage> {
       hasNewItem = false,
       timeOutDetected = false,
       isLogOut = false,
+      isLoading = false,
       isButtonDisabled = false;
   Color font = Colors.black45;
   int myCount = 0;
@@ -447,7 +448,7 @@ class CartPageState extends State<CartPage> {
                                                     fontWeight: FontWeight.bold),
                                               ),
                                               TextSpan(
-                                                  text: "RM ${cart.cartNotifierItem[index].price!} (${cart.cartNotifierItem[index].per_quantity_unit!}${cart.cartNotifierItem[index].unit!})",
+                                                  text: "RM ${cart.cartNotifierItem[index].price!} (${cart.cartNotifierItem[index].unit! != '' ? cart.cartNotifierItem[index].per_quantity_unit! + cart.cartNotifierItem[index].unit! : 'each'})",
                                                   style: TextStyle(
                                                     fontSize: 13,
                                                     color: cart.cartNotifierItem[index].status == 1
@@ -918,13 +919,24 @@ class CartPageState extends State<CartPage> {
                                             backgroundColor: color.backgroundColor,
                                             minimumSize: const Size.fromHeight(50),
                                           ),
-                                          onPressed: cart.cartNotifierItem.isEmpty ? null : () async {
+                                          onPressed: cart.cartNotifierItem.isEmpty || isLoading ? null : () async {
+                                            setState(() {
+                                              isLoading = true;
+                                            });
                                             paymentAddToCart(cart);
                                             int printStatus = await printReceipt.printReviewReceipt(
                                                 printerList, cart.selectedTable, cart, context);
                                             checkPrinterStatus(printStatus);
+                                            setState(() {
+                                              isLoading = false;
+                                            });
                                           },
-                                          child: Text(AppLocalizations.of(context)!.translate('print_receipt')),
+                                          child: isLoading ? CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 3,)
+                                              :
+                                          Text(AppLocalizations.of(context)!.translate('print_receipt'))
+
                                         )),
                                   )
                                 ],
@@ -2401,7 +2413,6 @@ class CartPageState extends State<CartPage> {
       if(returnData != null){
         if (returnData.isNotEmpty) {
           _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-          //await openReprintKitchenDialog(orderDetail: returnData);
         }
       } else {
         Fluttertoast.showToast(

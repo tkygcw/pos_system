@@ -1011,6 +1011,9 @@ class SyncRecord {
         daily_limit: productItem.daily_limit,
         daily_limit_amount: productItem.daily_limit_amount,
         sync_status: 1,
+        unit: productItem.unit,
+        per_quantity_unit: productItem.per_quantity_unit,
+        sequence_number: productItem.sequence_number,
         created_at: productItem.created_at,
         updated_at: productItem.updated_at,
         soft_delete: productItem.soft_delete

@@ -22,6 +22,7 @@ class ProductFields {
     daily_limit_amount,
     unit,
     per_quantity_unit,
+    sequence_number,
     sync_status,
     created_at,
     updated_at,
@@ -48,6 +49,7 @@ class ProductFields {
   static String daily_limit_amount = 'daily_limit_amount';
   static String unit = 'unit';
   static String per_quantity_unit = 'per_quantity_unit';
+  static String sequence_number = 'sequence_number';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -75,6 +77,7 @@ class Product{
   String? daily_limit_amount;
   String? unit;
   String? per_quantity_unit;
+  String? sequence_number;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -102,6 +105,7 @@ class Product{
         this.daily_limit_amount,
         this.unit,
         this.per_quantity_unit,
+        this.sequence_number,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -130,6 +134,7 @@ class Product{
     String? daily_limit_amount,
     String? unit,
     String? per_quantity_unit,
+    String? sequence_number,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -156,6 +161,7 @@ class Product{
           daily_limit_amount: daily_limit_amount ?? this.daily_limit_amount,
           unit: unit ?? this.unit,
           per_quantity_unit: per_quantity_unit ?? this.per_quantity_unit,
+          sequence_number: sequence_number ?? this.sequence_number,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -182,6 +188,7 @@ class Product{
     daily_limit_amount: json[ProductFields.daily_limit_amount] as String?,
     unit: json[ProductFields.unit] as String?,
     per_quantity_unit: json[ProductFields.per_quantity_unit] as String?,
+    sequence_number: json[ProductFields.sequence_number] as String?,
     sync_status: json[ProductFields.sync_status] as int?,
     created_at: json[ProductFields.created_at] as String?,
     updated_at: json[ProductFields.updated_at] as String?,
@@ -210,6 +217,7 @@ class Product{
     ProductFields.daily_limit_amount: daily_limit_amount,
     ProductFields.unit: unit,
     ProductFields.per_quantity_unit: per_quantity_unit,
+    ProductFields.sequence_number: sequence_number,
     ProductFields.sync_status: sync_status,
     ProductFields.created_at: created_at,
     ProductFields.updated_at: updated_at,

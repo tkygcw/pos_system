@@ -149,7 +149,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                                     visualDensity: VisualDensity(horizontal: 0, vertical: -4),
                                     title: Text('${obj!.itemList![index].product_name} ${getVariant(obj!.itemList![index])}'),
                                     leading: Text('${obj!.itemList![index].quantity}'),
-                                    trailing: Text('${Utils.to2Decimal(double.parse(obj!.itemList![index].price!))}'),
+                                    trailing: Text('${Utils.to2Decimal(double.parse(obj!.itemList![index].price!))}/${obj!.itemList![index].per_quantity_unit!}${obj!.itemList![index].unit!}'),
                                   ),
                                 );
                               }
