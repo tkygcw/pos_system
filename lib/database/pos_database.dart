@@ -107,6 +107,12 @@ class PosDatabase {
         case 5: {
           await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dy} TEXT NOT NULL DEFAULT '' ");
           await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dx} TEXT NOT NULL DEFAULT '' ");
+          //new version
+          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.unit} TEXT NOT NULL DEFAULT 'each' ");
+          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.per_quantity_unit} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.sequence_number} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.unit} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.per_quantity_unit} TEXT NOT NULL DEFAULT '' ");
         }break;
         case 6: {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.unit} TEXT NOT NULL DEFAULT 'each' ");
