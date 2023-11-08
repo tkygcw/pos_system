@@ -18,6 +18,7 @@ import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../main.dart';
 import '../../notifier/theme_color.dart';
+import '../../object/app_setting.dart';
 import '../../object/cash_record.dart';
 import '../../object/order.dart';
 import '../../object/order_cache.dart';
@@ -424,7 +425,10 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   callUpdateOrder() async {
     String dateTime = dateFormat.format(DateTime.now());
     await updateOrder(dateTime: dateTime);
-    if (widget.dining_name == 'Dine in') {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+    if (widget.dining_name == 'Dine in' && widget.selectedTableList.isNotEmpty) {
       await deleteCurrentTableUseDetail(dateTime: dateTime);
       await deleteCurrentTableUseId(dateTime: dateTime);
       await updatePosTableStatus(dateTime: dateTime);
@@ -443,7 +447,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     }
     //await _printReceiptList();
     //await deleteOrderCache();
-    isLoaded = true;
+    setState(() {
+      isLoaded = true;
+    });
   }
 
   callPrinter() async {
@@ -615,24 +621,20 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   // }
 
   updateOrderCache({required String dateTime}) async {
+    print("updateOrderCache");
     List<String> _value = [];
     if (widget.orderCacheIdList.isNotEmpty) {
       for (int j = 0; j < widget.orderCacheIdList.length; j++) {
-        OrderCache checkData = await PosDatabase.instance
-            .readSpecificOrderCacheByLocalId(
-                int.parse(widget.orderCacheIdList[j]));
+        OrderCache checkData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(int.parse(widget.orderCacheIdList[j]));
         OrderCache cacheObject = OrderCache(
             order_sqlite_id: widget.orderId,
             order_key: widget.orderKey,
             sync_status: checkData.sync_status == 0 ? 0 : 2,
             updated_at: dateTime,
             order_cache_sqlite_id: int.parse(widget.orderCacheIdList[j]));
-        int updatedOrderCache =
-            await PosDatabase.instance.updateOrderCacheOrderId(cacheObject);
+        int updatedOrderCache = await PosDatabase.instance.updateOrderCacheOrderId(cacheObject);
         if (updatedOrderCache == 1) {
-          OrderCache orderCacheData = await PosDatabase.instance
-              .readSpecificOrderCacheByLocalId(
-                  cacheObject.order_cache_sqlite_id!);
+          OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(cacheObject.order_cache_sqlite_id!);
           _value.add(jsonEncode(orderCacheData));
         }
       }
@@ -750,9 +752,8 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
       Map userObject = json.decode(pos_user!);
       Map logInUser = json.decode(login_user!);
 
-      List<Order> orderData =
-          await PosDatabase.instance.readSpecificPaidOrder(widget.orderId);
-
+      List<Order> orderData = await PosDatabase.instance.readSpecificPaidOrder(widget.orderId);
+      print("orderData length: ${orderData.length}");
       if (orderData.length == 1) {
         CashRecord cashRecordObject = CashRecord(
             cash_record_id: 0,
@@ -771,8 +772,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
             created_at: dateTime,
             updated_at: '',
             soft_delete: '');
-        CashRecord data =
-            await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
+        CashRecord data = await PosDatabase.instance.insertSqliteCashRecord(cashRecordObject);
         CashRecord updatedData = await insertCashRecordKey(data, dateTime);
         _value.add(jsonEncode(updatedData));
         cash_record_value = _value.toString();
@@ -780,7 +780,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
         //syncCashRecordToCloud(updatedData);
       }
     } catch (e) {
-      print(e);
+      print("createCashRecord error: ${e}");
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: AppLocalizations.of(context)!

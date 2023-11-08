@@ -60,9 +60,10 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
     list.add('All');
     List<DiningOption> data = await PosDatabase.instance.readAllDiningOption();
     for(int i=0; i< data.length; i++){
-      if(data[i].name != 'Dine in'){
-        list.add(data[i].name!);
-      }
+      // if(data[i].name != 'Dine in'){
+      //   list.add(data[i].name!);
+      // }
+      list.add(data[i].name!);
     }
 
   }
@@ -217,8 +218,14 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
                                               color: color.backgroundColor,
                                               size: 30.0,
                                             )
-                                          : Icon(
+                                      : orderCacheList[index].dining_name == 'Delivery'
+                                          ? Icon(
                                               Icons.delivery_dining,
+                                              color: color.backgroundColor,
+                                              size: 30.0,
+                                            )
+                                          : Icon(
+                                              Icons.local_dining_sharp,
                                               color: color.backgroundColor,
                                               size: 30.0,
                                             ),
@@ -271,6 +278,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
   getDiningOption(diningOption){
     if(diningOption == 'All') return 'all';
     else if(diningOption == 'Take Away') return 'take_away';
+    else if(diningOption == 'Dine in') return 'dine_in';
     else return 'delivery';
   }
 
@@ -291,6 +299,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
           remark: orderDetailList[i].remark!,
           unit: orderDetailList[i].unit,
           per_quantity_unit: orderDetailList[i].per_quantity_unit,
+          order_queue: orderCache.order_queue,
           status: 0,
           order_cache_sqlite_id: orderCache.order_cache_sqlite_id.toString(),
           order_cache_key: orderCache.order_cache_key,
@@ -301,6 +310,8 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
       cart.addItem(value);
       if(orderCache.dining_name == 'Take Away'){
         cart.selectedOption = 'Take Away';
+      } else if(orderCache.dining_name == 'Dine in'){
+        cart.selectedOption = 'Dine in';
       } else {
         cart.selectedOption = 'Delivery';
       }

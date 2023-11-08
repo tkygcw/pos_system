@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/checklist.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
@@ -40,6 +41,7 @@ class SyncToCloud {
   List<TableUseDetail> notSyncTableUseDetailList = [];
   List<Table> notSyncTableList = [];
   List<CashRecord> notSyncCashRecordList = [];
+  List<AppSetting> notSyncAppSettingList = [];
   List<TransferOwner> notSyncTransferOwnerList = [];
   List<Settlement> notSyncSettlementList = [];
   List<SettlementLinkPayment>  notSyncSettlementLinkPaymentList = [];
@@ -49,7 +51,7 @@ class SyncToCloud {
   List<PrinterLinkCategory> notSyncPrinterCategoryList = [];
   String? table_use_value, table_use_detail_value, order_cache_value, order_detail_value, order_detail_cancel_value,
       order_modifier_detail_value, order_value, order_promotion_value, order_tax_value, receipt_value, refund_value, table_value, settlement_value,
-      settlement_link_payment_value, cash_record_value, branch_link_product_value, printer_value, printer_link_category_value,
+      settlement_link_payment_value, cash_record_value, app_setting_value, branch_link_product_value, printer_value, printer_link_category_value,
       transfer_owner_value, checklist_value;
 
   resetCount(){
@@ -62,6 +64,7 @@ class SyncToCloud {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
     final String? login_value = prefs.getString('login_value');
+
     Map data = await Domain().syncLocalUpdateToCloud(
         device_id: device_id.toString(),
         value: login_value,
@@ -80,6 +83,7 @@ class SyncToCloud {
         settlement_value: this.settlement_value,
         settlement_link_payment_value: this.settlement_link_payment_value,
         cash_record_value: this.cash_record_value,
+        app_setting_value: this.app_setting_value,
         branch_link_product_value: this.branch_link_product_value,
         table_value: this.table_value,
         printer_value: this.printer_value,
@@ -147,6 +151,10 @@ class SyncToCloud {
             await PosDatabase.instance.updateCashRecordSyncStatusFromCloud(responseJson[i]['cash_record_key']);
           }
           break;
+          case 'tb_app_setting': {
+            await PosDatabase.instance.updateAppSettingSyncStatusFromCloud(responseJson[i]['branch_id']);
+          }
+          break;
           case 'tb_branch_link_product': {
             await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
           }
@@ -204,6 +212,7 @@ class SyncToCloud {
     settlement_value = [].toString();
     settlement_link_payment_value = [].toString();
     cash_record_value = [].toString();
+    app_setting_value = [].toString();
     branch_link_product_value = [].toString();
     printer_value = [].toString();
     printer_link_category_value = [].toString();
@@ -217,6 +226,7 @@ class SyncToCloud {
     await getNotSyncReceipt();
     await getNotSyncBranchLinkProduct();
     await getNotSyncCashRecord();
+    await getNotSyncAppSetting();
     await getNotSyncOrder();
     await getNotSyncOrderCache();
     await getNotSyncOrderDetail();
@@ -596,6 +606,28 @@ class SyncToCloud {
       }
     }catch(error){
       print('15 cash record sync error: ${error}');
+      return;
+    }
+  }
+
+  /*
+  ----------------------App setting part----------------------------------------------------------------------------------------------------------------------------
+*/
+
+  getNotSyncAppSetting() async {
+    try{
+      List<String> _value = [];
+      List<AppSetting> data = await PosDatabase.instance.readAllNotSyncAppSetting();
+      notSyncAppSettingList = data;
+      if(notSyncAppSettingList.isNotEmpty) {
+        for(int i = 0; i < notSyncAppSettingList.length; i++){
+          _value.add(jsonEncode(notSyncAppSettingList[i]));
+        }
+        this.app_setting_value = _value.toString();
+        print("app_setting_value: ${app_setting_value}");
+      }
+    }catch(error){
+      print('15 app setting sync error: ${error}');
       return;
     }
   }

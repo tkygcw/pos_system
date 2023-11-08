@@ -7,6 +7,7 @@ class OrderFields {
     order_sqlite_id,
     order_id,
     order_number,
+    order_queue,
     company_id,
     customer_id,
     dining_id,
@@ -37,6 +38,7 @@ class OrderFields {
   static String order_sqlite_id = 'order_sqlite_id';
   static String order_id = 'order_id';
   static String order_number = 'order_number';
+  static String order_queue = 'order_queue';
   static String company_id = 'company_id';
   static String customer_id = 'customer_id';
   static String dining_id = 'dining_id';
@@ -68,6 +70,7 @@ class Order {
   int? order_sqlite_id;
   int? order_id;
   String? order_number;
+  String? order_queue;
   String? company_id;
   String? customer_id;
   String? dining_id;
@@ -116,6 +119,7 @@ class Order {
       {this.order_sqlite_id,
       this.order_id,
       this.order_number,
+      this.order_queue,
       this.company_id,
       this.customer_id,
       this.dining_id,
@@ -156,6 +160,7 @@ class Order {
     int? order_sqlite_id,
     int? order_id,
     String? order_number,
+    String? order_queue,
     String? company_id,
     String? customer_id,
     String? dining_id,
@@ -186,6 +191,7 @@ class Order {
           order_sqlite_id: order_sqlite_id ?? this.order_sqlite_id,
           order_id: order_id ?? this.order_id,
           order_number: order_number ?? this.order_number,
+          order_queue: order_queue ?? this.order_queue,
           company_id: company_id ?? this.company_id,
           customer_id: customer_id ?? this.customer_id,
           dining_id: dining_id ?? this.dining_id,
@@ -218,6 +224,7 @@ class Order {
         order_sqlite_id: json[OrderFields.order_sqlite_id] as int?,
         order_id: json[OrderFields.order_id] as int?,
         order_number: json[OrderFields.order_number] as String?,
+        order_queue: json[OrderFields.order_queue] as String?,
         company_id: json[OrderFields.company_id] as String?,
         customer_id: json[OrderFields.customer_id] as String?,
         dining_id: json[OrderFields.dining_id] as String?,
@@ -259,6 +266,7 @@ class Order {
         OrderFields.order_sqlite_id: order_sqlite_id,
         OrderFields.order_id: order_id,
         OrderFields.order_number: order_number,
+        OrderFields.order_queue: order_queue,
         OrderFields.company_id: company_id,
         OrderFields.customer_id: customer_id,
         OrderFields.dining_id: dining_id,

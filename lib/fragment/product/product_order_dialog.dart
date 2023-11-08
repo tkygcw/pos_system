@@ -19,6 +19,7 @@ import 'package:quantity_input/quantity_input.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/pos_database.dart';
+import '../../notifier/app_setting_notifier.dart';
 import '../../notifier/cart_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/modifier_group.dart';
@@ -41,6 +42,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   StreamController actionController = StreamController();
   late Stream actionStream;
   late StreamSubscription actionSubscription;
+  late AppSettingModel _appSettingModel;
   Categories? categories;
   String branchLinkProduct_id = '';
   String basePrice = '', finalPrice = '';
@@ -179,48 +181,51 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
-        return LayoutBuilder(builder: (context, constraints) {
-          if (constraints.maxWidth > 800) {
-            return StreamBuilder(
-                stream: streamController.productOrderDialogStream,
-                builder: (context, snapshot) {
-                  // print("has data: ${snapshot.hasData}");
-                  if(snapshot.hasData){
-                    return Center(
-                      child: SingleChildScrollView(
-                        child: AlertDialog(
-                          title: Row(
-                            children: [
-                              Container(
-                                // constraints: BoxConstraints(maxWidth: 300),
-                                child: Text("${widget.productDetail!.name!}",
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    )),
-                              ),
-                              // Text("In stock: $dialogStock",
-                              //     style: TextStyle(
-                              //       fontSize: 16,
-                              //       fontWeight: FontWeight.bold,
-                              //     )),
-                              Spacer(),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
+        return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
+          _appSettingModel = appSettingModel;
+          return LayoutBuilder(builder: (context, constraints) {
+            if (constraints.maxWidth > 800) {
+              return StreamBuilder(
+                  stream: streamController.productOrderDialogStream,
+                  builder: (context, snapshot) {
+                    // print("has data: ${snapshot.hasData}");
+                    if (snapshot.hasData) {
+                      return Center(
+                        child: SingleChildScrollView(
+                          child: AlertDialog(
+                            title: Row(
+                              children: [
+                                Container(
+                                  // constraints: BoxConstraints(maxWidth: 300),
+                                  child: Text("${widget.productDetail!.name!}",
                                       style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                       )),
-                                  Visibility(
-                                    visible: dialogStock != '' ? true : false,
-                                    child: Text("In stock: ${dialogStock}${widget.productDetail!.unit != 'each'? widget.productDetail!.unit : ''}",
+                                ),
+                                // Text("In stock: $dialogStock",
+                                //     style: TextStyle(
+                                //       fontSize: 16,
+                                //       fontWeight: FontWeight.bold,
+                                //     )),
+                                Spacer(),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         )),
-                                  )
+                                    Visibility(
+                                      visible: dialogStock != '' ? true : false,
+                                      child: Text("In stock: ${dialogStock}",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: dialogStock == '0' ? Colors.red : Colors.black
+                                          )),
+                                    )
 
                                 ],
                               )
@@ -317,7 +322,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                 onSubmitted: (value) async {
                                                   await checkProductStock(widget.productDetail!, cart);
                                                   if (hasStock) {
-                                                    if (cart.selectedOption == 'Dine in') {
+                                                    if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
                                                       if (simpleIntInput > 0) {
                                                         if (cart.selectedTable.isNotEmpty) {
                                                           await addToCart(cart);
@@ -420,250 +425,283 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                     : () {
                                   Navigator.of(context).pop();
 
-                                  // Disable the button after it has been pressed
-                                  setState(() {
-                                    isButtonDisabled = true;
-                                  });
-                                },
+                                    // Disable the button after it has been pressed
+                                    setState(() {
+                                      isButtonDisabled = true;
+                                    });
+                                  },
+                                ),
                               ),
-                            ),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width / 4,
-                              height: MediaQuery.of(context).size.height / 12,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: color.buttonColor,
-                                ),
-                                child: Text(
-                                  AppLocalizations.of(context)!.translate('add'),
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                onPressed: isButtonDisabled
-                                    ? null
-                                    : () async {
-                                  await checkProductStock(widget.productDetail!, cart);
-                                  //await getBranchLinkProductItem(widget.productDetail!);
-                                  if (hasStock) {
-                                    if (cart.selectedOption == 'Dine in') {
-                                      if(simpleIntInput > 0){
-                                        if (cart.selectedTable.isNotEmpty) {
-                                          // Disable the button after it has been pressed
-                                          setState(() {
-                                            isButtonDisabled = true;
-                                          });
-                                          await addToCart(cart);
-                                          Navigator.of(context).pop();
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width / 4,
+                                height: MediaQuery.of(context).size.height / 12,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: color.buttonColor,
+                                  ),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.translate('add'),
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  onPressed: isButtonDisabled
+                                      ? null
+                                      : () async {
+                                    await checkProductStock(widget.productDetail!, cart);
+                                    //await getBranchLinkProductItem(widget.productDetail!);
+                                    if (hasStock) {
+                                      print("appSettingModel.table_order: ${appSettingModel.table_order}");
+                                      if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
+                                        if (simpleIntInput > 0) {
+                                          if (cart.selectedTable.isNotEmpty) {
+                                            // Disable the button after it has been pressed
+                                            setState(() {
+                                              isButtonDisabled = true;
+                                            });
+                                            await addToCart(cart);
+                                            Navigator.of(context).pop();
+                                          } else {
+                                            openChooseTableDialog(cart);
+                                          }
                                         } else {
-                                          openChooseTableDialog(cart);
+                                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
                                         }
+                                      } else if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == false) {
+                                        // Disable the button after it has been pressed
+                                        setState(() {
+                                          isButtonDisabled = true;
+                                        });
+                                        await addToCart(cart);
+                                        Navigator.of(context).pop();
                                       } else {
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
+                                        // Disable the button after it has been pressed
+                                        setState(() {
+                                          isButtonDisabled = true;
+                                        });
+                                        await addToCart(cart);
+                                        Navigator.of(context).pop();
                                       }
                                     } else {
+                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    } else {
+                      return CustomProgressBar();
+                    }
+                  }
+              );
+            } else {
+              ///mobile layout
+              return StreamBuilder(
+                stream: streamController.productOrderDialogStream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return AlertDialog(
+                      title: Row(
+                        children: [
+                          Container(
+                            constraints: BoxConstraints(maxWidth: MediaQuery
+                                .of(context)
+                                .size
+                                .width / 2),
+                            child: Text(widget.productDetail!.name!,
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                )),
+                          ),
+                          Spacer(),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  )),
+                              Visibility(
+                                visible: dialogStock != '' ? true : false,
+                                child: Text("In stock: ${dialogStock}",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: dialogStock == '0' ? Colors.red : Colors.black
+                                    )),
+                              )
+
+                            ],
+                          )
+                        ],
+                      ),
+                      content: Container(
+                        height: MediaQuery
+                            .of(context)
+                            .size
+                            .height, // Change as per your requirement
+                        width: MediaQuery
+                            .of(context)
+                            .size
+                            .width / 1.5,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              for (int i = 0; i < variantGroup.length; i++)
+                                variantGroupLayout(variantGroup[i]),
+                              for (int j = 0; j < modifierGroup.length; j++)
+                                Visibility(
+                                  visible: modifierGroup[j].modifierChild!.isNotEmpty && modifierGroup[j].dining_id == "" || modifierGroup[j].dining_id == cart.selectedOptionId
+                                      ? true
+                                      : false,
+                                  child: modifierGroupLayout(modifierGroup[j], cart),
+                                ),
+                              Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          AppLocalizations.of(context)!.translate('quantity'),
+                                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  QuantityInput(
+                                      inputWidth: 273,
+                                      acceptsNegatives: false,
+                                      acceptsZero: false,
+                                      minValue: 1,
+                                      decoration: InputDecoration(
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: color.backgroundColor),
+                                        ),
+                                      ),
+                                      buttonColor: color.backgroundColor,
+                                      value: simpleIntInput,
+                                      onChanged: (value) => setState(() => simpleIntInput = int.parse(value.replaceAll(',', ''))))
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          AppLocalizations.of(context)!.translate('remark'),
+                                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  TextField(
+                                    controller: remarkController,
+                                    decoration: InputDecoration(
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(color: color.backgroundColor),
+                                      ),
+                                    ),
+                                    keyboardType: TextInputType.multiline,
+                                    maxLines: null,
+                                  )
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                      actions: <Widget>[
+                        SizedBox(
+                          width: MediaQuery
+                              .of(context)
+                              .size
+                              .width / 2.5,
+                          height: MediaQuery
+                              .of(context)
+                              .size
+                              .height / 10,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                            onPressed: isButtonDisabled
+                                ? null
+                                : () {
+                              // Disable the button after it has been pressed
+                              setState(() {
+                                isButtonDisabled = true;
+                              });
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ),
+                        SizedBox(
+                          width: MediaQuery
+                              .of(context)
+                              .size
+                              .width / 2.5,
+                          height: MediaQuery
+                              .of(context)
+                              .size
+                              .height / 10,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: color.buttonColor,
+                            ),
+                            child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                            onPressed: isButtonDisabled
+                                ? null
+                                : () async {
+                              await checkProductStock(widget.productDetail!, cart);
+                              //await getBranchLinkProductItem(widget.productDetail!);
+                              if (hasStock == true) {
+                                if (cart.selectedOption == 'Dine in') {
+                                  if (simpleIntInput > 0) {
+                                    if (cart.selectedTable.isNotEmpty) {
                                       // Disable the button after it has been pressed
                                       setState(() {
                                         isButtonDisabled = true;
                                       });
                                       await addToCart(cart);
                                       Navigator.of(context).pop();
+                                    } else {
+                                      openChooseTableDialog(cart);
                                     }
                                   } else {
-                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
+                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
                                   }
-                                },
-                              ),
-                            ),
-                          ],
+                                } else {
+                                  // Disable the button after it has been pressed
+                                  setState(() {
+                                    isButtonDisabled = true;
+                                  });
+                                  await addToCart(cart);
+                                  Navigator.of(context).pop();
+                                }
+                              } else {
+                                Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
+                              }
+                            },
+                          ),
                         ),
-                      ),
+                      ],
                     );
                   } else {
                     return CustomProgressBar();
                   }
-                }
-            );
-          } else {
-            ///mobile layout
-            return StreamBuilder(
-              stream: streamController.productOrderDialogStream,
-              builder: (context, snapshot){
-                if(snapshot.hasData){
-                  return AlertDialog(
-                    title: Row(
-                      children: [
-                        Container(
-                          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
-                          child: Text(widget.productDetail!.name!,
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              )),
-                        ),
-                        Spacer(),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                )),
-                            Visibility(
-                              visible: dialogStock != '' ? true : false,
-                              child: Text("In stock: ${dialogStock}${widget.productDetail!.unit != 'each'? widget.productDetail!.unit : null}",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  )),
-                            )
-
-                          ],
-                        )
-                      ],
-                    ),
-                    content: Container(
-                      height: MediaQuery.of(context).size.height, // Change as per your requirement
-                      width: MediaQuery.of(context).size.width / 1.5,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (int i = 0; i < variantGroup.length; i++)
-                              variantGroupLayout(variantGroup[i]),
-                            for (int j = 0; j < modifierGroup.length; j++)
-                              Visibility(
-                                visible: modifierGroup[j].modifierChild!.isNotEmpty && modifierGroup[j].dining_id == "" || modifierGroup[j].dining_id == cart.selectedOptionId ? true : false,
-                                child: modifierGroupLayout(modifierGroup[j], cart),
-                              ),
-                            Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        AppLocalizations.of(context)!.translate('quantity'),
-                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                QuantityInput(
-                                    inputWidth: 273,
-                                    acceptsNegatives: false,
-                                    acceptsZero: false,
-                                    minValue: 1,
-                                    decoration: InputDecoration(
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(color: color.backgroundColor),
-                                      ),
-                                    ),
-                                    buttonColor: color.backgroundColor,
-                                    value: simpleIntInput,
-                                    onChanged: (value) => setState(() => simpleIntInput = int.parse(value.replaceAll(',', ''))))
-                              ],
-                            ),
-                            Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        AppLocalizations.of(context)!.translate('remark'),
-                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                TextField(
-                                  controller: remarkController,
-                                  decoration: InputDecoration(
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(color: color.backgroundColor),
-                                    ),
-                                  ),
-                                  keyboardType: TextInputType.multiline,
-                                  maxLines: null,
-                                )
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                    actions: <Widget>[
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width / 2.5,
-                        height: MediaQuery.of(context).size.height / 10,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                          child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                          onPressed: isButtonDisabled
-                              ? null
-                              : () {
-                            // Disable the button after it has been pressed
-                            setState(() {
-                              isButtonDisabled = true;
-                            });
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width / 2.5,
-                        height: MediaQuery.of(context).size.height / 10,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: color.buttonColor,
-                          ),
-                          child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                          onPressed: isButtonDisabled
-                              ? null
-                              : () async {
-                            await checkProductStock(widget.productDetail!, cart);
-                            //await getBranchLinkProductItem(widget.productDetail!);
-                            if (hasStock == true) {
-                              if (cart.selectedOption == 'Dine in') {
-                                if(simpleIntInput > 0){
-                                  if (cart.selectedTable.isNotEmpty) {
-                                    // Disable the button after it has been pressed
-                                    setState(() {
-                                      isButtonDisabled = true;
-                                    });
-                                    await addToCart(cart);
-                                    Navigator.of(context).pop();
-                                  } else {
-                                    openChooseTableDialog(cart);
-                                  }
-                                } else {
-                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
-                                }
-                              } else {
-                                // Disable the button after it has been pressed
-                                setState(() {
-                                  isButtonDisabled = true;
-                                });
-                                await addToCart(cart);
-                                Navigator.of(context).pop();
-                              }
-                            } else {
-                              Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  );
-                } else {
-                  return CustomProgressBar();
-                }
-              },
-            );
-          }
+                },
+              );
+            }
+          });
         });
       });
     });

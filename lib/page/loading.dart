@@ -88,7 +88,7 @@ class _LoadingPageState extends State<LoadingPage> {
   }
 
   startLoad() async {
-    try{
+    try {
       await createDeviceLogin();
       await getAllChecklist();
       await _createProductImgFolder();
@@ -113,8 +113,8 @@ class _LoadingPageState extends State<LoadingPage> {
       await getTransferOwner();
       await clearCloudSyncRecord();
       await getAllReceipt();
-      await createAppSetting();
-    }catch(e){
+      await getAppSettingCloud();
+    } catch (e) {
       Navigator.of(context).pushAndRemoveUntil(
         // the new route
         MaterialPageRoute(
@@ -124,7 +124,7 @@ class _LoadingPageState extends State<LoadingPage> {
         // this function should return true when we're done removing routes
         // but because we want to remove all other screens, we make it
         // always return false
-            (Route route) => false,
+        (Route route) => false,
       );
       return;
     }
@@ -135,23 +135,102 @@ class _LoadingPageState extends State<LoadingPage> {
   }
 
 /*
+  get app setting from cloud
+*/
+  getAppSettingCloud() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+      Map data = await Domain().getAppSetting(branch_id.toString());
+      if (data['status'] == '1') {
+        print("App Setting: Setting Record exist in cloud");
+        bool? isLocalAppSettingExisted = await PosDatabase.instance.isLocalAppSettingExisted();
+        // local app setting not exists, sync from cloud
+        if (!isLocalAppSettingExisted!){
+          List responseJson = data['setting'];
+          for (var i = 0; i < responseJson.length; i++) {
+            AppSetting item = AppSetting.fromJson(responseJson[i]);
+            syncAppSettingFromCloud(item);
+          }
+        } else {
+          AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+          print("App Setting Sync Status: ${localSetting!.sync_status}");
+          // sync status = 1, sync from cloud, if =2 ignore wait for auto sync
+          if(localSetting!.sync_status == 1){
+            int data = await Domain().SyncAppSettingToCloud(localSetting);
+            if(data == 1)
+              syncAppSettingFromCloud(localSetting);
+          }
+        }
+      } else {
+        print("App Setting: No setting in cloud, create local app setting");
+        getAppSettingLocal();
+      }
+    } catch(e) {
+      print("App Setting: Sync from cloud fail: $e");
+    }
+  }
+
+/*
   create app setting
 */
-  createAppSetting() async {
-    try{
-      AppSetting appSetting = AppSetting(
-        open_cash_drawer: 1,
-        show_second_display: notificationModel.hasSecondScreen ? 1 : 0,
-        direct_payment: 0,
-        print_checklist: 1,
-        show_sku: 0
-      );
-      AppSetting data = await PosDatabase.instance.insertSetting(appSetting);
-    } catch(e){
-      print("create app setting fail: $e");
-    }
+  getAppSettingLocal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
 
-    //notificationModel.enableSecondDisplay();
+      bool? isLocalAppSettingExisted = await PosDatabase.instance.isLocalAppSettingExisted();
+      // local app setting not exists, create local
+      if (!isLocalAppSettingExisted!) {
+        AppSetting appSetting = AppSetting(
+          branch_id: branch_id.toString(),
+          open_cash_drawer: 1,
+          show_second_display: notificationModel.hasSecondScreen ? 1 : 0,
+          direct_payment: 0,
+          print_checklist: 1,
+          show_sku: 0,
+          enable_numbering: 0,
+          starting_number: 0,
+          table_order: 1,
+          sync_status: 0,
+          created_at: dateTime,
+          updated_at: ''
+        );
+        AppSetting data = await PosDatabase.instance.insertSqliteSetting(appSetting);
+      }
+    } catch (e) {
+      print("App Setting: Create App Setting Fail: $e");
+    }
+  }
+
+  /*
+  create app setting
+*/
+  syncAppSettingFromCloud(AppSetting item) async {
+    try {
+      AppSetting appSetting = AppSetting(
+        branch_id: item.branch_id,
+        open_cash_drawer: item.open_cash_drawer,
+        show_second_display: item.show_second_display,
+        direct_payment: item.direct_payment,
+        print_checklist: item.print_checklist,
+        show_sku: item.show_sku,
+        enable_numbering: item.enable_numbering,
+        starting_number: item.starting_number,
+        table_order: item.table_order,
+        sync_status: 1,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+      );
+      AppSetting data = await PosDatabase.instance.insertSqliteSetting(appSetting);
+      print("App Setting: Sync From Cloud Success");
+    } catch (e) {
+      print("App Setting: Sync From Cloud Fail: $e");
+    }
   }
 
 /*
@@ -166,7 +245,7 @@ class _LoadingPageState extends State<LoadingPage> {
 
     var value = md5.convert(utf8.encode(dateTime)).toString();
 
-    if(device_id != 4){
+    if (device_id != 4) {
       Map response = await Domain().insertDeviceLogin(device_id.toString(), value);
       if (response['status'] == '1') {
         await prefs.setString('login_value', value);
@@ -177,38 +256,36 @@ class _LoadingPageState extends State<LoadingPage> {
   }
 
   getAllChecklist() async {
-    try{
+    try {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
       Map response = await Domain().getChecklist(branch_id.toString());
-      if(response['status'] == '1'){
+      if (response['status'] == '1') {
         List responseJson = response['data'];
         for (var i = 0; i < responseJson.length; i++) {
           Checklist insertData = await PosDatabase.instance.insertChecklist(Checklist.fromJson(responseJson[i]));
         }
       }
-    } catch (e){
+    } catch (e) {
       print("get all checklist error: ${e}");
     }
   }
 
   getAllReceipt() async {
-    try{
+    try {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
       Map response = await Domain().getReceipt(branch_id.toString());
-      if(response['status'] == '1'){
+      if (response['status'] == '1') {
         List responseJson = response['receipt'];
         for (var i = 0; i < responseJson.length; i++) {
           Receipt data = await PosDatabase.instance.insertReceipt(Receipt.fromJson(responseJson[i]));
         }
-      } else if (response['status'] == '2'){
+      } else if (response['status'] == '2') {
         await createReceiptLayout80();
         await createReceiptLayout58();
       }
-    } catch(e){
-
-    }
+    } catch (e) {}
   }
 
   createReceiptLayout80() async {
@@ -245,7 +322,7 @@ class _LoadingPageState extends State<LoadingPage> {
           soft_delete: ''));
       await insertReceiptKey(data, dateTime);
     } catch (e) {
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('fail_to_add_receipt_layout_please_try_again')+" $e");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('fail_to_add_receipt_layout_please_try_again') + " $e");
       print('$e');
     }
   }
@@ -259,11 +336,7 @@ class _LoadingPageState extends State<LoadingPage> {
 
   insertReceiptKey(Receipt receipt, String dateTime) async {
     String receiptKey = await generateReceiptKey(receipt);
-    Receipt data = Receipt(
-        receipt_key: receiptKey,
-        updated_at: dateTime,
-        sync_status: 0,
-        receipt_sqlite_id: receipt.receipt_sqlite_id);
+    Receipt data = Receipt(receipt_key: receiptKey, updated_at: dateTime, sync_status: 0, receipt_sqlite_id: receipt.receipt_sqlite_id);
     int updateUniqueKey = await PosDatabase.instance.updateReceiptUniqueKey(data);
   }
 
@@ -301,7 +374,7 @@ class _LoadingPageState extends State<LoadingPage> {
           soft_delete: ''));
       await insertReceiptKey(data, dateTime);
     } catch (e) {
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('fail_to_add_receipt_layout_please_try_again')+" $e");
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('fail_to_add_receipt_layout_please_try_again') + " $e");
       print('$e');
     }
   }
@@ -744,7 +817,7 @@ updateOrderRefundSqliteId(String refundLocalId, int orderLocalId) async {
 /*
   save modifier group to database
 */
-  getModifierGroup() async {
+getModifierGroup() async {
   final prefs = await SharedPreferences.getInstance();
   final String? user = prefs.getString('user');
   Map userObject = json.decode(user!);
@@ -1089,6 +1162,7 @@ getAllOrder() async {
       Order data = await PosDatabase.instance.insertOrder(Order(
           order_id: responseJson[i]['order_id'],
           order_number: responseJson[i]['order_number'],
+          order_queue: responseJson[i]['order_queue'],
           company_id: responseJson[i]['company_id'],
           customer_id: responseJson[i]['customer_id'],
           dining_id: responseJson[i]['dining_id'],
@@ -1213,7 +1287,7 @@ getAllOrderCache() async {
       }
 
       if (cloudData.order_key != '' && cloudData.order_key != null) {
-        // print("order key in order cache sync: ${cloudData.order_key}");
+        print("order key in order cache sync: ${cloudData.order_key}");
         Order orderData = await PosDatabase.instance.readOrderSqliteID(cloudData.order_key!);
         orderLocalId = orderData.order_sqlite_id.toString();
       } else {
@@ -1222,6 +1296,7 @@ getAllOrderCache() async {
       OrderCache data = await PosDatabase.instance.insertOrderCache(OrderCache(
         order_cache_id: cloudData.order_cache_id,
         order_cache_key: cloudData.order_cache_key,
+        order_queue: cloudData.order_queue,
         company_id: cloudData.company_id,
         branch_id: cloudData.branch_id,
         order_detail_id: '',
@@ -1425,27 +1500,24 @@ getTransferOwner() async {
   final prefs = await SharedPreferences.getInstance();
   final int? branch_id = prefs.getInt('branch_id');
   Map data = await Domain().getTransferOwner(branch_id.toString());
-  if(data['status'] == '1'){
+  if (data['status'] == '1') {
     List responseJson = data['data'];
     for (var i = 0; i < responseJson.length; i++) {
-      TransferOwner data = await PosDatabase.instance.insertTransferOwner(
-          TransferOwner(
-            transfer_owner_key: responseJson[i]['transfer_owner_key'],
-            branch_id: responseJson[i]['branch_id'],
-            device_id: responseJson[i]['device_id'],
-            transfer_from_user_id: responseJson[i]['transfer_from_user_id'],
-            transfer_to_user_id: responseJson[i]['transfer_to_user_id'],
-            cash_balance: responseJson[i]['cash_balance'],
-            sync_status: 1,
-            created_at: responseJson[i]['created_at'],
-            updated_at: '',
-            soft_delete: '',
-          )
-      );
+      TransferOwner data = await PosDatabase.instance.insertTransferOwner(TransferOwner(
+        transfer_owner_key: responseJson[i]['transfer_owner_key'],
+        branch_id: responseJson[i]['branch_id'],
+        device_id: responseJson[i]['device_id'],
+        transfer_from_user_id: responseJson[i]['transfer_from_user_id'],
+        transfer_to_user_id: responseJson[i]['transfer_to_user_id'],
+        cash_balance: responseJson[i]['cash_balance'],
+        sync_status: 1,
+        created_at: responseJson[i]['created_at'],
+        updated_at: '',
+        soft_delete: '',
+      ));
     }
   }
 }
-
 
 /*
   create folder to save product image

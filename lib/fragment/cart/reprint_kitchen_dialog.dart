@@ -128,23 +128,31 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
                 )
             ),
             actions: [
-              ElevatedButton(
-                  onPressed: isButtonDisable || orderDetail.isEmpty  ? null : () async {
-                    disableButton();
-                    await callPrinter();
-                  },
-                  child: Text(AppLocalizations.of(context)!.translate('reprint'))),
-              ElevatedButton(
-                  onPressed: closeButtonDisable ? null : (){
-                    setState(() {
-                      closeButtonDisable = true;
-                    });
-                    closeDialog();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color.backgroundColor,
-                  ),
-                  child: Text(AppLocalizations.of(context)!.translate('close')))
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 12,
+                child: ElevatedButton(
+                    onPressed: isButtonDisable || orderDetail.isEmpty  ? null : () async {
+                      disableButton();
+                      await callPrinter();
+                    },
+                    child: Text(AppLocalizations.of(context)!.translate('reprint'))),
+              ),
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 12,
+                  child: ElevatedButton(
+                      onPressed: closeButtonDisable ? null : (){
+                        setState(() {
+                          closeButtonDisable = true;
+                        });
+                        closeDialog();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color.backgroundColor,
+                      ),
+                      child: Text(AppLocalizations.of(context)!.translate('close')))
+              ),
             ],
           ),
         );

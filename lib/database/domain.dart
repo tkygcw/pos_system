@@ -4,12 +4,12 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
 class Domain {
-  // static var domain = 'https://pos.lkmng.com/';
-  // static var backend_domain = 'https://pos.lkmng.com/';
-  // static var qr_domain = 'https://pos-qr.lkmng.com/';
-  static var domain = 'https://pos.optimy.com.my/';
-  static var backend_domain = 'https://api.optimy.com.my/';
-  static var qr_domain = 'https://qr.optimy.com.my/';
+  static var domain = 'https://pos.lkmng.com/';
+  static var backend_domain = 'https://pos.lkmng.com/';
+  static var qr_domain = 'https://pos-qr.lkmng.com/';
+  // static var domain = 'https://pos.optimy.com.my/';
+  // static var backend_domain = 'https://api.optimy.com.my/';
+  // static var qr_domain = 'https://qr.optimy.com.my/';
   static Uri login = Uri.parse(domain + 'mobile-api/login/index.php');
   static Uri branch = Uri.parse(domain + 'mobile-api/branch/index.php');
   static Uri device = Uri.parse(domain + 'mobile-api/device/index.php');
@@ -38,6 +38,7 @@ class Domain {
   static Uri qr_order_sync = Uri.parse(domain + 'mobile-api/qr_order_sync/index.php');
   static Uri printer = Uri.parse(domain + 'mobile-api/printer/index.php');
   static Uri app_version = Uri.parse(domain + 'mobile-api/app_version/index.php');
+  static Uri app_setting = Uri.parse(domain + 'mobile-api/app_setting/index.php');
   static Uri receipt = Uri.parse(domain + 'mobile-api/receipt/index.php');
   static Uri checklist = Uri.parse(domain + 'mobile-api/checklist/index.php');
 
@@ -324,7 +325,7 @@ class Domain {
       Map<String, dynamic>? result = {'status': '8'};
       return result;
     }  catch(error){
-      print('error: ${error}');
+      print('checkDeviceLogin error: ${error}');
       //Fluttertoast.showToast(msg: error.toString());
     }
   }
@@ -346,6 +347,7 @@ class Domain {
         order_detail_delete_value,
         order_modifier_value,
         cash_record_value,
+        app_setting_value,
         transfer_owner_value,
         receipt_value,
         refund_value,
@@ -376,6 +378,7 @@ class Domain {
         'tb_order_detail_delete': order_detail_delete_value != null ? order_detail_delete_value : [].toString(),
         'tb_order_modifier_detail_create': order_modifier_value != null ? order_modifier_value : [].toString(),
         'tb_cash_record_create': cash_record_value != null ? cash_record_value : [].toString(),
+        'tb_app_setting_create': app_setting_value != null ? app_setting_value : [].toString(),
         'tb_transfer_owner_create': transfer_owner_value != null ? transfer_owner_value : [].toString(),
         'tb_receipt_create': receipt_value != null ? receipt_value : [].toString(),
         'tb_refund_create': refund_value != null ? refund_value : [].toString(),
@@ -713,6 +716,23 @@ class Domain {
         'details': detail,
       });
       return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync cash record to cloud
+  * */
+  SyncAppSettingToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_app_setting_create': '1',
+        'details': detail,
+      });
+      print("SyncAppSettingToCloud success");
+      return jsonDecode(response.body);
+
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
@@ -1972,6 +1992,19 @@ class Domain {
     try {
       var response = await http.post(Domain.cash_record,
           body: {'getAllCashRecord': '1', 'company_id': company_id, 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get app setting
+  * */
+  getAppSetting(branch_id) async {
+    try {
+      var response = await http.post(Domain.app_setting,
+          body: {'getAllAppSetting': '1', 'branch_id': branch_id});
       return jsonDecode(response.body);
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());

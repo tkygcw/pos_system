@@ -21,9 +21,6 @@ import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:image/image.dart' as img;
-
-import 'modifier_group.dart';
 import 'order.dart';
 import 'order_modifier_detail.dart';
 import 'order_promotion_detail.dart';
@@ -892,9 +889,19 @@ class ReceiptLayout{
         //bytes += generator.image(decodedImage);
         bytes += generator.reset();
         if(paidOrder!.payment_status == 2) {
-          bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+          bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.emptyLines(1);
         }
-        bytes += generator.emptyLines(1);
+
+        if(int.tryParse(this.paidOrder!.order_queue!) != null){
+          bytes += generator.text('------------------', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.emptyLines(1);
+          bytes += generator.text('Order No: ${this.paidOrder!.order_queue!}', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.emptyLines(1);
+          bytes += generator.text('------------------', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.emptyLines(1);
+        }
+
         bytes += generator.reset();
         if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
           bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
@@ -1140,8 +1147,18 @@ class ReceiptLayout{
         bytes += generator.reset();
         if(paidOrder!.payment_status == 2){
           bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+          bytes += generator.emptyLines(1);
         }
-        bytes += generator.emptyLines(1);
+
+        if(int.tryParse(this.paidOrder!.order_queue!) != null){
+          bytes += generator.text('---------------', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.emptyLines(1);
+          bytes += generator.text('Order No: ${this.paidOrder!.order_queue!}', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.emptyLines(1);
+          bytes += generator.text('---------------', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.emptyLines(1);
+        }
+
         bytes += generator.reset();
         if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
           bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
@@ -1345,7 +1362,7 @@ class ReceiptLayout{
 */
   printPreviewReceipt80mm(bool isUSB, List<PosTable> selectedTableList, CartModel cartModel, {value}) async {
     await readReceiptLayout('80');
-
+    await readOrderCache(int.parse(cartModel.cartNotifierItem[0].order_cache_sqlite_id!));
     // final ByteData data = await rootBundle.load('drawable/logo2.png');
     // final Uint8List bytes = data.buffer.asUint8List();
     // final decodedImage = img.decodeImage(bytes);
@@ -1372,6 +1389,14 @@ class ReceiptLayout{
             bytes += generator.text('Table No: ${selectedTableList[i].number}');
           }
         }
+        if(int.tryParse(orderCache!.order_queue!) != null) {
+          bytes += generator.text('Order No: ${orderCache!.order_queue}');
+        }
+        // if( == true){
+        //   for(int i = 0; i < selectedTableList.length; i++){
+        //     bytes += generator.text('Order No: ${selectedTableList[i].number}');
+        //   }
+        // }
         bytes += generator.text('${cartModel.selectedOption}');
         bytes += generator.reset();
         /*
@@ -1551,6 +1576,7 @@ class ReceiptLayout{
 */
   printPreviewReceipt58mm(bool isUSB, List<PosTable> selectedTableList, CartModel cartModel, {value}) async {
     await readReceiptLayout('58');
+    await readOrderCache(int.parse(cartModel.cartNotifierItem[0].order_cache_sqlite_id!));
     if(_isLoad = true){
       var generator;
       if (isUSB) {
@@ -1572,6 +1598,9 @@ class ReceiptLayout{
           for(int i = 0; i < selectedTableList.length; i++){
             bytes += generator.text('Table No: ${selectedTableList[i].number}');
           }
+        }
+        if(int.tryParse(orderCache!.order_queue!) != null) {
+          bytes += generator.text('Order No: ${orderCache!.order_queue}');
         }
         bytes += generator.text('${cartModel.selectedOption}');
         bytes += generator.reset();
@@ -1768,7 +1797,10 @@ class ReceiptLayout{
       } else {
         bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
       }
-
+      //order queue
+      if(int.tryParse(this.orderCache!.order_queue!) != null){
+        bytes += generator.text('Order No: ${this.orderCache!.order_queue!}', styles: PosStyles(align: PosAlign.left, height:PosTextSize.size2, width: PosTextSize.size2));
+      }
       // bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
       bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}');
       if(isQrOrder != null){
@@ -1882,6 +1914,10 @@ class ReceiptLayout{
         }
       } else {
         bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+      }
+      //order queue
+      if(int.tryParse(this.orderCache!.order_queue!) != null){
+        bytes += generator.text('Order No: ${this.orderCache!.order_queue!}', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
       }
       // for(int i = 0; i < tableList.length; i++){
       //   bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
@@ -2445,6 +2481,10 @@ class ReceiptLayout{
         } else {
           bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         }
+        //order queue
+        if(int.tryParse(this.orderCache!.order_queue!) != null){
+          bytes += generator.text('Order No: ${this.orderCache!.order_queue!}', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+        }
         bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Order time: ${Utils.formatDate(orderCache!.created_at)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.hr();
@@ -2549,6 +2589,10 @@ class ReceiptLayout{
         } else {
           bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         }
+        //order queue
+        if(int.tryParse(this.orderCache!.order_queue!) != null){
+          bytes += generator.text('Order No: ${this.orderCache!.order_queue!}', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+        }
         bytes += generator.text('Batch No', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('#${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Order time', styles: PosStyles(align: PosAlign.center));
@@ -2645,6 +2689,10 @@ class ReceiptLayout{
           }
         } else{
           bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+        }
+        //order queue
+        if(int.tryParse(orderCache!.order_queue!) != null) {
+          bytes += generator.text('Order No: ${orderCache!.order_queue}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         }
         bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Cancel time: ${Utils.formatDate(dateTime)}', styles: PosStyles(align: PosAlign.center));

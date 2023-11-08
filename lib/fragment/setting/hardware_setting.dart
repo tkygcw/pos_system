@@ -1,8 +1,12 @@
 import 'dart:async';
 
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/setting/receipt_dialog.dart';
+import 'package:pos_system/object/table.dart';
+import 'package:pos_system/page/pos_pin.dart';
 import 'package:provider/provider.dart';
 
 import '../../controller/controllerObject.dart';
@@ -29,10 +33,8 @@ class _HardwareSettingState extends State<HardwareSetting> {
   AppSetting appSetting = AppSetting();
   late StreamController streamController;
   late Stream actionStream;
-  // List<AppSetting> appSettingList = [];
   Receipt? receiptObject;
-  bool cashDrawer = false, secondDisplay = false, printCheckList = false;
-  bool _isLoaded = false;
+  bool cashDrawer = false, secondDisplay = false, tableOrder = true, directPayment = false, showSKU = false;
 
   @override
   void initState() {
@@ -40,8 +42,6 @@ class _HardwareSettingState extends State<HardwareSetting> {
     streamController = controller.hardwareSettingController;
     actionStream = actionController.stream.asBroadcastStream();
     listenAction();
-    // getAllAppSetting();
-    // read80mmReceiptLayout();
   }
 
   listenAction(){
@@ -56,6 +56,16 @@ class _HardwareSettingState extends State<HardwareSetting> {
         break;
         case 'switch':{
           await updateAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
+        case 'direct_payment':{
+          await updateDirectPaymentAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
+        case 'show_sku':{
+          await updateShowSKUAppSetting();
           controller.refresh(streamController);
         }
         break;
@@ -86,59 +96,24 @@ class _HardwareSettingState extends State<HardwareSetting> {
         this.secondDisplay = false;
       }
 
-      if(appSetting.print_checklist == 1){
-        printCheckList = true;
+      if(appSetting.table_order == 1){
+        this.tableOrder = true;
       } else {
-        printCheckList = false;
+        this.tableOrder = false;
+      }
+
+      if(appSetting.direct_payment == 1){
+        this.directPayment = true;
+      } else {
+        this.directPayment = false;
+      }
+
+      if(appSetting.show_sku == 1){
+        this.showSKU = true;
+      } else {
+        this.showSKU = false;
       }
     }
-  }
-
-  Future<Future<Object?>> openReceiptDialog() async {
-    return showGeneralDialog(
-        barrierColor: Colors.black.withOpacity(0.5),
-        transitionBuilder: (context, a1, a2, widget) {
-          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
-          return Transform(
-            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
-            child: Opacity(
-                opacity: a1.value,
-                child: ReceiptDialog(
-                  callBack: () => read80mmReceiptLayout(),
-                  receiptObject: receiptObject,
-                )
-            ),
-          );
-        },
-        transitionDuration: Duration(milliseconds: 200),
-        barrierDismissible: false,
-        context: context,
-        pageBuilder: (context, animation1, animation2) {
-          // ignore: null_check_always_fails
-          return null!;
-        });
-  }
-
-  Future<Future<Object?>> openChecklistDialog() async {
-    return showGeneralDialog(
-        barrierColor: Colors.black.withOpacity(0.5),
-        transitionBuilder: (context, a1, a2, widget) {
-          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
-          return Transform(
-            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
-            child: Opacity(
-                opacity: a1.value,
-                child: ChecklistDialog(),
-            ),
-          );
-        },
-        transitionDuration: Duration(milliseconds: 200),
-        barrierDismissible: false,
-        context: context,
-        pageBuilder: (context, animation1, animation2) {
-          // ignore: null_check_always_fails
-          return null!;
-        });
   }
 
   @override
@@ -154,30 +129,44 @@ class _HardwareSettingState extends State<HardwareSetting> {
                       child: Column(
                         children: [
                           ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('receipt_setting')),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('customize_your_receipt_look')),
-                            trailing: Icon(Icons.navigate_next),
-                            onTap: (){
-                              openReceiptDialog();
-                            },
-                          ),
-                          ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('check_list_setting')),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('customize_your_check_list_look')),
-                            trailing: Icon(Icons.navigate_next),
-                            onTap: (){
-                              openChecklistDialog();
-                            },
-                          ),
-                          ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('auto_print_checklist')),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('auto_print_checklist_desc')),
+                            title: Text(AppLocalizations.of(context)!.translate('table_order')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('table_order_desc')),
                             trailing: Switch(
-                              value: printCheckList,
+                              value: this.tableOrder,
                               activeColor: color.backgroundColor,
                               onChanged: (value) async {
-                                printCheckList = value;
-                                appSettingModel.setPrintChecklistStatus(printCheckList);
+                                // switch on
+                                if(value){
+                                  this.tableOrder = value;
+                                } else{
+                                  // switch off
+                                  if(await anyTableUse()){
+                                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_tables'));
+                                  } else {
+                                    if(appSettingModel.directPaymentStatus == false){
+                                      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_direct_payment'));
+                                    } else {
+                                      this.tableOrder = value;
+                                    }
+                                  }
+                                }
+                                if (await confirm(
+                                  context,
+                                  title: Text('${AppLocalizations.of(context)?.translate('disable_table_order')}'),
+                                  content: Text('${AppLocalizations.of(context)?.translate('disable_table_order_desc')}'),
+                                  textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                  textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                )) {
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute(
+                                      builder: (BuildContext context) => PosPinPage(),
+                                    ),
+                                        (Route route) => false,
+                                  );
+                                  appSettingModel.setTableOrderStatus(tableOrder);
+                                } else
+                                  this.tableOrder = !value;
+
                                 actionController.sink.add("switch");
                               },
                             ),
@@ -210,6 +199,50 @@ class _HardwareSettingState extends State<HardwareSetting> {
                               },
                             ),
                           ),
+
+                          Divider(
+                            color: Colors.grey,
+                            height: 1,
+                            thickness: 1,
+                            indent: 20,
+                            endIndent: 20,
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('place_order_payment')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('direct_make_payment_when_oder_placed')),
+                            trailing: Switch(
+                              value: directPayment,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) {
+                                // switch off
+                                if(!value) {
+                                  if(appSettingModel.table_order == false){
+                                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_table_order'));
+                                  } else {
+                                    directPayment = value;
+                                    appSettingModel.setDirectPaymentStatus(directPayment);
+                                  }
+                                } else {
+                                  directPayment = value;
+                                  appSettingModel.setDirectPaymentStatus(directPayment);
+                                }
+                                actionController.sink.add("direct_payment");
+                              },
+                            ),
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('show_sku')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('show_sku_desc')),
+                            trailing: Switch(
+                              value: showSKU,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) {
+                                showSKU = value;
+                                appSettingModel.setShowSKUStatus(showSKU);
+                                actionController.sink.add("show_sku");
+                              },
+                            ),
+                          ),
                         ],
                       ),
                     );
@@ -225,12 +258,14 @@ class _HardwareSettingState extends State<HardwareSetting> {
   }
 
   updateAppSetting() async {
-    print('update called');
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
     AppSetting object = AppSetting(
         open_cash_drawer: this.cashDrawer == true ? 1 : 0,
         show_second_display: this.secondDisplay == true ? 1 : 0,
-        print_checklist: printCheckList == true ? 1 : 0,
-        app_setting_sqlite_id: appSetting.app_setting_sqlite_id
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        table_order: this.tableOrder == true ? 1 : 0,
+        updated_at: dateTime
     );
     int data = await PosDatabase.instance.updateAppSettings(object);
     if(object.show_second_display == 0){
@@ -238,5 +273,36 @@ class _HardwareSettingState extends State<HardwareSetting> {
     } else {
       notificationModel.enableSecondDisplay();
     }
+  }
+
+  updateDirectPaymentAppSetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        direct_payment: this.directPayment == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    int data = await PosDatabase.instance.updateDirectPaymentSettings(object);
+  }
+
+  updateShowSKUAppSetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        show_sku: this.showSKU == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    int data = await PosDatabase.instance.updateShowSKUSettings(object);
+  }
+
+  Future<bool> anyTableUse() async {
+    List<PosTable> tableList = await PosDatabase.instance.readAllTable();
+    for (int i = 0; i < tableList.length; i++) {
+      if(tableList[i].status == 1)
+        return true;
+    }
+    return false;
   }
 }

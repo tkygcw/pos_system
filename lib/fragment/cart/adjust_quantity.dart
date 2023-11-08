@@ -522,8 +522,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
           //await _printDeleteList(widget.cartItem!.orderCacheId!, dateTime);
           Fluttertoast.showToast(
               backgroundColor: Color(0xFF24EF10),
-              msg:
-                  AppLocalizations.of(context)!.translate('delete_successful'));
+              msg: AppLocalizations.of(context)!.translate('delete_successful'));
           tableModel.changeContent(true);
           cart.removeAllTable();
           cart.removeAllCartItem();

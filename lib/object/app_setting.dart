@@ -3,70 +3,126 @@ String? tableAppSetting = ' tb_app_setting';
 class AppSettingFields {
   static List<String> values = [
     app_setting_sqlite_id,
+    branch_id,
     open_cash_drawer,
     show_second_display,
     direct_payment,
     print_checklist,
     show_sku,
+    enable_numbering,
+    starting_number,
+    table_order,
+    sync_status,
+    created_at,
+    updated_at
   ];
 
   static String app_setting_sqlite_id = 'app_setting_sqlite_id';
+  static String branch_id = 'branch_id';
   static String open_cash_drawer = 'open_cash_drawer';
   static String show_second_display = 'show_second_display';
   static String direct_payment = 'direct_payment';
   static String print_checklist = 'print_checklist';
   static String show_sku = 'show_sku';
+  static String enable_numbering = 'enable_numbering';
+  static String starting_number = 'starting_number';
+  static String table_order = 'table_order';
+  static String sync_status = 'sync_status';
+  static String created_at = 'created_at';
+  static String updated_at = 'updated_at';
 }
 
 class AppSetting{
   int? app_setting_sqlite_id;
+  String? branch_id;
   int? open_cash_drawer;
   int? show_second_display;
   int? direct_payment;
   int? print_checklist;
   int? show_sku;
+  int? enable_numbering;
+  int? starting_number;
+  int? table_order;
+  int? sync_status;
+  String? created_at;
+  String? updated_at;
 
   AppSetting(
       {this.app_setting_sqlite_id,
+        this.branch_id,
         this.open_cash_drawer,
         this.show_second_display,
         this.direct_payment,
         this.print_checklist,
-        this.show_sku
+        this.show_sku,
+        this.enable_numbering,
+        this.starting_number,
+        this.table_order,
+        this.sync_status,
+        this.created_at,
+        this.updated_at
       });
 
   AppSetting copy({
     int? app_setting_sqlite_id,
+    String? branch_id,
     int? open_cash_drawer,
     int? show_second_display,
     int? direct_payment,
     int? print_checklist,
-    int? show_sku
+    int? show_sku,
+    int? enable_numbering,
+    int? starting_number,
+    int? table_order,
+    int? sync_status,
+    String? created_at,
+    String? updated_at
   }) =>
       AppSetting(
         app_setting_sqlite_id: app_setting_sqlite_id ?? this.app_setting_sqlite_id,
+        branch_id: branch_id ?? this.branch_id,
         open_cash_drawer: open_cash_drawer ?? this.open_cash_drawer,
         show_second_display: show_second_display ?? this.show_second_display,
         direct_payment: direct_payment ?? this.direct_payment,
         print_checklist: print_checklist ?? this.print_checklist,
-        show_sku: show_sku ?? this.show_sku
+        show_sku: show_sku ?? this.show_sku,
+        enable_numbering: enable_numbering ?? this.enable_numbering,
+        starting_number: starting_number ?? this.starting_number,
+        table_order: table_order ?? this.table_order,
+        sync_status: sync_status ?? this.sync_status,
+        created_at: created_at ?? this.created_at,
+        updated_at: updated_at ?? this.updated_at
       );
 
   static AppSetting fromJson(Map<String, Object?> json) => AppSetting(
     app_setting_sqlite_id: json[AppSettingFields.app_setting_sqlite_id] as int?,
+    branch_id: json[AppSettingFields.branch_id] as String?,
     open_cash_drawer: json[AppSettingFields.open_cash_drawer] as int?,
     show_second_display: json[AppSettingFields.show_second_display] as int?,
     direct_payment: json[AppSettingFields.direct_payment] as int?,
     print_checklist: json[AppSettingFields.print_checklist] as int?,
-    show_sku: json[AppSettingFields.show_sku] as int?
+    show_sku: json[AppSettingFields.show_sku] as int?,
+    enable_numbering: json[AppSettingFields.enable_numbering] as int?,
+    starting_number: json[AppSettingFields.starting_number] as int?,
+    table_order: json[AppSettingFields.table_order] as int?,
+    sync_status: json[AppSettingFields.sync_status] as int?,
+    created_at: json[AppSettingFields.created_at] as String?,
+    updated_at: json[AppSettingFields.updated_at] as String?
   );
 
   Map<String, Object?> toJson() => {
     AppSettingFields.app_setting_sqlite_id: app_setting_sqlite_id,
+    AppSettingFields.branch_id: branch_id,
     AppSettingFields.open_cash_drawer: open_cash_drawer,
     AppSettingFields.show_second_display: show_second_display,
     AppSettingFields.direct_payment: direct_payment,
     AppSettingFields.print_checklist: print_checklist,
-    AppSettingFields.show_sku: show_sku
+    AppSettingFields.show_sku: show_sku,
+    AppSettingFields.enable_numbering: enable_numbering,
+    AppSettingFields.starting_number: starting_number,
+    AppSettingFields.table_order: table_order,
+    AppSettingFields.sync_status: sync_status,
+    AppSettingFields.created_at: created_at,
+    AppSettingFields.updated_at: updated_at
   };
 }

@@ -77,7 +77,8 @@ class _PrinterSettingState extends State<PrinterSetting> {
                         Text(AppLocalizations.of(context)!.translate('type_lan')+'\nIP: ${jsonDecode(printerList[index].value!)} '),
                         trailing: Container(
                           child: FittedBox(
-                            child: printerList[index].type == 0 ? Icon(Icons.usb) : Icon(Icons.wifi),
+                            child: printerList[index].type == 0 ? Icon(Icons.usb, color: printerList[index].printer_status == 1 ? Colors.green : Colors.red)
+                                : Icon(Icons.wifi, color: printerList[index].printer_status == 1 ? Colors.green : Colors.red),
                           ),
                         ),
                         onLongPress: () async {

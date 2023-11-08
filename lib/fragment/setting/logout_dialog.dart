@@ -232,6 +232,8 @@ class _logout_dialogState extends State<logout_dialog> {
     PosDatabase.instance.clearAllReceiptLayout();
     //clear cash record
     PosDatabase.instance.clearAllCashRecord();
+    //clear cash record
+    PosDatabase.instance.clearAllCashRecord();
     //clear printer
     PosDatabase.instance.clearAllPrinter();
     //clear printer category

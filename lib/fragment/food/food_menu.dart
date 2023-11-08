@@ -164,6 +164,7 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     }
     await getPreferences();
     List<Categories> data = await PosDatabase.instance.readAllCategories();
+    data = sortCategory(data);
     categoryTab.add(Tab(
       text: AppLocalizations.of(context)!.translate('all_category'),
     ));
@@ -295,6 +296,28 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     list.sort((a, b) {
       final aNumber = a.sequence_number!;
       final bNumber = b.sequence_number!;
+
+      bool isANumeric = int.tryParse(aNumber) != null;
+      bool isBNumeric = int.tryParse(bNumber) != null;
+
+      if (isANumeric && isBNumeric) {
+        return int.parse(aNumber).compareTo(int.parse(bNumber));
+      } else if (isANumeric) {
+        return -1; // Numeric before alphanumeric
+      } else if (isBNumeric) {
+        return 1; // Alphanumeric before numeric
+      } else {
+        // Custom alphanumeric sorting logic
+        return compareNatural(aNumber, bNumber);
+      }
+    });
+    return list;
+  }
+
+  sortCategory(List<Categories> list){
+    list.sort((a, b) {
+      final aNumber = a.sequence!;
+      final bNumber = b.sequence!;
 
       bool isANumeric = int.tryParse(aNumber) != null;
       bool isBNumeric = int.tryParse(bNumber) != null;

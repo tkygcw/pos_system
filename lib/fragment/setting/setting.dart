@@ -6,6 +6,7 @@ import 'package:pos_system/fragment/setting/features_setting.dart';
 import 'package:pos_system/fragment/setting/hardware_setting.dart';
 import 'package:pos_system/fragment/setting/logout_dialog.dart';
 import 'package:pos_system/fragment/setting/printer_setting.dart';
+import 'package:pos_system/fragment/setting/receipt_setting.dart';
 import 'package:pos_system/fragment/setting/table_setting.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -36,19 +37,21 @@ class _SettingMenuState extends State<SettingMenu> {
   bool isLoaded = false;
 
   List<Widget> views = [
+    // General Setting
+    Container(
+      child: HardwareSetting(),
+    ),
     Container(
       child: PrinterSetting(),
       // TestPrint()
     ),
-    // Container(
-    //   child: ReceiptSetting(),
-    // ),
+    Container(
+      child: ReceiptSetting(),
+    ),
     Container(
       child: TableSetting(),
     ),
-    Container(
-      child: HardwareSetting(),
-    ),
+    // app-device setting
     Container(
       child: FeaturesSetting(),
     ),
@@ -163,20 +166,20 @@ class _SettingMenuState extends State<SettingMenu> {
                     selectedIndex: selectedIndex,
                     items: [
                       SideNavigationBarItem(
+                        icon: Icons.devices,
+                        label: AppLocalizations.of(context)!.translate('general_setting'),
+                      ),
+                      SideNavigationBarItem(
                         icon: Icons.print,
                         label: AppLocalizations.of(context)!.translate('printer_setting'),
                       ),
-                      // SideNavigationBarItem(
-                      //   icon: Icons.receipt,
-                      //   label: 'Receipt Layout',
-                      // ),
+                      SideNavigationBarItem(
+                        icon: Icons.receipt,
+                        label: AppLocalizations.of(context)!.translate('receipt_setting'),
+                      ),
                       SideNavigationBarItem(
                         icon: Icons.table_restaurant,
                         label: AppLocalizations.of(context)!.translate('table_setting'),
-                      ),
-                      SideNavigationBarItem(
-                        icon: Icons.devices,
-                        label: AppLocalizations.of(context)!.translate('hardware_setting'),
                       ),
                       SideNavigationBarItem(
                         icon: Icons.settings,
@@ -284,20 +287,20 @@ class _SettingMenuState extends State<SettingMenu> {
                       selectedIndex: selectedIndex,
                       items: [
                         SideNavigationBarItem(
+                          icon: Icons.devices,
+                          label: AppLocalizations.of(context)!.translate('general_setting'),
+                        ),
+                        SideNavigationBarItem(
                           icon: Icons.print,
                           label: AppLocalizations.of(context)!.translate('printer'),
                         ),
-                        // SideNavigationBarItem(
-                        //   icon: Icons.receipt,
-                        //   label: 'Receipt Layout',
-                        // ),
+                        SideNavigationBarItem(
+                          icon: Icons.receipt,
+                          label: 'Receipt Layout',
+                        ),
                         SideNavigationBarItem(
                           icon: Icons.table_restaurant,
                           label: AppLocalizations.of(context)!.translate('table_setting'),
-                        ),
-                        SideNavigationBarItem(
-                          icon: Icons.devices,
-                          label: AppLocalizations.of(context)!.translate('hardware_setting'),
                         ),
                         SideNavigationBarItem(
                           icon: Icons.settings,

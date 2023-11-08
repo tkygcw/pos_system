@@ -1093,7 +1093,6 @@ class _TableMenuState extends State<TableMenu> {
       var detailLength = orderDetailList.length;
       for (int i = 0; i < detailLength; i++) {
         value = cartProductItem(
-          quantity: int.tryParse(orderDetailList[i].quantity!) != null ? int.parse(orderDetailList[i].quantity!) : double.parse(orderDetailList[i].quantity!),
           order_cache_sqlite_id: orderDetailList[i].order_cache_sqlite_id,
         );
         cart.removeSpecificItem(value);
@@ -1130,19 +1129,11 @@ class _TableMenuState extends State<TableMenu> {
                 tableList: tableList,
                 tableLength: tableList.length,
                 editingMode: editingMode,
-                callBack: onTapDisable ? (action, value){} : (action, value) {
-                  if (action == 'on_tap'){
-                    tapCount++;
-                    setState(() {
-                      onTapDisable = true;
-                    });
-                    if(tapCount == 1){
-                      onSelect(i, cart);
-                    }
-                  }
-                  else if (action == 'on_double_tap') {
+                callBack: (action, value) {
+                  if (action == 'on_tap')
+                    onSelect(i, cart);
+                  else if (action == 'on_double_tap')
                     openChangeTableDialog(tableList[i], cart);
-                  }
                 },
               )
           ],

@@ -177,6 +177,8 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
     PosDatabase.instance.clearAllReceiptLayout();
     //clear cash record
     PosDatabase.instance.clearAllCashRecord();
+    //clear app setting
+    PosDatabase.instance.clearAllAppSetting();
     //clear printer
     PosDatabase.instance.clearAllPrinter();
     //clear printer category

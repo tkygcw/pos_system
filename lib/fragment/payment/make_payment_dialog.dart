@@ -9,9 +9,11 @@ import 'package:pos_system/fragment/payment/ipay_api.dart';
 import 'package:pos_system/fragment/payment/payment_success_dialog.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
+import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
+import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
@@ -112,6 +114,8 @@ class _MakePaymentState extends State<MakePayment> {
   int myCount = 0, initLoad = 0;
   late Map branchObject;
   bool isButtonDisable = false, willPop = true;
+  String tableNo = 'N/A';
+  String orderCacheSqliteId = '';
 
   // Array of button
   final List<String> buttons = [
@@ -229,6 +233,7 @@ class _MakePaymentState extends State<MakePayment> {
           getReceiptPaymentDetail(cart);
           //getSubTotal(cart);
           getCartItemList(cart);
+          getSelectedTable(cart);
           if (initLoad == 0 &&
               notificationModel.hasSecondScreen == true &&
               notificationModel.secondScreenEnable == true) {
@@ -284,7 +289,7 @@ class _MakePaymentState extends State<MakePayment> {
                                     Container(
                                       margin: EdgeInsets.only(bottom: 20),
                                       alignment: Alignment.center,
-                                      child: Text(AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable(cart)}',
+                                      child: Text(AppLocalizations.of(context)!.translate('table_no') + ': $tableNo',
                                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                                     ),
                                     Container(
@@ -824,13 +829,8 @@ class _MakePaymentState extends State<MakePayment> {
                                 children: [
                                   Container(
                                     alignment: Alignment.center,
-                                    child: Text(
-                                        AppLocalizations.of(context)!
-                                                .translate('table_no') +
-                                            ': ${getSelectedTable(cart)}',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 24)),
+                                    child: Text(AppLocalizations.of(context)!.translate('table_no') + ': $tableNo',
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                                   ),
                                   Container(
                                     //margin: EdgeInsets.all(25),
@@ -1550,9 +1550,12 @@ class _MakePaymentState extends State<MakePayment> {
 /*
   get selected table
 */
-  getSelectedTable(CartModel cart) {
+  getSelectedTable(CartModel cart) async {
     List<String> result = [];
-    if (cart.selectedOption == 'Dine in') {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+    if (cart.selectedOption == 'Dine in' && localSetting!.table_order == 1) {
       if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
         result.add('No table');
       } else if (cart.selectedOption != 'Dine in') {
@@ -1566,10 +1569,9 @@ class _MakePaymentState extends State<MakePayment> {
           result.add('${cart.selectedTable[0].number}');
         }
       }
-
-      return result.toString().replaceAll('[', '').replaceAll(']', '');
+      tableNo = result.toString().replaceAll('[', '').replaceAll(']', '');
     } else {
-      return 'N/A';
+      tableNo = 'N/A';
     }
   }
 
@@ -1871,6 +1873,7 @@ class _MakePaymentState extends State<MakePayment> {
     for (int i = 0; i < cart.cartNotifierItem.length; i++) {
       if (!orderCacheIdList.contains(cart.cartNotifierItem[i].order_cache_sqlite_id!)) {
         orderCacheIdList.add(cart.cartNotifierItem[i].order_cache_sqlite_id!);
+        orderCacheSqliteId = cart.cartNotifierItem[i].order_cache_sqlite_id!;
       }
     }
     if(cart.selectedTable.isNotEmpty){
@@ -2103,6 +2106,15 @@ class _MakePaymentState extends State<MakePayment> {
     return orderNum;
   }
 
+  Future<int> readQueueFromOrderCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    List<OrderCache> orderCacheList = await PosDatabase.instance.readSpecificOrderCache(orderCacheSqliteId);
+    int orderQueue = 0;
+    orderQueue = orderCacheList[0].order_queue! != '' ? int.parse(orderCacheList[0].order_queue!) : -1;
+    return orderQueue;
+  }
+
   createOrder(double? paymentReceived, String? orderChange) async {
     print('create order called');
     List<String> _value = [];
@@ -2112,15 +2124,18 @@ class _MakePaymentState extends State<MakePayment> {
     final String? login_user = prefs.getString('user');
     final int? branch_id = prefs.getInt('branch_id');
     final String? pos_user = prefs.getString('pos_pin_user');
+    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
     Map logInUser = json.decode(login_user!);
     Map userObject = json.decode(pos_user!);
     int orderNum = generateOrderNumber();
-
+    int orderQueue = localSetting!.enable_numbering == 1 ? await readQueueFromOrderCache() : 0;
     try {
       if (orderNum != 0) {
         Order orderObject = Order(
             order_id: 0,
             order_number: orderNum.toString().padLeft(5, '0'),
+            // order_queue: localSetting!.enable_numbering == 1 ? orderQueue.toString().padLeft(4, '0') : '',
+            order_queue: localSetting!.enable_numbering == 1 && orderQueue != -1 ? orderQueue.toString().padLeft(4, '0') : '',
             company_id: logInUser['company_id'].toString(),
             branch_id: branch_id.toString(),
             customer_id: '',
@@ -2149,7 +2164,6 @@ class _MakePaymentState extends State<MakePayment> {
             updated_at: '',
             soft_delete: '');
         Order data = await PosDatabase.instance.insertSqliteOrder(orderObject);
-        print('data: ${data}');
         this.orderId = data.order_sqlite_id.toString();
         Order updatedOrder = await insertOrderKey();
         _value.add(jsonEncode(updatedOrder));
