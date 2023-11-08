@@ -6603,7 +6603,7 @@ class PosDatabase {
 */
   Future<List<OrderCache>> readAllNotSyncOrderCache() async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND order_cache_key != ? AND sync_status != ? LIMIT 10 ', ['', '', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE order_cache_key != ? AND sync_status != ? LIMIT 10 ', ['', 1]);
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 

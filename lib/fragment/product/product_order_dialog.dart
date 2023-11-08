@@ -41,6 +41,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   StreamController actionController = StreamController();
   late Stream actionStream;
   late StreamSubscription actionSubscription;
+  late CartModel cart;
   Categories? categories;
   String branchLinkProduct_id = '';
   String basePrice = '', finalPrice = '';
@@ -179,12 +180,12 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
+        this.cart = cart;
         return LayoutBuilder(builder: (context, constraints) {
           if (constraints.maxWidth > 800) {
             return StreamBuilder(
                 stream: streamController.productOrderDialogStream,
                 builder: (context, snapshot) {
-                  // print("has data: ${snapshot.hasData}");
                   if(snapshot.hasData){
                     return Center(
                       child: SingleChildScrollView(
@@ -199,16 +200,17 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                       fontWeight: FontWeight.bold,
                                     )),
                               ),
-                              // Text("In stock: $dialogStock",
-                              //     style: TextStyle(
-                              //       fontSize: 16,
-                              //       fontWeight: FontWeight.bold,
-                              //     )),
                               Spacer(),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
+                                  widget.productDetail!.unit != 'each' ?
                                   Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      )) :
+                                  Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.unit!}",
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -314,25 +316,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                     simpleIntInput = 0;
                                                   }
                                                 },
-                                                onSubmitted: (value) async {
-                                                  await checkProductStock(widget.productDetail!, cart);
-                                                  if (hasStock) {
-                                                    if (cart.selectedOption == 'Dine in') {
-                                                      if (simpleIntInput > 0) {
-                                                        if (cart.selectedTable.isNotEmpty) {
-                                                          await addToCart(cart);
-                                                          Navigator.of(context).pop();
-                                                        } else {
-                                                          openChooseTableDialog(cart);
-                                                        }
-                                                      } else {
-                                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
-                                                      }
-                                                    }
-                                                  } else {
-                                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
-                                                  }
-                                                },
+                                                onSubmitted: _onSubmitted,
                                               ),
                                             ),
                                             SizedBox(width: 10),
@@ -666,6 +650,39 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           }
         });
       });
+    });
+  }
+
+  _onSubmitted(String value) async {
+    await checkProductStock(widget.productDetail!, cart);
+    if (hasStock) {
+      if(simpleIntInput > 0){
+        autoDisableButton();
+        if (cart.selectedOption == 'Dine in') {
+          if (cart.selectedTable.isNotEmpty) {
+            await addToCart(cart);
+            Navigator.of(context).pop();
+          } else {
+            openChooseTableDialog(cart);
+          }
+        } else {
+          await addToCart(cart);
+          Navigator.of(context).pop();
+        }
+      } else {
+        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
+      }
+    } else {
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
+    }
+  }
+
+  autoDisableButton(){
+    setState(() {
+      isButtonDisabled = true;
+    });
+    Timer(Duration(seconds: 1), () {
+      isButtonDisabled = false;
     });
   }
 
@@ -1096,6 +1113,21 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     return same;
   }
 
+  quantityStack({required cartProductItem cartItem, required cartProductItem newAddItem}){
+    num value;
+    try{
+      if(cartItem.unit != 'each'){
+        value = num.parse((cartItem.quantity! + newAddItem.quantity!).toStringAsFixed(2));
+      } else {
+        value = cartItem.quantity! + newAddItem.quantity!;
+      }
+    }catch(e){
+      print("quantity stack error: $e");
+      value = cartItem.quantity! + newAddItem.quantity!;
+    }
+    return value;
+  }
+
   addToCart(CartModel cart) async {
     //check selected variant
     for (int j = 0; j < variantGroup.length; j++) {
@@ -1163,14 +1195,14 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       print('item after first compare length: ${item.length}');
       if(item.length == 1){
         if(item[0].checkedModifierLength == 0){
-          item[0].quantity = item[0].quantity! + value.quantity!;
+          item[0].quantity = quantityStack(cartItem: item[0], newAddItem: value);
         } else {
           bool status = compareCartProductModifier(cartModifierGroup: item[0].modifier!);
           print('compared status: ${status}');
           if(status == false){
             cart.addItem(value);
           } else{
-            item[0].quantity = item[0].quantity! + value.quantity!;
+            item[0].quantity = quantityStack(cartItem: item[0], newAddItem: value);
           }
         }
       } else {

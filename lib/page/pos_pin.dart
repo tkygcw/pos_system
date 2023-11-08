@@ -141,23 +141,16 @@ class _PosPinPageState extends State<PosPinPage> {
             mainSyncToCloud.resetCount();
           }
         }
-        //SyncToCloud().syncToCloud();
       } else {
         //qr order sync
         print("qr order count: ${qrOrder.count}");
         if(qrOrder.count == 0){
           print('qr order sync');
           qrOrder.count = 1;
-          qrOrder.getQrOrder();
+          await qrOrder.getQrOrder();
           qrOrder.count = 0;
         }
 
-        // if (notificationModel.notificationStatus == true) {
-        //   print('timer reset inside');
-        //   timerCount = 0;
-        //   notificationModel.resetNotification();
-        //   return;
-        // }
         //sync from cloud
         if(syncRecord.count == 0){
           syncRecord.count = 1;
@@ -168,25 +161,6 @@ class _PosPinPageState extends State<PosPinPage> {
             openLogOutDialog();
             return;
           }
-          // else if (syncStatus == false) {
-          //   ScaffoldMessenger.of(context).showSnackBar(
-          //     SnackBar(
-          //       duration: Duration(minutes: 5),
-          //       backgroundColor: Colors.green,
-          //       content: const Text('Content change !!!'),
-          //       action: SnackBarAction(
-          //         label: 'Refresh',
-          //         textColor: Colors.white,
-          //         onPressed: () {
-          //           setState(() {
-          //             ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          //           });
-          //           // Code to execute.
-          //         },
-          //       ),
-          //     ),
-          //   );
-          // }
         }
       }
       //add timer and reset hasNotification
@@ -196,10 +170,6 @@ class _PosPinPageState extends State<PosPinPage> {
       if (timerCount >= 2) {
         timerCount = 0;
       }
-      // bool _hasInternetAccess = await Domain().isHostReachable();
-      // if (_hasInternetAccess) {
-      //
-      // }
     });
   }
 
