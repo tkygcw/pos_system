@@ -361,7 +361,7 @@ class _HomePageState extends State<HomePage> {
         if (message.data['type'] == '0') {
           if (qrOrder.count == 0) {
             qrOrder.count = 1;
-            qrOrder.getQrOrder();
+            await qrOrder.getQrOrder();
             manageNotificationTimer();
             qrOrder.count = 0;
           }
@@ -371,12 +371,6 @@ class _HomePageState extends State<HomePage> {
       * */
         else {
           notificationModel.setNotification(true);
-          // notificationModel.setContentLoaded();
-          // Fluttertoast.showToast(
-          //     backgroundColor: Colors.green,
-          //     msg: AppLocalizations.of(context)!
-          //         .translate('cloud_db_change_sync_from_cloud'));
-          // await SyncRecord().syncFromCloud();
           if (syncRecord.count == 0) {
             notificationModel.setContentLoad();
             syncRecord.count = 1;

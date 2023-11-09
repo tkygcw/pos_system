@@ -472,19 +472,25 @@ class CartPageState extends State<CartPage> {
                                                       hoverColor: Colors.transparent,
                                                       icon: Icon(Icons.remove),
                                                       onPressed: () {
-                                                        if (cart.cartNotifierItem[index].quantity != 1 && cart.cartNotifierItem[index].status == 0) {
-                                                          setState(() {
-                                                            cart.cartNotifierItem[index].quantity = (cart.cartNotifierItem[index].quantity! - 1).ceilToDouble();
-                                                          });
-                                                        } else if (cart.cartNotifierItem[index].status != 0) {
+                                                        if(cart.cartNotifierItem[index].status == 0){
+                                                          if(cart.cartNotifierItem[index].quantity! > 1){
+                                                            if(cart.cartNotifierItem[index].unit != 'each'){
+                                                              setState(() {
+                                                                cart.cartNotifierItem[index].quantity = (cart.cartNotifierItem[index].quantity! - 1).ceilToDouble();
+                                                              });
+                                                            } else {
+                                                              setState(() {
+                                                                cart.cartNotifierItem[index].quantity = (cart.cartNotifierItem[index].quantity! - 1);
+                                                              });
+                                                            }
+                                                          } else {
+                                                            cart.removeItem(cart.cartNotifierItem[index]);
+                                                          }
+                                                        } else {
                                                           Fluttertoast.showToast(
                                                             backgroundColor: Colors.red,
                                                             msg: AppLocalizations.of(context)!.translate('order_already_placed'),
                                                           );
-                                                        } else if (cart.cartNotifierItem[index].quantity! < 1) {
-                                                          cart.removeItem(cart.cartNotifierItem[index]);
-                                                        } else {
-                                                          cart.removeItem(cart.cartNotifierItem[index]);
                                                         }
                                                       }),
                                                 ),
@@ -2966,39 +2972,6 @@ class CartPageState extends State<CartPage> {
           }
         }
       }
-      // if (newOrderDetailList[j].modifier!.isNotEmpty) {
-      //   for (int k = 0; k < newOrderDetailList[j].modifier!.length; k++) {
-      //     ModifierGroup group = newOrderDetailList[j].modifier![k];
-      //     for (int m = 0; m < group.modifierChild!.length; m++) {
-      //       if (group.modifierChild![m].isChecked!) {
-      //         // _hasModifier = true;
-      //         OrderModifierDetail orderModifierDetailData = await PosDatabase.instance.insertSqliteOrderModifierDetail(OrderModifierDetail(
-      //             order_modifier_detail_id: 0,
-      //             order_modifier_detail_key: '',
-      //             order_detail_sqlite_id: orderDetailData.order_detail_sqlite_id.toString(),
-      //             order_detail_id: '0',
-      //             order_detail_key: await orderDetailKey,
-      //             mod_item_id: group.modifierChild![m].mod_item_id.toString(),
-      //             mod_name: group.modifierChild![m].name,
-      //             mod_price: group.modifierChild![m].price,
-      //             mod_group_id: group.mod_group_id.toString(),
-      //             sync_status: 0,
-      //             created_at: dateTime,
-      //             updated_at: '',
-      //             soft_delete: ''));
-      //         //insert unique key
-      //         OrderModifierDetail updatedOrderModifierDetail = await insertOrderModifierDetailKey(orderModifierDetailData, dateTime);
-      //         if (updatedOrderModifierDetail.order_modifier_detail_key != '') {
-      //           _orderModifierValue.add(jsonEncode(updatedOrderModifierDetail));
-      //           order_modifier_detail_value = _orderModifierValue.toString();
-      //         }
-      //       }
-      //     }
-      //   }
-      // }
-      // if (cart.cartNotifierItem[j].status == 0) {
-      //
-      // }
     }
   }
 
@@ -3044,45 +3017,6 @@ class CartPageState extends State<CartPage> {
       print("cart update product stock error: $e");
     }
   }
-
-  // syncBranchLinkProductStock(String value) async {
-  //   bool _hasInternetAccess = await Domain().isHostReachable();
-  //   if (_hasInternetAccess) {
-  //     Map orderDetailResponse = await Domain().SyncBranchLinkProductToCloud(value);
-  //     if (orderDetailResponse['status'] == '1') {
-  //       List responseJson = orderDetailResponse['data'];
-  //       for (int i = 0; i < responseJson.length; i++) {
-  //         int syncUpdated = await PosDatabase.instance.updateBranchLinkProductSyncStatusFromCloud(responseJson[i]['branch_link_product_id']);
-  //       }
-  //     }
-  //   }
-  // }
-  //
-  // syncOrderDetailToCloud(String orderDetailValue) async {
-  //   bool _hasInternetAccess = await Domain().isHostReachable();
-  //   if (_hasInternetAccess) {
-  //     Map orderDetailResponse = await Domain().SyncOrderDetailToCloud(orderDetailValue);
-  //     if (orderDetailResponse['status'] == '1') {
-  //       List responseJson = orderDetailResponse['data'];
-  //       for (int i = 0; i < responseJson.length; i++) {
-  //         int syncUpdated = await PosDatabase.instance.updateOrderDetailSyncStatusFromCloud(responseJson[i]['order_detail_key']);
-  //       }
-  //     }
-  //   }
-  // }
-  //
-  // syncOrderModifierToCloud(String orderModifierValue) async {
-  //   bool _hasInternetAccess = await Domain().isHostReachable();
-  //   if (_hasInternetAccess) {
-  //     Map orderModifierResponse = await Domain().SyncOrderModifierDetailToCloud(orderModifierValue);
-  //     if (orderModifierResponse['status'] == '1') {
-  //       List responseJson = orderModifierResponse['data'];
-  //       for (int i = 0; i < responseJson.length; i++) {
-  //         int syncUpdated = await PosDatabase.instance.updateOrderModifierDetailSyncStatusFromCloud(responseJson[i]['order_modifier_detail_key']);
-  //       }
-  //     }
-  //   }
-  // }
 
   insertOrderModifierDetailKey(OrderModifierDetail orderModifierDetail, String dateTime) async {
     OrderModifierDetail? detailData;
@@ -3183,19 +3117,6 @@ class CartPageState extends State<CartPage> {
       print("update table error: $e");
     }
   }
-
-  // syncUpdatedTableToCloud(String value) async {
-  //   bool _hasInternetAccess = await Domain().isHostReachable();
-  //   if (_hasInternetAccess) {
-  //     Map data = await Domain().SyncUpdatedPosTableToCloud(value);
-  //     if (data['status'] == '1') {
-  //       List responseJson = data['data'];
-  //       for (var i = 0; i < responseJson.length; i++) {
-  //         int syncData = await PosDatabase.instance.updatePosTableSyncStatusFromCloud(responseJson[i]['table_id']);
-  //       }
-  //     }
-  //   }
-  // }
 
   syncAllToCloud() async {
     try {
