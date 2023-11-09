@@ -37,6 +37,7 @@ class QrOrder {
         OrderCache orderCache = OrderCache(
             order_cache_id: 0,
             order_cache_key: response['data'][i]['order_cache_key'].toString(),
+            order_queue: '',
             company_id: response['data'][i]['company_id'].toString(),
             branch_id: response['data'][i]['branch_id'].toString(),
             order_detail_id: '',

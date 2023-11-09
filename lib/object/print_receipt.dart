@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
-
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
@@ -66,10 +66,22 @@ class PrintReceipt{
           } else {
             print('not connected');
           }
-        } else {
+        } else if(printerList[i].paper_size == 1){
           print('print 58mm');
           var data = Uint8List.fromList(
               await ReceiptLayout().testTicket58mm(true, null));
+          bool? isConnected = await flutterUsbPrinter.connect(
+              int.parse(printerDetail['vendorId']),
+              int.parse(printerDetail['productId']));
+          if (isConnected == true) {
+            await flutterUsbPrinter.write(data);
+          } else {
+            print('not connected');
+          }
+        } else {
+          print('print 35mm');
+          var data = Uint8List.fromList(
+              await ReceiptLayout().testTicket35mm(true, null));
           bool? isConnected = await flutterUsbPrinter.connect(
               int.parse(printerDetail['vendorId']),
               int.parse(printerDetail['productId']));
@@ -707,7 +719,7 @@ class PrintReceipt{
     orderDetail.tableNumber.addAll(tableNoList);
   }
 
-  printKitchenList(List<Printer> printerList, int orderCacheLocalId) async {
+  printKitchenList(List<Printer> printerList, int orderCacheLocalId, context) async {
     try{
       List<OrderDetail>? failedPrintOrderDetail;
       List<OrderDetail> orderDetail = await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(orderCacheLocalId.toString());
@@ -742,6 +754,12 @@ class PrintReceipt{
                         printer.disconnect();
                       } else {
                         failedPrintOrderDetail.add(orderDetail[k]);
+                        // playSound();
+                        // Fluttertoast.showToast(
+                        //     gravity: ToastGravity.TOP,
+                        //     backgroundColor: Colors.red,
+                        //     textColor: Colors.white,
+                        //     msg: "${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}");
                       }
                     } else {
                       //print LAN 58mm
@@ -792,7 +810,7 @@ class PrintReceipt{
     }
   }
 
-  reprintKitchenList(List<Printer> printerList, {required List<OrderDetail> reprintList}) async {
+  reprintKitchenList(List<Printer> printerList, context, {required List<OrderDetail> reprintList}) async {
     List<OrderDetail>? failedPrintOrderDetail;
     try{
       if(printerList.isNotEmpty){
@@ -824,6 +842,12 @@ class PrintReceipt{
                         printer.disconnect();
                       } else {
                         failedPrintOrderDetail.add(reprintList[k]);
+                        // playSound();
+                        // Fluttertoast.showToast(
+                        //     gravity: ToastGravity.TOP,
+                        //     backgroundColor: Colors.red,
+                        //     textColor: Colors.white,
+                        //     msg: "${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}");
                       }
                     } else {
                       //print LAN 58mm
@@ -876,6 +900,13 @@ class PrintReceipt{
       //     backgroundColor: Colors.red,
       //     msg: "${AppLocalizations.of(context)?.translate('printing_error')}");
     }
+  }
+
+  playSound() {
+    final assetsAudioPlayer = AssetsAudioPlayer();
+    assetsAudioPlayer.open(
+      Audio("audio/review.mp3"),
+    );
   }
 
   printQrKitchenList(List<Printer> printerList, int orderCacheLocalId, {orderDetailList}) async {

@@ -1279,7 +1279,7 @@ getAllOrderCache() async {
     for (var i = 0; i < responseJson.length; i++) {
       OrderCache cloudData = OrderCache.fromJson(responseJson[i]);
       if (cloudData.table_use_key != '' && cloudData.table_use_key != null) {
-        print("table use key: ${cloudData.table_use_key}");
+        // print("table use key: ${cloudData.table_use_key}");
         TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(cloudData.table_use_key!);
         tableUseLocalId = tableUseData!.table_use_sqlite_id.toString();
       } else {
@@ -1287,7 +1287,7 @@ getAllOrderCache() async {
       }
 
       if (cloudData.order_key != '' && cloudData.order_key != null) {
-        print("order key in order cache sync: ${cloudData.order_key}");
+        // print("order key in order cache sync: ${cloudData.order_key}");
         Order orderData = await PosDatabase.instance.readOrderSqliteID(cloudData.order_key!);
         orderLocalId = orderData.order_sqlite_id.toString();
       } else {

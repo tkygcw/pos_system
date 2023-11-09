@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
@@ -2433,10 +2434,22 @@ class CartPageState extends State<CartPage> {
 
   printKitchenList() async {
     try{
-      List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheId));
+      List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheId), context);
       if(returnData != null){
         if (returnData.isNotEmpty) {
           _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
+          // final assetsAudioPlayer = AssetsAudioPlayer();
+          // assetsAudioPlayer.open(
+          //   Audio("audio/review.mp3"),
+          // );
+          Fluttertoast.showToast(
+            msg: "${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
+            gravity: ToastGravity.TOP,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            toastLength: Toast.LENGTH_SHORT,
+            fontSize: 16.0, // Adjust font size as needed
+          );
         }
       } else {
         Fluttertoast.showToast(

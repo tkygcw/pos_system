@@ -138,6 +138,22 @@ class _HardwareSettingState extends State<HardwareSetting> {
                                 // switch on
                                 if(value){
                                   this.tableOrder = value;
+                                  if (await confirm(
+                                    context,
+                                    title: Text('${AppLocalizations.of(context)?.translate('disable_table_order')}'),
+                                    content: Text('${AppLocalizations.of(context)?.translate('disable_table_order_desc')}'),
+                                    textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                    textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                  )) {
+                                    Navigator.of(context).pushAndRemoveUntil(
+                                      MaterialPageRoute(
+                                        builder: (BuildContext context) => PosPinPage(),
+                                      ),
+                                          (Route route) => false,
+                                    );
+                                    appSettingModel.setTableOrderStatus(tableOrder);
+                                  } else
+                                    this.tableOrder = !value;
                                 } else{
                                   // switch off
                                   if(await anyTableUse()){
@@ -147,25 +163,26 @@ class _HardwareSettingState extends State<HardwareSetting> {
                                       Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_direct_payment'));
                                     } else {
                                       this.tableOrder = value;
+                                      if (await confirm(
+                                        context,
+                                        title: Text('${AppLocalizations.of(context)?.translate('disable_table_order')}'),
+                                        content: Text('${AppLocalizations.of(context)?.translate('disable_table_order_desc')}'),
+                                        textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                        textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                      )) {
+                                        Navigator.of(context).pushAndRemoveUntil(
+                                          MaterialPageRoute(
+                                            builder: (BuildContext context) => PosPinPage(),
+                                          ),
+                                              (Route route) => false,
+                                        );
+                                        appSettingModel.setTableOrderStatus(tableOrder);
+                                      } else
+                                        this.tableOrder = !value;
                                     }
                                   }
                                 }
-                                if (await confirm(
-                                  context,
-                                  title: Text('${AppLocalizations.of(context)?.translate('disable_table_order')}'),
-                                  content: Text('${AppLocalizations.of(context)?.translate('disable_table_order_desc')}'),
-                                  textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                  textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                )) {
-                                  Navigator.of(context).pushAndRemoveUntil(
-                                    MaterialPageRoute(
-                                      builder: (BuildContext context) => PosPinPage(),
-                                    ),
-                                        (Route route) => false,
-                                  );
-                                  appSettingModel.setTableOrderStatus(tableOrder);
-                                } else
-                                  this.tableOrder = !value;
+
 
                                 actionController.sink.add("switch");
                               },

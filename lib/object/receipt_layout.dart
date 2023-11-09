@@ -176,6 +176,30 @@ class ReceiptLayout{
   }
 
 /*
+  test print layout 58mm
+*/
+  testTicket35mm(bool isUSB, value) async {
+    // Using default profile
+    var generator;
+    if (isUSB) {
+      final profile = await CapabilityProfile.load();
+      generator = Generator(PaperSize.mm35, profile);
+    } else {
+      generator = value;
+    }
+    List<int> bytes = [];
+
+    //LOGO
+    bytes += generator.text('Self test', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+    bytes += generator.text('This is 35mm', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
+
+    bytes += generator.feed(1);
+    bytes += generator.drawer();
+    bytes += generator.cut(mode: PosCutMode.partial);
+    return bytes;
+  }
+
+/*
   Test print checklist layout 80mm
 */
   printTestCheckList80mm(bool isUSB, {value, required Checklist checklistLayout}) async {
@@ -2653,6 +2677,85 @@ class ReceiptLayout{
       }
     }
 
+  }
+
+/*
+  label printer layout 35mm
+*/
+  printLabel35mm(bool isUSB, int localId, {value, required OrderDetail orderDetail}) async {
+    String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    await readOrderCache(localId);
+    cartProductItem cartItem = cartProductItem(
+      quantity: int.parse(orderDetail.quantity!),
+      product_name: orderDetail.productName,
+      productVariantName: orderDetail.product_variant_name,
+      remark: orderDetail.remark,
+      orderModifierDetail: orderDetail.orderModifierDetail,
+    );
+
+    if(_isLoad == true){
+      var generator;
+      if (isUSB) {
+        final profile = await CapabilityProfile.load();
+        generator = Generator(PaperSize.mm35, profile);
+      } else {
+        generator = value;
+      }
+
+      List<int> bytes = [];
+      try {
+        //order product
+        bytes += generator.row([
+          PosColumn(text: '${cartItem.quantity}', width: 2, styles: PosStyles(bold: true)),
+          PosColumn(
+              text: '${cartItem.product_name}',
+              width: 10,
+              containsChinese: true),
+        ]);
+        bytes += generator.reset();
+        //product variant
+        if(cartItem.productVariantName != ''){
+          bytes += generator.row([
+            PosColumn(text: '', width: 2),
+            PosColumn(text: '(${cartItem.productVariantName})', width: 10, containsChinese: true)
+          ]);
+        }
+        bytes += generator.reset();
+        //product modifier
+        if(cartItem.orderModifierDetail!.isNotEmpty) {
+          for (int j = 0; j < cartItem.orderModifierDetail!.length; j++) {
+            //modifier
+            bytes += generator.row([
+              PosColumn(text: '', width: 2),
+              PosColumn(text: '+${cartItem.orderModifierDetail![j].mod_name}',
+                  width: 10,
+                  containsChinese: true,
+                  styles: PosStyles(height: PosTextSize.size1, width: PosTextSize.size1))
+            ]);
+          }
+        }
+        /*
+        * product remark
+        * */
+        bytes += generator.reset();
+        if (cartItem.remark != '') {
+          bytes += generator.row([
+            PosColumn(text: '', width: 2),
+            PosColumn(text: '**${cartItem.remark}', width: 8, containsChinese: true),
+            PosColumn(text: '', width: 2),
+          ]);
+        }
+
+        bytes += generator.feed(1);
+        bytes += generator.cut(mode: PosCutMode.partial);
+        return bytes;
+      } catch (e) {
+        print('layout error: $e');
+        return null;
+      }
+    }
   }
 
 /*
