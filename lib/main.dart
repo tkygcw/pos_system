@@ -60,10 +60,10 @@ Future<void> main() async {
   initLCDScreen();
 
   WidgetsFlutterBinding.ensureInitialized();
-
   AppLanguage appLanguage = AppLanguage();
   //create default app color
   await appLanguage.fetchLocale();
+
   runApp(
       ChangeNotifierProvider.value(
         value: notificationModel,

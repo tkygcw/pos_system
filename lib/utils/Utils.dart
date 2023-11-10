@@ -105,4 +105,5 @@ class Utils {
       return value.toStringAsFixed(1) + '0';
     }
   }
+
 }
