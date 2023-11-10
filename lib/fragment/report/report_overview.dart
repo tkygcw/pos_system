@@ -152,18 +152,22 @@ class _ReportOverviewState extends State<ReportOverview> {
                                   ),
                                 ),
                               ),
-                              Container(
-                                child: Card(
-                                  color: color.iconColor,
-                                  elevation: 5,
-                                  child: ListTile(
-                                    title: Text(AppLocalizations.of(context)!.translate('total_cancelled_item')),
-                                    subtitle: dateOrderDetailCancel[0].total_item != null
-                                        ? Text('${dateOrderDetailCancel[0].total_item}',
-                                            style: TextStyle(color: Colors.black, fontSize: 24))
-                                        : Text('0',
-                                            style: TextStyle(color: Colors.black, fontSize: 24)),
-                                    trailing: Icon(Icons.no_food),
+
+                              Visibility(
+                                visible: dateOrderDetailCancel[0].total_item is double ? false : true,
+                                child: Container(
+                                  child: Card(
+                                    color: color.iconColor,
+                                    elevation: 5,
+                                    child: ListTile(
+                                      title: Text(AppLocalizations.of(context)!.translate('total_cancelled_item')),
+                                      subtitle: dateOrderDetailCancel[0].total_item != null
+                                          ? Text('${dateOrderDetailCancel[0].total_item!}',
+                                              style: TextStyle(color: Colors.black, fontSize: 24))
+                                          : Text('0',
+                                              style: TextStyle(color: Colors.black, fontSize: 24)),
+                                      trailing: Icon(Icons.no_food),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -195,7 +199,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                                 style: TextStyle(fontSize: 20)),
                                           ),
                                           Container(
-                                            child: Table(
+                                            child: paymentList.isNotEmpty ? Table(
                                               children: [
                                                 for (var payment in paymentList)
                                                   TableRow(children: [
@@ -214,6 +218,14 @@ class _ReportOverviewState extends State<ReportOverview> {
                                                     ),
                                                   ]),
                                               ],
+                                            )
+                                            :Center(
+                                              child: Column(
+                                                children: [
+                                                  Icon(Icons.credit_card_off_outlined),
+                                                  Text(AppLocalizations.of(context)!.translate('no_payment_record'))
+                                                ],
+                                              ),
                                             ),
                                           )
                                         ],
@@ -235,9 +247,8 @@ class _ReportOverviewState extends State<ReportOverview> {
                                             child: Text(AppLocalizations.of(context)!.translate('charges_overview'),
                                                 style: TextStyle(fontSize: 20)),
                                           ),
-                                          branchTaxList.isNotEmpty
-                                              ? Container(
-                                                  child: Table(
+                                              Container(
+                                                  child: branchTaxList.isNotEmpty ? Table(
                                                     children: [
                                                       for (var branchTax in branchTaxList)
                                                         TableRow(children: [
@@ -252,18 +263,17 @@ class _ReportOverviewState extends State<ReportOverview> {
                                                           ),
                                                         ]),
                                                     ],
+                                                  )
+                                                  : Center(
+                                                    child: Column(
+                                                      children: [
+                                                        Icon(Icons.no_meals_ouline),
+                                                        Text(AppLocalizations.of(context)!.translate('no_charges_record'))
+                                                      ],
+                                                    ),
                                                   ),
-                                                )
-                                              : Center(
-                                                  heightFactor: 5,
-                                                  child: Column(
-                                                    children: [
-                                                      Icon(Icons.no_meals_ouline),
-                                                      Text(AppLocalizations.of(context)!.translate('no_charges_record'))
-                                                    ],
-                                                  ),
-                                                )
-                                        ],
+                                              )
+                                          ],
                                       ),
                                     ),
                                   ),

@@ -557,19 +557,19 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                   child: Row(
                     children: [
                       Expanded(
-                        flex: 2,
+                        flex: 1,
+                        child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                      Expanded(
+                        flex: 4,
                         child: Padding(
                           padding: EdgeInsets.all(5),
                           child: Text('Item', style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                       ),
                       Expanded(
-                        flex: 1,
-                        child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                      Expanded(
                         flex: 0,
-                        child: Text('Price/Unit', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold)),
                       )
                     ],
                   ),
@@ -582,29 +582,30 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       Row(
                         children: [
                           Expanded(
-                            flex: 2,
-                            child: Text('Product1', style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
-                          Expanded(
                             flex: 1,
                             child: Text('2'),
                           ),
                           Expanded(
+                            flex: 4,
+                            child: Text('Product 1 (2.00/each)', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                          Expanded(
                             flex: 0,
-                            child: Text('2.00'),
+                            child: Text('4.00'),
                           )
                         ],
                       ),
                       Row(
                         children: [
                           Expanded(
-                            flex: 2,
-                            child: Text('Product2', style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
-                          Expanded(
                             flex: 1,
                             child: Text('1'),
                           ),
+                          Expanded(
+                            flex: 4,
+                            child: Text('Product 2 (2.00/each)', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+
                           Expanded(
                             flex: 0,
                             child: Text('2.00'),
@@ -653,7 +654,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 DottedLine(),
                 Container(
                   padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
-                  child: Text('Item Count: 2'),
+                  child: Text('Item Count: 3'),
                 ),
                 DottedLine(),
                 Container(
@@ -663,7 +664,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                         child: Text('Subtotal', textAlign: TextAlign.right),
                       ),
                       SizedBox(width: 80),
-                      Text('4.00')
+                      Text('6.00')
                     ],
                   ),
                 ),
@@ -716,7 +717,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                               child: Text('Tax1(10%)', textAlign: TextAlign.right),
                             ),
                             SizedBox(width: 80),
-                            Text('0.20')
+                            Text('0.40')
                           ],
                         ),
                         Row(
@@ -725,7 +726,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                               child: Text('Tax2(6%)', textAlign: TextAlign.right),
                             ),
                             SizedBox(width: 80),
-                            Text('0.12')
+                            Text('0.24')
                           ],
                         ),
                       ],
@@ -756,7 +757,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text('Amount', textAlign: TextAlign.right),
                     ),
                     SizedBox(width: 80),
-                    Text('2.32')
+                    Text('3.36')
                   ],
                 ),
                 Row(
@@ -765,7 +766,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text('Rounding', textAlign: TextAlign.right),
                     ),
                     SizedBox(width: 75),
-                    Text('-0.02',)
+                    Text('+0.04',)
                   ],
                 ),
                 Padding(
@@ -778,7 +779,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text('Final Amount', textAlign: TextAlign.right, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     ),
                     SizedBox(width: 70),
-                    Text('2.30', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20))
+                    Text('3.40', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20))
                   ],
                 ),
                 Padding(
@@ -812,7 +813,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text('Change', textAlign: TextAlign.right,),
                     ),
                     SizedBox(width: 80),
-                    Text('2.70')
+                    Text('1.60')
                   ],
                 ),
                 SizedBox(height: 20),
@@ -1216,16 +1217,16 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 Row(
                   children: [
                     Expanded(
-                      //flex: 1,
-                      child: Text('Item', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                    Expanded(
-                      //flex: 1,
+                      flex: 1,
                       child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                     Expanded(
-                      //flex: 0,
-                      child: Text('Price/Unit', style: TextStyle(fontWeight: FontWeight.bold)),
+                      flex: 3,
+                      child: Text('Item', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Text('Price', style: TextStyle(fontWeight: FontWeight.bold)),
                     )
                   ],
                 ),
@@ -1238,26 +1239,64 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     Row(
                       children: [
                         Expanded(
-                          child: Text('Product1', style: TextStyle(fontWeight: FontWeight.bold)),
-                        ),
-                        Expanded(
+                          flex: 1,
                           child: Text('2'),
                         ),
                         Expanded(
-                          child: Text('2.00', textAlign: TextAlign.left),
+                          flex: 3,
+                          child: Text('Product 1', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text('4.00', textAlign: TextAlign.left),
                         ),
                       ],
                     ),
                     Row(
                       children: [
                         Expanded(
-                          child: Text('Product2', style: TextStyle(fontWeight: FontWeight.bold)),
+                          flex: 1,
+                          child: Text(''),
                         ),
                         Expanded(
+                          flex: 3,
+                          child: Text('(2.00/each)', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text('', textAlign: TextAlign.left),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
                           child: Text('1'),
                         ),
                         Expanded(
+                          flex: 3,
+                          child: Text('Product 2', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                        Expanded(
+                          flex: 2,
                           child: Text('2.00'),
+                        )
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Text(''),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Text('(2.00/each)', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(''),
                         )
                       ],
                     ),
@@ -1305,7 +1344,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                 ),
                 Container(
                   alignment: Alignment.topLeft,
-                  child: Text('Item Count: 2', textAlign: TextAlign.left),
+                  child: Text('Item Count: 3', textAlign: TextAlign.left),
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 5.0),
@@ -1317,7 +1356,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text('Subtotal', textAlign: TextAlign.left),
                     ),
                     Expanded(child: Text('')),
-                    Expanded(child: Text('4.00'))
+                    Expanded(child: Text('6.00'))
                   ],
                 ),
                 Row(
@@ -1339,7 +1378,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                               child: Text('Tax1(10%)', textAlign: TextAlign.left),
                             ),
                             Expanded(child: Text('')),
-                            Expanded(child: Text('0.20'))
+                            Expanded(child: Text('0.40'))
                           ],
                         ),
                         Row(
@@ -1348,7 +1387,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                               child: Text('Tax2(6%)', textAlign: TextAlign.left),
                             ),
                             Expanded(child: Text('')),
-                            Expanded(child: Text('0.12'))
+                            Expanded(child: Text('0.24'))
                           ],
                         ),
                       ],
@@ -1379,7 +1418,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text('Amount', textAlign: TextAlign.left),
                     ),
                     Expanded(child: Text('')),
-                    Expanded(child: Text('2.32'))
+                    Expanded(child: Text('3.36'))
                   ],
                 ),
                 Row(
@@ -1388,7 +1427,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text('Rounding', textAlign: TextAlign.left),
                     ),
                     Expanded(child: Text('')),
-                    Expanded(child: Text('-0.02',))
+                    Expanded(child: Text('+0.04',))
                   ],
                 ),
                 Padding(
@@ -1401,7 +1440,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text('Final Amount', textAlign: TextAlign.left, style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                     Expanded(child: Text('')),
-                    Expanded(child: Text('2.30', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)))
+                    Expanded(child: Text('3.40', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)))
                   ],
                 ),
                 Padding(
@@ -1429,7 +1468,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       child: Text('Change', textAlign: TextAlign.left),
                     ),
                     Expanded(child: Text('')),
-                    Expanded(child: Text('2.70'))
+                    Expanded(child: Text('1.60'))
                   ],
                 ),
                 SizedBox(height: 20),

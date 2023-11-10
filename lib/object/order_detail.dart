@@ -29,6 +29,8 @@ class OrderDetailFields {
     cancel_by_user_id,
     status,
     sync_status,
+    unit,
+    per_quantity_unit,
     created_at,
     updated_at,
     soft_delete
@@ -54,6 +56,8 @@ class OrderDetailFields {
   static String cancel_by_user_id = 'cancel_by_user_id';
   static String status = 'status';
   static String sync_status = 'sync_status';
+  static String unit = 'unit';
+  static String per_quantity_unit = 'per_quantity_unit';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -80,6 +84,8 @@ class OrderDetail{
   String? cancel_by_user_id;
   int? status;
   int? sync_status;
+  String? unit;
+  String? per_quantity_unit;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -95,8 +101,8 @@ class OrderDetail{
   bool hasModifier = false;
   int? category_id;
   int? branch_link_product_id;
-  int? category_item_sum;
-  int? item_sum;
+  num? category_item_sum;
+  num? item_sum;
   double? category_net_sales;
   double? category_gross_sales;
   double? double_price;
@@ -130,6 +136,8 @@ class OrderDetail{
         this.cancel_by_user_id,
         this.status,
         this.sync_status,
+        this.unit,
+        this.per_quantity_unit,
         this.created_at,
         this.updated_at,
         this.soft_delete,
@@ -169,6 +177,8 @@ class OrderDetail{
     String? cancel_by_user_id,
     int? status,
     int? sync_status,
+    String? unit,
+    String? per_quantity_unit,
     String? created_at,
     String? updated_at,
     String? soft_delete
@@ -194,6 +204,8 @@ class OrderDetail{
           cancel_by_user_id: cancel_by_user_id ?? this.cancel_by_user_id,
           status: status ?? this.status,
           sync_status: sync_status ?? this.sync_status,
+          unit: unit ?? this.unit,
+          per_quantity_unit: per_quantity_unit ?? this.per_quantity_unit,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
@@ -219,6 +231,8 @@ class OrderDetail{
     cancel_by_user_id: json[OrderDetailFields.cancel_by_user_id] as String?,
     status: json[OrderDetailFields.status] as int?,
     sync_status: json[OrderDetailFields.sync_status] as int?,
+    unit: json[OrderDetailFields.unit] as String?,
+    per_quantity_unit: json[OrderDetailFields.per_quantity_unit] as String?,
     created_at: json[OrderDetailFields.created_at] as String?,
     updated_at: json[OrderDetailFields.updated_at] as String?,
     soft_delete: json[OrderDetailFields.soft_delete] as String?,
@@ -226,8 +240,8 @@ class OrderDetail{
     category_id: json['category_id'] as int?,
     branch_link_product_id: json['branch_link_product_id'] as int?,
     //category_name: json['category_name'] as String?,
-    category_item_sum: json['category_item_sum'] as int?,
-    item_sum: json['item_sum'] as int?,
+    category_item_sum: json['category_item_sum'] as num?,
+    item_sum: json['item_sum'] as num?,
     category_net_sales: json['category_net_sales'] as double?,
     category_gross_sales: json['category_gross_sales'] as double?,
     double_price: json['net_sales'] as double?,
@@ -258,6 +272,8 @@ class OrderDetail{
     OrderDetailFields.cancel_by_user_id: cancel_by_user_id,
     OrderDetailFields.status: status,
     OrderDetailFields.sync_status: sync_status,
+    OrderDetailFields.unit: unit,
+    OrderDetailFields.per_quantity_unit: per_quantity_unit,
     OrderDetailFields.created_at: created_at,
     OrderDetailFields.updated_at: updated_at,
     OrderDetailFields.soft_delete: soft_delete
@@ -279,6 +295,8 @@ class OrderDetail{
     OrderDetailFields.cancel_by_user_id: cancel_by_user_id,
     OrderDetailFields.status: status,
     OrderDetailFields.sync_status: sync_status,
+    OrderDetailFields.unit: unit,
+    OrderDetailFields.per_quantity_unit: per_quantity_unit,
     OrderDetailFields.created_at: created_at,
     OrderDetailFields.updated_at: updated_at,
     OrderDetailFields.soft_delete: soft_delete,

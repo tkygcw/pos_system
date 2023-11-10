@@ -844,7 +844,7 @@ class Domain {
         'get_new_qr_order': '1',
         'branch_id': branch_id,
         'company_id': company_id
-      }).timeout(Duration(seconds: 10), onTimeout: ()=> throw TimeoutException("Timeout"));
+      }).timeout(Duration(seconds: 25), onTimeout: ()=> throw TimeoutException("Timeout"));
 
       return jsonDecode(response.body);
     } on TimeoutException catch(_){

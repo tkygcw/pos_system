@@ -52,7 +52,7 @@ class OrderDetailCancel{
   String? created_at;
   String? updated_at;
   String? soft_delete;
-  int? total_item;
+  num? total_item;
 
   OrderDetailCancel(
       {this.order_detail_sqlite_id,
@@ -124,7 +124,7 @@ class OrderDetailCancel{
     created_at: json[OrderDetailCancelFields.created_at] as String?,
     updated_at: json[OrderDetailCancelFields.updated_at] as String?,
     soft_delete: json[OrderDetailCancelFields.soft_delete] as String?,
-    total_item: json['total_item'] as int?
+    total_item: json['total_item'] as num?
   );
 
   Map<String, Object?> toJson() => {

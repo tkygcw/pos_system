@@ -158,6 +158,7 @@ class _QrMainPageState extends State<QrMainPage> {
     List<OrderDetail> detailData = await PosDatabase.instance.readAllOrderDetailByOrderCache(orderCacheLocalId);
     orderDetailList = detailData;
     for (int i = 0; i < orderDetailList.length; i++) {
+      orderDetailList[i].tableNumber.add(qrOrderCacheList[0].table_number!);
       List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
       List<OrderModifierDetail> modDetailData = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[i].order_detail_sqlite_id.toString());
 
