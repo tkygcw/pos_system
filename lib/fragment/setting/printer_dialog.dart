@@ -301,6 +301,19 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                         });
                                       },
                                     ),
+                                  ),
+                                  Expanded(
+                                    child: RadioListTile<int>(
+                                      activeColor: color.backgroundColor,
+                                      title: const Text('35mm'),
+                                      value: 2,
+                                      groupValue: _paperSize,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _paperSize = value;
+                                        });
+                                      },
+                                    ),
                                   )
                                 ],
                               ),
@@ -596,6 +609,19 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                       activeColor: color.backgroundColor,
                                       title: const Text('58mm'),
                                       value: 1,
+                                      groupValue: _paperSize,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _paperSize = value;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: RadioListTile<int>(
+                                      activeColor: color.backgroundColor,
+                                      title: const Text('35mm'),
+                                      value: 2,
                                       groupValue: _paperSize,
                                       onChanged: (value) {
                                         setState(() {
@@ -1252,10 +1278,12 @@ class _PrinterDialogState extends State<PrinterDialog> {
         } else {
           print('not connected');
         }
-      } else if(_paperSize == 1) {
+      } else if (_paperSize == 1) {
         print('print 58mm');
         var data = Uint8List.fromList(await ReceiptLayout().testTicket58mm(true, null));
-        bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+        bool? isConnected = await flutterUsbPrinter.connect(
+            int.parse(printerDetail['vendorId']),
+            int.parse(printerDetail['productId']));
         if (isConnected == true) {
           await flutterUsbPrinter.write(data);
         } else {
@@ -1263,8 +1291,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
         }
       } else {
         print('print 35mm');
-        var data = Uint8List.fromList(
-            await ReceiptLayout().testTicket35mm(true, null));
+        var data = Uint8List.fromList(await ReceiptLayout().testTicket35mm(true));
         bool? isConnected = await flutterUsbPrinter.connect(
             int.parse(printerDetail['vendorId']),
             int.parse(printerDetail['productId']));
@@ -1283,7 +1310,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
 
   _printLAN() async {
     var printerDetail = jsonDecode(printerValue[0]);
-    if (_paperSize == 0) {
+    if(_paperSize == 0){
       PaperSize paper = PaperSize.mm80;
       final profile = await CapabilityProfile.load();
       final printer = NetworkPrinter(paper, profile);
@@ -1293,7 +1320,26 @@ class _PrinterDialogState extends State<PrinterDialog> {
         await ReceiptLayout().testTicket80mm(false, value: printer);
         printer.disconnect();
       } else {
-        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+        Fluttertoast.showToast(
+            backgroundColor: Color(0xFFFF0000),
+            msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+      }
+    } else if(_paperSize == 2) {
+      print("self test print 35mm");
+      PaperSize paper = PaperSize.mm35;
+      final profile = await CapabilityProfile.load();
+      final printer = NetworkPrinter(paper, profile);
+      final PosPrintResult res = await printer.connect(printerDetail, port: 9100);
+
+      if (res == PosPrintResult.success) {
+        print("Printer connected");
+        await ReceiptLayout().testTicket35mm(false, value: printer);
+        printer.disconnect();
+        print("Printer Disconected");
+      } else {
+        Fluttertoast.showToast(
+            backgroundColor: Color(0xFFFF0000),
+            msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
       }
     }
   }

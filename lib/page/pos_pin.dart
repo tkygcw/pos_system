@@ -147,7 +147,8 @@ class _PosPinPageState extends State<PosPinPage> {
         if(qrOrder.count == 0){
           print('qr order sync');
           qrOrder.count = 1;
-          await qrOrder.getQrOrder();
+          print("context: ${context}");
+          await qrOrder.getQrOrder(context);
           qrOrder.count = 0;
         }
 

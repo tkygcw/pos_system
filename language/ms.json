@@ -469,5 +469,7 @@
   "please_enable_table_order": "Sila dayakan Pesanan Meja",
   "please_settle_the_bill_for_all_tables": "Sila selesaikan bil untuk semua meja",
   "disable_table_order": "Lumpuhkan Pesanan Meja",
-  "disable_table_order_desc": "Perisian akan dimulakan semula secara automatik, klik 'Ya' untuk meneruskan"
+  "disable_table_order_desc": "Perisian akan dimulakan semula secara automatik, klik 'Ya' untuk meneruskan",
+  "error": "Error: ",
+  "new_qr_order_received": "Pesanan QR Baru Diterima!"
 }

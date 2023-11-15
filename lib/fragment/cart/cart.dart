@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:another_flushbar/flushbar.dart';
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
@@ -2438,18 +2440,27 @@ class CartPageState extends State<CartPage> {
       if(returnData != null){
         if (returnData.isNotEmpty) {
           _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-          // final assetsAudioPlayer = AssetsAudioPlayer();
-          // assetsAudioPlayer.open(
-          //   Audio("audio/review.mp3"),
-          // );
-          Fluttertoast.showToast(
-            msg: "${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-            gravity: ToastGravity.TOP,
+          playSound();
+          Flushbar(
+            icon: Icon(Icons.error, size: 32, color: Colors.white),
+            shouldIconPulse: false,
+            title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
+            message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+            duration: Duration(seconds: 4),
             backgroundColor: Colors.red,
-            textColor: Colors.white,
-            toastLength: Toast.LENGTH_SHORT,
-            fontSize: 16.0, // Adjust font size as needed
-          );
+            messageColor: Colors.white,
+            flushbarPosition: FlushbarPosition.TOP,
+            maxWidth: 350,
+            margin: EdgeInsets.all(8),
+            borderRadius: BorderRadius.circular(8),
+            padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+            onTap: (flushbar) {
+              flushbar.dismiss();
+            },
+          )..show(context);
+          Future.delayed(Duration(seconds: 2), () {
+            playSound();
+          });
         }
       } else {
         Fluttertoast.showToast(
@@ -2458,6 +2469,17 @@ class CartPageState extends State<CartPage> {
       }
     }catch(e){
       print("print kitchen list error: $e");
+    }
+  }
+
+  playSound() {
+    try {
+      final assetsAudioPlayer = AssetsAudioPlayer();
+      assetsAudioPlayer.open(
+        Audio("audio/review.mp3"),
+      );
+    } catch(e) {
+      print("Play Sound Error: ${e}");
     }
   }
 

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:esc_pos_utils/esc_pos_utils.dart';
+import 'package:flutter/foundation.dart';
 import 'package:imin/imin.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
@@ -178,25 +179,40 @@ class ReceiptLayout{
 /*
   test print layout 58mm
 */
-  testTicket35mm(bool isUSB, value) async {
-    // Using default profile
+  testTicket35mm(bool isUSB, {value}) async {
+    String dateTime = dateFormat.format(DateTime.now());
+    print("Current Datetime: ${dateTime}");
     var generator;
-    if (isUSB) {
-      final profile = await CapabilityProfile.load();
-      generator = Generator(PaperSize.mm35, profile);
-    } else {
-      generator = value;
+    try {
+      if (isUSB) {
+        final profile = await CapabilityProfile.load();
+        generator = Generator(PaperSize.mm35, profile);
+      } else {
+        generator = value;
+      }
+
+      List<String> commands = [];
+      commands.add('SIZE 35 mm,25 mm\n');
+      // commands.add('GAP 2.88 mm,0 mm\n');
+      commands.add('DIRECTION 1\n');
+      commands.add('CLS\n');
+      commands.add('TEXT 50,20,"2",0,1,1,"CHAGEE"\n');
+      // commands.add('TEXT 50,20,"TSS24.BF2",0,1,1,"霸王茶姬"\n');
+      commands.add('TEXT 50,45,"2",0,1,1,"10234"\n');
+      commands.add('TEXT 50,70,"2",0,1,1,"MILK TEA LARGE"\n');
+      commands.add('PRINT 1\n');
+      commands.add('END\n');
+
+      List<int> bytes = commands.map((command) => command.codeUnits).expand((codeUnit) => codeUnit).toList();
+      String textToPrint = String.fromCharCodes(bytes);
+      List<int> result = generator.text(textToPrint);
+
+      return result;
+    } catch (e) {
+      // Handle errors during profile loading or generator initialization
+      print('testTicket35mm Error: $e');
+      return []; // Or any other error-handling strategy
     }
-    List<int> bytes = [];
-
-    //LOGO
-    bytes += generator.text('Self test', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
-    bytes += generator.text('This is 35mm', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size3, width: PosTextSize.size3));
-
-    bytes += generator.feed(1);
-    bytes += generator.drawer();
-    bytes += generator.cut(mode: PosCutMode.partial);
-    return bytes;
   }
 
 /*

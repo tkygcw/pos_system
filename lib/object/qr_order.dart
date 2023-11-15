@@ -1,7 +1,10 @@
 import 'dart:convert';
 
+import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/domain.dart';
@@ -15,7 +18,7 @@ import 'order_modifier_detail.dart';
 class QrOrder {
   int count = 0;
 
-  getQrOrder() async {
+  getQrOrder(context) async {
     String categoryLocalId;
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
@@ -129,6 +132,23 @@ class QrOrder {
         }
       }
       playSound();
+      Flushbar(
+        icon: Icon(Icons.notifications, size: 32, color: Colors.white),
+        shouldIconPulse: false,
+        title: "${AppLocalizations.of(context)?.translate('qr_order')}",
+        message: "${AppLocalizations.of(context)?.translate('new_qr_order_received')}",
+        duration: Duration(seconds: 4),
+        backgroundColor: Colors.green,
+        messageColor: Colors.white,
+        flushbarPosition: FlushbarPosition.TOP,
+        maxWidth: 350,
+        margin: EdgeInsets.all(8),
+        borderRadius: BorderRadius.circular(8),
+        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+        onTap: (flushbar) {
+          flushbar.dismiss();
+        },
+      )..show(context);
     } else {
       return 1;
     }

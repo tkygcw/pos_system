@@ -192,7 +192,10 @@ class _TableMenuState extends State<TableMenu> {
                                           showSaveDialog(context);
                                         } else {
                                           editingMode = false;
-                                          showAdvanced = !showAdvanced;
+                                          setState(() {
+                                            showAdvanced = !showAdvanced;
+                                          });
+
                                         }
                                         prefs.setBool('show_advanced', showAdvanced);
                                       } else {

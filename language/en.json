@@ -301,7 +301,7 @@
   "product_report": "Product Report",
   "product_variant": "Product Variant",
   "product_variant_sold_out": "Product variant sold out!",
-  "qr_order": "Qr order",
+  "qr_order": "Qr Order",
   "qty": "Qty",
   "quantity": "Quantity",
   "quantity_exceed": "quantity exceeded",
@@ -469,5 +469,7 @@
   "please_enable_table_order": "Please enable Table Order Setting",
   "please_settle_the_bill_for_all_tables": "Please settle the bill for all tables",
   "disable_table_order": "Disable Table Order",
-  "disable_table_order_desc": "You will be redirected to pos pin page, Click 'Yes' to proceed"
+  "disable_table_order_desc": "You will be redirected to pos pin page, Click 'Yes' to proceed",
+  "error": "Error: ",
+  "new_qr_order_received": "A new QR order has been received!"
 }

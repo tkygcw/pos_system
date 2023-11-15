@@ -81,7 +81,7 @@ class PrintReceipt{
         } else {
           print('print 35mm');
           var data = Uint8List.fromList(
-              await ReceiptLayout().testTicket35mm(true, null));
+              await ReceiptLayout().testTicket35mm(true));
           bool? isConnected = await flutterUsbPrinter.connect(
               int.parse(printerDetail['vendorId']),
               int.parse(printerDetail['productId']));
