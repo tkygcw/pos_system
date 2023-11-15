@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:lan_scanner/lan_scanner.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 
 
@@ -12,7 +11,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<HostModel> _hosts = <HostModel>[];
+
 
   @override
   Widget build(BuildContext context) {

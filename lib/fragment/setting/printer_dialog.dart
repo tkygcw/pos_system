@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:io' as Platform;
 
 import 'package:esc_pos_printer/esc_pos_printer.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
@@ -32,8 +33,7 @@ class PrinterDialog extends StatefulWidget {
   final Printer? printerObject;
   final devices;
 
-  const PrinterDialog({Key? key, required this.callBack, this.printerObject, this.devices})
-      : super(key: key);
+  const PrinterDialog({Key? key, required this.callBack, this.printerObject, this.devices}) : super(key: key);
 
   @override
   State<PrinterDialog> createState() => _PrinterDialogState();
@@ -64,13 +64,17 @@ class _PrinterDialogState extends State<PrinterDialog> {
       printerValue.add(widget.printerObject!.value!);
       widget.printerObject!.is_counter == 1 ? _isCashier = true : _isCashier = false;
       widget.printerObject!.printer_status == 1 ? _isActive = true : _isActive = false;
-    } else if (widget.devices != null){
+    } else if (widget.devices != null) {
       printerValue.add(widget.devices);
       _isCashier = true;
       isLoad = true;
     } else {
       _isUpdate = false;
       isLoad = true;
+    }
+
+    if (Platform.Platform.isIOS) {
+      _typeStatus = 1;
     }
     super.initState();
   }
@@ -95,28 +99,24 @@ class _PrinterDialogState extends State<PrinterDialog> {
     print('submit status: ${errorPrinterLabel}');
     if (errorPrinterLabel == null) {
       if (printerValue.isNotEmpty) {
-        if(_isCashier != false || selectedCategories.isNotEmpty){
+        if (_isCashier != false || selectedCategories.isNotEmpty) {
           if (_isUpdate == false) {
             await callAddNewPrinter(printerValue, selectedCategories);
-            if(_typeStatus == 0){
+            if (_typeStatus == 0) {
               var printerDetail = jsonDecode(printerValue[0]);
-              bool? isConnected = await flutterUsbPrinter.connect(
-                  int.parse(printerDetail['vendorId']),
-                  int.parse(printerDetail['productId']));
+              bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
             }
           } else {
             await callUpdatePrinter(selectedCategories, widget.printerObject!);
-            if(_typeStatus == 0){
+            if (_typeStatus == 0) {
               var printerDetail = jsonDecode(printerValue[0]);
-              bool? isConnected = await flutterUsbPrinter.connect(
-                  int.parse(printerDetail['vendorId']),
-                  int.parse(printerDetail['productId']));
+              bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
             }
           }
-          if(_typeStatus == 1){
+          if (_typeStatus == 1) {
             await syncAllToCloud();
           }
-          if(this.isLogOut == true){
+          if (this.isLogOut == true) {
             openLogOutDialog();
             return;
           }
@@ -124,13 +124,10 @@ class _PrinterDialogState extends State<PrinterDialog> {
           closeDialog(context);
         } else {
           Fluttertoast.showToast(
-              backgroundColor: Color(0xFFFF0000),
-              msg: AppLocalizations.of(context)!.translate('please_set_the_printer_setting_or_category'));
+              backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_set_the_printer_setting_or_category'));
         }
       } else {
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000),
-            msg: AppLocalizations.of(context)!.translate('make_sure_printer_is_selected'));
+        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('make_sure_printer_is_selected'));
       }
     }
   }
@@ -142,300 +139,273 @@ class _PrinterDialogState extends State<PrinterDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return LayoutBuilder(builder: (context,  constraints) {
-        if(constraints.maxWidth > 800){
+      return LayoutBuilder(builder: (context, constraints) {
+        if (constraints.maxWidth > 800) {
           return Center(
             child: SingleChildScrollView(
               physics: NeverScrollableScrollPhysics(),
               child: AlertDialog(
-                title: _isUpdate ? Text(AppLocalizations.of(context)!.translate('edit_printer')) : Text(AppLocalizations.of(context)!.translate('add_printer')),
-                content: isLoad ?
-                Container(
-                  height: MediaQuery.of(context).size.height / 1.5,
-                  width: MediaQuery.of(context).size.width / 2.5,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ValueListenableBuilder(
-                          // Note: pass _controller to the animation argument
-                            valueListenable: printerLabelController,
-                            builder: (context, TextEditingValue value, __) {
-                              return SizedBox(
-                                height: 100,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextField(
-                                    controller: printerLabelController,
-                                    decoration: InputDecoration(
-                                      errorText: _submitted
-                                          ? errorPrinterLabel == null
-                                          ? errorPrinterLabel
-                                          : AppLocalizations.of(context)
-                                          ?.translate(errorPrinterLabel!)
-                                          : null,
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: color.backgroundColor),
+                title: _isUpdate
+                    ? Text(AppLocalizations.of(context)!.translate('edit_printer'))
+                    : Text(AppLocalizations.of(context)!.translate('add_printer')),
+                content: isLoad
+                    ? Container(
+                        height: MediaQuery.of(context).size.height / 1.5,
+                        width: MediaQuery.of(context).size.width / 2.5,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ValueListenableBuilder(
+                                  // Note: pass _controller to the animation argument
+                                  valueListenable: printerLabelController,
+                                  builder: (context, TextEditingValue value, __) {
+                                    return SizedBox(
+                                      height: 100,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextField(
+                                          controller: printerLabelController,
+                                          decoration: InputDecoration(
+                                            errorText: _submitted
+                                                ? errorPrinterLabel == null
+                                                    ? errorPrinterLabel
+                                                    : AppLocalizations.of(context)?.translate(errorPrinterLabel!)
+                                                : null,
+                                            border: OutlineInputBorder(
+                                              borderSide: BorderSide(color: color.backgroundColor),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(color: color.backgroundColor),
+                                            ),
+                                            labelText: AppLocalizations.of(context)!.translate('printer_label'),
+                                          ),
+                                        ),
                                       ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: color.backgroundColor),
+                                    );
+                                  }),
+                              Text(
+                                AppLocalizations.of(context)!.translate('type'),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                              ),
+                              Row(
+                                children: [
+                                  Visibility(
+                                    visible: !Platform.Platform.isIOS,
+                                    child: Expanded(
+                                      child: RadioListTile<int>(
+                                        activeColor: color.backgroundColor,
+                                        title: const Text(
+                                          'USB',
+                                          style: TextStyle(fontSize: 15),
+                                        ),
+                                        value: 0,
+                                        groupValue: _typeStatus,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            this.printerValue.clear();
+                                            // printerModel.removeAllPrinter();
+                                            _typeStatus = value;
+                                          });
+                                        },
                                       ),
-                                      labelText: AppLocalizations.of(context)!.translate('printer_label'),
                                     ),
                                   ),
-                                ),
-                              );
-                            }),
-                        Text(
-                            AppLocalizations.of(context)!.translate('type'),
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueGrey),
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: RadioListTile<int>(
-                                activeColor: color.backgroundColor,
-                                title: const Text(
-                                  'USB',
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                value: 0,
-                                groupValue: _typeStatus,
-                                onChanged: (value) {
-                                  setState(() {
-                                    this.printerValue.clear();
-                                    // printerModel.removeAllPrinter();
-                                    _typeStatus = value;
-                                  });
-                                },
-                              ),
-                            ),
-                            Expanded(
-                              child: RadioListTile<int>(
-                                activeColor: color.backgroundColor,
-                                title: Text(AppLocalizations.of(context)!.translate('lan'),
-                                    style: TextStyle(fontSize: 15)),
-                                value: 1,
-                                groupValue: _typeStatus,
-                                onChanged: (value) {
-                                  setState(() {
-                                    this.printerValue.clear();
-                                    // printerModel.removeAllPrinter();
-                                    _typeStatus = value;
-                                  });
-                                },
-                              ),
-                            )
-                          ],
-                        ),
-                        Visibility(
-                          visible: printerValue.length == 0 ? true : false,
-                          child: Container(
-                            alignment: Alignment.center,
-                            child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                    primary: color.backgroundColor),
-                                onPressed: () {
-                                  setState(() {
-                                    openAddDeviceDialog(_typeStatus!);
-                                  });
-                                },
-                                child: Text(AppLocalizations.of(context)!.translate('add_new_device'))),
-                          ),
-                        ),
-                        ListView.builder(
-                          padding: EdgeInsets.only(bottom: 10),
-                          shrinkWrap: true,
-                          itemCount: printerValue.length,
-                          itemBuilder: (context, index) {
-                            return ListTile(
-                                leading: Icon(Icons.print),
-                                trailing: ElevatedButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        printerValue.removeAt(index);
-                                      });
-                                    },
-                                    child: Icon(Icons.delete)),
-                                subtitle: _typeStatus == 0
-                                    ? Text(
-                                    '${jsonDecode(printerValue[index])["manufacturer"] + jsonDecode(printerValue[index])["productName"]}')
-                                    : Text('${jsonDecode(printerValue[index])}'),
-                                title: Text(AppLocalizations.of(context)!.translate('printer')));
-                          },
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Text(
-                          AppLocalizations.of(context)!.translate('paper_size'),
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueGrey),
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: RadioListTile<int>(
-                                activeColor: color.backgroundColor,
-                                title: const Text('80mm'),
-                                value: 0,
-                                groupValue: _paperSize,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _paperSize = value;
-                                  });
-                                },
-                              ),
-                            ),
-                            Expanded(
-                              child: RadioListTile<int>(
-                                activeColor: color.backgroundColor,
-                                title: const Text('58mm'),
-                                value: 1,
-                                groupValue: _paperSize,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _paperSize = value;
-                                  });
-                                },
-                              ),
-                            ),
-                            Expanded(
-                              child: RadioListTile<int>(
-                                activeColor: color.backgroundColor,
-                                title: const Text('35mm'),
-                                value: 2,
-                                groupValue: _paperSize,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _paperSize = value;
-                                  });
-                                },
-                              ),
-                            )
-                          ],
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Text(
-                          AppLocalizations.of(context)!.translate('setting'),
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueGrey),
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                              child: Text(AppLocalizations.of(context)!.translate('set_as_cashier_printer')),
-                            ),
-                            Spacer(),
-                            Container(
-                              child: Checkbox(
-                                  value: _isCashier,
-                                  onChanged:  widget.devices != null
-                                      ? null
-                                      : (value){
-                                    setState(() {
-                                      _isCashier = value!;
-                                    });
-                                  }
-                              ),
-                            )
-                          ],
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Visibility(
-                          visible: widget.devices == null ? true : false ,
-                          child: Container(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  AppLocalizations.of(context)!.translate('category'),
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blueGrey),
-                                ),
-                                SizedBox(height: 10),
-                                Wrap(
-                                    runSpacing: 5,
-                                    spacing: 10,
-                                    children: List<Widget>.generate(selectedCategories.length, (int index) {
-                                      return Chip(
-                                        label: Text('${selectedCategories[index].name}'),
-                                        avatar: CircleAvatar(
-                                          backgroundColor: color.backgroundColor,
-                                          child: Text(
-                                              '${selectedCategories[index].name![0]}',
-                                              style: TextStyle(color: color.iconColor)),
-                                        ),
-                                        elevation: 5,
-                                        onDeleted: () => setState(() {
-                                          selectedCategories.removeAt(index);
-                                        }),
-                                        deleteIconColor: Colors.red,
-                                        deleteIcon: Icon(Icons.close),
-                                        deleteButtonTooltipMessage: 'remove',
-                                      );
-                                    })
-                                ),
-                                Container(
-                                  alignment: Alignment.center,
-                                  child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                          primary: color.backgroundColor),
-                                      onPressed: () {
+                                  Expanded(
+                                    child: RadioListTile<int>(
+                                      activeColor: color.backgroundColor,
+                                      title: Text(AppLocalizations.of(context)!.translate('lan'), style: TextStyle(fontSize: 15)),
+                                      value: 1,
+                                      groupValue: _typeStatus,
+                                      onChanged: (value) {
                                         setState(() {
-                                          openCategoriesDialog();
+                                          this.printerValue.clear();
+                                          // printerModel.removeAllPrinter();
+                                          _typeStatus = value;
                                         });
                                       },
-                                      child: Icon(Icons.add)),
+                                    ),
+                                  )
+                                ],
+                              ),
+                              Visibility(
+                                visible: printerValue.length == 0 ? true : false,
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(primary: color.backgroundColor),
+                                      onPressed: () {
+                                        if (Platform.Platform.isAndroid) {
+                                          setState(() {
+                                            openAddDeviceDialog(_typeStatus!);
+                                          });
+                                        } else {
+                                          manualAddDeviceDialog();
+                                        }
+                                      },
+                                      child: Text(AppLocalizations.of(context)!.translate('add_new_device'))),
                                 ),
-                              ],
-                            ),
+                              ),
+                              ListView.builder(
+                                padding: EdgeInsets.only(bottom: 10),
+                                shrinkWrap: true,
+                                itemCount: printerValue.length,
+                                itemBuilder: (context, index) {
+                                  return ListTile(
+                                      leading: Icon(Icons.print),
+                                      trailing: ElevatedButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              printerValue.removeAt(index);
+                                            });
+                                          },
+                                          child: Icon(Icons.delete)),
+                                      subtitle: _typeStatus == 0
+                                          ? Text(
+                                              '${jsonDecode(printerValue[index])["manufacturer"] + jsonDecode(printerValue[index])["productName"]}')
+                                          : Text('${jsonDecode(printerValue[index])}'),
+                                      title: Text(AppLocalizations.of(context)!.translate('printer')));
+                                },
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Text(
+                                AppLocalizations.of(context)!.translate('paper_size'),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: RadioListTile<int>(
+                                      activeColor: color.backgroundColor,
+                                      title: const Text('80mm'),
+                                      value: 0,
+                                      groupValue: _paperSize,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _paperSize = value;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: RadioListTile<int>(
+                                      activeColor: color.backgroundColor,
+                                      title: const Text('58mm'),
+                                      value: 1,
+                                      groupValue: _paperSize,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _paperSize = value;
+                                        });
+                                      },
+                                    ),
+                                  )
+                                ],
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Text(
+                                AppLocalizations.of(context)!.translate('setting'),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                              ),
+                              Row(
+                                children: [
+                                  Container(
+                                    child: Text(AppLocalizations.of(context)!.translate('set_as_cashier_printer')),
+                                  ),
+                                  Spacer(),
+                                  Container(
+                                    child: Checkbox(
+                                        value: _isCashier,
+                                        onChanged: widget.devices != null
+                                            ? null
+                                            : (value) {
+                                                setState(() {
+                                                  _isCashier = value!;
+                                                });
+                                              }),
+                                  )
+                                ],
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Visibility(
+                                visible: widget.devices == null ? true : false,
+                                child: Container(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        AppLocalizations.of(context)!.translate('category'),
+                                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Wrap(
+                                          runSpacing: 5,
+                                          spacing: 10,
+                                          children: List<Widget>.generate(selectedCategories.length, (int index) {
+                                            return Chip(
+                                              label: Text('${selectedCategories[index].name}'),
+                                              avatar: CircleAvatar(
+                                                backgroundColor: color.backgroundColor,
+                                                child: Text('${selectedCategories[index].name![0]}', style: TextStyle(color: color.iconColor)),
+                                              ),
+                                              elevation: 5,
+                                              onDeleted: () => setState(() {
+                                                selectedCategories.removeAt(index);
+                                              }),
+                                              deleteIconColor: Colors.red,
+                                              deleteIcon: Icon(Icons.close),
+                                              deleteButtonTooltipMessage: 'remove',
+                                            );
+                                          })),
+                                      Container(
+                                        alignment: Alignment.center,
+                                        child: ElevatedButton(
+                                            style: ElevatedButton.styleFrom(primary: color.backgroundColor),
+                                            onPressed: () {
+                                              setState(() {
+                                                openCategoriesDialog();
+                                              });
+                                            },
+                                            child: Icon(Icons.add)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                AppLocalizations.of(context)!.translate('status'),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Row(
+                                children: [
+                                  Container(
+                                    child: Text(AppLocalizations.of(context)!.translate('active')),
+                                  ),
+                                  Spacer(),
+                                  Container(
+                                      child: Switch(
+                                          value: _isActive,
+                                          activeColor: color.backgroundColor,
+                                          onChanged: (bool value) {
+                                            setState(() {
+                                              _isActive = value;
+                                            });
+                                          }))
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                        Text(
-                          AppLocalizations.of(context)!.translate('status'),
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueGrey),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                              child: Text(AppLocalizations.of(context)!.translate('active')),
-                            ),
-                            Spacer(),
-                            Container(
-                                child: Switch(
-                                    value: _isActive,
-                                    activeColor: color.backgroundColor,
-                                    onChanged: (bool value) {
-                                      setState(() {
-                                        _isActive = value;
-                                      });
-                                    }
-                                )
-                            )
-                          ],
-                        ),
-
-                      ],
-                    ),
-                  ),
-                )
+                      )
                     : CustomProgressBar(),
                 actions: <Widget>[
                   Visibility(
@@ -445,7 +415,6 @@ class _PrinterDialogState extends State<PrinterDialog> {
                       onPressed: () {
                         if (_typeStatus == 0) {
                           _print();
-
                         } else {
                           _printLAN();
                         }
@@ -477,291 +446,264 @@ class _PrinterDialogState extends State<PrinterDialog> {
               physics: ClampingScrollPhysics(),
               child: AlertDialog(
                 actionsPadding: EdgeInsets.zero,
-                title: _isUpdate ? Text(AppLocalizations.of(context)!.translate('edit_printer')) : Text(AppLocalizations.of(context)!.translate('add_printer')),
-                content: isLoad ?
-                Container(
-                  height: MediaQuery.of(context).size.height / 2,
-                  width: MediaQuery.of(context).size.width,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ValueListenableBuilder(
-                          // Note: pass _controller to the animation argument
-                            valueListenable: printerLabelController,
-                            builder: (context, TextEditingValue value, __) {
-                              return SizedBox(
-                                height: 100,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextField(
-                                    controller: printerLabelController,
-                                    decoration: InputDecoration(
-                                      errorText: _submitted
-                                          ? errorPrinterLabel == null
-                                          ? errorPrinterLabel
-                                          : AppLocalizations.of(context)
-                                          ?.translate(errorPrinterLabel!)
-                                          : null,
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: color.backgroundColor),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: color.backgroundColor),
-                                      ),
-                                      labelText: AppLocalizations.of(context)!.translate('printer_label'),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }),
-                        Text(
-                          AppLocalizations.of(context)!.translate('type'),
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueGrey),
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: RadioListTile<int>(
-                                activeColor: color.backgroundColor,
-                                title: const Text(
-                                  'USB',
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                                value: 0,
-                                groupValue: _typeStatus,
-                                onChanged: (value) {
-                                  setState(() {
-                                    this.printerValue.clear();
-                                    // printerModel.removeAllPrinter();
-                                    _typeStatus = value;
-                                  });
-                                },
-                              ),
-                            ),
-                            Expanded(
-                              child: RadioListTile<int>(
-                                activeColor: color.backgroundColor,
-                                title: Text(AppLocalizations.of(context)!.translate('lan'),
-                                    style: TextStyle(fontSize: 15)),
-                                value: 1,
-                                groupValue: _typeStatus,
-                                onChanged: (value) {
-                                  setState(() {
-                                    this.printerValue.clear();
-                                    // printerModel.removeAllPrinter();
-                                    _typeStatus = value;
-                                  });
-                                },
-                              ),
-                            )
-                          ],
-                        ),
-                        Visibility(
-                          visible: printerValue.isEmpty ? true : false,
-                          child: Container(
-                            alignment: Alignment.center,
-                            child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: color.backgroundColor),
-                                onPressed: () {
-                                  setState(() {
-                                    openAddDeviceDialog(_typeStatus!);
-                                  });
-                                },
-                                child: Text(AppLocalizations.of(context)!.translate('add_new_device'))),
-                          ),
-                        ),
-                        ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          padding: EdgeInsets.only(bottom: 10),
-                          shrinkWrap: true,
-                          itemCount: printerValue.length,
-                          itemBuilder: (context, index) {
-                            return ListTile(
-                                leading: Icon(Icons.print),
-                                trailing: ElevatedButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        printerValue.removeAt(index);
-                                      });
-                                    },
-                                    child: Icon(Icons.delete)),
-                                subtitle: _typeStatus == 0
-                                    ? Text(
-                                    '${jsonDecode(printerValue[index])["manufacturer"] + jsonDecode(printerValue[index])["productName"]}')
-                                    : Text('${jsonDecode(printerValue[index])}'),
-                                title: Text(AppLocalizations.of(context)!.translate('printer')));
-                          },
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Text(
-                          AppLocalizations.of(context)!.translate('paper_size'),
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueGrey),
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: RadioListTile<int>(
-                                activeColor: color.backgroundColor,
-                                title: const Text('80mm'),
-                                value: 0,
-                                groupValue: _paperSize,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _paperSize = value;
-                                  });
-                                },
-                              ),
-                            ),
-                            Expanded(
-                              child: RadioListTile<int>(
-                                activeColor: color.backgroundColor,
-                                title: const Text('58mm'),
-                                value: 1,
-                                groupValue: _paperSize,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _paperSize = value;
-                                  });
-                                },
-                              ),
-                            ),
-                            Expanded(
-                              child: RadioListTile<int>(
-                                activeColor: color.backgroundColor,
-                                title: const Text('35mm'),
-                                value: 2,
-                                groupValue: _paperSize,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _paperSize = value;
-                                  });
-                                },
-                              ),
-                            )
-                          ],
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Text(
-                          AppLocalizations.of(context)!.translate('setting'),
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueGrey),
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                              child: Text(AppLocalizations.of(context)!.translate('set_as_cashier_printer')),
-                            ),
-                            Spacer(),
-                            Container(
-                              child: Checkbox(
-                                  value: _isCashier,
-                                  onChanged: (value){
-                                    setState(() {
-                                      _isCashier = value!;
-                                    });
-                                    print('selected category length: ${selectedCategories.length}');
-                                  }
-                              ),
-                            )
-                          ],
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Container(
+                title: _isUpdate
+                    ? Text(AppLocalizations.of(context)!.translate('edit_printer'))
+                    : Text(AppLocalizations.of(context)!.translate('add_printer')),
+                content: isLoad
+                    ? Container(
+                        height: MediaQuery.of(context).size.height / 2,
+                        width: MediaQuery.of(context).size.width,
+                        child: SingleChildScrollView(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                AppLocalizations.of(context)!.translate('category'),
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blueGrey),
-                              ),
-                              SizedBox(height: 10),
-                              Wrap(
-                                  runSpacing: 5,
-                                  spacing: 10,
-                                  children: List<Widget>.generate(selectedCategories.length, (int index) {
-                                    return Chip(
-                                      label: Text('${selectedCategories[index].name}'),
-                                      avatar: CircleAvatar(
-                                        backgroundColor: color.backgroundColor,
-                                        child: Text(
-                                            '${selectedCategories[index].name![0]}',
-                                            style: TextStyle(color: color.iconColor)),
+                              ValueListenableBuilder(
+                                  // Note: pass _controller to the animation argument
+                                  valueListenable: printerLabelController,
+                                  builder: (context, TextEditingValue value, __) {
+                                    return SizedBox(
+                                      height: 100,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextField(
+                                          controller: printerLabelController,
+                                          decoration: InputDecoration(
+                                            errorText: _submitted
+                                                ? errorPrinterLabel == null
+                                                    ? errorPrinterLabel
+                                                    : AppLocalizations.of(context)?.translate(errorPrinterLabel!)
+                                                : null,
+                                            border: OutlineInputBorder(
+                                              borderSide: BorderSide(color: color.backgroundColor),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(color: color.backgroundColor),
+                                            ),
+                                            labelText: AppLocalizations.of(context)!.translate('printer_label'),
+                                          ),
+                                        ),
                                       ),
-                                      elevation: 5,
-                                      onDeleted: () => setState(() {
-                                        selectedCategories.removeAt(index);
-                                      }),
-                                      deleteIconColor: Colors.red,
-                                      deleteIcon: Icon(Icons.close),
-                                      deleteButtonTooltipMessage: 'remove',
                                     );
-                                  })
+                                  }),
+                              Text(
+                                AppLocalizations.of(context)!.translate('type'),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                              ),
+                              Row(
+                                children: [
+                                  Visibility(
+                                    visible: !Platform.Platform.isIOS,
+                                    child: Expanded(
+                                      child: RadioListTile<int>(
+                                        activeColor: color.backgroundColor,
+                                        title: const Text(
+                                          'USB',
+                                          style: TextStyle(fontSize: 15),
+                                        ),
+                                        value: 0,
+                                        groupValue: _typeStatus,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            this.printerValue.clear();
+                                            // printerModel.removeAllPrinter();
+                                            _typeStatus = value;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: RadioListTile<int>(
+                                      activeColor: color.backgroundColor,
+                                      title: Text(AppLocalizations.of(context)!.translate('lan'), style: TextStyle(fontSize: 15)),
+                                      value: 1,
+                                      groupValue: _typeStatus,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          this.printerValue.clear();
+                                          // printerModel.removeAllPrinter();
+                                          _typeStatus = value;
+                                        });
+                                      },
+                                    ),
+                                  )
+                                ],
+                              ),
+                              Visibility(
+                                visible: printerValue.isEmpty ? true : false,
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                      onPressed: () {
+                                        if (Platform.Platform.isAndroid) {
+                                          setState(() {
+                                            openAddDeviceDialog(_typeStatus!);
+                                          });
+                                        } else {
+                                          manualAddDeviceDialog();
+                                        }
+                                      },
+                                      child: Text(AppLocalizations.of(context)!.translate('add_new_device'))),
+                                ),
+                              ),
+                              ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                padding: EdgeInsets.only(bottom: 10),
+                                shrinkWrap: true,
+                                itemCount: printerValue.length,
+                                itemBuilder: (context, index) {
+                                  return ListTile(
+                                      leading: Icon(Icons.print),
+                                      trailing: ElevatedButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              printerValue.removeAt(index);
+                                            });
+                                          },
+                                          child: Icon(Icons.delete)),
+                                      subtitle: _typeStatus == 0
+                                          ? Text(
+                                              '${jsonDecode(printerValue[index])["manufacturer"] + jsonDecode(printerValue[index])["productName"]}')
+                                          : Text('${jsonDecode(printerValue[index])}'),
+                                      title: Text(AppLocalizations.of(context)!.translate('printer')));
+                                },
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Text(
+                                AppLocalizations.of(context)!.translate('paper_size'),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: RadioListTile<int>(
+                                      activeColor: color.backgroundColor,
+                                      title: const Text('80mm'),
+                                      value: 0,
+                                      groupValue: _paperSize,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _paperSize = value;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: RadioListTile<int>(
+                                      activeColor: color.backgroundColor,
+                                      title: const Text('58mm'),
+                                      value: 1,
+                                      groupValue: _paperSize,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _paperSize = value;
+                                        });
+                                      },
+                                    ),
+                                  )
+                                ],
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Text(
+                                AppLocalizations.of(context)!.translate('setting'),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                              ),
+                              Row(
+                                children: [
+                                  Container(
+                                    child: Text(AppLocalizations.of(context)!.translate('set_as_cashier_printer')),
+                                  ),
+                                  Spacer(),
+                                  Container(
+                                    child: Checkbox(
+                                        value: _isCashier,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _isCashier = value!;
+                                          });
+                                          print('selected category length: ${selectedCategories.length}');
+                                        }),
+                                  )
+                                ],
+                              ),
+                              SizedBox(
+                                height: 10,
                               ),
                               Container(
-                                alignment: Alignment.center,
-                                child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                        primary: color.backgroundColor),
-                                    onPressed: () {
-                                      setState(() {
-                                        openCategoriesDialog();
-                                      });
-                                    },
-                                    child: Icon(Icons.add)),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      AppLocalizations.of(context)!.translate('category'),
+                                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                                    ),
+                                    SizedBox(height: 10),
+                                    Wrap(
+                                        runSpacing: 5,
+                                        spacing: 10,
+                                        children: List<Widget>.generate(selectedCategories.length, (int index) {
+                                          return Chip(
+                                            label: Text('${selectedCategories[index].name}'),
+                                            avatar: CircleAvatar(
+                                              backgroundColor: color.backgroundColor,
+                                              child: Text('${selectedCategories[index].name![0]}', style: TextStyle(color: color.iconColor)),
+                                            ),
+                                            elevation: 5,
+                                            onDeleted: () => setState(() {
+                                              selectedCategories.removeAt(index);
+                                            }),
+                                            deleteIconColor: Colors.red,
+                                            deleteIcon: Icon(Icons.close),
+                                            deleteButtonTooltipMessage: 'remove',
+                                          );
+                                        })),
+                                    Container(
+                                      alignment: Alignment.center,
+                                      child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(primary: color.backgroundColor),
+                                          onPressed: () {
+                                            setState(() {
+                                              openCategoriesDialog();
+                                            });
+                                          },
+                                          child: Icon(Icons.add)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Text(
+                                AppLocalizations.of(context)!.translate('status'),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Row(
+                                children: [
+                                  Container(
+                                    child: Text(AppLocalizations.of(context)!.translate('active')),
+                                  ),
+                                  Spacer(),
+                                  Container(
+                                      child: Switch(
+                                          value: _isActive,
+                                          activeColor: color.backgroundColor,
+                                          onChanged: (bool value) {
+                                            setState(() {
+                                              _isActive = value;
+                                            });
+                                          }))
+                                ],
                               ),
                             ],
                           ),
                         ),
-                        Text(
-                          AppLocalizations.of(context)!.translate('status'),
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueGrey),
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                              child: Text(AppLocalizations.of(context)!.translate('active')),
-                            ),
-                            Spacer(),
-                            Container(
-                                child: Switch(
-                                    value: _isActive,
-                                    activeColor: color.backgroundColor,
-                                    onChanged: (bool value) {
-                                      setState(() {
-                                        _isActive = value;
-                                      });
-                                    }
-                                )
-                            )
-                          ],
-                        ),
-
-                      ],
-                    ),
-                  ),
-                )
+                      )
                     : CustomProgressBar(),
                 actions: <Widget>[
                   Visibility(
@@ -771,7 +713,6 @@ class _PrinterDialogState extends State<PrinterDialog> {
                       onPressed: () {
                         if (_typeStatus == 0) {
                           _print();
-
                         } else {
                           _printLAN();
                         }
@@ -807,7 +748,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
 
   callAddNewPrinter(List<String> value, List<Categories> allCategories) async {
     await createPrinter(value);
-    if(allCategories.isNotEmpty){
+    if (allCategories.isNotEmpty) {
       await createPrinterCategory(allCategories);
     }
   }
@@ -815,7 +756,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
   callUpdatePrinter(List<Categories> allCategories, Printer printer) async {
     await updatePrinterInfo();
     await clearPrinterCategory(printer);
-    if(allCategories.isNotEmpty){
+    if (allCategories.isNotEmpty) {
       await updatePrinterCategory(allCategories, printer);
     }
   }
@@ -823,9 +764,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
   generatePrinterKey(Printer printer) async {
     final prefs = await SharedPreferences.getInstance();
     final int? device_id = prefs.getInt('device_id');
-    var bytes = printer.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') +
-        printer.printer_sqlite_id.toString() +
-        device_id.toString();
+    var bytes = printer.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + printer.printer_sqlite_id.toString() + device_id.toString();
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
@@ -836,7 +775,11 @@ class _PrinterDialogState extends State<PrinterDialog> {
       Printer printerData = Printer(
           printer_key: key,
           updated_at: dateTime,
-          sync_status: printer.sync_status == 0 ? 0 : printer.sync_status == 1 ? 2 : 1,
+          sync_status: printer.sync_status == 0
+              ? 0
+              : printer.sync_status == 1
+                  ? 2
+                  : 1,
           printer_sqlite_id: printer.printer_sqlite_id);
       int updateUniqueKey = await PosDatabase.instance.updatePrinterUniqueKey(printerData);
       if (updateUniqueKey == 1) {
@@ -878,7 +821,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       Printer updatedData = await insertPrinterKey(data, dateTime);
       this.printer = updatedData;
       printer_key = updatedData.printer_key!;
-      if(data.type == 1){
+      if (data.type == 1) {
         _value.add(jsonEncode(updatedData));
         printer_value = _value.toString();
         //sync to cloud
@@ -887,8 +830,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
     } catch (e) {
       print('create printer error: ${e}');
       Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later')+" $e");
+          backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later') + " $e");
     }
   }
 
@@ -917,11 +859,10 @@ class _PrinterDialogState extends State<PrinterDialog> {
     var key = await generatePrinterCategoryKey(printerLinkCategory);
     if (key != null) {
       PrinterLinkCategory object = PrinterLinkCategory(
-        updated_at: dateTime,
-        sync_status: this.printer!.type == 0 ? 1 : 0,
-        printer_link_category_key: key,
-        printer_link_category_sqlite_id: printerLinkCategory.printer_link_category_sqlite_id
-      );
+          updated_at: dateTime,
+          sync_status: this.printer!.type == 0 ? 1 : 0,
+          printer_link_category_key: key,
+          printer_link_category_sqlite_id: printerLinkCategory.printer_link_category_sqlite_id);
       int updateUniqueKey = await PosDatabase.instance.updatePrinterLinkCategoryUniqueKey(object);
       if (updateUniqueKey == 1) {
         PrinterLinkCategory data = await PosDatabase.instance.readSpecificPrinterCategoryByLocalId(object.printer_link_category_sqlite_id!);
@@ -960,20 +901,19 @@ class _PrinterDialogState extends State<PrinterDialog> {
     } catch (e) {
       print('error: ${e}');
       Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later')+" $e");
+          backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later') + " $e");
     }
   }
 
   readPrinterCategory() async {
     try {
       List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(widget.printerObject!.printer_sqlite_id!);
-      if(widget.printerObject!.is_counter == 1){
+      if (widget.printerObject!.is_counter == 1) {
         _isCashier = true;
       }
       if (data.isNotEmpty) {
         for (int i = 0; i < data.length; i++) {
-          if(data[i].category_sqlite_id == '0'){
+          if (data[i].category_sqlite_id == '0') {
             selectedCategories.add(Categories(category_sqlite_id: 0, name: 'Other/uncategorized'));
           } else {
             Categories? catData = await PosDatabase.instance.readSpecificCategoryById(data[i].category_sqlite_id!);
@@ -990,7 +930,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: AppLocalizations.of(context)!.translate('read_printer_category_went_wrong_please_try_again')+" $e");
+          msg: AppLocalizations.of(context)!.translate('read_printer_category_went_wrong_please_try_again') + " $e");
     }
   }
 
@@ -999,9 +939,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
       List<String> _value = [];
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
-      if(allCategories.isNotEmpty){
+      if (allCategories.isNotEmpty) {
         for (int i = 0; i < allCategories.length; i++) {
-          if(allCategories[i].category_sqlite_id == 0){
+          if (allCategories[i].category_sqlite_id == 0) {
             allCategories[i].isChecked = true;
           }
           if (allCategories[i].isChecked == true) {
@@ -1013,7 +953,11 @@ class _PrinterDialogState extends State<PrinterDialog> {
                 printer_key: printer.printer_key,
                 category_sqlite_id: allCategories[i].category_sqlite_id.toString(),
                 category_id: categories != null ? categories.category_id.toString() : '0',
-                sync_status: this.printer!.type == 1 ? 0 : this.printer!.type ==  0 ? 1 : 2,
+                sync_status: this.printer!.type == 1
+                    ? 0
+                    : this.printer!.type == 0
+                        ? 1
+                        : 2,
                 created_at: dateTime,
                 updated_at: '',
                 soft_delete: ''));
@@ -1026,8 +970,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       this.printer_category_value = _value.toString();
     } catch (e) {
       Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: AppLocalizations.of(context)!.translate('update_printer_category_error_please_try_again')+" $e");
+          backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('update_printer_category_error_please_try_again') + " $e");
       print('"Update printer category error, Please try again $e"');
     }
   }
@@ -1039,22 +982,20 @@ class _PrinterDialogState extends State<PrinterDialog> {
       String dateTime = dateFormat.format(DateTime.now());
 
       PrinterLinkCategory printerLinkCategoryObject = PrinterLinkCategory(
-          soft_delete: dateTime,
-          sync_status: this.printer!.type ==  0 ? 1 : 2,
-          printer_sqlite_id: printer.printer_sqlite_id.toString());
+          soft_delete: dateTime, sync_status: this.printer!.type == 0 ? 1 : 2, printer_sqlite_id: printer.printer_sqlite_id.toString());
 
       int data = await PosDatabase.instance.deletePrinterCategory(printerLinkCategoryObject);
-      if(this.printer!.type == 1){
-        List<PrinterLinkCategory> printerCategoryList = await PosDatabase.instance.readDeletedPrinterLinkCategory(int.parse(printerLinkCategoryObject.printer_sqlite_id!));
-        for(int i = 0 ; i < printerCategoryList.length; i++){
+      if (this.printer!.type == 1) {
+        List<PrinterLinkCategory> printerCategoryList =
+            await PosDatabase.instance.readDeletedPrinterLinkCategory(int.parse(printerLinkCategoryObject.printer_sqlite_id!));
+        for (int i = 0; i < printerCategoryList.length; i++) {
           _value.add(jsonEncode(printerCategoryList[i]));
         }
       }
       printer_category_delete_value = _value.toString();
     } catch (e) {
       Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: AppLocalizations.of(context)!.translate('clear_printer_category_please_try_again')+" $e");
+          backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('clear_printer_category_please_try_again') + " $e");
     }
   }
 
@@ -1071,10 +1012,13 @@ class _PrinterDialogState extends State<PrinterDialog> {
           paper_size: _paperSize,
           printer_status: _isActive ? 1 : 0,
           is_counter: _isCashier ? 1 : 0,
-          sync_status: checkData.type == 0 && _typeStatus == 1 ? 0
-              : checkData.type == 0 && _typeStatus == 0 ? 1
-              : checkData.type == 1 && _typeStatus == 0 ? 1
-              : 2,
+          sync_status: checkData.type == 0 && _typeStatus == 1
+              ? 0
+              : checkData.type == 0 && _typeStatus == 0
+                  ? 1
+                  : checkData.type == 1 && _typeStatus == 0
+                      ? 1
+                      : 2,
           updated_at: dateTime,
           printer_sqlite_id: widget.printerObject!.printer_sqlite_id);
 
@@ -1085,8 +1029,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       this.printer_value = _value.toString();
     } catch (e) {
       Fluttertoast.showToast(
-          backgroundColor: Color(0xFFFF0000),
-          msg: AppLocalizations.of(context)!.translate('update_printer_error_please_try_again')+" $e");
+          backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('update_printer_error_please_try_again') + " $e");
       print('$e');
     }
   }
@@ -1120,6 +1063,60 @@ class _PrinterDialogState extends State<PrinterDialog> {
         });
   }
 
+  manualAddDeviceDialog() {
+    var ip = TextEditingController();
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return alert dialog object
+        return AlertDialog(
+          title: Text("${AppLocalizations.of(context)!.translate('add_printer')}"),
+          content: SingleChildScrollView(
+            child: Container(
+              height: 150,
+              child: Column(
+                children: [
+                  TextField(
+                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    controller: ip,
+                    textAlign: TextAlign.start,
+                    maxLines: 1,
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.wifi),
+                      labelText: '${AppLocalizations.of(context)!.translate('ip_address')}',
+                      labelStyle: TextStyle(fontSize: 14, color: Colors.blueGrey),
+                      hintText: '192.168.x.x',
+                      border: new OutlineInputBorder(borderSide: new BorderSide(color: Colors.teal)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('${AppLocalizations.of(context)!.translate('cancel')}'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(
+                '${AppLocalizations.of(context)!.translate('confirm')}',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () async {
+                addPrinterValue('"${ip.text}"');
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<Future<Object?>> openCategoriesDialog() async {
     return showGeneralDialog(
         barrierColor: Colors.black.withOpacity(0.5),
@@ -1146,6 +1143,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
   }
 
   addPrinterValue(String printer_value) {
+    print(printer_value);
     printerValue.clear();
     setState(() {
       printerValue.add(printer_value);
@@ -1186,8 +1184,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
   }
 
   syncAllToCloud() async {
-    try{
-      if(mainSyncToCloud.count == 0){
+    try {
+      if (mainSyncToCloud.count == 0) {
         mainSyncToCloud.count = 1;
         final prefs = await SharedPreferences.getInstance();
         final int? device_id = prefs.getInt('device_id');
@@ -1197,29 +1195,30 @@ class _PrinterDialogState extends State<PrinterDialog> {
             value: login_value,
             printer_value: this.printer_value,
             printer_link_category_value: this.printer_category_value,
-            printer_link_category_delete_value: this.printer_category_delete_value
-        );
-        if(data['status'] == '1'){
+            printer_link_category_delete_value: this.printer_category_delete_value);
+        if (data['status'] == '1') {
           List responseJson = data['data'];
-          for(int i = 0; i < responseJson.length; i++) {
+          for (int i = 0; i < responseJson.length; i++) {
             switch (responseJson[i]['table_name']) {
-              case 'tb_printer': {
-                await PosDatabase.instance.updatePrinterSyncStatusFromCloud(responseJson[i]['printer_key']);
-              }
-              break;
-              case 'tb_printer_link_category': {
-                await PosDatabase.instance.updatePrinterLinkCategorySyncStatusFromCloud(responseJson[i]['printer_link_category_key']);
-              }
-              break;
+              case 'tb_printer':
+                {
+                  await PosDatabase.instance.updatePrinterSyncStatusFromCloud(responseJson[i]['printer_key']);
+                }
+                break;
+              case 'tb_printer_link_category':
+                {
+                  await PosDatabase.instance.updatePrinterLinkCategorySyncStatusFromCloud(responseJson[i]['printer_link_category_key']);
+                }
+                break;
               default:
                 return;
             }
           }
           mainSyncToCloud.resetCount();
-        } else if (data['status'] == '7'){
+        } else if (data['status'] == '7') {
           mainSyncToCloud.resetCount();
           this.isLogOut = true;
-        } else if (data['status'] == '8'){
+        } else if (data['status'] == '8') {
           print('printer sync timeout');
           mainSyncToCloud.resetCount();
           throw TimeoutException("Time out");
@@ -1232,7 +1231,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
         // }
         // mainSyncToCloud.resetCount();
       }
-    } catch(e){
+    } catch (e) {
       mainSyncToCloud.resetCount();
     }
   }
@@ -1245,11 +1244,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
     try {
       var printerDetail = jsonDecode(printerValue[0]);
 
-      if(_paperSize == 0){
+      if (_paperSize == 0) {
         var data = Uint8List.fromList(await ReceiptLayout().testTicket80mm(true));
-        bool? isConnected = await flutterUsbPrinter.connect(
-            int.parse(printerDetail['vendorId']),
-            int.parse(printerDetail['productId']));
+        bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
         if (isConnected == true) {
           bool? status = await flutterUsbPrinter.write(data);
         } else {
@@ -1257,11 +1254,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
         }
       } else if(_paperSize == 1) {
         print('print 58mm');
-        var data = Uint8List.fromList(
-            await ReceiptLayout().testTicket58mm(true, null));
-        bool? isConnected = await flutterUsbPrinter.connect(
-            int.parse(printerDetail['vendorId']),
-            int.parse(printerDetail['productId']));
+        var data = Uint8List.fromList(await ReceiptLayout().testTicket58mm(true, null));
+        bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
         if (isConnected == true) {
           await flutterUsbPrinter.write(data);
         } else {
@@ -1280,7 +1274,6 @@ class _PrinterDialogState extends State<PrinterDialog> {
           print('not connected');
         }
       }
-
     } catch (e) {
       print('error $e');
       print('Printer Connection Error');
@@ -1290,7 +1283,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
 
   _printLAN() async {
     var printerDetail = jsonDecode(printerValue[0]);
-    if(_paperSize == 0){
+    if (_paperSize == 0) {
       PaperSize paper = PaperSize.mm80;
       final profile = await CapabilityProfile.load();
       final printer = NetworkPrinter(paper, profile);
@@ -1300,11 +1293,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
         await ReceiptLayout().testTicket80mm(false, value: printer);
         printer.disconnect();
       } else {
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000),
-            msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
+        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('lan_printer_not_connect')}");
       }
     }
-
   }
 }

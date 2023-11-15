@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lan_scanner/lan_scanner.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
@@ -14,6 +15,7 @@ import '../../translation/AppLocalizations.dart';
 class DeviceDialog extends StatefulWidget {
   final int type;
   final Function(String value) callBack;
+
   const DeviceDialog({Key? key, required this.type, required this.callBack}) : super(key: key);
 
   @override
@@ -43,23 +45,22 @@ class _DeviceDialogState extends State<DeviceDialog> {
   void dispose() {
     // TODO: implement dispose
     super.dispose();
-
   }
 
   checkPermission() async {
     Location location = new Location();
     //check location permission is granted or not
     var permissionGranted = await location.hasPermission();
-    if(permissionGranted == PermissionStatus.denied){
+    if (permissionGranted == PermissionStatus.denied) {
       permissionGranted = await location.requestPermission();
-      if(permissionGranted != PermissionStatus.granted){
+      if (permissionGranted != PermissionStatus.granted) {
         Navigator.of(context).pop();
       } else {
         //check location is on or not
         var _locationOn = await location.serviceEnabled();
-        if(!_locationOn){
+        if (!_locationOn) {
           _locationOn = await location.requestService();
-          if(!_locationOn){
+          if (!_locationOn) {
             Navigator.of(context).pop();
           } else {
             await scan_network();
@@ -68,13 +69,12 @@ class _DeviceDialogState extends State<DeviceDialog> {
           await scan_network();
         }
       }
-
     } else {
       //check location is on or not
       var _locationOn = await location.serviceEnabled();
-      if(!_locationOn){
+      if (!_locationOn) {
         _locationOn = await location.requestService();
-        if(!_locationOn){
+        if (!_locationOn) {
           Navigator.of(context).pop();
         } else {
           await scan_network();
@@ -127,7 +127,7 @@ class _DeviceDialogState extends State<DeviceDialog> {
     final stream = scanner.icmpScan(subnet, progressCallback: (progress) {
       if (this.mounted) {
         setState(() {
-          info = Text("${AppLocalizations.of(context)?.translate('scanning_device_within')} "+"$wifiName");
+          info = Text("${AppLocalizations.of(context)?.translate('scanning_device_within')} " + "$wifiName");
           percentage = progress;
           if (percentage == 1.0) {
             isLoad = true;
@@ -136,8 +136,8 @@ class _DeviceDialogState extends State<DeviceDialog> {
       }
     });
 
-    stream.listen((HostModel host) {
-      ips.add(host.ip);
+    stream.listen((Host host) {
+      ips.add(host.internetAddress.address);
     });
   }
 
@@ -191,10 +191,7 @@ class _DeviceDialogState extends State<DeviceDialog> {
                             );
                           }))
               : CircularPercentIndicator(
-                  footer: Container(
-                    margin: EdgeInsets.only(top: 10),
-                    child: info
-                  ),
+                  footer: Container(margin: EdgeInsets.only(top: 10), child: info),
                   circularStrokeCap: CircularStrokeCap.round,
                   radius: 90.0,
                   lineWidth: 10.0,
@@ -209,8 +206,7 @@ class _DeviceDialogState extends State<DeviceDialog> {
                   progressColor: color.backgroundColor),
           actions: <Widget>[
             TextButton(
-              child:
-                  Text('${AppLocalizations.of(context)?.translate('close')}'),
+              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -221,8 +217,7 @@ class _DeviceDialogState extends State<DeviceDialog> {
     });
   }
 
-  List<Widget> _buildList(
-      List<Map<String, dynamic>> devices, PrinterModel printerModel) {
+  List<Widget> _buildList(List<Map<String, dynamic>> devices, PrinterModel printerModel) {
     return devices
         .map((device) => new ListTile(
               onTap: () {
@@ -232,10 +227,8 @@ class _DeviceDialogState extends State<DeviceDialog> {
                 Navigator.of(context).pop();
               },
               leading: new Icon(Icons.usb),
-              title: new Text(
-                  device['manufacturer'] + " " + device['productName']),
-              subtitle:
-                  new Text(device['vendorId'] + " " + device['productId']),
+              title: new Text(device['manufacturer'] + " " + device['productName']),
+              subtitle: new Text(device['vendorId'] + " " + device['productId']),
             ))
         .toList();
   }
