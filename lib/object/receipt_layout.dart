@@ -2659,17 +2659,14 @@ class ReceiptLayout{
           bytes += generator.row([
             PosColumn(
                 text: '${orderDetailList[i].productName}',
-                width: 10,
+                width: 8,
                 containsChinese: true,
                 styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2, bold: true)),
             PosColumn(
-                // text: '-${orderDetailList[i].item_cancel}',
-                // text: '-${orderDetailList[i].item_cancel!*int.parse(orderDetailList[i].per_quantity_unit!)}${orderDetailList[i].unit}',
-
-                text: orderDetailList[i].unit != 'each' ? '-${double.parse(orderDetailList[i].item_cancel!)*int.parse(orderDetailList[i].per_quantity_unit!)}${orderDetailList[i].unit}'
-                  : '-${orderDetailList[i].item_cancel}',
-                // text: orderDetailList[i].unit != 'each' ? '-${orderDetailList[i].per_quantity_unit}' : '-${orderDetailList[i].item_cancel}',
-                width: 2,
+                text: orderDetailList[i].unit != 'each' ?
+                '-${(double.parse(orderDetailList[i].item_cancel!)*int.parse(orderDetailList[i].per_quantity_unit!)).toStringAsFixed(2)}${orderDetailList[i].unit}' :
+                '-${orderDetailList[i].item_cancel}',
+                width: 4,
                 styles: PosStyles(align: PosAlign.right,  bold: true, height: PosTextSize.size2)),
           ]);
           bytes += generator.reset();
@@ -2764,8 +2761,10 @@ class ReceiptLayout{
                 width: 8,
                 containsChinese: true,
                 styles: PosStyles(bold: true)),
-            PosColumn(text: '', width: 2),
-            PosColumn(text: '-${orderDetailList[i].item_cancel}', width: 2, styles: PosStyles(bold: true)),
+            PosColumn(text: orderDetailList[i].unit != 'each' ?
+            '-${(double.parse(orderDetailList[i].item_cancel!)*int.parse(orderDetailList[i].per_quantity_unit!)).toStringAsFixed(2)}${orderDetailList[i].unit}' :
+            '-${orderDetailList[i].item_cancel}',
+                width: 4, styles: PosStyles(bold: true)),
           ]);
           bytes += generator.reset();
           if(orderDetailList[i].has_variant == '1'){

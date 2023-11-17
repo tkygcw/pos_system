@@ -35,6 +35,22 @@ class ReportFormat {
     }
   }
 
+  getQuantityFormat({value}){
+    String returnValue = '';
+    try{
+      if(value.item_sum is double){
+        returnValue = double.parse(value.item_sum.toString()).toStringAsFixed(2) + '(${value.unit})';
+        print("is double: ${value.item_sum}");
+      } else {
+        print("not double");
+        returnValue = value.item_sum.toString();
+      }
+    }catch(e){
+      returnValue = value.item_sum.toString();
+    }
+    return returnValue;
+  }
+
   Future<Uint8List> generateOverviewReportPdf(PdfPageFormat format, String title, ReportModel reportModel) async {
     const tableHeaders = ['Name', 'Bill', 'Amount'];
     const tableHeaders2 = ['Name', 'Amount'];
@@ -82,7 +98,7 @@ class ReportFormat {
               ),
               pw.Spacer(),
               pw.Center(
-                child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: font, fontSize: 58))
+                child: pw.Text('${branchObject['name']}', style: pw.TextStyle(font: getFontFormat(branchObject['name']), fontSize: 58))
               ),
               pw.Spacer(),
               pw.Center(
@@ -504,7 +520,7 @@ class ReportFormat {
                         ),
                         pw.Padding(
                           padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                          child: pw.Text('${valueList[j].categoryOrderDetailList[i].item_sum}', 
+                          child: pw.Text('${getQuantityFormat(value: valueList[j].categoryOrderDetailList[i])}',
                               style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[i].item_sum))),
                         ),
                         pw.Padding(
@@ -764,6 +780,10 @@ class ReportFormat {
                           padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
                           child: pw.Text('Gross Sales', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
                         ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Cancel By', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
+                        ),
                       ]
                   ),
                   for(int j = 0; j < valueList.length; j++)
@@ -786,7 +806,7 @@ class ReportFormat {
                             ),
                             pw.Padding(
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('${valueList[j].categoryOrderDetailList[i].item_sum}',
+                              child: pw.Text('${getQuantityFormat(value: valueList[j].categoryOrderDetailList[i])}',
                                   style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[i].item_sum))),
                             ),
                             pw.Padding(
@@ -798,6 +818,11 @@ class ReportFormat {
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
                               child: pw.Text('${valueList[j].categoryOrderDetailList[i].gross_price!.toStringAsFixed(2)}',
                                   style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[i].gross_price!.toStringAsFixed(2)))),
+                            ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('${valueList[j].categoryOrderDetailList[i].cancel_by}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[i].cancel_by))),
                             ),
                           ]
                       ),
