@@ -2320,11 +2320,11 @@ class CartPageState extends State<CartPage> {
     Navigator.of(context).pop();
     checkDirectPayment(appSettingModel, cart);
 
-    await syncAllToCloud();
-    if (this.isLogOut == true) {
-      openLogOutDialog();
-      return;
-    }
+    syncAllToCloud();
+    // if (this.isLogOut == true) {
+    //   openLogOutDialog();
+    //   return;
+    // }
 
     printKitchenList();
   }
@@ -2357,12 +2357,12 @@ class CartPageState extends State<CartPage> {
     cart.removeAllTable();
     Navigator.of(context).pop();
 
-    await syncAllToCloud();
-    print('finish sync');
-    if (this.isLogOut == true) {
-      openLogOutDialog();
-      return;
-    }
+    syncAllToCloud();
+    // print('finish sync');
+    // if (this.isLogOut == true) {
+    //   openLogOutDialog();
+    //   return;
+    // }
 
     printKitchenList();
 
@@ -2393,11 +2393,11 @@ class CartPageState extends State<CartPage> {
     cart.removeAllTable();
     Navigator.of(context).pop();
 
-    await syncAllToCloud();
-    if (this.isLogOut == true) {
-      openLogOutDialog();
-      return;
-    }
+    syncAllToCloud();
+    // if (this.isLogOut == true) {
+    //   openLogOutDialog();
+    //   return;
+    // }
 
     printKitchenList();
   }

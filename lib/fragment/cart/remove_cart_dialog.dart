@@ -245,7 +245,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                       }
                       Navigator.of(context).pop();
                     } else {
-                      if(widget.cartItem!.quantity == 1){
+                      if(widget.cartItem!.quantity == 1 || widget.cartItem!.quantity! is double ){
                         showSecondDialog(context, color, cart);
                       } else {
                         openDialog(cartItem: widget.cartItem, currentPage: widget.currentPage);

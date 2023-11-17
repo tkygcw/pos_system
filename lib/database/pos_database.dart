@@ -2693,7 +2693,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.status AS mod_status FROM $tableModifierItem AS a LEFT JOIN $tableBranchLinkModifier AS b ON a.mod_item_id = b.mod_item_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.mod_group_id = ? AND b.status = ?',
+        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.mod_group_id = ? AND b.status = ? ORDER BY a.sequence',
         ['', '', modGroupID, '1']);
     return result.map((json) => ModifierItem.fromJson(json)).toList();
   }
@@ -3723,14 +3723,15 @@ class PosDatabase {
   Future<List<OrderDetail>> readAllCancelledOrderDetailWithCategory2(String category_name, String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.created_at, a.product_name, a.product_variant_name, b.cancel_by, SUM(b.quantity * a.price + 0.0) AS gross_price, '
+      //CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE b.quantity END
+        'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, b.cancel_by, SUM(b.quantity * a.price + 0.0) AS gross_price, '
         'SUM(b.quantity * a.original_price + 0.0) AS net_sales, '
-        'SUM(b.quantity) AS item_sum '
+        'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * b.quantity ELSE b.quantity END) AS item_sum '
         'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.category_name = ? '
         'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? '
         'GROUP BY a.product_name, a.product_variant_name ORDER BY a.product_name',
-        ['', '', category_name, date1, date2]);
+        ['each', '', '', '', category_name, date1, date2]);
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
 
@@ -3761,12 +3762,12 @@ class PosDatabase {
         'SELECT a.*, SUM(b.quantity * a.original_price + 0.0) AS category_net_sales, SUM(b.quantity * a.price + 0.0) AS category_gross_sales,'
         // 'IFNULL( (SELECT category_sqlite_id FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), 0) AS category_sqlite_id, '
         // 'IFNULL( (SELECT name FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), "Other") AS name, '
-        'SUM(b.quantity) AS category_item_sum '
+        'SUM(CASE WHEN a.unit != ? OR a.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
         'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? '
         'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY a.category_name '
         'ORDER BY a.category_name DESC',
-        ['', '', date1, date2]);
+        ['each', '', '', '', date1, date2]);
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
 
@@ -3879,13 +3880,13 @@ class PosDatabase {
         'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_net_sales, SUM(b.price * b.quantity + 0.0) AS category_gross_sales, '
         // 'IFNULL( (SELECT category_sqlite_id FROM $tableCategories WHERE category_sqlite_id = b.category_sqlite_id), 0) AS category_sqlite_id, '
         // 'IFNULL( (SELECT name FROM $tableCategories WHERE category_sqlite_id = b.category_sqlite_id), "Other") AS name, '
-        'SUM(b.quantity) AS category_item_sum '
+        'SUM(CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
         'FROM $tableOrderDetail AS b JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
         'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
         'WHERE b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? AND b.status = ? AND d.payment_status = ? '
         'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY b.category_name '
         'ORDER BY b.category_name DESC',
-        ['', '', 0, '', '', 0, 1, date1, date2]);
+        ['each', '', '', '', 0, '', '', 0, 1, date1, date2]);
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
 
@@ -3895,14 +3896,14 @@ class PosDatabase {
   Future<List<OrderDetail>> readAllPaidOrderDetailWithCategory2(String category_name, String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.created_at, a.product_name, a.product_variant_name, SUM(a.original_price * a.quantity + 0.0) AS net_sales, SUM(a.price * a.quantity + 0.0) AS gross_price, '
-        'SUM(a.quantity) AS item_sum '
+        'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, SUM(a.original_price * a.quantity + 0.0) AS net_sales, SUM(a.price * a.quantity + 0.0) AS gross_price, '
+        'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * a.quantity ELSE a.quantity END) AS item_sum '
         'FROM $tableOrderDetail AS a JOIN $tableOrderCache AS b ON a.order_cache_sqlite_id = b.order_cache_sqlite_id '
         'JOIN $tableOrder AS c ON b.order_sqlite_id = c.order_sqlite_id '
         'WHERE a.soft_delete = ? AND a.status = ? AND b.soft_delete = ? AND b.accepted = ? AND c.soft_delete = ? AND c.payment_status = ? AND a.category_name = ? '
         'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? '
         'GROUP BY a.product_name, a.product_variant_name ORDER BY a.product_name',
-        ['', 0, '', 0, '', 1, category_name, date1, date2]);
+        ['each', '', '', 0, '', 0, '', 1, category_name, date1, date2]);
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
 
@@ -4002,8 +4003,10 @@ class PosDatabase {
   Future<List<OrderDetailCancel>> readAllCancelItem2(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT *, SUM(quantity) AS total_item FROM $tableOrderDetailCancel WHERE soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? ',
-        ['', date1, date2]);
+        'SELECT a.*, SUM(CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE a.quantity END) AS total_item '
+            'FROM $tableOrderDetailCancel AS a JOIN $tableOrderDetail AS b ON a.order_detail_key = b.order_detail_key '
+            'WHERE a.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? ',
+        ['each', '', '', date1, date2]);
     return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
   }
 
@@ -4126,6 +4129,23 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableOrderDetailCancel WHERE soft_delete = ? AND settlement_key = ? ', ['', '']);
     return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
+  }
+
+/*
+  select sum cancel item quantity
+*/
+  Future<OrderDetailCancel?> sumAllNotSettlementCancelItemQuantity() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT SUM(CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE a.quantity END) AS total_item '
+            'FROM $tableOrderDetailCancel AS a JOIN $tableOrderDetail AS b ON a.order_detail_key = b.order_detail_key '
+            'WHERE a.soft_delete = ? AND a.settlement_key = ? ',
+        ['each', '', '', '']);
+    if(result.isNotEmpty){
+      return OrderDetailCancel.fromJson(result.first);
+    } else {
+      return null;
+    }
   }
 
 /*

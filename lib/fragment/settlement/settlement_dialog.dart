@@ -778,8 +778,9 @@ class _SettlementDialogState extends State<SettlementDialog> {
         await PosDatabase.instance.readAllNotSettlementOrderTaxDetail();
     List<OrderPromotionDetail> orderPromotion =
         await PosDatabase.instance.readAllNotSettlementOrderPromotionDetail();
-    List<OrderDetailCancel> orderCancelData =
-        await PosDatabase.instance.readAllNotSettlementOrderDetailCancel();
+    // List<OrderDetailCancel> orderCancelData =
+    //     await PosDatabase.instance.readAllNotSettlementOrderDetailCancel();
+    OrderDetailCancel? cancelItemQty = await PosDatabase.instance.sumAllNotSettlementCancelItemQuantity();
     if (orderData.isNotEmpty) {
       this.orderList = orderData;
       this.totalBill = orderData.length;
@@ -795,11 +796,8 @@ class _SettlementDialogState extends State<SettlementDialog> {
     if (orderPromotion.isNotEmpty) {
       this.totalPromotionAmount = orderPromotion[0].total_promotion_amount!;
     }
-    if (orderCancelData.isNotEmpty) {
-      for (int i = 0; i < orderCancelData.length; i++) {
-        this.totalCancelItem += int.parse(orderCancelData[i].quantity!);
-      }
-      //this.totalCancelItem = orderCancelData.length;
+    if (cancelItemQty!.total_item != null) {
+      this.totalCancelItem = int.parse(cancelItemQty.total_item.toString());
     }
     print('order promo: ${this.totalPromotionAmount}');
   }
