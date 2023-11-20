@@ -618,21 +618,16 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     List<String> _value = [];
     if (widget.orderCacheIdList.isNotEmpty) {
       for (int j = 0; j < widget.orderCacheIdList.length; j++) {
-        OrderCache checkData = await PosDatabase.instance
-            .readSpecificOrderCacheByLocalId(
-                int.parse(widget.orderCacheIdList[j]));
+        OrderCache checkData = await PosDatabase.instance.readSpecificOrderCacheByLocalId2(int.parse(widget.orderCacheIdList[j]));
         OrderCache cacheObject = OrderCache(
             order_sqlite_id: widget.orderId,
             order_key: widget.orderKey,
             sync_status: checkData.sync_status == 0 ? 0 : 2,
             updated_at: dateTime,
             order_cache_sqlite_id: int.parse(widget.orderCacheIdList[j]));
-        int updatedOrderCache =
-            await PosDatabase.instance.updateOrderCacheOrderId(cacheObject);
+        int updatedOrderCache = await PosDatabase.instance.updateOrderCacheOrderId(cacheObject);
         if (updatedOrderCache == 1) {
-          OrderCache orderCacheData = await PosDatabase.instance
-              .readSpecificOrderCacheByLocalId(
-                  cacheObject.order_cache_sqlite_id!);
+          OrderCache orderCacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId2(cacheObject.order_cache_sqlite_id!);
           _value.add(jsonEncode(orderCacheData));
         }
       }

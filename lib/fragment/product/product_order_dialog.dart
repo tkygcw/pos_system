@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -729,6 +730,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           mod_group_id: data[i].mod_group_id,
           dining_id: data[i].dining_id,
           compulsory: data[i].compulsory,
+          sequence_number: data[i].sequence_number
         ));
         print("data: ${modifierGroup.length}");
         List<ModifierItem> itemData = await PosDatabase.instance.readProductModifierItem(data[i].mod_group_id!);
@@ -755,7 +757,29 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       }
       //filter not have mod item mod group
       modifierGroup = modifierGroup.where((item) => item.modifierChild!.isNotEmpty).toList();
+      sortModifier();
     }
+  }
+
+  sortModifier(){
+    modifierGroup.sort((a, b) {
+      final aNumber = a.sequence_number!;
+      final bNumber = b.sequence_number!;
+
+      bool isANumeric = int.tryParse(aNumber) != null;
+      bool isBNumeric = int.tryParse(bNumber) != null;
+
+      if (isANumeric && isBNumeric) {
+        return int.parse(aNumber).compareTo(int.parse(bNumber));
+      } else if (isANumeric) {
+        return -1; // Numeric before alphanumeric
+      } else if (isBNumeric) {
+        return 1; // Alphanumeric before numeric
+      } else {
+        // Custom alphanumeric sorting logic
+        return compareNatural(aNumber, bNumber);
+      }
+    });
   }
 
   readProductModifierItemPrice(ModifierGroup modGroup) async {
@@ -1163,7 +1187,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         base_price: basePrice,
         refColor: Colors.black,
         unit: widget.productDetail!.unit!,
-        per_quantity_unit: widget.productDetail!.per_quantity_unit!
+        per_quantity_unit: widget.productDetail!.unit! != 'each' ? widget.productDetail!.per_quantity_unit! : ''
     );
     print('value checked item length: ${value.checkedModifierLength}');
     print(jsonEncode((value)));

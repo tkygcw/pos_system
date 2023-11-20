@@ -165,4 +165,12 @@ class CartModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void removeAllPromotion(){
+    autoPromotion.clear();
+    selectedPromotion = null;
+    notifyListeners();
+  }
+
+
+
 }

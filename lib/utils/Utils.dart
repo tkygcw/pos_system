@@ -106,4 +106,25 @@ class Utils {
     }
   }
 
+  static roundToNearestFiveSen(double amount) {
+    const fiveSen = 0.05;
+
+    double remainder = amount % fiveSen;
+
+    if (remainder < fiveSen / 2) {
+      // Round down
+      return (amount - remainder);
+    } else {
+      // Round up
+      return (amount + (fiveSen - remainder));
+    }
+  }
+
+  static formatPaymentAmount(double amount) {
+    // Create a NumberFormat instance with two decimals and thousand separators
+    NumberFormat format = NumberFormat('#,##0.00', 'en_US');
+
+    return format.format(amount);
+  }
+
 }

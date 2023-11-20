@@ -389,8 +389,8 @@ class _HomePageState extends State<HomePage> {
         else {
           notificationModel.setNotification(true);
           if (syncRecord.count == 0) {
-            notificationModel.setContentLoad();
             syncRecord.count = 1;
+            notificationModel.setContentLoad();
             await syncRecord.syncFromCloud();
             syncRecord.count = 0;
           }
