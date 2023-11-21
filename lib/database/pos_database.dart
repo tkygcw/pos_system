@@ -120,6 +120,8 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableProduct ADD ${ProductFields.sequence_number} TEXT NOT NULL DEFAULT '' ");
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.unit} TEXT NOT NULL DEFAULT '' ");
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.per_quantity_unit} TEXT NOT NULL DEFAULT '' ");
+          //new field
+          await db.execute("ALTER TABLE $tableModifierGroup ADD ${ModifierGroupFields.sequence_number} TEXT NOT NULL DEFAULT '' ");
         }break;
         case 7: {
           await db.execute("ALTER TABLE $tableModifierGroup ADD ${ModifierGroupFields.sequence_number} TEXT NOT NULL DEFAULT '' ");
