@@ -13,6 +13,7 @@ class ModifierGroupFields {
     name,
     dining_id,
     compulsory,
+    sequence_number,
     created_at,
     updated_at,
     soft_delete
@@ -23,6 +24,7 @@ class ModifierGroupFields {
   static String name = 'name';
   static String dining_id = 'dining_id';
   static String compulsory = 'compulsory';
+  static String sequence_number = 'sequence_number';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
   static String soft_delete = 'soft_delete';
@@ -37,6 +39,7 @@ class ModifierGroup{
   String? compulsory;
   int? modifier_item_id;
   List<ModifierItem>? modifierChild;
+  String? sequence_number;
   String? created_at;
   String? updated_at;
   String? soft_delete;
@@ -52,6 +55,7 @@ class ModifierGroup{
         this.dining_id,
         this.compulsory,
         this.name,
+        this.sequence_number,
         this.created_at,
         this.updated_at,
         this.soft_delete,
@@ -65,6 +69,7 @@ class ModifierGroup{
     String? name,
     String? dining_id,
     String? compulsory,
+    String? sequence_number,
     String? created_at,
     String? updated_at,
     String? soft_delete,
@@ -75,6 +80,7 @@ class ModifierGroup{
           name: name ?? this.name,
           dining_id: dining_id ?? this.dining_id,
           compulsory: compulsory ?? this.compulsory,
+          sequence_number: sequence_number ?? this.sequence_number,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
           soft_delete: soft_delete ?? this.soft_delete);
@@ -102,6 +108,7 @@ class ModifierGroup{
         name: json[ModifierGroupFields.name] as String?,
         dining_id: json[ModifierGroupFields.dining_id] as String?,
         compulsory: json[ModifierGroupFields.compulsory] as String?,
+        sequence_number: json[ModifierGroupFields.sequence_number] as String?,
         created_at: json[ModifierGroupFields.created_at] as String?,
         updated_at: json[ModifierGroupFields.updated_at] as String?,
         soft_delete: json[ModifierGroupFields.soft_delete] as String?,
@@ -118,6 +125,7 @@ class ModifierGroup{
       ModifierGroupFields.name: name,
       ModifierGroupFields.dining_id: dining_id,
       ModifierGroupFields.compulsory: compulsory,
+      ModifierGroupFields.sequence_number: sequence_number,
       ModifierGroupFields.created_at: created_at,
       ModifierGroupFields.updated_at: updated_at,
       ModifierGroupFields.soft_delete: soft_delete,
@@ -131,6 +139,7 @@ class ModifierGroup{
     ModifierGroupFields.name: name,
     ModifierGroupFields.dining_id: dining_id,
     ModifierGroupFields.compulsory: compulsory,
+    ModifierGroupFields.sequence_number: sequence_number,
     ModifierGroupFields.created_at: created_at,
     ModifierGroupFields.updated_at: updated_at,
     ModifierGroupFields.soft_delete: soft_delete,

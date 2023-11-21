@@ -47,6 +47,7 @@ import '../../object/printer.dart';
 import '../../object/table.dart';
 import '../../object/tax.dart';
 import '../../translation/AppLocalizations.dart';
+import '../../utils/Utils.dart';
 import '../logout_dialog.dart';
 import '../settlement/cash_dialog.dart';
 import '../payment/payment_select_dialog.dart';
@@ -212,6 +213,8 @@ class CartPageState extends State<CartPage> {
                     setState(() {
                       cart.removeAllCartItem();
                       cart.removeAllTable();
+                      cart.removeAllPromotion();
+                      // cart.removePromotion();
                       readAllBranchLinkDiningOption(cart: cart);
                       getPromotionData();
                       getSubTotal(cart);
@@ -2011,12 +2014,8 @@ class CartPageState extends State<CartPage> {
     totalAmount = 0.0;
     discountPrice = total - promoAmount;
     totalAmount = discountPrice + priceIncAllTaxes;
-    _round = double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
-    if (_round.toStringAsFixed(2) != '0.05' && _round.toStringAsFixed(2) != '-0.05') {
-      rounding = _round;
-    } else {
-      rounding = 0.0;
-    }
+    _round = Utils.roundToNearestFiveSen(double.parse(totalAmount.toStringAsFixed(2))) - double.parse(totalAmount.toStringAsFixed(2));
+    rounding = _round;
 
     if (!controller.isClosed) {
       controller.sink.add('refresh');
@@ -2025,12 +2024,7 @@ class CartPageState extends State<CartPage> {
 
   getAllTotal() {
     try {
-      if (rounding == 0.0) {
-        finalAmount = totalAmount.toStringAsFixed(2);
-      } else {
-        finalAmount = totalAmount.toStringAsFixed(1) + '0';
-      }
-      //totalAmount = (totalAmount * 100).truncate() / 100;
+      finalAmount = Utils.roundToNearestFiveSen(double.parse(totalAmount.toStringAsFixed(2))).toStringAsFixed(2);
     } catch (error) {
       print('Total calc error: $error');
     }
@@ -3165,11 +3159,6 @@ class CartPageState extends State<CartPage> {
         } else {
           mainSyncToCloud.resetCount();
         }
-        // if (_hasInternetAccess) {
-        //
-        // } else {
-        //   mainSyncToCloud.resetCount();
-        // }
       }
     } catch (e) {
       print("cart sync to cloud error: $e");

@@ -68,7 +68,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 7, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 8, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async  {
@@ -121,6 +121,9 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.unit} TEXT NOT NULL DEFAULT '' ");
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.per_quantity_unit} TEXT NOT NULL DEFAULT '' ");
         }break;
+        case 7: {
+          await db.execute("ALTER TABLE $tableModifierGroup ADD ${ModifierGroupFields.sequence_number} TEXT NOT NULL DEFAULT '' ");
+        }break;
       }
     }
   }
@@ -166,8 +169,14 @@ class PosDatabase {
     create modifier group table
 */
     await db.execute(
-        '''CREATE TABLE $tableModifierGroup ( ${ModifierGroupFields.mod_group_id} $idType, ${ModifierGroupFields.company_id} $textType, ${ModifierGroupFields.name} $textType, ${ModifierGroupFields.dining_id} $textType, ${ModifierGroupFields.compulsory} $textType, 
-           ${ModifierGroupFields.created_at} $textType, ${ModifierGroupFields.updated_at} $textType, ${ModifierGroupFields.soft_delete} $textType)''');
+        '''CREATE TABLE $tableModifierGroup ( 
+        ${ModifierGroupFields.mod_group_id} $idType, 
+        ${ModifierGroupFields.company_id} $textType, 
+        ${ModifierGroupFields.name} $textType, 
+        ${ModifierGroupFields.dining_id} $textType, 
+        ${ModifierGroupFields.compulsory} $textType, 
+        ${ModifierGroupFields.sequence_number} $textType,
+        ${ModifierGroupFields.created_at} $textType, ${ModifierGroupFields.updated_at} $textType, ${ModifierGroupFields.soft_delete} $textType)''');
 /*
     create modifier item table
 */
@@ -2915,6 +2924,17 @@ class PosDatabase {
   }
 
 /*
+  read specific order cache without joing dining option
+*/
+  Future<OrderCache> readSpecificOrderCacheByLocalId2(int order_cache_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableOrderCache WHERE order_cache_sqlite_id = ? AND soft_delete = ?',
+        [order_cache_sqlite_id, '']);
+    return OrderCache.fromJson(result.first);
+  }
+
+/*
   read specific order cache(deleted)
 */
   Future<List<OrderCache>> readSpecificDeletedOrderCache(int order_cache_sqlite_id) async {
@@ -4750,8 +4770,8 @@ class PosDatabase {
 */
   Future<int> updateModifierGroup(ModifierGroup data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableModifierGroup SET company_id = ?, name = ?, dining_id = ?, compulsory = ?, updated_at = ?, soft_delete = ? WHERE mod_group_id = ? ',
-        [data.company_id, data.name, data.dining_id, data.compulsory, data.updated_at, data.soft_delete, data.mod_group_id]);
+    return await db.rawUpdate('UPDATE $tableModifierGroup SET company_id = ?, name = ?, dining_id = ?, compulsory = ?, sequence_number = ?, updated_at = ?, soft_delete = ? WHERE mod_group_id = ? ',
+        [data.company_id, data.name, data.dining_id, data.compulsory, data.sequence_number, data.updated_at, data.soft_delete, data.mod_group_id]);
   }
 
   /*
