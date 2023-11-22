@@ -582,8 +582,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       width: 150,
                                                       child:
                                                           ElevatedButton.icon(
-                                                              onPressed: isButtonDisable || itemList.isEmpty ? null
-                                                                  : () async => makePayment(),
+                                                              onPressed: isButtonDisable || itemList.isEmpty ? null : () async => makePayment(),
                                                               style: ElevatedButton.styleFrom(
                                                                 backgroundColor: color.backgroundColor,
                                                                 elevation: 5,
@@ -2155,13 +2154,11 @@ class _MakePaymentState extends State<MakePayment> {
         openLogOutDialog();
         return;
       }
-      openPaymentSuccessDialog(widget.dining_id,
-          isCashMethod: true, diningName: widget.dining_name);
+      openPaymentSuccessDialog(widget.dining_id, isCashMethod: true, diningName: widget.dining_name);
     } else if (inputController.text.isEmpty) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: AppLocalizations.of(context)!
-              .translate('please_enter_an_amount'));
+          msg: AppLocalizations.of(context)!.translate('please_enter_an_amount'));
       setState(() {
         inputController.clear();
       });
