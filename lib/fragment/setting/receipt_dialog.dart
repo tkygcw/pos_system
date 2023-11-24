@@ -257,7 +257,7 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return LayoutBuilder(builder: (context,  constraints) {
-        if(constraints.maxWidth > 800){
+        if(constraints.maxWidth > 900 && constraints.maxHeight > 500){
           return Center(
             child: SingleChildScrollView(
               //physics: NeverScrollableScrollPhysics(),
@@ -311,30 +311,51 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                   ),
                 ) : CustomProgressBar(),
                 actions: <Widget>[
-                  TextButton(
-                    child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                    onPressed: isButtonDisabled ? null : () {
-                      setState(() {
-                        isButtonDisabled = true;
-                      });
-                      closeDialog(context);
-                    },
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 4,
+                    height: MediaQuery.of(context).size.height / 12,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color.backgroundColor,
+                      ),
+                      child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text(AppLocalizations.of(context)!.translate('update')),
+                      onPressed: isButtonDisabled ? null : () {
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        _submit(context);
+                      },
+                    ),
                   ),
-                  TextButton(
-                    child: Text(AppLocalizations.of(context)!.translate('test_print')),
-                    onPressed: () {
-                      testReceiptLayout();
-                      PrintReceipt().printTestPrintReceipt(printerList, testReceipt!, this.receipt.paper_size!, context);
-                    },
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 4,
+                    height: MediaQuery.of(context).size.height / 12,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color.backgroundColor,
+                      ),
+                      child: Text(AppLocalizations.of(context)!.translate('test_print')),
+                      onPressed: () {
+                        testReceiptLayout();
+                        PrintReceipt().printTestPrintReceipt(printerList, testReceipt!, this.receipt.paper_size!, context);
+                      },
+                    ),
                   ),
-                  TextButton(
-                    child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text(AppLocalizations.of(context)!.translate('update')),
-                    onPressed: isButtonDisabled ? null : () {
-                      setState(() {
-                        isButtonDisabled = true;
-                      });
-                      _submit(context);
-                    },
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 4,
+                    height: MediaQuery.of(context).size.height / 12,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                      ),
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: isButtonDisabled ? null : () {
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        closeDialog(context);
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -342,83 +363,100 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
           );
         } else {
           ///mobile layout
-          return AlertDialog(
-            // scrollable: true,
-            // actionsPadding: EdgeInsets.all(5),
-            // insetPadding: EdgeInsets.only(top: 20),
-            // contentPadding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-            title: !_isUpdate ? Text(AppLocalizations.of(context)!.translate('add_receipt_layout')) : Text(AppLocalizations.of(context)!.translate('receipt_layout')),
-            content: isLoad ?
-            Container(
-              width: 500,
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Align(
-                      alignment: Alignment.topLeft,
-                      child: SegmentedButton(
-                        style: ButtonStyle(
-                            side: MaterialStateProperty.all(
-                              BorderSide.lerp(BorderSide(
-                                style: BorderStyle.solid,
-                                color: Colors.blueGrey,
-                                width: 1,
-                              ),
-                                  BorderSide(
+          return Center(
+            child: SingleChildScrollView(
+              child: AlertDialog(
+                title: !_isUpdate ? Text(AppLocalizations.of(context)!.translate('add_receipt_layout')) : Text(AppLocalizations.of(context)!.translate('receipt_layout')),
+                content: isLoad ?
+                Container(
+                  height: MediaQuery.of(context).size.height /2.5,
+                  width: 500,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Align(
+                          alignment: Alignment.topLeft,
+                          child: SegmentedButton(
+                            style: ButtonStyle(
+                                side: MaterialStateProperty.all(
+                                  BorderSide.lerp(BorderSide(
                                     style: BorderStyle.solid,
                                     color: Colors.blueGrey,
                                     width: 1,
                                   ),
-                                  1),
-                            )
+                                      BorderSide(
+                                        style: BorderStyle.solid,
+                                        color: Colors.blueGrey,
+                                        width: 1,
+                                      ),
+                                      1),
+                                )
+                            ),
+                            segments: <ButtonSegment<String>>[
+                              ButtonSegment(value: "80", label: Text("80mm")),
+                              ButtonSegment(value: "58", label: Text("58mm"))
+                            ],
+                            onSelectionChanged: (Set<String> newSelection) async{
+                              receiptView = newSelection.first;
+                              isLoad = false;
+                              reload();
+                            },
+                            selected: <String>{receiptView},
+                          ),
                         ),
-                        segments: <ButtonSegment<String>>[
-                          ButtonSegment(value: "80", label: Text("80mm")),
-                          ButtonSegment(value: "58", label: Text("58mm"))
-                        ],
-                        onSelectionChanged: (Set<String> newSelection) async{
-                          receiptView = newSelection.first;
-                          isLoad = false;
-                          reload();
-                        },
-                        selected: <String>{receiptView},
-                      ),
+                        SizedBox(height: 20.0),
+                        receiptView == "80" ?
+                        MobileReceiptView1(color) :
+                        MobileReceiptView2(color)
+                      ],
                     ),
-                    SizedBox(height: 20.0),
-                    receiptView == "80" ?
-                    MobileReceiptView1(color) :
-                    MobileReceiptView2(color)
-                  ],
-                ),
+                  ),
+                ) : CustomProgressBar(),
+                actions: <Widget>[
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 4,
+                    height: MediaQuery.of(context).size.height / 10,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                      child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text(AppLocalizations.of(context)!.translate('update')),
+                      onPressed: isButtonDisabled ? null : () {
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        _submit(context);
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 4,
+                    height: MediaQuery.of(context).size.height / 10,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                      child: Text(AppLocalizations.of(context)!.translate('test_print')),
+                      onPressed: () {
+                        testReceiptLayout();
+                        PrintReceipt().printTestPrintReceipt(printerList, testReceipt!, this.receipt.paper_size!, context);
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 4,
+                    height: MediaQuery.of(context).size.height / 10,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: isButtonDisabled ? null : () {
+                        // Disable the button after it has been pressed
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        closeDialog(context);
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ) : CustomProgressBar(),
-            actions: <Widget>[
-              TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: isButtonDisabled ? null : () {
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  closeDialog(context);
-                },
-              ),
-              TextButton(
-                child: Text(AppLocalizations.of(context)!.translate('test_print')),
-                onPressed: () {
-                  testReceiptLayout();
-                  PrintReceipt().printTestPrintReceipt(printerList, testReceipt!, this.receipt.paper_size!, context);
-                },
-              ),
-              TextButton(
-                child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text(AppLocalizations.of(context)!.translate('update')),
-                onPressed: isButtonDisabled ? null : () {
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  _submit(context);
-                },
-              ),
-            ],
+            ),
           );
         }
       });

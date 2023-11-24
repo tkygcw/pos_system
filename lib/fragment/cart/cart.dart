@@ -354,7 +354,7 @@ class CartPageState extends State<CartPage> {
                         child: Column(
                           children: [
                             Container(
-                              margin: MediaQuery.of(context).size.height > 500
+                              margin: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
                                   ? EdgeInsets.only(bottom: 10)
                                   : EdgeInsets.zero,
                               child: GridView(
@@ -533,7 +533,7 @@ class CartPageState extends State<CartPage> {
                                     );
                                   }),
                             ),
-                            SizedBox(height: MediaQuery.of(context).size.height > 500 ? 20 : 5),
+                            SizedBox(height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 20 : 5),
                             Divider(
                               color: Colors.grey,
                               height: 1,
@@ -541,9 +541,9 @@ class CartPageState extends State<CartPage> {
                               indent: 20,
                               endIndent: 20,
                             ),
-                            SizedBox(height: MediaQuery.of(context).size.height > 500 ? 10 : 5),
+                            SizedBox(height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 10 : 5),
                             Container(
-                              height: MediaQuery.of(context).size.height > 500
+                              height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
                                   ? widget.currentPage == 'menu' || widget.currentPage == 'table'
                                   ? 130
                                   : null
@@ -862,7 +862,7 @@ class CartPageState extends State<CartPage> {
                                             }
                                             enableButton();
                                           },
-                                          child: MediaQuery.of(context).size.height > 500
+                                          child: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
                                               ? widget.currentPage == 'menu' ||
                                               widget.currentPage == 'qr_order'
                                               ? Text(AppLocalizations.of(context)!.translate('place_order')+'\n (RM ${this.finalAmount})')

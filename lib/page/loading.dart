@@ -141,7 +141,7 @@ class _LoadingPageState extends State<LoadingPage> {
     try{
       AppSetting appSetting = AppSetting(
         open_cash_drawer: 1,
-        show_second_display: notificationModel.hasSecondScreen ? 1 : 0,
+        show_second_display: 0,  //notificationModel.hasSecondScreen ? 1 : 0,
         direct_payment: 0,
         print_checklist: 1,
         show_sku: 0
