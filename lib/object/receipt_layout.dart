@@ -506,9 +506,24 @@ class ReceiptLayout{
       bytes += generator.reset();
       //bytes += generator.image(decodedImage);
       if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
-        bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+        ///big font
+        // bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+        bytes += generator.row([
+          PosColumn(
+              text: '${receipt!.header_text}',
+              width: 12,
+              containsChinese: true,
+              styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2)),
+        ]);
       } else if(receipt!.header_text_status == 1 && receipt!.header_font_size == 1) {
-        bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
+        ///small font
+        bytes += generator.row([
+          PosColumn(
+              text: '${receipt!.header_text}',
+              width: 12,
+              containsChinese: true,
+              styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1)),
+        ]);
       }
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
@@ -693,9 +708,21 @@ class ReceiptLayout{
         //bytes += generator.image(image);
         bytes += generator.reset();
         if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
-          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.row([
+            PosColumn(
+                text: '${receipt!.header_text}',
+                width: 12,
+                containsChinese: true,
+                styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2)),
+          ]);
         } else if (receipt!.header_text_status == 1 && receipt!.header_font_size == 1){
-          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
+          bytes += generator.row([
+            PosColumn(
+                text: '${receipt!.header_text}',
+                width: 12,
+                containsChinese: true,
+                styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1)),
+          ]);
         }
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
@@ -897,9 +924,21 @@ class ReceiptLayout{
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
-          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.row([
+            PosColumn(
+                text: '${receipt!.header_text}',
+                width: 12,
+                containsChinese: true,
+                styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2)),
+          ]);
         } else if(receipt!.header_text_status == 1 && receipt!.header_font_size == 1) {
-          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
+          bytes += generator.row([
+            PosColumn(
+                text: '${receipt!.header_text}',
+                width: 12,
+                containsChinese: true,
+                styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1)),
+          ]);
         }
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
@@ -1144,9 +1183,21 @@ class ReceiptLayout{
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
-          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.row([
+            PosColumn(
+                text: '${receipt!.header_text}',
+                width: 12,
+                containsChinese: true,
+                styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2)),
+          ]);
         } else if(receipt!.header_text_status == 1 && receipt!.header_font_size == 1) {
-          bytes += generator.text('${receipt!.header_text}', styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
+          bytes += generator.row([
+            PosColumn(
+                text: '${receipt!.header_text}',
+                width: 12,
+                containsChinese: true,
+                styles: PosStyles(align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1)),
+          ]);
         }
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
