@@ -88,7 +88,7 @@ class _LoadingPageState extends State<LoadingPage> {
   }
 
   startLoad() async {
-    try {
+    try{
       await createDeviceLogin();
       await getAllChecklist();
       await _createProductImgFolder();
@@ -124,7 +124,7 @@ class _LoadingPageState extends State<LoadingPage> {
         // this function should return true when we're done removing routes
         // but because we want to remove all other screens, we make it
         // always return false
-        (Route route) => false,
+            (Route route) => false,
       );
       return;
     }

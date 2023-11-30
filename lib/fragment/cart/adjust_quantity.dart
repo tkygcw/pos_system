@@ -211,8 +211,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
-        return Consumer<TableModel>(
-            builder: (context, TableModel tableModel, child) {
+        return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
           this.tableModel = tableModel;
           return Center(
             child: SingleChildScrollView(
@@ -514,7 +513,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
             await updateOrderDetailQuantity(dateTime, cart);
             print('update order detail quantity & create order detail cancel');
           }
-          await callPrinter(dateTime, cart);
+          callPrinter(dateTime, cart);
           // await PrintReceipt().printDeleteList(printerList, widget.cartItem.order_cache_sqlite_id!, dateTime);
           // await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem.order_cache_sqlite_id!, widget.cartItem.category_sqlite_id!, dateTime, cart);
           //syncUpdatedPosTableToCloud(_posTableValue.toString());
@@ -528,12 +527,12 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
           cart.removeAllCartItem();
           cart.removePromotion();
           //sync to cloud
-          await syncAllToCloud();
-          print('is log out: ${this.isLogOut}');
-          if (this.isLogOut == true) {
-            openLogOutDialog();
-            return;
-          }
+          syncAllToCloud();
+          // print('is log out: ${this.isLogOut}');
+          // if (this.isLogOut == true) {
+          //   openLogOutDialog();
+          //   return;
+          // }
         } else {
           Fluttertoast.showToast(
               backgroundColor: Color(0xFFFF0000),

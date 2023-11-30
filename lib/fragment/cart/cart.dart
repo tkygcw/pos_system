@@ -52,6 +52,7 @@ import '../../object/printer.dart';
 import '../../object/table.dart';
 import '../../object/tax.dart';
 import '../../translation/AppLocalizations.dart';
+import '../../utils/Utils.dart';
 import '../logout_dialog.dart';
 import '../settlement/cash_dialog.dart';
 import '../payment/payment_select_dialog.dart';
@@ -219,6 +220,8 @@ class CartPageState extends State<CartPage> {
                     setState(() {
                       cart.removeAllCartItem();
                       cart.removeAllTable();
+                      cart.removeAllPromotion();
+                      // cart.removePromotion();
                       readAllBranchLinkDiningOption(cart: cart);
                       getPromotionData();
                       getSubTotal(cart);
@@ -358,7 +361,7 @@ class CartPageState extends State<CartPage> {
                         child: Column(
                           children: [
                             Container(
-                              margin: MediaQuery.of(context).size.height > 500
+                              margin: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
                                   ? EdgeInsets.only(bottom: 10)
                                   : EdgeInsets.zero,
                               child: GridView(
@@ -531,7 +534,7 @@ class CartPageState extends State<CartPage> {
                                     );
                                   }),
                             ),
-                            SizedBox(height: MediaQuery.of(context).size.height > 500 ? 20 : 5),
+                            SizedBox(height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 20 : 5),
                             Divider(
                               color: Colors.grey,
                               height: 1,
@@ -539,9 +542,9 @@ class CartPageState extends State<CartPage> {
                               indent: 20,
                               endIndent: 20,
                             ),
-                            SizedBox(height: MediaQuery.of(context).size.height > 500 ? 10 : 5),
+                            SizedBox(height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 10 : 5),
                             Container(
-                              height: MediaQuery.of(context).size.height > 500
+                              height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
                                   ? widget.currentPage == 'menu' || widget.currentPage == 'table'
                                   ? 130
                                   : null
@@ -860,7 +863,7 @@ class CartPageState extends State<CartPage> {
                                             }
                                             enableButton();
                                           },
-                                          child: MediaQuery.of(context).size.height > 500
+                                          child: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
                                               ? widget.currentPage == 'menu' ||
                                               widget.currentPage == 'qr_order'
                                               ? Text(AppLocalizations.of(context)!.translate('place_order')+'\n (RM ${this.finalAmount})')
@@ -2029,12 +2032,8 @@ class CartPageState extends State<CartPage> {
     totalAmount = 0.0;
     discountPrice = total - promoAmount;
     totalAmount = discountPrice + priceIncAllTaxes;
-    _round = double.parse(totalAmount.toStringAsFixed(1)) - double.parse(totalAmount.toStringAsFixed(2));
-    if (_round.toStringAsFixed(2) != '0.05' && _round.toStringAsFixed(2) != '-0.05') {
-      rounding = _round;
-    } else {
-      rounding = 0.0;
-    }
+    _round = Utils.roundToNearestFiveSen(double.parse(totalAmount.toStringAsFixed(2))) - double.parse(totalAmount.toStringAsFixed(2));
+    rounding = _round;
 
     if (!controller.isClosed) {
       controller.sink.add('refresh');
@@ -2043,12 +2042,7 @@ class CartPageState extends State<CartPage> {
 
   getAllTotal() {
     try {
-      if (rounding == 0.0) {
-        finalAmount = totalAmount.toStringAsFixed(2);
-      } else {
-        finalAmount = totalAmount.toStringAsFixed(1) + '0';
-      }
-      //totalAmount = (totalAmount * 100).truncate() / 100;
+      finalAmount = Utils.roundToNearestFiveSen(double.parse(totalAmount.toStringAsFixed(2))).toStringAsFixed(2);
     } catch (error) {
       print('Total calc error: $error');
     }
@@ -2341,11 +2335,11 @@ class CartPageState extends State<CartPage> {
     Navigator.of(context).pop();
     checkDirectPayment(appSettingModel, cart);
 
-    await syncAllToCloud();
-    if (this.isLogOut == true) {
-      openLogOutDialog();
-      return;
-    }
+    syncAllToCloud();
+    // if (this.isLogOut == true) {
+    //   openLogOutDialog();
+    //   return;
+    // }
 
     printKitchenList();
   }
@@ -2378,12 +2372,12 @@ class CartPageState extends State<CartPage> {
     cart.removeAllTable();
     Navigator.of(context).pop();
 
-    await syncAllToCloud();
-    print('finish sync');
-    if (this.isLogOut == true) {
-      openLogOutDialog();
-      return;
-    }
+    syncAllToCloud();
+    // print('finish sync');
+    // if (this.isLogOut == true) {
+    //   openLogOutDialog();
+    //   return;
+    // }
 
     printKitchenList();
 
@@ -2414,11 +2408,11 @@ class CartPageState extends State<CartPage> {
     cart.removeAllTable();
     Navigator.of(context).pop();
 
-    await syncAllToCloud();
-    if (this.isLogOut == true) {
-      openLogOutDialog();
-      return;
-    }
+    syncAllToCloud();
+    // if (this.isLogOut == true) {
+    //   openLogOutDialog();
+    //   return;
+    // }
 
     printKitchenList();
   }
@@ -3233,11 +3227,6 @@ class CartPageState extends State<CartPage> {
         } else {
           mainSyncToCloud.resetCount();
         }
-        // if (_hasInternetAccess) {
-        //
-        // } else {
-        //   mainSyncToCloud.resetCount();
-        // }
       }
     } catch (e) {
       print("cart sync to cloud error: $e");

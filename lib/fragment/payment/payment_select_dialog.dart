@@ -61,7 +61,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
   Widget build(BuildContext context) {
     return Consumer<CartModel>(builder: (context, CartModel cart, child) {
       return LayoutBuilder(builder: (context,  constraints) {
-        if(constraints.maxWidth > 800){
+        if(constraints.maxWidth > 900 && constraints.maxHeight > 500){
           return WillPopScope(
             onWillPop: () async {
               if(widget.callBack != null){

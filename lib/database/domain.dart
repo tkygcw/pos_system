@@ -392,7 +392,7 @@ class Domain {
         'tb_table_sync': table_value != null ? table_value : [].toString(),
         'tb_user_sync': user_value != null ? user_value : [].toString(),
         'tb_checklist_create': checklist_value != null ? checklist_value : [].toString()
-      }).timeout(Duration(seconds: isSync != null ? 25 : 3), onTimeout: () => throw TimeoutException("Time out"));
+      }).timeout(Duration(seconds: isSync != null ? 25 : 15), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);
     } on TimeoutException catch(_){

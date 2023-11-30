@@ -71,10 +71,8 @@ class _ReportOverviewState extends State<ReportOverview> {
                         children: [
                           Row(
                             children: [
-                              Container(
-                                child: Text(AppLocalizations.of(context)!.translate('overview'),
-                                    style: TextStyle(fontSize: 25, color: Colors.black)),
-                              ),
+                              Text(AppLocalizations.of(context)!.translate('overview'),
+                                  style: TextStyle(fontSize: 25, color: Colors.black)),
                             ],
                           ),
                           SizedBox(height: 5),
@@ -83,8 +81,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                             color: Colors.grey,
                           ),
                           SizedBox(height: 5),
-                          Container(
-                              child: GridView.count(
+                          Container(child: GridView.count(
                             physics: NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
                             crossAxisSpacing: 5,

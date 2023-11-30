@@ -213,7 +213,7 @@ class CartDialogState extends State<CartDialog> {
                               shrinkWrap: true,
                               crossAxisSpacing: 10,
                               mainAxisSpacing: 10,
-                              crossAxisCount: MediaQuery.of(context).size.height > 500 ? 4 : 3,
+                              crossAxisCount: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 4 : 3,
                               children: tableList.asMap().map((index, posTable) => MapEntry(index, tableItem(cart, color, index))).values.toList(),
                               onReorder: (int oldIndex, int newIndex) {
                                 if (oldIndex != newIndex) {

@@ -245,7 +245,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                       }
                       Navigator.of(context).pop();
                     } else {
-                      if(widget.cartItem!.quantity == 1){
+                      if(widget.cartItem!.quantity == 1 || widget.cartItem!.quantity! is double ){
                         showSecondDialog(context, color, cart);
                       } else {
                         openDialog(cartItem: widget.cartItem, currentPage: widget.currentPage);
@@ -352,7 +352,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
             }
           }
           table_value = _posTableValue.toString();
-          await callPrinter(dateTime, cart);
+          callPrinter(dateTime, cart);
           // await PrintReceipt().printDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, dateTime);
           // await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
           // if(connectivity.isConnect){
@@ -365,11 +365,11 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           cart.removeAllCartItem();
           cart.removePromotion();
           //sync to cloud
-          await syncAllToCloud();
-          if(this.isLogOut == true){
-            openLogOutDialog();
-            return;
-          }
+          syncAllToCloud();
+          // if(this.isLogOut == true){
+          //   openLogOutDialog();
+          //   return;
+          // }
 
         } else {
           Fluttertoast.showToast(

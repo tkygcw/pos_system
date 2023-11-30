@@ -157,23 +157,24 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   readAllCategories({hasNotification}) async {
+    List<Categories> _data = [];
     if(hasNotification == true){
       categoryTab.clear();
       categoryList.clear();
       categoryTabContent.clear();
     }
     await getPreferences();
-    List<Categories> data = await PosDatabase.instance.readAllCategories();
-    data = sortCategory(data);
+    _data = await PosDatabase.instance.readAllCategories();
+    _data = sortCategory(_data);
     categoryTab.add(Tab(
       text: AppLocalizations.of(context)!.translate('all_category'),
     ));
     categoryList.add(AppLocalizations.of(context)!.translate('all_category'));
-    for (int i = 0; i < data.length; i++) {
+    for (int i = 0; i < _data.length; i++) {
       categoryTab.add(Tab(
-        text: data[i].name!,
+        text: _data[i].name!,
       ));
-      categoryList.add(data[i].name!);
+      categoryList.add(_data[i].name!);
     }
 
     for (int i = 0; i < categoryList.length; i++) {
@@ -183,7 +184,8 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
         allProduct = data;
         categoryTabContent.add(GridView.count(
             shrinkWrap: true,
-            crossAxisCount: MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.height > 500 ? 5 : 3,
+            //MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.height
+            crossAxisCount: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 5 : 3,
             children: List.generate(data.length, (index) {
               return Card(
                 child: Container(
@@ -292,10 +294,10 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     refresh();
   }
 
-  sortProduct(List<Product> list){
+  sortCategory(List<Categories> list){
     list.sort((a, b) {
-      final aNumber = a.sequence_number!;
-      final bNumber = b.sequence_number!;
+      final aNumber = a.sequence!;
+      final bNumber = b.sequence!;
 
       bool isANumeric = int.tryParse(aNumber) != null;
       bool isBNumeric = int.tryParse(bNumber) != null;
@@ -306,6 +308,8 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
         return -1; // Numeric before alphanumeric
       } else if (isBNumeric) {
         return 1; // Alphanumeric before numeric
+      } else if (!isANumeric && !isBNumeric) {
+        return compareNatural(a.name!, b.name!);
       } else {
         // Custom alphanumeric sorting logic
         return compareNatural(aNumber, bNumber);
@@ -314,10 +318,10 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
     return list;
   }
 
-  sortCategory(List<Categories> list){
+  sortProduct(List<Product> list){
     list.sort((a, b) {
-      final aNumber = a.sequence!;
-      final bNumber = b.sequence!;
+      final aNumber = a.sequence_number!;
+      final bNumber = b.sequence_number!;
 
       bool isANumeric = int.tryParse(aNumber) != null;
       bool isBNumeric = int.tryParse(bNumber) != null;
