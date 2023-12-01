@@ -41,6 +41,7 @@ class Domain {
   static Uri app_setting = Uri.parse(domain + 'mobile-api/app_setting/index.php');
   static Uri receipt = Uri.parse(domain + 'mobile-api/receipt/index.php');
   static Uri checklist = Uri.parse(domain + 'mobile-api/checklist/index.php');
+  static Uri kitchen_list = Uri.parse(domain + 'mobile-api/kitchen_list/index.php');
 
 /*
   get app version
@@ -360,7 +361,8 @@ class Domain {
         printer_link_category_delete_value,
         table_value,
         user_value,
-        checklist_value
+        checklist_value,
+        kitchen_list_value
       }) async {
     try {
       //print('order cache value 15 sync: ${order_cache_value}');
@@ -391,7 +393,8 @@ class Domain {
         'tb_printer_link_category_delete': printer_link_category_delete_value != null ? printer_link_category_delete_value : [].toString(),
         'tb_table_sync': table_value != null ? table_value : [].toString(),
         'tb_user_sync': user_value != null ? user_value : [].toString(),
-        'tb_checklist_create': checklist_value != null ? checklist_value : [].toString()
+        'tb_checklist_create': checklist_value != null ? checklist_value : [].toString(),
+        'tb_kitchen_list_create': kitchen_list_value != null ? kitchen_list_value : [].toString()
       }).timeout(Duration(seconds: isSync != null ? 25 : 15), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);
@@ -2014,6 +2017,9 @@ class Domain {
   /*
   * get printer
   * */
+
+
+
   getPrinter(branch_id) async {
     try {
       var response = await http.post(Domain.printer,
@@ -2057,6 +2063,21 @@ class Domain {
     try {
       var response = await http.post(Domain.checklist, body: {
         'getAllChecklist': '1',
+        'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /**
+   * get kitchen list
+   * */
+  getKitchenList(branch_id) async {
+    try {
+      var response = await http.post(Domain.kitchen_list, body: {
+        'getAllKitchenList': '1',
         'branch_id': branch_id,
       });
       return jsonDecode(response.body);

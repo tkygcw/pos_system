@@ -158,29 +158,56 @@ class _HardwareSettingState extends State<HardwareSetting> {
                                   // switch off
                                   if(await anyTableUse()){
                                     Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_settle_the_bill_for_all_tables'));
+                                  } else if(appSettingModel.enable_numbering == false){
+                                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_order_number'));
+                                  } else if(appSettingModel.directPaymentStatus == false){
+                                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_direct_payment'));
                                   } else {
-                                    if(appSettingModel.directPaymentStatus == false){
-                                      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_direct_payment'));
-                                    } else {
-                                      this.tableOrder = value;
-                                      if (await confirm(
-                                        context,
-                                        title: Text('${AppLocalizations.of(context)?.translate('disable_table_order')}'),
-                                        content: Text('${AppLocalizations.of(context)?.translate('disable_table_order_desc')}'),
-                                        textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                        textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                      )) {
-                                        Navigator.of(context).pushAndRemoveUntil(
-                                          MaterialPageRoute(
-                                            builder: (BuildContext context) => PosPinPage(),
-                                          ),
-                                              (Route route) => false,
-                                        );
-                                        appSettingModel.setTableOrderStatus(tableOrder);
-                                      } else
-                                        this.tableOrder = !value;
-                                    }
+                                    this.tableOrder = value;
+                                    if (await confirm(
+                                      context,
+                                      title: Text('${AppLocalizations.of(context)?.translate('disable_table_order')}'),
+                                      content: Text('${AppLocalizations.of(context)?.translate('disable_table_order_desc')}'),
+                                      textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                      textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                    )) {
+                                      Navigator.of(context).pushAndRemoveUntil(
+                                        MaterialPageRoute(
+                                          builder: (BuildContext context) => PosPinPage(),
+                                        ),
+                                            (Route route) => false,
+                                      );
+                                      appSettingModel.setTableOrderStatus(tableOrder);
+                                    } else
+                                      this.tableOrder = !value;
                                   }
+
+                                  // else {
+                                  //   if(appSettingModel.enable_numbering == false){
+                                  //     Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_order_number'));
+                                  //   }
+                                  //   if(appSettingModel.directPaymentStatus == false){
+                                  //     Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_enable_direct_payment'));
+                                  //   } else {
+                                  //     this.tableOrder = value;
+                                  //     if (await confirm(
+                                  //       context,
+                                  //       title: Text('${AppLocalizations.of(context)?.translate('disable_table_order')}'),
+                                  //       content: Text('${AppLocalizations.of(context)?.translate('disable_table_order_desc')}'),
+                                  //       textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                  //       textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                  //     )) {
+                                  //       Navigator.of(context).pushAndRemoveUntil(
+                                  //         MaterialPageRoute(
+                                  //           builder: (BuildContext context) => PosPinPage(),
+                                  //         ),
+                                  //             (Route route) => false,
+                                  //       );
+                                  //       appSettingModel.setTableOrderStatus(tableOrder);
+                                  //     } else
+                                  //       this.tableOrder = !value;
+                                  //   }
+                                  // }
                                 }
 
 

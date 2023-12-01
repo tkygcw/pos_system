@@ -15,6 +15,7 @@ import 'package:pos_system/fragment/cart/promotion_dialog.dart';
 import 'package:pos_system/fragment/cart/remove_cart_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_kitchen_dialog.dart';
+import 'package:pos_system/fragment/cart/reprint_kitchen_list_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
@@ -787,6 +788,7 @@ class CartPageState extends State<CartPage> {
                                                   }
                                                 } else {
                                                   // not dine in call
+                                                  print("Not dine in called");
                                                   cart.removeAllTable();
                                                   if (cart.cartNotifierItem.isNotEmpty) {
                                                     openLoadingDialogBox();
@@ -2235,7 +2237,7 @@ class CartPageState extends State<CartPage> {
             transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
             child: Opacity(
               opacity: a1.value,
-              child: ReprintKitchenDialog(
+              child: ReprintKitchenListDialog(
                   printerList: printerList,
                   callback: openReprintKitchenDialog),
             ),
@@ -2312,12 +2314,10 @@ class CartPageState extends State<CartPage> {
   Not dine in call
 */
   callCreateNewNotDineOrder(CartModel cart, AppSettingModel appSettingModel) async {
+    print("callCreateNewNotDineOrder");
     resetValue();
     await createOrderCache(cart, isAddOrder: false);
     await createOrderDetail(cart);
-
-    Navigator.of(context).pop();
-    checkDirectPayment(appSettingModel, cart);
     if(_appSettingModel.autoPrintChecklist == true){
       int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
       if (printStatus == 1) {
@@ -2430,6 +2430,7 @@ class CartPageState extends State<CartPage> {
 
   printKitchenList() async {
     try{
+      String flushbarStatus = '';
       List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheId), context);
       if(returnData != null){
         if (returnData.isNotEmpty) {
@@ -2440,7 +2441,7 @@ class CartPageState extends State<CartPage> {
             shouldIconPulse: false,
             title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
             message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-            duration: Duration(seconds: 4),
+            duration: Duration(seconds: 5),
             backgroundColor: Colors.red,
             messageColor: Colors.white,
             flushbarPosition: FlushbarPosition.TOP,
@@ -2449,11 +2450,17 @@ class CartPageState extends State<CartPage> {
             borderRadius: BorderRadius.circular(8),
             padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
             onTap: (flushbar) {
-              flushbar.dismiss();
+              flushbar.dismiss(true);
+            },
+            onStatusChanged: (status) {
+              flushbarStatus = status.toString();
+              print("onStatusChanged: ${status}");
             },
           )..show(context);
-          Future.delayed(Duration(seconds: 2), () {
-            playSound();
+          Future.delayed(Duration(seconds: 3), () {
+            print("status change: ${flushbarStatus}");
+            if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
+              playSound();
           });
         }
       } else {
@@ -2745,7 +2752,7 @@ class CartPageState extends State<CartPage> {
     final String? loginUser = prefs.getString('user');
 
     AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
-    int orderQueue = localSetting!.enable_numbering == 1 ? await generateOrderQueue() : 0;
+    int orderQueue = localSetting!.enable_numbering == 1 && ((localSetting!.table_order == 1 && cart.selectedOption != 'Dine in') ||  localSetting!.table_order == 0) ? await generateOrderQueue() : -1;
 
     List<TableUse> _tableUse = [];
     List<String> _value = [];
@@ -2777,7 +2784,7 @@ class CartPageState extends State<CartPage> {
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(OrderCache(
             order_cache_id: 0,
             order_cache_key: '',
-            order_queue: localSetting!.enable_numbering == 1 ? orderQueue.toString().padLeft(4, '0') : '',
+            order_queue: orderQueue != -1 ? orderQueue.toString().padLeft(4, '0') : '',
             company_id: loginUserObject['company_id'].toString(),
             branch_id: branch_id.toString(),
             order_detail_id: '',

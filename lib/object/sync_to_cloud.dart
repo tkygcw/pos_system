@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/checklist.dart';
+import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/printer_link_category.dart';
@@ -52,7 +53,7 @@ class SyncToCloud {
   String? table_use_value, table_use_detail_value, order_cache_value, order_detail_value, order_detail_cancel_value,
       order_modifier_detail_value, order_value, order_promotion_value, order_tax_value, receipt_value, refund_value, table_value, settlement_value,
       settlement_link_payment_value, cash_record_value, app_setting_value, branch_link_product_value, printer_value, printer_link_category_value,
-      transfer_owner_value, checklist_value;
+      transfer_owner_value, checklist_value, kitchen_list_value;
 
   resetCount(){
     count = 0;
@@ -89,7 +90,8 @@ class SyncToCloud {
         printer_value: this.printer_value,
         printer_link_category_value: this.printer_link_category_value,
         transfer_owner_value: this.transfer_owner_value,
-        checklist_value:  this.checklist_value
+        checklist_value:  this.checklist_value,
+        kitchen_list_value:  this.kitchen_list_value
     );
     if (data['status'] == '1') {
       List responseJson = data['data'];
@@ -218,11 +220,13 @@ class SyncToCloud {
     printer_link_category_value = [].toString();
     transfer_owner_value = [].toString();
     checklist_value = [].toString();
+    kitchen_list_value = [].toString();
   }
 
   getAllValue() async {
     resetValue();
     await getNotSyncChecklist();
+    await getNotSyncKitchenList();
     await getNotSyncReceipt();
     await getNotSyncBranchLinkProduct();
     await getNotSyncCashRecord();
@@ -258,6 +262,22 @@ class SyncToCloud {
     } catch(e){
       print('15 checklist error: $e');
       checklist_value = null;
+    }
+  }
+
+  getNotSyncKitchenList() async {
+    List<String> _value = [];
+    try{
+      List<KitchenList> data = await PosDatabase.instance.readAllNotSyncKitchenList();
+      if(data.isNotEmpty){
+        for(int i = 0; i < data.length; i++){
+          _value.add(jsonEncode(data[i]));
+        }
+        kitchen_list_value = _value.toString();
+      }
+    } catch(e){
+      print('15 kitchen_list error: $e');
+      kitchen_list_value = null;
     }
   }
 

@@ -233,10 +233,7 @@ class _MakePaymentState extends State<MakePayment> {
           getReceiptPaymentDetail(cart);
           //getSubTotal(cart);
           getCartItemList(cart);
-          getSelectedTable(cart);
-          if (initLoad == 0 &&
-              notificationModel.hasSecondScreen == true &&
-              notificationModel.secondScreenEnable == true) {
+          if (initLoad == 0 && notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true) {
             reInitSecondDisplay(cart: cart);
             // if(notificationModel.secondScreenEnable == true){
             //   reInitSecondDisplay(cart: cart);
@@ -287,7 +284,7 @@ class _MakePaymentState extends State<MakePayment> {
                                     Container(
                                       margin: EdgeInsets.only(bottom: 20),
                                       alignment: Alignment.center,
-                                      child: Text(AppLocalizations.of(context)!.translate('table_no') + ': $tableNo',
+                                      child: Text(AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
                                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                                     ),
                                     Card(
@@ -773,8 +770,11 @@ class _MakePaymentState extends State<MakePayment> {
                                 children: [
                                   Container(
                                     alignment: Alignment.center,
-                                    child: Text(AppLocalizations.of(context)!.translate('table_no') + ': $tableNo',
-                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                                    child: Text(
+                                        AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 24)),
                                   ),
                                   Container(
                                     //margin: EdgeInsets.all(25),
@@ -1294,24 +1294,19 @@ class _MakePaymentState extends State<MakePayment> {
 /*
   get selected table
 */
-  getSelectedTable(CartModel cart) async {
+  getSelectedTable() {
     List<String> result = [];
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
-    if (cart.selectedOption == 'Dine in' && localSetting!.table_order == 1) {
-      if (cart.selectedTable.isEmpty && cart.selectedOption == 'Dine in') {
+    if (widget.dining_name == 'Dine in') {
+      if (selectedTableList.isEmpty) {
         result.add('No table');
-      } else if (cart.selectedOption != 'Dine in') {
-        result.add('');
       } else {
         for (int i = 0; i < selectedTableList.length; i++) {
           result.add('${selectedTableList[i].number}');
         }
       }
-      tableNo = result.toString().replaceAll('[', '').replaceAll(']', '');
+      return result.toString().replaceAll('[', '').replaceAll(']', '');
     } else {
-      tableNo = 'N/A';
+      return 'N/A';
     }
   }
 
@@ -1417,6 +1412,7 @@ class _MakePaymentState extends State<MakePayment> {
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
         if (!orderCacheIdList.contains(cart.cartNotifierItem[i].order_cache_sqlite_id!)) {
           orderCacheIdList.add(cart.cartNotifierItem[i].order_cache_sqlite_id!);
+          orderCacheSqliteId = cart.cartNotifierItem[i].order_cache_sqlite_id!;
         }
       }
     }
@@ -1540,12 +1536,17 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   Future<int> readQueueFromOrderCache() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    List<OrderCache> orderCacheList = await PosDatabase.instance.readSpecificOrderCache(orderCacheSqliteId);
-    int orderQueue = 0;
-    orderQueue = orderCacheList[0].order_queue! != '' ? int.parse(orderCacheList[0].order_queue!) : -1;
-    return orderQueue;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      List<OrderCache> orderCacheList = await PosDatabase.instance.readSpecificOrderCache(orderCacheSqliteId);
+      int orderQueue = 0;
+      orderQueue = orderCacheList[0].order_queue! != '' ? int.parse(orderCacheList[0].order_queue!) : -1;
+      return orderQueue;
+    } catch(e) {
+      print("readQueueFromOrderCache error: ${e}");
+    }
+    return -1;
   }
 
   createOrder(double? paymentReceived, String? orderChange) async {

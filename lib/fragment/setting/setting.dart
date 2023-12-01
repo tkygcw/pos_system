@@ -189,26 +189,6 @@ class _SettingMenuState extends State<SettingMenu> {
                         icon: Icons.sync,
                         label: AppLocalizations.of(context)!.translate('data_processing'),
                       ),
-                      // SideNavigationBarItem(
-                      //   icon: Icons.settings,
-                      //   label: 'Multi device testing',
-                      // ),
-                      // SideNavigationBarItem(
-                      //   icon: Icons.list,
-                      //   label: 'Test sync (temp)',
-                      // ),
-                      // SideNavigationBarItem(
-                      //   icon: Icons.list,
-                      //   label: 'Test second screen (temp)',
-                      // ),
-                      // SideNavigationBarItem(
-                      //   icon: Icons.list,
-                      //   label: 'Test report print (temp)',
-                      // ),
-                      // SideNavigationBarItem(
-                      //   icon: Icons.list,
-                      //   label: 'Test qr code (temp)',
-                      // ),
                     ],
                     onTap: (index) {
                       setState(() {
@@ -292,11 +272,11 @@ class _SettingMenuState extends State<SettingMenu> {
                         ),
                         SideNavigationBarItem(
                           icon: Icons.print,
-                          label: AppLocalizations.of(context)!.translate('printer'),
+                          label: AppLocalizations.of(context)!.translate('printer_setting'),
                         ),
                         SideNavigationBarItem(
                           icon: Icons.receipt,
-                          label: 'Receipt Layout',
+                          label: AppLocalizations.of(context)!.translate('receipt_setting'),
                         ),
                         SideNavigationBarItem(
                           icon: Icons.table_restaurant,
@@ -310,18 +290,6 @@ class _SettingMenuState extends State<SettingMenu> {
                           icon: Icons.sync,
                           label: AppLocalizations.of(context)!.translate('data_processing'),
                         ),
-                        // SideNavigationBarItem(
-                        //   icon: Icons.list,
-                        //   label: 'Test sync (temp)',
-                        // ),
-                        // SideNavigationBarItem(
-                        //   icon: Icons.list,
-                        //   label: 'Test second screen (temp)',
-                        // ),
-                        // SideNavigationBarItem(
-                        //   icon: Icons.list,
-                        //   label: 'Test report print (temp)',
-                        // ),
                       ],
                       onTap: (index) {
                         setState(() {

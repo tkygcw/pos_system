@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/controller/controllerObject.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
+import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/cart_product.dart';
@@ -183,48 +184,49 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
         this.cart = cart;
-        return LayoutBuilder(builder: (context, constraints) {
-          if (constraints.maxWidth > 900 && constraints.maxHeight > 500) {
-            return StreamBuilder(
-                stream: streamController.productOrderDialogStream,
-                builder: (context, snapshot) {
-                  if(snapshot.hasData){
-                    return Center(
-                      child: SingleChildScrollView(
-                        child: AlertDialog(
-                          title: Row(
-                            children: [
-                              Container(
-                                // constraints: BoxConstraints(maxWidth: 300),
-                                child: Text("${widget.productDetail!.name!}",
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    )),
-                              ),
-                              Spacer(),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  widget.productDetail!.unit != 'each' ?
-                                  Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
+        return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
+          return LayoutBuilder(builder: (context, constraints) {
+            if (constraints.maxWidth > 900 && constraints.maxHeight > 500) {
+              return StreamBuilder(
+                  stream: streamController.productOrderDialogStream,
+                  builder: (context, snapshot) {
+                    if(snapshot.hasData){
+                      return Center(
+                        child: SingleChildScrollView(
+                          child: AlertDialog(
+                            title: Row(
+                              children: [
+                                Container(
+                                  // constraints: BoxConstraints(maxWidth: 300),
+                                  child: Text("${widget.productDetail!.name!}",
                                       style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      )) :
-                                  Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.unit!}",
-                                      style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                       )),
-                                  Visibility(
-                                    visible: dialogStock != '' ? true : false,
-                                    child: Text("In stock: ${dialogStock}${widget.productDetail!.unit != 'each'? widget.productDetail!.unit : ''}",
+                                ),
+                                Spacer(),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    widget.productDetail!.unit != 'each' ?
+                                    Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        )) :
+                                    Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.unit!}",
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         )),
-                                  )
+                                    Visibility(
+                                      visible: dialogStock != '' ? true : false,
+                                      child: Text("In stock: ${dialogStock}${widget.productDetail!.unit != 'each'? widget.productDetail!.unit : ''}",
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          )),
+                                    )
 
                                   ],
                                 )
@@ -406,31 +408,310 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                       : () {
                                     Navigator.of(context).pop();
 
+                                    // Disable the button after it has been pressed
+                                    setState(() {
+                                      isButtonDisabled = true;
+                                    });
+                                  },
+                                ),
+                              ),
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width / 4,
+                                height: MediaQuery.of(context).size.height / 12,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: color.buttonColor,
+                                  ),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.translate('add'),
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  onPressed: isButtonDisabled
+                                      ? null
+                                      : () async {
+                                    await checkProductStock(widget.productDetail!, cart);
+                                    //await getBranchLinkProductItem(widget.productDetail!);
+                                    if (hasStock) {
+                                      if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
+                                        if(simpleIntInput > 0){
+                                          if (cart.selectedTable.isNotEmpty) {
+                                            // Disable the button after it has been pressed
+                                            setState(() {
+                                              isButtonDisabled = true;
+                                            });
+                                            await addToCart(cart);
+                                            Navigator.of(context).pop();
+                                          } else {
+                                            openChooseTableDialog(cart);
+                                          }
+                                        } else {
+                                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
+                                        }
+                                      } else if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == false) {
+                                        // Disable the button after it has been pressed
+                                        setState(() {
+                                          isButtonDisabled = true;
+                                        });
+                                        await addToCart(cart);
+                                        Navigator.of(context).pop();
+                                      } else {
+                                        // Disable the button after it has been pressed
+                                        setState(() {
+                                          isButtonDisabled = true;
+                                        });
+                                        await addToCart(cart);
+                                        Navigator.of(context).pop();
+                                      }
+                                    } else {
+                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    } else {
+                      return CustomProgressBar();
+                    }
+                  }
+              );
+            } else {
+              ///mobile layout
+              return StreamBuilder(
+                stream: streamController.productOrderDialogStream,
+                builder: (context, snapshot){
+                  if(snapshot.hasData){
+                    return Center(
+                      child: SingleChildScrollView(
+                        child: AlertDialog(
+                          title: Row(
+                            children: [
+                              Container(
+                                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
+                                child: Text(widget.productDetail!.name!,
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    )),
+                              ),
+                              Spacer(),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  widget.productDetail!.unit != 'each' ?
+                                  Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      )) :
+                                  Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.unit!}",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      )),
+                                  Visibility(
+                                    visible: dialogStock != '' ? true : false,
+                                    child: Text("In stock: ${dialogStock}${widget.productDetail!.unit != 'each'? widget.productDetail!.unit : ''}",
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: dialogStock == '0' ? Colors.red : Colors.black
+                                        )),
+                                  )
+
+                                ],
+                              )
+                            ],
+                          ),
+                          content: Container(
+                            height: MediaQuery.of(context).size.height /2.5, // Change as per your requirement
+                            width: MediaQuery.of(context).size.width / 1.5,
+                            child: SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  for (int i = 0; i < variantGroup.length; i++)
+                                    variantGroupLayout(variantGroup[i]),
+                                  for (int j = 0; j < modifierGroup.length; j++)
+                                    Visibility(
+                                      visible: modifierGroup[j].modifierChild!.isNotEmpty && modifierGroup[j].dining_id == "" || modifierGroup[j].dining_id == cart.selectedOptionId ? true : false,
+                                      child: modifierGroupLayout(modifierGroup[j], cart),
+                                    ),
+                                  Column(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              AppLocalizations.of(context)!.translate('quantity'),
+                                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      // quantity input
+                                      Container(
+                                        width: 400,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            // quantity input remove button
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color: color.backgroundColor,
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: IconButton(
+                                                icon: Icon(Icons.remove, color: Colors.white), // Set the icon color to white.
+                                                onPressed: () {
+                                                  if(simpleIntInput >= 1){
+                                                    setState(() {
+                                                      simpleIntInput -= 1;
+                                                      quantityController.text = widget.productDetail!.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                                      simpleIntInput = widget.productDetail!.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                                    });
+                                                  } else{
+                                                    setState(() {
+                                                      simpleIntInput = 0;
+                                                      quantityController.text =  widget.productDetail!.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                                      simpleIntInput = widget.productDetail!.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                                    });
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                            SizedBox(width: 10),
+                                            // quantity input text field
+                                            Container(
+                                              width: 273,
+                                              child: TextField(
+                                                autofocus: widget.productDetail!.unit != 'each' ? true : false,
+                                                controller: quantityController,
+                                                keyboardType: TextInputType.number,
+                                                inputFormatters: widget.productDetail!.unit != 'each' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
+                                                    : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                                                textAlign: TextAlign.center,
+                                                decoration: InputDecoration(
+                                                  focusedBorder: OutlineInputBorder(
+                                                    borderSide: BorderSide(color: color.backgroundColor),
+                                                  ),
+                                                ),
+                                                onChanged: (value) {
+                                                  if(value != ''){
+                                                    setState(() => simpleIntInput = widget.productDetail!.unit != 'each' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', '')));
+                                                  } else {
+                                                    simpleIntInput = 0;
+                                                  }
+                                                },
+                                                onSubmitted: _onSubmitted,
+                                              ),
+                                            ),
+                                            SizedBox(width: 10),
+                                            // quantity input add button
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color: color.backgroundColor,
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: IconButton(
+                                                icon: Icon(Icons.add, color: Colors.white),
+                                                onPressed: () {
+                                                  // stock disable or in stock
+                                                  if(dialogStock == '' || simpleIntInput+1 < int.parse(dialogStock)) {
+                                                    print('stock_quantity: '+dialogStock);
+                                                    setState(() {
+                                                      simpleIntInput += 1;
+                                                      quantityController.text = simpleIntInput.toString();
+                                                      simpleIntInput =  int.parse(quantityController.text.replaceAll(',', ''));
+                                                    });
+                                                  } else{
+                                                    print('stock_quantity: '+dialogStock);
+                                                    setState(() {
+                                                      simpleIntInput = int.parse(dialogStock);
+                                                      quantityController.text = simpleIntInput.toString();
+                                                      simpleIntInput = int.parse(quantityController.text.replaceAll(',', ''));
+                                                    });
+                                                    if(dialogStock == '0'){
+                                                      print('stock_quantity: '+dialogStock);
+                                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
+                                                    }
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                  Column(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              AppLocalizations.of(context)!.translate('remark'),
+                                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      TextField(
+                                        controller: remarkController,
+                                        decoration: InputDecoration(
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(color: color.backgroundColor),
+                                          ),
+                                        ),
+                                        keyboardType: TextInputType.multiline,
+                                        maxLines: null,
+                                      )
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                          actions: <Widget>[
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width / 2.5,
+                              height: MediaQuery.of(context).size.height / 10,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                                onPressed: isButtonDisabled
+                                    ? null
+                                    : () {
                                   // Disable the button after it has been pressed
                                   setState(() {
                                     isButtonDisabled = true;
                                   });
+                                  Navigator.of(context).pop();
                                 },
                               ),
                             ),
                             SizedBox(
-                              width: MediaQuery.of(context).size.width / 4,
-                              height: MediaQuery.of(context).size.height / 12,
+                              width: MediaQuery.of(context).size.width / 2.5,
+                              height: MediaQuery.of(context).size.height / 10,
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: color.buttonColor,
                                 ),
-                                child: Text(
-                                  AppLocalizations.of(context)!.translate('add'),
-                                  style: TextStyle(color: Colors.white),
-                                ),
+                                child: Text('${AppLocalizations.of(context)?.translate('add')}'),
                                 onPressed: isButtonDisabled
                                     ? null
                                     : () async {
                                   await checkProductStock(widget.productDetail!, cart);
                                   //await getBranchLinkProductItem(widget.productDetail!);
-                                  if (hasStock) {
-                                    if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
+                                  if (hasStock == true) {
+                                    if (cart.selectedOption == 'Dine in') {
                                       if(simpleIntInput > 0){
                                         if (cart.selectedTable.isNotEmpty) {
                                           // Disable the button after it has been pressed
@@ -445,13 +726,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                       } else {
                                         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
                                       }
-                                    } else if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == false) {
-                                      // Disable the button after it has been pressed
-                                      setState(() {
-                                        isButtonDisabled = true;
-                                      });
-                                      await addToCart(cart);
-                                      Navigator.of(context).pop();
                                     } else {
                                       // Disable the button after it has been pressed
                                       setState(() {
@@ -473,304 +747,52 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                   } else {
                     return CustomProgressBar();
                   }
-                }
-            );
-          } else {
-            ///mobile layout
-            return StreamBuilder(
-              stream: streamController.productOrderDialogStream,
-              builder: (context, snapshot){
-                if(snapshot.hasData){
-                  return Center(
-                    child: SingleChildScrollView(
-                      child: AlertDialog(
-                        title: Row(
-                          children: [
-                            Container(
-                              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
-                              child: Text(widget.productDetail!.name!,
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  )),
-                            ),
-                            Spacer(),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                widget.productDetail!.unit != 'each' ?
-                                Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    )) :
-                                Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.unit!}",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    )),
-                                Visibility(
-                                  visible: dialogStock != '' ? true : false,
-                                  child: Text("In stock: ${dialogStock}${widget.productDetail!.unit != 'each'? widget.productDetail!.unit : ''}",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: dialogStock == '0' ? Colors.red : Colors.black
-                                      )),
-                                )
-
-                              ],
-                            )
-                          ],
-                        ),
-                        content: Container(
-                          height: MediaQuery.of(context).size.height /2.5, // Change as per your requirement
-                          width: MediaQuery.of(context).size.width / 1.5,
-                          child: SingleChildScrollView(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                for (int i = 0; i < variantGroup.length; i++)
-                                  variantGroupLayout(variantGroup[i]),
-                                for (int j = 0; j < modifierGroup.length; j++)
-                                  Visibility(
-                                    visible: modifierGroup[j].modifierChild!.isNotEmpty && modifierGroup[j].dining_id == "" || modifierGroup[j].dining_id == cart.selectedOptionId ? true : false,
-                                    child: modifierGroupLayout(modifierGroup[j], cart),
-                                  ),
-                                Column(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            AppLocalizations.of(context)!.translate('quantity'),
-                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    // quantity input
-                                    Container(
-                                      width: 400,
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          // quantity input remove button
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              color: color.backgroundColor,
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                            child: IconButton(
-                                              icon: Icon(Icons.remove, color: Colors.white), // Set the icon color to white.
-                                              onPressed: () {
-                                                if(simpleIntInput >= 1){
-                                                  setState(() {
-                                                    simpleIntInput -= 1;
-                                                    quantityController.text = widget.productDetail!.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                                    simpleIntInput = widget.productDetail!.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
-                                                  });
-                                                } else{
-                                                  setState(() {
-                                                    simpleIntInput = 0;
-                                                    quantityController.text =  widget.productDetail!.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                                    simpleIntInput = widget.productDetail!.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
-                                                  });
-                                                }
-                                              },
-                                            ),
-                                          ),
-                                          SizedBox(width: 10),
-                                          // quantity input text field
-                                          Container(
-                                            width: 273,
-                                            child: TextField(
-                                              autofocus: widget.productDetail!.unit != 'each' ? true : false,
-                                              controller: quantityController,
-                                              keyboardType: TextInputType.number,
-                                              inputFormatters: widget.productDetail!.unit != 'each' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
-                                                  : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                                              textAlign: TextAlign.center,
-                                              decoration: InputDecoration(
-                                                focusedBorder: OutlineInputBorder(
-                                                  borderSide: BorderSide(color: color.backgroundColor),
-                                                ),
-                                              ),
-                                              onChanged: (value) {
-                                                if(value != ''){
-                                                  setState(() => simpleIntInput = widget.productDetail!.unit != 'each' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', '')));
-                                                } else {
-                                                  simpleIntInput = 0;
-                                                }
-                                              },
-                                              onSubmitted: _onSubmitted,
-                                            ),
-                                          ),
-                                          SizedBox(width: 10),
-                                          // quantity input add button
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              color: color.backgroundColor,
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                            child: IconButton(
-                                              icon: Icon(Icons.add, color: Colors.white),
-                                              onPressed: () {
-                                                // stock disable or in stock
-                                                if(dialogStock == '' || simpleIntInput+1 < int.parse(dialogStock)) {
-                                                  print('stock_quantity: '+dialogStock);
-                                                  setState(() {
-                                                    simpleIntInput += 1;
-                                                    quantityController.text = simpleIntInput.toString();
-                                                    simpleIntInput =  int.parse(quantityController.text.replaceAll(',', ''));
-                                                  });
-                                                } else{
-                                                  print('stock_quantity: '+dialogStock);
-                                                  setState(() {
-                                                    simpleIntInput = int.parse(dialogStock);
-                                                    quantityController.text = simpleIntInput.toString();
-                                                    simpleIntInput = int.parse(quantityController.text.replaceAll(',', ''));
-                                                  });
-                                                  if(dialogStock == '0'){
-                                                    print('stock_quantity: '+dialogStock);
-                                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
-                                                  }
-                                                }
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  ],
-                                ),
-                                Column(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(8, 30, 8, 10),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            AppLocalizations.of(context)!.translate('remark'),
-                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    TextField(
-                                      controller: remarkController,
-                                      decoration: InputDecoration(
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(color: color.backgroundColor),
-                                        ),
-                                      ),
-                                      keyboardType: TextInputType.multiline,
-                                      maxLines: null,
-                                    )
-                                  ],
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                        actions: <Widget>[
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width / 2.5,
-                            height: MediaQuery.of(context).size.height / 10,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                              onPressed: isButtonDisabled
-                                  ? null
-                                  : () {
-                                // Disable the button after it has been pressed
-                                setState(() {
-                                  isButtonDisabled = true;
-                                });
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width / 2.5,
-                            height: MediaQuery.of(context).size.height / 10,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: color.buttonColor,
-                              ),
-                              child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                              onPressed: isButtonDisabled
-                                  ? null
-                                  : () async {
-                                await checkProductStock(widget.productDetail!, cart);
-                                //await getBranchLinkProductItem(widget.productDetail!);
-                                if (hasStock == true) {
-                                  if (cart.selectedOption == 'Dine in') {
-                                    if(simpleIntInput > 0){
-                                      if (cart.selectedTable.isNotEmpty) {
-                                        // Disable the button after it has been pressed
-                                        setState(() {
-                                          isButtonDisabled = true;
-                                        });
-                                        await addToCart(cart);
-                                        Navigator.of(context).pop();
-                                      } else {
-                                        openChooseTableDialog(cart);
-                                      }
-                                    } else {
-                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
-                                    }
-                                  } else {
-                                    // Disable the button after it has been pressed
-                                    setState(() {
-                                      isButtonDisabled = true;
-                                    });
-                                    await addToCart(cart);
-                                    Navigator.of(context).pop();
-                                  }
-                                } else {
-                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                } else {
-                  return CustomProgressBar();
-                }
-              },
-            );
-          }
+                },
+              );
+            }
+          });
         });
+
       });
     });
   }
 
   _onSubmitted(String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
     await checkProductStock(widget.productDetail!, cart);
     if (hasStock) {
-      if(simpleIntInput > 0){
-        autoDisableButton();
-        if (cart.selectedOption == 'Dine in') {
+      print("appSettingModel.table_order: ${localSetting!.table_order}");
+      if (cart.selectedOption == 'Dine in' && localSetting!.table_order == 1) {
+        if (simpleIntInput > 0) {
           if (cart.selectedTable.isNotEmpty) {
+            // Disable the button after it has been pressed
+            setState(() {
+              isButtonDisabled = true;
+            });
             await addToCart(cart);
             Navigator.of(context).pop();
           } else {
             openChooseTableDialog(cart);
           }
         } else {
-          await addToCart(cart);
-          Navigator.of(context).pop();
+          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
         }
+      } else if (cart.selectedOption == 'Dine in' && localSetting!.table_order == 1) {
+        // Disable the button after it has been pressed
+        setState(() {
+          isButtonDisabled = true;
+        });
+        await addToCart(cart);
+        Navigator.of(context).pop();
       } else {
-        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
+        // Disable the button after it has been pressed
+        setState(() {
+          isButtonDisabled = true;
+        });
+        await addToCart(cart);
+        Navigator.of(context).pop();
       }
     } else {
       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
@@ -993,6 +1015,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     final int? branch_id = prefs.getInt('branch_id');
     if (product.has_variant == 0) {
       List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
+      print("Stock type: ${data1[0].stock_type}");
       switch(data1[0].stock_type){
         case '1' :{
           if (widget.productDetail!.unit == 'each' ? int.parse(data1[0].daily_limit!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit!)

@@ -146,7 +146,7 @@ class QrOrder {
         borderRadius: BorderRadius.circular(8),
         padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
         onTap: (flushbar) {
-          flushbar.dismiss();
+          flushbar.dismiss(true);
         },
       )..show(context);
     } else {

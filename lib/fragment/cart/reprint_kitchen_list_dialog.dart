@@ -3,6 +3,8 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pos_system/main.dart';
+import 'package:pos_system/object/order_cache.dart';
 import 'package:provider/provider.dart';
 
 import '../../notifier/fail_print_notifier.dart';
@@ -12,16 +14,16 @@ import '../../object/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../translation/AppLocalizations.dart';
 
-class ReprintKitchenDialog extends StatefulWidget {
+class ReprintKitchenListDialog extends StatefulWidget {
   final List<Printer> printerList;
   final Function() callback;
-  const ReprintKitchenDialog({Key? key, required this.printerList, required this.callback}) : super(key: key);
+  const ReprintKitchenListDialog({Key? key, required this.printerList, required this.callback}) : super(key: key);
 
   @override
-  State<ReprintKitchenDialog> createState() => _ReprintKitchenDialogState();
+  State<ReprintKitchenListDialog> createState() => _ReprintKitchenListDialogState();
 }
 
-class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
+class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
   PrintReceipt printReceipt = PrintReceipt();
   List<OrderDetail> orderDetail = [], reprintList = [];
   List<Printer> printerList = [];
@@ -29,11 +31,31 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
   bool isButtonDisable = false;
   bool closeButtonDisable = false;
   bool isSelectAll = true;
+  Set<String> selectedOrder = {};
 
   @override
   void initState() {
     super.initState();
     printerList = widget.printerList;
+  }
+  
+  Map<String, List<OrderDetail>> groupOrder(List<OrderDetail> orderDetails) {
+    Map<String, List<OrderDetail>> groupedOrderDetails = {};
+    for (OrderDetail orderItem in orderDetails) {
+      String cardID = '';
+      if(getOrderNumber(orderItem) != '')
+        cardID = getOrderNumber(orderItem);
+      else if(getTableNumber(orderItem) != '')
+        cardID = getTableNumber(orderItem);
+      else
+        cardID = orderItem.order_cache_key.toString().replaceAll("[", "").replaceAll("]", "");
+      if (groupedOrderDetails.containsKey(cardID)) {
+        groupedOrderDetails[cardID]!.add(orderItem);
+      } else {
+        groupedOrderDetails[cardID] = [orderItem];
+      }
+    }
+    return groupedOrderDetails;
   }
 
   @override
@@ -80,55 +102,131 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
                 )
               ],
             ),
+
             content: Container(
-                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height/2),
-                width: 500,
-                child: orderDetail.isNotEmpty ?
-                ListView.builder(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.zero,
-                  itemCount: orderDetail.length,
-                  itemBuilder: (context, index) {
-                    return Card(
-                        elevation: 5,
-                        child: CheckboxListTile(
-                            isThreeLine: true,
-                            secondary: Text("x${orderDetail[index].quantity}"),
-                            title: Text("${orderDetail[index].productName}"),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height / 2),
+              width: 500,
+              child: orderDetail.isNotEmpty
+                  ? ListView.builder(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                itemCount: groupOrder(orderDetail).length,
+                itemBuilder: (context, groupIndex) {
+                  String cardID = groupOrder(orderDetail).keys.elementAt(groupIndex);
+                  List<OrderDetail> items = groupOrder(orderDetail)[cardID]!;
+
+                  bool isOrderSelected = isSelectAll ? true : selectedOrder.contains(cardID);
+                  if(isSelectAll)
+                    selectedOrder.add(cardID);
+                  return Card(
+                    elevation: 5,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ListTile(
+                          title: Row(
+                            children: [
+                              Checkbox(
+                                value: isOrderSelected,
+                                onChanged: (value) {
+                                  setState(() {
+                                    if (value != null) {
+                                      if (!value) {
+                                        selectedOrder.remove(cardID);
+                                        isSelectAll = false;
+                                        checkAllOrderItem(value, items);
+                                      } else {
+                                        selectedOrder.add(cardID);
+                                        checkAllOrderItem(value, items);
+                                      }
+                                    }
+                                  });
+                                },
+                              ),
+                              Text(items.first.orderQueue != '' ? "${AppLocalizations.of(context)!.translate('order_no')}: $cardID"
+                                  : items.first.tableNumber.toString() != '[]' ? "${AppLocalizations.of(context)!.translate('table_no')}: $cardID"
+                                  : "TakeAway/Delivery - ${items.first.created_at!.toString()}"),
+                            ],
+                          ),
+                          subtitle: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 15.0),
+                            child: Text(
+                              "${AppLocalizations.of(context)!.translate('item_count')}: ${items.length}",
+                              style: TextStyle(
+                                // Add your desired style properties here, for example:
+                                color: Colors.grey,
+                                fontSize: 14.0,
+                              ),
+                            ),
+                          ),
+                          onTap: () {
+                            setState(() {
+                              print("isOrderSelected: ${isOrderSelected}");
+                              if (isOrderSelected) {
+                                selectedOrder.remove(cardID);
+                                checkAllOrderItem(false, items);
+                              } else {
+                                selectedOrder.add(cardID);
+                                checkAllOrderItem(true, items);
+                                checkIsLastOrder();
+                              }
+                            });
+                          },
+                        ),
+                        if (isOrderSelected)
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Column(
                               children: [
-                                Visibility(
-                                    visible: getTableNumber(orderDetail[index]) != '' ? true : false,
-                                    child: Text("${AppLocalizations.of(context)!.translate('table_no')}: ${getTableNumber(orderDetail[index])}")),
-                                Visibility(
-                                    visible: getProductVariant(orderDetail[index]) != '' ? true : false,
-                                    child: Text(getProductVariant(orderDetail[index]))),
-                                Visibility(
-                                    visible: getModifier(orderDetail[index]) != '' ? true : false,
-                                    child: Text(getModifier(orderDetail[index]))),
-                                Visibility(
-                                    visible: getRemark(orderDetail[index]) != '' ? true : false,
-                                    child: Text(getRemark(orderDetail[index])))
+                                ...items.asMap().entries.map((entry) {
+                                  int itemIndex = entry.key;
+                                  OrderDetail item = entry.value;
+                                  return CheckboxListTile(
+                                    isThreeLine: true,
+                                    secondary: Text("x${item.quantity}"),
+                                    title: Text("${item.productName}"),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Visibility(
+                                          visible: getProductVariant(item) != '' ? true : false,
+                                          child: Text(getProductVariant(item)),
+                                        ),
+                                        Visibility(
+                                          visible: getModifier(item) != '' ? true : false,
+                                          child: Text(getModifier(item)),
+                                        ),
+                                        Visibility(
+                                          visible: getRemark(item) != '' ? true : false,
+                                          child: Text(getRemark(item)),
+                                        ),
+                                      ],
+                                    ),
+                                    value: item.isSelected,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        item.isSelected = value!;
+                                        checkIsLastOrder();
+                                        checkIsLastItem(items, cardID);
+                                      });
+                                    },
+                                  );
+                                }).toList(),
                               ],
                             ),
-                            value: orderDetail[index].isSelected,
-                            onChanged: (value){
-                              setState(() {
-                                orderDetail[index].isSelected = value!;
-                                checkIsLastOrder();
-                              });
-                            })
-                    );
-                  },
-                ) :
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.print_disabled),
-                    Text("${AppLocalizations.of(context)!.translate('no_fail_print_order_detail')}"),
-                  ],
-                )
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              )
+                  : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.print_disabled),
+                  Text("${AppLocalizations.of(context)!.translate('no_fail_print_order_detail')}"),
+                ],
+              ),
             ),
             actions: [
               SizedBox(
@@ -177,6 +275,37 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
     }
   }
 
+  checkIsLastItem(items, String cardID){
+    print("checkIsLastItem is called");
+    List<OrderDetail> selectedList = items.where((element) => element.isSelected == true).toList();
+    if(selectedList.isEmpty){
+      setState((){
+        isSelectAll = false;
+        selectedOrder.remove(cardID);
+      });
+    }
+  }
+
+  checkAllOrderItem(bool value, items){
+    print("checkAllOrderItem: ${value}");
+    if(value == false){
+      for(int i = 0; i < items.length; i++){
+        setState(() {
+          items[i].isSelected = false;
+          checkIsLastOrder();
+        });
+      }
+      disableButton();
+    } else {
+      for(int i = 0; i < items.length; i++){
+        setState(() {
+          items[i].isSelected = true;
+        });
+      }
+      enableButton();
+    }
+  }
+
   checkChange({bool? value}){
     if(value == false){
       setState(() {
@@ -197,6 +326,7 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
     for(int i = 0; i < orderDetail.length; i++){
       orderDetail[i].isSelected = false;
     }
+    selectedOrder = {};
   }
 
   resetOrderDetail(){
@@ -298,6 +428,16 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
       result = '';
     }
     return result;
+  }
+
+  String getOrderNumber(OrderDetail orderDetail){
+    String orderNumber = "";
+    try{
+      orderNumber = orderDetail.orderQueue.toString().replaceAll("[", "").replaceAll("]", "");
+    }catch(e){
+      orderNumber = "-";
+    }
+    return orderNumber;
   }
 
   String getTableNumber(OrderDetail orderDetail){

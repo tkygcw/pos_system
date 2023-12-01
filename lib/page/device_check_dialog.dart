@@ -59,6 +59,9 @@ class _DeviceCheckDialogState extends State<DeviceCheckDialog> {
                           padding: const EdgeInsets.all(8.0),
                           child: TextField(
                             //inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
+                            onSubmitted: (input) {
+                              _submit(context);
+                            },
                             controller: adminPosPinController,
                             decoration: InputDecoration(
                               labelText: AppLocalizations.of(context)!.translate('yes'),

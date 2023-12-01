@@ -434,6 +434,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  flash:
+    dependency: "direct main"
+    description:
+      name: flash
+      sha256: "1f1632d83f42fe0b9038f72694969a6adf52fa2a3df46d05cfc392dde3c1505f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.5+2"
   flutter:
     dependency: "direct main"
     description: flutter

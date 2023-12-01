@@ -114,6 +114,7 @@ class OrderDetail{
   List<OrderDetail> categoryOrderDetailList = [];
   bool isSelected = true;
   List<String> tableNumber = [];
+  String? orderQueue = '';
 
   OrderDetail(
       {this.order_detail_sqlite_id,

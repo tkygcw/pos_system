@@ -240,6 +240,8 @@ class _logout_dialogState extends State<logout_dialog> {
     PosDatabase.instance.clearAllPrinterCategory();
     //clear checklist layout
     PosDatabase.instance.clearAllChecklist();
+    //clear kitchen list layout
+    PosDatabase.instance.clearAllKitchenList();
   }
 
   Future<String> get _localPath async {

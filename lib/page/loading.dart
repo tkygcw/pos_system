@@ -16,6 +16,7 @@ import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/categories.dart';
+import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/modifier_link_product.dart';
@@ -89,8 +90,10 @@ class _LoadingPageState extends State<LoadingPage> {
 
   startLoad() async {
     try{
+      await getAppSettingCloud();
       await createDeviceLogin();
       await getAllChecklist();
+      await getAllKitchenList();
       await _createProductImgFolder();
       await getAllUser();
       await getAllSettlement();
@@ -113,7 +116,7 @@ class _LoadingPageState extends State<LoadingPage> {
       await getTransferOwner();
       await clearCloudSyncRecord();
       await getAllReceipt();
-      await getAppSettingCloud();
+
     } catch (e) {
       Navigator.of(context).pushAndRemoveUntil(
         // the new route
@@ -169,7 +172,7 @@ class _LoadingPageState extends State<LoadingPage> {
         getAppSettingLocal();
       }
     } catch(e) {
-      print("App Setting: Sync from cloud fail: $e");
+      print("App Setting: Sync from cloud fail1: $e");
     }
   }
 
@@ -189,7 +192,7 @@ class _LoadingPageState extends State<LoadingPage> {
         AppSetting appSetting = AppSetting(
           branch_id: branch_id.toString(),
           open_cash_drawer: 1,
-          show_second_display: notificationModel.hasSecondScreen ? 1 : 0,
+          show_second_display: 0,
           direct_payment: 0,
           print_checklist: 1,
           show_sku: 0,
@@ -271,6 +274,22 @@ class _LoadingPageState extends State<LoadingPage> {
     }
   }
 
+  getAllKitchenList() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      Map response = await Domain().getKitchenList(branch_id.toString());
+      if (response['status'] == '1') {
+        List responseJson = response['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          KitchenList insertData = await PosDatabase.instance.insertKitchenList(KitchenList.fromJson(responseJson[i]));
+        }
+      }
+    } catch (e) {
+      print("get all kitchen list error: ${e}");
+    }
+  }
+
   getAllReceipt() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -285,7 +304,9 @@ class _LoadingPageState extends State<LoadingPage> {
         await createReceiptLayout80();
         await createReceiptLayout58();
       }
-    } catch (e) {}
+    } catch (e) {
+      print("getAllReceipt error: ${e}");
+    }
   }
 
   createReceiptLayout80() async {
@@ -511,31 +532,36 @@ class _LoadingPageState extends State<LoadingPage> {
   save printer to local database
 */
 getAllPrinter() async {
-  final prefs = await SharedPreferences.getInstance();
-  final int? branch_id = prefs.getInt('branch_id');
-  Map data = await Domain().getPrinter(branch_id.toString());
-  if (data['status'] == '1') {
-    List responseJson = data['printer'];
-    for (var i = 0; i < responseJson.length; i++) {
-      Printer printerItem = Printer.fromJson(responseJson[i]);
-      Printer data = await PosDatabase.instance.insertPrinter(Printer(
-          printer_id: printerItem.printer_id,
-          printer_key: printerItem.printer_key,
-          branch_id: printerItem.branch_id,
-          company_id: printerItem.company_id,
-          printer_link_category_id: '',
-          value: printerItem.value,
-          type: printerItem.type,
-          printer_label: printerItem.printer_label,
-          paper_size: printerItem.paper_size,
-          printer_status: printerItem.printer_status,
-          is_counter: printerItem.is_counter,
-          sync_status: 1,
-          created_at: printerItem.created_at,
-          updated_at: printerItem.updated_at,
-          soft_delete: printerItem.soft_delete));
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    Map data = await Domain().getPrinter(branch_id.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['printer'];
+      for (var i = 0; i < responseJson.length; i++) {
+        Printer printerItem = Printer.fromJson(responseJson[i]);
+        Printer data = await PosDatabase.instance.insertPrinter(Printer(
+            printer_id: printerItem.printer_id,
+            printer_key: printerItem.printer_key,
+            branch_id: printerItem.branch_id,
+            company_id: printerItem.company_id,
+            printer_link_category_id: '',
+            value: printerItem.value,
+            type: printerItem.type,
+            printer_label: printerItem.printer_label,
+            paper_size: printerItem.paper_size,
+            printer_status: printerItem.printer_status,
+            is_counter: printerItem.is_counter,
+            is_label: printerItem.is_label,
+            sync_status: 1,
+            created_at: printerItem.created_at,
+            updated_at: printerItem.updated_at,
+            soft_delete: printerItem.soft_delete));
+      }
+      getAllPrinterLinkCategory();
     }
-    getAllPrinterLinkCategory();
+  } catch(e) {
+    print("getAllPrinter error: ${e}");
   }
 }
 
@@ -1279,7 +1305,7 @@ getAllOrderCache() async {
     for (var i = 0; i < responseJson.length; i++) {
       OrderCache cloudData = OrderCache.fromJson(responseJson[i]);
       if (cloudData.table_use_key != '' && cloudData.table_use_key != null) {
-        // print("table use key: ${cloudData.table_use_key}");
+        print("table use key: ${cloudData.table_use_key}");
         TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(cloudData.table_use_key!);
         tableUseLocalId = tableUseData!.table_use_sqlite_id.toString();
       } else {
@@ -1463,33 +1489,37 @@ getSale() async {
   save cash record to database
 */
 getCashRecord() async {
-  final prefs = await SharedPreferences.getInstance();
-  final int? branch_id = prefs.getInt('branch_id');
-  final String? user = prefs.getString('user');
-  Map userObject = json.decode(user!);
-  Map data = await Domain().getCashRecord(userObject['company_id'], branch_id.toString());
-  if (data['status'] == '1') {
-    List responseJson = data['data'];
-    for (var i = 0; i < responseJson.length; i++) {
-      CashRecord data = await PosDatabase.instance.insertCashRecord(CashRecord(
-        cash_record_id: responseJson[i]['cash_record_id'],
-        cash_record_key: responseJson[i]['cash_record_key'],
-        company_id: responseJson[i]['company_id'],
-        branch_id: responseJson[i]['branch_id'],
-        remark: responseJson[i]['remark'],
-        payment_name: responseJson[i]['payment_name'],
-        payment_type_id: responseJson[i]['payment_type_id'],
-        type: responseJson[i]['type'],
-        amount: responseJson[i]['amount'],
-        user_id: responseJson[i]['user_id'],
-        settlement_key: responseJson[i]['settlement_key'],
-        settlement_date: responseJson[i]['settlement_date'],
-        sync_status: 1,
-        created_at: responseJson[i]['created_at'],
-        updated_at: responseJson[i]['updated_at'],
-        soft_delete: responseJson[i]['soft_delete'],
-      ));
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    Map data = await Domain().getCashRecord(userObject['company_id'], branch_id.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        CashRecord data = await PosDatabase.instance.insertCashRecord(CashRecord(
+          cash_record_id: responseJson[i]['cash_record_id'],
+          cash_record_key: responseJson[i]['cash_record_key'],
+          company_id: responseJson[i]['company_id'],
+          branch_id: responseJson[i]['branch_id'],
+          remark: responseJson[i]['remark'],
+          payment_name: responseJson[i]['payment_name'],
+          payment_type_id: responseJson[i]['payment_type_id'],
+          type: responseJson[i]['type'],
+          amount: responseJson[i]['amount'],
+          user_id: responseJson[i]['user_id'],
+          settlement_key: responseJson[i]['settlement_key'],
+          settlement_date: responseJson[i]['settlement_date'],
+          sync_status: 1,
+          created_at: responseJson[i]['created_at'],
+          updated_at: responseJson[i]['updated_at'],
+          soft_delete: responseJson[i]['soft_delete'],
+        ));
+      }
     }
+  } catch(e) {
+    print("getCashRecord error: ${e}");
   }
 }
 

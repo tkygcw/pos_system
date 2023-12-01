@@ -1146,6 +1146,7 @@ class _TableMenuState extends State<TableMenu> {
                   }
                   else if (action == 'on_double_tap') {
                     openChangeTableDialog(tableList[i], cart);
+                  }
                 },
               )
           ],

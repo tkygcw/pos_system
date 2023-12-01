@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -46,6 +47,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
   List<PaymentLinkCompany> PaymentLists = [];
   Order? order;
   bool isload = false, isLogOut = false, willPop = true, isButtonDisable = false;
+  bool canPop = true;
 
   @override
   void initState() {
@@ -176,13 +178,17 @@ class _PaymentSelectState extends State<PaymentSelect> {
               actions: [
                 ElevatedButton(
                     onPressed: isButtonDisable ? null : (){
-                      setState(() {
-                        isButtonDisable = true;
-                      });
                       if(widget.callBack != null){
                         widget.callBack!();
                       }
-                      Navigator.of(context).pop();
+                      if (canPop) {
+                        Navigator.of(context).pop();
+                        canPop = false;
+                        Future.delayed(Duration(milliseconds: 500), () {
+                          canPop = true;
+                        });
+                      }
+                      // Navigator.of(context).pop();
                     },
                     child: Text(AppLocalizations.of(context)!.translate('close')))
               ],
@@ -297,13 +303,16 @@ class _PaymentSelectState extends State<PaymentSelect> {
                 actions: [
                   ElevatedButton(
                       onPressed: isButtonDisable ? null : (){
-                        setState(() {
-                          isButtonDisable = true;
-                        });
                         if(widget.callBack != null){
                           widget.callBack!();
                         }
-                        Navigator.of(context).pop();
+                        if (canPop) {
+                          Navigator.of(context).pop();
+                          canPop = false;
+                          Future.delayed(Duration(milliseconds: 500), () {
+                            canPop = true;
+                          });
+                        }
                       },
                       child: Text(AppLocalizations.of(context)!.translate('close')))
                 ],
