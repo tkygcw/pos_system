@@ -8,7 +8,6 @@ import 'package:presentation_displays/secondary_display.dart';
 import '../object/cart_product.dart';
 import '../object/second_display_data.dart';
 import '../object/variant_group.dart';
-import '../utils/Utils.dart';
 
 class SecondDisplay extends StatefulWidget {
   const SecondDisplay({Key? key}) : super(key: key);

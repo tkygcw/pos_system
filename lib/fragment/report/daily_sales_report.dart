@@ -32,7 +32,6 @@ class _DailySalesReportState extends State<DailySalesReport> {
   String currentStDate = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
   String currentEdDate = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
   String dateTimeNow = '';
-  String _range = '';
   bool isLoaded = false;
   List<String> settlementStringList = [], paymentStringList = [], settlementPaymentStringList = [];
   List<Settlement> settlementList = [];

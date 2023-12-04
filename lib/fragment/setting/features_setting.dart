@@ -2,10 +2,7 @@ import 'dart:async';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:intl/intl.dart';
 import 'package:pos_system/controller/controllerObject.dart';
-import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/logout_dialog.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/object/app_setting.dart';

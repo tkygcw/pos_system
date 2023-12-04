@@ -44,7 +44,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   late Stream actionStream;
   late StreamSubscription actionSubscription;
   late CartModel cart;
-  late AppSettingModel _appSettingModel;
   Categories? categories;
   String branchLinkProduct_id = '';
   String basePrice = '', finalPrice = '';
@@ -225,6 +224,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
+                                            color: dialogStock == '0' ? Colors.red : Colors.black
                                           )),
                                     )
 
@@ -764,7 +764,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     await checkProductStock(widget.productDetail!, cart);
     if (hasStock) {
       print("appSettingModel.table_order: ${localSetting!.table_order}");
-      if (cart.selectedOption == 'Dine in' && localSetting!.table_order == 1) {
+      if (cart.selectedOption == 'Dine in' && localSetting.table_order == 1) {
         if (simpleIntInput > 0) {
           if (cart.selectedTable.isNotEmpty) {
             // Disable the button after it has been pressed
@@ -779,7 +779,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         } else {
           Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
         }
-      } else if (cart.selectedOption == 'Dine in' && localSetting!.table_order == 1) {
+      } else if (cart.selectedOption == 'Dine in' && localSetting.table_order == 1) {
         // Disable the button after it has been pressed
         setState(() {
           isButtonDisabled = true;

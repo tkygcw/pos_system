@@ -2,9 +2,6 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:pos_system/main.dart';
-import 'package:pos_system/object/order_cache.dart';
 import 'package:provider/provider.dart';
 
 import '../../notifier/fail_print_notifier.dart';

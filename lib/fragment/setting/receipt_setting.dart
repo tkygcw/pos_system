@@ -12,7 +12,6 @@ import 'package:provider/provider.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/receipt.dart';
 import '../../translation/AppLocalizations.dart';
-import '../../main.dart';
 import '../../controller/controllerObject.dart';
 import '../../object/app_setting.dart';
 import '../../notifier/app_setting_notifier.dart';
@@ -37,7 +36,6 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
   bool printCheckList = false,
       enableNumbering = false;
   int startingNumber = 0, compareStartingNumber = 0;
-  bool _isLoaded = false;
 
   @override
   void initState() {

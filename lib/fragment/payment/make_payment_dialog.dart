@@ -7,6 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/payment/ipay_api.dart';
 import 'package:pos_system/fragment/payment/payment_success_dialog.dart';
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/app_setting.dart';
@@ -64,6 +65,7 @@ class _MakePaymentState extends State<MakePayment> {
   final inputController = TextEditingController();
   final ScrollController _controller = ScrollController();
   late StreamController streamController;
+  late AppSettingModel _appSettingModel;
 
   // var type ="0";
   var userInput = '0.00';
@@ -229,7 +231,9 @@ class _MakePaymentState extends State<MakePayment> {
     }
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
-        return Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+        return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
+          _appSettingModel = appSettingModel;
+          return Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
           getReceiptPaymentDetail(cart);
           //getSubTotal(cart);
           getCartItemList(cart);
@@ -284,7 +288,9 @@ class _MakePaymentState extends State<MakePayment> {
                                     Container(
                                       margin: EdgeInsets.only(bottom: 20),
                                       alignment: Alignment.center,
-                                      child: Text(AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
+                                      // child: Text(AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
+                                      child: Text(_appSettingModel.table_order != 1 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                          : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
                                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                                     ),
                                     Card(
@@ -771,7 +777,8 @@ class _MakePaymentState extends State<MakePayment> {
                                   Container(
                                     alignment: Alignment.center,
                                     child: Text(
-                                        AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
+                                        _appSettingModel.table_order != 1 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                            : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 24)),
@@ -1154,6 +1161,7 @@ class _MakePaymentState extends State<MakePayment> {
             }
           });
         });
+        });
       });
     });
   }
@@ -1290,6 +1298,25 @@ class _MakePaymentState extends State<MakePayment> {
     return (double.parse(productItem.price!) * productItem.quantity!).toStringAsFixed(2);
   }
 
+/*
+  get order number
+*/
+  getOrderNumber(CartModel cart, AppSettingModel appSettingModel) {
+    String? orderQueue = '';
+    List<String> result = [];
+    if(cart.cartNotifierItem.isNotEmpty) {
+      for(int i = 0; i < cart.cartNotifierItem.length; i++) {
+        if(cart.cartNotifierItem[i].order_queue != '' && cart.cartNotifierItem[i].order_queue != null)
+          orderQueue = cart.cartNotifierItem[i].order_queue;
+      }
+      if(orderQueue != '')
+        return orderQueue;
+      else
+        return 'N/A';
+    } else {
+      return 'N/A';
+    }
+  }
 
 /*
   get selected table
@@ -1538,7 +1565,6 @@ class _MakePaymentState extends State<MakePayment> {
   Future<int> readQueueFromOrderCache() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
       List<OrderCache> orderCacheList = await PosDatabase.instance.readSpecificOrderCache(orderCacheSqliteId);
       int orderQueue = 0;
       orderQueue = orderCacheList[0].order_queue! != '' ? int.parse(orderCacheList[0].order_queue!) : -1;
@@ -1569,7 +1595,7 @@ class _MakePaymentState extends State<MakePayment> {
             order_id: 0,
             order_number: orderNum.toString().padLeft(5, '0'),
             // order_queue: localSetting!.enable_numbering == 1 ? orderQueue.toString().padLeft(4, '0') : '',
-            order_queue: localSetting!.enable_numbering == 1 && orderQueue != -1 ? orderQueue.toString().padLeft(4, '0') : '',
+            order_queue: localSetting.enable_numbering == 1 && orderQueue != -1 ? orderQueue.toString().padLeft(4, '0') : '',
             company_id: logInUser['company_id'].toString(),
             branch_id: branch_id.toString(),
             customer_id: '',

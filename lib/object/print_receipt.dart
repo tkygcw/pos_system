@@ -6,7 +6,6 @@ import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/checklist.dart';
 import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/printer.dart';
@@ -789,7 +788,6 @@ class PrintReceipt{
     bool printCombinedKitchenList = false;
     try{
       final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
       KitchenList? kitchenListLayout58mm = await PosDatabase.instance.readSpecificKitchenList('58');
       KitchenList? kitchenListLayout80mm = await PosDatabase.instance.readSpecificKitchenList('80');
       List<OrderDetail>? failedPrintOrderDetail;
@@ -825,9 +823,9 @@ class PrintReceipt{
                       final printer = NetworkPrinter(PaperSize.mm80, profile);
                       final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                       if (res == PosPrintResult.success) {
-                        if(kitchenListLayout80mm == null || kitchenListLayout80mm!.print_combine_kitchen_list == 0 || orderDetail.length == 1)
+                        if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetail.length == 1)
                           await ReceiptLayout().printKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetail[k]);
-                        else if(kitchenListLayout80mm!.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                        else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                           await ReceiptLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: orderDetail);
                           printCombinedKitchenList = true;
                         }
@@ -841,9 +839,9 @@ class PrintReceipt{
                       final printer = NetworkPrinter(PaperSize.mm58, profile);
                       final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                       if (res == PosPrintResult.success) {
-                        if(kitchenListLayout58mm == null || kitchenListLayout58mm!.print_combine_kitchen_list == 0 || orderDetail.length == 1)
+                        if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetail.length == 1)
                           await ReceiptLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetail[k]);
-                        else if(kitchenListLayout58mm!.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                        else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                           await ReceiptLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: orderDetail);
                           printCombinedKitchenList = true;
                         }
@@ -878,9 +876,9 @@ class PrintReceipt{
                     //print USB
                     if (printerList[i].paper_size == 0) {
                       var data;
-                      if(kitchenListLayout80mm == null || kitchenListLayout80mm!.print_combine_kitchen_list == 0 || orderDetail.length == 1)
+                      if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetail.length == 1)
                         data = Uint8List.fromList(await ReceiptLayout().printKitchenList80mm(true, orderCacheLocalId, orderDetail: orderDetail[k]));
-                      else if(kitchenListLayout80mm!.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                      else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                         data = Uint8List.fromList(await ReceiptLayout().printCombinedKitchenList80mm(true, orderCacheLocalId, orderDetailList: orderDetail));
                         printCombinedKitchenList = true;
                       }
@@ -893,9 +891,9 @@ class PrintReceipt{
                     } else if (printerList[i].paper_size == 1) {
                       //print USB 58mm
                       var data;
-                      if(kitchenListLayout58mm == null || kitchenListLayout58mm!.print_combine_kitchen_list == 0 || orderDetail.length == 1)
+                      if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetail.length == 1)
                         data = Uint8List.fromList(await ReceiptLayout().printKitchenList58mm(true, orderCacheLocalId, orderDetail: orderDetail[k]));
-                      else if(kitchenListLayout58mm!.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                      else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                         data = Uint8List.fromList(await ReceiptLayout().printCombinedKitchenList58mm(true, orderCacheLocalId, orderDetailList: orderDetail));
                         printCombinedKitchenList = true;
                       }
@@ -977,9 +975,9 @@ class PrintReceipt{
                       final printer = NetworkPrinter(PaperSize.mm80, profile);
                       final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                       if (res == PosPrintResult.success) {
-                        if(kitchenListLayout80mm == null || kitchenListLayout80mm!.print_combine_kitchen_list == 0 || reprintList.length == 1){
+                        if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || reprintList.length == 1){
                           await ReceiptLayout().printKitchenList80mm(false, int.parse(reprintList[k].order_cache_sqlite_id!), value: printer, orderDetail: reprintList[k]);
-                        } else if(kitchenListLayout80mm!.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                        } else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                           List<String> distinctTableNumbers = [];
                           List<String> distinctOrderNumbers = [];
                           List<String> distinctDateTime = [];
@@ -1024,7 +1022,7 @@ class PrintReceipt{
                             for (String tableNumberFiltered in distinctTableNumbers) {
                               print("tableNumberFiltered: ${tableNumberFiltered}");
                               List<OrderDetail> filteredOrders = [];
-                              filteredOrders.addAll(reprintList.where((orderDetail) => orderDetail.tableNumber.toString().replaceAll('[', '')?.replaceAll(']', '') == tableNumberFiltered).toList());
+                              filteredOrders.addAll(reprintList.where((orderDetail) => orderDetail.tableNumber.toString().replaceAll('[', '').replaceAll(']', '') == tableNumberFiltered).toList());
                               if(filteredOrders.length > 1) {
                                 await ReceiptLayout().printCombinedKitchenList80mm(
                                   false,
@@ -1035,7 +1033,7 @@ class PrintReceipt{
                               } else {
                                 await ReceiptLayout().printKitchenList80mm(false, int.parse(filteredOrders.first.order_cache_sqlite_id!), value: printer, orderDetail: filteredOrders[0]);
                               }
-                              reprintList.removeWhere((orderDetail) => orderDetail.tableNumber.toString().replaceAll('[', '')?.replaceAll(']', '') == tableNumberFiltered);
+                              reprintList.removeWhere((orderDetail) => orderDetail.tableNumber.toString().replaceAll('[', '').replaceAll(']', '') == tableNumberFiltered);
                             }
                           }
 
@@ -1072,9 +1070,9 @@ class PrintReceipt{
                       final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
 
                       if (res == PosPrintResult.success) {
-                        if(kitchenListLayout58mm == null || kitchenListLayout58mm!.print_combine_kitchen_list == 0 || reprintList.length == 1){
+                        if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || reprintList.length == 1){
                           await ReceiptLayout().printKitchenList58mm(false, int.parse(reprintList[k].order_cache_sqlite_id!), value: printer, orderDetail: reprintList[k]);
-                        } else if(kitchenListLayout58mm!.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                        } else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
                           List<String> distinctTableNumbers = [];
                           List<String> distinctOrderNumbers = [];
                           List<String> distinctDateTime = [];
@@ -1119,7 +1117,7 @@ class PrintReceipt{
                             for (String tableNumberFiltered in distinctTableNumbers) {
                               print("tableNumberFiltered: ${tableNumberFiltered}");
                               List<OrderDetail> filteredOrders = [];
-                              filteredOrders.addAll(reprintList.where((orderDetail) => orderDetail.tableNumber.toString().replaceAll('[', '')?.replaceAll(']', '') == tableNumberFiltered).toList());
+                              filteredOrders.addAll(reprintList.where((orderDetail) => orderDetail.tableNumber.toString().replaceAll('[', '').replaceAll(']', '') == tableNumberFiltered).toList());
                               if(filteredOrders.length > 1) {
                                 await ReceiptLayout().printCombinedKitchenList58mm(
                                   false,
@@ -1130,7 +1128,7 @@ class PrintReceipt{
                               } else {
                                 await ReceiptLayout().printKitchenList58mm(false, int.parse(filteredOrders.first.order_cache_sqlite_id!), value: printer, orderDetail: filteredOrders[0]);
                               }
-                              reprintList.removeWhere((orderDetail) => orderDetail.tableNumber.toString().replaceAll('[', '')?.replaceAll(']', '') == tableNumberFiltered);
+                              reprintList.removeWhere((orderDetail) => orderDetail.tableNumber.toString().replaceAll('[', '').replaceAll(']', '') == tableNumberFiltered);
                             }
                           }
 

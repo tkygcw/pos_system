@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/object/cart_payment.dart';
 import 'package:pos_system/object/cart_product.dart';
+import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,6 +16,7 @@ class CartModel extends ChangeNotifier {
   List<Promotion> autoPromotion = [];
   Promotion? selectedPromotion ;
   List<PosTable> selectedTable = [];
+  List<OrderCache> selectedOrderQueue = [];
   String selectedOption = '';
   String selectedOptionId = '';
   bool isInit = false;
@@ -91,6 +93,7 @@ class CartModel extends ChangeNotifier {
   }
 
   void addAllItem({required List<cartProductItem> cartItemList}) {
+    print('addAllItem called');
     cartNotifierItem = cartItemList;
     notifyListeners();
   }
@@ -142,6 +145,11 @@ class CartModel extends ChangeNotifier {
         break;
       }
     }
+    notifyListeners();
+  }
+
+  void addOrder(OrderCache orderCache){
+    selectedOrderQueue.add(orderCache);
     notifyListeners();
   }
 

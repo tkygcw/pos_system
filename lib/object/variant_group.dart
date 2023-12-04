@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:pos_system/object/variant_item.dart';
 

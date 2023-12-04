@@ -20,7 +20,6 @@ import '../../notifier/theme_color.dart';
 import '../../object/cash_record.dart';
 import '../../page/pos_pin.dart';
 import '../../translation/AppLocalizations.dart';
-import '../multi_device/multi_device.dart';
 import 'data_process_setting.dart';
 
 class SettingMenu extends StatefulWidget {

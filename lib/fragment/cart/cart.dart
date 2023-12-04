@@ -4,7 +4,6 @@ import 'dart:math';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:another_flushbar/flushbar.dart';
-import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
@@ -14,7 +13,6 @@ import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/cart/promotion_dialog.dart';
 import 'package:pos_system/fragment/cart/remove_cart_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_dialog.dart';
-import 'package:pos_system/fragment/cart/reprint_kitchen_dialog.dart';
 import 'package:pos_system/fragment/cart/reprint_kitchen_list_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
@@ -107,6 +105,7 @@ class CartPageState extends State<CartPage> {
       promoRate = '',
       localTableUseId = '',
       orderCacheId = '',
+      orderNumber = '',
       allPromo = '',
       finalAmount = '',
       localOrderId = '';
@@ -1128,6 +1127,7 @@ class CartPageState extends State<CartPage> {
     for(int i = 0; i < cart.cartNotifierItem.length; i++){
       cart.cartNotifierItem[i].order_cache_sqlite_id = orderCacheId;
       cart.cartNotifierItem[i].order_cache_key = orderCacheKey;
+      cart.cartNotifierItem[i].order_queue = orderNumber;
     }
   }
 
@@ -1904,7 +1904,6 @@ class CartPageState extends State<CartPage> {
 
   getDiningTax(CartModel cart) async {
     final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
     try {
       //get dining option data
       List<DiningOption> data = await PosDatabase.instance.checkSelectedOption(cart.selectedOption);
@@ -2743,6 +2742,7 @@ class CartPageState extends State<CartPage> {
   // }
 
   createOrderCache(CartModel cart, {required bool isAddOrder}) async {
+    print("createOrderCache called");
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
 
@@ -2752,7 +2752,7 @@ class CartPageState extends State<CartPage> {
     final String? loginUser = prefs.getString('user');
 
     AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
-    int orderQueue = localSetting!.enable_numbering == 1 && ((localSetting!.table_order == 1 && cart.selectedOption != 'Dine in') ||  localSetting!.table_order == 0) ? await generateOrderQueue() : -1;
+    int orderQueue = localSetting!.enable_numbering == 1 && ((localSetting.table_order == 1 && cart.selectedOption != 'Dine in') ||  localSetting.table_order == 0) ? await generateOrderQueue() : -1;
 
     List<TableUse> _tableUse = [];
     List<String> _value = [];
@@ -2767,7 +2767,7 @@ class CartPageState extends State<CartPage> {
         batch = await batchChecking();
       }
       //check selected table is in use or not
-      if (cart.selectedOption == 'Dine in' && localSetting!.table_order == 1) {
+      if (cart.selectedOption == 'Dine in' && localSetting.table_order == 1) {
         for (int i = 0; i < cart.selectedTable.length; i++) {
           List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
           if (useDetail.isNotEmpty) {
@@ -2788,8 +2788,8 @@ class CartPageState extends State<CartPage> {
             company_id: loginUserObject['company_id'].toString(),
             branch_id: branch_id.toString(),
             order_detail_id: '',
-            table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting!.table_order == 1 ? _tableUseId : '',
-            table_use_key: cart.selectedOption == 'Dine in' && localSetting!.table_order == 1 ? _tableUse[0].table_use_key : '',
+            table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting.table_order == 1 ? _tableUseId : '',
+            table_use_key: cart.selectedOption == 'Dine in' && localSetting.table_order == 1 ? _tableUse[0].table_use_key : '',
             batch_id: batch.toString().padLeft(6, '0'),
             dining_id: this.diningOptionID.toString(),
             order_sqlite_id: '',
@@ -2809,6 +2809,7 @@ class CartPageState extends State<CartPage> {
             updated_at: '',
             soft_delete: ''));
         orderCacheId = data.order_cache_sqlite_id.toString();
+        orderNumber = data.order_queue.toString();
         OrderCache updatedCache = await insertOrderCacheKey(data, dateTime);
         if (updatedCache.sync_status == 0 && isAddOrder == false) {
           //sync updated table use (with order cache key)
@@ -2818,6 +2819,7 @@ class CartPageState extends State<CartPage> {
         order_cache_value = _value.toString();
         //sync to cloud
         //syncOrderCacheToCloud(updatedCache);
+        cart.addOrder(data);
       }
     } catch (e) {
       print('createOrderCache error: ${e}');
@@ -2858,14 +2860,15 @@ class CartPageState extends State<CartPage> {
     // not yet make settlement
     if(orderList[0].settlement_key! == '') {
       if(int.tryParse(orderCacheList[0].order_queue!) == null || int.parse(orderCacheList[0].order_queue!) >= 9999) {
-        orderQueue = localSetting!.starting_number!;
+        orderQueue = localSetting.starting_number!;
       }
       else {
         orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
       }
     } else {
-      orderQueue = localSetting!.starting_number!;
+      orderQueue = localSetting.starting_number!;
     }
+
     return orderQueue;
   }
 
@@ -3327,7 +3330,6 @@ class CartPageState extends State<CartPage> {
   }
   readAllOrderCache() async {
     final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
     List<OrderCache> data = await PosDatabase.instance.readAllOrderCache();
     orderCacheList = data;
   }

@@ -1,13 +1,10 @@
 import 'dart:convert';
 
 import 'package:esc_pos_utils/esc_pos_utils.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:imin/imin.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
-import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/cash_record.dart';
@@ -592,7 +589,7 @@ class ReceiptLayout{
                 height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
         PosColumn(
-            text: 'Product 1${kitchen_list != null && kitchen_list!.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
+            text: 'Product 1${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -610,7 +607,7 @@ class ReceiptLayout{
                 width: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
       ]);
 
-      if(kitchen_list != null && kitchen_list!.print_combine_kitchen_list == 1) {
+      if(kitchen_list != null && kitchen_list.print_combine_kitchen_list == 1) {
         bytes += generator.emptyLines(1);
         bytes += generator.row([
           PosColumn(text: '1',
@@ -620,7 +617,7 @@ class ReceiptLayout{
                   height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
           PosColumn(
-              text: 'Product 2${kitchen_list != null && kitchen_list!.kitchen_list_show_price == 1 ? '(RM8.80)' : '' }',
+              text: 'Product 2${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM8.80)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -646,7 +643,7 @@ class ReceiptLayout{
                   height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
           PosColumn(
-              text: 'Product 3${kitchen_list != null && kitchen_list!.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
+              text: 'Product 3${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -714,7 +711,7 @@ class ReceiptLayout{
                 width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
         ),
         PosColumn(
-            text: 'Product 1${kitchen_list != null && kitchen_list!.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
+            text: 'Product 1${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -733,7 +730,7 @@ class ReceiptLayout{
         ),
       ]);
 
-      if(kitchen_list != null && kitchen_list!.print_combine_kitchen_list == 1) {
+      if(kitchen_list != null && kitchen_list.print_combine_kitchen_list == 1) {
         bytes += generator.emptyLines(1);
         bytes += generator.row([
           PosColumn(
@@ -745,7 +742,7 @@ class ReceiptLayout{
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
           ),
           PosColumn(
-              text: 'Product 2${kitchen_list != null && kitchen_list!.kitchen_list_show_price == 1 ? '(RM9.90)' : '' }',
+              text: 'Product 2${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM9.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -774,7 +771,7 @@ class ReceiptLayout{
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
           ),
           PosColumn(
-              text: 'Product 3${kitchen_list != null && kitchen_list!.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
+              text: 'Product 3${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -2878,7 +2875,7 @@ class ReceiptLayout{
                 height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
                 width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
           PosColumn(
-              text: '${cartItem.product_name}${kitchenListLayout != null && kitchenListLayout!.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
+              text: '${cartItem.product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -3024,7 +3021,7 @@ class ReceiptLayout{
                 height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
                 width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
           PosColumn(
-              text: '${cartItem.product_name}${kitchenListLayout != null && kitchenListLayout!.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
+              text: '${cartItem.product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
               width: 9,
               containsChinese: true,
               styles: PosStyles(
@@ -3169,7 +3166,7 @@ class ReceiptLayout{
                     height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
                     width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
             PosColumn(
-                text: '${cartItemList[i].product_name}${kitchenListLayout != null && kitchenListLayout!.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
+                text: '${cartItemList[i].product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
                 width: 10, containsChinese: true,
                 styles: PosStyles(
                     align: PosAlign.left,
@@ -3310,7 +3307,7 @@ class ReceiptLayout{
                     height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
                     width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
             PosColumn(
-                text: '${cartItemList[i].product_name}${kitchenListLayout != null && kitchenListLayout!.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
+                text: '${cartItemList[i].product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
                 width: 9,
                 containsChinese: true,
                 styles: PosStyles(
@@ -3416,7 +3413,7 @@ class ReceiptLayout{
         commands.add('DIRECTION 1\n');
         commands.add('CLS\n');
         if(receiptLayout!.header_text != '')
-          commands.add('TEXT ${leftPadding},15,"2",0,1,1,"${receiptLayout!.header_text!.length > 12 ? receiptLayout!.header_text!.substring(0, 12) : receiptLayout!.header_text}"\n');
+          commands.add('TEXT ${leftPadding},15,"2",0,1,1,"${receiptLayout.header_text!.length > 12 ? receiptLayout.header_text!.substring(0, 12) : receiptLayout.header_text}"\n');
         if(int.tryParse(this.orderCache!.order_queue!) != null)
           commands.add('TEXT 210,15,"2",0,1,1,"${this.orderCache!.order_queue!}"\n');
 
@@ -4443,15 +4440,9 @@ class ReceiptLayout{
 */
   readOrderCache(int orderCacheId) async {
     final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
     OrderCache cacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheId);
     orderCache = cacheData;
-    // if(orderCacheId != null){
-    //
-    // } else {
-    //   // List<OrderCache> data = await PosDatabase.instance.readBranchLatestOrderCache(branch_id!);
-    //   // orderCache = data[0];
-    // }
+
     List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCache!.order_cache_key!);
     if(!detailData.contains(detailData)){
       orderDetailList = List.from(detailData);

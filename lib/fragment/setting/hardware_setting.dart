@@ -4,7 +4,6 @@ import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_system/fragment/setting/receipt_dialog.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +17,6 @@ import '../../object/app_setting.dart';
 import '../../object/receipt.dart';
 import '../../page/progress_bar.dart';
 import '../../translation/AppLocalizations.dart';
-import 'checklist_dialog.dart';
 
 class HardwareSetting extends StatefulWidget {
   const HardwareSetting({Key? key}) : super(key: key);

@@ -50,7 +50,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
   String? printer_value, printer_category_value, printer_category_delete_value;
   int? _typeStatus = 0;
   int? _paperSize = 0;
-  bool _submitted = false, _isUpdate = false, _isCashier = false, _isKitchen = false, _isLabel = false, _isActive = true, isLogOut = false;
+  bool _submitted = false, _isUpdate = false, _isCashier = false, _isLabel = false, _isActive = true, isLogOut = false;
   bool isLoad = false;
 
   String? selectedValue;
@@ -1070,6 +1070,9 @@ class _PrinterDialogState extends State<PrinterDialog> {
       if (widget.printerObject!.is_counter == 1) {
         _isCashier = true;
       }
+      if (widget.printerObject!.is_label == 1) {
+        _isLabel = true;
+      }
       if (data.isNotEmpty) {
         for (int i = 0; i < data.length; i++) {
           if (data[i].category_sqlite_id == '0') {
@@ -1187,6 +1190,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
       Printer updatedData = await PosDatabase.instance.readSpecificPrinterByLocalId(printerObject.printer_sqlite_id!);
       _value.add(jsonEncode(updatedData));
       this.printer_value = _value.toString();
+      print("this.printer_value: ${this.printer_value}");
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('update_printer_error_please_try_again') + " $e");
