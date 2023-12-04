@@ -133,304 +133,305 @@ class _LoadingPageState extends State<LoadingPage> {
       Navigator.push(context, MaterialPageRoute(builder: (_) => PosPinPage()));
     });
   }
+}
+
 
 /*
   create app setting
 */
-  createAppSetting() async {
-    try{
-      AppSetting appSetting = AppSetting(
+createAppSetting() async {
+  try{
+    AppSetting appSetting = AppSetting(
         open_cash_drawer: 1,
         show_second_display: 0,  //notificationModel.hasSecondScreen ? 1 : 0,
         direct_payment: 0,
         print_checklist: 1,
         show_sku: 0
-      );
-      AppSetting data = await PosDatabase.instance.insertSetting(appSetting);
-    } catch(e){
-      print("create app setting fail: $e");
-    }
-
-    //notificationModel.enableSecondDisplay();
+    );
+    AppSetting data = await PosDatabase.instance.insertSetting(appSetting);
+  } catch(e){
+    print("create app setting fail: $e");
   }
+
+  //notificationModel.enableSecondDisplay();
+}
 
 /*
   create device login
 */
-  createDeviceLogin() async {
-    print('device logout called');
+createDeviceLogin() async {
+  print('device logout called');
+  DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+  String dateTime = dateFormat.format(DateTime.now());
+  final prefs = await SharedPreferences.getInstance();
+  final int? device_id = prefs.getInt('device_id');
+
+  var value = md5.convert(utf8.encode(dateTime)).toString();
+
+  if(device_id != 4){
+    Map response = await Domain().insertDeviceLogin(device_id.toString(), value);
+    if (response['status'] == '1') {
+      await prefs.setString('login_value', value);
+    }
+  } else {
+    await prefs.setString('login_value', 'demo12345');
+  }
+}
+
+getAllChecklist() async {
+  try{
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    Map response = await Domain().getChecklist(branch_id.toString());
+    if(response['status'] == '1'){
+      List responseJson = response['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        Checklist insertData = await PosDatabase.instance.insertChecklist(Checklist.fromJson(responseJson[i]));
+      }
+    }
+  } catch (e){
+    print("get all checklist error: ${e}");
+  }
+}
+
+getAllReceipt() async {
+  try{
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    Map response = await Domain().getReceipt(branch_id.toString());
+    if(response['status'] == '1'){
+      List responseJson = response['receipt'];
+      for (var i = 0; i < responseJson.length; i++) {
+        Receipt data = await PosDatabase.instance.insertReceipt(Receipt.fromJson(responseJson[i]));
+      }
+    } else if (response['status'] == '2'){
+      await createReceiptLayout80();
+      await createReceiptLayout58();
+    }
+  } catch(e){
+
+  }
+}
+
+createReceiptLayout80() async {
+  try {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
-    final int? device_id = prefs.getInt('device_id');
-
-    var value = md5.convert(utf8.encode(dateTime)).toString();
-
-    if(device_id != 4){
-      Map response = await Domain().insertDeviceLogin(device_id.toString(), value);
-      if (response['status'] == '1') {
-        await prefs.setString('login_value', value);
-      }
-    } else {
-      await prefs.setString('login_value', 'demo12345');
-    }
-  }
-
-  getAllChecklist() async {
-    try{
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-      Map response = await Domain().getChecklist(branch_id.toString());
-      if(response['status'] == '1'){
-        List responseJson = response['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          Checklist insertData = await PosDatabase.instance.insertChecklist(Checklist.fromJson(responseJson[i]));
-        }
-      }
-    } catch (e){
-      print("get all checklist error: ${e}");
-    }
-  }
-
-  getAllReceipt() async {
-    try{
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-      Map response = await Domain().getReceipt(branch_id.toString());
-      if(response['status'] == '1'){
-        List responseJson = response['receipt'];
-        for (var i = 0; i < responseJson.length; i++) {
-          Receipt data = await PosDatabase.instance.insertReceipt(Receipt.fromJson(responseJson[i]));
-        }
-      } else if (response['status'] == '2'){
-        await createReceiptLayout80();
-        await createReceiptLayout58();
-      }
-    } catch(e){
-
-    }
-  }
-
-  createReceiptLayout80() async {
-    try {
-      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-      String dateTime = dateFormat.format(DateTime.now());
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-      final String? branch = prefs.getString('branch');
-      var branchObject = json.decode(branch!);
-
-      Receipt data = await PosDatabase.instance.insertSqliteReceipt(Receipt(
-          receipt_id: 0,
-          receipt_key: '',
-          branch_id: branch_id.toString(),
-          header_text: branchObject['name'],
-          footer_text: 'Thank you, please come again',
-          header_image: '',
-          footer_image: '',
-          show_address: branchObject['address'] != '' ? 1 : 0,
-          show_email: branchObject['email'] != '' ? 1 : 0,
-          receipt_email: branchObject['email'] != '' ? branchObject['email'] : '',
-          header_text_status: 1,
-          footer_text_status: 1,
-          header_image_status: 0,
-          footer_image_status: 0,
-          header_font_size: 0,
-          promotion_detail_status: 0,
-          paper_size: '80',
-          status: 1,
-          sync_status: 0,
-          created_at: dateTime,
-          updated_at: '',
-          soft_delete: ''));
-      await insertReceiptKey(data, dateTime);
-    } catch (e) {
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('fail_to_add_receipt_layout_please_try_again')+" $e");
-      print('$e');
-    }
-  }
-
-  generateReceiptKey(Receipt receipt) async {
-    final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    var bytes = receipt.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + receipt.receipt_sqlite_id.toString() + branch_id.toString();
-    return md5.convert(utf8.encode(bytes)).toString();
-  }
+    final String? branch = prefs.getString('branch');
+    var branchObject = json.decode(branch!);
 
-  insertReceiptKey(Receipt receipt, String dateTime) async {
-    String receiptKey = await generateReceiptKey(receipt);
-    Receipt data = Receipt(
-        receipt_key: receiptKey,
-        updated_at: dateTime,
+    Receipt data = await PosDatabase.instance.insertSqliteReceipt(Receipt(
+        receipt_id: 0,
+        receipt_key: '',
+        branch_id: branch_id.toString(),
+        header_text: branchObject['name'],
+        footer_text: 'Thank you, please come again',
+        header_image: '',
+        footer_image: '',
+        show_address: branchObject['address'] != '' ? 1 : 0,
+        show_email: branchObject['email'] != '' ? 1 : 0,
+        receipt_email: branchObject['email'] != '' ? branchObject['email'] : '',
+        header_text_status: 1,
+        footer_text_status: 1,
+        header_image_status: 0,
+        footer_image_status: 0,
+        header_font_size: 0,
+        promotion_detail_status: 0,
+        paper_size: '80',
+        status: 1,
         sync_status: 0,
-        receipt_sqlite_id: receipt.receipt_sqlite_id);
-    int updateUniqueKey = await PosDatabase.instance.updateReceiptUniqueKey(data);
+        created_at: dateTime,
+        updated_at: '',
+        soft_delete: ''));
+    await insertReceiptKey(data, dateTime);
+  } catch (e) {
+    //Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('fail_to_add_receipt_layout_please_try_again')+" $e");
+    print('$e');
   }
+}
 
-  createReceiptLayout58() async {
-    try {
-      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-      String dateTime = dateFormat.format(DateTime.now());
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-      final String? branch = prefs.getString('branch');
-      var branchObject = json.decode(branch!);
+generateReceiptKey(Receipt receipt) async {
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  var bytes = receipt.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + receipt.receipt_sqlite_id.toString() + branch_id.toString();
+  return md5.convert(utf8.encode(bytes)).toString();
+}
 
-      Receipt data = await PosDatabase.instance.insertSqliteReceipt(Receipt(
-          receipt_id: 0,
-          receipt_key: '',
-          branch_id: branch_id.toString(),
-          header_text: branchObject['name'],
-          footer_text: 'Thank you, please come again',
-          header_image: '',
-          footer_image: '',
-          show_address: branchObject['address'] != '' ? 1 : 0,
-          show_email: branchObject['email'] != '' ? 1 : 0,
-          receipt_email: branchObject['email'] != '' ? branchObject['email'] : '',
-          header_text_status: 1,
-          footer_text_status: 1,
-          header_image_status: 0,
-          footer_image_status: 0,
-          header_font_size: 0,
-          promotion_detail_status: 0,
-          paper_size: '58',
-          status: 1,
-          sync_status: 0,
-          created_at: dateTime,
-          updated_at: '',
-          soft_delete: ''));
-      await insertReceiptKey(data, dateTime);
-    } catch (e) {
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('fail_to_add_receipt_layout_please_try_again')+" $e");
-      print('$e');
-    }
-  }
+insertReceiptKey(Receipt receipt, String dateTime) async {
+  String receiptKey = await generateReceiptKey(receipt);
+  Receipt data = Receipt(
+      receipt_key: receiptKey,
+      updated_at: dateTime,
+      sync_status: 0,
+      receipt_sqlite_id: receipt.receipt_sqlite_id);
+  int updateUniqueKey = await PosDatabase.instance.updateReceiptUniqueKey(data);
+}
 
-  clearCloudSyncRecord() async {
+createReceiptLayout58() async {
+  try {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    Map data = await Domain().clearAllSyncRecord(branch_id.toString());
+    final String? branch = prefs.getString('branch');
+    var branchObject = json.decode(branch!);
+
+    Receipt data = await PosDatabase.instance.insertSqliteReceipt(Receipt(
+        receipt_id: 0,
+        receipt_key: '',
+        branch_id: branch_id.toString(),
+        header_text: branchObject['name'],
+        footer_text: 'Thank you, please come again',
+        header_image: '',
+        footer_image: '',
+        show_address: branchObject['address'] != '' ? 1 : 0,
+        show_email: branchObject['email'] != '' ? 1 : 0,
+        receipt_email: branchObject['email'] != '' ? branchObject['email'] : '',
+        header_text_status: 1,
+        footer_text_status: 1,
+        header_image_status: 0,
+        footer_image_status: 0,
+        header_font_size: 0,
+        promotion_detail_status: 0,
+        paper_size: '58',
+        status: 1,
+        sync_status: 0,
+        created_at: dateTime,
+        updated_at: '',
+        soft_delete: ''));
+    await insertReceiptKey(data, dateTime);
+  } catch (e) {
+    //Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('fail_to_add_receipt_layout_please_try_again')+" $e");
+    print('$e');
   }
+}
+
+clearCloudSyncRecord() async {
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  Map data = await Domain().clearAllSyncRecord(branch_id.toString());
+}
 
 /*
   sava company user to database
 */
-  getAllUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? user = prefs.getString('user');
-    Map userObject = json.decode(user!);
-    Map data = await Domain().getAllUser(userObject['company_id']);
-    if (data['status'] == '1') {
-      List responseJson = data['user'];
-      for (var i = 0; i < responseJson.length; i++) {
-        User user = await PosDatabase.instance.insertUser(User.fromJson(responseJson[i]));
-        // if (user != '') {
-        //   Navigator.of(context).pushReplacement(MaterialPageRoute(
-        //     builder: (context) => PosPinPage(),
-        //   ));
-        // }
-      }
+getAllUser() async {
+  final prefs = await SharedPreferences.getInstance();
+  final String? user = prefs.getString('user');
+  Map userObject = json.decode(user!);
+  Map data = await Domain().getAllUser(userObject['company_id']);
+  if (data['status'] == '1') {
+    List responseJson = data['user'];
+    for (var i = 0; i < responseJson.length; i++) {
+      User user = await PosDatabase.instance.insertUser(User.fromJson(responseJson[i]));
+      // if (user != '') {
+      //   Navigator.of(context).pushReplacement(MaterialPageRoute(
+      //     builder: (context) => PosPinPage(),
+      //   ));
+      // }
     }
   }
+}
 
 /*
   save branch link user table to database
 */
-  getBranchLinkUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    Map data = await Domain().getBranchLinkUser(branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['user'];
-      for (var i = 0; i < responseJson.length; i++) {
-        BranchLinkUser data = await PosDatabase.instance.insertBranchLinkUser(BranchLinkUser.fromJson(responseJson[i]));
-      }
+getBranchLinkUser() async {
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  Map data = await Domain().getBranchLinkUser(branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['user'];
+    for (var i = 0; i < responseJson.length; i++) {
+      BranchLinkUser data = await PosDatabase.instance.insertBranchLinkUser(BranchLinkUser.fromJson(responseJson[i]));
     }
   }
+}
 
 /*
   save settlement to database
 */
-  getAllSettlement() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    final String? user = prefs.getString('user');
-    Map userObject = json.decode(user!);
-    Map data = await Domain().getSettlement(userObject['company_id'], branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['settlement'];
-      for (var i = 0; i < responseJson.length; i++) {
-        Settlement item = Settlement.fromJson(responseJson[i]);
-        Settlement data = await PosDatabase.instance.insertSettlement(Settlement(
-          settlement_id: item.settlement_id,
-          settlement_key: item.settlement_key,
-          company_id: item.company_id,
-          branch_id: item.branch_id,
-          total_bill: item.total_bill,
-          total_sales: item.total_sales,
-          total_refund_bill: item.total_refund_bill,
-          total_refund_amount: item.total_refund_amount,
-          total_discount: item.total_discount,
-          total_cancellation: item.total_cancellation,
-          total_tax: item.total_tax,
-          settlement_by_user_id: item.settlement_by_user_id,
-          settlement_by: item.settlement_by,
-          status: item.status,
-          sync_status: 1,
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-          soft_delete: item.soft_delete,
-        ));
-      }
-      await getAllOrder();
-      getAllTable();
-      getSettlementLinkPayment();
-    } else {
-      await getAllOrder();
-      getAllTable();
-      getSettlementLinkPayment();
+getAllSettlement() async {
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  final String? user = prefs.getString('user');
+  Map userObject = json.decode(user!);
+  Map data = await Domain().getSettlement(userObject['company_id'], branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['settlement'];
+    for (var i = 0; i < responseJson.length; i++) {
+      Settlement item = Settlement.fromJson(responseJson[i]);
+      Settlement data = await PosDatabase.instance.insertSettlement(Settlement(
+        settlement_id: item.settlement_id,
+        settlement_key: item.settlement_key,
+        company_id: item.company_id,
+        branch_id: item.branch_id,
+        total_bill: item.total_bill,
+        total_sales: item.total_sales,
+        total_refund_bill: item.total_refund_bill,
+        total_refund_amount: item.total_refund_amount,
+        total_discount: item.total_discount,
+        total_cancellation: item.total_cancellation,
+        total_tax: item.total_tax,
+        settlement_by_user_id: item.settlement_by_user_id,
+        settlement_by: item.settlement_by,
+        status: item.status,
+        sync_status: 1,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        soft_delete: item.soft_delete,
+      ));
     }
+    await getAllOrder();
+    getAllTable();
+    getSettlementLinkPayment();
+  } else {
+    await getAllOrder();
+    getAllTable();
+    getSettlementLinkPayment();
   }
+}
 
 /*
   save branch table to database
 */
-  getAllTable() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    Map data = await Domain().getAllTable(branch_id.toString());
-    if (data['status'] == '1') {
-      List responseJson = data['table'];
-      for (var i = 0; i < responseJson.length; i++) {
-        PosTable table = await PosDatabase.instance.insertPosTable(PosTable.fromJson(responseJson[i]));
-      }
-      await getAllTableUse();
-      getAllCategory();
-    } else {
-      await getAllTableUse();
-      getAllCategory();
+getAllTable() async {
+  final prefs = await SharedPreferences.getInstance();
+  final int? branch_id = prefs.getInt('branch_id');
+  Map data = await Domain().getAllTable(branch_id.toString());
+  if (data['status'] == '1') {
+    List responseJson = data['table'];
+    for (var i = 0; i < responseJson.length; i++) {
+      PosTable table = await PosDatabase.instance.insertPosTable(PosTable.fromJson(responseJson[i]));
     }
+    await getAllTableUse();
+    getAllCategory();
+  } else {
+    await getAllTableUse();
+    getAllCategory();
   }
+}
 
 /*
   save categories to database
 */
-  getAllCategory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? user = prefs.getString('user');
-    Map userObject = json.decode(user!);
-    Map data = await Domain().getAllCategory(userObject['company_id']);
-    if (data['status'] == '1') {
-      List responseJson = data['categories'];
-      for (var i = 0; i < responseJson.length; i++) {
-        Categories data = await PosDatabase.instance.insertCategories(Categories.fromJson(responseJson[i]));
-      }
-      getAllProduct();
-      getAllPrinter();
-    } else {
-      getAllProduct();
-      getAllPrinter();
+getAllCategory() async {
+  final prefs = await SharedPreferences.getInstance();
+  final String? user = prefs.getString('user');
+  Map userObject = json.decode(user!);
+  Map data = await Domain().getAllCategory(userObject['company_id']);
+  if (data['status'] == '1') {
+    List responseJson = data['categories'];
+    for (var i = 0; i < responseJson.length; i++) {
+      Categories data = await PosDatabase.instance.insertCategories(Categories.fromJson(responseJson[i]));
     }
+    getAllProduct();
+    getAllPrinter();
+  } else {
+    getAllProduct();
+    getAllPrinter();
   }
 }
 
@@ -537,7 +538,6 @@ getAllProduct() async {
     }
     getModifierLinkProduct();
     getVariantGroup();
-    getProductVariant();
   }
 }
 
@@ -938,9 +938,10 @@ getVariantGroup() async {
           soft_delete: variantData.soft_delete));
     }
     getVariantItem();
-  } else {
-    getVariantItem();
   }
+  // else {
+  //   getVariantItem();
+  // }
 }
 
 /*
@@ -966,10 +967,11 @@ getVariantItem() async {
           updated_at: variantItemData.updated_at,
           soft_delete: variantItemData.soft_delete));
     }
-    getBranchLinkProduct();
-  } else {
-    getBranchLinkProduct();
+    getProductVariant();
   }
+  // else {
+  //   getBranchLinkProduct();
+  // }
 }
 
 /*
@@ -1002,6 +1004,7 @@ getProductVariant() async {
           updated_at: productVariantItem.updated_at,
           soft_delete: productVariantItem.soft_delete));
     }
+    getBranchLinkProduct();
     getProductVariantDetail();
   }
 }
