@@ -142,101 +142,101 @@ class _LoadingPageState extends State<LoadingPage> {
 /*
   get app setting from cloud
 */
-  getAppSettingCloud() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-      String dateTime = dateFormat.format(DateTime.now());
-      Map data = await Domain().getAppSetting(branch_id.toString());
-      if (data['status'] == '1') {
-        print("App Setting: Setting Record exist in cloud");
-        bool? isLocalAppSettingExisted = await PosDatabase.instance.isLocalAppSettingExisted();
-        // local app setting not exists, sync from cloud
-        if (!isLocalAppSettingExisted!){
-          List responseJson = data['setting'];
-          for (var i = 0; i < responseJson.length; i++) {
-            AppSetting item = AppSetting.fromJson(responseJson[i]);
-            syncAppSettingFromCloud(item);
-          }
-        } else {
-          AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
-          print("App Setting Sync Status: ${localSetting!.sync_status}");
-          // sync status = 1, sync from cloud, if =2 ignore wait for auto sync
-          if(localSetting!.sync_status == 1){
-            int data = await Domain().SyncAppSettingToCloud(localSetting);
-            if(data == 1)
-              syncAppSettingFromCloud(localSetting);
-          }
+getAppSettingCloud() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    Map data = await Domain().getAppSetting(branch_id.toString());
+    if (data['status'] == '1') {
+      print("App Setting: Setting Record exist in cloud");
+      bool? isLocalAppSettingExisted = await PosDatabase.instance.isLocalAppSettingExisted();
+      // local app setting not exists, sync from cloud
+      if (!isLocalAppSettingExisted!){
+        List responseJson = data['setting'];
+        for (var i = 0; i < responseJson.length; i++) {
+          AppSetting item = AppSetting.fromJson(responseJson[i]);
+          syncAppSettingFromCloud(item);
         }
       } else {
-        print("App Setting: No setting in cloud, create local app setting");
-        getAppSettingLocal();
+        AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+        print("App Setting Sync Status: ${localSetting!.sync_status}");
+        // sync status = 1, sync from cloud, if =2 ignore wait for auto sync
+        if(localSetting!.sync_status == 1){
+          int data = await Domain().SyncAppSettingToCloud(localSetting);
+          if(data == 1)
+            syncAppSettingFromCloud(localSetting);
+        }
       }
-    } catch(e) {
-      print("App Setting: Sync from cloud fail1: $e");
+    } else {
+      print("App Setting: No setting in cloud, create local app setting");
+      getAppSettingLocal();
     }
+  } catch(e) {
+    print("App Setting: Sync from cloud fail1: $e");
   }
+}
 
 /*
   create app setting
 */
-  getAppSettingLocal() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-      String dateTime = dateFormat.format(DateTime.now());
+getAppSettingLocal() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
 
-      bool? isLocalAppSettingExisted = await PosDatabase.instance.isLocalAppSettingExisted();
-      // local app setting not exists, create local
-      if (!isLocalAppSettingExisted!) {
-        AppSetting appSetting = AppSetting(
-          branch_id: branch_id.toString(),
-          open_cash_drawer: 1,
-          show_second_display: 0,
-          direct_payment: 0,
-          print_checklist: 1,
-          show_sku: 0,
-          enable_numbering: 0,
-          starting_number: 0,
-          table_order: 1,
-          sync_status: 0,
-          created_at: dateTime,
-          updated_at: ''
-        );
-        AppSetting data = await PosDatabase.instance.insertSqliteSetting(appSetting);
-      }
-    } catch (e) {
-      print("App Setting: Create App Setting Fail: $e");
+    bool? isLocalAppSettingExisted = await PosDatabase.instance.isLocalAppSettingExisted();
+    // local app setting not exists, create local
+    if (!isLocalAppSettingExisted!) {
+      AppSetting appSetting = AppSetting(
+        branch_id: branch_id.toString(),
+        open_cash_drawer: 1,
+        show_second_display: 0,
+        direct_payment: 0,
+        print_checklist: 1,
+        show_sku: 0,
+        enable_numbering: 0,
+        starting_number: 0,
+        table_order: 1,
+        sync_status: 0,
+        created_at: dateTime,
+        updated_at: ''
+      );
+      AppSetting data = await PosDatabase.instance.insertSqliteSetting(appSetting);
     }
+  } catch (e) {
+    print("App Setting: Create App Setting Fail: $e");
   }
+}
 
   /*
   create app setting
 */
-  syncAppSettingFromCloud(AppSetting item) async {
-    try {
-      AppSetting appSetting = AppSetting(
-        branch_id: item.branch_id,
-        open_cash_drawer: item.open_cash_drawer,
-        show_second_display: item.show_second_display,
-        direct_payment: item.direct_payment,
-        print_checklist: item.print_checklist,
-        show_sku: item.show_sku,
-        enable_numbering: item.enable_numbering,
-        starting_number: item.starting_number,
-        table_order: item.table_order,
-        sync_status: 1,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-      );
-      AppSetting data = await PosDatabase.instance.insertSqliteSetting(appSetting);
-      print("App Setting: Sync From Cloud Success");
-    } catch (e) {
-      print("App Setting: Sync From Cloud Fail: $e");
-    }
+syncAppSettingFromCloud(AppSetting item) async {
+  try {
+    AppSetting appSetting = AppSetting(
+      branch_id: item.branch_id,
+      open_cash_drawer: item.open_cash_drawer,
+      show_second_display: item.show_second_display,
+      direct_payment: item.direct_payment,
+      print_checklist: item.print_checklist,
+      show_sku: item.show_sku,
+      enable_numbering: item.enable_numbering,
+      starting_number: item.starting_number,
+      table_order: item.table_order,
+      sync_status: 1,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+    );
+    AppSetting data = await PosDatabase.instance.insertSqliteSetting(appSetting);
+    print("App Setting: Sync From Cloud Success");
+  } catch (e) {
+    print("App Setting: Sync From Cloud Fail: $e");
   }
+}
 
 /*
   create device login
@@ -276,40 +276,40 @@ getAllChecklist() async {
   }
 }
 
-  getAllKitchenList() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-      Map response = await Domain().getKitchenList(branch_id.toString());
-      if (response['status'] == '1') {
-        List responseJson = response['data'];
-        for (var i = 0; i < responseJson.length; i++) {
-          KitchenList insertData = await PosDatabase.instance.insertKitchenList(KitchenList.fromJson(responseJson[i]));
-        }
+getAllKitchenList() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    Map response = await Domain().getKitchenList(branch_id.toString());
+    if (response['status'] == '1') {
+      List responseJson = response['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        KitchenList insertData = await PosDatabase.instance.insertKitchenList(KitchenList.fromJson(responseJson[i]));
       }
-    } catch (e) {
-      print("get all kitchen list error: ${e}");
     }
+  } catch (e) {
+    print("get all kitchen list error: ${e}");
   }
+}
 
-  getAllReceipt() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-      Map response = await Domain().getReceipt(branch_id.toString());
-      if (response['status'] == '1') {
-        List responseJson = response['receipt'];
-        for (var i = 0; i < responseJson.length; i++) {
-          Receipt data = await PosDatabase.instance.insertReceipt(Receipt.fromJson(responseJson[i]));
-        }
-      } else if (response['status'] == '2') {
-        await createReceiptLayout80();
-        await createReceiptLayout58();
+getAllReceipt() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    Map response = await Domain().getReceipt(branch_id.toString());
+    if (response['status'] == '1') {
+      List responseJson = response['receipt'];
+      for (var i = 0; i < responseJson.length; i++) {
+        Receipt data = await PosDatabase.instance.insertReceipt(Receipt.fromJson(responseJson[i]));
       }
-    } catch (e) {
-      print("getAllReceipt error: ${e}");
+    } else if (response['status'] == '2') {
+      await createReceiptLayout80();
+      await createReceiptLayout58();
     }
+  } catch (e) {
+    print("getAllReceipt error: ${e}");
   }
+}
 
 createReceiptLayout80() async {
   try {
