@@ -2,12 +2,10 @@ import 'dart:convert';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_database.dart';
-import 'package:pos_system/main.dart';
 import 'package:pos_system/object/bill.dart';
 import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/branch_link_modifier.dart';
@@ -35,6 +33,7 @@ import 'package:pos_system/object/product_variant_detail.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/refund.dart';
 import 'package:pos_system/object/sale.dart';
+import 'package:pos_system/object/second_screen.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
 import 'package:pos_system/object/table.dart';
@@ -45,7 +44,6 @@ import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
-import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -91,7 +89,9 @@ class _LoadingPageState extends State<LoadingPage> {
     try{
       await createDeviceLogin();
       await getAllChecklist();
+      await getAllSecondScreen();
       await _createProductImgFolder();
+      await _createBannerImgFolder();
       await getAllUser();
       await getAllSettlement();
       await getBranchLinkUser();
@@ -313,6 +313,25 @@ clearCloudSyncRecord() async {
   final int? branch_id = prefs.getInt('branch_id');
   Map data = await Domain().clearAllSyncRecord(branch_id.toString());
 }
+
+/*
+  get all second screen
+*/
+  getAllSecondScreen() async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? branchId = prefs.getInt('branch_id');
+      Map data = await Domain().getSecondScreen(branch_id: branchId.toString());
+      if (data['status'] == '1') {
+        List responseJson = data['second_screen'];
+        for (var i = 0; i < responseJson.length; i++) {
+          SecondScreen data = await PosDatabase.instance.insertSecondScreen(SecondScreen.fromJson(responseJson[i]));
+        }
+      }
+    }catch(e){
+      print("get all second screen error: ${e}");
+    }
+  }
 
 /*
   sava company user to database
@@ -1496,5 +1515,50 @@ downloadProductImage(String path) async {
         await imageFile.writeAsBytes(response.bodyBytes);
       }
     }
+  }
+}
+
+_createBannerImgFolder() async {
+  final prefs = await SharedPreferences.getInstance();
+  final String? user = prefs.getString('user');
+  final folderName = 'banner';
+  final directory = await _localPath;
+  final path = '$directory/assets/$folderName';
+  final pathImg = Directory(path);
+
+  pathImg.create();
+  await prefs.setString('banner_path', path);
+  print('image path: ${pathImg.path}');
+  downloadBannerImage(pathImg.path);
+}
+
+/*
+  download banner image
+*/
+downloadBannerImage(String path) async {
+  try{
+    final prefs = await SharedPreferences.getInstance();
+    final int? branchId = prefs.getInt('branch_id');
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    Map data = await Domain().getSecondScreen(branch_id: branchId.toString());
+    String url = '';
+    String name = '';
+    if (data['status'] == '1') {
+      List responseJson = data['second_screen'];
+      for (var i = 0; i < responseJson.length; i++) {
+        name = responseJson[i]['name'];
+        print("second screen img name: ${name}");
+        if (name != '') {
+          url = '${Domain.backend_domain}api/banner/' + userObject['company_id'] + '/' + branchId.toString() + '/' + name;
+          final response = await http.get(Uri.parse(url));
+          var localPath = path + '/' + name;
+          final imageFile = File(localPath);
+          await imageFile.writeAsBytes(response.bodyBytes);
+        }
+      }
+    }
+  } catch(e){
+    print("download banner image error: ${e}");
   }
 }

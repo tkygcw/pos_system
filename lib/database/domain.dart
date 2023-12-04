@@ -40,6 +40,25 @@ class Domain {
   static Uri app_version = Uri.parse(domain + 'mobile-api/app_version/index.php');
   static Uri receipt = Uri.parse(domain + 'mobile-api/receipt/index.php');
   static Uri checklist = Uri.parse(domain + 'mobile-api/checklist/index.php');
+  static Uri second_screen = Uri.parse(domain + 'mobile-api/second_screen/index.php');
+
+
+/*
+  get banner image
+*/
+  getSecondScreen({required String branch_id}) async {
+    try{
+      print("branch_id: ${branch_id}");
+      var response = await http.post(Domain.second_screen, body: {
+        'getSecondScreen': '1',
+        'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch(e){
+      Fluttertoast.showToast(msg: e.toString());
+    }
+  }
+
 
 /*
   get app version

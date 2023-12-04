@@ -1,14 +1,18 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/object/second_screen.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:presentation_displays/secondary_display.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../object/cart_product.dart';
 import '../object/second_display_data.dart';
 import '../object/variant_group.dart';
-import '../utils/Utils.dart';
 
 class SecondDisplay extends StatefulWidget {
   const SecondDisplay({Key? key}) : super(key: key);
@@ -18,35 +22,15 @@ class SecondDisplay extends StatefulWidget {
 }
 
 class _SecondDisplayState extends State<SecondDisplay> {
-  String value = "init";
+  String value = "init", imagePath = '';
+  List<FileImage> imageList = [];
   SecondDisplayData? obj;
-  bool isLoaded = false;
+  bool isLoaded = false, bannerLoaded = false;
 
-  getVariant(cartProductItem object) {
-    List<String?> variant = [];
-    String result = '';
-    try{
-      if(object.productVariantName != '' && object.productVariantName != null){
-        result = "(${object.productVariantName!})";
-      } else if(object.variant != null) {
-        var length = object.variant!.length;
-        for (int i = 0; i < length ; i++) {
-          VariantGroup group = object.variant![i];
-          for (int j = 0; j < group.child!.length; j++) {
-            if (group.child![j].isSelected!) {
-              variant.add(group.child![j].name!);
-              result = '(${variant.toString().replaceAll('[', '').replaceAll(']', '')})'
-                  .replaceAll(',', ' |');
-              //.replaceAll('|', '\n+')
-            }
-          }
-        }
-      }
-    }catch(e){
-      print("second display get variant error: ${e}");
-      result = "";
-    }
-    return result;
+  @override
+  void initState() {
+    getBanner();
+    super.initState();
   }
 
   @override
@@ -55,41 +39,70 @@ class _SecondDisplayState extends State<SecondDisplay> {
       body: SecondaryDisplay(
           callback: (argument){
             try{
-              setState(() {
-                if(argument != 'init'){
+              switch(argument){
+                case "init": {
+                  setState(() {
+                    value = argument;
+                  });
+                }break;
+                case "refresh_img": {
+                  getBanner();
+                }break;
+                default: {
                   var decode = jsonDecode(argument);
                   obj = SecondDisplayData.fromJson(decode);
                   isLoaded = true;
+                  setState(() {
+                    value = argument;
+                  });
                 }
-                value = argument;
-              });
+              }
             } catch(e){
               print("second display callback error: $e");
-              // setState(() {
-              //   value == "init";
-              // });
+              setState(() {
+                value == "init";
+              });
             }
           },
-          child: value == "init" ?
-          Container(
-            decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage("drawable/login_background.jpg"),
-                  fit: BoxFit.cover,
-                )
-            ),
-            child: Center(
-                child: Column(
-                  children: [
-                    Container(
-                        height: 150,
-                        child: Image(image: AssetImage("drawable/logo.png"),)
-                    ),
-                  ],
-                )
-            ),
-          )
-              :
+          child: value == "init" && bannerLoaded == true ?
+              imageList.isNotEmpty ?
+              CarouselSlider(
+                items: imageList.map((item) {
+                  return Builder(
+                    builder: (BuildContext context) {
+                      return Container(
+                          width: MediaQuery.of(context).size.width,
+                          child: Image(image: item, fit: BoxFit.cover)
+                      );
+                    },
+                  );
+                }).toList(),
+                options: CarouselOptions(
+                  height: MediaQuery.of(context).size.height,
+                  autoPlay: imageList.length > 1 ? true : false,
+                  autoPlayInterval: Duration(seconds: 8),
+                  viewportFraction: 1,
+                  pageSnapping: false,
+                ),
+              ) :
+              Container(
+                decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("drawable/login_background.jpg"),
+                      fit: BoxFit.cover,
+                    )
+                ),
+                child: Center(
+                    child: Column(
+                      children: [
+                        Container(
+                            height: 150,
+                            child: Image(image: AssetImage("drawable/logo.png"),)
+                        ),
+                      ],
+                    )
+                ),
+              ) :
           obj != null ?
           Container(
             color: Colors.white24,
@@ -219,5 +232,47 @@ class _SecondDisplayState extends State<SecondDisplay> {
           CustomProgressBar()
       ),
     );
+  }
+
+  getBanner() async {
+    imageList.clear();
+    final prefs = await SharedPreferences.getInstance();
+    imagePath = prefs.getString('banner_path')!;
+    List<SecondScreen> data = await PosDatabase.instance.readAllNotDeletedSecondScreen();
+    if(data.isNotEmpty){
+      for(int i = 0; i < data.length; i++){
+        imageList.add(FileImage(File(imagePath + '/' + data[i].name!)));
+      }
+    }
+    setState(() {
+      bannerLoaded = true;
+    });
+  }
+
+  getVariant(cartProductItem object) {
+    List<String?> variant = [];
+    String result = '';
+    try{
+      if(object.productVariantName != '' && object.productVariantName != null){
+        result = "(${object.productVariantName!})";
+      } else if(object.variant != null) {
+        var length = object.variant!.length;
+        for (int i = 0; i < length ; i++) {
+          VariantGroup group = object.variant![i];
+          for (int j = 0; j < group.child!.length; j++) {
+            if (group.child![j].isSelected!) {
+              variant.add(group.child![j].name!);
+              result = '(${variant.toString().replaceAll('[', '').replaceAll(']', '')})'
+                  .replaceAll(',', ' |');
+              //.replaceAll('|', '\n+')
+            }
+          }
+        }
+      }
+    }catch(e){
+      print("second display get variant error: ${e}");
+      result = "";
+    }
+    return result;
   }
 }
