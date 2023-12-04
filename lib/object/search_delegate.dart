@@ -90,14 +90,14 @@ class ProductSearchDelegate extends SearchDelegate{
     for (int i = 0; i < productList!.length; i++) {
       if (productList![i].name!.toLowerCase().contains(query.toLowerCase())) {
         matchQuery.add(productList![i]);
-      } else if (productList![i].SKU!.contains(query.toLowerCase())){
+      } else if (productList![i].SKU!.toLowerCase().contains(query.toLowerCase())){
         matchQuery.add(productList![i]);
       }
     }
     return ListView.builder(
       itemCount: matchQuery.length,
       itemBuilder: (context, index) {
-        var result = matchQuery[index].SKU! + '-' + matchQuery[index].name!;
+        var result = matchQuery[index].SKU! + ' ' + matchQuery[index].name!;
         return ListTile(
           title: Text(result),
           leading: matchQuery[index].graphic_type == '2'?
@@ -125,7 +125,7 @@ class ProductSearchDelegate extends SearchDelegate{
     for (int i = 0; i < productList!.length; i++) {
       if (productList![i].name!.toLowerCase().contains(query.toLowerCase())) {
         matchQuery.add(productList![i]);
-      } else if (productList![i].SKU!.contains(query.toLowerCase())){
+      } else if (productList![i].SKU!.toLowerCase().contains(query.toLowerCase())){
         matchQuery.add(productList![i]);
       }
     }
