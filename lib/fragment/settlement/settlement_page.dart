@@ -369,7 +369,7 @@ class _SettlementPageState extends State<SettlementPage> {
             ) : CustomProgressBar(),
           );
         } else {
-          ///mobile view
+          ///mobile layout
           return Scaffold(
             resizeToAvoidBottomInset: false,
             body: isLoad

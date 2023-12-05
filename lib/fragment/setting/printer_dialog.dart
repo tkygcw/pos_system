@@ -51,7 +51,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
   int? _typeStatus = 0;
   int? _paperSize = 0;
   bool _submitted = false, _isUpdate = false, _isCashier = false, _isLabel = false, _isActive = true, isLogOut = false;
-  bool isLoad = false;
+  bool isLoad = false, isButtonDisabled = false;
 
   String? selectedValue;
 
@@ -145,7 +145,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return LayoutBuilder(builder: (context, constraints) {
-        if (constraints.maxWidth > 800) {
+        if (constraints.maxWidth > 900 && constraints.maxHeight > 500) {
           return Center(
             child: SingleChildScrollView(
               physics: NeverScrollableScrollPhysics(),
@@ -493,30 +493,51 @@ class _PrinterDialogState extends State<PrinterDialog> {
                 actions: <Widget>[
                   Visibility(
                     visible: _isUpdate ? true : false,
-                    child: TextButton(
-                      child: Text('${AppLocalizations.of(context)?.translate('test_print')}'),
-                      onPressed: () {
-                        if (_typeStatus == 0) {
-                          _print();
-                        } else {
-                          _printLAN();
-                        }
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width / 4,
+                      height: MediaQuery.of(context).size.height / 12,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                        child: Text(AppLocalizations.of(context)!.translate('test_print')),
+                        onPressed: () {
+                          if (_typeStatus == 0) {
+                            _print();
+                          } else {
+                            _printLAN();
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 4,
+                    height: MediaQuery.of(context).size.height / 12,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: isButtonDisabled ? null : () {
+                        // Disable the button after it has been pressed
+                        setState(() {
+                          // Navigator.of(context).pop();
+                          isButtonDisabled = true;
+                        });
+                        closeDialog(context);
                       },
                     ),
                   ),
-                  TextButton(
-                    child: Text('${AppLocalizations.of(context)?.translate('close')}', style: TextStyle(color: color.buttonColor)),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  TextButton(
-                    child: _isUpdate
-                        ? Text('${AppLocalizations.of(context)?.translate('update')}')
-                        : Text('${AppLocalizations.of(context)?.translate('add')}', style: TextStyle(color: color.backgroundColor)),
-                    onPressed: () {
-                      _submit(context);
-                    },
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 4,
+                    height: MediaQuery.of(context).size.height / 12,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                      child: _isUpdate ? Text('${AppLocalizations.of(context)?.translate('update')}') : Text(AppLocalizations.of(context)!.translate('add')),
+                      onPressed: isButtonDisabled ? null : () {
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        _submit(context);
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -528,14 +549,16 @@ class _PrinterDialogState extends State<PrinterDialog> {
             child: SingleChildScrollView(
               physics: ClampingScrollPhysics(),
               child: AlertDialog(
-                actionsPadding: EdgeInsets.zero,
+                // actionsPadding: EdgeInsets.zero,
                 title: _isUpdate
                     ? Text(AppLocalizations.of(context)!.translate('edit_printer'))
                     : Text(AppLocalizations.of(context)!.translate('add_printer')),
+                titlePadding: EdgeInsets.fromLTRB(24, 16, 24, 0),
+                contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 5),
                 content: isLoad
                     ? Container(
                         height: MediaQuery.of(context).size.height / 2,
-                        width: MediaQuery.of(context).size.width,
+                        width: 500,
                         child: SingleChildScrollView(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -866,30 +889,51 @@ class _PrinterDialogState extends State<PrinterDialog> {
                 actions: <Widget>[
                   Visibility(
                     visible: _isUpdate ? true : false,
-                    child: TextButton(
-                      child: Text(AppLocalizations.of(context)!.translate('test_print')),
-                      onPressed: () {
-                        if (_typeStatus == 0) {
-                          _print();
-                        } else {
-                          _printLAN();
-                        }
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width / 4,
+                      height: MediaQuery.of(context).size.height / 10,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                        child: Text(AppLocalizations.of(context)!.translate('test_print')),
+                        onPressed: () {
+                          if (_typeStatus == 0) {
+                            _print();
+                          } else {
+                            _printLAN();
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 4,
+                    height: MediaQuery.of(context).size.height / 10,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                      child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                      onPressed: isButtonDisabled ? null : () {
+                        // Disable the button after it has been pressed
+                        setState(() {
+                          // Navigator.of(context).pop();
+                          isButtonDisabled = true;
+                        });
+                        closeDialog(context);
                       },
                     ),
                   ),
-                  TextButton(
-                    child: Text('${AppLocalizations.of(context)?.translate('close')}', style: TextStyle(color: color.buttonColor)),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  TextButton(
-                    child: _isUpdate
-                        ? Text(AppLocalizations.of(context)!.translate('update'))
-                        : Text('${AppLocalizations.of(context)?.translate('add')}', style: TextStyle(color: color.backgroundColor)),
-                    onPressed: () {
-                      _submit(context);
-                    },
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 4,
+                    height: MediaQuery.of(context).size.height / 10,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                      child: _isUpdate ? Text('${AppLocalizations.of(context)?.translate('update')}') : Text(AppLocalizations.of(context)!.translate('add')),
+                      onPressed: isButtonDisabled ? null : () {
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        _submit(context);
+                      },
+                    ),
                   ),
                 ],
               ),

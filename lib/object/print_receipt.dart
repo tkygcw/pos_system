@@ -193,11 +193,11 @@ class PrintReceipt{
     }
   }
 
-  printTestPrintKitchenList(List<Printer> cashierPrinter, KitchenList KitchenListLayout, String paperSize) async {
+  printTestPrintKitchenList(List<Printer> kitchenPrinter, KitchenList KitchenListLayout, String paperSize) async {
     try{
-      for (int i = 0; i < cashierPrinter.length; i++) {
-        var printerDetail = jsonDecode(cashierPrinter[i].value!);
-        if (cashierPrinter[i].type == 0) {
+      for (int i = 0; i < kitchenPrinter.length; i++) {
+        var printerDetail = jsonDecode(kitchenPrinter[i].value!);
+        if (kitchenPrinter[i].type == 0) {
           if (paperSize == '80') {
             //print 80mm
             var data = Uint8List.fromList(await ReceiptLayout().printTestKitchenList80mm(true, KitchenListLayout: KitchenListLayout));

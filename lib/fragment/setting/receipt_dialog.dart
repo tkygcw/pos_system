@@ -318,22 +318,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: color.backgroundColor,
                       ),
-                      child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text(AppLocalizations.of(context)!.translate('update')),
-                      onPressed: isButtonDisabled ? null : () {
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                        _submit(context);
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.height / 12,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color.backgroundColor,
-                      ),
                       child: Text(AppLocalizations.of(context)!.translate('test_print')),
                       onPressed: () {
                         testReceiptLayout();
@@ -357,6 +341,22 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                       },
                     ),
                   ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 4,
+                    height: MediaQuery.of(context).size.height / 12,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color.backgroundColor,
+                      ),
+                      child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text(AppLocalizations.of(context)!.translate('update')),
+                      onPressed: isButtonDisabled ? null : () {
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        _submit(context);
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -367,9 +367,11 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
             child: SingleChildScrollView(
               child: AlertDialog(
                 title: !_isUpdate ? Text(AppLocalizations.of(context)!.translate('add_receipt_layout')) : Text(AppLocalizations.of(context)!.translate('receipt_layout')),
+                titlePadding: EdgeInsets.fromLTRB(24, 16, 24, 0),
+                contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 5),
                 content: isLoad ?
                 Container(
-                  height: MediaQuery.of(context).size.height /2.5,
+                  height: MediaQuery.of(context).size.height /2,
                   width: 500,
                   child: SingleChildScrollView(
                     child: Column(
@@ -418,20 +420,6 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                     height: MediaQuery.of(context).size.height / 10,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                      child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text(AppLocalizations.of(context)!.translate('update')),
-                      onPressed: isButtonDisabled ? null : () {
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                        _submit(context);
-                      },
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.height / 10,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                       child: Text(AppLocalizations.of(context)!.translate('test_print')),
                       onPressed: () {
                         testReceiptLayout();
@@ -451,6 +439,20 @@ class _ReceiptDialogState extends State<ReceiptDialog> {
                           isButtonDisabled = true;
                         });
                         closeDialog(context);
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 4,
+                    height: MediaQuery.of(context).size.height / 10,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                      child: !_isUpdate ? Text('${AppLocalizations.of(context)?.translate('add')}') : Text(AppLocalizations.of(context)!.translate('update')),
+                      onPressed: isButtonDisabled ? null : () {
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
+                        _submit(context);
                       },
                     ),
                   ),

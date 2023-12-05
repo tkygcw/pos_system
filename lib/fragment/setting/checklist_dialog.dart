@@ -176,48 +176,71 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 }
             ),
             actions: [
-              TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: isButtonDisabled ? null : () {
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  closeDialog(context);
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 12,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color.backgroundColor,
+                  ),
+                  child: Text(AppLocalizations.of(context)!.translate('test_print')),
+                  onPressed: () {
+                    if(cashierPrinter.isNotEmpty){
+                      testLayout();
+                      PrintReceipt().printTestPrintChecklist(cashierPrinter, testPrintLayout, testPrintLayout.paper_size!);
+                    } else {
+                      Fluttertoast.showToast(msg: "No cashier printer added");
+                    }
+                  },
+                ),
               ),
-              TextButton(
-                child: Text(AppLocalizations.of(context)!.translate('test_print')),
-                onPressed: () {
-                  if(cashierPrinter.isNotEmpty){
-                    testLayout();
-                    PrintReceipt().printTestPrintChecklist(cashierPrinter, testPrintLayout, testPrintLayout.paper_size!);
-                  } else {
-                    Fluttertoast.showToast(msg: "No cashier printer added");
-                  }
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 12,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                  ),
+                  child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                  onPressed: isButtonDisabled ? null : () {
+                    setState(() {
+                      isButtonDisabled = true;
+                    });
+                    closeDialog(context);
+                  },
+                ),
               ),
-              TextButton(
-                child: Text(AppLocalizations.of(context)!.translate('update')),
-                onPressed: isButtonDisabled ? null : () {
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  _submit(context);
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 12,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color.backgroundColor,
+                  ),
+                  child: Text(AppLocalizations.of(context)!.translate('update')),
+                  onPressed: isButtonDisabled ? null : () {
+                    setState(() {
+                      isButtonDisabled = true;
+                    });
+                    _submit(context);
+                  },
+                ),
               ),
             ],
           );
         } else {
-          //mobile view
+          ///mobile layout
           return AlertDialog(
             title: Text(AppLocalizations.of(context)!.translate('check_list_layout')),
+            titlePadding: EdgeInsets.fromLTRB(24, 16, 24, 0),
+            contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 5),
             content: StreamBuilder(
                 stream: contentStream,
                 builder: (context, snapshot){
                   if(snapshot.hasData){
                     return Container(
-                      height: 500,
-                      width: 850,
+                      height: MediaQuery.of(context).size.height /2,
+                      width: 500 ,
                       child: SingleChildScrollView(
                           child: Column(
                             children: [
@@ -266,34 +289,55 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 }
             ),
             actions: [
-              TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: isButtonDisabled ? null : () {
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  closeDialog(context);
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 10,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color.backgroundColor,
+                  ),
+                  child: Text(AppLocalizations.of(context)!.translate('test_print')),
+                  onPressed: () {
+                    if(cashierPrinter.isNotEmpty){
+                      testLayout();
+                      PrintReceipt().printTestPrintChecklist(cashierPrinter, testPrintLayout, testPrintLayout.paper_size!);
+                    } else {
+                      Fluttertoast.showToast(msg: "No cashier printer added");
+                    }
+                  },
+                ),
               ),
-              TextButton(
-                child: Text(AppLocalizations.of(context)!.translate('test_print')),
-                onPressed: () {
-                  if(cashierPrinter.isNotEmpty){
-                    testLayout();
-                    PrintReceipt().printTestPrintChecklist(cashierPrinter, testPrintLayout, testPrintLayout.paper_size!);
-                  } else {
-                    Fluttertoast.showToast(msg: "No cashier printer added");
-                  }
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 10,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                  ),
+                  child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                  onPressed: isButtonDisabled ? null : () {
+                    setState(() {
+                      isButtonDisabled = true;
+                    });
+                    closeDialog(context);
+                  },
+                ),
               ),
-              TextButton(
-                child: Text(AppLocalizations.of(context)!.translate('update')),
-                onPressed: isButtonDisabled ? null : () {
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  _submit(context);
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 10,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color.backgroundColor,
+                  ),
+                  child: Text(AppLocalizations.of(context)!.translate('update')),
+                  onPressed: isButtonDisabled ? null : () {
+                    setState(() {
+                      isButtonDisabled = true;
+                    });
+                    _submit(context);
+                  },
+                ),
               ),
             ],
           );

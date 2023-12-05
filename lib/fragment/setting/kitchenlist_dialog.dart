@@ -110,7 +110,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
   getAllKitchenPrinter() async {
     try{
       List<Printer> printerList = await PrintReceipt().readAllPrinters();
-      kitchenPrinter = printerList.where((printer) => printer.printer_status == 1).toList();
+      kitchenPrinter = printerList.where((printer) => printer.printer_status == 1 && printer.is_counter == 0).toList();
     } catch(e){
       print("get all kitchen printer error: $e");
       kitchenPrinter = [];
@@ -180,48 +180,71 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                 }
             ),
             actions: [
-              TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: isButtonDisabled ? null : () {
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  closeDialog(context);
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 12,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color.backgroundColor,
+                  ),
+                  child: Text(AppLocalizations.of(context)!.translate('test_print')),
+                  onPressed: () {
+                    if(kitchenPrinter.isNotEmpty){
+                      testLayout();
+                      PrintReceipt().printTestPrintKitchenList(kitchenPrinter, testPrintLayout, testPrintLayout.paper_size!);
+                    } else {
+                      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_kitchen_printer'));
+                    }
+                  },
+                ),
               ),
-              TextButton(
-                child: Text(AppLocalizations.of(context)!.translate('test_print')),
-                onPressed: () {
-                  if(kitchenPrinter.isNotEmpty){
-                    testLayout();
-                    PrintReceipt().printTestPrintKitchenList(kitchenPrinter, testPrintLayout, testPrintLayout.paper_size!);
-                  } else {
-                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_kitchen_printer'));
-                  }
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 12,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                  ),
+                  child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                  onPressed: isButtonDisabled ? null : () {
+                    setState(() {
+                      isButtonDisabled = true;
+                    });
+                    closeDialog(context);
+                  },
+                ),
               ),
-              TextButton(
-                child: Text(AppLocalizations.of(context)!.translate('update')),
-                onPressed: isButtonDisabled ? null : () {
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  _submit(context);
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 12,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color.backgroundColor,
+                  ),
+                  child: Text(AppLocalizations.of(context)!.translate('update')),
+                  onPressed: isButtonDisabled ? null : () {
+                    setState(() {
+                      isButtonDisabled = true;
+                    });
+                    _submit(context);
+                  },
+                ),
               ),
             ],
           );
         } else {
-          //mobile view
+          ///mobile layout
           return AlertDialog(
             title: Text(AppLocalizations.of(context)!.translate('kitchen_list_layout')),
+            titlePadding: EdgeInsets.fromLTRB(24, 16, 24, 0),
+            contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 5),
             content: StreamBuilder(
                 stream: contentStream,
                 builder: (context, snapshot){
                   if(snapshot.hasData){
                     return Container(
-                      height: 500,
-                      width: 850,
+                      height: MediaQuery.of(context).size.height /2,
+                      width: 500,
                       child: SingleChildScrollView(
                           child: Column(
                             children: [
@@ -270,34 +293,50 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                 }
             ),
             actions: [
-              TextButton(
-                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                onPressed: isButtonDisabled ? null : () {
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  closeDialog(context);
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 10,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                  child: Text(AppLocalizations.of(context)!.translate('test_print')),
+                  onPressed: () {
+                    if(kitchenPrinter.isNotEmpty){
+                      testLayout();
+                      PrintReceipt().printTestPrintKitchenList(kitchenPrinter, testPrintLayout, testPrintLayout.paper_size!);
+                    } else {
+                      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_kitchen_printer'));
+                    }
+                  },
+                ),
               ),
-              TextButton(
-                child: Text(AppLocalizations.of(context)!.translate('test_print')),
-                onPressed: () {
-                  if(kitchenPrinter.isNotEmpty){
-                    testLayout();
-                    PrintReceipt().printTestPrintKitchenList(kitchenPrinter, testPrintLayout, testPrintLayout.paper_size!);
-                  } else {
-                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_kitchen_printer'));
-                  }
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 10,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                  child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                  onPressed: isButtonDisabled ? null : () {
+                    // Disable the button after it has been pressed
+                    setState(() {
+                      isButtonDisabled = true;
+                    });
+                    closeDialog(context);
+                  },
+                ),
               ),
-              TextButton(
-                child: Text(AppLocalizations.of(context)!.translate('update')),
-                onPressed: isButtonDisabled ? null : () {
-                  setState(() {
-                    isButtonDisabled = true;
-                  });
-                  _submit(context);
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 10,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                  child: Text(AppLocalizations.of(context)!.translate('update')),
+                  onPressed: isButtonDisabled ? null : () {
+                    setState(() {
+                      isButtonDisabled = true;
+                    });
+                    _submit(context);
+                  },
+                ),
               ),
             ],
           );

@@ -284,7 +284,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                   )
                 : CustomProgressBar();
           } else {
-            ///mobile view
+            ///mobile layout
             return isLoaded == true
                 ? Scaffold(
                     resizeToAvoidBottomInset: false,

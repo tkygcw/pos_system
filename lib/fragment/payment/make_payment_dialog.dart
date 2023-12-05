@@ -289,7 +289,7 @@ class _MakePaymentState extends State<MakePayment> {
                                       margin: EdgeInsets.only(bottom: 20),
                                       alignment: Alignment.center,
                                       // child: Text(AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
-                                      child: Text(_appSettingModel.table_order != 1 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                      child: Text(_appSettingModel.table_order != true ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
                                           : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
                                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                                     ),
@@ -705,7 +705,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                     margin: EdgeInsets.all(20),
                                                     alignment: Alignment.center,
                                                     child: ElevatedButton(
-                                                      style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                                                      style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor, padding: EdgeInsets.fromLTRB(20, 14, 20, 14)),
                                                       onPressed: () async {
                                                         setState(() {
                                                           willPop = false;
@@ -721,9 +721,9 @@ class _MakePaymentState extends State<MakePayment> {
                                                       },
                                                       child: Text(
                                                           scanning == false ?
-                                                          "Start Scan" :
-                                                          "Scanning...",
-                                                          style: TextStyle(fontSize: 25)),
+                                                          AppLocalizations.of(context)!.translate('scan_qr') :
+                                                          AppLocalizations.of(context)!.translate('scanning'),
+                                                          style: TextStyle(fontSize: 24)),
                                                     ),
                                                   ),
                                                 ],
@@ -736,7 +736,7 @@ class _MakePaymentState extends State<MakePayment> {
                     ),
                   ));
             } else {
-              ///mobile view
+              ///mobile layout
               return Center(
                 child: SingleChildScrollView(
                   // physics: NeverScrollableScrollPhysics(),
@@ -744,7 +744,7 @@ class _MakePaymentState extends State<MakePayment> {
                     titlePadding: EdgeInsets.fromLTRB(15, 5, 15, 0),
                     contentPadding:
                         EdgeInsets.only(left: 15, right: 15, bottom: 10),
-                    insetPadding: EdgeInsets.zero,
+                    // insetPadding: EdgeInsets.zero,
                     title: Row(
                       children: [
                         Text(AppLocalizations.of(context)!.translate('payment_detail')),
@@ -766,8 +766,10 @@ class _MakePaymentState extends State<MakePayment> {
                       ],
                     ),
                     content: Container(
+                        // width: MediaQuery.of(context).size.width / 1.2,
+                        height: MediaQuery.of(context).size.height / 1.5,
                         width: 650,
-                        height: 250,
+                        // height: 250,
                         child: Row(
                           children: [
                             Expanded(
@@ -777,11 +779,11 @@ class _MakePaymentState extends State<MakePayment> {
                                   Container(
                                     alignment: Alignment.center,
                                     child: Text(
-                                        _appSettingModel.table_order != 1 ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                        _appSettingModel.table_order != true ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
                                             : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 24)),
+                                            fontSize: 20)),
                                   ),
                                   Container(
                                     //margin: EdgeInsets.all(25),
@@ -1072,26 +1074,32 @@ class _MakePaymentState extends State<MakePayment> {
                                                 ),
                                               ),
                                               Spacer(),
-                                              ElevatedButton(
-                                                style: ButtonStyle(
-                                                    backgroundColor: MaterialStateProperty.all(color.backgroundColor)),
-                                                onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
-                                                  setState(() {
-                                                    isButtonDisable = true;
-                                                  });
-                                                  await callCreateOrder(finalAmount);
-                                                  if (this.isLogOut == true) {
-                                                    openLogOutDialog();
-                                                    return;
-                                                  }
-                                                  openPaymentSuccessDialog(
-                                                      widget.dining_id,
-                                                      isCashMethod: false,
-                                                      diningName: widget.dining_name);
-                                                },
-                                                child: Text(
-                                                    AppLocalizations.of(context)!.translate('payment_received'),
-                                                    style: TextStyle(fontSize: 20)),
+                                              Container(
+                                                child: ElevatedButton.icon(
+                                                  style: ButtonStyle(
+                                                      backgroundColor: MaterialStateProperty.all(Colors.green),
+                                                      padding: MaterialStateProperty.all(EdgeInsets.all(10))
+                                                  ),
+                                                  onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
+                                                    setState(() {
+                                                      // willPop = false;
+                                                      isButtonDisable = true;
+                                                    });
+                                                    await callCreateOrder(finalAmount);
+                                                    if (this.isLogOut == true) {
+                                                      openLogOutDialog();
+                                                      return;
+                                                    }
+                                                    openPaymentSuccessDialog(
+                                                        widget.dining_id,
+                                                        isCashMethod: false,
+                                                        diningName: widget.dining_name);
+                                                  },
+                                                  icon: Icon(Icons.call_received),
+                                                  label: Text(
+                                                      AppLocalizations.of(context)!.translate('payment_received'),
+                                                      style: TextStyle(fontSize: 16)),
+                                                ),
                                               ),
                                             ],
                                           ),
@@ -1110,17 +1118,19 @@ class _MakePaymentState extends State<MakePayment> {
                                                                 fontSize: 20,
                                                                 fontWeight: FontWeight.bold))),
                                                   ),
-                                                  Container(
-                                                    height: scanning == false ? 150 : 240,
-                                                    margin: EdgeInsets.only(bottom: 10),
-                                                    child: scanning == false ?
-                                                    ClipRRect(
-                                                      child: Image(
-                                                        image: AssetImage("drawable/TNG.jpg"),
+                                                  Expanded(
+                                                    child: Container(
+                                                      height: scanning == false ? 150 : 240,
+                                                      margin: EdgeInsets.only(bottom: 10),
+                                                      child: scanning == false ?
+                                                      ClipRRect(
+                                                        child: Image(
+                                                          image: AssetImage("drawable/TNG.jpg"),
+                                                        ),
+                                                      ) :
+                                                      Container(
+                                                        child: _buildQrViewMobile(context),
                                                       ),
-                                                    ) :
-                                                    Container(
-                                                      child: _buildQrViewMobile(context),
                                                     ),
                                                   ),
                                                   Visibility(
@@ -1129,7 +1139,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       alignment: Alignment.center,
                                                       child: ElevatedButton(
                                                         style: ButtonStyle(
-                                                            backgroundColor: MaterialStateProperty.all(color.backgroundColor)),
+                                                            backgroundColor: MaterialStateProperty.all(color.buttonColor),),
                                                         onPressed: () async {
                                                           setState(() {
                                                             scanning = true;
@@ -1143,7 +1153,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                           }
                                                         },
                                                         child: Text(
-                                                            AppLocalizations.of(context)!.translate('start_scan'),
+                                                            AppLocalizations.of(context)!.translate('scan_qr'),
                                                             style: TextStyle(fontSize: 20)),
                                                       ),
                                                     ),

@@ -290,7 +290,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                   content: isLoaded
                       ? Container(
                           width: MediaQuery.of(context).size.width / 2,
-                          height: 150,
+                          height: MediaQuery.of(context).size.height / 3,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -300,8 +300,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
                                     '${AppLocalizations.of(context)?.translate('change')}: ${widget.change}',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 24),
+                                        fontSize: 20),
                                   )),
+                              SizedBox(height: 15),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [

@@ -73,8 +73,6 @@ class _PaymentSelectState extends State<PaymentSelect> {
             child: AlertDialog(
               title: Text(AppLocalizations.of(context)!.translate('select_payment_method')),
               content: isload ? Container(
-                // width: MediaQuery.of(context).size.width / 2,
-                // height: MediaQuery.of(context).size.height / 2,
                   child: Container(
                     margin: EdgeInsets.all(2),
                     width: MediaQuery.of(context).size.width / 2,
@@ -194,7 +192,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
             ),
           );
         } else {
-          ///mobile view
+          ///mobile layout
           return Center(
             child: WillPopScope(
               onWillPop: () async => willPop,
@@ -203,6 +201,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                 content: isload ? Container(
                   margin: EdgeInsets.all(2),
                   width: MediaQuery.of(context).size.width / 2,
+                    height: MediaQuery.of(context).size.height / 3,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

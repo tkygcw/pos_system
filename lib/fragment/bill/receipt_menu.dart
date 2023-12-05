@@ -229,7 +229,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                       )
                     : CustomProgressBar());
           } else {
-            ///mobile view
+            ///mobile layout
             return Scaffold(
                 appBar: AppBar(
                   primary: false,

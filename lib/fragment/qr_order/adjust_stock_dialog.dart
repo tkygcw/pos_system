@@ -381,7 +381,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
               ),
             );
           } else {
-            ///mobile view
+            ///mobile layout
             return AlertDialog(
               title: Text(AppLocalizations.of(context)!.translate('order_detail'),
                 style: TextStyle(
