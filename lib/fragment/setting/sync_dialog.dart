@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:pos_system/page/progress_bar.dart';
 
 import '../../main.dart';
@@ -14,11 +15,13 @@ class SyncDialog extends StatefulWidget {
 }
 
 class _SyncDialogState extends State<SyncDialog> {
+  SyncToCloud syncToCloud = SyncToCloud();
   StreamController controller = StreamController();
   StreamController actionController = StreamController();
   late Stream contentStream;
   late Stream actionStream;
   late StreamSubscription streamSubscription;
+  Timer? timer;
   bool isButtonDisable = false;
 
   @override
@@ -32,6 +35,7 @@ class _SyncDialogState extends State<SyncDialog> {
   @override
   void dispose() {
     streamSubscription.cancel();
+    timer?.cancel();
     super.dispose();
   }
 
@@ -41,9 +45,7 @@ class _SyncDialogState extends State<SyncDialog> {
       switch(event){
         case 'init':{
           await syncData();
-          Future.delayed(const Duration(seconds: 2), () {
-            controller.sink.add("refresh");
-          });
+          await syncToCloudChecking();
         }
         break;
         case 'close': {
@@ -96,10 +98,37 @@ class _SyncDialogState extends State<SyncDialog> {
         await syncRecord.syncFromCloud();
         syncRecord.count = 0;
       }
-      await mainSyncToCloud.syncAllToCloud();
     }catch(e){
       syncRecord.count = 0;
       print("sync data error: ${e}");
+    }
+  }
+
+  syncToCloudChecking() async {
+    if(mainSyncToCloud.count == 0){
+      mainSyncToCloud.count = 1;
+      do{
+        await syncToCloud.syncAllToCloud(isManualSync: true);
+      }while(syncToCloud.emptyResponse == false);
+      mainSyncToCloud.count = 0;
+      Future.delayed(const Duration(seconds: 2), () {
+        controller.sink.add("refresh");
+      });
+    } else {
+      //if auto sync is running, check every 2 second
+      timer = Timer.periodic(Duration(seconds: 2), (timer) async {
+        if(mainSyncToCloud.count == 0){
+          this.timer?.cancel();
+          mainSyncToCloud.count = 1;
+          do{
+            await syncToCloud.syncAllToCloud(isManualSync: true);
+          }while(syncToCloud.emptyResponse == false);
+          mainSyncToCloud.count = 0;
+          Future.delayed(const Duration(seconds: 2), () {
+            controller.sink.add("refresh");
+          });
+        }
+      });
     }
   }
 }
