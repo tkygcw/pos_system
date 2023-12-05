@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:pos_system/page/progress_bar.dart';
 
 import '../../main.dart';
@@ -14,6 +15,7 @@ class SyncDialog extends StatefulWidget {
 }
 
 class _SyncDialogState extends State<SyncDialog> {
+  SyncToCloud syncToCloud = SyncToCloud();
   StreamController controller = StreamController();
   StreamController actionController = StreamController();
   late Stream contentStream;
@@ -41,6 +43,17 @@ class _SyncDialogState extends State<SyncDialog> {
       switch(event){
         case 'init':{
           await syncData();
+          if(mainSyncToCloud.count == 0){
+            mainSyncToCloud.count = 1;
+            do{
+              await syncToCloud.syncAllToCloud(isManualSync: true);
+            }while(syncToCloud.emptyResponse == false);
+            mainSyncToCloud.count = 0;
+            Future.delayed(const Duration(seconds: 2), () {
+              controller.sink.add("refresh");
+            });
+          }
+
           Future.delayed(const Duration(seconds: 2), () {
             controller.sink.add("refresh");
           });
@@ -96,7 +109,6 @@ class _SyncDialogState extends State<SyncDialog> {
         await syncRecord.syncFromCloud();
         syncRecord.count = 0;
       }
-      await mainSyncToCloud.syncAllToCloud();
     }catch(e){
       syncRecord.count = 0;
       print("sync data error: ${e}");

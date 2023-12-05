@@ -355,6 +355,7 @@ class Domain {
       {device_id,
         value,
         isSync,
+        isManualSync,
         order_value,
         order_tax_value,
         order_promotion_value,
@@ -384,6 +385,7 @@ class Domain {
       var response = await http.post(Domain.sync_to_cloud, body: {
         'all_local_update': '1',
         'device_id': device_id,
+        'isManualSync': isManualSync != null ? '1': '0',
         'value': value,
         'tb_order_create': order_value != null ? order_value : [].toString(),
         'tb_order_tax_detail_create': order_tax_value != null ? order_tax_value: [].toString(),
@@ -408,7 +410,7 @@ class Domain {
         'tb_table_sync': table_value != null ? table_value : [].toString(),
         'tb_user_sync': user_value != null ? user_value : [].toString(),
         'tb_checklist_create': checklist_value != null ? checklist_value : [].toString()
-      }).timeout(Duration(seconds: isSync != null ? 25 : 15), onTimeout: () => throw TimeoutException("Time out"));
+      }).timeout(Duration(seconds: isManualSync != null ? 120 : isSync != null ? 25 : 15), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);
     } on TimeoutException catch(_){
