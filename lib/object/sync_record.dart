@@ -10,6 +10,7 @@ import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/product_variant_detail.dart';
 import 'package:pos_system/object/promotion.dart';
+import 'package:pos_system/object/second_screen.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
@@ -63,7 +64,6 @@ class SyncRecord {
       if (data['status'] == '1') {
         print('status 1 called!');
         List responseJson = data['data'];
-
         for (var i = 0; i < responseJson.length; i++) {
           switch(responseJson[i]['type']){
             case '0':
@@ -215,7 +215,10 @@ class SyncRecord {
               break;
             case '24':
               //second screen image
-              syncRecordIdList.add(responseJson[i]['id']);
+              bool status = await callSecondScreenQuery(data: responseJson[i]['data']);
+              if(status == true){
+                syncRecordIdList.add(responseJson[i]['id']);
+              }
               break;
             case '25':
               //printer link category
@@ -249,10 +252,12 @@ class SyncRecord {
         status = 0;
       } else if (data['status'] == '7'){
         status = 1;
+        notificationModel.setContentLoaded();
       } else if(data['status'] == '8'){
         throw TimeoutException("Timeout");
       } else {
         status = 0;
+        notificationModel.setContentLoaded();
       }
       return status;
       // else {
@@ -271,7 +276,67 @@ class SyncRecord {
       //notificationModel.setCartContentLoaded();
       return 3;
     }
+  }
 
+  callSecondScreenQuery({data, method}) async {
+    bool isComplete = false;
+    SecondScreen secondScreen = SecondScreen.fromJson(data[0]);
+    try{
+      if(method == '0'){
+        SecondScreen? checkData = await PosDatabase.instance.checkSpecificSecondScreen(secondScreen.second_screen_id.toString());
+        if(checkData == null){
+          SecondScreen data = await PosDatabase.instance.insertSecondScreen(secondScreen);
+          if(data.created_at != ''){
+            await downloadBannerImage(imageName: data.name!);
+            isComplete = true;
+          }
+        } else {
+          isComplete = true;
+        }
+      } else {
+        SecondScreen? checkData = await PosDatabase.instance.checkSpecificSecondScreen(secondScreen.second_screen_id.toString());
+        if(checkData == null){
+          SecondScreen data = await PosDatabase.instance.insertSecondScreen(secondScreen);
+          if(data.created_at != ''){
+            await downloadBannerImage(imageName: data.name!);
+            isComplete = true;
+          }
+        } else {
+          int data = await PosDatabase.instance.updateSecondScreen(secondScreen);
+          if(data == 1){
+            isComplete = true;
+          }
+        }
+      }
+      displayManager.transferDataToPresentation("refresh_img");
+      return isComplete;
+
+    } catch(e){
+      print("second screen query error: ${e}");
+      return isComplete = false;
+    }
+  }
+
+/*
+  download banner image
+*/
+  downloadBannerImage({required String imageName}) async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final int? branchId = prefs.getInt('branch_id');
+      final String? user = prefs.getString('user');
+      final String? path = prefs.getString('banner_path');
+      Map userObject = json.decode(user!);
+      if (path != null) {
+        String url = '${Domain.backend_domain}api/banner/' + userObject['company_id'] + '/' + branchId.toString() + '/' + imageName;
+        final response = await http.get(Uri.parse(url));
+        var localPath = path + '/' + imageName;
+        final imageFile = File(localPath);
+        await imageFile.writeAsBytes(response.bodyBytes);
+      }
+    } catch(e){
+      print("download banner image error: ${e}");
+    }
   }
 
   callTableUseDetailQuery({data}) async {
@@ -1024,7 +1089,7 @@ class SyncRecord {
       Product? checkData = await PosDatabase.instance.checkSpecificProductId(productItem.product_id!);
       if(checkData == null){
         if(productObject.graphic_type == '2' && productObject.image != ''){
-          await downloadProductImage();
+          await downloadProductImage(imageName: productObject.image!);
         }
         Product productData = await PosDatabase.instance.insertProduct(productObject);
         if(productData.product_sqlite_id != null){
@@ -1038,7 +1103,7 @@ class SyncRecord {
       Product? checkData = await PosDatabase.instance.checkSpecificProductId(productItem.product_id!);
       if(checkData != null) {
         if(productObject.graphic_type == '2' && productObject.image != ''){
-          await downloadProductImage();
+          await downloadProductImage(imageName: productObject.image!);
         }
         int data = await PosDatabase.instance.updateProduct(productObject);
         if (data == 1) {
@@ -1054,28 +1119,18 @@ class SyncRecord {
   /*
   download product image
 */
-  downloadProductImage() async {
+  downloadProductImage({required String imageName}) async {
     try{
       final prefs = await SharedPreferences.getInstance();
       final String? user = prefs.getString('user');
       final String? path = prefs.getString('local_path');
       Map userObject = json.decode(user!);
-      Map data = await Domain().getAllProduct(userObject['company_id']);
-      String url = '';
-      String name = '';
-      if (data['status'] == '1') {
-        List responseJson = data['product'];
-        for (var i = 0; i < responseJson.length; i++) {
-          Product data = Product.fromJson(responseJson[i]);
-          name = data.image!;
-          if (data.image != '') {
-            url = '${Domain.backend_domain}api/gallery/' + userObject['company_id'] + '/' + name;
-            final response = await http.get(Uri.parse(url));
-            var localPath = path! + '/' + name;
-            final imageFile = File(localPath);
-            await imageFile.writeAsBytes(response.bodyBytes);
-          }
-        }
+      if (path != null) {
+        String url = '${Domain.backend_domain}api/gallery/' + userObject['company_id'] + '/' + imageName;
+        final response = await http.get(Uri.parse(url));
+        var localPath = path + '/' + imageName;
+        final imageFile = File(localPath);
+        await imageFile.writeAsBytes(response.bodyBytes);
       }
     }catch(e){
       print("download product image error: $e");

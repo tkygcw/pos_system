@@ -4,12 +4,12 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
 class Domain {
-  static var domain = 'https://pos.lkmng.com/';
-  static var backend_domain = 'https://pos.lkmng.com/';
-  static var qr_domain = 'https://pos-qr.lkmng.com/';
-  // static var domain = 'https://pos.optimy.com.my/';
-  // static var backend_domain = 'https://api.optimy.com.my/';
-  // static var qr_domain = 'https://qr.optimy.com.my/';
+  // static var domain = 'https://pos.lkmng.com/';
+  // static var backend_domain = 'https://pos.lkmng.com/';
+  // static var qr_domain = 'https://pos-qr.lkmng.com/';
+  static var domain = 'https://pos.optimy.com.my/';
+  static var backend_domain = 'https://api.optimy.com.my/';
+  static var qr_domain = 'https://qr.optimy.com.my/';
   static Uri login = Uri.parse(domain + 'mobile-api/login/index.php');
   static Uri branch = Uri.parse(domain + 'mobile-api/branch/index.php');
   static Uri device = Uri.parse(domain + 'mobile-api/device/index.php');
@@ -42,6 +42,25 @@ class Domain {
   static Uri receipt = Uri.parse(domain + 'mobile-api/receipt/index.php');
   static Uri checklist = Uri.parse(domain + 'mobile-api/checklist/index.php');
   static Uri kitchen_list = Uri.parse(domain + 'mobile-api/kitchen_list/index.php');
+  static Uri second_screen = Uri.parse(domain + 'mobile-api/second_screen/index.php');
+
+
+/*
+  get banner image
+*/
+  getSecondScreen({required String branch_id}) async {
+    try{
+      print("branch_id: ${branch_id}");
+      var response = await http.post(Domain.second_screen, body: {
+        'getSecondScreen': '1',
+        'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch(e){
+      Fluttertoast.showToast(msg: e.toString());
+    }
+  }
+
 
 /*
   get app version
@@ -338,6 +357,7 @@ class Domain {
       {device_id,
         value,
         isSync,
+        isManualSync,
         order_value,
         order_tax_value,
         order_promotion_value,
@@ -369,6 +389,7 @@ class Domain {
       var response = await http.post(Domain.sync_to_cloud, body: {
         'all_local_update': '1',
         'device_id': device_id,
+        'isManualSync': isManualSync != null ? '1': '0',
         'value': value,
         'tb_order_create': order_value != null ? order_value : [].toString(),
         'tb_order_tax_detail_create': order_tax_value != null ? order_tax_value: [].toString(),
@@ -395,7 +416,7 @@ class Domain {
         'tb_user_sync': user_value != null ? user_value : [].toString(),
         'tb_checklist_create': checklist_value != null ? checklist_value : [].toString(),
         'tb_kitchen_list_create': kitchen_list_value != null ? kitchen_list_value : [].toString()
-      }).timeout(Duration(seconds: isSync != null ? 25 : 15), onTimeout: () => throw TimeoutException("Time out"));
+      }).timeout(Duration(seconds: isManualSync != null ? 120 : isSync != null ? 25 : 15), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);
     } on TimeoutException catch(_){
