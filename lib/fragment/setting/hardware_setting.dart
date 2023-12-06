@@ -225,6 +225,13 @@ class _HardwareSettingState extends State<HardwareSetting> {
                               },
                             ),
                           ),
+                          Divider(
+                            color: Colors.grey,
+                            height: 1,
+                            thickness: 1,
+                            indent: 20,
+                            endIndent: 20,
+                          ),
                           ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('enable_Second_display')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('show_device_second_display')),
@@ -240,6 +247,15 @@ class _HardwareSettingState extends State<HardwareSetting> {
                                 actionController.sink.add("switch");
                               },
                             ),
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('reset_second_display')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('reset_second_display_desc')),
+                            trailing: ElevatedButton(
+                                onPressed: () async {
+                                  await displayManager.transferDataToPresentation("init");
+                                },
+                                child: Icon(Icons.reset_tv))
                           ),
 
                           Divider(

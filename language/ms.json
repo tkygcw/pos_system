@@ -379,6 +379,8 @@
   "reprint_latest_settlement": "Cetak semula penyelesaian terkini",
   "reset_pos": "Tetap semula POS",
   "reset_screen": "Tetapkan Semula Skrin",
+  "reset_second_display": "Tetapkan semula paparan kedua",
+  "reset_second_display_desc": "tetapkan semula paparan paparan pelanggan (jika ada)",
   "retry": "Cuba semula",
   "rounding": "Rounding",
   "same_payment_method_error": "Tidak boleh mengemas kini kepada cara pembayaran yang sama",
