@@ -330,6 +330,8 @@
   "reprint_latest_settlement": "重新打印最新的结算单",
   "reset_pos": "重置 POS",
   "retry": "重试",
+  "reset_second_display": "重置第二屏幕显示",
+  "reset_second_display_desc": "重置客户屏幕显示 (如有)",
   "rounding": "Rounding",
   "same_payment_method_error": "无法更新为相同的支付方式",
   "scan": "扫描",
