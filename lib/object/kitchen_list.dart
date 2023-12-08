@@ -11,6 +11,7 @@ class KitchenListFields {
     paper_size,
     kitchen_list_show_price,
     print_combine_kitchen_list,
+    kitchen_list_item_separator,
     sync_status,
     created_at,
     updated_at,
@@ -26,6 +27,7 @@ class KitchenListFields {
   static String paper_size = 'paper_size';
   static String kitchen_list_show_price = 'kitchen_list_show_price';
   static String print_combine_kitchen_list = 'print_combine_kitchen_list';
+  static String kitchen_list_item_separator = 'kitchen_list_item_separator';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -43,6 +45,7 @@ class KitchenList {
   String? paper_size;
   int? kitchen_list_show_price;
   int? print_combine_kitchen_list;
+  int? kitchen_list_item_separator;
   int? sync_status;
   String? created_at;
   String? updated_at;
@@ -58,6 +61,7 @@ class KitchenList {
         this.paper_size,
         this.kitchen_list_show_price,
         this.print_combine_kitchen_list,
+        this.kitchen_list_item_separator,
         this.sync_status,
         this.created_at,
         this.updated_at,
@@ -73,6 +77,7 @@ class KitchenList {
     String? paper_size,
     int? kitchen_list_show_price,
     int? print_combine_kitchen_list,
+    int? kitchen_list_item_separator,
     int? sync_status,
     String? created_at,
     String? updated_at,
@@ -88,6 +93,7 @@ class KitchenList {
           paper_size: paper_size ?? this.paper_size,
           kitchen_list_show_price: kitchen_list_show_price ?? this.kitchen_list_show_price,
           print_combine_kitchen_list: print_combine_kitchen_list ?? this.print_combine_kitchen_list,
+          kitchen_list_item_separator: kitchen_list_item_separator ?? this.kitchen_list_item_separator,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -103,6 +109,7 @@ class KitchenList {
     paper_size: json[KitchenListFields.paper_size] as String?,
     kitchen_list_show_price: json[KitchenListFields.kitchen_list_show_price] as int?,
     print_combine_kitchen_list: json[KitchenListFields.print_combine_kitchen_list] as int?,
+    kitchen_list_item_separator: json[KitchenListFields.kitchen_list_item_separator] as int?,
     sync_status: json[KitchenListFields.sync_status] as int?,
     created_at: json[KitchenListFields.created_at] as String?,
     updated_at: json[KitchenListFields.updated_at] as String?,
@@ -119,6 +126,7 @@ class KitchenList {
     KitchenListFields.paper_size: paper_size,
     KitchenListFields.kitchen_list_show_price: kitchen_list_show_price,
     KitchenListFields.print_combine_kitchen_list: print_combine_kitchen_list,
+    KitchenListFields.kitchen_list_item_separator: kitchen_list_item_separator,
     KitchenListFields.sync_status: sync_status,
     KitchenListFields.created_at: created_at,
     KitchenListFields.updated_at: updated_at,

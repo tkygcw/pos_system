@@ -40,7 +40,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
   String kitchen_listView = "80";
   String? kitchen_list_value;
   double? fontSize, otherFontSize;
-  bool isButtonDisabled = false, submitted = false, kitchenListShowPrice = false, printCombineKitchenList = false;
+  bool isButtonDisabled = false, submitted = false, kitchenListShowPrice = false, printCombineKitchenList = false, kitchenListItemSeparator = false;
   List<Printer> kitchenPrinter = [];
 
   @override
@@ -93,6 +93,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         otherFontSize = data.other_font_size == 0 ? 20 : 14;
         kitchenListShowPrice = data.kitchen_list_show_price == 0 ? false : true;
         printCombineKitchenList = data.print_combine_kitchen_list == 0 ? false : true;
+        kitchenListItemSeparator = data.kitchen_list_item_separator == 0 ? false : true;
       } else {
         kitchen_list = null;
         productFontSize = ReceiptDialogEnum.big;
@@ -101,6 +102,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         otherFontSize = 14;
         kitchenListShowPrice = false;
         printCombineKitchenList = false;
+        kitchenListItemSeparator = false;
       }
     } catch(e){
       print("read kitchen list layout error: $e");
@@ -357,6 +359,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
           other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
           kitchen_list_show_price: kitchenListShowPrice == true ? 1: 0,
           print_combine_kitchen_list: printCombineKitchenList == true ? 1: 0,
+          kitchen_list_item_separator: kitchenListItemSeparator == true ? 1: 0,
           sync_status: checkData.sync_status == 0 ? 0 : 2,
           updated_at: dateTime,
           kitchen_list_sqlite_id: kitchen_list!.kitchen_list_sqlite_id,
@@ -395,6 +398,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         paper_size: kitchen_listView,
         kitchen_list_show_price: kitchenListShowPrice == true ? 1 : 0,
         print_combine_kitchen_list: printCombineKitchenList == true ? 1 : 0,
+        kitchen_list_item_separator: kitchenListItemSeparator == true ? 1 : 0,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
@@ -456,6 +460,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
         kitchen_list_show_price: kitchenListShowPrice == true ? 1: 0,
         print_combine_kitchen_list: printCombineKitchenList == true ? 1: 0,
+        kitchen_list_item_separator: kitchenListItemSeparator == true ? 1: 0,
         paper_size: kitchen_listView
     );
   }
@@ -565,6 +570,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                     visible: printCombineKitchenList,
                     child: Column(
                       children: [
+                        Visibility(
+                          visible: kitchenListItemSeparator,
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 20, bottom: 10),
+                            child: DottedLine(),
+                          ),
+                        ),
                         Row(
                           children: [
                             Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
@@ -581,6 +593,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                               ],
                             ),
                           ],
+                        ),
+                        Visibility(
+                          visible: kitchenListItemSeparator,
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 20, bottom: 10),
+                            child: DottedLine(),
+                          ),
                         ),
                         Row(
                           children: [
@@ -678,7 +697,6 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                 activeColor: color.backgroundColor,
                 onChanged: (value) async {
                   kitchenListShowPrice = value;
-                  // appSettingModel.setPrintChecklistStatus(kitchenListShowPrice);
                   actionController.sink.add("switch");
                 },
               ),
@@ -691,8 +709,33 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                 activeColor: color.backgroundColor,
                 onChanged: (value) async {
                   printCombineKitchenList = value;
-                  // appSettingModel.setPrintCombineKitchenListStatus(printCombineKitchenList);
+                  if(!printCombineKitchenList){
+                    if(kitchenListItemSeparator)
+                      kitchenListItemSeparator = value;
+                  }
                   actionController.sink.add("switch");
+                },
+              ),
+            ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('kitchen_list_item_separator'),
+                  style: TextStyle(
+                    color: !printCombineKitchenList ? Colors.grey : null)
+              ),
+              subtitle: Text(AppLocalizations.of(context)!.translate('kitchen_list_item_separator_desc'),
+                  style: TextStyle(
+                    color: !printCombineKitchenList ? Colors.grey : null)
+              ),
+              trailing: Switch(
+                value: kitchenListItemSeparator,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  if(!printCombineKitchenList) {
+                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('print_combine_kitchen_list_required'));
+                  } else {
+                    kitchenListItemSeparator = value;
+                    actionController.sink.add("switch");
+                  }
                 },
               ),
             ),
@@ -750,6 +793,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                     visible: printCombineKitchenList,
                     child: Column(
                       children: [
+                        Visibility(
+                          visible: kitchenListItemSeparator,
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 20, bottom: 10),
+                            child: DottedLine(),
+                          ),
+                        ),
                         Row(
                           children: [
                             Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
@@ -766,6 +816,13 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                               ],
                             ),
                           ],
+                        ),
+                        Visibility(
+                          visible: kitchenListItemSeparator,
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 20, bottom: 10),
+                            child: DottedLine(),
+                          ),
                         ),
                         Row(
                           children: [
@@ -876,8 +933,33 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
                 activeColor: color.backgroundColor,
                 onChanged: (value) async {
                   printCombineKitchenList = value;
-                  // appSettingModel.setPrintCombineKitchenListStatus(printCombineKitchenList);
+                  if(!printCombineKitchenList){
+                    if(kitchenListItemSeparator)
+                      kitchenListItemSeparator = value;
+                  }
                   actionController.sink.add("switch");
+                },
+              ),
+            ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('kitchen_list_item_separator'),
+                  style: TextStyle(
+                      color: !printCombineKitchenList ? Colors.grey : null)
+              ),
+              subtitle: Text(AppLocalizations.of(context)!.translate('kitchen_list_item_separator_desc'),
+                  style: TextStyle(
+                      color: !printCombineKitchenList ? Colors.grey : null)
+              ),
+              trailing: Switch(
+                value: kitchenListItemSeparator,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  if(!printCombineKitchenList) {
+                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('print_combine_kitchen_list_required'));
+                  } else {
+                    kitchenListItemSeparator = value;
+                    actionController.sink.add("switch");
+                  }
                 },
               ),
             ),

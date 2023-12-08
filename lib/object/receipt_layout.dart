@@ -609,6 +609,11 @@ class ReceiptLayout{
 
       if(kitchen_list != null && kitchen_list.print_combine_kitchen_list == 1) {
         bytes += generator.emptyLines(1);
+        if(kitchen_list.kitchen_list_item_separator == 1) {
+          bytes += generator.reset();
+          bytes += generator.hr();
+        }
+
         bytes += generator.row([
           PosColumn(text: '1',
               width: 2,
@@ -634,7 +639,13 @@ class ReceiptLayout{
                   height: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                   width: PosTextSize.size2)),
         ]);
+
         bytes += generator.emptyLines(1);
+        if(kitchen_list.kitchen_list_item_separator == 1) {
+          bytes += generator.reset();
+          bytes += generator.hr();
+        }
+
         bytes += generator.row([
           PosColumn(text: '1',
               width: 2,
@@ -732,6 +743,11 @@ class ReceiptLayout{
 
       if(kitchen_list != null && kitchen_list.print_combine_kitchen_list == 1) {
         bytes += generator.emptyLines(1);
+        if(kitchen_list.kitchen_list_item_separator == 1) {
+          bytes += generator.reset();
+          bytes += generator.hr();
+        }
+
         bytes += generator.row([
           PosColumn(
               text: '1',
@@ -760,7 +776,13 @@ class ReceiptLayout{
                   width: PosTextSize.size2)
           ),
         ]);
+
         bytes += generator.emptyLines(1);
+        if(kitchen_list.kitchen_list_item_separator == 1) {
+          bytes += generator.reset();
+          bytes += generator.hr();
+        }
+
         bytes += generator.row([
           PosColumn(
               text: '1',
@@ -3154,9 +3176,13 @@ class ReceiptLayout{
     * */
         for (int i = 0; i < cartItemList.length; i++) {
           //order product
+          if(i != 0) {
+            if(kitchenListLayout != null && kitchenListLayout.kitchen_list_item_separator == 1) {
+              bytes += generator.reset();
+              bytes += generator.hr();
+            }
+          }
           bytes += generator.row([
-            // PosColumn(text: '${cartItem.quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true, height: PosTextSize.size2)),
-            // PosColumn(text: '${cartItem.quantity!*int.parse(cartItem.per_quantity_unit!)}${cartItem.unit}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true, height: PosTextSize.size2)),
             PosColumn(
                 text: cartItemList[i].unit != 'each' ? '${(cartItemList[i].quantity! * int.parse(cartItemList[i].per_quantity_unit!)).toStringAsFixed(2)}${cartItemList[i].unit}' : '${cartItemList[i].quantity}',
                 width: 2,
@@ -3299,6 +3325,12 @@ class ReceiptLayout{
     * */
         //order product
         for(int i = 0; i < cartItemList.length; i++) {
+          if(i != 0) {
+            if(kitchenListLayout != null && kitchenListLayout.kitchen_list_item_separator == 1) {
+              bytes += generator.reset();
+              bytes += generator.hr();
+            }
+          }
           bytes += generator.row([
             PosColumn(text: cartItemList[i].unit != 'each' ? '${(cartItemList[i].quantity!*int.parse(cartItemList[i].per_quantity_unit!)).toStringAsFixed(2)}${cartItemList[i].unit}' : '${cartItemList[i].quantity}',
                 width: 3,
