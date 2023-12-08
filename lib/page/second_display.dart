@@ -1,10 +1,18 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/object/second_screen.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:presentation_displays/secondary_display.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
+import '../database/domain.dart';
 import '../object/cart_product.dart';
 import '../object/second_display_data.dart';
 import '../object/variant_group.dart';
@@ -17,35 +25,16 @@ class SecondDisplay extends StatefulWidget {
 }
 
 class _SecondDisplayState extends State<SecondDisplay> {
-  String value = "init";
+  String value = "init", imagePath = '';
+  List<FileImage> imageList = [];
   SecondDisplayData? obj;
-  bool isLoaded = false;
+  late SharedPreferences prefs;
+  bool isLoaded = false, bannerLoaded = false;
 
-  getVariant(cartProductItem object) {
-    List<String?> variant = [];
-    String result = '';
-    try{
-      if(object.productVariantName != '' && object.productVariantName != null){
-        result = "(${object.productVariantName!})";
-      } else if(object.variant != null) {
-        var length = object.variant!.length;
-        for (int i = 0; i < length ; i++) {
-          VariantGroup group = object.variant![i];
-          for (int j = 0; j < group.child!.length; j++) {
-            if (group.child![j].isSelected!) {
-              variant.add(group.child![j].name!);
-              result = '(${variant.toString().replaceAll('[', '').replaceAll(']', '')})'
-                  .replaceAll(',', ' |');
-              //.replaceAll('|', '\n+')
-            }
-          }
-        }
-      }
-    }catch(e){
-      print("second display get variant error: ${e}");
-      result = "";
-    }
-    return result;
+  @override
+  void initState() {
+    initBanner();
+    super.initState();
   }
 
   @override
@@ -54,41 +43,70 @@ class _SecondDisplayState extends State<SecondDisplay> {
       body: SecondaryDisplay(
           callback: (argument){
             try{
-              setState(() {
-                if(argument != 'init'){
+              switch(argument){
+                case "init": {
+                  setState(() {
+                    value = argument;
+                  });
+                }break;
+                case "refresh_img": {
+                  initBanner();
+                }break;
+                default: {
                   var decode = jsonDecode(argument);
                   obj = SecondDisplayData.fromJson(decode);
                   isLoaded = true;
+                  setState(() {
+                    value = argument;
+                  });
                 }
-                value = argument;
-              });
+              }
             } catch(e){
               print("second display callback error: $e");
-              // setState(() {
-              //   value == "init";
-              // });
+              setState(() {
+                value == "init";
+              });
             }
           },
-          child: value == "init" ?
-          Container(
-            decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage("drawable/login_background.jpg"),
-                  fit: BoxFit.cover,
-                )
-            ),
-            child: Center(
-                child: Column(
-                  children: [
-                    Container(
-                        height: 150,
-                        child: Image(image: AssetImage("drawable/logo.png"),)
-                    ),
-                  ],
-                )
-            ),
-          )
-              :
+          child: value == "init" && bannerLoaded == true ?
+              imageList.isNotEmpty ?
+              CarouselSlider(
+                items: imageList.map((item) {
+                  return Builder(
+                    builder: (BuildContext context) {
+                      return Container(
+                          width: MediaQuery.of(context).size.width,
+                          child: Image(image: item, fit: BoxFit.cover)
+                      );
+                    },
+                  );
+                }).toList(),
+                options: CarouselOptions(
+                  height: MediaQuery.of(context).size.height,
+                  autoPlay: imageList.length > 1 ? true : false,
+                  autoPlayInterval: Duration(seconds: 8),
+                  viewportFraction: 1,
+                  pageSnapping: false,
+                ),
+              ) :
+              Container(
+                decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("drawable/login_background.jpg"),
+                      fit: BoxFit.cover,
+                    )
+                ),
+                child: Center(
+                    child: Column(
+                      children: [
+                        Container(
+                            height: 150,
+                            child: Image(image: AssetImage("drawable/logo.png"),)
+                        ),
+                      ],
+                    )
+                ),
+              ) :
           obj != null ?
           Container(
             color: Colors.white24,
@@ -218,5 +236,124 @@ class _SecondDisplayState extends State<SecondDisplay> {
           CustomProgressBar()
       ),
     );
+  }
+
+  initBanner() async {
+    try{
+      imageList.clear();
+      prefs = await getPreferences();
+      if(prefs.getString('banner_path') == null){
+        //if pref did not have folder path
+        await _createBannerImgFolder();
+        await getBanner();
+        setState(() {
+          bannerLoaded = true;
+        });
+      } else {
+        await getBanner();
+        setState(() {
+          bannerLoaded = true;
+        });
+      }
+    }catch(e){
+      imageList.clear();
+      setState(() {
+        bannerLoaded = true;
+      });
+      print("init banner error: ${e}");
+    }
+  }
+
+  getBanner() async {
+    imagePath = prefs.getString('banner_path')!;
+    List<SecondScreen> data = await PosDatabase.instance.readAllNotDeletedSecondScreen();
+    if(data.isNotEmpty){
+      for(int i = 0; i < data.length; i++){
+        //check is image exist or not
+        if(await FileImage(File(imagePath + '/' + data[i].name!)).file.exists() == true){
+          print("direct add image called");
+          imageList.add(FileImage(File(imagePath + '/' + data[i].name!)));
+        } else {
+          await downloadBannerImage(imagePath);
+          imageList.add(FileImage(File(imagePath + '/' + data[i].name!)));
+        }
+      }
+    }
+  }
+
+  getPreferences() async {
+    return await SharedPreferences.getInstance();
+  }
+
+  Future<String> get _localPath async {
+    final directory = await getApplicationSupportDirectory();
+    return directory.path;
+  }
+
+  _createBannerImgFolder() async {
+    final folderName = 'banner';
+    final directory = await _localPath;
+    final path = '$directory/assets/$folderName';
+    final pathImg = Directory(path);
+    pathImg.create();
+    await prefs.setString('banner_path', path);
+  }
+
+/*
+  download banner image
+*/
+  downloadBannerImage(String path) async {
+    try{
+      print("download called!!!");
+      final int? branchId = prefs.getInt('branch_id');
+      final String? user = prefs.getString('user');
+      Map userObject = json.decode(user!);
+      Map data = await Domain().getSecondScreen(branch_id: branchId.toString());
+      String url = '';
+      String name = '';
+      if (data['status'] == '1') {
+        List responseJson = data['second_screen'];
+        for (var i = 0; i < responseJson.length; i++) {
+          name = responseJson[i]['name'];
+          print("second screen img name: ${name}");
+          if (name != '') {
+            url = '${Domain.backend_domain}api/banner/' + userObject['company_id'] + '/' + branchId.toString() + '/' + name;
+            final response = await http.get(Uri.parse(url));
+            var localPath = path + '/' + name;
+            final imageFile = File(localPath);
+            await imageFile.writeAsBytes(response.bodyBytes);
+          }
+        }
+      }
+    } catch(e){
+      print("download banner image error: ${e}");
+    }
+  }
+
+  getVariant(cartProductItem object) {
+    List<String?> variant = [];
+    String result = '';
+    try{
+      if(object.productVariantName != '' && object.productVariantName != null){
+        result = "(${object.productVariantName!})";
+      } else if(object.variant != null) {
+        var length = object.variant!.length;
+        for (int i = 0; i < length ; i++) {
+          VariantGroup group = object.variant![i];
+          for (int j = 0; j < group.child!.length; j++) {
+            if (group.child![j].isSelected!) {
+              variant.add(group.child![j].name!);
+              result = '(${variant.toString().replaceAll('[', '').replaceAll(']', '')})'
+                  .replaceAll(',', ' |');
+              //.replaceAll('|', '\n+')
+            }
+          }
+        }
+      }
+    }catch(e){
+      print("second display get variant error: ${e}");
+      result = "";
+    }
+    return result;
   }
 }

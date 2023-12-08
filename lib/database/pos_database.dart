@@ -51,6 +51,7 @@ import '../object/color.dart';
 import '../object/order_detail_link_promotion.dart';
 import '../object/order_promotion_detail.dart';
 import '../object/printer.dart';
+import '../object/second_screen.dart';
 import '../object/settlement_link_payment.dart';
 
 class PosDatabase {
@@ -131,6 +132,25 @@ class PosDatabase {
         }break;
         case 7: {
           await db.execute("ALTER TABLE $tableModifierGroup ADD ${ModifierGroupFields.sequence_number} TEXT NOT NULL DEFAULT '' ");
+          //new
+          await db.execute('''CREATE TABLE $tableSecondScreen(
+          ${SecondScreenFields.second_screen_id} $idType,
+          ${SecondScreenFields.company_id} $textType,
+          ${SecondScreenFields.branch_id} $textType,
+          ${SecondScreenFields.name} $textType,
+          ${SecondScreenFields.sequence_number} $textType,
+          ${SecondScreenFields.created_at} $textType,
+          ${SecondScreenFields.soft_delete} $textType)''');
+        }break;
+        case 8 :{
+          await db.execute('''CREATE TABLE $tableSecondScreen(
+          ${SecondScreenFields.second_screen_id} $idType,
+          ${SecondScreenFields.company_id} $textType,
+          ${SecondScreenFields.branch_id} $textType,
+          ${SecondScreenFields.name} $textType,
+          ${SecondScreenFields.sequence_number} $textType,
+          ${SecondScreenFields.created_at} $textType,
+          ${SecondScreenFields.soft_delete} $textType)''');
         }break;
         case 8:
           {
@@ -838,6 +858,18 @@ class PosDatabase {
           ${ChecklistFields.created_at} $textType,
           ${ChecklistFields.updated_at} $textType,
           ${ChecklistFields.soft_delete} $textType)''');
+
+/*
+    create second_screen table
+*/
+    await db.execute('''CREATE TABLE $tableSecondScreen(
+          ${SecondScreenFields.second_screen_id} $idType,
+          ${SecondScreenFields.company_id} $textType,
+          ${SecondScreenFields.branch_id} $textType,
+          ${SecondScreenFields.name} $textType,
+          ${SecondScreenFields.sequence_number} $textType,
+          ${SecondScreenFields.created_at} $textType,
+          ${SecondScreenFields.soft_delete} $textType)''');
 
   /*
     create kitchen list table
@@ -2075,6 +2107,15 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableChecklist!, data.toJson());
     return data.copy(checklist_sqlite_id: id);
+  }
+
+/*
+  add second screen to sqlite
+*/
+  Future<SecondScreen> insertSecondScreen(SecondScreen data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableSecondScreen!, data.toJson());
+    return data.copy(second_screen_id: id);
   }
 
   /*
@@ -4570,6 +4611,22 @@ class PosDatabase {
   }
 
 /*
+  ----------------------------Second screen part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+  read all second screen (not soft_deleted)
+*/
+  Future<List<SecondScreen>> readAllNotDeletedSecondScreen() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableSecondScreen WHERE soft_delete = ?',
+        ['']);
+    return result.map((json) => SecondScreen.fromJson(json)).toList();
+  }
+
+
+/*
   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -5489,6 +5546,22 @@ class PosDatabase {
       data.table_sqlite_id,
     ]);
   }
+
+/*
+  update second screen
+*/
+  Future<int> updateSecondScreen(SecondScreen data) async {
+    final db = await instance.database;
+    return await db.rawUpdate("UPDATE $tableSecondScreen SET name = ?, sequence_number = ?, soft_delete = ? WHERE id = ? ",
+        [
+          data.name,
+          data.sequence_number,
+          data.soft_delete,
+          data.second_screen_id
+        ]
+    );
+  }
+
 
 /*
   ------------------unique key part----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -7214,6 +7287,19 @@ class PosDatabase {
     final result = await db.rawQuery('SELECT * FROM $tableTableUseDetail WHERE table_use_detail_key = ?', [key]);
     if(result.isNotEmpty){
       return TableUseDetail.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  check second screen (sync record)
+*/
+  Future<SecondScreen?> checkSpecificSecondScreen(String id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableSecondScreen WHERE id = ? AND soft_delete = ?', [id, '']);
+    if(result.isNotEmpty){
+      return SecondScreen.fromJson(result.first);
     } else {
       return null;
     }

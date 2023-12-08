@@ -382,6 +382,8 @@
   "reprint_latest_settlement": "Reprint latest settlement",
   "reset_pos": "Reset Pos",
   "reset_screen": "Reset Screen",
+  "reset_second_display": "Reset second display",
+  "reset_second_display_desc": "reset customer display view (if have)",
   "retry": "Retry",
   "rounding": "Rounding",
   "same_payment_method_error": "Cannot update to same payment method",
