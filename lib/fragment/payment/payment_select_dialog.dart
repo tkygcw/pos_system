@@ -46,6 +46,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
   List<PaymentLinkCompany> PaymentLists = [];
   Order? order;
   bool isload = false, isLogOut = false, willPop = true, isButtonDisable = false;
+  bool canPop = true;
 
   @override
   void initState() {
@@ -72,8 +73,6 @@ class _PaymentSelectState extends State<PaymentSelect> {
             child: AlertDialog(
               title: Text(AppLocalizations.of(context)!.translate('select_payment_method')),
               content: isload ? Container(
-                // width: MediaQuery.of(context).size.width / 2,
-                // height: MediaQuery.of(context).size.height / 2,
                   child: Container(
                     margin: EdgeInsets.all(2),
                     width: MediaQuery.of(context).size.width / 2,
@@ -176,20 +175,24 @@ class _PaymentSelectState extends State<PaymentSelect> {
               actions: [
                 ElevatedButton(
                     onPressed: isButtonDisable ? null : (){
-                      setState(() {
-                        isButtonDisable = true;
-                      });
                       if(widget.callBack != null){
                         widget.callBack!();
                       }
-                      Navigator.of(context).pop();
+                      if (canPop) {
+                        Navigator.of(context).pop();
+                        canPop = false;
+                        Future.delayed(Duration(milliseconds: 500), () {
+                          canPop = true;
+                        });
+                      }
+                      // Navigator.of(context).pop();
                     },
                     child: Text(AppLocalizations.of(context)!.translate('close')))
               ],
             ),
           );
         } else {
-          ///mobile view
+          ///mobile layout
           return Center(
             child: WillPopScope(
               onWillPop: () async => willPop,
@@ -198,6 +201,7 @@ class _PaymentSelectState extends State<PaymentSelect> {
                 content: isload ? Container(
                   margin: EdgeInsets.all(2),
                   width: MediaQuery.of(context).size.width / 2,
+                    height: MediaQuery.of(context).size.height / 3,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -297,13 +301,16 @@ class _PaymentSelectState extends State<PaymentSelect> {
                 actions: [
                   ElevatedButton(
                       onPressed: isButtonDisable ? null : (){
-                        setState(() {
-                          isButtonDisable = true;
-                        });
                         if(widget.callBack != null){
                           widget.callBack!();
                         }
-                        Navigator.of(context).pop();
+                        if (canPop) {
+                          Navigator.of(context).pop();
+                          canPop = false;
+                          Future.delayed(Duration(milliseconds: 500), () {
+                            canPop = true;
+                          });
+                        }
                       },
                       child: Text(AppLocalizations.of(context)!.translate('close')))
                 ],

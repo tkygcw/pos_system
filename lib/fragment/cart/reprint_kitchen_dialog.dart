@@ -1,3 +1,5 @@
+import 'package:another_flushbar/flushbar.dart';
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -128,23 +130,31 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
                 )
             ),
             actions: [
-              ElevatedButton(
-                  onPressed: isButtonDisable || orderDetail.isEmpty  ? null : () async {
-                    disableButton();
-                    await callPrinter();
-                  },
-                  child: Text(AppLocalizations.of(context)!.translate('reprint'))),
-              ElevatedButton(
-                  onPressed: closeButtonDisable ? null : (){
-                    setState(() {
-                      closeButtonDisable = true;
-                    });
-                    closeDialog();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color.backgroundColor,
-                  ),
-                  child: Text(AppLocalizations.of(context)!.translate('close')))
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 12,
+                child: ElevatedButton(
+                    onPressed: isButtonDisable || orderDetail.isEmpty  ? null : () async {
+                      disableButton();
+                      await callPrinter();
+                    },
+                    child: Text(AppLocalizations.of(context)!.translate('reprint'))),
+              ),
+              SizedBox(
+                width: MediaQuery.of(context).size.width / 4,
+                height: MediaQuery.of(context).size.height / 12,
+                  child: ElevatedButton(
+                      onPressed: closeButtonDisable ? null : (){
+                        setState(() {
+                          closeButtonDisable = true;
+                        });
+                        closeDialog();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color.backgroundColor,
+                      ),
+                      child: Text(AppLocalizations.of(context)!.translate('close')))
+              ),
             ],
           ),
         );
@@ -213,18 +223,58 @@ class _ReprintKitchenDialogState extends State<ReprintKitchenDialog> {
 
 
   callPrinter() async {
+    String flushbarStatus = '';
     List<OrderDetail> printList = [];
     printList.addAll(orderDetail);
     _failPrintModel.removeAllFailedOrderDetail();
     Navigator.of(context).pop();
     reprintList = printList.where((element) => element.isSelected == true).toList();
-    List<OrderDetail> returnData = await printReceipt.reprintKitchenList(printerList, reprintList: reprintList);
+    List<OrderDetail> returnData = await printReceipt.reprintKitchenList(printerList, context, reprintList: reprintList);
     if (returnData.isNotEmpty) {
       reprintList.clear();
       _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
+      playSound();
+      Flushbar(
+        icon: Icon(Icons.error, size: 32, color: Colors.white),
+        shouldIconPulse: false,
+        title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
+        message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+        duration: Duration(seconds: 5),
+        backgroundColor: Colors.red,
+        messageColor: Colors.white,
+        flushbarPosition: FlushbarPosition.TOP,
+        maxWidth: 350,
+        margin: EdgeInsets.all(8),
+        borderRadius: BorderRadius.circular(8),
+        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+        onTap: (flushbar) {
+          flushbar.dismiss(true);
+        },
+        onStatusChanged: (status) {
+          flushbarStatus = status.toString();
+          print("onStatusChanged: ${status}");
+        },
+      )..show(context);
+      Future.delayed(Duration(seconds: 3), () {
+        print("status change: ${flushbarStatus}");
+        if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
+          playSound();
+      });
+
     } else {
       reprintList.clear();
       _failPrintModel.removeAllFailedOrderDetail();
+    }
+  }
+
+  playSound() {
+    try {
+      final assetsAudioPlayer = AssetsAudioPlayer();
+      assetsAudioPlayer.open(
+        Audio("audio/review.mp3"),
+      );
+    } catch(e) {
+      print("Play Sound Error: ${e}");
     }
   }
 

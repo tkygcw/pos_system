@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
@@ -8,8 +7,6 @@ import 'package:pos_system/object/settlement_link_payment.dart';
 import 'package:pos_system/object/transfer_owner.dart';
 
 import '../database/pos_database.dart';
-import 'branch_link_dining_option.dart';
-import 'branch_link_modifier.dart';
 import 'branch_link_tax.dart';
 import 'categories.dart';
 import 'order.dart';

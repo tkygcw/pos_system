@@ -38,8 +38,10 @@ class Domain {
   static Uri qr_order_sync = Uri.parse(domain + 'mobile-api/qr_order_sync/index.php');
   static Uri printer = Uri.parse(domain + 'mobile-api/printer/index.php');
   static Uri app_version = Uri.parse(domain + 'mobile-api/app_version/index.php');
+  static Uri app_setting = Uri.parse(domain + 'mobile-api/app_setting/index.php');
   static Uri receipt = Uri.parse(domain + 'mobile-api/receipt/index.php');
   static Uri checklist = Uri.parse(domain + 'mobile-api/checklist/index.php');
+  static Uri kitchen_list = Uri.parse(domain + 'mobile-api/kitchen_list/index.php');
   static Uri second_screen = Uri.parse(domain + 'mobile-api/second_screen/index.php');
 
 
@@ -343,7 +345,7 @@ class Domain {
       Map<String, dynamic>? result = {'status': '8'};
       return result;
     }  catch(error){
-      print('error: ${error}');
+      print('checkDeviceLogin error: ${error}');
       //Fluttertoast.showToast(msg: error.toString());
     }
   }
@@ -366,6 +368,7 @@ class Domain {
         order_detail_delete_value,
         order_modifier_value,
         cash_record_value,
+        app_setting_value,
         transfer_owner_value,
         receipt_value,
         refund_value,
@@ -378,7 +381,8 @@ class Domain {
         printer_link_category_delete_value,
         table_value,
         user_value,
-        checklist_value
+        checklist_value,
+        kitchen_list_value
       }) async {
     try {
       //print('order cache value 15 sync: ${order_cache_value}');
@@ -397,6 +401,7 @@ class Domain {
         'tb_order_detail_delete': order_detail_delete_value != null ? order_detail_delete_value : [].toString(),
         'tb_order_modifier_detail_create': order_modifier_value != null ? order_modifier_value : [].toString(),
         'tb_cash_record_create': cash_record_value != null ? cash_record_value : [].toString(),
+        'tb_app_setting_create': app_setting_value != null ? app_setting_value : [].toString(),
         'tb_transfer_owner_create': transfer_owner_value != null ? transfer_owner_value : [].toString(),
         'tb_receipt_create': receipt_value != null ? receipt_value : [].toString(),
         'tb_refund_create': refund_value != null ? refund_value : [].toString(),
@@ -409,7 +414,8 @@ class Domain {
         'tb_printer_link_category_delete': printer_link_category_delete_value != null ? printer_link_category_delete_value : [].toString(),
         'tb_table_sync': table_value != null ? table_value : [].toString(),
         'tb_user_sync': user_value != null ? user_value : [].toString(),
-        'tb_checklist_create': checklist_value != null ? checklist_value : [].toString()
+        'tb_checklist_create': checklist_value != null ? checklist_value : [].toString(),
+        'tb_kitchen_list_create': kitchen_list_value != null ? kitchen_list_value : [].toString()
       }).timeout(Duration(seconds: isManualSync != null ? 120 : isSync != null ? 25 : 15), onTimeout: () => throw TimeoutException("Time out"));
       print('response in domain: ${jsonDecode(response.body)}');
       return jsonDecode(response.body);
@@ -734,6 +740,23 @@ class Domain {
         'details': detail,
       });
       return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * sync cash record to cloud
+  * */
+  SyncAppSettingToCloud(detail) async {
+    try {
+      var response = await http.post(Domain.sync_to_cloud, body: {
+        'tb_app_setting_create': '1',
+        'details': detail,
+      });
+      print("SyncAppSettingToCloud success");
+      return jsonDecode(response.body);
+
     } catch (error) {
       Fluttertoast.showToast(msg: error.toString());
     }
@@ -2000,8 +2023,24 @@ class Domain {
   }
 
   /*
+  * get app setting
+  * */
+  getAppSetting(branch_id) async {
+    try {
+      var response = await http.post(Domain.app_setting,
+          body: {'getAllAppSetting': '1', 'branch_id': branch_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get printer
   * */
+
+
+
   getPrinter(branch_id) async {
     try {
       var response = await http.post(Domain.printer,
@@ -2045,6 +2084,21 @@ class Domain {
     try {
       var response = await http.post(Domain.checklist, body: {
         'getAllChecklist': '1',
+        'branch_id': branch_id,
+      });
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /**
+   * get kitchen list
+   * */
+  getKitchenList(branch_id) async {
+    try {
+      var response = await http.post(Domain.kitchen_list, body: {
+        'getAllKitchenList': '1',
         'branch_id': branch_id,
       });
       return jsonDecode(response.body);

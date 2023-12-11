@@ -4,7 +4,6 @@ import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/variant_group.dart';
 
-import 'order_detail.dart';
 import 'order_modifier_detail.dart';
 
 class cartProductItem{
@@ -36,6 +35,7 @@ class cartProductItem{
    List<OrderModifierDetail>? orderModifierDetail;
    String? unit;
    String? per_quantity_unit;
+   String? order_queue;
 
    cartProductItem(
        {
@@ -66,7 +66,8 @@ class cartProductItem{
          this.refColor,
          this.orderModifierDetail,
          this.unit,
-         this.per_quantity_unit
+         this.per_quantity_unit,
+         this.order_queue
        });
 
    static cartProductItem fromJson(Map<String, Object?> json) {
@@ -106,7 +107,8 @@ class cartProductItem{
          refColor: json['refColor'] as Color?,
          orderModifierDetail: orderModifierDetailList,
          unit: json['unit'] as String?,
-         per_quantity_unit: json['per_quantity_unit'] as String?
+         per_quantity_unit: json['per_quantity_unit'] as String?,
+         order_queue: json['order_queue'] as String?
      );
    }
 
@@ -138,7 +140,8 @@ class cartProductItem{
      'refColor': null,
      'orderModifierDetail': orderModifierDetail,
      'unit': unit,
-     'per_quantity_unit': per_quantity_unit
+     'per_quantity_unit': per_quantity_unit,
+     'order_queue': order_queue
    };
 
 }

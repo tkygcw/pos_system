@@ -1,7 +1,6 @@
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:group_radio_button/group_radio_button.dart';
-import 'package:pos_system/utils/sharePreference.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -44,9 +43,6 @@ class _LanguageDialogState extends State<LanguageDialog> {
   Widget build(BuildContext context) {
     var appLanguage = Provider.of<AppLanguage>(context);
 
-
-
-
     final _status = ["English", "中文", "Malay"];
     return AlertDialog(
       title: Text(
@@ -78,7 +74,8 @@ class _LanguageDialogState extends State<LanguageDialog> {
       ),
       actions: <Widget>[
         TextButton(
-          child: Text('${AppLocalizations.of(context)!.translate('cancel')}'),
+          child: Text('${AppLocalizations.of(context)!.translate('cancel')}',
+            style: TextStyle(color: Colors.red)),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -86,7 +83,6 @@ class _LanguageDialogState extends State<LanguageDialog> {
         TextButton(
           child: Text(
             '${AppLocalizations.of(context)!.translate('confirm')}',
-            style: TextStyle(color: Colors.red),
           ),
           onPressed: () {
             appLanguage.changeLanguage(Locale(getLanguageCode(selectedLanguage)));

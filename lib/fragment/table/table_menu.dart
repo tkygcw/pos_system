@@ -173,92 +173,93 @@ class _TableMenuState extends State<TableMenu> {
                           //       label: Text(AppLocalizations.of(context)!.translate('table'))),
                           // ),
 
-                          Expanded(
-                            flex: MediaQuery.of(context).size.height > 500 ? 23 : 3,
-                            child: Row(
-                              mainAxisAlignment: MediaQuery.of(context).size.height > 500 ? MainAxisAlignment.center: MainAxisAlignment.end,
-                              children: [
-                                Text(
-                                  AppLocalizations.of(context)!.translate('advanced'),
-                                  style: TextStyle(fontSize: MediaQuery.of(context).size.height > 500 ? 18 : 12),
-                                ),
-                                Switch(
-                                  value: showAdvanced,
-                                  onChanged: (value) async {
-                                    // print("constraints: ${constraints.maxWidth}");
-                                    // print("constraints: ${MediaQuery.of(context).size.width}");
-                                    if(MediaQuery.of(context).size.height > 500) {
-                                      if (isUpdated()) {
-                                        scrollContainerHeight = 130;
-                                        showSaveDialog(context);
-                                      } else {
-                                        editingMode = false;
-                                        showAdvanced = !showAdvanced;
-                                      }
-                                      prefs.setBool('show_advanced', showAdvanced);
-                                    } else {
-                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('feature_not_supported_on_phone'));
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                          // SizedBox(width: MediaQuery.of(context).size.height > 450 ? 450 : 50),
-                          // Spacer(),
-                          Expanded(
-                            flex: MediaQuery.of(context).size.height > 500 ? 47 : 2,
-                            child: Visibility(
-                              visible: showAdvanced ? true : false,
+                            Expanded(
+                              flex: MediaQuery.of(context).size.height > 500 ? 23 : 3,
                               child: Row(
-                                mainAxisAlignment: MediaQuery.of(context).size.height > 500 ? MainAxisAlignment.end : MainAxisAlignment.center,
+                                mainAxisAlignment: MediaQuery.of(context).size.height > 500 ? MainAxisAlignment.center: MainAxisAlignment.end,
                                 children: [
-                                  Visibility(
-                                    visible: editingMode ? true : false,
-                                    child: IconButton(
-                                      icon: const Icon(
-                                        Icons.save,
-                                      ),
-                                      color: color.backgroundColor,
-                                      onPressed: () {
+                                  Text(
+                                    AppLocalizations.of(context)!.translate('advanced'),
+                                    style: TextStyle(fontSize: MediaQuery.of(context).size.height > 500 ? 18 : 12),
+                                  ),
+                                  Switch(
+                                    value: showAdvanced,
+                                    onChanged: (value) async {
+                                      if(MediaQuery.of(context).size.height > 500) {
                                         if (isUpdated()) {
                                           scrollContainerHeight = 130;
                                           showSaveDialog(context);
                                         } else {
-                                          editingMode = !editingMode;
+                                          editingMode = false;
+                                          setState(() {
+                                            showAdvanced = !showAdvanced;
+                                          });
+
                                         }
-                                      },
-                                    ),
-                                    replacement: IconButton(
-                                      icon: const Icon(
-                                        Icons.edit,
-                                      ),
-                                      color: color.backgroundColor,
-                                      onPressed: () async {
-                                        bool _hasInternetAccess = await Domain().isHostReachable();
-                                        if (_hasInternetAccess) {
-                                          editingMode = !editingMode;
-                                          if (editingMode) {
-                                            for (int j = 0; j < tableList.length; j++) {
-                                              if (tableList[j].status == 1) {
-                                                tableList[j].isSelected = false;
-                                                cart.removeAllCartItem();
-                                                cart.removePromotion();
-                                                cart.removeSpecificTable(tableList[j]);
-                                              }
-                                            }
-                                          }
-                                          setState(() {});
-                                        } else {
-                                          Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_internet_access'));
-                                        }
-                                      },
-                                    ),
+                                        prefs.setBool('show_advanced', showAdvanced);
+                                      } else {
+                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('feature_not_supported_on_phone'));
+                                      }
+                                    },
                                   ),
                                 ],
                               ),
                             ),
-                          ),
+                            // SizedBox(width: MediaQuery.of(context).size.height > 450 ? 450 : 50),
+                            // Spacer(),
+                            Expanded(
+                              flex: MediaQuery.of(context).size.height > 500 ? 47 : 2,
+                              child: Visibility(
+                                visible: showAdvanced ? true : false,
+                                child: Row(
+                                  mainAxisAlignment: MediaQuery.of(context).size.height > 500 ? MainAxisAlignment.end : MainAxisAlignment.center,
+                                  children: [
+                                    Visibility(
+                                      visible: editingMode ? true : false,
+                                      child: IconButton(
+                                        icon: const Icon(
+                                          Icons.save,
+                                        ),
+                                        color: color.backgroundColor,
+                                        onPressed: () {
+                                          if (isUpdated()) {
+                                            scrollContainerHeight = 130;
+                                            showSaveDialog(context);
+                                          } else {
+                                            editingMode = !editingMode;
+                                          }
+                                        },
+                                      ),
+                                      replacement: IconButton(
+                                        icon: const Icon(
+                                          Icons.edit,
+                                        ),
+                                        color: color.backgroundColor,
+                                        onPressed: () async {
+                                          bool _hasInternetAccess = await Domain().isHostReachable();
+                                          if (_hasInternetAccess) {
+                                            editingMode = !editingMode;
+                                            if (editingMode) {
+                                              for (int j = 0; j < tableList.length; j++) {
+                                                if (tableList[j].status == 1) {
+                                                  tableList[j].isSelected = false;
+                                                  cart.removeAllCartItem();
+                                                  cart.removePromotion();
+                                                  cart.removeSpecificTable(tableList[j]);
+                                                }
+                                              }
+                                            }
+                                            setState(() {});
+                                          } else {
+                                            Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_internet_access'));
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
 
                           SizedBox(width: MediaQuery.of(context).size.height > 500 ? 15 : 2),
 

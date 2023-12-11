@@ -1,4 +1,3 @@
-import 'package:pos_system/object/table.dart';
 
 String? tableTableUseDetail= 'tb_table_use_detail ';
 

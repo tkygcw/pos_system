@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/controller/controllerObject.dart';
-import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/logout_dialog.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/object/app_setting.dart';
@@ -31,8 +30,6 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
   late Color _buttonColor;
   late Color _iconColor;
   List<AppSetting> appSettingList = [];
-  bool directPayment = false;
-  bool showSKU = false;
 
   @override
   void initState() {
@@ -42,23 +39,11 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
     listenAction();
   }
 
-
   listenAction(){
     actionController.sink.add("init");
     actionStream.listen((event) async {
       switch(event){
         case 'init':{
-          await getAllAppSetting();
-          controller.refresh(streamController);
-        }
-        break;
-        case 'direct_payment':{
-          await updateAppSetting();
-          controller.refresh(streamController);
-        }
-        break;
-        case 'show_sku':{
-          await updateShowSKUAppSetting();
           controller.refresh(streamController);
         }
         break;
@@ -221,39 +206,6 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                             endIndent: 20,
                           ),
                           ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('place_order_payment')),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('direct_make_payment_when_oder_placed')),
-                            trailing: Switch(
-                              value: directPayment,
-                              activeColor: color.backgroundColor,
-                              onChanged: (value) {
-                                directPayment = value;
-                                appSettingModel.setDirectPaymentStatus(directPayment);
-                                actionController.sink.add("direct_payment");
-                              },
-                            ),
-                          ),
-                          ListTile(
-                            title: Text(AppLocalizations.of(context)!.translate('show_sku')),
-                            subtitle: Text(AppLocalizations.of(context)!.translate('show_sku_desc')),
-                            trailing: Switch(
-                              value: showSKU,
-                              activeColor: color.backgroundColor,
-                              onChanged: (value) {
-                                showSKU = value;
-                                appSettingModel.setShowSKUStatus(showSKU);
-                                actionController.sink.add("show_sku");
-                              },
-                            ),
-                          ),
-                          Divider(
-                            color: Colors.grey,
-                            height: 1,
-                            thickness: 1,
-                            indent: 20,
-                            endIndent: 20,
-                          ),
-                          ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('wifi_setting')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('open_wifi_setting')),
                             trailing: Icon(Icons.wifi),
@@ -315,7 +267,6 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                 }
               },
             )
-
         );
       });
       //print(color.backgroundColor);
@@ -362,51 +313,5 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
           // ignore: null_check_always_fails
           return null!;
         });
-  }
-
-  updateAppSetting() async {
-    print('update called');
-    AppSetting appSetting = AppSetting(
-      direct_payment: directPayment ? 1 : 0,
-      app_setting_sqlite_id: appSettingList[0].app_setting_sqlite_id
-    );
-    int data = await PosDatabase.instance.updateDirectPaymentSettings(appSetting);
-  }
-
-  updateShowSKUAppSetting() async {
-    print('update show SKU called');
-    AppSetting appSetting = AppSetting(
-        show_sku: showSKU ? 1 : 0,
-        app_setting_sqlite_id: appSettingList[0].app_setting_sqlite_id
-    );
-    int data = await PosDatabase.instance.updateShowSKUSettings(appSetting);
-  }
-
-  // createAppSetting() async {
-  //   AppSetting appSetting = AppSetting(
-  //     open_cash_drawer: this.cashDrawer ? 1 : 0,
-  //     show_second_display: this.secondDisplay ? 1 : 0
-  //
-  //   );
-  //   AppSetting data = await PosDatabase.instance.insertSetting(appSetting);
-  // }
-
-  getAllAppSetting() async {
-    List<AppSetting> data = await PosDatabase.instance.readAllAppSetting();
-    if(data.isNotEmpty){
-      appSettingList = data;
-      if(appSettingList[0].direct_payment == 1){
-        directPayment = true;
-      } else {
-        directPayment = false;
-      }
-
-      if(appSettingList[0].show_sku == 1){
-        showSKU = true;
-      } else {
-        showSKU = false;
-      }
-
-    }
   }
 }

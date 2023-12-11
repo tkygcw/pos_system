@@ -102,6 +102,8 @@ dependencies:
   esc_pos_utils_plus: ^2.0.2
   carousel_slider: ^4.2.1
 
+  another_flushbar: ^1.12.30
+  flash: ^3.0.5
 
 dependency_overrides:
   image_picker_android: 0.8.6+6

@@ -5,7 +5,7 @@ import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_system/object/checklist.dart';
+import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
@@ -21,27 +21,27 @@ import '../../object/print_receipt.dart';
 import '../../translation/AppLocalizations.dart';
 import '../logout_dialog.dart';
 
-class ChecklistDialog extends StatefulWidget {
-  const ChecklistDialog({Key? key}) : super(key: key);
+class KitchenlistDialog extends StatefulWidget {
+  const KitchenlistDialog({Key? key}) : super(key: key);
 
   @override
-  State<ChecklistDialog> createState() => _ChecklistDialogState();
+  State<KitchenlistDialog> createState() => _KitchenlistDialogState();
 }
 
-class _ChecklistDialogState extends State<ChecklistDialog> {
+class _KitchenlistDialogState extends State<KitchenlistDialog> {
   StreamController actionController = StreamController();
   StreamController contentController = StreamController();
   late Stream contentStream;
   late Stream actionStream;
   final defaultFontSize = 14.0;
-  Checklist testPrintLayout = Checklist();
-  Checklist? checklist;
+  KitchenList testPrintLayout = KitchenList();
+  KitchenList? kitchen_list;
   ReceiptDialogEnum? productFontSize, variantAddonFontSize;
-  String checklistView = "80";
-  String? checklist_value;
+  String kitchen_listView = "80";
+  String? kitchen_list_value;
   double? fontSize, otherFontSize;
-  bool isButtonDisabled = false, submitted = false;
-  List<Printer> cashierPrinter = [];
+  bool isButtonDisabled = false, submitted = false, kitchenListShowPrice = false, printCombineKitchenList = false, kitchenListItemSeparator = false;
+  List<Printer> kitchenPrinter = [];
 
   @override
   void initState() {
@@ -63,13 +63,13 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
     actionStream.listen((event) async  {
       switch(event){
         case 'init':{
-          await getAllCashierPrinter();
-          await readChecklistLayout();
+          await getAllKitchenPrinter();
+          await getKitchenListSetting();
           contentController.sink.add("refresh");
         }
         break;
         case 'view':{
-          await readChecklistLayout();
+          await getKitchenListSetting();
           contentController.sink.add("refresh");
         }
         break;
@@ -81,35 +81,41 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
     });
   }
 
-  readChecklistLayout() async {
+  getKitchenListSetting() async {
     try{
-      Checklist? data = await PosDatabase.instance.readSpecificChecklist(checklistView);
+      KitchenList? data = await PosDatabase.instance.readSpecificKitchenList(kitchen_listView);
       print("data: $data");
       if(data != null){
-        checklist = data;
+        kitchen_list = data;
         productFontSize = data.product_name_font_size == 0 ? ReceiptDialogEnum.big : ReceiptDialogEnum.small;
         fontSize = data.product_name_font_size == 0 ? 20 : 14;
         variantAddonFontSize = data.other_font_size == 0 ? ReceiptDialogEnum.big : ReceiptDialogEnum.small;
         otherFontSize = data.other_font_size == 0 ? 20 : 14;
+        kitchenListShowPrice = data.kitchen_list_show_price == 0 ? false : true;
+        printCombineKitchenList = data.print_combine_kitchen_list == 0 ? false : true;
+        kitchenListItemSeparator = data.kitchen_list_item_separator == 0 ? false : true;
       } else {
-        checklist = null;
-        productFontSize = ReceiptDialogEnum.small;
-        fontSize = 14;
+        kitchen_list = null;
+        productFontSize = ReceiptDialogEnum.big;
+        fontSize = 20;
         variantAddonFontSize = ReceiptDialogEnum.small;
         otherFontSize = 14;
+        kitchenListShowPrice = false;
+        printCombineKitchenList = false;
+        kitchenListItemSeparator = false;
       }
     } catch(e){
-      print("read check list layout error: $e");
+      print("read kitchen list layout error: $e");
     }
   }
 
-  getAllCashierPrinter() async {
+  getAllKitchenPrinter() async {
     try{
       List<Printer> printerList = await PrintReceipt().readAllPrinters();
-      cashierPrinter = printerList.where((printer) => printer.is_counter == 1).toList();
+      kitchenPrinter = printerList.where((printer) => printer.printer_status == 1 && printer.is_counter == 0).toList();
     } catch(e){
-      print("get all cashier printer error: $e");
-      cashierPrinter = [];
+      print("get all kitchen printer error: $e");
+      kitchenPrinter = [];
     }
   }
 
@@ -119,9 +125,9 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
       return LayoutBuilder(builder: (context,  constraints) {
         if(constraints.maxWidth > 800){
           return AlertDialog(
-            title: Text(AppLocalizations.of(context)!.translate('check_list_layout')),
+            title: Text(AppLocalizations.of(context)!.translate('kitchen_list_layout')),
             content: StreamBuilder(
-              stream: contentStream,
+                stream: contentStream,
                 builder: (context, snapshot){
                   if(snapshot.hasData){
                     return Container(
@@ -153,15 +159,15 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                                     ButtonSegment(value: "58", label: Text("58mm"))
                                   ],
                                   onSelectionChanged: (Set<String> newSelection) async{
-                                    checklistView = newSelection.first;
+                                    kitchen_listView = newSelection.first;
                                     actionController.sink.add("view");
 
                                   },
-                                  selected: <String>{checklistView},
+                                  selected: <String>{kitchen_listView},
                                 ),
                               ),
                               SizedBox(height: 10),
-                              checklistView == "80" ?
+                              kitchen_listView == "80" ?
                               ReceiptView1(color) :
                               ReceiptView2(color),
 
@@ -185,11 +191,11 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                   ),
                   child: Text(AppLocalizations.of(context)!.translate('test_print')),
                   onPressed: () {
-                    if(cashierPrinter.isNotEmpty){
+                    if(kitchenPrinter.isNotEmpty){
                       testLayout();
-                      PrintReceipt().printTestPrintChecklist(cashierPrinter, testPrintLayout, testPrintLayout.paper_size!);
+                      PrintReceipt().printTestPrintKitchenList(kitchenPrinter, testPrintLayout, testPrintLayout.paper_size!);
                     } else {
-                      Fluttertoast.showToast(msg: "No cashier printer added");
+                      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_kitchen_printer'));
                     }
                   },
                 ),
@@ -231,7 +237,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
         } else {
           ///mobile layout
           return AlertDialog(
-            title: Text(AppLocalizations.of(context)!.translate('check_list_layout')),
+            title: Text(AppLocalizations.of(context)!.translate('kitchen_list_layout')),
             titlePadding: EdgeInsets.fromLTRB(24, 16, 24, 0),
             contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 5),
             content: StreamBuilder(
@@ -240,7 +246,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                   if(snapshot.hasData){
                     return Container(
                       height: MediaQuery.of(context).size.height /2,
-                      width: 500 ,
+                      width: 500,
                       child: SingleChildScrollView(
                           child: Column(
                             children: [
@@ -267,15 +273,15 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                                     ButtonSegment(value: "58", label: Text("58mm"))
                                   ],
                                   onSelectionChanged: (Set<String> newSelection) async{
-                                    checklistView = newSelection.first;
+                                    kitchen_listView = newSelection.first;
                                     actionController.sink.add("view");
 
                                   },
-                                  selected: <String>{checklistView},
+                                  selected: <String>{kitchen_listView},
                                 ),
                               ),
                               SizedBox(height: 10),
-                              checklistView == "80" ?
+                              kitchen_listView == "80" ?
                               mobileView1(color) :
                               mobileView2(color),
 
@@ -293,16 +299,14 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 width: MediaQuery.of(context).size.width / 4,
                 height: MediaQuery.of(context).size.height / 10,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color.backgroundColor,
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                   child: Text(AppLocalizations.of(context)!.translate('test_print')),
                   onPressed: () {
-                    if(cashierPrinter.isNotEmpty){
+                    if(kitchenPrinter.isNotEmpty){
                       testLayout();
-                      PrintReceipt().printTestPrintChecklist(cashierPrinter, testPrintLayout, testPrintLayout.paper_size!);
+                      PrintReceipt().printTestPrintKitchenList(kitchenPrinter, testPrintLayout, testPrintLayout.paper_size!);
                     } else {
-                      Fluttertoast.showToast(msg: "No cashier printer added");
+                      Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('no_kitchen_printer'));
                     }
                   },
                 ),
@@ -311,11 +315,10 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 width: MediaQuery.of(context).size.width / 4,
                 height: MediaQuery.of(context).size.height / 10,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
                   child: Text('${AppLocalizations.of(context)?.translate('close')}'),
                   onPressed: isButtonDisabled ? null : () {
+                    // Disable the button after it has been pressed
                     setState(() {
                       isButtonDisabled = true;
                     });
@@ -327,9 +330,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 width: MediaQuery.of(context).size.width / 4,
                 height: MediaQuery.of(context).size.height / 10,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: color.backgroundColor,
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                   child: Text(AppLocalizations.of(context)!.translate('update')),
                   onPressed: isButtonDisabled ? null : () {
                     setState(() {
@@ -346,37 +347,40 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
     });
   }
 
-  updateChecklist() async {
+  updateKitchenList() async {
     List<String> value = [];
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     try{
-      Checklist? checkData = await PosDatabase.instance.readSpecificChecklistByKey(checklist!.checklist_key!);
+      KitchenList? checkData = await PosDatabase.instance.readSpecificKitchenListByKey(kitchen_list!.kitchen_list_key!);
       if(checkData != null){
-        Checklist data = Checklist(
+        KitchenList data = KitchenList(
           product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : 1,
           other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
+          kitchen_list_show_price: kitchenListShowPrice == true ? 1: 0,
+          print_combine_kitchen_list: printCombineKitchenList == true ? 1: 0,
+          kitchen_list_item_separator: kitchenListItemSeparator == true ? 1: 0,
           sync_status: checkData.sync_status == 0 ? 0 : 2,
           updated_at: dateTime,
-          checklist_sqlite_id: checklist!.checklist_sqlite_id,
+          kitchen_list_sqlite_id: kitchen_list!.kitchen_list_sqlite_id,
         );
-        int status = await PosDatabase.instance.updateChecklist(data);
+        int status = await PosDatabase.instance.updateKitchenList(data);
         if(status == 1){
-          Checklist? returnData = await PosDatabase.instance.readSpecificChecklistByKey(checklist!.checklist_key!);
+          KitchenList? returnData = await PosDatabase.instance.readSpecificKitchenListByKey(kitchen_list!.kitchen_list_key!);
           if(returnData != null){
             value.add(jsonEncode(returnData));
           }
         }
       }
-      checklist_value = value.toString();
-      print("checklist value: ${checklist_value}");
+      kitchen_list_value = value.toString();
+      print("kitchen_list value: ${kitchen_list_value}");
     }catch(e){
-      print("update check list error: $e");
-      checklist_value = null;
+      print("update kitchen list error: $e");
+      kitchen_list_value = null;
     }
   }
 
-  createChecklist() async {
+  createKitchenList() async {
     List<String> value = [];
     try{
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
@@ -385,62 +389,65 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
       final String? branch = prefs.getString('branch');
       var branchObject = json.decode(branch!);
 
-      Checklist data = await PosDatabase.instance.insertSqliteChecklist(Checklist(
-        checklist_id: 0,
-        checklist_key: '',
+      KitchenList data = await PosDatabase.instance.insertSqliteKitchenList(KitchenList(
+        kitchen_list_id: 0,
+        kitchen_list_key: '',
         branch_id: branchObject['branchID'].toString(),
         product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : 1,
         other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
-        paper_size: checklistView,
+        paper_size: kitchen_listView,
+        kitchen_list_show_price: kitchenListShowPrice == true ? 1 : 0,
+        print_combine_kitchen_list: printCombineKitchenList == true ? 1 : 0,
+        kitchen_list_item_separator: kitchenListItemSeparator == true ? 1 : 0,
         sync_status: 0,
         created_at: dateTime,
         updated_at: '',
         soft_delete: '',
       ));
-      Checklist? returnData = await insertChecklistKey(data, dateTime);
+      KitchenList? returnData = await insertKitchenListKey(data, dateTime);
       if(returnData != null){
         value.add(jsonEncode(returnData));
       }
-      checklist_value = value.toString();
-      print("checklist value: ${checklist_value}");
+      kitchen_list_value = value.toString();
+      print("kitchen_list value: ${kitchen_list_value}");
     }catch(e) {
-      print("create checklist error: ${e}");
-      checklist_value = null;
+      print("create kitchen_list error: ${e}");
+      kitchen_list_value = null;
     }
   }
 
-  insertChecklistKey(Checklist checklist, String dateTime) async {
-    Checklist? returnData;
-    String key = await generateChecklistKey(checklist);
-    Checklist data = Checklist(
+  insertKitchenListKey(KitchenList kitchen_list, String dateTime) async {
+    KitchenList? returnData;
+    String key = await generateKitchenListKey(kitchen_list);
+    KitchenList data = KitchenList(
         updated_at: dateTime,
         sync_status: 0,
-        checklist_key: key,
-        checklist_sqlite_id: checklist.checklist_sqlite_id
+        kitchen_list_key: key,
+        kitchen_list_sqlite_id: kitchen_list.kitchen_list_sqlite_id
     );
-   int status =  await PosDatabase.instance.updateChecklistUniqueKey(data);
-   if(status == 1){
-     Checklist? checkData = await PosDatabase.instance.readSpecificChecklistByKey(data.checklist_key!);
-     if(checkData != null){
-       returnData = checkData;
-     }
-   }
-   return returnData;
+    int status =  await PosDatabase.instance.updateKitchenListUniqueKey(data);
+    if(status == 1){
+      KitchenList? checkData = await PosDatabase.instance.readSpecificKitchenListByKey(data.kitchen_list_key!);
+      if(checkData != null){
+        returnData = checkData;
+      }
+    }
+    return returnData;
   }
 
-  generateChecklistKey(Checklist checklist) async {
+  generateKitchenListKey(KitchenList kitchen_list) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
-    var bytes = checklist.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + checklist.checklist_sqlite_id.toString() + branch_id.toString();
+    var bytes = kitchen_list.created_at!.replaceAll(new RegExp(r'[^0-9]'), '') + kitchen_list.kitchen_list_sqlite_id.toString() + branch_id.toString();
     return md5.convert(utf8.encode(bytes)).toString();
   }
 
   Future<void> _submit(BuildContext context) async {
     setState(() => submitted = true);
-    if(checklist != null){
-      await updateChecklist();
+    if(kitchen_list != null){
+      await updateKitchenList();
     } else {
-      await createChecklist();
+      await createKitchenList();
     }
     await syncAllToCloud();
     closeDialog(context);
@@ -448,10 +455,13 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
   }
 
   testLayout(){
-    testPrintLayout = Checklist(
-      product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : 1,
-      other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
-      paper_size: checklistView
+    testPrintLayout = KitchenList(
+        product_name_font_size: productFontSize == ReceiptDialogEnum.big ? 0 : 1,
+        other_font_size: variantAddonFontSize == ReceiptDialogEnum.big ? 0 : 1,
+        kitchen_list_show_price: kitchenListShowPrice == true ? 1: 0,
+        print_combine_kitchen_list: printCombineKitchenList == true ? 1: 0,
+        kitchen_list_item_separator: kitchenListItemSeparator == true ? 1: 0,
+        paper_size: kitchen_listView
     );
   }
 
@@ -469,11 +479,11 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
         Map data = await Domain().syncLocalUpdateToCloud(
           device_id: device_id.toString(),
           value: login_value,
-          checklist_value: checklist_value,
+          kitchen_list_value: kitchen_list_value,
         );
         if (data['status'] == '1') {
           List responseJson = data['data'];
-          await PosDatabase.instance.updateChecklistSyncStatusFromCloud(responseJson[0]['checklist_key']);
+          await PosDatabase.instance.updateKitchenListSyncStatusFromCloud(responseJson[0]['kitchen_list_key']);
           mainSyncToCloud.resetCount();
         }else if(data['status'] == '7'){
           mainSyncToCloud.resetCount();
@@ -481,7 +491,7 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           openLogOutDialog();
           return;
         }else if (data['status'] == '8'){
-          print('checklist setting timeout');
+          print('kitchen_list setting timeout');
           mainSyncToCloud.resetCount();
           throw TimeoutException("Time out");
         } else {
@@ -514,104 +524,109 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
           return null!;
         });
   }
-
+  // 80mm
   Widget ReceiptView1(ThemeColor color) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Expanded(
-          flex: 1,
-          child: Container(
-            decoration: BoxDecoration(
-                border: Border.all(color: Colors.blueGrey, style: BorderStyle.solid, width: 1)
-            ),
-            padding: MediaQuery.of(context).size.width > 1300 ? EdgeInsets.fromLTRB(40, 20, 40, 20) : EdgeInsets.fromLTRB(20, 20, 20, 20) ,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Table No: 5", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
-                Text("Batch No: #123456-005"),
-                Text("Order by: Demo"),
-                Text("Order time: DD/MM/YY hh:mm PM"),
-                Padding(
-                  padding: EdgeInsets.only(top: 10, bottom: 10),
-                  child: DottedLine(),
-                ),
-                Column(
-                  children: [
-                    Row(
-                      children: [
-                        Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: defaultFontSize)),
-                        SizedBox(width: 30),
-                        Text("Product 1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: defaultFontSize)),
-                        SizedBox(width: 30),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.only(top: 5),
-                              child: Text("Product 2", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
-                            ),
-                            Text("**Remark", style: TextStyle(fontSize: otherFontSize)),
-                          ],
-                        )
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: defaultFontSize)),
-                        SizedBox(width: 30),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.only(top: 5),
-                              child: Text("Product 3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
-                            ),
-                            Text("(big | small)", style: TextStyle(fontSize: otherFontSize)),
-                          ],
-                        )
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: defaultFontSize)),
-                        SizedBox(width: 30),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.only(top: 5),
-                              child: Text("Product 4", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
-                            ),
-                            Text("+add-on1", style: TextStyle(fontSize: otherFontSize)),
-                          ],
-                        )
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: defaultFontSize)),
-                        SizedBox(width: 30),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Product 5", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
-                            Text("(big | small)", style: TextStyle(fontSize: otherFontSize)),
-                            Text("+add-on2", style: TextStyle(fontSize: otherFontSize))
-                          ],
-                        )
-                      ],
-                    )
-                  ],
-                )
-              ],
-            ),
+        flex: 1,
+        child: Container(
+          decoration: BoxDecoration(
+              border: Border.all(color: Colors.blueGrey, style: BorderStyle.solid, width: 1)
           ),
+          padding: MediaQuery.of(context).size.width > 1300 ? EdgeInsets.fromLTRB(40, 20, 40, 20) : EdgeInsets.fromLTRB(20, 20, 20, 20) ,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("Dine In", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
+              Text("Table No: 5", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
+              Text("Batch No: #123456-005"),
+              Text("Order time: DD/MM/YY hh:mm PM"),
+              Padding(
+                padding: EdgeInsets.only(top: 10, bottom: 10),
+                child: DottedLine(),
+              ),
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                      SizedBox(width: 50),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(top: 5),
+                            child: Text("Product 1${kitchenListShowPrice ? "(RM6.90)" : ''}",
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                          ),
+                          Text("(big | small)", style: TextStyle(fontSize: otherFontSize)),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Visibility(
+                    visible: printCombineKitchenList,
+                    child: Column(
+                      children: [
+                        Visibility(
+                          visible: kitchenListItemSeparator,
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 20, bottom: 10),
+                            child: DottedLine(),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                            SizedBox(width: 50),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(top: 5),
+                                  child: Text("Product 2${kitchenListShowPrice ? "(RM8.80)" : ''}",
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                ),
+                                Text("**Remark", style: TextStyle(fontSize: otherFontSize)),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Visibility(
+                          visible: kitchenListItemSeparator,
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 20, bottom: 10),
+                            child: DottedLine(),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                            SizedBox(width: 50),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(top: 5),
+                                  child: Text("Product 3${kitchenListShowPrice ? "(RM15.90)" : ''}",
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                ),
+                                Text("+add-on1", style: TextStyle(fontSize: otherFontSize)),
+                              ],
+                            ),
+                          ],
+                        ),
+                        // Add more Rows as needed
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
       ),
       SizedBox(width: 25),
       Expanded(
@@ -670,12 +685,67 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
               title: Text(AppLocalizations.of(context)!.translate('small')),
               controlAffinity: ListTileControlAffinity.trailing,
             ),
+            Container(
+              alignment: Alignment.topLeft,
+              child: Text(AppLocalizations.of(context)!.translate('kitchen_list_setting'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_price')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_price_desc')),
+              trailing: Switch(
+                value: kitchenListShowPrice,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  kitchenListShowPrice = value;
+                  actionController.sink.add("switch");
+                },
+              ),
+            ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('print_combine_kitchen_list')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('print_combine_kitchen_list_desc')),
+              trailing: Switch(
+                value: printCombineKitchenList,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  printCombineKitchenList = value;
+                  if(!printCombineKitchenList){
+                    if(kitchenListItemSeparator)
+                      kitchenListItemSeparator = value;
+                  }
+                  actionController.sink.add("switch");
+                },
+              ),
+            ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('kitchen_list_item_separator'),
+                  style: TextStyle(
+                    color: !printCombineKitchenList ? Colors.grey : null)
+              ),
+              subtitle: Text(AppLocalizations.of(context)!.translate('kitchen_list_item_separator_desc'),
+                  style: TextStyle(
+                    color: !printCombineKitchenList ? Colors.grey : null)
+              ),
+              trailing: Switch(
+                value: kitchenListItemSeparator,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  if(!printCombineKitchenList) {
+                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('print_combine_kitchen_list_required'));
+                  } else {
+                    kitchenListItemSeparator = value;
+                    actionController.sink.add("switch");
+                  }
+                },
+              ),
+            ),
           ],
         ),
       ),
     ],
   );
 
+  //50mm
   Widget ReceiptView2(ThemeColor color) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -690,11 +760,10 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Text("Dine In", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
               Text("Table No: 5", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
               Text("Batch No"),
               Text("#123456-005"),
-              Text("Order by"),
-              Text("Demo"),
               Text("Order time"),
               Text("DD/MM/YY hh:mm PM"),
               Padding(
@@ -705,72 +774,76 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
                 children: [
                   Row(
                     children: [
-                      Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: defaultFontSize)),
-                      SizedBox(width: 30),
-                      Text("Product 1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: defaultFontSize)),
-                      SizedBox(width: 30),
+                      Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                      SizedBox(width: 50),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
                             padding: EdgeInsets.only(top: 5),
-                            child: Text("Product 2", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
-                          ),
-                          Text("**Remark", style: TextStyle(fontSize: otherFontSize)),
-                        ],
-                      )
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: defaultFontSize)),
-                      SizedBox(width: 30),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(top: 5),
-                            child: Text("Product 3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                            child: Text("Product 1${kitchenListShowPrice ? "(RM6.90)" : ''}",
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
                           ),
                           Text("(big | small)", style: TextStyle(fontSize: otherFontSize)),
                         ],
                       )
                     ],
                   ),
-                  Row(
-                    children: [
-                      Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: defaultFontSize)),
-                      SizedBox(width: 30),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(top: 5),
-                            child: Text("Product 4", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                  Visibility(
+                    visible: printCombineKitchenList,
+                    child: Column(
+                      children: [
+                        Visibility(
+                          visible: kitchenListItemSeparator,
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 20, bottom: 10),
+                            child: DottedLine(),
                           ),
-                          Text("+add-on1", style: TextStyle(fontSize: otherFontSize)),
-                        ],
-                      )
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: defaultFontSize)),
-                      SizedBox(width: 30),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Product 5", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
-                          Text("(big | small)", style: TextStyle(fontSize: otherFontSize)),
-                          Text("+add-on2", style: TextStyle(fontSize: otherFontSize))
-                        ],
-                      )
-                    ],
+                        ),
+                        Row(
+                          children: [
+                            Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                            SizedBox(width: 50),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(top: 5),
+                                  child: Text("Product 2${kitchenListShowPrice ? "(RM8.80)" : ''}",
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                ),
+                                Text("**Remark", style: TextStyle(fontSize: otherFontSize)),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Visibility(
+                          visible: kitchenListItemSeparator,
+                          child: Padding(
+                            padding: EdgeInsets.only(top: 20, bottom: 10),
+                            child: DottedLine(),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Text("1", style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                            SizedBox(width: 50),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(top: 5),
+                                  child: Text("Product 3${kitchenListShowPrice ? "(RM15.90)" : ''}",
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize)),
+                                ),
+                                Text("+add-on1", style: TextStyle(fontSize: otherFontSize)),
+                              ],
+                            ),
+                          ],
+                        ),
+                        // Add more Rows as needed
+                      ],
+                    ),
                   )
                 ],
               )
@@ -834,6 +907,61 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
               },
               title: Text(AppLocalizations.of(context)!.translate('small')),
               controlAffinity: ListTileControlAffinity.trailing,
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              child: Text(AppLocalizations.of(context)!.translate('kitchen_list_setting'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_price')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_price_desc')),
+              trailing: Switch(
+                value: kitchenListShowPrice,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  kitchenListShowPrice = value;
+                  // appSettingModel.setPrintChecklistStatus(kitchenListShowPrice);
+                  actionController.sink.add("switch");
+                },
+              ),
+            ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('print_combine_kitchen_list')),
+              subtitle: Text(AppLocalizations.of(context)!.translate('print_combine_kitchen_list_desc')),
+              trailing: Switch(
+                value: printCombineKitchenList,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  printCombineKitchenList = value;
+                  if(!printCombineKitchenList){
+                    if(kitchenListItemSeparator)
+                      kitchenListItemSeparator = value;
+                  }
+                  actionController.sink.add("switch");
+                },
+              ),
+            ),
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('kitchen_list_item_separator'),
+                  style: TextStyle(
+                      color: !printCombineKitchenList ? Colors.grey : null)
+              ),
+              subtitle: Text(AppLocalizations.of(context)!.translate('kitchen_list_item_separator_desc'),
+                  style: TextStyle(
+                      color: !printCombineKitchenList ? Colors.grey : null)
+              ),
+              trailing: Switch(
+                value: kitchenListItemSeparator,
+                activeColor: color.backgroundColor,
+                onChanged: (value) async {
+                  if(!printCombineKitchenList) {
+                    Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('print_combine_kitchen_list_required'));
+                  } else {
+                    kitchenListItemSeparator = value;
+                    actionController.sink.add("switch");
+                  }
+                },
+              ),
             ),
           ],
         ),
@@ -954,4 +1082,6 @@ class _ChecklistDialogState extends State<ChecklistDialog> {
       ),
     ],
   );
+
+
 }

@@ -150,7 +150,7 @@ class _TableSettingState extends State<TableSetting> {
                 : CustomProgressBar(),
           );
         } else {
-          ///mobile view
+          ///mobile layout
           return Scaffold(
             appBar: AppBar(
               primary: false,

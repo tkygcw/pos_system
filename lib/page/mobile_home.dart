@@ -9,7 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/pos_database.dart';
 import '../fragment/bill/bill.dart';
-import '../fragment/display_order/display_order.dart';
 import '../fragment/order/order.dart';
 import '../fragment/product/product.dart';
 import '../fragment/qr_order/qr_order_page.dart';

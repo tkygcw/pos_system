@@ -229,7 +229,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
                       )
                     : CustomProgressBar());
           } else {
-            ///mobile view
+            ///mobile layout
             return Scaffold(
                 appBar: AppBar(
                   primary: false,
@@ -523,8 +523,9 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
     print('is refund: ${isRefund}');
     var value;
     List<TableUseDetail> tableUseDetailList = [];
-    List<OrderCache> _uniqueOrderCacheList = [];
+    List<OrderCache> orderCacheList = [];
     for (int i = 0; i < orderDetailList.length; i++) {
+      orderCacheList = await PosDatabase.instance.readSpecificOrderCache(orderDetailList[i].order_cache_sqlite_id!);
       value = cartProductItem(
           branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
           product_name: orderDetailList[i].productName!,
@@ -536,6 +537,7 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
           //variant: getVariantGroupItem(orderDetailList[i]),
           unit: orderDetailList[i].unit,
           per_quantity_unit: orderDetailList[i].per_quantity_unit,
+          order_queue: orderCacheList[0].order_queue,
           productVariantName: orderDetailList[i].product_variant_name,
           remark: orderDetailList[i].remark!,
           status: 0,
@@ -544,7 +546,6 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
       );
       cart.addItem(value);
     }
-    print('order cache list: ${orderCacheList.length}');
     List<String> _uniqueList = [];
     var _value;
     for (int j = 0; j < orderCacheList.length; j++) {

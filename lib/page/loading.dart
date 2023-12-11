@@ -14,6 +14,7 @@ import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/categories.dart';
+import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/modifier_link_product.dart';
@@ -87,9 +88,11 @@ class _LoadingPageState extends State<LoadingPage> {
 
   startLoad() async {
     try{
+      await getAppSettingCloud();
       await createDeviceLogin();
       await getAllChecklist();
       await getAllSecondScreen();
+      await getAllKitchenList();
       await _createProductImgFolder();
       await _createBannerImgFolder();
       await getAllUser();
@@ -113,8 +116,8 @@ class _LoadingPageState extends State<LoadingPage> {
       await getTransferOwner();
       await clearCloudSyncRecord();
       await getAllReceipt();
-      await createAppSetting();
-    }catch(e){
+
+    } catch (e) {
       Navigator.of(context).pushAndRemoveUntil(
         // the new route
         MaterialPageRoute(
@@ -137,23 +140,102 @@ class _LoadingPageState extends State<LoadingPage> {
 
 
 /*
+  get app setting from cloud
+*/
+getAppSettingCloud() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    Map data = await Domain().getAppSetting(branch_id.toString());
+    if (data['status'] == '1') {
+      print("App Setting: Setting Record exist in cloud");
+      bool? isLocalAppSettingExisted = await PosDatabase.instance.isLocalAppSettingExisted();
+      // local app setting not exists, sync from cloud
+      if (!isLocalAppSettingExisted!){
+        List responseJson = data['setting'];
+        for (var i = 0; i < responseJson.length; i++) {
+          AppSetting item = AppSetting.fromJson(responseJson[i]);
+          syncAppSettingFromCloud(item);
+        }
+      } else {
+        AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+        print("App Setting Sync Status: ${localSetting!.sync_status}");
+        // sync status = 1, sync from cloud, if =2 ignore wait for auto sync
+        if(localSetting!.sync_status == 1){
+          int data = await Domain().SyncAppSettingToCloud(localSetting);
+          if(data == 1)
+            syncAppSettingFromCloud(localSetting);
+        }
+      }
+    } else {
+      print("App Setting: No setting in cloud, create local app setting");
+      getAppSettingLocal();
+    }
+  } catch(e) {
+    print("App Setting: Sync from cloud fail1: $e");
+  }
+}
+
+/*
   create app setting
 */
-createAppSetting() async {
-  try{
-    AppSetting appSetting = AppSetting(
+getAppSettingLocal() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+
+    bool? isLocalAppSettingExisted = await PosDatabase.instance.isLocalAppSettingExisted();
+    // local app setting not exists, create local
+    if (!isLocalAppSettingExisted!) {
+      AppSetting appSetting = AppSetting(
+        branch_id: branch_id.toString(),
         open_cash_drawer: 1,
-        show_second_display: 0,  //notificationModel.hasSecondScreen ? 1 : 0,
+        show_second_display: 0,
         direct_payment: 0,
         print_checklist: 1,
-        show_sku: 0
-    );
-    AppSetting data = await PosDatabase.instance.insertSetting(appSetting);
-  } catch(e){
-    print("create app setting fail: $e");
+        show_sku: 0,
+        enable_numbering: 0,
+        starting_number: 0,
+        table_order: 1,
+        sync_status: 0,
+        created_at: dateTime,
+        updated_at: ''
+      );
+      AppSetting data = await PosDatabase.instance.insertSqliteSetting(appSetting);
+    }
+  } catch (e) {
+    print("App Setting: Create App Setting Fail: $e");
   }
+}
 
-  //notificationModel.enableSecondDisplay();
+  /*
+  create app setting
+*/
+syncAppSettingFromCloud(AppSetting item) async {
+  try {
+    AppSetting appSetting = AppSetting(
+      branch_id: item.branch_id,
+      open_cash_drawer: item.open_cash_drawer,
+      show_second_display: item.show_second_display,
+      direct_payment: item.direct_payment,
+      print_checklist: item.print_checklist,
+      show_sku: item.show_sku,
+      enable_numbering: item.enable_numbering,
+      starting_number: item.starting_number,
+      table_order: item.table_order,
+      sync_status: 1,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+    );
+    AppSetting data = await PosDatabase.instance.insertSqliteSetting(appSetting);
+    print("App Setting: Sync From Cloud Success");
+  } catch (e) {
+    print("App Setting: Sync From Cloud Fail: $e");
+  }
 }
 
 /*
@@ -194,22 +276,38 @@ getAllChecklist() async {
   }
 }
 
+getAllKitchenList() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    Map response = await Domain().getKitchenList(branch_id.toString());
+    if (response['status'] == '1') {
+      List responseJson = response['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        KitchenList insertData = await PosDatabase.instance.insertKitchenList(KitchenList.fromJson(responseJson[i]));
+      }
+    }
+  } catch (e) {
+    print("get all kitchen list error: ${e}");
+  }
+}
+
 getAllReceipt() async {
-  try{
+  try {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     Map response = await Domain().getReceipt(branch_id.toString());
-    if(response['status'] == '1'){
+    if (response['status'] == '1') {
       List responseJson = response['receipt'];
       for (var i = 0; i < responseJson.length; i++) {
         Receipt data = await PosDatabase.instance.insertReceipt(Receipt.fromJson(responseJson[i]));
       }
-    } else if (response['status'] == '2'){
+    } else if (response['status'] == '2') {
       await createReceiptLayout80();
       await createReceiptLayout58();
     }
-  } catch(e){
-
+  } catch (e) {
+    print("getAllReceipt error: ${e}");
   }
 }
 
@@ -458,31 +556,36 @@ getAllCategory() async {
   save printer to local database
 */
 getAllPrinter() async {
-  final prefs = await SharedPreferences.getInstance();
-  final int? branch_id = prefs.getInt('branch_id');
-  Map data = await Domain().getPrinter(branch_id.toString());
-  if (data['status'] == '1') {
-    List responseJson = data['printer'];
-    for (var i = 0; i < responseJson.length; i++) {
-      Printer printerItem = Printer.fromJson(responseJson[i]);
-      Printer data = await PosDatabase.instance.insertPrinter(Printer(
-          printer_id: printerItem.printer_id,
-          printer_key: printerItem.printer_key,
-          branch_id: printerItem.branch_id,
-          company_id: printerItem.company_id,
-          printer_link_category_id: '',
-          value: printerItem.value,
-          type: printerItem.type,
-          printer_label: printerItem.printer_label,
-          paper_size: printerItem.paper_size,
-          printer_status: printerItem.printer_status,
-          is_counter: printerItem.is_counter,
-          sync_status: 1,
-          created_at: printerItem.created_at,
-          updated_at: printerItem.updated_at,
-          soft_delete: printerItem.soft_delete));
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    Map data = await Domain().getPrinter(branch_id.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['printer'];
+      for (var i = 0; i < responseJson.length; i++) {
+        Printer printerItem = Printer.fromJson(responseJson[i]);
+        Printer data = await PosDatabase.instance.insertPrinter(Printer(
+            printer_id: printerItem.printer_id,
+            printer_key: printerItem.printer_key,
+            branch_id: printerItem.branch_id,
+            company_id: printerItem.company_id,
+            printer_link_category_id: '',
+            value: printerItem.value,
+            type: printerItem.type,
+            printer_label: printerItem.printer_label,
+            paper_size: printerItem.paper_size,
+            printer_status: printerItem.printer_status,
+            is_counter: printerItem.is_counter,
+            is_label: printerItem.is_label,
+            sync_status: 1,
+            created_at: printerItem.created_at,
+            updated_at: printerItem.updated_at,
+            soft_delete: printerItem.soft_delete));
+      }
+      getAllPrinterLinkCategory();
     }
-    getAllPrinterLinkCategory();
+  } catch(e) {
+    print("getAllPrinter error: ${e}");
   }
 }
 
@@ -763,7 +866,7 @@ updateOrderRefundSqliteId(String refundLocalId, int orderLocalId) async {
 /*
   save modifier group to database
 */
-  getModifierGroup() async {
+getModifierGroup() async {
   final prefs = await SharedPreferences.getInstance();
   final String? user = prefs.getString('user');
   Map userObject = json.decode(user!);
@@ -1111,6 +1214,7 @@ getAllOrder() async {
       Order data = await PosDatabase.instance.insertOrder(Order(
           order_id: responseJson[i]['order_id'],
           order_number: responseJson[i]['order_number'],
+          order_queue: responseJson[i]['order_queue'],
           company_id: responseJson[i]['company_id'],
           customer_id: responseJson[i]['customer_id'],
           dining_id: responseJson[i]['dining_id'],
@@ -1227,7 +1331,7 @@ getAllOrderCache() async {
     for (var i = 0; i < responseJson.length; i++) {
       OrderCache cloudData = OrderCache.fromJson(responseJson[i]);
       if (cloudData.table_use_key != '' && cloudData.table_use_key != null) {
-        print("table use key: ${cloudData.table_use_key}");
+        // print("table use key: ${cloudData.table_use_key}");
         TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(cloudData.table_use_key!);
         tableUseLocalId = tableUseData!.table_use_sqlite_id.toString();
       } else {
@@ -1244,6 +1348,7 @@ getAllOrderCache() async {
       OrderCache data = await PosDatabase.instance.insertOrderCache(OrderCache(
         order_cache_id: cloudData.order_cache_id,
         order_cache_key: cloudData.order_cache_key,
+        order_queue: cloudData.order_queue,
         company_id: cloudData.company_id,
         branch_id: cloudData.branch_id,
         order_detail_id: '',
@@ -1410,33 +1515,37 @@ getSale() async {
   save cash record to database
 */
 getCashRecord() async {
-  final prefs = await SharedPreferences.getInstance();
-  final int? branch_id = prefs.getInt('branch_id');
-  final String? user = prefs.getString('user');
-  Map userObject = json.decode(user!);
-  Map data = await Domain().getCashRecord(userObject['company_id'], branch_id.toString());
-  if (data['status'] == '1') {
-    List responseJson = data['data'];
-    for (var i = 0; i < responseJson.length; i++) {
-      CashRecord data = await PosDatabase.instance.insertCashRecord(CashRecord(
-        cash_record_id: responseJson[i]['cash_record_id'],
-        cash_record_key: responseJson[i]['cash_record_key'],
-        company_id: responseJson[i]['company_id'],
-        branch_id: responseJson[i]['branch_id'],
-        remark: responseJson[i]['remark'],
-        payment_name: responseJson[i]['payment_name'],
-        payment_type_id: responseJson[i]['payment_type_id'],
-        type: responseJson[i]['type'],
-        amount: responseJson[i]['amount'],
-        user_id: responseJson[i]['user_id'],
-        settlement_key: responseJson[i]['settlement_key'],
-        settlement_date: responseJson[i]['settlement_date'],
-        sync_status: 1,
-        created_at: responseJson[i]['created_at'],
-        updated_at: responseJson[i]['updated_at'],
-        soft_delete: responseJson[i]['soft_delete'],
-      ));
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    Map data = await Domain().getCashRecord(userObject['company_id'], branch_id.toString());
+    if (data['status'] == '1') {
+      List responseJson = data['data'];
+      for (var i = 0; i < responseJson.length; i++) {
+        CashRecord data = await PosDatabase.instance.insertCashRecord(CashRecord(
+          cash_record_id: responseJson[i]['cash_record_id'],
+          cash_record_key: responseJson[i]['cash_record_key'],
+          company_id: responseJson[i]['company_id'],
+          branch_id: responseJson[i]['branch_id'],
+          remark: responseJson[i]['remark'],
+          payment_name: responseJson[i]['payment_name'],
+          payment_type_id: responseJson[i]['payment_type_id'],
+          type: responseJson[i]['type'],
+          amount: responseJson[i]['amount'],
+          user_id: responseJson[i]['user_id'],
+          settlement_key: responseJson[i]['settlement_key'],
+          settlement_date: responseJson[i]['settlement_date'],
+          sync_status: 1,
+          created_at: responseJson[i]['created_at'],
+          updated_at: responseJson[i]['updated_at'],
+          soft_delete: responseJson[i]['soft_delete'],
+        ));
+      }
     }
+  } catch(e) {
+    print("getCashRecord error: ${e}");
   }
 }
 
@@ -1447,27 +1556,24 @@ getTransferOwner() async {
   final prefs = await SharedPreferences.getInstance();
   final int? branch_id = prefs.getInt('branch_id');
   Map data = await Domain().getTransferOwner(branch_id.toString());
-  if(data['status'] == '1'){
+  if (data['status'] == '1') {
     List responseJson = data['data'];
     for (var i = 0; i < responseJson.length; i++) {
-      TransferOwner data = await PosDatabase.instance.insertTransferOwner(
-          TransferOwner(
-            transfer_owner_key: responseJson[i]['transfer_owner_key'],
-            branch_id: responseJson[i]['branch_id'],
-            device_id: responseJson[i]['device_id'],
-            transfer_from_user_id: responseJson[i]['transfer_from_user_id'],
-            transfer_to_user_id: responseJson[i]['transfer_to_user_id'],
-            cash_balance: responseJson[i]['cash_balance'],
-            sync_status: 1,
-            created_at: responseJson[i]['created_at'],
-            updated_at: '',
-            soft_delete: '',
-          )
-      );
+      TransferOwner data = await PosDatabase.instance.insertTransferOwner(TransferOwner(
+        transfer_owner_key: responseJson[i]['transfer_owner_key'],
+        branch_id: responseJson[i]['branch_id'],
+        device_id: responseJson[i]['device_id'],
+        transfer_from_user_id: responseJson[i]['transfer_from_user_id'],
+        transfer_to_user_id: responseJson[i]['transfer_to_user_id'],
+        cash_balance: responseJson[i]['cash_balance'],
+        sync_status: 1,
+        created_at: responseJson[i]['created_at'],
+        updated_at: '',
+        soft_delete: '',
+      ));
     }
   }
 }
-
 
 /*
   create folder to save product image
