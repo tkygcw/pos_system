@@ -106,6 +106,7 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
     cart.removeAllTable();
     cart.removeAllCartItem();
     cart.removePromotion();
+    displayManager.transferDataToPresentation("refresh_img");
     setState(() {});
     //deleteFile2();
     Navigator.of(context).pushAndRemoveUntil(
@@ -187,6 +188,8 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
     PosDatabase.instance.clearAllChecklist();
     //clear kitchen list layout
     PosDatabase.instance.clearAllKitchenList();
+    //clear second screen
+    PosDatabase.instance.clearAllSecondScreen();
   }
 
   Future<String> get _localPath async {

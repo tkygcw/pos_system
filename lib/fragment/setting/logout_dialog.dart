@@ -7,6 +7,7 @@ import 'package:pos_system/object/user.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/pos_database.dart';
+import '../../main.dart';
 import '../../notifier/theme_color.dart';
 import '../../page/login.dart';
 import '../../translation/AppLocalizations.dart';
@@ -158,6 +159,7 @@ class _logout_dialogState extends State<logout_dialog> {
     prefs.clear();
     deleteAllRecord();
     deleteDirectory();
+    displayManager.transferDataToPresentation("refresh_img");
     //deleteFile2();
     Navigator.of(context).pushReplacement(MaterialPageRoute(
         builder: (context) => LoginPage()));
@@ -242,6 +244,8 @@ class _logout_dialogState extends State<logout_dialog> {
     PosDatabase.instance.clearAllChecklist();
     //clear kitchen list layout
     PosDatabase.instance.clearAllKitchenList();
+    //clear second screen
+    PosDatabase.instance.clearAllSecondScreen();
   }
 
   Future<String> get _localPath async {

@@ -2,6 +2,7 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:pos_system/main.dart';
 import 'package:provider/provider.dart';
 
 import '../../notifier/fail_print_notifier.dart';
@@ -10,6 +11,7 @@ import '../../object/order_detail.dart';
 import '../../object/print_receipt.dart';
 import '../../object/printer.dart';
 import '../../translation/AppLocalizations.dart';
+import '../../utils/Utils.dart';
 
 class ReprintKitchenListDialog extends StatefulWidget {
   final List<Printer> printerList;
@@ -103,8 +105,8 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
             content: Container(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height / 2),
               width: 500,
-              child: orderDetail.isNotEmpty
-                  ? ListView.builder(
+              child: orderDetail.isNotEmpty ? 
+              ListView.builder(
                 shrinkWrap: true,
                 padding: EdgeInsets.zero,
                 itemCount: groupOrder(orderDetail).length,
@@ -142,7 +144,7 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
                               ),
                               Text(items.first.orderQueue != '' ? "${AppLocalizations.of(context)!.translate('order_no')}: $cardID"
                                   : items.first.tableNumber.toString() != '[]' ? "${AppLocalizations.of(context)!.translate('table_no')}: $cardID"
-                                  : "TakeAway/Delivery - ${items.first.created_at!.toString()}"),
+                                  : "TakeAway/Delivery - ${Utils.formatDate(items.first.created_at!.toString())}"),
                             ],
                           ),
                           subtitle: Container(
@@ -351,6 +353,7 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
 
 
   callPrinter() async {
+    BuildContext _context = MyApp.navigatorKey.currentContext!;
     String flushbarStatus = '';
     List<OrderDetail> printList = [];
     printList.addAll(orderDetail);
@@ -365,8 +368,8 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
       Flushbar(
         icon: Icon(Icons.error, size: 32, color: Colors.white),
         shouldIconPulse: false,
-        title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-        message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+        title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
+        message: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
         duration: Duration(seconds: 5),
         backgroundColor: Colors.red,
         messageColor: Colors.white,
@@ -382,7 +385,7 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
           flushbarStatus = status.toString();
           print("onStatusChanged: ${status}");
         },
-      )..show(context);
+      )..show(_context);
       Future.delayed(Duration(seconds: 3), () {
         print("status change: ${flushbarStatus}");
         if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")

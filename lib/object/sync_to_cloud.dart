@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/checklist.dart';
@@ -650,7 +651,14 @@ class SyncToCloud {
       notSyncAppSettingList = data;
       if(notSyncAppSettingList.isNotEmpty) {
         for(int i = 0; i < notSyncAppSettingList.length; i++){
-          _value.add(jsonEncode(notSyncAppSettingList[i]));
+          if(notSyncAppSettingList[i].branch_id != '' && notSyncAppSettingList[i].created_at != ''){
+            _value.add(jsonEncode(notSyncAppSettingList[i])); 
+          } else {
+            AppSetting? updateData = await updateFirstSyncAppSetting(appSetting: notSyncAppSettingList[i]);
+            if(updateData != null){
+              _value.add(jsonEncode(updateData));
+            }
+          }
         }
         this.app_setting_value = _value.toString();
         print("app_setting_value: ${app_setting_value}");
@@ -658,6 +666,25 @@ class SyncToCloud {
     }catch(error){
       print('15 app setting sync error: ${error}');
       return;
+    }
+  }
+  
+  updateFirstSyncAppSetting({required AppSetting appSetting}) async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    final prefs = await SharedPreferences.getInstance();
+    AppSetting data = AppSetting(
+      created_at: dateTime,
+      branch_id: prefs.getInt("branch_id").toString(),
+      app_setting_sqlite_id: appSetting.app_setting_sqlite_id
+    );
+    int status = await PosDatabase.instance.updateFirstSyncAppSettings(data);
+    //return updated data
+    if(status == 1){
+      AppSetting? returnData = await PosDatabase.instance.readSpecificAppSetting(data.app_setting_sqlite_id!);
+      return returnData;
+    } else {
+      return null;
     }
   }
 

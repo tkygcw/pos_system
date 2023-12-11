@@ -91,6 +91,12 @@ class _PrinterDialogState extends State<PrinterDialog> {
     printerLabelController.dispose();
   }
 
+  enableButton(){
+    setState(() {
+      isButtonDisabled = false;
+    });
+  }
+
   String? get errorPrinterLabel {
     final text = printerLabelController.value.text;
     if (text.isEmpty) {
@@ -128,12 +134,16 @@ class _PrinterDialogState extends State<PrinterDialog> {
           widget.callBack();
           closeDialog(context);
         } else {
+          enableButton();
           Fluttertoast.showToast(
               backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('please_set_the_printer_setting_or_category'));
         }
       } else {
+        enableButton();
         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('make_sure_printer_is_selected'));
       }
+    } else {
+      enableButton();
     }
   }
 
@@ -238,7 +248,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                 child: Container(
                                   alignment: Alignment.center,
                                   child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(primary: color.backgroundColor),
+                                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                       onPressed: () {
                                         if (Platform.Platform.isAndroid) {
                                           setState(() {
@@ -252,7 +262,8 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                 ),
                               ),
                               ListView.builder(
-                                padding: EdgeInsets.only(bottom: 10),
+                                physics: NeverScrollableScrollPhysics(),
+                                padding: EdgeInsets.zero,
                                 shrinkWrap: true,
                                 itemCount: printerValue.length,
                                 itemBuilder: (context, index) {

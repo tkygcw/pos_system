@@ -39,7 +39,6 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
     listenAction();
   }
 
-
   listenAction(){
     actionController.sink.add("init");
     actionStream.listen((event) async {
@@ -200,13 +199,6 @@ class _FeaturesSettingState extends State<FeaturesSetting> {
                             ),
                           ),
                           Divider(
-                            color: Colors.grey,
-                            height: 1,
-                            thickness: 1,
-                            indent: 20,
-                            endIndent: 20,
-                          ),
-                                                    Divider(
                             color: Colors.grey,
                             height: 1,
                             thickness: 1,

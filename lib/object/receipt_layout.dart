@@ -198,10 +198,10 @@ class ReceiptLayout{
       commands.add('SIZE 35 mm,25 mm\n');
       commands.add('DIRECTION 1\n');
       commands.add('CLS\n');
-      String headerText = "Tealife";
+      String headerText = "测试店名";
       commands.add('TEXT ${leftPadding},15,"2",0,1,1,"${headerText.length > 12 ? headerText.substring(0, 12) : headerText}"\n');
       commands.add('TEXT 205,15,"2",0,1,1,"1034"\n');
-      commands.add('TEXT ${leftPadding},45,"2",0,1,1,"${headerText}"\n');
+      commands.add('TEXT ${leftPadding},45,"TSS24.BF2",0,1,1,"${headerText}"\n');
 
       commands.add('TEXT ${leftPadding},175,"2",0,1,1,"01/02"\n');
       commands.add('TEXT 225,180,"1",0,1,1,2,"${time}"\n');
