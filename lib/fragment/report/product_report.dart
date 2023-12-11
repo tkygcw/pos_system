@@ -138,7 +138,7 @@ class _ProductReportState extends State<ProductReport> {
                 ) : CustomProgressBar(),
               );
             } else {
-              ///mobile view
+              ///mobile layout
               return Scaffold(
                 resizeToAvoidBottomInset: false,
                 body: this.isLoaded ?

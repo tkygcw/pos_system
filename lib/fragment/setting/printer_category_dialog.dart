@@ -21,6 +21,7 @@ class PrinterCategoryDialog extends StatefulWidget {
 class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
   List<Categories> categoryList = [];
   bool isLoad = false;
+  bool isSelectAll = false;
 
   @override
   void initState() {
@@ -33,7 +34,19 @@ class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return AlertDialog(
-        title: Text(AppLocalizations.of(context)!.translate('select_category')),
+        title: Row(
+          children: [
+            Text(
+                AppLocalizations.of(context)!.translate('select_category')),
+            Spacer(),
+            Checkbox(
+                value: isSelectAll,
+                activeColor: color.backgroundColor,
+                onChanged: (value){
+                  checkChange(value: value);
+                }),
+          ],
+        ),
         content: isLoad
             ? Container(
                 height: MediaQuery.of(context).size.height / 3,
@@ -49,6 +62,7 @@ class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
                             onChanged: (isChecked) {
                               setState(() {
                                 categoryList[i].isChecked = isChecked!;
+                                checkIsLastCategory();
                               });
                             })
                     ],
@@ -91,7 +105,37 @@ class _PrinterCategoryDialogState extends State<PrinterCategoryDialog> {
     }
 
     setState(() {
+      isSelectAll = categoryList.every((category) => category.isChecked == true);
       isLoad = true;
     });
+  }
+
+  checkChange({bool? value}){
+    if(value == false){
+      setState(() {
+        isSelectAll = false;
+        for(int i = 0; i < categoryList.length; i++){
+          categoryList[i].isChecked = false;
+        }
+      });
+    } else {
+      setState(() {
+        isSelectAll = true;
+        for(int i = 0; i < categoryList.length; i++){
+          categoryList[i].isChecked = true;
+        }
+      });
+    }
+  }
+
+  checkIsLastCategory(){
+    List<Categories> checkedList = categoryList.where((element) => element.isChecked == true).toList();
+    if(checkedList.isEmpty){
+      isSelectAll = false;
+    } else if (checkedList.length != categoryList.length) {
+      isSelectAll = false;
+    } else {
+      isSelectAll = true;
+    }
   }
 }

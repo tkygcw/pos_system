@@ -106,6 +106,7 @@ class MyApp extends StatelessWidget {
   final AppLanguage appLanguage;
 
   MyApp({required this.appLanguage});
+  static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
@@ -152,6 +153,7 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<AppLanguage>(builder: (context, model, child) {
         return MaterialApp(
+          navigatorKey: MyApp.navigatorKey,
           scaffoldMessengerKey: snackBarKey,
           locale: model.appLocal,
           supportedLocales: [

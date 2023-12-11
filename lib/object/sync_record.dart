@@ -1054,6 +1054,7 @@ class SyncRecord {
   }
 
   callProductQuery({data, method}) async {
+    print('callProductQuery: ${data[0]}');
     bool isComplete = false;
     Product productItem = Product.fromJson(data[0]);
     Categories? categoryData = await PosDatabase.instance.readCategorySqliteID(productItem.category_id!);

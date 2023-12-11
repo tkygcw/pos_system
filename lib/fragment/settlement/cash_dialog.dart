@@ -457,7 +457,6 @@ class _CashDialogState extends State<CashDialog> {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       List<String> _value = [];
-      bool _isInserted = false;
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
       final String? pos_user = prefs.getString('pos_pin_user');

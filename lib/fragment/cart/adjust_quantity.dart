@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:provider/provider.dart';
-import 'package:quantity_input/quantity_input.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
@@ -521,8 +520,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
           //await _printDeleteList(widget.cartItem!.orderCacheId!, dateTime);
           Fluttertoast.showToast(
               backgroundColor: Color(0xFF24EF10),
-              msg:
-                  AppLocalizations.of(context)!.translate('delete_successful'));
+              msg: AppLocalizations.of(context)!.translate('delete_successful'));
           tableModel.changeContent(true);
           cart.removeAllTable();
           cart.removeAllCartItem();

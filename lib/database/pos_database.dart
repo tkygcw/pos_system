@@ -8,6 +8,7 @@ import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/customer.dart';
 import 'package:pos_system/object/dining_option.dart';
+import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/modifier_item.dart';
 import 'package:pos_system/object/modifier_link_product.dart';
@@ -69,28 +70,33 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 9, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 10, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
-  void _onUpgrade(Database db, int oldVersion, int newVersion) async  {
+  void _onUpgrade(Database db, int oldVersion, int newVersion) async {
     final idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     final textType = 'TEXT NOT NULL';
     final integerType = 'INTEGER NOT NULL';
 
     if (oldVersion < newVersion) {
       // you can execute drop table and create table
-      switch(oldVersion) {
-        case 2: {
-          await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.header_font_size} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.direct_payment} INTEGER NOT NULL DEFAULT 0");
-        }break;
-        case 3: {
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.direct_payment} INTEGER NOT NULL DEFAULT 0");
-        }break;
-        case 4: {
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_checklist} INTEGER NOT NULL DEFAULT 1");
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_sku} INTEGER NOT NULL DEFAULT 0");
-          await db.execute('''CREATE TABLE $tableChecklist(
+      switch (oldVersion) {
+        case 2:
+          {
+            await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.header_font_size} INTEGER NOT NULL DEFAULT 0");
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.direct_payment} INTEGER NOT NULL DEFAULT 0");
+          }
+          break;
+        case 3:
+          {
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.direct_payment} INTEGER NOT NULL DEFAULT 0");
+          }
+          break;
+        case 4:
+          {
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_checklist} INTEGER NOT NULL DEFAULT 1");
+            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_sku} INTEGER NOT NULL DEFAULT 0");
+            await db.execute('''CREATE TABLE $tableChecklist(
           ${ChecklistFields.checklist_sqlite_id} $idType,
           ${ChecklistFields.checklist_id} $integerType,
           ${ChecklistFields.checklist_key} $textType,
@@ -135,6 +141,32 @@ class PosDatabase {
           ${SecondScreenFields.sequence_number} $textType,
           ${SecondScreenFields.created_at} $textType,
           ${SecondScreenFields.soft_delete} $textType)''');
+
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.branch_id} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.enable_numbering} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.starting_number} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.table_order} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.sync_status} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.created_at} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.updated_at} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.order_queue} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.order_queue} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_label} INTEGER NOT NULL DEFAULT 0");
+          await db.execute('''CREATE TABLE $tableKitchenList(
+          ${KitchenListFields.kitchen_list_sqlite_id} $idType,
+          ${KitchenListFields.kitchen_list_id} $integerType,
+          ${KitchenListFields.kitchen_list_key} $textType,
+          ${KitchenListFields.branch_id} $textType,
+          ${KitchenListFields.product_name_font_size} $integerType,
+          ${KitchenListFields.other_font_size} $integerType,
+          ${KitchenListFields.paper_size} $textType,
+          ${KitchenListFields.kitchen_list_show_price} $integerType,
+          ${KitchenListFields.print_combine_kitchen_list} $integerType,
+          ${KitchenListFields.kitchen_list_item_separator} $integerType,
+          ${KitchenListFields.sync_status} $integerType,
+          ${KitchenListFields.created_at} $textType,
+          ${KitchenListFields.updated_at} $textType,
+          ${KitchenListFields.soft_delete} $textType)''');
         }break;
         case 8 :{
           await db.execute('''CREATE TABLE $tableSecondScreen(
@@ -145,6 +177,59 @@ class PosDatabase {
           ${SecondScreenFields.sequence_number} $textType,
           ${SecondScreenFields.created_at} $textType,
           ${SecondScreenFields.soft_delete} $textType)''');
+
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.branch_id} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.enable_numbering} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.starting_number} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.table_order} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.sync_status} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.created_at} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.updated_at} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.order_queue} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.order_queue} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_label} INTEGER NOT NULL DEFAULT 0");
+          await db.execute('''CREATE TABLE $tableKitchenList(
+          ${KitchenListFields.kitchen_list_sqlite_id} $idType,
+          ${KitchenListFields.kitchen_list_id} $integerType,
+          ${KitchenListFields.kitchen_list_key} $textType,
+          ${KitchenListFields.branch_id} $textType,
+          ${KitchenListFields.product_name_font_size} $integerType,
+          ${KitchenListFields.other_font_size} $integerType,
+          ${KitchenListFields.paper_size} $textType,
+          ${KitchenListFields.kitchen_list_show_price} $integerType,
+          ${KitchenListFields.print_combine_kitchen_list} $integerType,
+          ${KitchenListFields.kitchen_list_item_separator} $integerType,
+          ${KitchenListFields.sync_status} $integerType,
+          ${KitchenListFields.created_at} $textType,
+          ${KitchenListFields.updated_at} $textType,
+          ${KitchenListFields.soft_delete} $textType)''');
+        }break;
+        case 9: {
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.branch_id} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.enable_numbering} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.starting_number} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.table_order} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.sync_status} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.created_at} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.updated_at} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.order_queue} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.order_queue} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_label} INTEGER NOT NULL DEFAULT 0");
+          await db.execute('''CREATE TABLE $tableKitchenList(
+          ${KitchenListFields.kitchen_list_sqlite_id} $idType,
+          ${KitchenListFields.kitchen_list_id} $integerType,
+          ${KitchenListFields.kitchen_list_key} $textType,
+          ${KitchenListFields.branch_id} $textType,
+          ${KitchenListFields.product_name_font_size} $integerType,
+          ${KitchenListFields.other_font_size} $integerType,
+          ${KitchenListFields.paper_size} $textType,
+          ${KitchenListFields.kitchen_list_show_price} $integerType,
+          ${KitchenListFields.print_combine_kitchen_list} $integerType,
+          ${KitchenListFields.kitchen_list_item_separator} $integerType,
+          ${KitchenListFields.sync_status} $integerType,
+          ${KitchenListFields.created_at} $textType,
+          ${KitchenListFields.updated_at} $textType,
+          ${KitchenListFields.soft_delete} $textType)''');
         }break;
       }
     }
@@ -220,6 +305,7 @@ class PosDatabase {
            ${OrderFields.order_sqlite_id} $idType, 
            ${OrderFields.order_id} $integerType, 
            ${OrderFields.order_number} $textType,
+           ${OrderFields.order_queue} $textType,
            ${OrderFields.company_id} $textType,
            ${OrderFields.customer_id} $textType, 
            ${OrderFields.dining_id} $textType,
@@ -252,6 +338,7 @@ class PosDatabase {
           ${OrderCacheFields.order_cache_sqlite_id} $idType, 
           ${OrderCacheFields.order_cache_id} $integerType,
           ${OrderCacheFields.order_cache_key} $textType, 
+          ${OrderCacheFields.order_queue} $textType, 
           ${OrderCacheFields.company_id} $textType, 
           ${OrderCacheFields.branch_id} $textType, 
           ${OrderCacheFields.order_detail_id} $textType, 
@@ -360,8 +447,7 @@ class PosDatabase {
            ${ProductFields.name} $textType,${ProductFields.price} $textType, ${ProductFields.description} $textType, ${ProductFields.SKU} $textType, ${ProductFields.image} $textType,
            ${ProductFields.has_variant} $integerType,${ProductFields.stock_type} $integerType, ${ProductFields.stock_quantity} $textType, ${ProductFields.available} $integerType,
            ${ProductFields.graphic_type} $textType, ${ProductFields.color} $textType, ${ProductFields.daily_limit} $textType, ${ProductFields.daily_limit_amount} $textType, 
-           ${ProductFields.sync_status} $integerType, 
-           ${ProductFields.unit} $textType, ${ProductFields.per_quantity_unit} $textType, ${ProductFields.sequence_number} $textType,
+           ${ProductFields.sync_status} $integerType, ${ProductFields.unit} $textType, ${ProductFields.per_quantity_unit} $textType, ${ProductFields.sequence_number} $textType, 
            ${ProductFields.created_at} $textType, ${ProductFields.updated_at} $textType, ${ProductFields.soft_delete} $textType)''');
 /*
     create product variant table
@@ -598,6 +684,7 @@ class PosDatabase {
           ${PrinterFields.paper_size} $integerType,
           ${PrinterFields.printer_status} $integerType,
           ${PrinterFields.is_counter} $integerType,
+          ${PrinterFields.is_label} $integerType,
           ${PrinterFields.sync_status} $integerType,
           ${PrinterFields.created_at} $textType,
           ${PrinterFields.updated_at} $textType,
@@ -716,11 +803,18 @@ class PosDatabase {
 */
     await db.execute('''CREATE TABLE $tableAppSetting(
           ${AppSettingFields.app_setting_sqlite_id} $idType,
+          ${AppSettingFields.branch_id} $textType,
           ${AppSettingFields.open_cash_drawer} $integerType,
           ${AppSettingFields.show_second_display} $integerType,
           ${AppSettingFields.direct_payment} $integerType,
           ${AppSettingFields.print_checklist} $integerType,
-          ${AppSettingFields.show_sku} $integerType)''');
+          ${AppSettingFields.show_sku} $integerType,
+          ${AppSettingFields.enable_numbering} $integerType,
+          ${AppSettingFields.starting_number} $integerType,
+          ${AppSettingFields.table_order} $integerType,
+          ${AppSettingFields.sync_status} $integerType,
+          ${AppSettingFields.created_at} $textType,
+          ${AppSettingFields.updated_at} $textType)''');
 /*
     create transfer owner table
 */
@@ -827,7 +921,28 @@ class PosDatabase {
           ${SecondScreenFields.sequence_number} $textType,
           ${SecondScreenFields.created_at} $textType,
           ${SecondScreenFields.soft_delete} $textType)''');
+
+  /*
+    create kitchen list table
+*/
+    await db.execute('''CREATE TABLE $tableKitchenList(
+          ${KitchenListFields.kitchen_list_sqlite_id} $idType,
+          ${KitchenListFields.kitchen_list_id} $integerType,
+          ${KitchenListFields.kitchen_list_key} $textType,
+          ${KitchenListFields.branch_id} $textType,
+          ${KitchenListFields.product_name_font_size} $integerType,
+          ${KitchenListFields.other_font_size} $integerType,
+          ${KitchenListFields.paper_size} $textType,
+          ${KitchenListFields.kitchen_list_show_price} $integerType,
+          ${KitchenListFields.print_combine_kitchen_list} $integerType,
+          ${KitchenListFields.kitchen_list_item_separator} $integerType,
+          ${KitchenListFields.sync_status} $integerType,
+          ${KitchenListFields.created_at} $textType,
+          ${KitchenListFields.updated_at} $textType,
+          ${KitchenListFields.soft_delete} $textType)''');
   }
+
+
 
 /*
   ------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1310,43 +1425,49 @@ class PosDatabase {
   add all order to sqlite
 */
   Future<Order> insertOrder(Order data) async {
-    final db = await instance.database;
-    final id = db.rawInsert(
-        'INSERT INTO $tableOrder(order_id, order_number, company_id, customer_id, dining_id, dining_name, '
-        'branch_link_promotion_id, payment_link_company_id, branch_id, branch_link_tax_id, '
-        'subtotal, amount, rounding, final_amount, close_by, payment_status, payment_received, payment_change, order_key, '
-        'refund_sqlite_id, refund_key, settlement_sqlite_id, settlement_key, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [
-          data.order_id,
-          data.order_number,
-          data.company_id,
-          data.customer_id,
-          data.dining_id,
-          data.dining_name,
-          data.branch_link_promotion_id,
-          data.payment_link_company_id,
-          data.branch_id,
-          data.branch_link_tax_id,
-          data.subtotal,
-          data.amount,
-          data.rounding,
-          data.final_amount,
-          data.close_by,
-          data.payment_status,
-          data.payment_received,
-          data.payment_change,
-          data.order_key,
-          data.refund_sqlite_id,
-          data.refund_key,
-          data.settlement_sqlite_id,
-          data.settlement_key,
-          data.sync_status,
-          data.created_at,
-          data.updated_at,
-          data.soft_delete
-        ]);
-    return data.copy(order_sqlite_id: await id);
+    try{
+      final db = await instance.database;
+      final id = db.rawInsert(
+          'INSERT INTO $tableOrder(order_id, order_number, order_queue, company_id, customer_id, dining_id, dining_name, '
+              'branch_link_promotion_id, payment_link_company_id, branch_id, branch_link_tax_id, '
+              'subtotal, amount, rounding, final_amount, close_by, payment_status, payment_received, payment_change, order_key, '
+              'refund_sqlite_id, refund_key, settlement_sqlite_id, settlement_key, sync_status, created_at, updated_at, soft_delete) '
+              'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [
+            data.order_id,
+            data.order_number,
+            data.order_queue,
+            data.company_id,
+            data.customer_id,
+            data.dining_id,
+            data.dining_name,
+            data.branch_link_promotion_id,
+            data.payment_link_company_id,
+            data.branch_id,
+            data.branch_link_tax_id,
+            data.subtotal,
+            data.amount,
+            data.rounding,
+            data.final_amount,
+            data.close_by,
+            data.payment_status,
+            data.payment_received,
+            data.payment_change,
+            data.order_key,
+            data.refund_sqlite_id,
+            data.refund_key,
+            data.settlement_sqlite_id,
+            data.settlement_key,
+            data.sync_status,
+            data.created_at,
+            data.updated_at,
+            data.soft_delete
+          ]);
+      return data.copy(order_sqlite_id: await id);
+    }catch(e){
+      print("Insert Order Error: ${e}");
+    }
+    return Order();
   }
 
 /*
@@ -1477,13 +1598,14 @@ class PosDatabase {
   Future<OrderCache> insertOrderCache(OrderCache data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableOrderCache(order_cache_id, order_cache_key, company_id, branch_id, order_detail_id, '
+        'INSERT INTO $tableOrderCache(order_cache_id, order_cache_key, order_queue, company_id, branch_id, order_detail_id, '
         'table_use_sqlite_id, table_use_key, batch_id, dining_id, order_sqlite_id, order_key, order_by, order_by_user_id, '
         'cancel_by, cancel_by_user_id, customer_id, total_amount, qr_order, qr_order_table_sqlite_id, qr_order_table_id, accepted, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
         [
           data.order_cache_id,
           data.order_cache_key,
+          data.order_queue,
           data.company_id,
           data.branch_id,
           data.order_detail_id,
@@ -1630,10 +1752,35 @@ class PosDatabase {
     return data.copy(app_color_id: id);
   }
 
-/*
-  add app setting
+  /*
+  add app setting to cloud
 */
   Future<AppSetting> insertSetting(AppSetting data) async {
+    final db = await instance.database;
+    final id = db.rawInsert(
+        'INSERT INTO $tableCashRecord(branch_id, open_cash_drawer, show_second_display, direct_payment, print_checklist, '
+            'show_sku, enable_numbering, starting_number, sync_status, created_at, updated_at) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          data.branch_id,
+          data.open_cash_drawer,
+          data.show_second_display,
+          data.direct_payment,
+          data.print_checklist,
+          data.show_sku,
+          data.enable_numbering,
+          data.starting_number,
+          data.sync_status,
+          data.created_at,
+          data.updated_at
+        ]);
+    return data.copy(app_setting_sqlite_id: await id);
+  }
+
+/*
+  add app setting to local db
+*/
+  Future<AppSetting> insertSqliteSetting(AppSetting data) async {
     final db = await instance.database;
     final id = await db.insert(tableAppSetting!, data.toJson());
     return data.copy(app_setting_sqlite_id: id);
@@ -1645,15 +1792,16 @@ class PosDatabase {
   Future<Printer> insertPrinter(Printer data) async {
     final db = await instance.database;
     final id = await db.rawInsert(
-        'INSERT INTO $tablePrinter(soft_delete, updated_at, created_at, sync_status, is_counter, '
+        'INSERT INTO $tablePrinter(soft_delete, updated_at, created_at, sync_status, is_counter, is_label, '
         'printer_status, paper_size, printer_label, type, value, printer_link_category_id, company_id, branch_id, printer_key, printer_id) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
           data.created_at,
           data.sync_status,
           data.is_counter,
+          data.is_label,
           data.printer_status,
           data.paper_size,
           data.printer_label,
@@ -1999,8 +2147,7 @@ class PosDatabase {
           data.branch_id,
           data.checklist_key,
           data.checklist_id
-        ]
-    );
+        ]);
     return data.copy(checklist_sqlite_id: await id);
   }
 
@@ -2022,7 +2169,41 @@ class PosDatabase {
     return data.copy(second_screen_id: id);
   }
 
+  /*
+  add kitchen list data into sqlite(cloud)
+*/
+  Future<KitchenList> insertKitchenList(KitchenList data) async {
+    final db = await instance.database;
+    final id = db.rawInsert(
+        'INSERT INTO $tableKitchenList(soft_delete, updated_at, created_at, sync_status, kitchen_list_item_separator, print_combine_kitchen_list, kitchen_list_show_price, '
+            'paper_size, other_font_size, product_name_font_size, branch_id, kitchen_list_key, kitchen_list_id) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          '',
+          data.updated_at,
+          data.created_at,
+          data.sync_status,
+          data.kitchen_list_item_separator,
+          data.print_combine_kitchen_list,
+          data.kitchen_list_show_price,
+          data.paper_size,
+          data.other_font_size,
+          data.product_name_font_size,
+          data.branch_id,
+          data.kitchen_list_key,
+          data.kitchen_list_id
+        ]);
+    return data.copy(kitchen_list_sqlite_id: await id);
+  }
 
+/*
+  add kitchen list data into local db
+*/
+  Future<KitchenList> insertSqliteKitchenList(KitchenList data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableKitchenList!, data.toJson());
+    return data.copy(kitchen_list_sqlite_id: id);
+  }
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2119,11 +2300,8 @@ class PosDatabase {
 
   Future<BranchLinkProduct?> readBranchLinkProductSqliteID(String branch_link_product_id) async {
     final db = await instance.database;
-    final maps = await db.rawQuery(
-        'SELECT * FROM $tableBranchLinkProduct WHERE branch_link_product_id = ?',
-        [branch_link_product_id]
-    );
-    if(maps.isNotEmpty){
+    final maps = await db.rawQuery('SELECT * FROM $tableBranchLinkProduct WHERE branch_link_product_id = ?', [branch_link_product_id]);
+    if (maps.isNotEmpty) {
       return BranchLinkProduct.fromJson(maps.first);
     } else {
       return null;
@@ -2853,13 +3031,10 @@ class PosDatabase {
 */
   Future<List<TableUseDetail>> readTableUseDetailByTableUseKey(String table_use_key) async {
     final db = await instance.database;
-    final result = await db.rawQuery(
-        'SELECT * FROM $tableTableUseDetail WHERE soft_delete = ? AND table_use_key = ? ',
-        ['', table_use_key]);
+    final result = await db.rawQuery('SELECT * FROM $tableTableUseDetail WHERE soft_delete = ? AND table_use_key = ? ', ['', table_use_key]);
 
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
   }
-
 
 /*
   read specific use table detail based on table id
@@ -2960,7 +3135,7 @@ class PosDatabase {
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.accepted, a.qr_order_table_id, a.qr_order_table_sqlite_id, a.qr_order, a.total_amount, '
         'a.customer_id, a.cancel_by_user_id, a.cancel_by, '
         'a.order_by_user_id, a.order_by, a.order_key, a.order_sqlite_id, a.dining_id, a.batch_id, a.table_use_key, a.table_use_sqlite_id, a.order_detail_id, a.branch_id, '
-        'a.company_id, a.order_cache_key, a.order_cache_id, a.order_cache_sqlite_id, '
+        'a.company_id, a.order_queue, a.order_cache_key, a.order_cache_id, a.order_cache_sqlite_id, '
         'b.name AS name FROM $tableOrderCache AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.order_cache_sqlite_id = ? AND b.soft_delete = ?',
         [order_cache_sqlite_id, '']);
     return OrderCache.fromJson(result.first);
@@ -3014,12 +3189,12 @@ class PosDatabase {
     try {
       final db = await instance.database;
       final result = await db.rawQuery(
-          'SELECT a.order_cache_sqlite_id, a.order_cache_key ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, a.batch_id, a.order_sqlite_id, a.order_key, '
+          'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, a.batch_id, a.order_sqlite_id, a.order_key, '
           'a.order_by, a.total_amount, a.customer_id, a.created_at, a.updated_at, a.soft_delete, b.name AS name '
           'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
           'WHERE a.order_key = ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
-          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND b.name != ? ORDER BY a.created_at DESC  ',
-          ['', '', '', branch_id, company_id, 0, '', 'Dine in']);
+          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? ORDER BY a.created_at DESC  ',
+          ['', '', '', branch_id, company_id, 0, '', '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
@@ -3035,7 +3210,7 @@ class PosDatabase {
     try {
       final db = await instance.database;
       final result = await db.rawQuery(
-          'SELECT a.order_cache_sqlite_id ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, a.batch_id, a.dining_id, '
+          'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, a.batch_id, a.dining_id, '
           'a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, '
           'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
           'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
@@ -3109,9 +3284,7 @@ class PosDatabase {
 */
   Future<List<OrderModifierDetail>> readDeletedOrderModifierDetail(String order_detail_sqlite_id) async {
     final db = await instance.database;
-    final result = await db.rawQuery(
-        'SELECT * FROM $tableOrderModifierDetail WHERE order_detail_sqlite_id = ?',
-        [order_detail_sqlite_id]);
+    final result = await db.rawQuery('SELECT * FROM $tableOrderModifierDetail WHERE order_detail_sqlite_id = ?', [order_detail_sqlite_id]);
 
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
   }
@@ -3133,9 +3306,7 @@ class PosDatabase {
 */
   Future<List<OrderModifierDetail>> readOrderModifierDetail(String order_detail_sqlite_id) async {
     final db = await instance.database;
-    final result = await db.rawQuery(
-        'SELECT a.* FROM $tableOrderModifierDetail AS a WHERE a.soft_delete = ? AND a.order_detail_sqlite_id = ?',
-        ['', order_detail_sqlite_id]);
+    final result = await db.rawQuery('SELECT a.* FROM $tableOrderModifierDetail AS a WHERE a.soft_delete = ? AND a.order_detail_sqlite_id = ?', ['', order_detail_sqlite_id]);
 
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
   }
@@ -3317,7 +3488,7 @@ class PosDatabase {
   Future<Checklist?> readSpecificChecklistByKey(String key) async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableChecklist WHERE soft_delete = ? AND checklist_key = ? ', ['', key]);
-    if(result.isNotEmpty){
+    if (result.isNotEmpty) {
       return Checklist.fromJson(result.first);
     } else {
       return null;
@@ -3330,13 +3501,42 @@ class PosDatabase {
   Future<Checklist?> readSpecificChecklist(String paperSize) async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableChecklist WHERE soft_delete = ? AND paper_size = ? ORDER BY checklist_sqlite_id ', ['', paperSize]);
-    if(result.isNotEmpty){
+    if (result.isNotEmpty) {
       return Checklist.fromJson(result.first);
     } else {
       return null;
     }
   }
 
+/*
+  ----------------------------Kitchen List layout part------------------------------------------------------------------------------------------------
+*/
+
+/*
+  read specific kitchen_list layout by key
+*/
+  Future<KitchenList?> readSpecificKitchenListByKey(String key) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableKitchenList WHERE soft_delete = ? AND kitchen_list_key = ? ', ['', key]);
+    if (result.isNotEmpty) {
+      return KitchenList.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
+  read specific kitchen_list layout
+*/
+  Future<KitchenList?> readSpecificKitchenList(String paperSize) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableKitchenList WHERE soft_delete = ? AND paper_size = ? ORDER BY kitchen_list_sqlite_id ', ['', paperSize]);
+    if (result.isNotEmpty) {
+      return KitchenList.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
 
 /*
   ----------------------------Cash record part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3347,6 +3547,15 @@ class PosDatabase {
   Future<List<OrderCache>> readAllUnpaidOrderCache() async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE soft_delete = ? AND accepted = ? AND cancel_by = ? AND order_key = ?', ['', 0, '', '']);
+    return result.map((json) => OrderCache.fromJson(json)).toList();
+  }
+
+  /*
+  read all order cache in branch
+*/
+  Future<List<OrderCache>> readAllOrderCache() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableOrderCache WHERE created_at != ? ORDER BY order_cache_sqlite_id DESC LIMIT 1', ['']);
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
 
@@ -3637,12 +3846,53 @@ class PosDatabase {
   Future<AppSetting?> readAppSetting() async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableAppSetting');
-    if(result.isNotEmpty){
+    if (result.isNotEmpty) {
       return AppSetting.fromJson(result.first);
     } else {
       return null;
     }
   }
+
+  /*
+  get app setting sync status
+*/
+  Future<AppSetting?> readLocalAppSetting(String branch_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableAppSetting WHERE branch_id = ?', [branch_id]);
+    if (result.isNotEmpty) {
+      return AppSetting.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+  /*
+  check setting avaibility
+*/
+  Future<bool?> isLocalAppSettingExisted() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableAppSetting');
+    if (result.isNotEmpty) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+/*
+  read specific app setting
+*/
+  Future<AppSetting?> readSpecificAppSetting(int id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableAppSetting WHERE app_setting_sqlite_id = ?', [id]);
+    if (result.isNotEmpty) {
+      return AppSetting.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+
 
 /*
   --------------------Report part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -3656,9 +3906,9 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.payment_link_company_id, a.total_sales, a.total_bill, a.settlement_key, a.settlement_sqlite_id, a.branch_id, '
-            'a.company_id, a.settlement_link_payment_key, a.settlement_link_payment_id, a.settlement_link_payment_sqlite_id,  '
-            'SUM(a.total_sales) AS all_payment_sales FROM $tableSettlementLinkPayment AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id  '
-            'WHERE a.soft_delete = ? AND a.status = ? AND a.settlement_key = ? AND a.payment_link_company_id = ? ',
+        'a.company_id, a.settlement_link_payment_key, a.settlement_link_payment_id, a.settlement_link_payment_sqlite_id,  '
+        'SUM(a.total_sales) AS all_payment_sales FROM $tableSettlementLinkPayment AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id  '
+        'WHERE a.soft_delete = ? AND a.status = ? AND a.settlement_key = ? AND a.payment_link_company_id = ? ',
         ['', 0, settlement_key, payment_link_company_id]);
     return result.map((json) => SettlementLinkPayment.fromJson(json)).toList();
   }
@@ -3691,6 +3941,7 @@ class PosDatabase {
         ['', 0]);
     return result.map((json) => Settlement.fromJson(json)).toList();
   }
+
 /*
   sum all tax by tax id
 */
@@ -4471,7 +4722,7 @@ class PosDatabase {
   Future<BranchLinkProduct?> readSpecificBranchLinkProductByCloudId(String id) async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND branch_link_product_id = ?', ['', id]);
-    if(result.isNotEmpty){
+    if (result.isNotEmpty) {
       return BranchLinkProduct.fromJson(result.first);
     } else {
       return null;
@@ -4484,13 +4735,12 @@ class PosDatabase {
   Future<Branch?> readSpecificBranch(int id) async {
     final db = await instance.database;
     final result = await db.rawQuery('SELECT branchID as branch_id, * FROM $tableBranch WHERE branchID = ?', [id]);
-    if(result.isNotEmpty){
+    if (result.isNotEmpty) {
       return Branch.fromJson(result.first);
     } else {
       return null;
     }
   }
-
 
 /*
   ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -5038,14 +5288,26 @@ class PosDatabase {
 */
   Future<int> updateAppSettings(AppSetting data) async {
     final db = await instance.database;
-    return await db.rawUpdate(
-        'UPDATE $tableAppSetting SET open_cash_drawer = ?, show_second_display = ?, print_checklist = ? WHERE app_setting_sqlite_id = ?',
-        [
-          data.open_cash_drawer,
-          data.show_second_display,
-          data.print_checklist,
-          data.app_setting_sqlite_id
-        ]);
+    return await db.rawUpdate('UPDATE $tableAppSetting SET open_cash_drawer = ?, show_second_display = ?, table_order = ?, sync_status = ?, updated_at = ?',
+        [data.open_cash_drawer, data.show_second_display, data.table_order, 2, data.updated_at]);
+  }
+
+/*
+  update first sync App Setting
+*/
+  Future<int> updateFirstSyncAppSettings(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET branch_id = ?, created_at = ?, sync_status = ? WHERE app_setting_sqlite_id = ?',
+        [data.branch_id, data.created_at, 0, data.app_setting_sqlite_id]);
+  }
+
+  /*
+  update Receipt Setting
+*/
+  Future<int> updateReceiptSettings(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET print_checklist = ?, enable_numbering = ?, starting_number = ?, sync_status = ?, updated_at = ?',
+        [data.print_checklist, data.enable_numbering, data.starting_number, 2, data.updated_at]);
   }
 
 /*
@@ -5053,7 +5315,7 @@ class PosDatabase {
 */
   Future<int> updateDirectPaymentSettings(AppSetting data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableAppSetting SET direct_payment = ? WHERE app_setting_sqlite_id = ?', [data.direct_payment, data.app_setting_sqlite_id]);
+    return await db.rawUpdate('UPDATE $tableAppSetting SET direct_payment = ?, sync_status = ?, updated_at = ?', [data.direct_payment, 2, data.updated_at]);
   }
 
 /*
@@ -5061,12 +5323,7 @@ class PosDatabase {
 */
   Future<int> updateShowSKUSettings(AppSetting data) async {
     final db = await instance.database;
-    return await db.rawUpdate(
-        'UPDATE $tableAppSetting SET show_sku = ? WHERE app_setting_sqlite_id = ?',
-        [
-          data.show_sku,
-          data.app_setting_sqlite_id
-        ]);
+    return await db.rawUpdate('UPDATE $tableAppSetting SET show_sku = ?, sync_status = ?, updated_at = ?', [data.show_sku, 2, data.updated_at]);
   }
 
 /*
@@ -5147,8 +5404,8 @@ class PosDatabase {
   Future<int> updatePrinter(Printer data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tablePrinter SET printer_label = ?, paper_size = ?, type = ?, value = ?, printer_status = ?, is_counter = ?, sync_status = ?, updated_at = ? WHERE printer_sqlite_id = ?',
-        [data.printer_label, data.paper_size, data.type, data.value, data.printer_status, data.is_counter, data.sync_status, data.updated_at, data.printer_sqlite_id]);
+        'UPDATE $tablePrinter SET printer_label = ?, paper_size = ?, type = ?, value = ?, printer_status = ?, is_counter = ?, is_label = ?, sync_status = ?, updated_at = ? WHERE printer_sqlite_id = ?',
+        [data.printer_label, data.paper_size, data.type, data.value, data.printer_status, data.is_counter, data.is_label, data.sync_status, data.updated_at, data.printer_sqlite_id]);
   }
 
 /*
@@ -5340,14 +5597,16 @@ class PosDatabase {
   Future<int> updateChecklist(Checklist data) async {
     final db = await instance.database;
     return await db.rawUpdate("UPDATE $tableChecklist SET updated_at = ?, sync_status = ?, product_name_font_size = ?, other_font_size = ? WHERE checklist_sqlite_id = ?",
-      [
-        data.updated_at,
-        data.sync_status,
-        data.product_name_font_size,
-        data.other_font_size,
-        data.checklist_sqlite_id
-      ]
-    );
+        [data.updated_at, data.sync_status, data.product_name_font_size, data.other_font_size, data.checklist_sqlite_id]);
+  }
+
+/*
+  update kitchen_list layout
+*/
+  Future<int> updateKitchenList(KitchenList data) async {
+    final db = await instance.database;
+    return await db.rawUpdate("UPDATE $tableKitchenList SET updated_at = ?, sync_status = ?, kitchen_list_item_separator = ?, print_combine_kitchen_list = ?, kitchen_list_show_price = ?, product_name_font_size = ?, other_font_size = ? WHERE kitchen_list_sqlite_id = ?",
+        [data.updated_at, data.sync_status, data.kitchen_list_item_separator, data.print_combine_kitchen_list, data.kitchen_list_show_price, data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
   }
 
   /*
@@ -5388,14 +5647,25 @@ class PosDatabase {
 */
   Future<int> updateChecklistUniqueKey(Checklist data) async {
     final db = await instance.database;
-    return await db.rawUpdate(
-        'UPDATE $tableChecklist SET checklist_key = ?, sync_status = ?, updated_at = ? WHERE checklist_sqlite_id = ?',
-        [
-          data.checklist_key,
-          data.sync_status,
-          data.updated_at,
-          data.checklist_sqlite_id,
-        ]);
+    return await db.rawUpdate('UPDATE $tableChecklist SET checklist_key = ?, sync_status = ?, updated_at = ? WHERE checklist_sqlite_id = ?', [
+      data.checklist_key,
+      data.sync_status,
+      data.updated_at,
+      data.checklist_sqlite_id,
+    ]);
+  }
+
+/*
+  update kitchen list unique key
+*/
+  Future<int> updateKitchenListUniqueKey(KitchenList data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableKitchenList SET kitchen_list_key = ?, sync_status = ?, updated_at = ? WHERE kitchen_list_sqlite_id = ?', [
+      data.kitchen_list_key,
+      data.sync_status,
+      data.updated_at,
+      data.kitchen_list_sqlite_id,
+    ]);
   }
 
 /*
@@ -6212,6 +6482,14 @@ class PosDatabase {
   }
 
 /*
+  Delete All local app setting
+*/
+  Future clearAllAppSetting() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableAppSetting');
+  }
+
+/*
   Delete All local printer
 */
   Future clearAllPrinter() async {
@@ -6243,7 +6521,21 @@ class PosDatabase {
     return await db.rawDelete('DELETE FROM $tableChecklist');
   }
 
+/*
+  Delete All local kitchen list
+*/
+  Future clearAllKitchenList() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableKitchenList');
+  }
 
+/*
+  Delete All second screen
+*/
+  Future clearAllSecondScreen() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableSecondScreen');
+  }
 
 /*
   ----------------------Sync from cloud--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -6355,6 +6647,14 @@ class PosDatabase {
   }
 
 /*
+  update app setting (from cloud)
+*/
+  Future<int> updateAppSettingSyncStatusFromCloud(String branch_id) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET sync_status = ? WHERE branch_id = ?', [1, branch_id]);
+  }
+
+/*
   update transfer owner (from cloud)
 */
   Future<int> updateTransferOwnerSyncStatusFromCloud(String transfer_owner_key) async {
@@ -6415,15 +6715,16 @@ class PosDatabase {
 */
   Future<int> updateChecklistSyncStatusFromCloud(String checklist_key) async {
     final db = await instance.database;
-    return await db.rawUpdate(
-        'UPDATE $tableChecklist SET sync_status = ? WHERE checklist_key = ?',
-        [
-          1,
-          checklist_key
-        ]);
+    return await db.rawUpdate('UPDATE $tableChecklist SET sync_status = ? WHERE checklist_key = ?', [1, checklist_key]);
   }
 
-
+/*
+  update kitchen list sync status (from cloud)
+*/
+  Future<int> updateKitchenListSyncStatusFromCloud(String kitchen_list_key) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableKitchenList SET sync_status = ? WHERE kitchen_list_key = ?', [1, kitchen_list_key]);
+  }
 /*
   ----------------------Sync to cloud(update)--------------------------------------------------------------------------------------------------------------------------------------------------
 */
@@ -6546,11 +6847,19 @@ class PosDatabase {
 */
   Future<List<Checklist>> readAllNotSyncChecklist() async {
     final db = await instance.database;
-    final result = await db.rawQuery(
-        'SELECT * FROM $tableChecklist WHERE sync_status != ? LIMIT 10 ',
-        [1]);
+    final result = await db.rawQuery('SELECT * FROM $tableChecklist WHERE sync_status != ? LIMIT 10 ', [1]);
 
     return result.map((json) => Checklist.fromJson(json)).toList();
+  }
+
+/*
+  read all not yet sync kitchen list
+*/
+  Future<List<KitchenList>> readAllNotSyncKitchenList() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableKitchenList WHERE sync_status != ? LIMIT 10 ', [1]);
+
+    return result.map((json) => KitchenList.fromJson(json)).toList();
   }
 
 /*
@@ -6647,6 +6956,15 @@ class PosDatabase {
   }
 
 /*
+  read all not yet sync to cloud app setting
+*/
+  Future<List<AppSetting>> readAllNotSyncAppSetting() async {
+    final db = await instance.database;
+    final result = await db.rawQuery('SELECT * FROM $tableAppSetting WHERE sync_status != ?', [1]);
+    return result.map((json) => AppSetting.fromJson(json)).toList();
+  }
+
+/*
   read all not yet sync to cloud table_use_detail
 */
   Future<List<TableUseDetail>> readAllNotSyncTableUseDetail() async {
@@ -6675,8 +6993,8 @@ class PosDatabase {
 */
   Future<List<OrderModifierDetail>> readAllNotSyncOrderModDetail() async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderModifierDetail WHERE order_modifier_detail_key != ? AND soft_delete = ? AND sync_status != ? LIMIT 10 ',
-        ['', '', 1]);
+    final result =
+        await db.rawQuery('SELECT * FROM $tableOrderModifierDetail WHERE order_modifier_detail_key != ? AND soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', '', 1]);
 
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
   }
@@ -6686,8 +7004,7 @@ class PosDatabase {
 */
   Future<List<OrderDetailCancel>> readAllNotSyncOrderDetailCancel() async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableOrderDetailCancel WHERE soft_delete = ? AND order_detail_cancel_key != ? AND sync_status != ? LIMIT 10 ',
-        ['', '', 1]);
+    final result = await db.rawQuery('SELECT * FROM $tableOrderDetailCancel WHERE soft_delete = ? AND order_detail_cancel_key != ? AND sync_status != ? LIMIT 10 ', ['', '', 1]);
     return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
   }
 

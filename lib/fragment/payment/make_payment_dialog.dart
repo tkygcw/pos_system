@@ -7,11 +7,14 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/payment/ipay_api.dart';
 import 'package:pos_system/fragment/payment/payment_success_dialog.dart';
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
+import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/branch_link_tax.dart';
 import 'package:pos_system/object/order.dart';
+import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/order_tax_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
@@ -62,6 +65,7 @@ class _MakePaymentState extends State<MakePayment> {
   final inputController = TextEditingController();
   final ScrollController _controller = ScrollController();
   late StreamController streamController;
+  late AppSettingModel _appSettingModel;
 
   // var type ="0";
   var userInput = '0.00';
@@ -113,6 +117,8 @@ class _MakePaymentState extends State<MakePayment> {
   int myCount = 0, initLoad = 0;
   late Map branchObject;
   bool isButtonDisable = false, willPop = true;
+  String tableNo = 'N/A';
+  String orderCacheSqliteId = '';
 
   // Array of button
   final List<String> buttons = [
@@ -225,7 +231,9 @@ class _MakePaymentState extends State<MakePayment> {
     }
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
-        return Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
+        return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
+          _appSettingModel = appSettingModel;
+          return Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
           getReceiptPaymentDetail(cart);
           //getSubTotal(cart);
           getCartItemList(cart);
@@ -280,7 +288,9 @@ class _MakePaymentState extends State<MakePayment> {
                                     Container(
                                       margin: EdgeInsets.only(bottom: 20),
                                       alignment: Alignment.center,
-                                      child: Text(AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
+                                      // child: Text(AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
+                                      child: Text(_appSettingModel.table_order != true ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                          : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
                                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
                                     ),
                                     Card(
@@ -695,7 +705,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                     margin: EdgeInsets.all(20),
                                                     alignment: Alignment.center,
                                                     child: ElevatedButton(
-                                                      style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                                                      style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor, padding: EdgeInsets.fromLTRB(20, 14, 20, 14)),
                                                       onPressed: () async {
                                                         setState(() {
                                                           willPop = false;
@@ -711,9 +721,9 @@ class _MakePaymentState extends State<MakePayment> {
                                                       },
                                                       child: Text(
                                                           scanning == false ?
-                                                          "Start Scan" :
-                                                          "Scanning...",
-                                                          style: TextStyle(fontSize: 25)),
+                                                          AppLocalizations.of(context)!.translate('scan_qr') :
+                                                          AppLocalizations.of(context)!.translate('scanning'),
+                                                          style: TextStyle(fontSize: 24)),
                                                     ),
                                                   ),
                                                 ],
@@ -726,7 +736,7 @@ class _MakePaymentState extends State<MakePayment> {
                     ),
                   ));
             } else {
-              ///mobile view
+              ///mobile layout
               return Center(
                 child: SingleChildScrollView(
                   // physics: NeverScrollableScrollPhysics(),
@@ -734,7 +744,7 @@ class _MakePaymentState extends State<MakePayment> {
                     titlePadding: EdgeInsets.fromLTRB(15, 5, 15, 0),
                     contentPadding:
                         EdgeInsets.only(left: 15, right: 15, bottom: 10),
-                    insetPadding: EdgeInsets.zero,
+                    // insetPadding: EdgeInsets.zero,
                     title: Row(
                       children: [
                         Text(AppLocalizations.of(context)!.translate('payment_detail')),
@@ -756,8 +766,10 @@ class _MakePaymentState extends State<MakePayment> {
                       ],
                     ),
                     content: Container(
+                        // width: MediaQuery.of(context).size.width / 1.2,
+                        height: MediaQuery.of(context).size.height / 1.5,
                         width: 650,
-                        height: 250,
+                        // height: 250,
                         child: Row(
                           children: [
                             Expanded(
@@ -767,10 +779,11 @@ class _MakePaymentState extends State<MakePayment> {
                                   Container(
                                     alignment: Alignment.center,
                                     child: Text(
-                                        AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
+                                        _appSettingModel.table_order != true ? AppLocalizations.of(context)!.translate('order_no') + ': ${getOrderNumber(cart, appSettingModel)}'
+                                            : AppLocalizations.of(context)!.translate('table_no') + ': ${getSelectedTable()}',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 24)),
+                                            fontSize: 20)),
                                   ),
                                   Container(
                                     //margin: EdgeInsets.all(25),
@@ -1061,26 +1074,32 @@ class _MakePaymentState extends State<MakePayment> {
                                                 ),
                                               ),
                                               Spacer(),
-                                              ElevatedButton(
-                                                style: ButtonStyle(
-                                                    backgroundColor: MaterialStateProperty.all(color.backgroundColor)),
-                                                onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
-                                                  setState(() {
-                                                    isButtonDisable = true;
-                                                  });
-                                                  await callCreateOrder(finalAmount);
-                                                  if (this.isLogOut == true) {
-                                                    openLogOutDialog();
-                                                    return;
-                                                  }
-                                                  openPaymentSuccessDialog(
-                                                      widget.dining_id,
-                                                      isCashMethod: false,
-                                                      diningName: widget.dining_name);
-                                                },
-                                                child: Text(
-                                                    AppLocalizations.of(context)!.translate('payment_received'),
-                                                    style: TextStyle(fontSize: 20)),
+                                              Container(
+                                                child: ElevatedButton.icon(
+                                                  style: ButtonStyle(
+                                                      backgroundColor: MaterialStateProperty.all(Colors.green),
+                                                      padding: MaterialStateProperty.all(EdgeInsets.all(10))
+                                                  ),
+                                                  onPressed: isButtonDisable || itemList.isEmpty ? null : () async {
+                                                    setState(() {
+                                                      // willPop = false;
+                                                      isButtonDisable = true;
+                                                    });
+                                                    await callCreateOrder(finalAmount);
+                                                    if (this.isLogOut == true) {
+                                                      openLogOutDialog();
+                                                      return;
+                                                    }
+                                                    openPaymentSuccessDialog(
+                                                        widget.dining_id,
+                                                        isCashMethod: false,
+                                                        diningName: widget.dining_name);
+                                                  },
+                                                  icon: Icon(Icons.call_received),
+                                                  label: Text(
+                                                      AppLocalizations.of(context)!.translate('payment_received'),
+                                                      style: TextStyle(fontSize: 16)),
+                                                ),
                                               ),
                                             ],
                                           ),
@@ -1099,17 +1118,19 @@ class _MakePaymentState extends State<MakePayment> {
                                                                 fontSize: 20,
                                                                 fontWeight: FontWeight.bold))),
                                                   ),
-                                                  Container(
-                                                    height: scanning == false ? 150 : 240,
-                                                    margin: EdgeInsets.only(bottom: 10),
-                                                    child: scanning == false ?
-                                                    ClipRRect(
-                                                      child: Image(
-                                                        image: AssetImage("drawable/TNG.jpg"),
+                                                  Expanded(
+                                                    child: Container(
+                                                      height: scanning == false ? 150 : 240,
+                                                      margin: EdgeInsets.only(bottom: 10),
+                                                      child: scanning == false ?
+                                                      ClipRRect(
+                                                        child: Image(
+                                                          image: AssetImage("drawable/TNG.jpg"),
+                                                        ),
+                                                      ) :
+                                                      Container(
+                                                        child: _buildQrViewMobile(context),
                                                       ),
-                                                    ) :
-                                                    Container(
-                                                      child: _buildQrViewMobile(context),
                                                     ),
                                                   ),
                                                   Visibility(
@@ -1118,7 +1139,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       alignment: Alignment.center,
                                                       child: ElevatedButton(
                                                         style: ButtonStyle(
-                                                            backgroundColor: MaterialStateProperty.all(color.backgroundColor)),
+                                                            backgroundColor: MaterialStateProperty.all(color.buttonColor),),
                                                         onPressed: () async {
                                                           setState(() {
                                                             scanning = true;
@@ -1132,7 +1153,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                           }
                                                         },
                                                         child: Text(
-                                                            AppLocalizations.of(context)!.translate('start_scan'),
+                                                            AppLocalizations.of(context)!.translate('scan_qr'),
                                                             style: TextStyle(fontSize: 20)),
                                                       ),
                                                     ),
@@ -1149,6 +1170,7 @@ class _MakePaymentState extends State<MakePayment> {
               );
             }
           });
+        });
         });
       });
     });
@@ -1286,6 +1308,25 @@ class _MakePaymentState extends State<MakePayment> {
     return (double.parse(productItem.price!) * productItem.quantity!).toStringAsFixed(2);
   }
 
+/*
+  get order number
+*/
+  getOrderNumber(CartModel cart, AppSettingModel appSettingModel) {
+    String? orderQueue = '';
+    List<String> result = [];
+    if(cart.cartNotifierItem.isNotEmpty) {
+      for(int i = 0; i < cart.cartNotifierItem.length; i++) {
+        if(cart.cartNotifierItem[i].order_queue != '' && cart.cartNotifierItem[i].order_queue != null)
+          orderQueue = cart.cartNotifierItem[i].order_queue;
+      }
+      if(orderQueue != '')
+        return orderQueue;
+      else
+        return 'N/A';
+    } else {
+      return 'N/A';
+    }
+  }
 
 /*
   get selected table
@@ -1408,6 +1449,7 @@ class _MakePaymentState extends State<MakePayment> {
       for (int i = 0; i < cart.cartNotifierItem.length; i++) {
         if (!orderCacheIdList.contains(cart.cartNotifierItem[i].order_cache_sqlite_id!)) {
           orderCacheIdList.add(cart.cartNotifierItem[i].order_cache_sqlite_id!);
+          orderCacheSqliteId = cart.cartNotifierItem[i].order_cache_sqlite_id!;
         }
       }
     }
@@ -1530,6 +1572,19 @@ class _MakePaymentState extends State<MakePayment> {
     return orderNum;
   }
 
+  Future<int> readQueueFromOrderCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<OrderCache> orderCacheList = await PosDatabase.instance.readSpecificOrderCache(orderCacheSqliteId);
+      int orderQueue = 0;
+      orderQueue = orderCacheList[0].order_queue! != '' ? int.parse(orderCacheList[0].order_queue!) : -1;
+      return orderQueue;
+    } catch(e) {
+      print("readQueueFromOrderCache error: ${e}");
+    }
+    return -1;
+  }
+
   createOrder(double? paymentReceived, String? orderChange) async {
     print('create order called');
     List<String> _value = [];
@@ -1539,15 +1594,18 @@ class _MakePaymentState extends State<MakePayment> {
     final String? login_user = prefs.getString('user');
     final int? branch_id = prefs.getInt('branch_id');
     final String? pos_user = prefs.getString('pos_pin_user');
+    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
     Map logInUser = json.decode(login_user!);
     Map userObject = json.decode(pos_user!);
     int orderNum = generateOrderNumber();
-
+    int orderQueue = localSetting!.enable_numbering == 1 ? await readQueueFromOrderCache() : 0;
     try {
       if (orderNum != 0) {
         Order orderObject = Order(
             order_id: 0,
             order_number: orderNum.toString().padLeft(5, '0'),
+            // order_queue: localSetting!.enable_numbering == 1 ? orderQueue.toString().padLeft(4, '0') : '',
+            order_queue: localSetting.enable_numbering == 1 && orderQueue != -1 ? orderQueue.toString().padLeft(4, '0') : '',
             company_id: logInUser['company_id'].toString(),
             branch_id: branch_id.toString(),
             customer_id: '',
@@ -1574,7 +1632,6 @@ class _MakePaymentState extends State<MakePayment> {
             updated_at: '',
             soft_delete: '');
         Order data = await PosDatabase.instance.insertSqliteOrder(orderObject);
-        print('data: ${data}');
         this.orderId = data.order_sqlite_id.toString();
         Order updatedOrder = await insertOrderKey();
         _value.add(jsonEncode(updatedOrder));

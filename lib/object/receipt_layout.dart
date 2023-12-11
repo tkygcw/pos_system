@@ -9,6 +9,7 @@ import 'package:pos_system/object/branch_link_dining_option.dart';
 import 'package:pos_system/object/cart_product.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/checklist.dart';
+import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
@@ -21,9 +22,6 @@ import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:image/image.dart' as img;
-
-import 'modifier_group.dart';
 import 'order.dart';
 import 'order_modifier_detail.dart';
 import 'order_promotion_detail.dart';
@@ -176,6 +174,79 @@ class ReceiptLayout{
     bytes += generator.drawer();
     bytes += generator.cut(mode: PosCutMode.partial);
     return bytes;
+  }
+
+/*
+  test print layout 58mm
+*/
+  testTicket35mm(bool isUSB, {value}) async {
+    DateTime dateTime = DateTime.now();
+    String date = DateFormat('dd-MM-yyyy h:mm a').format(dateTime);
+    String time = DateFormat('h:mm a').format(dateTime);
+    print("Current Datetime: ${dateTime}");
+    var generator;
+    try {
+      if (isUSB) {
+        final profile = await CapabilityProfile.load();
+        generator = Generator(PaperSize.mm35, profile);
+      } else {
+        generator = value;
+      }
+
+      List<String> commands = [];
+      int leftPadding = 20;
+      commands.add('SIZE 35 mm,25 mm\n');
+      commands.add('DIRECTION 1\n');
+      commands.add('CLS\n');
+      String headerText = "测试店名";
+      commands.add('TEXT ${leftPadding},15,"2",0,1,1,"${headerText.length > 12 ? headerText.substring(0, 12) : headerText}"\n');
+      commands.add('TEXT 205,15,"2",0,1,1,"1034"\n');
+      commands.add('TEXT ${leftPadding},45,"TSS24.BF2",0,1,1,"${headerText}"\n');
+
+      commands.add('TEXT ${leftPadding},175,"2",0,1,1,"01/02"\n');
+      commands.add('TEXT 225,180,"1",0,1,1,2,"${time}"\n');
+      commands.add('PRINT 1\n');
+      commands.add('END\n');
+      List<int> bytes = commands.map((command) => command.codeUnits).expand((codeUnit) => codeUnit).toList();
+      String textToPrint = String.fromCharCodes(bytes);
+      List<int> result = generator.text(textToPrint, containsChinese: true);
+      return result;
+    } catch (e) {
+      print('testTicket35mm Error: $e');
+      return [];
+    }
+  }
+
+  List<String> generateTextCommands(int x, int y, String productName) {
+    List<String> commands = [];
+    int maxLineLength = 18;
+    List<String> words = productName.split(" ");
+    int currentLineLength = 0;
+    StringBuffer currentLine = StringBuffer();
+
+    for (String word in words) {
+      if (currentLineLength + word.length > maxLineLength) {
+        commands.add('TEXT $x,$y,"2",0,1,1,"${currentLine.toString()}"\n');
+
+        y += 25;
+        currentLine.clear();
+        currentLineLength = 0;
+
+        if (word.length > 0 && word[0] == ' ') {
+          word = word.substring(1);
+        }
+      }
+      currentLine.write(word);
+      currentLineLength += word.length;
+
+      if (currentLineLength < maxLineLength) {
+        currentLine.write(' ');
+        currentLineLength++;
+      }
+    }
+    commands.add('TEXT $x,$y,"2",0,1,1,"${currentLine.toString()}"\n');
+
+    return commands;
   }
 
 /*
@@ -474,6 +545,273 @@ class ReceiptLayout{
                 height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)),
       ]);
+
+      bytes += generator.feed(1);
+      bytes += generator.cut(mode: PosCutMode.partial);
+      return bytes;
+    } catch (e) {
+      print('layout error: $e');
+      return null;
+    }
+  }
+
+  /*
+  Test print kitchen list layout 80mm
+*/
+  printTestKitchenList80mm(bool isUSB, {value, required KitchenList KitchenListLayout}) async {
+    KitchenList kitchen_list = KitchenListLayout;
+    var generator;
+    if (isUSB) {
+      final profile = await CapabilityProfile.load();
+      generator = Generator(PaperSize.mm80, profile);
+    } else {
+      generator = value;
+    }
+    List<int> bytes = [];
+    try {
+      bytes += generator.text('** Kitchen list **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+      bytes += generator.emptyLines(1);
+      bytes += generator.reset();
+      bytes += generator.text('Dine In', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+      bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+
+      bytes += generator.text('Batch No: #123456-005', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('Order time: DD/MM/YY hh:mm PM', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.hr();
+      bytes += generator.reset();
+
+      //order product
+      bytes += generator.row([
+        PosColumn(text: '1',
+            width: 2,
+            styles: PosStyles(
+                bold: true,
+                height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+        PosColumn(
+            text: 'Product 1${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
+            width: 10,
+            containsChinese: true,
+            styles: PosStyles(
+                height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '(big | small)',
+            containsChinese: true,
+            width: 10,
+            styles: PosStyles(
+                align: PosAlign.left,
+                height: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+      ]);
+
+      if(kitchen_list != null && kitchen_list.print_combine_kitchen_list == 1) {
+        bytes += generator.emptyLines(1);
+        if(kitchen_list.kitchen_list_item_separator == 1) {
+          bytes += generator.reset();
+          bytes += generator.hr();
+        }
+
+        bytes += generator.row([
+          PosColumn(text: '1',
+              width: 2,
+              styles: PosStyles(
+                  bold: true,
+                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+          PosColumn(
+              text: 'Product 2${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM8.80)' : '' }',
+              width: 10,
+              containsChinese: true,
+              styles: PosStyles(
+                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+        ]);
+        bytes += generator.row([
+          PosColumn(text: '', width: 2),
+          PosColumn(text: '**Remark',
+              containsChinese: true,
+              width: 10,
+              styles: PosStyles(
+                  align: PosAlign.left,
+                  height: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: PosTextSize.size2)),
+        ]);
+
+        bytes += generator.emptyLines(1);
+        if(kitchen_list.kitchen_list_item_separator == 1) {
+          bytes += generator.reset();
+          bytes += generator.hr();
+        }
+
+        bytes += generator.row([
+          PosColumn(text: '1',
+              width: 2,
+              styles: PosStyles(
+                  bold: true,
+                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+          PosColumn(
+              text: 'Product 3${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
+              width: 10,
+              containsChinese: true,
+              styles: PosStyles(
+                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+        ]);
+        bytes += generator.row([
+          PosColumn(text: '', width: 2),
+          PosColumn(text: '+add-on1',
+              containsChinese: true,
+              width: 10,
+              styles: PosStyles(
+                  align: PosAlign.left,
+                  height: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+        ]);
+      }
+
+      bytes += generator.feed(1);
+      bytes += generator.cut(mode: PosCutMode.partial);
+      return bytes;
+    } catch (e) {
+      print('layout error: $e');
+      return null;
+    }
+  }
+
+/*
+  Test print kitchen list layout 58mm
+*/
+  printTestKitchenList58mm(bool isUSB, {value, required KitchenList KitchenListLayout}) async {
+    KitchenList kitchen_list = KitchenListLayout;
+    var generator;
+    if (isUSB) {
+      final profile = await CapabilityProfile.load();
+      generator = Generator(PaperSize.mm58, profile);
+    } else {
+      generator = value;
+    }
+
+    List<int> bytes = [];
+    try {
+      bytes += generator.reset();
+      bytes += generator.text('** Kitchen list **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+      bytes += generator.emptyLines(1);
+      bytes += generator.reset();
+      //other order detail
+      bytes += generator.text('Dine In', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+      bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+      bytes += generator.text('Batch No', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('#123456-005', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('Order time', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('DD/MM/YY hh:mm PM', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.hr();
+      bytes += generator.reset();
+
+      //order product
+      bytes += generator.row([
+        PosColumn(
+            text: '1',
+            width: 2,
+            styles: PosStyles(
+                bold: true,
+                height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+        ),
+        PosColumn(
+            text: 'Product 1${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
+            width: 10,
+            containsChinese: true,
+            styles: PosStyles(
+                height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+        ),
+      ]);
+      bytes += generator.row([
+        PosColumn(text: '', width: 2),
+        PosColumn(text: '(big | small)',
+            containsChinese: true,
+            width: 10,
+            styles: PosStyles(
+                height: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+        ),
+      ]);
+
+      if(kitchen_list != null && kitchen_list.print_combine_kitchen_list == 1) {
+        bytes += generator.emptyLines(1);
+        if(kitchen_list.kitchen_list_item_separator == 1) {
+          bytes += generator.reset();
+          bytes += generator.hr();
+        }
+
+        bytes += generator.row([
+          PosColumn(
+              text: '1',
+              width: 2,
+              styles: PosStyles(
+                  bold: true,
+                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+          ),
+          PosColumn(
+              text: 'Product 2${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM9.90)' : '' }',
+              width: 10,
+              containsChinese: true,
+              styles: PosStyles(
+                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+          ),
+        ]);
+        bytes += generator.row([
+          PosColumn(text: '', width: 2),
+          PosColumn(text: '**Remark',
+              containsChinese: true,
+              width: 10,
+              styles: PosStyles(
+                  height: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: PosTextSize.size2)
+          ),
+        ]);
+
+        bytes += generator.emptyLines(1);
+        if(kitchen_list.kitchen_list_item_separator == 1) {
+          bytes += generator.reset();
+          bytes += generator.hr();
+        }
+
+        bytes += generator.row([
+          PosColumn(
+              text: '1',
+              width: 2,
+              styles: PosStyles(
+                  bold: true,
+                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+          ),
+          PosColumn(
+              text: 'Product 3${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
+              width: 10,
+              containsChinese: true,
+              styles: PosStyles(
+                  height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+          ),
+        ]);
+        bytes += generator.row([
+          PosColumn(text: '', width: 2),
+          PosColumn(text: '+add-on1',
+              containsChinese: true,
+              width: 10,
+              styles: PosStyles(
+                  height: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                  width: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
+          ),
+        ]);
+      }
 
       bytes += generator.feed(1);
       bytes += generator.cut(mode: PosCutMode.partial);
@@ -919,9 +1257,19 @@ class ReceiptLayout{
         //bytes += generator.image(decodedImage);
         bytes += generator.reset();
         if(paidOrder!.payment_status == 2) {
-          bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+          bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.emptyLines(1);
         }
-        bytes += generator.emptyLines(1);
+
+        if(int.tryParse(this.paidOrder!.order_queue!) != null){
+          bytes += generator.text('------------------', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.emptyLines(1);
+          bytes += generator.text('Order No: ${this.paidOrder!.order_queue!}', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.emptyLines(1);
+          bytes += generator.text('------------------', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.emptyLines(1);
+        }
+
         bytes += generator.reset();
         if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
           bytes += generator.row([
@@ -1179,8 +1527,18 @@ class ReceiptLayout{
         bytes += generator.reset();
         if(paidOrder!.payment_status == 2){
           bytes += generator.text('** Refund **', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2 ));
+          bytes += generator.emptyLines(1);
         }
-        bytes += generator.emptyLines(1);
+
+        if(int.tryParse(this.paidOrder!.order_queue!) != null){
+          bytes += generator.text('---------------', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.emptyLines(1);
+          bytes += generator.text('Order No: ${this.paidOrder!.order_queue!}', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.emptyLines(1);
+          bytes += generator.text('---------------', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+          bytes += generator.emptyLines(1);
+        }
+
         bytes += generator.reset();
         if(receipt!.header_text_status == 1 && receipt!.header_font_size == 0){
           bytes += generator.row([
@@ -1396,7 +1754,7 @@ class ReceiptLayout{
 */
   printPreviewReceipt80mm(bool isUSB, List<PosTable> selectedTableList, CartModel cartModel, {value}) async {
     await readReceiptLayout('80');
-
+    await readOrderCache(int.parse(cartModel.cartNotifierItem[0].order_cache_sqlite_id!));
     // final ByteData data = await rootBundle.load('drawable/logo2.png');
     // final Uint8List bytes = data.buffer.asUint8List();
     // final decodedImage = img.decodeImage(bytes);
@@ -1423,6 +1781,14 @@ class ReceiptLayout{
             bytes += generator.text('Table No: ${selectedTableList[i].number}');
           }
         }
+        if(int.tryParse(orderCache!.order_queue!) != null) {
+          bytes += generator.text('Order No: ${orderCache!.order_queue}');
+        }
+        // if( == true){
+        //   for(int i = 0; i < selectedTableList.length; i++){
+        //     bytes += generator.text('Order No: ${selectedTableList[i].number}');
+        //   }
+        // }
         bytes += generator.text('${cartModel.selectedOption}');
         bytes += generator.reset();
         /*
@@ -1602,6 +1968,7 @@ class ReceiptLayout{
 */
   printPreviewReceipt58mm(bool isUSB, List<PosTable> selectedTableList, CartModel cartModel, {value}) async {
     await readReceiptLayout('58');
+    await readOrderCache(int.parse(cartModel.cartNotifierItem[0].order_cache_sqlite_id!));
     if(_isLoad = true){
       var generator;
       if (isUSB) {
@@ -1623,6 +1990,9 @@ class ReceiptLayout{
           for(int i = 0; i < selectedTableList.length; i++){
             bytes += generator.text('Table No: ${selectedTableList[i].number}');
           }
+        }
+        if(int.tryParse(orderCache!.order_queue!) != null) {
+          bytes += generator.text('Order No: ${orderCache!.order_queue}');
         }
         bytes += generator.text('${cartModel.selectedOption}');
         bytes += generator.reset();
@@ -1819,7 +2189,10 @@ class ReceiptLayout{
       } else {
         bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
       }
-
+      //order queue
+      if(int.tryParse(this.orderCache!.order_queue!) != null){
+        bytes += generator.text('Order No: ${this.orderCache!.order_queue!}', styles: PosStyles(align: PosAlign.left, height:PosTextSize.size2, width: PosTextSize.size2));
+      }
       // bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
       bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}');
       if(isQrOrder != null){
@@ -1933,6 +2306,10 @@ class ReceiptLayout{
         }
       } else {
         bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+      }
+      //order queue
+      if(int.tryParse(this.orderCache!.order_queue!) != null){
+        bytes += generator.text('Order No: ${this.orderCache!.order_queue!}', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
       }
       // for(int i = 0; i < tableList.length; i++){
       //   bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
@@ -2459,6 +2836,7 @@ class ReceiptLayout{
   printKitchenList80mm(bool isUSB, int localId, {value, required OrderDetail orderDetail}) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
+    KitchenList? kitchenListLayout = await PosDatabase.instance.readSpecificKitchenList('80');
     await readOrderCache(localId);
     cartProductItem cartItem = cartProductItem(
       quantity: int.tryParse(orderDetail.quantity!) != null ? int.parse(orderDetail.quantity!) : double.parse(orderDetail.quantity!),
@@ -2467,7 +2845,8 @@ class ReceiptLayout{
       remark: orderDetail.remark,
       orderModifierDetail: orderDetail.orderModifierDetail,
       unit: orderDetail.unit,
-      per_quantity_unit: orderDetail.per_quantity_unit
+      per_quantity_unit: orderDetail.per_quantity_unit,
+      price: orderDetail.price,
     );
 
     if(_isLoad == true){
@@ -2492,6 +2871,10 @@ class ReceiptLayout{
         } else {
           bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         }
+        //order queue
+        if(int.tryParse(this.orderCache!.order_queue!) != null){
+          bytes += generator.text('Order No: ${this.orderCache!.order_queue!}', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+        }
         bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Order time: ${Utils.formatDate(orderCache!.created_at)}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.hr();
@@ -2507,19 +2890,40 @@ class ReceiptLayout{
           // PosColumn(text: '${cartItem.quantity!*int.parse(cartItem.per_quantity_unit!)}${cartItem.unit}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true, height: PosTextSize.size2)),
           PosColumn(text: cartItem.unit != 'each' ? '${(cartItem.quantity!*int.parse(cartItem.per_quantity_unit!)).toStringAsFixed(2)}${cartItem.unit}'
               : '${cartItem.quantity}',
-              width: 2, styles: PosStyles(align: PosAlign.left, bold: true, height: PosTextSize.size2)),
+              width: 2,
+              styles: PosStyles(
+                align: PosAlign.left,
+                bold: true,
+                height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
+                width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
           PosColumn(
-              text: '${cartItem.product_name}',
+              text: '${cartItem.product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
               width: 10,
               containsChinese: true,
-              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2))
+              styles: PosStyles(
+                  align: PosAlign.left,
+                  height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
+                  width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2))
         ]);
         bytes += generator.reset();
         //product variant
         if(cartItem.productVariantName != ''){
           bytes += generator.row([
-            PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.left)),
-            PosColumn(text: '(${cartItem.productVariantName})', width: 10, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+            PosColumn(
+                text: '',
+                width: 2,
+                styles: PosStyles(
+                    align: PosAlign.left,
+                    height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                    width: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+            PosColumn(
+                text: '(${cartItem.productVariantName})',
+                width: 10,
+                containsChinese: true,
+                styles: PosStyles(
+                    align: PosAlign.left,
+                    height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                    width: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
           ]);
         }
         bytes += generator.reset();
@@ -2528,11 +2932,19 @@ class ReceiptLayout{
           for (int j = 0; j < cartItem.orderModifierDetail!.length; j++) {
             //modifier
             bytes += generator.row([
-              PosColumn(text: '', width: 2),
+              PosColumn(
+                  text: '',
+                  width: 2,
+                  styles: PosStyles(
+                      height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                      width: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
               PosColumn(text: '+${cartItem.orderModifierDetail![j].mod_name}',
                   containsChinese: true,
                   width: 10,
-                  styles: PosStyles(align: PosAlign.left)),
+                  styles: PosStyles(
+                      align: PosAlign.left,
+                      height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                      width: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
             ]);
           }
         }
@@ -2543,7 +2955,14 @@ class ReceiptLayout{
         if (cartItem.remark != '') {
           bytes += generator.row([
             PosColumn(text: '', width: 2),
-            PosColumn(text: '**${cartItem.remark}', width: 8, containsChinese: true, styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size2)),
+            PosColumn(
+                text: '**${cartItem.remark}',
+                width: 8,
+                containsChinese: true,
+                styles: PosStyles(
+                    align: PosAlign.left,
+                    height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                    width: PosTextSize.size2)),
             PosColumn(text: '', width: 2),
           ]);
         }
@@ -2556,8 +2975,8 @@ class ReceiptLayout{
         return null;
       }
     }
-
   }
+
 /*
   kitchen layout 58mm
 */
@@ -2565,15 +2984,17 @@ class ReceiptLayout{
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
+    KitchenList? kitchenListLayout = await PosDatabase.instance.readSpecificKitchenList('58');
     await readOrderCache(localId);
     cartProductItem cartItem = cartProductItem(
-        quantity: int.tryParse(orderDetail.quantity!) != null ? int.parse(orderDetail.quantity!) : double.parse(orderDetail.quantity!),
-        product_name: orderDetail.productName,
-        productVariantName: orderDetail.product_variant_name,
-        remark: orderDetail.remark,
-        orderModifierDetail: orderDetail.orderModifierDetail,
-        unit: orderDetail.unit,
-        per_quantity_unit: orderDetail.per_quantity_unit
+      quantity: int.tryParse(orderDetail.quantity!) != null ? int.parse(orderDetail.quantity!) : double.parse(orderDetail.quantity!),
+      product_name: orderDetail.productName,
+      productVariantName: orderDetail.product_variant_name,
+      remark: orderDetail.remark,
+      orderModifierDetail: orderDetail.orderModifierDetail,
+      unit: orderDetail.unit,
+      per_quantity_unit: orderDetail.per_quantity_unit,
+      price: orderDetail.price,
     );
 
     if(_isLoad == true){
@@ -2598,6 +3019,10 @@ class ReceiptLayout{
         } else {
           bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         }
+        //order queue
+        if(int.tryParse(this.orderCache!.order_queue!) != null){
+          bytes += generator.text('Order No: ${this.orderCache!.order_queue!}', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+        }
         bytes += generator.text('Batch No', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('#${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Order time', styles: PosStyles(align: PosAlign.center));
@@ -2612,18 +3037,36 @@ class ReceiptLayout{
         //order product
         bytes += generator.row([
           PosColumn(text: cartItem.unit != 'each' ? '${(cartItem.quantity!*int.parse(cartItem.per_quantity_unit!)).toStringAsFixed(2)}${cartItem.unit}' : '${cartItem.quantity}',
-              width: 3, styles: PosStyles(bold: true)),
+              width: 3,
+              styles: PosStyles(
+                bold: true,
+                height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
+                width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
           PosColumn(
-              text: '${cartItem.product_name}',
+              text: '${cartItem.product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
               width: 9,
-              containsChinese: true),
+              containsChinese: true,
+              styles: PosStyles(
+                  height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
+                  width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
         ]);
         bytes += generator.reset();
         //product variant
         if(cartItem.productVariantName != ''){
           bytes += generator.row([
-            PosColumn(text: '', width: 3),
-            PosColumn(text: '(${cartItem.productVariantName})', width: 9, containsChinese: true)
+            PosColumn(
+                text: '',
+                width: 3,
+                styles: PosStyles(
+                    height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                    width: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+            PosColumn(
+                text: '(${cartItem.productVariantName})',
+                width: 9,
+                containsChinese: true,
+                styles: PosStyles(
+                    height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                    width: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1))
           ]);
         }
         bytes += generator.reset();
@@ -2636,7 +3079,9 @@ class ReceiptLayout{
               PosColumn(text: '+${cartItem.orderModifierDetail![j].mod_name}',
                   width: 9,
                   containsChinese: true,
-                  styles: PosStyles(height: PosTextSize.size1, width: PosTextSize.size1))
+                  styles: PosStyles(
+                      height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                      width: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1))
             ]);
           }
         }
@@ -2647,7 +3092,13 @@ class ReceiptLayout{
         if (cartItem.remark != '') {
           bytes += generator.row([
             PosColumn(text: '', width: 3),
-            PosColumn(text: '**${cartItem.remark}', width: 9, containsChinese: true),
+            PosColumn(
+                text: '**${cartItem.remark}',
+                width: 9,
+                containsChinese: true,
+                styles: PosStyles(
+                    height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                    width: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
           ]);
         }
 
@@ -2659,7 +3110,362 @@ class ReceiptLayout{
         return null;
       }
     }
+  }
 
+/*
+  combine kitchen layout 80mm
+*/
+  printCombinedKitchenList80mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList}) async {
+    List<cartProductItem> cartItemList = [];
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    KitchenList? kitchenListLayout = await PosDatabase.instance.readSpecificKitchenList('80');
+    await readOrderCache(localId);
+
+    for (int i = 0; i < orderDetailList.length; i++) {
+      OrderDetail orderDetail = orderDetailList[i];
+      cartProductItem cartItem = cartProductItem(
+        quantity: int.tryParse(orderDetail.quantity!) != null
+            ? int.parse(orderDetail.quantity!)
+            : double.parse(orderDetail.quantity!),
+        product_name: orderDetail.productName,
+        productVariantName: orderDetail.product_variant_name,
+        remark: orderDetail.remark,
+        orderModifierDetail: orderDetail.orderModifierDetail,
+        unit: orderDetail.unit,
+        per_quantity_unit: orderDetail.per_quantity_unit,
+        price: orderDetail.price,
+      );
+      cartItemList.add(cartItem);
+    }
+
+    if(_isLoad == true){
+      var generator;
+      if (isUSB) {
+        final profile = await CapabilityProfile.load();
+        generator = Generator(PaperSize.mm80, profile);
+      } else {
+        generator = value;
+      }
+
+      List<int> bytes = [];
+      try {
+        bytes += generator.text('** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+        bytes += generator.emptyLines(1);
+        bytes += generator.reset();
+        //other order detail
+        if(tableList.isNotEmpty){
+          for(int i = 0; i < tableList.length; i++){
+            bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+          }
+        } else {
+          bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+        }
+        //order queue
+        if(int.tryParse(this.orderCache!.order_queue!) != null){
+          bytes += generator.text('Order No: ${this.orderCache!.order_queue!}', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+        }
+        bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Order time: ${Utils.formatDate(orderCache!.created_at)}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.hr();
+        bytes += generator.reset();
+        /*
+    *
+    * body
+    *
+    * */
+        for (int i = 0; i < cartItemList.length; i++) {
+          //order product
+          if(i != 0) {
+            if(kitchenListLayout != null && kitchenListLayout.kitchen_list_item_separator == 1) {
+              bytes += generator.reset();
+              bytes += generator.hr();
+            }
+          }
+          bytes += generator.row([
+            PosColumn(
+                text: cartItemList[i].unit != 'each' ? '${(cartItemList[i].quantity! * int.parse(cartItemList[i].per_quantity_unit!)).toStringAsFixed(2)}${cartItemList[i].unit}' : '${cartItemList[i].quantity}',
+                width: 2,
+                styles: PosStyles(
+                    align: PosAlign.left,
+                    bold: true,
+                    height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
+                    width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
+            PosColumn(
+                text: '${cartItemList[i].product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
+                width: 10, containsChinese: true,
+                styles: PosStyles(
+                    align: PosAlign.left,
+                    height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
+                    width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2))
+          ]);
+          bytes += generator.reset();
+          //product variant
+          if (cartItemList[i].productVariantName != '') {
+            bytes += generator.row([
+              PosColumn(text: '', width: 2, styles: PosStyles(align: PosAlign.left)),
+              PosColumn(
+                  text: '(${cartItemList[i].productVariantName})',
+                  width: 10,
+                  containsChinese: true,
+                  styles: PosStyles(
+                      align: PosAlign.left,
+                      height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                      width: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+            ]);
+          }
+          bytes += generator.reset();
+          //product modifier
+          if (cartItemList[i].orderModifierDetail!.isNotEmpty) {
+            for (int j = 0; j < cartItemList[i].orderModifierDetail!.length; j++) {
+              //modifier
+              bytes += generator.row([
+                PosColumn(text: '', width: 2),
+                PosColumn(text: '+${cartItemList[i].orderModifierDetail![j].mod_name}', containsChinese: true, width: 10,
+                    styles: PosStyles(
+                        align: PosAlign.left,
+                        height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                        width: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+              ]);
+            }
+          }
+          /*
+        * product remark
+        * */
+          bytes += generator.reset();
+          if (cartItemList[i].remark != '') {
+            bytes += generator.row([
+              PosColumn(text: '', width: 2),
+              PosColumn(
+                  text: '**${cartItemList[i].remark}', width: 8, containsChinese: true,
+                  styles: PosStyles(
+                      align: PosAlign.left,
+                      height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                      width: PosTextSize.size2)),
+              PosColumn(text: '', width: 2),
+            ]);
+          }
+          bytes += generator.emptyLines(1);
+        }
+
+        bytes += generator.feed(1);
+        bytes += generator.cut(mode: PosCutMode.partial);
+        return bytes;
+      } catch (e) {
+        print('layout error: $e');
+        return null;
+      }
+    }
+  }
+
+/*
+  combine kitchen layout 58mm
+*/
+  printCombinedKitchenList58mm(bool isUSB, int localId, {value, required List<OrderDetail> orderDetailList}) async {
+    String dateTime = dateFormat.format(DateTime.now());
+    List<cartProductItem> cartItemList = [];
+    final prefs = await SharedPreferences.getInstance();
+    final int? branch_id = prefs.getInt('branch_id');
+    KitchenList? kitchenListLayout = await PosDatabase.instance.readSpecificKitchenList('58');
+    await readOrderCache(localId);
+
+    for (int i = 0; i < orderDetailList.length; i++) {
+      OrderDetail orderDetail = orderDetailList[i];
+      cartProductItem cartItem = cartProductItem(
+        quantity: int.tryParse(orderDetail.quantity!) != null
+            ? int.parse(orderDetail.quantity!)
+            : double.parse(orderDetail.quantity!),
+        product_name: orderDetail.productName,
+        productVariantName: orderDetail.product_variant_name,
+        remark: orderDetail.remark,
+        orderModifierDetail: orderDetail.orderModifierDetail,
+        unit: orderDetail.unit,
+        per_quantity_unit: orderDetail.per_quantity_unit,
+        price: orderDetail.price,
+      );
+      cartItemList.add(cartItem);
+    }
+
+    if(_isLoad == true){
+      var generator;
+      if (isUSB) {
+        final profile = await CapabilityProfile.load();
+        generator = Generator(PaperSize.mm58, profile);
+      } else {
+        generator = value;
+      }
+
+      List<int> bytes = [];
+      try {
+        bytes += generator.text('** kitchen list **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+        bytes += generator.emptyLines(1);
+        bytes += generator.reset();
+        //other order detail
+        if(tableList.isNotEmpty){
+          for(int i = 0; i < tableList.length; i++){
+            bytes += generator.text('Table No: ${tableList[i].number}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+          }
+        } else {
+          bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+        }
+        //order queue
+        if(int.tryParse(this.orderCache!.order_queue!) != null){
+          bytes += generator.text('Order No: ${this.orderCache!.order_queue!}', styles: PosStyles(align: PosAlign.center, height:PosTextSize.size2, width: PosTextSize.size2));
+        }
+        bytes += generator.text('Batch No', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('#${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('Order time', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.text('${Utils.formatDate(dateTime)}', styles: PosStyles(align: PosAlign.center));
+        bytes += generator.hr();
+        bytes += generator.reset();
+        /*
+    *
+    * body
+    *
+    * */
+        //order product
+        for(int i = 0; i < cartItemList.length; i++) {
+          if(i != 0) {
+            if(kitchenListLayout != null && kitchenListLayout.kitchen_list_item_separator == 1) {
+              bytes += generator.reset();
+              bytes += generator.hr();
+            }
+          }
+          bytes += generator.row([
+            PosColumn(text: cartItemList[i].unit != 'each' ? '${(cartItemList[i].quantity!*int.parse(cartItemList[i].per_quantity_unit!)).toStringAsFixed(2)}${cartItemList[i].unit}' : '${cartItemList[i].quantity}',
+                width: 3,
+                styles: PosStyles(
+                    bold: true,
+                    height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
+                    width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
+            PosColumn(
+                text: '${cartItemList[i].product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItemList[i].price!) * cartItemList[i].quantity!).toStringAsFixed(2)})' : '' }',
+                width: 9,
+                containsChinese: true,
+                styles: PosStyles(
+                    height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
+                    width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
+
+          ]);
+          bytes += generator.reset();
+          //product variant
+          if(cartItemList[i].productVariantName != ''){
+            bytes += generator.row([
+              PosColumn(text: '', width: 3),
+              PosColumn(text: '(${cartItemList[i].productVariantName})', width: 9, containsChinese: true,
+                  styles: PosStyles(
+                      height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                      width: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1
+                  ))
+            ]);
+          }
+          bytes += generator.reset();
+          //product modifier
+          if(cartItemList[i].orderModifierDetail!.isNotEmpty) {
+            for (int j = 0; j < cartItemList[i].orderModifierDetail!.length; j++) {
+              //modifier
+              bytes += generator.row([
+                PosColumn(text: '', width: 3),
+                PosColumn(text: '+${cartItemList[i].orderModifierDetail![j].mod_name}',
+                    width: 9,
+                    containsChinese: true,
+                    styles: PosStyles(
+                        height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                        width: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1))
+              ]);
+            }
+          }
+          /*
+        * product remark
+        * */
+          bytes += generator.reset();
+          if (cartItemList[i].remark != '') {
+            bytes += generator.row([
+              PosColumn(text: '', width: 3),
+              PosColumn(text: '**${cartItemList[i].remark}', width: 9, containsChinese: true,
+                  styles: PosStyles(
+                      height: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                      width: kitchenListLayout != null && kitchenListLayout.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
+            ]);
+          }
+          bytes += generator.emptyLines(1);
+        }
+
+        bytes += generator.feed(1);
+        bytes += generator.cut(mode: PosCutMode.partial);
+        return bytes;
+      } catch (e) {
+        print('layout error: $e');
+        return null;
+      }
+    }
+  }
+
+/*
+  label printer layout 35mm
+*/
+  printLabel35mm(bool isUSB, int localId, int totalItem, int currentItem, {value, required OrderDetail orderDetail}) async {
+    Receipt? receiptLayout = await PosDatabase.instance.readAllReceipt();
+    print("printLabel35mm called");
+    DateTime dateTime = DateTime.now();
+    String time = DateFormat('h:mm a').format(dateTime);
+    await readOrderCache(localId);
+    cartProductItem cartItem = cartProductItem(
+      quantity: int.parse(orderDetail.quantity!),
+      product_name: orderDetail.productName,
+      productVariantName: orderDetail.product_variant_name,
+      remark: orderDetail.remark,
+      orderModifierDetail: orderDetail.orderModifierDetail,
+    );
+    String productName = '${cartItem.product_name!} ';
+
+    if(_isLoad == true){
+      var generator;
+      if (isUSB) {
+        final profile = await CapabilityProfile.load();
+        generator = Generator(PaperSize.mm35, profile);
+      } else {
+        generator = value;
+      }
+
+      if(cartItem.productVariantName != ''){
+        productName += '[${cartItem.productVariantName!}]';
+      }
+      if(cartItem.orderModifierDetail!.isNotEmpty) {
+        for (int j = 0; j < cartItem.orderModifierDetail!.length; j++) {
+          productName += '[${cartItem.orderModifierDetail![j].mod_name!}]';
+        }
+      }
+
+      try {
+        List<String> commands = [];
+        int leftPadding = 20;
+        commands.add('SIZE 35 mm,25 mm\n');
+        // commands.add('GAP 2.88 mm,0 mm\n');
+        commands.add('DIRECTION 1\n');
+        commands.add('CLS\n');
+        if(receiptLayout!.header_text != '')
+          commands.add('TEXT ${leftPadding},15,"2",0,1,1,"${receiptLayout.header_text!.length > 12 ? receiptLayout.header_text!.substring(0, 12) : receiptLayout.header_text}"\n');
+        if(int.tryParse(this.orderCache!.order_queue!) != null)
+          commands.add('TEXT 210,15,"2",0,1,1,"${this.orderCache!.order_queue!}"\n');
+
+        List<String> productNameCommands = generateTextCommands(leftPadding, 45, productName);
+        commands.addAll(productNameCommands);
+        commands.add('TEXT ${leftPadding},175,"2",0,1,1,"${currentItem.toString().padLeft(2, '0')}/${totalItem.toString().padLeft(2, '0')}"\n');
+        commands.add('TEXT 225,180,"1",0,1,1,2,"${time}"\n');
+        commands.add('PRINT 1\n');
+        commands.add('END\n');
+
+        List<int> bytes = commands.map((command) => command.codeUnits).expand((codeUnit) => codeUnit).toList();
+        String textToPrint = String.fromCharCodes(bytes);
+        List<int> result = generator.text(textToPrint, containsChinese: true);
+
+        return result;
+      } catch (e) {
+        print('printLabel35mm error: $e');
+        return null;
+      }
+    }
   }
 
 /*
@@ -2694,6 +3500,10 @@ class ReceiptLayout{
           }
         } else{
           bytes += generator.text('${orderCache!.dining_name}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
+        }
+        //order queue
+        if(int.tryParse(orderCache!.order_queue!) != null) {
+          bytes += generator.text('Order No: ${orderCache!.order_queue}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size2, width: PosTextSize.size2));
         }
         bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
         bytes += generator.text('Cancel time: ${Utils.formatDate(dateTime)}', styles: PosStyles(align: PosAlign.center));
@@ -3662,15 +4472,9 @@ class ReceiptLayout{
 */
   readOrderCache(int orderCacheId) async {
     final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
     OrderCache cacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheId);
     orderCache = cacheData;
-    // if(orderCacheId != null){
-    //
-    // } else {
-    //   // List<OrderCache> data = await PosDatabase.instance.readBranchLatestOrderCache(branch_id!);
-    //   // orderCache = data[0];
-    // }
+
     List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(orderCache!.order_cache_key!);
     if(!detailData.contains(detailData)){
       orderDetailList = List.from(detailData);

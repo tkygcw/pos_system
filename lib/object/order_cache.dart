@@ -5,6 +5,7 @@ class OrderCacheFields {
     order_cache_sqlite_id,
     order_cache_id,
     order_cache_key,
+    order_queue,
     company_id,
     branch_id,
     order_detail_id,
@@ -33,6 +34,7 @@ class OrderCacheFields {
   static String order_cache_sqlite_id = 'order_cache_sqlite_id';
   static String order_cache_id = 'order_cache_id';
   static String order_cache_key = 'order_cache_key';
+  static String order_queue = 'order_queue';
   static String company_id = 'company_id';
   static String branch_id = 'branch_id';
   static String order_detail_id = 'order_detail_id';
@@ -62,6 +64,7 @@ class OrderCache{
   int? order_cache_sqlite_id;
   int? order_cache_id;
   String? order_cache_key;
+  String? order_queue;
   String? company_id;
   String? branch_id;
   String? order_detail_id;
@@ -94,6 +97,7 @@ class OrderCache{
       {this.order_cache_sqlite_id,
         this.order_cache_id,
         this.order_cache_key,
+        this.order_queue,
         this.company_id,
         this.branch_id,
         this.order_detail_id,
@@ -126,6 +130,7 @@ class OrderCache{
     int? order_cache_sqlite_id,
     int? order_cache_id,
     String? order_cache_key,
+    String? order_queue,
     String? company_id,
     String? branch_id,
     String? order_detail_id,
@@ -154,6 +159,7 @@ class OrderCache{
           order_cache_sqlite_id: order_cache_sqlite_id ?? this.order_cache_sqlite_id,
           order_cache_id: order_cache_id ?? this.order_cache_id,
           order_cache_key: order_cache_key ?? this.order_cache_key,
+          order_queue: order_queue ?? this.order_queue,
           company_id: company_id ?? this.company_id,
           branch_id: branch_id ?? this.branch_id,
           order_detail_id: order_detail_id ?? this.order_detail_id,
@@ -179,41 +185,43 @@ class OrderCache{
           soft_delete: soft_delete ?? this.soft_delete);
 
   static OrderCache fromJson(Map<String, Object?> json) => OrderCache(
-    order_cache_sqlite_id: json[OrderCacheFields.order_cache_sqlite_id] as int?,
-    order_cache_id: json[OrderCacheFields.order_cache_id] as int?,
-    order_cache_key: json[OrderCacheFields.order_cache_key] as String?,
-    company_id: json[OrderCacheFields.company_id] as String?,
-    branch_id: json[OrderCacheFields.branch_id] as String?,
-    order_detail_id: json[OrderCacheFields.order_detail_id] as String?,
-    table_use_sqlite_id: json[OrderCacheFields.table_use_sqlite_id] as String?,
-    table_use_key: json[OrderCacheFields.table_use_key] as String?,
-    batch_id: json[OrderCacheFields.batch_id] as String?,
-    dining_id: json[OrderCacheFields.dining_id] as String?,
-    order_sqlite_id: json[OrderCacheFields.order_sqlite_id] as String?,
-    order_key: json[OrderCacheFields.order_key] as String?,
-    order_by: json[OrderCacheFields.order_by] as String?,
-    order_by_user_id: json[OrderCacheFields.order_by_user_id] as String?,
-    cancel_by: json[OrderCacheFields.cancel_by] as String?,
-    cancel_by_user_id: json[OrderCacheFields.cancel_by_user_id] as String?,
-    customer_id: json[OrderCacheFields.customer_id] as String?,
-    total_amount: json[OrderCacheFields.total_amount] as String?,
-    qr_order: json[OrderCacheFields.qr_order] as int?,
-    qr_order_table_sqlite_id: json[OrderCacheFields.qr_order_table_sqlite_id] as String?,
-    qr_order_table_id: json[OrderCacheFields.qr_order_table_id] as String?,
-    accepted: json[OrderCacheFields.accepted] as int?,
-    sync_status: json[OrderCacheFields.sync_status] as int?,
-    created_at: json[OrderCacheFields.created_at] as String?,
-    updated_at: json[OrderCacheFields.updated_at] as String?,
-    soft_delete: json[OrderCacheFields.soft_delete] as String?,
-    card_color: json['card_color'] as String?,
-    dining_name: json['name'] as String?,
-    table_number: json['table_number'] as String?
+      order_cache_sqlite_id: json[OrderCacheFields.order_cache_sqlite_id] as int?,
+      order_cache_id: json[OrderCacheFields.order_cache_id] as int?,
+      order_cache_key: json[OrderCacheFields.order_cache_key] as String?,
+      order_queue: json[OrderCacheFields.order_queue] as String?,
+      company_id: json[OrderCacheFields.company_id] as String?,
+      branch_id: json[OrderCacheFields.branch_id] as String?,
+      order_detail_id: json[OrderCacheFields.order_detail_id] as String?,
+      table_use_sqlite_id: json[OrderCacheFields.table_use_sqlite_id] as String?,
+      table_use_key: json[OrderCacheFields.table_use_key] as String?,
+      batch_id: json[OrderCacheFields.batch_id] as String?,
+      dining_id: json[OrderCacheFields.dining_id] as String?,
+      order_sqlite_id: json[OrderCacheFields.order_sqlite_id] as String?,
+      order_key: json[OrderCacheFields.order_key] as String?,
+      order_by: json[OrderCacheFields.order_by] as String?,
+      order_by_user_id: json[OrderCacheFields.order_by_user_id] as String?,
+      cancel_by: json[OrderCacheFields.cancel_by] as String?,
+      cancel_by_user_id: json[OrderCacheFields.cancel_by_user_id] as String?,
+      customer_id: json[OrderCacheFields.customer_id] as String?,
+      total_amount: json[OrderCacheFields.total_amount] as String?,
+      qr_order: json[OrderCacheFields.qr_order] as int?,
+      qr_order_table_sqlite_id: json[OrderCacheFields.qr_order_table_sqlite_id] as String?,
+      qr_order_table_id: json[OrderCacheFields.qr_order_table_id] as String?,
+      accepted: json[OrderCacheFields.accepted] as int?,
+      sync_status: json[OrderCacheFields.sync_status] as int?,
+      created_at: json[OrderCacheFields.created_at] as String?,
+      updated_at: json[OrderCacheFields.updated_at] as String?,
+      soft_delete: json[OrderCacheFields.soft_delete] as String?,
+      card_color: json['card_color'] as String?,
+      dining_name: json['name'] as String?,
+      table_number: json['table_number'] as String?
   );
 
   Map<String, Object?> toJson() => {
     OrderCacheFields.order_cache_sqlite_id: order_cache_sqlite_id,
     OrderCacheFields.order_cache_id: order_cache_id,
     OrderCacheFields.order_cache_key: order_cache_key,
+    OrderCacheFields.order_queue: order_queue,
     OrderCacheFields.company_id: company_id,
     OrderCacheFields.branch_id: branch_id,
     OrderCacheFields.order_detail_id: order_detail_id,

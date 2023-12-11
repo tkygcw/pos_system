@@ -41,7 +41,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SecondaryDisplay(
-          callback: (argument){
+          callback: (argument) async {
             try{
               switch(argument){
                 case "init": {
@@ -50,7 +50,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                   });
                 }break;
                 case "refresh_img": {
-                  initBanner();
+                  await initBanner();
                 }break;
                 default: {
                   var decode = jsonDecode(argument);
