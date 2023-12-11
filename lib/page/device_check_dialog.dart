@@ -45,7 +45,7 @@ class _DeviceCheckDialogState extends State<DeviceCheckDialog> {
           child: AlertDialog(
             title: Text(AppLocalizations.of(context)!.translate('multi_device_login')),
             content: Container(
-              height: 225,
+              height: MediaQuery.of(context).size.height > 500 ? 225 : MediaQuery.of(context).size.height/2.5,
               width: 400,
               child: Column(
                 children: [

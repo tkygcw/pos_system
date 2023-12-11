@@ -64,7 +64,7 @@ class _SettlementPageState extends State<SettlementPage> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return LayoutBuilder(builder: (context, constraints) {
-        if (constraints.maxWidth > 800) {
+        if (constraints.maxWidth > 900 && constraints.maxHeight > 500) {
           return Scaffold(
             appBar: AppBar(
               automaticallyImplyLeading: false,
@@ -375,7 +375,7 @@ class _SettlementPageState extends State<SettlementPage> {
             body: isLoad
                 ? Container(
                     child: Padding(
-                      padding: EdgeInsets.all(20),
+                      padding: EdgeInsets.fromLTRB(15, 5, 20, 0),
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
@@ -676,7 +676,7 @@ class _SettlementPageState extends State<SettlementPage> {
                   )
                 : CustomProgressBar(),
             bottomNavigationBar: Container(
-              height: MediaQuery.of(context).size.height / 4,
+              height: MediaQuery.of(context).size.height / 6,
               child: Column(
                 children: [
                   Divider(
@@ -684,12 +684,12 @@ class _SettlementPageState extends State<SettlementPage> {
                     color: Colors.grey,
                   ),
                   Container(
-                      margin: EdgeInsets.all(15),
+                      margin: EdgeInsets.all(5),
                       padding: EdgeInsets.only(right: 10),
                       alignment: Alignment.bottomRight,
                       child: Text(
                         '${getTotalAmount()}',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
                       )),
                   Divider(
                     height: 10,

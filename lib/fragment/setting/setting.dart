@@ -207,7 +207,7 @@ class _SettingMenuState extends State<SettingMenu> {
         } else {
           ///mobile layout
           return Padding(
-            padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
+            padding: EdgeInsets.fromLTRB(0, 0, 8, 15),
             child: this.isLoaded ?
             Scaffold(
               resizeToAvoidBottomInset: false,

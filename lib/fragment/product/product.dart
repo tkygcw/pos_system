@@ -28,7 +28,7 @@ class _ProductPageState extends State<ProductPage> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Padding(
-        padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
+        padding: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? EdgeInsets.fromLTRB(8, 10, 8, 8) : EdgeInsets.fromLTRB(0, 0, 8, 8),
         child: Scaffold(
           resizeToAvoidBottomInset: false,
           appBar: AppBar(
