@@ -155,7 +155,7 @@ class ReceiptLayout{
 /*
   test print layout 58mm
 */
-  testTicket58mm(bool isUSB, value) async {
+  testTicket58mm(bool isUSB, {value}) async {
     // Using default profile
     var generator;
     if (isUSB) {

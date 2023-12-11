@@ -711,7 +711,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                   await checkProductStock(widget.productDetail!, cart);
                                   //await getBranchLinkProductItem(widget.productDetail!);
                                   if (hasStock == true) {
-                                    if (cart.selectedOption == 'Dine in') {
+                                    if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
                                       if(simpleIntInput > 0){
                                         if (cart.selectedTable.isNotEmpty) {
                                           // Disable the button after it has been pressed
