@@ -138,8 +138,8 @@ class _HardwareSettingState extends State<HardwareSetting> {
                                   this.tableOrder = value;
                                   if (await confirm(
                                     context,
-                                    title: Text('${AppLocalizations.of(context)?.translate('disable_table_order')}'),
-                                    content: Text('${AppLocalizations.of(context)?.translate('disable_table_order_desc')}'),
+                                    title: Text('${AppLocalizations.of(context)?.translate('enable_table_order')}'),
+                                    content: Text('${AppLocalizations.of(context)?.translate('enable_table_order_desc')}'),
                                     textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                                     textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
                                   )) {
