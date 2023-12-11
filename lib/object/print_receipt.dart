@@ -71,7 +71,7 @@ class PrintReceipt{
         } else if(printerList[i].paper_size == 1){
           print('print 58mm');
           var data = Uint8List.fromList(
-              await ReceiptLayout().testTicket58mm(true, null));
+              await ReceiptLayout().testTicket58mm(true));
           bool? isConnected = await flutterUsbPrinter.connect(
               int.parse(printerDetail['vendorId']),
               int.parse(printerDetail['productId']));
