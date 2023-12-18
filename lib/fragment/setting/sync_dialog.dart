@@ -51,7 +51,7 @@ class _SyncDialogState extends State<SyncDialog> {
         case 'close': {
           isButtonDisable = true;
           controller.sink.add("refresh");
-          Navigator.of(context).pop();
+          Navigator.of(context).pop(true);
         }
       }
     });

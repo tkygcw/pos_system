@@ -92,11 +92,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     await getProductDialogStock(widget.productDetail!);
     categories = await PosDatabase.instance.readSpecificCategoryById(widget.productDetail!.category_sqlite_id!);
     streamController.productOrderDialogController.sink.add('refresh');
-    // if(mounted){
-    //   setState(() {
-    //     this.isLoaded = true;
-    //   });
-    // }
   }
 
   listenAction(){
@@ -122,11 +117,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
             groupValue: variantGroup.variant_item_sqlite_id,
             onChanged: (ind) async  {
               variantGroup.variant_item_sqlite_id = ind;
-              // await getProductPrice(widget.productDetail!.product_sqlite_id);
               actionController.sink.add("add-on");
-              // setState(() {
-              //   print('ind: ${ind}');
-              // });
             },
             title: Text(variantGroup.child![i].name!),
             controlAffinity: ListTileControlAffinity.trailing,
@@ -159,9 +150,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                       modifierGroup.modifierChild![i].isChecked = isChecked!;
                       addCheckedModItem(modifierGroup.modifierChild![i]);
                       actionController.sink.add("add-on");
-                      //print('check item length: ${checkedModItem.length}');
-                      // print('flavour ${modifierGroup.modifierChild[i].name},'
-                      //     'is check ${modifierGroup.modifierChild[i].isChecked}, ${modifierGroup.modifierChild[i].mod_status}');
                     });
                   },
             controlAffinity: ListTileControlAffinity.trailing,
@@ -1101,42 +1089,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           branchLinkProduct_id = productData.branch_link_product_sqlite_id.toString();
         }
       }
-      // print("blp length: ${data1.length}");
-
-      // if (product.has_variant == 0) {
-      //   List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
-      //   branchLinkProduct_id = data1[0].branch_link_product_sqlite_id.toString();
-      //   if(data1[0].stock_type == '2') {
-      //     if (int.parse(data1[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data1[0].stock_quantity!)) {
-      //       hasStock = true;
-      //     } else {
-      //       hasStock = false;
-      //     }
-      //   } else {
-      //     if (int.parse(data1[0].daily_limit_amount!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit_amount!)) {
-      //       hasStock = true;
-      //     } else {
-      //       hasStock = false;
-      //     }
-      //   }
-      // } else {
-      //   //check has variant product stock
-      //   List<BranchLinkProduct> data = await PosDatabase.instance.checkProductVariant(await getProductVariant(product.product_sqlite_id!), product.product_sqlite_id.toString());
-      //   branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
-      //   if (data[0].stock_type == '2') {
-      //     if (int.parse(data[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data[0].stock_quantity!)) {
-      //       hasStock = true;
-      //     } else {
-      //       hasStock = false;
-      //     }
-      //   } else {
-      //     if (int.parse(data[0].daily_limit_amount!) > 0 && simpleIntInput <= int.parse(data[0].daily_limit_amount!)) {
-      //       hasStock = true;
-      //     } else {
-      //       hasStock = false;
-      //     }
-      //   }
-      // }
       print("branchLinkProduct_id: ${branchLinkProduct_id}");
       return branchLinkProduct_id;
     } catch (e) {
@@ -1157,7 +1109,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           if (group.variant_item_sqlite_id == group.child![i].variant_item_sqlite_id) {
             group.child![i].isSelected = true;
             if (variant == '') {
-              variant = group.child![i].name!.trim();
+              variant = group.child![i].name!;
               if (variantGroup.length == 1) {
                 List<ProductVariant> data = await PosDatabase.instance.readSpecificProductVariant(product_id.toString(), variant);
                 productVariant = data[0].product_variant_sqlite_id.toString();
