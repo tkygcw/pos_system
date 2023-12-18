@@ -1039,16 +1039,18 @@ class CartDialogState extends State<CartDialog> {
       // table in use (colored)
       for (int i = 0; i < tableList.length; i++) {
         //check all group
-        if (tableList[index].group == tableList[i].group) {
-
-          if (tableList[i].isSelected == false) {
-            tableList[i].isSelected = true;
+        setState(() {
+          if (tableList[index].group == tableList[i].group) {
+            if (tableList[i].isSelected == false) {
+              tableList[i].isSelected = true;
+            } else {
+              tableList[i].isSelected = false;
+            }
           } else {
             tableList[i].isSelected = false;
           }
-        } else {
-          tableList[i].isSelected = false;
-        }
+        });
+
       }
     } else {
       print('Group: '+ getSelectedTableGroup(''));
@@ -1058,7 +1060,9 @@ class CartDialogState extends State<CartDialog> {
         for (int j = 0; j < tableList.length; j++) {
           //reset all using table to un-select (table status == 1)
           if (tableList[j].status == 1) {
-            tableList[j].isSelected = false;
+            setState(() {
+              tableList[j].isSelected = false;
+            });
           }
         }
       }
