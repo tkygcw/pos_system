@@ -96,7 +96,7 @@ class _QrMainPageState extends State<QrMainPage> {
                                 )),
                             trailing: Text('#${qrOrderCacheList[index].batch_id}', style: TextStyle(fontSize: 18)),
                             onTap: () async {
-                              await checkOrderDetail(qrOrderCacheList[index].order_cache_sqlite_id!);
+                              await checkOrderDetail(qrOrderCacheList[index].order_cache_sqlite_id!, index);
                               //pop stock adjust dialog
                               openAdjustStockDialog(orderDetailList, qrOrderCacheList[index].order_cache_sqlite_id!,
                                   qrOrderCacheList[index].qr_order_table_sqlite_id!, qrOrderCacheList[index].batch_id!);
@@ -154,11 +154,11 @@ class _QrMainPageState extends State<QrMainPage> {
     await getAllNotAcceptedQrOrder();
   }
 
-  checkOrderDetail(int orderCacheLocalId) async {
+  checkOrderDetail(int orderCacheLocalId, int index) async {
     List<OrderDetail> detailData = await PosDatabase.instance.readAllOrderDetailByOrderCache(orderCacheLocalId);
     orderDetailList = detailData;
     for (int i = 0; i < orderDetailList.length; i++) {
-      orderDetailList[i].tableNumber.add(qrOrderCacheList[0].table_number!);
+      orderDetailList[i].tableNumber.add(qrOrderCacheList[index].table_number!);
       List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
       List<OrderModifierDetail> modDetailData = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[i].order_detail_sqlite_id.toString());
 

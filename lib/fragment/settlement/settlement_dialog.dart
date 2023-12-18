@@ -28,6 +28,7 @@ import '../../object/report_class.dart';
 import '../../object/user.dart';
 import '../../translation/AppLocalizations.dart';
 import '../logout_dialog.dart';
+import '../setting/sync_dialog.dart';
 
 class SettlementDialog extends StatefulWidget {
   final List<Printer> printerList;
@@ -102,13 +103,34 @@ class _SettlementDialogState extends State<SettlementDialog> {
     if (errorPassword == null) {
       // Disable the button after it has been pressed
       await readAdminData(adminPosPinController.text, connectivity);
-      if (this.isLogOut == false) {
-        //showAfterSettlementDialog(context, color);
+      bool status = await openSyncDialog();
+      if(status){
         widget.callBack();
         Navigator.of(context).pop();
       }
-      //return;
     }
+  }
+
+  openSyncDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: SyncDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   // Future showAfterSettlementDialog(BuildContext context, ThemeColor color) {
@@ -351,30 +373,6 @@ class _SettlementDialogState extends State<SettlementDialog> {
               msg:
                   "${AppLocalizations.of(context)?.translate('pin_not_match')}");
         }
-        //print settlement list
-        // List<Settlement> settlementData = await PosDatabase.instance.readAllSettlement();
-        // if(settlementData.isNotEmpty){
-        //   if(widget.cashRecordList[0].created_at!.substring(0, 10) != settlementData[0].created_at!.substring(0, 10)){
-        //     //create settlement
-        //     await createSettlement();
-        //     createSettlementLinkPayment();
-        //     //update all today cash record settlement date
-        //     await updateAllCashRecordSettlement(dateTime, connectivity);
-        //     //print settlement list
-        //     await PrintReceipt().printSettlementList(printerList, dateTime, context);
-        //   } else {
-        //     //update settlement
-        //     await updateSettlement(settlementData[0].settlement_sqlite_id!);
-        //     //update all today cash record settlement date
-        //     await updateAllCashRecordSettlement(dateTime, connectivity);
-        //     //print settlement list
-        //     await PrintReceipt().printSettlementList(printerList, dateTime, context);
-        //   }
-        // } else {
-        //   await callSettlement(dateTime, connectivity);
-        //   //print settlement list
-        //   await PrintReceipt().printSettlementList(printerList, dateTime, context);
-        // }
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000),
@@ -396,11 +394,6 @@ class _SettlementDialogState extends State<SettlementDialog> {
     await updateTodaySettlementOrderDetailCancel();
     await updateAllCashRecordSettlement(connectivity);
     await callPrinter();
-    await syncAllToCloud();
-    if (this.isLogOut == true) {
-      openLogOutDialog();
-      return;
-    }
   }
 
   callPrinter() async {
