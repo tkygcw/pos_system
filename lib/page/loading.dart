@@ -1067,9 +1067,8 @@ getVariantGroup() async {
           soft_delete: variantData.soft_delete));
     }
     getVariantItem();
-  }
-  else {
-    getVariantItem();
+  } else {
+    getBranchLinkProduct();
   }
 }
 
@@ -1097,8 +1096,7 @@ getVariantItem() async {
           soft_delete: variantItemData.soft_delete));
     }
     getProductVariant();
-  }
-  else {
+  } else {
     getBranchLinkProduct();
   }
 }
