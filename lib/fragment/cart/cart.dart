@@ -2850,6 +2850,7 @@ class CartPageState extends State<CartPage> {
   }
 
   Future<int> generateOrderQueue() async {
+    print("generateOrderQueue called");
     readAllOrder();
     readAllOrderCache();
     final prefs = await SharedPreferences.getInstance();
@@ -2858,17 +2859,28 @@ class CartPageState extends State<CartPage> {
     int orderQueue = localSetting!.starting_number!;
 
     // not yet make settlement
-    if(orderList[0].settlement_key! == '') {
-      if(int.tryParse(orderCacheList[0].order_queue!) == null || int.parse(orderCacheList[0].order_queue!) >= 9999) {
-        orderQueue = localSetting.starting_number!;
-      }
-      else {
-        orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+    if(orderList.isNotEmpty) {
+      if(orderList[0].settlement_key! == '') {
+        if(int.tryParse(orderCacheList[0].order_queue!) == null || int.parse(orderCacheList[0].order_queue!) >= 9999) {
+          orderQueue = localSetting.starting_number!;
+        }
+        else {
+          orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+        }
+      } else {
+        if(orderCacheList[0].order_key == '') {
+          orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+        } else {
+          orderQueue = localSetting.starting_number!;
+        }
       }
     } else {
-      orderQueue = localSetting.starting_number!;
+      if(orderCacheList.isNotEmpty && orderCacheList[0].order_key == '') {
+        orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+      } else {
+        orderQueue = localSetting.starting_number!;
+      }
     }
-
     return orderQueue;
   }
 
