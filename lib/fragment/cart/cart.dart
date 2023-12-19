@@ -2850,6 +2850,7 @@ class CartPageState extends State<CartPage> {
   }
 
   Future<int> generateOrderQueue() async {
+    print("generateOrderQueue called");
     readAllOrder();
     readAllOrderCache();
     final prefs = await SharedPreferences.getInstance();
@@ -2858,7 +2859,7 @@ class CartPageState extends State<CartPage> {
     int orderQueue = localSetting!.starting_number!;
 
     // not yet make settlement
-    if(orderList[0].settlement_key! == '') {
+    if(orderList.isNotEmpty && orderList[0].settlement_key! == '') {
       if(int.tryParse(orderCacheList[0].order_queue!) == null || int.parse(orderCacheList[0].order_queue!) >= 9999) {
         orderQueue = localSetting.starting_number!;
       }
