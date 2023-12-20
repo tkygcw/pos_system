@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:esc_pos_utils/esc_pos_utils.dart';
-import 'package:imin/imin.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
@@ -22,6 +21,7 @@ import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../main.dart';
 import 'order.dart';
 import 'order_modifier_detail.dart';
 import 'order_promotion_detail.dart';
@@ -57,7 +57,7 @@ class ReceiptLayout{
   openCashDrawer ({required isUSB, value}) async {
     var generator;
     if (isUSB) {
-      return Imin.openDrawer();
+      lcdDisplay.openCashDrawer();
     } else {
       generator = value;
       List<int> bytes = [];
