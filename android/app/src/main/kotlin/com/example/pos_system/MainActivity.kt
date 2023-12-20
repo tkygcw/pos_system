@@ -2,6 +2,7 @@ package com.example.pos_system
 
 import android.graphics.*
 import com.imin.image.ILcdManager
+import com.imin.library.IminSDKManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -41,10 +42,15 @@ class MainActivity: FlutterActivity() {
                 val imgBit = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
                 ILcdManager.getInstance(this).sendLCDBitmap(imgBit)
                 result.success(true)
-            }
-            else if(call.method == "clear"){
+
+            } else if(call.method == "clear"){
                 ILcdManager.getInstance(this).sendLCDCommand(4)
                 result.success(true)
+
+            } else if(call.method == "cashBox"){
+                IminSDKManager.opencashBox()
+                result.success(true)
+
             } else {
                 result.notImplemented()
             }

@@ -512,8 +512,8 @@ class _CashDialogState extends State<CashDialog> {
     }
   }
 
-  callOpenCashDrawer() async{
-    int printStatus = await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+  callOpenCashDrawer() async {
+    int printStatus = await PrintReceipt().cashDrawer(printerList: this.printerList);
     if(printStatus == 1){
       Fluttertoast.showToast(
           backgroundColor: Colors.red,

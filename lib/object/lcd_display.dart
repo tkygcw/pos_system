@@ -33,4 +33,8 @@ class LCDDisplay {
   clearScreen() async {
     await channel.invokeMethod("clear");
   }
+
+  openCashDrawer() async {
+    await channel.invokeMethod("cashBox");
+  }
 }

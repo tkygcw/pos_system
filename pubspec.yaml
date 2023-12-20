@@ -76,7 +76,6 @@ dependencies:
   network_info_plus: ^3.0.2
   percent_indicator: ^4.2.3
   qr_code_scanner: ^1.0.1
-  imin: ^0.0.1
   xml2json: ^5.3.6
   firebase_messaging: ^14.1.1
   firebase_core: ^2.3.0

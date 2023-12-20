@@ -102,7 +102,7 @@ class PrintReceipt{
     }
   }
 
-  cashDrawer(context, {required printerList}) async {
+  cashDrawer({required printerList}) async {
     try{
       int printStatus = 0;
       List<Printer> cashierPrinterList = printerList.where((item) => item.printer_status == 1 && item.is_counter == 1).toList();
