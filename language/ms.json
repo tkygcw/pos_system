@@ -95,6 +95,8 @@
   "confirm_remove_all_order_detail_desc": "Adakah anda ingin mengalih keluar semua butiran pesanan? Anda tidak akan dapat mencetak semula butiran pesanan ini",
   "confirm_remove_item": "Sahkan pemadam item?",
   "confirm_reprint_check_list": "Sahkan pencetakan semula senarai semak?",
+  "confirm_sync": "Sahkan penyegerakan data? ",
+  "confirm_sync_desc": "Ini akan membuat sandaran semua data anda ke awan, akses internet yang diperlukan (Anggaran: 2 minit)",
   "confirm_update_table_layout": "Susun atur meja akan dikemas kini, klik 'Sahkan' untuk meneruskan",
   "connection_failed": "Sambungan gagal",
   "contain_not_available_product": "Mengandungi produk tidak tersedia",

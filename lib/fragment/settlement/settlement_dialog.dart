@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -103,8 +104,23 @@ class _SettlementDialogState extends State<SettlementDialog> {
     if (errorPassword == null) {
       // Disable the button after it has been pressed
       await readAdminData(adminPosPinController.text, connectivity);
-      bool status = await openSyncDialog();
-      if(status){
+      willPop = true;
+      if (await confirm(
+        context,
+        title: Text('${AppLocalizations.of(context)?.translate('confirm_sync')}'),
+        content: Text('${AppLocalizations.of(context)?.translate('confirm_sync_desc')}'),
+        textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+        textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+      )) {
+        bool? status = await openSyncDialog();
+        if(status != null && status == true){
+          widget.callBack();
+          Navigator.of(context).pop();
+        } else {
+          widget.callBack();
+          Navigator.of(context).pop();
+        }
+      } else {
         widget.callBack();
         Navigator.of(context).pop();
       }
@@ -230,7 +246,10 @@ class _SettlementDialogState extends State<SettlementDialog> {
         builder: (BuildContext context) {
           return StatefulBuilder(builder: (context, StateSetter setState) {
             return WillPopScope(
-              onWillPop: () async => willPop,
+              onWillPop: () async {
+                widget.callBack();
+                return willPop;
+              },
               child: Center(
                 child: SingleChildScrollView(
                   child: AlertDialog(

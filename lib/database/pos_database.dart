@@ -6879,8 +6879,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.* FROM $tablePrinterLinkCategory AS a JOIN $tablePrinter AS b ON a.printer_key = b.printer_key '
-        'WHERE b.soft_delete = ? AND b.type = ? AND a.sync_status != ? LIMIT 10 ',
-        ['', 1, 1]);
+        'WHERE b.type = ? AND a.sync_status != ? LIMIT 10 ',
+        [1, 1]);
 
     return result.map((json) => PrinterLinkCategory.fromJson(json)).toList();
   }
@@ -6890,7 +6890,7 @@ class PosDatabase {
 */
   Future<List<Printer>> readAllNotSyncLANPrinter() async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tablePrinter WHERE soft_delete = ? AND type = ? AND sync_status != ? ', ['', 1, 1]);
+    final result = await db.rawQuery('SELECT * FROM $tablePrinter WHERE type = ? AND sync_status != ? ', [1, 1]);
 
     return result.map((json) => Printer.fromJson(json)).toList();
   }
