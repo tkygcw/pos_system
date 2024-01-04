@@ -852,7 +852,7 @@ class PrintReceipt{
                     } else {
                       // print LAN 35mm label
                       final profile = await CapabilityProfile.load();
-                      final printer = NetworkPrinter(PaperSize.mm35, profile);
+                      final printer = NetworkPrinter(PaperSize.mm58, profile);
                       final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                       int totalItem = 0;
                       // get total item in order
@@ -1162,7 +1162,7 @@ class PrintReceipt{
                       //print LAN 35mm
                       print("reprint label 35mm");
                       final profile = await CapabilityProfile.load();
-                      final printer = NetworkPrinter(PaperSize.mm35, profile);
+                      final printer = NetworkPrinter(PaperSize.mm58, profile);
                       final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                       int totalItem = 0;
                       for (int x = 0; x < reprintList.length; x++)
