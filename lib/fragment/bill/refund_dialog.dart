@@ -153,6 +153,9 @@ class _RefundDialogState extends State<RefundDialog> {
                   TextButton(
                     child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                     onPressed: isButtonDisabled ? null : () async {
+                      setState(() {
+                        isButtonDisabled = true;
+                      });
                       _submit(context);
                     },
                   ),

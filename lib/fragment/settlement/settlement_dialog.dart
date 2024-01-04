@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -97,14 +98,28 @@ class _SettlementDialogState extends State<SettlementDialog> {
     return null;
   }
 
-  void _submit(BuildContext context, ConnectivityChangeNotifier connectivity,
-      ThemeColor color) async {
+  void _submit(BuildContext context, ThemeColor color) async {
     setState(() => _submitted = true);
     if (errorPassword == null) {
       // Disable the button after it has been pressed
-      await readAdminData(adminPosPinController.text, connectivity);
-      bool status = await openSyncDialog();
-      if(status){
+      await readAdminData(adminPosPinController.text);
+      willPop = true;
+      if (await confirm(
+        context,
+        title: Text('${AppLocalizations.of(context)?.translate('confirm_sync')}'),
+        content: Text('${AppLocalizations.of(context)?.translate('confirm_sync_desc')}'),
+        textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+        textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+      )) {
+        bool? status = await openSyncDialog();
+        if(status != null && status == true){
+          widget.callBack();
+          Navigator.of(context).pop();
+        } else {
+          widget.callBack();
+          Navigator.of(context).pop();
+        }
+      } else {
         widget.callBack();
         Navigator.of(context).pop();
       }
@@ -222,15 +237,17 @@ class _SettlementDialogState extends State<SettlementDialog> {
     return Navigator.of(context).pop(true);
   }
 
-  Future showSecondDialog(BuildContext context, ThemeColor color,
-      ConnectivityChangeNotifier connectivity) {
+  Future showSecondDialog(BuildContext context, ThemeColor color) {
     return showDialog(
         barrierDismissible: false,
         context: context,
         builder: (BuildContext context) {
           return StatefulBuilder(builder: (context, StateSetter setState) {
             return WillPopScope(
-              onWillPop: () async => willPop,
+              onWillPop: () async {
+                widget.callBack();
+                return willPop;
+              },
               child: Center(
                 child: SingleChildScrollView(
                   child: AlertDialog(
@@ -251,7 +268,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
                                     willPop = false;
                                     isButtonDisabled = true;
                                   });
-                                  _submit(context, connectivity, color);
+                                  _submit(context, color);
                                 },
                                 obscureText: true,
                                 controller: adminPosPinController,
@@ -301,7 +318,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
                                   willPop = false;
                                   isButtonDisabled = true;
                                 });
-                                _submit(context, connectivity, color);
+                                _submit(context, color);
                               },
                       ),
                     ],
@@ -316,33 +333,30 @@ class _SettlementDialogState extends State<SettlementDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Consumer<ConnectivityChangeNotifier>(
-          builder: (context, ConnectivityChangeNotifier connectivity, child) {
-        return AlertDialog(
-          title: Text(
-              AppLocalizations.of(context)!.translate('confirm_do_settlement')),
-          content: Container(
-            child: Text(
-                '${AppLocalizations.of(context)?.translate('settlement_desc')}'),
+      return AlertDialog(
+        title: Text(
+            AppLocalizations.of(context)!.translate('confirm_do_settlement')),
+        content: Container(
+          child: Text(
+              '${AppLocalizations.of(context)?.translate('settlement_desc')}'),
+        ),
+        actions: [
+          TextButton(
+            child:
+            Text('${AppLocalizations.of(context)?.translate('close')}'),
+            onPressed: () {
+              closeDialog(context);
+            },
           ),
-          actions: [
-            TextButton(
-              child:
-                  Text('${AppLocalizations.of(context)?.translate('close')}'),
-              onPressed: () {
-                closeDialog(context);
-              },
-            ),
-            TextButton(
-              child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-              onPressed: () async {
-                await showSecondDialog(context, color, connectivity);
-                closeDialog(context);
-              },
-            )
-          ],
-        );
-      });
+          TextButton(
+            child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+            onPressed: () async {
+              await showSecondDialog(context, color);
+              closeDialog(context);
+            },
+          )
+        ],
+      );
     });
   }
 
@@ -350,7 +364,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
   ----------------DB Query part------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
-  readAdminData(String pin, ConnectivityChangeNotifier connectivity) async {
+  readAdminData(String pin) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? pos_user = prefs.getString('pos_pin_user');
@@ -360,7 +374,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
       if (userData != null) {
         if (userData.user_id == userObject['user_id']) {
           if (userData.role != 3) {
-            await callSettlement(connectivity);
+            await callSettlement();
           } else {
             Fluttertoast.showToast(
                 backgroundColor: Color(0xFFFF0000),
@@ -385,14 +399,14 @@ class _SettlementDialogState extends State<SettlementDialog> {
     }
   }
 
-  callSettlement(connectivity) async {
+  callSettlement() async {
     //create settlement
     await createSettlement();
     await createSettlementLinkPayment();
     //update all today cash record settlement date
     await updateTodaySettlementOrder();
     await updateTodaySettlementOrderDetailCancel();
-    await updateAllCashRecordSettlement(connectivity);
+    await updateAllCashRecordSettlement();
     await callPrinter();
   }
 
@@ -618,7 +632,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
     }
   }
 
-  updateAllCashRecordSettlement(ConnectivityChangeNotifier connectivity) async {
+  updateAllCashRecordSettlement() async {
     List<String> _value = [];
     for (int i = 0; i < widget.cashRecordList.length; i++) {
       CashRecord cashRecord = CashRecord(
@@ -629,7 +643,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
           cash_record_sqlite_id:
               widget.cashRecordList[i].cash_record_sqlite_id);
       int data = await PosDatabase.instance.updateCashRecord(cashRecord);
-      if (data == 1 && connectivity.isConnect) {
+      if (data == 1) {
         //collect all not sync local create/update data
         CashRecord _record = await PosDatabase.instance
             .readSpecificCashRecord(cashRecord.cash_record_sqlite_id!);
