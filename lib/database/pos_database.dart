@@ -39,6 +39,7 @@ import 'package:pos_system/object/user.dart';
 import 'package:pos_system/object/user_log.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../object/branch_link_dining_option.dart';
@@ -77,6 +78,9 @@ class PosDatabase {
     final idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     final textType = 'TEXT NOT NULL';
     final integerType = 'INTEGER NOT NULL';
+    //get branch id pref
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch_id = prefs.getInt('branch_id').toString();
 
     if (oldVersion < newVersion) {
       // you can execute drop table and create table
@@ -142,7 +146,7 @@ class PosDatabase {
           ${SecondScreenFields.created_at} $textType,
           ${SecondScreenFields.soft_delete} $textType)''');
 
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.branch_id} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.branch_id} TEXT NOT NULL DEFAULT '$branch_id' ");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.enable_numbering} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.starting_number} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.table_order} INTEGER NOT NULL DEFAULT 1");
@@ -177,8 +181,8 @@ class PosDatabase {
           ${SecondScreenFields.sequence_number} $textType,
           ${SecondScreenFields.created_at} $textType,
           ${SecondScreenFields.soft_delete} $textType)''');
-
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.branch_id} TEXT NOT NULL DEFAULT '' ");
+          //new
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.branch_id} TEXT NOT NULL DEFAULT '$branch_id' ");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.enable_numbering} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.starting_number} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.table_order} INTEGER NOT NULL DEFAULT 1");
@@ -205,7 +209,7 @@ class PosDatabase {
           ${KitchenListFields.soft_delete} $textType)''');
         }break;
         case 9: {
-          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.branch_id} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.branch_id} TEXT NOT NULL DEFAULT '$branch_id' ");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.enable_numbering} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.starting_number} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.table_order} INTEGER NOT NULL DEFAULT 1");

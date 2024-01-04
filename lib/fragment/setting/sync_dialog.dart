@@ -100,19 +100,16 @@ class _SyncDialogState extends State<SyncDialog> {
       }
     }catch(e){
       syncRecord.count = 0;
-      print("sync data error: ${e}");
     }
   }
 
   syncToCloudChecking() async {
     try{
-      print("count: ${mainSyncToCloud.count}");
       if(mainSyncToCloud.count == 0){
         mainSyncToCloud.count = 1;
+        //start sync
         do{
-          print("sync to cloud checking called!");
           await syncToCloud.syncAllToCloud(isManualSync: true);
-          print("empty res: ${syncToCloud.emptyResponse}");
         }while(syncToCloud.emptyResponse == false);
         mainSyncToCloud.count = 0;
         Future.delayed(const Duration(seconds: 2), () {
@@ -121,6 +118,7 @@ class _SyncDialogState extends State<SyncDialog> {
       } else {
         //if auto sync is running, check every 2 second
         timer = Timer.periodic(Duration(seconds: 2), (timer) async {
+          //reset sync count
           mainSyncToCloud.count = 0;
           if(mainSyncToCloud.count == 0){
             this.timer?.cancel();
