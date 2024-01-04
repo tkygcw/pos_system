@@ -95,6 +95,8 @@
   "confirm_remove_all_order_detail_desc": "Would you like to remove all order detail? You will not be able to reprint these order detail",
   "confirm_remove_item": "Confirm remove item ?",
   "confirm_reprint_check_list": "Confirm reprint check list?",
+  "confirm_sync": "Confirm data synchronize?",
+  "confirm_sync_desc": "This will backup all of your data into cloud, required internet access (Estimate: 2 minutes)",
   "confirm_update_table_layout": "The table layout will be updated, click 'Confirm' to continue",
   "connection_failed": "Connection failed",
   "contain_not_available_product": "Contain not available product",

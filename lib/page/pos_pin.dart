@@ -123,53 +123,62 @@ class _PosPinPageState extends State<PosPinPage> {
         notificationModel.resetNotification();
         return;
       }
+      print("sync to cloud count in 30 sec: ${mainSyncToCloud.count}");
       print('timer count: ${timerCount}');
-      if (timerCount == 0) {
-        //sync to cloud
-        if(mainSyncToCloud.count == 0){
-          mainSyncToCloud.count = 1;
-          int? status = await mainSyncToCloud.syncAllToCloud();
-          print('status: ${status}');
-          if (status == 1) {
-            openLogOutDialog();
-            mainSyncToCloud.resetCount();
-            return;
-          } else if(status == 2){
-            print('time out detected');
-            mainSyncToCloud.resetCount();
-          } else {
-            mainSyncToCloud.resetCount();
-          }
-        }
-      } else {
-        //qr order sync
-        print("qr order count: ${qrOrder.count}");
-        if(qrOrder.count == 0){
-          print('qr order sync');
-          qrOrder.count = 1;
-          await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
-          qrOrder.count = 0;
-        }
-
-        //sync from cloud
-        if(syncRecord.count == 0){
-          syncRecord.count = 1;
-          int syncStatus = await syncRecord.syncFromCloud();
-          syncRecord.count = 0;
-          print('is log out: ${syncStatus}');
-          if (syncStatus == 1) {
-            openLogOutDialog();
-            return;
-          }
-        }
+      //sync qr order
+      if(qrOrder.count == 0){
+        print('qr order sync');
+        qrOrder.count = 1;
+        await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+        qrOrder.count = 0;
       }
+      //30 sec sync
+      // if (timerCount == 0) {
+      //   //sync to cloud
+      //   if(mainSyncToCloud.count == 0){
+      //     mainSyncToCloud.count = 1;
+      //     int? status = await mainSyncToCloud.syncAllToCloud();
+      //     print('status: ${status}');
+      //     if (status == 1) {
+      //       openLogOutDialog();
+      //       mainSyncToCloud.resetCount();
+      //       return;
+      //     } else if(status == 2){
+      //       print('time out detected');
+      //       mainSyncToCloud.resetCount();
+      //     } else {
+      //       mainSyncToCloud.resetCount();
+      //     }
+      //   }
+      // } else {
+      //   //qr order sync
+      //   print("qr order count: ${qrOrder.count}");
+      //   if(qrOrder.count == 0){
+      //     print('qr order sync');
+      //     qrOrder.count = 1;
+      //     await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+      //     qrOrder.count = 0;
+      //   }
+      //
+      //   //sync from cloud
+      //   if(syncRecord.count == 0){
+      //     syncRecord.count = 1;
+      //     int syncStatus = await syncRecord.syncFromCloud();
+      //     syncRecord.count = 0;
+      //     print('is log out: ${syncStatus}');
+      //     if (syncStatus == 1) {
+      //       openLogOutDialog();
+      //       return;
+      //     }
+      //   }
+      // }
       //add timer and reset hasNotification
-      timerCount++;
+      //timerCount++;
       notificationModel.resetNotification();
       // reset the timer after two executions
-      if (timerCount >= 2) {
-        timerCount = 0;
-      }
+      // if (timerCount >= 2) {
+      //   timerCount = 0;
+      // }
     });
   }
 

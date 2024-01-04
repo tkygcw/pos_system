@@ -186,6 +186,10 @@ class SyncToCloud {
               await PosDatabase.instance.updateChecklistSyncStatusFromCloud(responseJson[i]['checklist_key']);
             }
             break;
+            case 'tb_kitchen_list': {
+              await PosDatabase.instance.updateKitchenListSyncStatusFromCloud(responseJson[i]['kitchen_list_key']);
+            }
+            break;
             default: {
               return;
             }
