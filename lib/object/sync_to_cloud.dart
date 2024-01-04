@@ -186,6 +186,10 @@ class SyncToCloud {
               await PosDatabase.instance.updateChecklistSyncStatusFromCloud(responseJson[i]['checklist_key']);
             }
             break;
+            case 'tb_kitchen_list': {
+              await PosDatabase.instance.updateKitchenListSyncStatusFromCloud(responseJson[i]['kitchen_list_key']);
+            }
+            break;
             default: {
               return;
             }
@@ -1093,6 +1097,7 @@ class SyncToCloud {
           _value.add(jsonEncode(notSyncOrderDetailList[i].syncJson()));
         }
         this.order_detail_value = _value.toString();
+        print("order detail: ${this.order_detail_value}");
       }
     } catch(error){
       print('15 order detail sync error: ${error}');

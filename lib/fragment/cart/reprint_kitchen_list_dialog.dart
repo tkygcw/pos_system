@@ -383,7 +383,6 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
         },
         onStatusChanged: (status) {
           flushbarStatus = status.toString();
-          print("onStatusChanged: ${status}");
         },
       )..show(_context);
       Future.delayed(Duration(seconds: 3), () {

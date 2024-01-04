@@ -21,7 +21,7 @@ class ReportObject{
   List<Order> paidOrderList = [];
   List<Order>? dateOrderList;
   List<Order>? dateRefundOrderList;
-  List<OrderDetail> cancelledOrderDetail = [], paidOrderDetail = [];
+  List<OrderDetail> cancelledOrderDetail = [], paidOrderDetail = [], editedOrderDetail = [];
   List<OrderDetail>? dateOrderDetail;
   List<OrderPromotionDetail> paidPromotionDetail = [];
   List<OrderPromotionDetail>? datePromotionDetail = [];
@@ -308,18 +308,29 @@ class ReportObject{
     if (paidOrderDetail.isNotEmpty) {
       for (int i = 0; i < paidOrderDetail.length; i++) {
         dateOrderDetail!.add(paidOrderDetail[i]);
-        //DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderDetail[i].created_at!);
-        // if(currentStDate != currentEdDate){
-        //   if(convertDate.isAfter(_startDate)){
-        //     if(convertDate.isBefore(addDays(date: _endDate))){
-        //       dateOrderDetail!.add(paidOrderDetail[i]);
-        //     }
-        //   }
-        // } else {
-        //   if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
-        //     dateOrderDetail!.add(paidOrderDetail[i]);
-        //   }
-        // }
+
+      }
+    }
+    ReportObject value = ReportObject(dateOrderDetail: dateOrderDetail);
+    return value;
+  }
+
+  getAllEditedOrderDetail({currentStDate, currentEdDate}) async {
+    dateOrderDetail = [];
+    DateTime _startDate = DateTime.parse(currentStDate);
+    DateTime _endDate = DateTime.parse(currentEdDate);
+    //convert time to string
+    DateTime addEndDate = addDays(date: _endDate);
+    String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+    String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+    //get data
+    List<OrderDetail> detailData = await PosDatabase.instance.readAllEditedOrderDetail(stringStDate, stringEdDate);
+    print("detailData: ${detailData.length}");
+    this.editedOrderDetail = detailData;
+    if (editedOrderDetail.isNotEmpty) {
+      for (int i = 0; i < editedOrderDetail.length; i++) {
+        dateOrderDetail!.add(editedOrderDetail[i]);
+
       }
     }
     ReportObject value = ReportObject(dateOrderDetail: dateOrderDetail);

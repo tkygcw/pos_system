@@ -969,6 +969,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
     ],
   );
 
+  //mobile layout 80mm
   Widget mobileView1(ThemeColor color) => Column(
     children: [
       Container(
@@ -1023,9 +1024,64 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         title: Text(AppLocalizations.of(context)!.translate('small')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
+      Container(
+        alignment: Alignment.topLeft,
+        child: Text(AppLocalizations.of(context)!.translate('kitchen_list_setting'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_price')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_price_desc')),
+        trailing: Switch(
+          value: kitchenListShowPrice,
+          activeColor: color.backgroundColor,
+          onChanged: (value) async {
+            kitchenListShowPrice = value;
+            actionController.sink.add("switch");
+          },
+        ),
+      ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('print_combine_kitchen_list')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('print_combine_kitchen_list_desc')),
+        trailing: Switch(
+          value: printCombineKitchenList,
+          activeColor: color.backgroundColor,
+          onChanged: (value) async {
+            printCombineKitchenList = value;
+            if(!printCombineKitchenList){
+              if(kitchenListItemSeparator)
+                kitchenListItemSeparator = value;
+            }
+            actionController.sink.add("switch");
+          },
+        ),
+      ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('kitchen_list_item_separator'),
+            style: TextStyle(
+                color: !printCombineKitchenList ? Colors.grey : null)
+        ),
+        subtitle: Text(AppLocalizations.of(context)!.translate('kitchen_list_item_separator_desc'),
+            style: TextStyle(
+                color: !printCombineKitchenList ? Colors.grey : null)
+        ),
+        trailing: Switch(
+          value: kitchenListItemSeparator,
+          activeColor: color.backgroundColor,
+          onChanged: (value) async {
+            if(!printCombineKitchenList) {
+              Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('print_combine_kitchen_list_required'));
+            } else {
+              kitchenListItemSeparator = value;
+              actionController.sink.add("switch");
+            }
+          },
+        ),
+      ),
     ],
   );
 
+  //mobile layout 35mm
   Widget mobileView2(ThemeColor color) => Column(
     children: [
       Container(
@@ -1080,8 +1136,60 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
         title: Text(AppLocalizations.of(context)!.translate('small')),
         controlAffinity: ListTileControlAffinity.trailing,
       ),
+      Container(
+        alignment: Alignment.topLeft,
+        child: Text(AppLocalizations.of(context)!.translate('kitchen_list_setting'), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+      ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_price')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('kitchen_list_show_price_desc')),
+        trailing: Switch(
+          value: kitchenListShowPrice,
+          activeColor: color.backgroundColor,
+          onChanged: (value) async {
+            kitchenListShowPrice = value;
+            actionController.sink.add("switch");
+          },
+        ),
+      ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('print_combine_kitchen_list')),
+        subtitle: Text(AppLocalizations.of(context)!.translate('print_combine_kitchen_list_desc')),
+        trailing: Switch(
+          value: printCombineKitchenList,
+          activeColor: color.backgroundColor,
+          onChanged: (value) async {
+            printCombineKitchenList = value;
+            if(!printCombineKitchenList){
+              if(kitchenListItemSeparator)
+                kitchenListItemSeparator = value;
+            }
+            actionController.sink.add("switch");
+          },
+        ),
+      ),
+      ListTile(
+        title: Text(AppLocalizations.of(context)!.translate('kitchen_list_item_separator'),
+            style: TextStyle(
+                color: !printCombineKitchenList ? Colors.grey : null)
+        ),
+        subtitle: Text(AppLocalizations.of(context)!.translate('kitchen_list_item_separator_desc'),
+            style: TextStyle(
+                color: !printCombineKitchenList ? Colors.grey : null)
+        ),
+        trailing: Switch(
+          value: kitchenListItemSeparator,
+          activeColor: color.backgroundColor,
+          onChanged: (value) async {
+            if(!printCombineKitchenList) {
+              Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('print_combine_kitchen_list_required'));
+            } else {
+              kitchenListItemSeparator = value;
+              actionController.sink.add("switch");
+            }
+          },
+        ),
+      ),
     ],
   );
-
-
 }

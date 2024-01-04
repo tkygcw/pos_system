@@ -8,6 +8,7 @@ class AppSettingFields {
     show_second_display,
     direct_payment,
     print_checklist,
+    print_receipt,
     show_sku,
     enable_numbering,
     starting_number,
@@ -23,6 +24,7 @@ class AppSettingFields {
   static String show_second_display = 'show_second_display';
   static String direct_payment = 'direct_payment';
   static String print_checklist = 'print_checklist';
+  static String print_receipt = 'print_receipt';
   static String show_sku = 'show_sku';
   static String enable_numbering = 'enable_numbering';
   static String starting_number = 'starting_number';
@@ -39,6 +41,7 @@ class AppSetting{
   int? show_second_display;
   int? direct_payment;
   int? print_checklist;
+  int? print_receipt;
   int? show_sku;
   int? enable_numbering;
   int? starting_number;
@@ -54,6 +57,7 @@ class AppSetting{
         this.show_second_display,
         this.direct_payment,
         this.print_checklist,
+        this.print_receipt,
         this.show_sku,
         this.enable_numbering,
         this.starting_number,
@@ -70,6 +74,7 @@ class AppSetting{
     int? show_second_display,
     int? direct_payment,
     int? print_checklist,
+    int? print_receipt,
     int? show_sku,
     int? enable_numbering,
     int? starting_number,
@@ -85,6 +90,7 @@ class AppSetting{
         show_second_display: show_second_display ?? this.show_second_display,
         direct_payment: direct_payment ?? this.direct_payment,
         print_checklist: print_checklist ?? this.print_checklist,
+        print_receipt: print_receipt ?? this.print_receipt,
         show_sku: show_sku ?? this.show_sku,
         enable_numbering: enable_numbering ?? this.enable_numbering,
         starting_number: starting_number ?? this.starting_number,
@@ -101,6 +107,7 @@ class AppSetting{
     show_second_display: json[AppSettingFields.show_second_display] as int?,
     direct_payment: json[AppSettingFields.direct_payment] as int?,
     print_checklist: json[AppSettingFields.print_checklist] as int?,
+    print_receipt: json[AppSettingFields.print_receipt] as int?,
     show_sku: json[AppSettingFields.show_sku] as int?,
     enable_numbering: json[AppSettingFields.enable_numbering] as int?,
     starting_number: json[AppSettingFields.starting_number] as int?,
@@ -117,6 +124,7 @@ class AppSetting{
     AppSettingFields.show_second_display: show_second_display,
     AppSettingFields.direct_payment: direct_payment,
     AppSettingFields.print_checklist: print_checklist,
+    AppSettingFields.print_receipt: print_receipt,
     AppSettingFields.show_sku: show_sku,
     AppSettingFields.enable_numbering: enable_numbering,
     AppSettingFields.starting_number: starting_number,

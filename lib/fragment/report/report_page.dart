@@ -9,6 +9,7 @@ import 'package:pos_system/fragment/report/dining_report.dart';
 import 'package:pos_system/fragment/report/modifier_report.dart';
 import 'package:pos_system/fragment/report/payment_report.dart';
 import 'package:pos_system/fragment/report/print_report_page.dart';
+import 'package:pos_system/fragment/report/product_edited_report.dart';
 import 'package:pos_system/fragment/report/product_report.dart';
 import 'package:pos_system/fragment/report/refund_report.dart';
 import 'package:pos_system/fragment/report/report_overview.dart';
@@ -223,6 +224,10 @@ class _ReportPageState extends State<ReportPage> {
                             label: AppLocalizations.of(context)!.translate('modifier_report'),
                           ),
                           SideNavigationBarItem(
+                            icon: Icons.fastfood,
+                            label: AppLocalizations.of(context)!.translate('edit_report'),
+                          ),
+                          SideNavigationBarItem(
                             icon: Icons.no_food,
                             label: AppLocalizations.of(context)!.translate('cancel_report'),
                           ),
@@ -408,6 +413,10 @@ class _ReportPageState extends State<ReportPage> {
                             label: AppLocalizations.of(context)!.translate('modifier_report'),
                           ),
                           SideNavigationBarItem(
+                            icon: Icons.fastfood,
+                            label: AppLocalizations.of(context)!.translate('edit_report'),
+                          ),
+                          SideNavigationBarItem(
                             icon: Icons.no_food,
                             label: AppLocalizations.of(context)!.translate('cancel_report'),
                           ),
@@ -471,6 +480,9 @@ class _ReportPageState extends State<ReportPage> {
       ),
       Container(
         child: ModifierReport(),
+      ),
+      Container(
+        child: ProductEditedReport(),
       ),
       Container(
         child: CancellationReport(),

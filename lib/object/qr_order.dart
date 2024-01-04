@@ -95,6 +95,8 @@ class QrOrder {
             quantity: response['data'][i]['order_detail'][j]['quantity'],
             remark: response['data'][i]['order_detail'][j]['remark'],
             account: '',
+            edited_by: '',
+            edited_by_user_id: '',
             cancel_by: '',
             cancel_by_user_id: '',
             status: 0,

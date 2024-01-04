@@ -6,6 +6,7 @@ import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/checklist.dart';
 import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/printer.dart';
@@ -41,7 +42,7 @@ class PrintReceipt{
     List<Map<String, dynamic>> results = [];
     results = await FlutterUsbPrinter.getUSBDeviceList();
     if(results.isNotEmpty){
-       return devices = jsonEncode(results[0]);
+      return devices = jsonEncode(results[0]);
     } else {
       return null;
     }
@@ -105,32 +106,39 @@ class PrintReceipt{
   cashDrawer({required printerList}) async {
     try{
       int printStatus = 0;
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
       List<Printer> cashierPrinterList = printerList.where((item) => item.printer_status == 1 && item.is_counter == 1).toList();
-      if(cashierPrinterList.isNotEmpty){
-        for (int i = 0; i < cashierPrinterList.length; i++) {
-          if (cashierPrinterList[i].type == 0) {
-            ReceiptLayout().openCashDrawer(isUSB: true);
-            printStatus = 0;
-          } else {
-            var printerDetail = jsonDecode(cashierPrinterList[i].value!);
-            final profile = await CapabilityProfile.load();
-            final printer = NetworkPrinter(PaperSize.mm80, profile);
-            final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
-            if (res == PosPrintResult.success) {
-              await ReceiptLayout().openCashDrawer(isUSB: false, value: printer);
-              printer.disconnect();
+      if(localSetting!.print_receipt == true) {
+        if(cashierPrinterList.isNotEmpty){
+          for (int i = 0; i < cashierPrinterList.length; i++) {
+            if (cashierPrinterList[i].type == 0) {
+              ReceiptLayout().openCashDrawer(isUSB: true);
               printStatus = 0;
-            } else if(res == PosPrintResult.timeout){
-              printStatus = 2;
             } else {
-              printStatus = 1;
+              var printerDetail = jsonDecode(cashierPrinterList[i].value!);
+              final profile = await CapabilityProfile.load();
+              final printer = NetworkPrinter(PaperSize.mm80, profile);
+              final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
+              if (res == PosPrintResult.success) {
+                await ReceiptLayout().openCashDrawer(isUSB: false, value: printer);
+                printer.disconnect();
+                printStatus = 0;
+              } else if(res == PosPrintResult.timeout){
+                printStatus = 2;
+              } else {
+                printStatus = 1;
+              }
             }
           }
+        } else {
+          printStatus = 4;
         }
+        return printStatus;
       } else {
-        printStatus = 4;
+        return printStatus;
       }
-      return printStatus;
     }catch(e){
       print('Open Cash Drawer Error: ${e}');
       return 1;
@@ -779,15 +787,13 @@ class PrintReceipt{
 
   getOrderQueue(int orderCacheId, OrderDetail orderDetail) async {
     OrderCache cacheData = await PosDatabase.instance.readSpecificOrderCacheByLocalId(orderCacheId);
-      orderDetail.orderQueue = cacheData.order_queue!;
+    orderDetail.orderQueue = cacheData.order_queue!;
 
   }
 
   printKitchenList(List<Printer> printerList, int orderCacheLocalId, context) async {
     print("printKitchenList called");
-    bool printCombinedKitchenList = false;
     try{
-      final prefs = await SharedPreferences.getInstance();
       KitchenList? kitchenListLayout58mm = await PosDatabase.instance.readSpecificKitchenList('58');
       KitchenList? kitchenListLayout80mm = await PosDatabase.instance.readSpecificKitchenList('80');
       List<OrderDetail>? failedPrintOrderDetail;
@@ -798,6 +804,7 @@ class PrintReceipt{
         failedPrintOrderDetail = [];
         for (int i = 0; i < printerList.length; i++) {
           if(printerList[i].printer_status == 1){
+            bool printCombinedKitchenList = false;
             List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
             for (int j = 0; j < data.length; j++) {
               for (int k = 0; k < orderDetail.length; k++) {
@@ -808,11 +815,13 @@ class PrintReceipt{
                 //check printer category
                 if (orderDetail[k].category_sqlite_id == data[j].category_sqlite_id && orderDetail[k].status == 0) {
                   var printerDetail = jsonDecode(printerList[i].value!);
-                  List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetail[k].order_detail_sqlite_id.toString());
-                  if(modDetail.isNotEmpty){
-                    orderDetail[k].orderModifierDetail = modDetail;
-                  } else {
-                    orderDetail[k].orderModifierDetail = [];
+                  for(int i = 0; i < orderDetail.length; i++) {
+                    List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetail[i].order_detail_sqlite_id.toString());
+                    if(modDetail.isNotEmpty){
+                      orderDetail[i].orderModifierDetail = modDetail;
+                    } else {
+                      orderDetail[i].orderModifierDetail = [];
+                    }
                   }
                   //check printer type
                   if (printerList[i].type == 1) {
@@ -1246,10 +1255,16 @@ class PrintReceipt{
   }
 
   printQrKitchenList(List<Printer> printerList, int orderCacheLocalId, {orderDetailList}) async {
-    List<OrderDetail> failedPrintOrderDetail = [];
+    print("printQrKitchenList called");
     try{
+      KitchenList? kitchenListLayout58mm = await PosDatabase.instance.readSpecificKitchenList('58');
+      KitchenList? kitchenListLayout80mm = await PosDatabase.instance.readSpecificKitchenList('80');
+      List<OrderDetail> failedPrintOrderDetail = [];
+      List<OrderDetail> orderDetail = await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(orderCacheLocalId.toString());
+
       for (int i = 0; i < printerList.length; i++) {
         if(printerList[i].printer_status == 1){
+          bool printCombinedKitchenList = false;
           List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
           for (int j = 0; j < data.length; j++) {
             for (int k = 0; k < orderDetailList.length; k++) {
@@ -1266,7 +1281,13 @@ class PrintReceipt{
                     final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
 
                     if (res == PosPrintResult.success) {
-                      await ReceiptLayout().printQrKitchenList80mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
+                      // await ReceiptLayout().printQrKitchenList80mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
+                      if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)
+                        await ReceiptLayout().printKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetailList[k]);
+                      else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                        await ReceiptLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: orderDetailList);
+                        printCombinedKitchenList = true;
+                      }
                       printer.disconnect();
                     } else {
                       failedPrintOrderDetail.add(orderDetailList[k]);
@@ -1278,7 +1299,13 @@ class PrintReceipt{
                     final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
 
                     if (res == PosPrintResult.success) {
-                      await ReceiptLayout().printQrKitchenList58mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
+                      // await ReceiptLayout().printQrKitchenList58mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
+                      if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)
+                        await ReceiptLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetailList[k]);
+                      else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                        await ReceiptLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: orderDetailList);
+                        printCombinedKitchenList = true;
+                      }
                       printer.disconnect();
                     } else {
                       failedPrintOrderDetail.add(orderDetailList[k]);
@@ -1287,8 +1314,15 @@ class PrintReceipt{
                 } else {
                   //print USB
                   if (printerList[i].paper_size == 0) {
-                    var data = Uint8List.fromList(
-                        await ReceiptLayout().printQrKitchenList80mm(true, orderDetailList[k], orderCacheLocalId));
+                    // var data = Uint8List.fromList(
+                    //     await ReceiptLayout().printQrKitchenList80mm(true, orderDetailList[k], orderCacheLocalId));
+                    var data;
+                    if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)
+                      data = Uint8List.fromList(await ReceiptLayout().printKitchenList80mm(true, orderCacheLocalId, orderDetail: orderDetailList[k]));
+                    else if(kitchenListLayout80mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                      data = Uint8List.fromList(await ReceiptLayout().printCombinedKitchenList80mm(true, orderCacheLocalId, orderDetailList: orderDetailList));
+                      printCombinedKitchenList = true;
+                    }
                     bool? isConnected = await flutterUsbPrinter.connect(
                         int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                     if (isConnected == true) {
@@ -1298,8 +1332,15 @@ class PrintReceipt{
                     }
                   } else {
                     //print 58mm
-                    var data = Uint8List.fromList(
-                        await ReceiptLayout().printQrKitchenList58mm(true, orderDetailList[k], orderCacheLocalId));
+                    // var data = Uint8List.fromList(
+                    //     await ReceiptLayout().printQrKitchenList58mm(true, orderDetailList[k], orderCacheLocalId));
+                    var data;
+                    if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)
+                      data = Uint8List.fromList(await ReceiptLayout().printKitchenList58mm(true, orderCacheLocalId, orderDetail: orderDetailList[k]));
+                    else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                      data = Uint8List.fromList(await ReceiptLayout().printCombinedKitchenList58mm(true, orderCacheLocalId, orderDetailList: orderDetailList));
+                      printCombinedKitchenList = true;
+                    }
                     bool? isConnected = await flutterUsbPrinter.connect(
                         int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                     if (isConnected == true) {
@@ -1316,8 +1357,8 @@ class PrintReceipt{
       }
       return failedPrintOrderDetail;
     } catch (e){
-      print('Printer Connection Error: ${e}');
-      return failedPrintOrderDetail = [];
+      print('QR Kitchen Printing Error: ${e}');
+      // return failedPrintOrderDetail = [];
     }
   }
 

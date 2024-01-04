@@ -197,6 +197,7 @@ getAppSettingLocal() async {
         show_second_display: 0,
         direct_payment: 0,
         print_checklist: 1,
+        print_receipt: 1,
         show_sku: 0,
         enable_numbering: 0,
         starting_number: 0,
@@ -223,6 +224,7 @@ syncAppSettingFromCloud(AppSetting item) async {
       show_second_display: item.show_second_display,
       direct_payment: item.direct_payment,
       print_checklist: item.print_checklist,
+      print_receipt: item.print_receipt,
       show_sku: item.show_sku,
       enable_numbering: item.enable_numbering,
       starting_number: item.starting_number,
@@ -1336,7 +1338,7 @@ getAllOrderCache() async {
     for (var i = 0; i < responseJson.length; i++) {
       OrderCache cloudData = OrderCache.fromJson(responseJson[i]);
       if (cloudData.table_use_key != '' && cloudData.table_use_key != null) {
-        // print("table use key: ${cloudData.table_use_key}");
+        print("table use key: ${cloudData.table_use_key}");
         TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(cloudData.table_use_key!);
         tableUseLocalId = tableUseData!.table_use_sqlite_id.toString();
       } else {
@@ -1415,6 +1417,8 @@ getAllOrderDetail() async {
           quantity: responseJson[i]['quantity'],
           remark: responseJson[i]['remark'],
           account: responseJson[i]['account'],
+          edited_by: responseJson[i]['edited_by'],
+          edited_by_user_id: responseJson[i]['edited_by_user_id'],
           cancel_by: responseJson[i]['cancel_by'],
           cancel_by_user_id: responseJson[i]['cancel_by_user_id'],
           status: responseJson[i]['status'],

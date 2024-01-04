@@ -198,7 +198,7 @@ class ReceiptLayout{
       commands.add('SIZE 35 mm,25 mm\n');
       commands.add('DIRECTION 1\n');
       commands.add('CLS\n');
-      String headerText = "测试店名";
+      String headerText = "Restaurant";
       commands.add('TEXT ${leftPadding},15,"2",0,1,1,"${headerText.length > 12 ? headerText.substring(0, 12) : headerText}"\n');
       commands.add('TEXT 205,15,"2",0,1,1,"1034"\n');
       commands.add('TEXT ${leftPadding},45,"TSS24.BF2",0,1,1,"${headerText}"\n');
@@ -1753,6 +1753,7 @@ class ReceiptLayout{
   Review Receipt layout 80mm
 */
   printPreviewReceipt80mm(bool isUSB, List<PosTable> selectedTableList, CartModel cartModel, {value}) async {
+    String dateTime = dateFormat.format(DateTime.now());
     await readReceiptLayout('80');
     await readOrderCache(int.parse(cartModel.cartNotifierItem[0].order_cache_sqlite_id!));
     // final ByteData data = await rootBundle.load('drawable/logo2.png');
@@ -1790,6 +1791,7 @@ class ReceiptLayout{
         //   }
         // }
         bytes += generator.text('${cartModel.selectedOption}');
+        bytes += generator.text('Print At: ${Utils.formatDate(dateTime)}');
         bytes += generator.reset();
         /*
     *
@@ -1967,6 +1969,7 @@ class ReceiptLayout{
   Review Receipt layout 58mm
 */
   printPreviewReceipt58mm(bool isUSB, List<PosTable> selectedTableList, CartModel cartModel, {value}) async {
+    String dateTime = dateFormat.format(DateTime.now());
     await readReceiptLayout('58');
     await readOrderCache(int.parse(cartModel.cartNotifierItem[0].order_cache_sqlite_id!));
     if(_isLoad = true){
@@ -1995,6 +1998,7 @@ class ReceiptLayout{
           bytes += generator.text('Order No: ${orderCache!.order_queue}');
         }
         bytes += generator.text('${cartModel.selectedOption}');
+        bytes += generator.text('Print At: ${Utils.formatDate(dateTime)}');
         bytes += generator.reset();
         /*
     *
@@ -2019,7 +2023,7 @@ class ReceiptLayout{
                 width: 6,
                 containsChinese: true,
                 styles: PosStyles(bold: true)),
-            PosColumn(//Utils.convertTo2Dec()
+            PosColumn(
                 text: '${(double.parse(cartModel.cartNotifierItem[i].price!)*cartModel.cartNotifierItem[i].quantity!).toStringAsFixed(2)}',
                 width: 4,
             ),

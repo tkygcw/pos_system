@@ -102,7 +102,6 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       if (this.isLogOut == false) {
         Navigator.of(context).pop();
         Navigator.of(context).pop();
-        Navigator.of(context).pop();
       }
       return;
     } else {
@@ -169,33 +168,51 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                           }),
                     ),
                     actions: <Widget>[
-                      TextButton(
-                        child: Text(
-                            '${AppLocalizations.of(context)?.translate('close')}'),
-                        onPressed: isButtonDisabled
-                            ? null
-                            : () {
-                                setState(() {
-                                  isButtonDisabled = true;
-                                });
-                                Navigator.of(context).pop();
-                                setState(() {
-                                  isButtonDisabled = false;
-                                });
-                              },
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                        height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: color.backgroundColor,
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context)!.translate('close'),
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          onPressed: isButtonDisabled
+                              ? null
+                              : () {
+                            setState(() {
+                              isButtonDisabled = true;
+                            });
+                            Navigator.of(context).pop();
+                            setState(() {
+                              isButtonDisabled = false;
+                            });
+                          },
+                        ),
                       ),
-                      TextButton(
-                        child: Text(
-                            '${AppLocalizations.of(context)?.translate('yes')}'),
-                        onPressed: isButtonDisabled
-                            ? null
-                            : () async {
-                                setState(() {
-                                  isButtonDisabled = true;
-                                  willPop = false;
-                                });
-                                _submit(context, cart);
-                              },
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                        height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: color.buttonColor,
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context)!.translate('yes'),
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          onPressed: isButtonDisabled
+                              ? null
+                              : () async {
+                            setState(() {
+                              isButtonDisabled = true;
+                              willPop = false;
+                            });
+                            _submit(context, cart);
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -267,17 +284,37 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                                   borderSide: BorderSide(color: color.backgroundColor),
                                 ),
                               ),
-                              onChanged: (value) => setState(() => simpleIntInput = widget.cartItem.unit != 'each' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', ''))),
+                              onChanged: (value) => setState(() {
+                                try {
+                                  simpleIntInput = widget.cartItem.unit != 'each' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', ''));
+                                } catch (e) {
+                                  simpleIntInput = 0;
+                                }
+                              }),
                               onSubmitted: (value) {
                                 () async {
                                   if(simpleIntInput != 0 && simpleIntInput != 0.00){
+                                    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+                                    String dateTime = dateFormat.format(DateTime.now());
+                                    final prefs = await SharedPreferences.getInstance();
+                                    final String? pos_user = prefs.getString('pos_pin_user');
+                                    Map<String, dynamic> userMap = json.decode(pos_user!);
+                                    User userData = User.fromJson(userMap);
+
                                     if(simpleIntInput > widget.cartItem.quantity!){
                                       Fluttertoast.showToast(
                                           backgroundColor: Color(0xFFFF0000),
                                           msg:
                                           AppLocalizations.of(context)!.translate('quantity_invalid'));
                                     } else {
-                                      await showSecondDialog(context, color, cart);
+                                      if(userData!.edit_price_without_pin != 1) {
+                                        await showSecondDialog(context, color, cart);
+                                        Navigator.of(context).pop();
+                                      } else {
+                                        callUpdateCart(userData, dateTime, cart);
+                                        Navigator.of(context).pop();
+                                        Navigator.of(context).pop();
+                                      }
                                     }
                                   } else{ //no changes
                                     Navigator.of(context).pop();
@@ -316,7 +353,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                         ],
                       ),
                     ),
-                    SizedBox(height: 40),
+                    SizedBox(height: 30),
                     Container(
                       // Customize your Container's properties here
                       child: Center(
@@ -327,33 +364,65 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                   ],
                 ),
                 actions: <Widget>[
-                  TextButton(
-                    child: Text(
-                        '${AppLocalizations.of(context)?.translate('close')}'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                    height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color.backgroundColor,
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.translate('close'),
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
                   ),
-                  TextButton(
-                    child: Text(
-                        '${AppLocalizations.of(context)?.translate('yes')}'),
-                    onPressed: isButtonDisabled
-                        ? null
-                        : () async {
-                          if(simpleIntInput != 0 && simpleIntInput != 0.00){
-                            if(simpleIntInput > widget.cartItem.quantity!){
-                              Fluttertoast.showToast(
-                                  backgroundColor: Color(0xFFFF0000),
-                                  msg:
-                                  AppLocalizations.of(context)!.translate('quantity_invalid'));
-                            } else {
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 6 : MediaQuery.of(context).size.width / 4,
+                    height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 12 : MediaQuery.of(context).size.height / 10,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color.buttonColor,
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)!.translate('yes'),
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: isButtonDisabled
+                          ? null
+                          : () async {
+                        if(simpleIntInput != 0 && simpleIntInput != 0.00){
+                          DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+                          String dateTime = dateFormat.format(DateTime.now());
+                          final prefs = await SharedPreferences.getInstance();
+                          final String? pos_user = prefs.getString('pos_pin_user');
+                          Map<String, dynamic> userMap = json.decode(pos_user!);
+                          User userData = User.fromJson(userMap);
+
+                          if(simpleIntInput > widget.cartItem.quantity!){
+                            Fluttertoast.showToast(
+                                backgroundColor: Color(0xFFFF0000),
+                                msg:
+                                AppLocalizations.of(context)!.translate('quantity_invalid'));
+                          } else {
+                            if(userData!.edit_price_without_pin != 1) {
                               await showSecondDialog(context, color, cart);
+                              Navigator.of(context).pop();
+                            } else {
+                              callUpdateCart(userData, dateTime, cart);
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pop();
                             }
-                          } else{ //no changes
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
                           }
-                        },
+                        } else{ //no changes
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop();
+                        }
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -446,98 +515,15 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       //List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
-        if (userData.user_id == userObject['user_id']) {
-          if (simpleIntInput == widget.cartItem.quantity) {
-            if (cartTableCacheList.length <= 1 &&
-                cartOrderDetailList.length > 1) {
-              // if(cartOrderModDetailList.isNotEmpty){
-              //   _hasModifier = true;
-              //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-              //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-              //   }
-              // }
-              await callDeleteOrderDetail(userData, dateTime, cart);
-            } else if (cartTableCacheList.length > 1 &&
-                cartOrderDetailList.length <= 1) {
-              // if(cartOrderModDetailList.isNotEmpty){
-              //   _hasModifier = true;
-              //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-              //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-              //   }
-              // }
-              await callDeletePartialOrder(userData, dateTime, cart);
-            } else if (cartTableCacheList.length > 1 &&
-                cartOrderDetailList.length > 1) {
-              // if(cartOrderModDetailList.isNotEmpty){
-              //   _hasModifier = true;
-              //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-              //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-              //   }
-              // }
-              await callDeleteOrderDetail(userData, dateTime, cart);
-            } else if (widget.currentPage == 'other order' &&
-                cartOrderDetailList.length > 1) {
-              // if(cartOrderModDetailList.isNotEmpty){
-              //   _hasModifier = true;
-              //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-              //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-              //   }
-              // }
-              await callDeleteOrderDetail(userData, dateTime, cart);
-            } else {
-              // if(cartOrderModDetailList.isNotEmpty){
-              //   _hasModifier = true;
-              //   for(int i = 0; i < cartOrderModDetailList.length; i++){
-              //     OrderModifierDetail deletedMod  = await deleteAllOrderModDetail(dateTime, cartOrderModDetailList[i]);
-              //     _orderModDetailValue.add(jsonEncode(deletedMod));
-              //   }
-              // }
-              await callDeleteAllOrder(userData,
-                  cartCacheList[0].table_use_sqlite_id!, dateTime, cart);
-              if (widget.currentPage != 'other order') {
-                for (int i = 0; i < cartTableUseDetail.length; i++) {
-                  //update all table to unused
-                  PosTable posTableData = await updatePosTableStatus(
-                      int.parse(cartTableUseDetail[i].table_sqlite_id!),
-                      0,
-                      dateTime);
-                  _posTableValue.add(jsonEncode(posTableData));
-                }
-                table_value = _posTableValue.toString();
-              }
-              // tableModel.changeContent(true);
-            }
-          } else {
-            await createOrderDetailCancel(userData, dateTime, cart);
-            await updateOrderDetailQuantity(dateTime, cart);
-            print('update order detail quantity & create order detail cancel');
-          }
-          callPrinter(dateTime, cart);
-          // await PrintReceipt().printDeleteList(printerList, widget.cartItem.order_cache_sqlite_id!, dateTime);
-          // await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem.order_cache_sqlite_id!, widget.cartItem.category_sqlite_id!, dateTime, cart);
-          //syncUpdatedPosTableToCloud(_posTableValue.toString());
-          //print cancel receipt
-          //await _printDeleteList(widget.cartItem!.orderCacheId!, dateTime);
-          Fluttertoast.showToast(
-              backgroundColor: Color(0xFF24EF10),
-              msg: AppLocalizations.of(context)!.translate('delete_successful'));
-          tableModel.changeContent(true);
-          cart.removeAllTable();
-          cart.removeAllCartItem();
-          cart.removePromotion();
-          //sync to cloud
-          syncAllToCloud();
-          // print('is log out: ${this.isLogOut}');
-          // if (this.isLogOut == true) {
-          //   openLogOutDialog();
-          //   return;
-          // }
-        } else {
-          Fluttertoast.showToast(
-              backgroundColor: Color(0xFFFF0000),
-              msg:
-                  "${AppLocalizations.of(context)?.translate('pin_not_match')}");
-        }
+        callUpdateCart(userData, dateTime, cart);
+        // if (userData.user_id == userObject['user_id']) {
+        //   callUpdateCart(userData, dateTime, cart);
+        // } else {
+        //   Fluttertoast.showToast(
+        //       backgroundColor: Color(0xFFFF0000),
+        //       msg:
+        //           "${AppLocalizations.of(context)?.translate('pin_not_match')}");
+        // }
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000),
@@ -547,6 +533,51 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     } catch (e) {
       print('delete error ${e}');
     }
+  }
+
+  callUpdateCart(User userData, String dateTime, CartModel cart) async {
+    List<String> _posTableValue = [];
+    if (simpleIntInput == widget.cartItem.quantity) {
+      if (cartTableCacheList.length <= 1 &&
+          cartOrderDetailList.length > 1) {
+        await callDeleteOrderDetail(userData, dateTime, cart);
+      } else if (cartTableCacheList.length > 1 &&
+          cartOrderDetailList.length <= 1) {
+        await callDeletePartialOrder(userData, dateTime, cart);
+      } else if (cartTableCacheList.length > 1 &&
+          cartOrderDetailList.length > 1) {
+        await callDeleteOrderDetail(userData, dateTime, cart);
+      } else if (widget.currentPage == 'other order' &&
+          cartOrderDetailList.length > 1) {
+        await callDeleteOrderDetail(userData, dateTime, cart);
+      } else {
+        await callDeleteAllOrder(userData,
+            cartCacheList[0].table_use_sqlite_id!, dateTime, cart);
+        if (widget.currentPage != 'other order') {
+          for (int i = 0; i < cartTableUseDetail.length; i++) {
+            //update all table to unused
+            PosTable posTableData = await updatePosTableStatus(
+                int.parse(cartTableUseDetail[i].table_sqlite_id!),
+                0,
+                dateTime);
+            _posTableValue.add(jsonEncode(posTableData));
+          }
+          table_value = _posTableValue.toString();
+        }
+      }
+    } else {
+      await createOrderDetailCancel(userData, dateTime, cart);
+      await updateOrderDetailQuantity(dateTime, cart);
+      print('update order detail quantity & create order detail cancel');
+    }
+    callPrinter(dateTime, cart);
+
+    Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(context)!.translate('delete_successful'));
+    tableModel.changeContent(true);
+    cart.removeAllTable();
+    cart.removeAllCartItem();
+    cart.removePromotion();
+    syncAllToCloud();
   }
 
   callPrinter(String dateTime, CartModel cart) async {

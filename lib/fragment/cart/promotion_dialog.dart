@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
@@ -24,12 +25,13 @@ class _PromotionDialogState extends State<PromotionDialog> {
   double dEndTime = 0.0;
   double dCurrentTime = 0.0;
   bool isActive = false, _isLoaded = false;
+  bool isButtonDisabled = false;
   TimeOfDay currentTime = TimeOfDay.now();
   late DateTime startDTime;
   late DateTime endDTime;
   late TimeOfDay startTime;
   late TimeOfDay endTime;
-
+  bool willPop = true;
 
   @override
   void initState() {
@@ -68,7 +70,7 @@ class _PromotionDialogState extends State<PromotionDialog> {
                               Text('-${promotionList[index].amount}%'):
                               Text('-${double.parse(promotionList[index].amount!).toStringAsFixed(2)}'),
                               title: Text('${promotionList[index].name}'),
-                              onTap: () {
+                              onTap: () async {
                                 bool outstanding = checkOfferAmount(promotionList[index]);
                                 if(outstanding){
                                   Fluttertoast.showToast(
@@ -103,7 +105,11 @@ class _PromotionDialogState extends State<PromotionDialog> {
                                             backgroundColor: Color(0xFFFF0000),
                                             msg: "${AppLocalizations.of(context)?.translate('offer_ended')}");
                                       } else {
-                                        cart.addPromotion(promotionList[index]);
+                                        if(promotionList[index].type == 2) {
+                                          await openPromotionDialog(context, cart, index);
+                                        } else {
+                                          cart.addPromotion(promotionList[index]);
+                                        }
                                       }
                                     }
                                     // if(promotionList[index].all_time == '0') {
@@ -148,17 +154,133 @@ class _PromotionDialogState extends State<PromotionDialog> {
   checkOfferAmount(Promotion promotion){
     String cartAmount = widget.cartFinalAmount;
     bool hasOutStanding = false;
-    if(promotion.type == 1){
+    if(promotion.type == 0){
+      return hasOutStanding = false;
+    } else {
       double total = double.parse(cartAmount) - double.parse(promotion.amount!);
       if(total.isNegative){
         return hasOutStanding = true;
       } else {
         return hasOutStanding = false;
       }
-    } else {
-      return hasOutStanding = false;
     }
   }
+
+  Future openPromotionDialog(BuildContext context, CartModel cart, index) {
+    TextEditingController _textFieldController = TextEditingController();
+    return showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          return StatefulBuilder(builder: (context, StateSetter setState) {
+            return WillPopScope(
+              onWillPop: () async => willPop,
+              child: Center(
+                child: SingleChildScrollView(
+                  physics: NeverScrollableScrollPhysics(),
+                  child: AlertDialog(
+                    title: Text(AppLocalizations.of(context)!.translate('adjust_promotion')),
+                    content: SizedBox(
+                      height: 100.0,
+                      width: 350.0,
+                      child: ValueListenableBuilder(
+                          valueListenable: _textFieldController,
+                          builder: (context, TextEditingValue value, __) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextField(
+                                autofocus: true,
+                                onSubmitted: (input) {
+                                  if(_textFieldController != null && _textFieldController != '' && double.parse(_textFieldController.text).toStringAsFixed(2) != 0.00) {
+                                    String value = double.parse(_textFieldController.text.replaceAll(',', '')).toStringAsFixed(2);
+                                    setState(() {
+                                      isButtonDisabled = true;
+                                      willPop = false;
+                                    });
+                                    promotionList[index].amount = _textFieldController.text;
+                                    bool outstanding = checkOfferAmount(promotionList[index]);
+                                    if(outstanding){
+                                      Fluttertoast.showToast(
+                                          backgroundColor: Color(0xFFFF0000),
+                                          msg: AppLocalizations.of(context)!.translate('outstanding_promotion'));
+                                      setState(() {
+                                        isButtonDisabled = false;
+                                      });
+                                    } else {
+                                      promotionList[index].amount = _textFieldController.text;
+                                      cart.addPromotion(promotionList[index]);
+                                      Navigator.of(context).pop();
+                                    }
+                                  } else {
+                                    Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('discount_invalid'));
+                                  }
+                                },
+                                obscureText: false,
+                                controller: _textFieldController,
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  focusedBorder: OutlineInputBorder(),
+                                  labelText: "Discount",
+                                    prefixText: 'RM '
+                                ),
+                              ),
+                            );
+                          }),
+                    ),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () {
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
+                          Navigator.of(context).pop();
+                          setState(() {
+                            isButtonDisabled = false;
+                          });
+                        },
+                      ),
+                      TextButton(
+                        child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () async {
+                          if(_textFieldController != null && _textFieldController != '' && double.parse(_textFieldController.text).toStringAsFixed(2) != 0.00) {
+                            String value = double.parse(_textFieldController.text.replaceAll(',', '')).toStringAsFixed(2);
+                            print("cartFinalAmount: ${widget.cartFinalAmount}");
+                            setState(() {
+                              isButtonDisabled = true;
+                              willPop = false;
+                            });
+
+                            if(double.parse(value) > double.parse(widget.cartFinalAmount)) {
+                              Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('discount_invalid'));
+                              setState(() {
+                                isButtonDisabled = false;
+                              });
+                            } else {
+                              promotionList[index].amount = _textFieldController.text;
+                              cart.addPromotion(promotionList[index]);
+                              Navigator.of(context).pop();
+                            }
+                          } else {
+                            Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('discount_invalid'));
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          });
+        });
+  }
+
 
   void checkOfferTime(Promotion promotion){
     try{
