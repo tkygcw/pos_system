@@ -71,7 +71,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 10, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 12, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -239,6 +239,10 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by} TEXT NOT NULL DEFAULT '' ");
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by_user_id} TEXT NOT NULL DEFAULT '' ");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
+        }break;
+        case 11: {
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
         }break;
       }
     }
@@ -916,6 +920,8 @@ class PosDatabase {
           ${ChecklistFields.branch_id} $textType,
           ${ChecklistFields.product_name_font_size} $integerType,
           ${ChecklistFields.other_font_size} $integerType,
+          ${ChecklistFields.check_list_show_price} $integerType,
+          ${ChecklistFields.check_list_show_separator} $integerType,
           ${ChecklistFields.paper_size} $textType,
           ${ChecklistFields.sync_status} $integerType,
           ${ChecklistFields.created_at} $textType,
@@ -2148,15 +2154,17 @@ class PosDatabase {
   Future<Checklist> insertChecklist(Checklist data) async {
     final db = await instance.database;
     final id = db.rawInsert(
-        'INSERT INTO $tableChecklist(soft_delete, updated_at, created_at, sync_status, paper_size, '
-            'other_font_size, product_name_font_size, branch_id, checklist_key, checklist_id) '
-            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO $tableChecklist(soft_delete, updated_at, created_at, sync_status, paper_size, check_list_show_separator, '
+            'check_list_show_price, other_font_size, product_name_font_size, branch_id, checklist_key, checklist_id) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           '',
           data.updated_at,
           data.created_at,
           data.sync_status,
           data.paper_size,
+          data.check_list_show_separator,
+          data.check_list_show_price,
           data.other_font_size,
           data.product_name_font_size,
           data.branch_id,
@@ -5634,8 +5642,8 @@ class PosDatabase {
 */
   Future<int> updateChecklist(Checklist data) async {
     final db = await instance.database;
-    return await db.rawUpdate("UPDATE $tableChecklist SET updated_at = ?, sync_status = ?, product_name_font_size = ?, other_font_size = ? WHERE checklist_sqlite_id = ?",
-        [data.updated_at, data.sync_status, data.product_name_font_size, data.other_font_size, data.checklist_sqlite_id]);
+    return await db.rawUpdate("UPDATE $tableChecklist SET updated_at = ?, sync_status = ?, product_name_font_size = ?, other_font_size = ? , check_list_show_price = ? , check_list_show_separator = ? WHERE checklist_sqlite_id = ?",
+        [data.updated_at, data.sync_status, data.product_name_font_size, data.other_font_size, data.check_list_show_price, data.check_list_show_separator, data.checklist_sqlite_id]);
   }
 
 /*
@@ -5643,7 +5651,8 @@ class PosDatabase {
 */
   Future<int> updateKitchenList(KitchenList data) async {
     final db = await instance.database;
-    return await db.rawUpdate("UPDATE $tableKitchenList SET updated_at = ?, sync_status = ?, kitchen_list_item_separator = ?, print_combine_kitchen_list = ?, kitchen_list_show_price = ?, product_name_font_size = ?, other_font_size = ? WHERE kitchen_list_sqlite_id = ?",
+    return await db.rawUpdate("UPDATE $tableKitchenList SET updated_at = ?, sync_status = ?, kitchen_list_item_separator = ?, print_combine_kitchen_list = ?, "
+        "kitchen_list_show_price = ?, product_name_font_size = ?, other_font_size = ? WHERE kitchen_list_sqlite_id = ?",
         [data.updated_at, data.sync_status, data.kitchen_list_item_separator, data.print_combine_kitchen_list, data.kitchen_list_show_price, data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
   }
 

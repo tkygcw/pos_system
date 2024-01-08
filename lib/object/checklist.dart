@@ -21,6 +21,8 @@ class ChecklistFields {
   static String branch_id = 'branch_id';
   static String product_name_font_size = 'product_name_font_size';
   static String other_font_size = 'other_font_size';
+  static String check_list_show_price = 'check_list_show_price';
+  static String check_list_show_separator = 'check_list_show_separator';
   static String paper_size = 'paper_size';
   static String sync_status = 'sync_status';
   static String created_at = 'created_at';
@@ -36,6 +38,8 @@ class Checklist {
   String? branch_id;
   int? product_name_font_size;
   int? other_font_size;
+  int? check_list_show_price;
+  int? check_list_show_separator;
   String? paper_size;
   int? sync_status;
   String? created_at;
@@ -49,6 +53,8 @@ class Checklist {
         this.branch_id,
         this.product_name_font_size,
         this.other_font_size,
+        this.check_list_show_price,
+        this.check_list_show_separator,
         this.paper_size,
         this.sync_status,
         this.created_at,
@@ -62,6 +68,8 @@ class Checklist {
     String? branch_id,
     int? product_name_font_size,
     int? other_font_size,
+    int? check_list_show_price,
+    int? check_list_show_separator,
     String? paper_size,
     int? sync_status,
     String? created_at,
@@ -75,6 +83,8 @@ class Checklist {
           branch_id: branch_id ?? this.branch_id,
           product_name_font_size: product_name_font_size ?? this.product_name_font_size,
           other_font_size: other_font_size ?? this.other_font_size,
+          check_list_show_price: check_list_show_price ?? this.check_list_show_price,
+          check_list_show_separator: check_list_show_separator ?? this.check_list_show_separator,
           paper_size: paper_size ?? this.paper_size,
           sync_status: sync_status ?? this.sync_status,
           created_at: created_at ?? this.created_at,
@@ -88,6 +98,8 @@ class Checklist {
     branch_id: json[ChecklistFields.branch_id] as String?,
     product_name_font_size: json[ChecklistFields.product_name_font_size] as int?,
     other_font_size: json[ChecklistFields.other_font_size] as int?,
+    check_list_show_price: json[ChecklistFields.check_list_show_price] as int?,
+    check_list_show_separator: json[ChecklistFields.check_list_show_separator] as int?,
     paper_size: json[ChecklistFields.paper_size] as String?,
     sync_status: json[ChecklistFields.sync_status] as int?,
     created_at: json[ChecklistFields.created_at] as String?,
@@ -102,6 +114,8 @@ class Checklist {
     ChecklistFields.branch_id: branch_id,
     ChecklistFields.product_name_font_size: product_name_font_size,
     ChecklistFields.other_font_size: other_font_size,
+    ChecklistFields.check_list_show_price: check_list_show_price,
+    ChecklistFields.check_list_show_separator: check_list_show_separator,
     ChecklistFields.paper_size: paper_size,
     ChecklistFields.sync_status: sync_status,
     ChecklistFields.created_at: created_at,

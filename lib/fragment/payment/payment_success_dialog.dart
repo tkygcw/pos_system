@@ -79,6 +79,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    readAllPrinters();
     callUpdateOrder();
   }
 
@@ -452,7 +453,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   }
 
   callPrinter() async {
-    await readAllPrinters();
     int printStatus = await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList);
     if (printStatus == 1) {
       Fluttertoast.showToast(

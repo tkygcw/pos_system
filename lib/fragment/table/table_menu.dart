@@ -125,6 +125,7 @@ class _TableMenuState extends State<TableMenu> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
         return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
+          print("MediaQuery - Height: ${MediaQuery.of(context).size.height}, Width: ${MediaQuery.of(context).size.width}");
           if (tableModel.isChange) {
             readAllTable(model: tableModel);
           }
@@ -338,7 +339,7 @@ class _TableMenuState extends State<TableMenu> {
                                           ? 100
                                           : MediaQuery.of(context).size.height < 700
                                           ? MediaQuery.of(context).size.height / 6.5
-                                          : MediaQuery.of(context).size.height / 5.5,
+                                          : calculateHeight(context),
                                       child: Stack(
                                         children: [
                                           Visibility(
@@ -1254,6 +1255,23 @@ class _TableMenuState extends State<TableMenu> {
       Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('something_went_wrong_please_try_again_later'));
     }
     return data;
+  }
+
+  double calculateHeight(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    double screenRatio = screenWidth / screenHeight;
+
+    double targetAspectRatio16x9 = 16 / 9;
+    double targetAspectRatio4x3 = 4 / 3;
+
+    double diff16x9 = (screenRatio - targetAspectRatio16x9).abs();
+    double diff4x3 = (screenRatio - targetAspectRatio4x3).abs();
+
+    return diff16x9 < diff4x3
+        ? screenHeight / 5.5
+        : screenHeight / 7;
   }
 }
 

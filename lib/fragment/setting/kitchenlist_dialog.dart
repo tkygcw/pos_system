@@ -112,7 +112,7 @@ class _KitchenlistDialogState extends State<KitchenlistDialog> {
   getAllKitchenPrinter() async {
     try{
       List<Printer> printerList = await PrintReceipt().readAllPrinters();
-      kitchenPrinter = printerList.where((printer) => printer.printer_status == 1 && printer.is_counter == 0).toList();
+      kitchenPrinter = printerList.where((printer) => printer.printer_status == 1).toList();
     } catch(e){
       print("get all kitchen printer error: $e");
       kitchenPrinter = [];

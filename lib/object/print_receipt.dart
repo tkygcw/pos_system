@@ -106,39 +106,34 @@ class PrintReceipt{
   cashDrawer({required printerList}) async {
     try{
       int printStatus = 0;
-      final prefs = await SharedPreferences.getInstance();
-      final int? branch_id = prefs.getInt('branch_id');
-      AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+      print("printerList: ${printerList.length}");
       List<Printer> cashierPrinterList = printerList.where((item) => item.printer_status == 1 && item.is_counter == 1).toList();
-      if(localSetting!.print_receipt == true) {
-        if(cashierPrinterList.isNotEmpty){
-          for (int i = 0; i < cashierPrinterList.length; i++) {
-            if (cashierPrinterList[i].type == 0) {
-              ReceiptLayout().openCashDrawer(isUSB: true);
+      if(cashierPrinterList.isNotEmpty){
+        for (int i = 0; i < cashierPrinterList.length; i++) {
+          if (cashierPrinterList[i].type == 0) {
+            ReceiptLayout().openCashDrawer(isUSB: true);
+            printStatus = 0;
+          } else {
+            var printerDetail = jsonDecode(cashierPrinterList[i].value!);
+            final profile = await CapabilityProfile.load();
+            final printer = NetworkPrinter(PaperSize.mm80, profile);
+            final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
+            if (res == PosPrintResult.success) {
+              await ReceiptLayout().openCashDrawer(isUSB: false, value: printer);
+              printer.disconnect();
               printStatus = 0;
+            } else if(res == PosPrintResult.timeout){
+              printStatus = 2;
             } else {
-              var printerDetail = jsonDecode(cashierPrinterList[i].value!);
-              final profile = await CapabilityProfile.load();
-              final printer = NetworkPrinter(PaperSize.mm80, profile);
-              final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
-              if (res == PosPrintResult.success) {
-                await ReceiptLayout().openCashDrawer(isUSB: false, value: printer);
-                printer.disconnect();
-                printStatus = 0;
-              } else if(res == PosPrintResult.timeout){
-                printStatus = 2;
-              } else {
-                printStatus = 1;
-              }
+              printStatus = 1;
             }
           }
-        } else {
-          printStatus = 4;
         }
-        return printStatus;
       } else {
-        return printStatus;
+        print("cashierPrinterList is null");
+        printStatus = 4;
       }
+      return printStatus;
     }catch(e){
       print('Open Cash Drawer Error: ${e}');
       return 1;

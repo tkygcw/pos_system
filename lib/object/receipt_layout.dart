@@ -285,7 +285,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 1',
+            text: 'Product 1${checklist != null && checklist.check_list_show_price == 1 ? ' (6.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -301,7 +301,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 2',
+            text: 'Product 2${checklist != null && checklist.check_list_show_price == 1 ? ' (8.80/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -327,7 +327,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 3',
+            text: 'Product 3${checklist != null && checklist.check_list_show_price == 1 ? ' (3.50/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -352,7 +352,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 4',
+            text: 'Product 4${checklist != null && checklist.check_list_show_price == 1 ? ' (15.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -378,7 +378,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 5',
+            text: 'Product 5${checklist != null && checklist.check_list_show_price == 1 ? ' (10.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -449,7 +449,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 1',
+            text: 'Product 1${checklist != null && checklist.check_list_show_price == 1 ? ' (6.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -460,7 +460,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 2',
+            text: 'Product 2${checklist != null && checklist.check_list_show_price == 1 ? ' (8.80/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -479,7 +479,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 3',
+            text: 'Product 3${checklist != null && checklist.check_list_show_price == 1 ? ' (3.50/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -499,7 +499,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 4',
+            text: 'Product 4${checklist != null && checklist.check_list_show_price == 1 ? ' (15.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -519,7 +519,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 5',
+            text: 'Product 5${checklist != null && checklist.check_list_show_price == 1 ? ' (10.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -2214,10 +2214,17 @@ class ReceiptLayout{
     * */
       //order product
       for(int i = 0; i < orderDetailList.length; i++){
+        if(i != 0) {
+          if(checklistLayout != null && checklistLayout.check_list_show_separator == 1) {
+            bytes += generator.reset();
+            bytes += generator.hr();
+          }
+        }
         bytes += generator.row([
           PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(bold: true)),
           PosColumn(
-              text: '${orderDetailList[i].productName}',
+              // text: '${orderDetailList[i].productName}',
+              text: '${orderDetailList[i].productName} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${(double.parse(orderDetailList[i].price!) * double.parse(orderDetailList[i].quantity!)).toStringAsFixed(2)}/${orderDetailList[i].unit  != '' ? orderDetailList[i].unit : '/each'})' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -2334,10 +2341,16 @@ class ReceiptLayout{
     * */
       //order product
       for(int i = 0; i < orderDetailList.length; i++){
+        if(i != 0) {
+          if(checklistLayout != null && checklistLayout.check_list_show_separator == 1) {
+            bytes += generator.reset();
+            bytes += generator.hr();
+          }
+        }
         bytes += generator.row([
           PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(bold: true)),
           PosColumn(
-              text: '${orderDetailList[i].productName}',
+              text: '${orderDetailList[i].productName} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${(double.parse(orderDetailList[i].price!) * double.parse(orderDetailList[i].quantity!)).toStringAsFixed(2)}/${orderDetailList[i].unit  != '' ? orderDetailList[i].unit : '/each'})' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -2441,10 +2454,16 @@ class ReceiptLayout{
     * */
       //order product
       for(int i = 0; i < cartModel.cartNotifierItem.length; i++){
+        if(i != 0) {
+          if(checklistLayout != null && checklistLayout.check_list_show_separator == 1) {
+            bytes += generator.reset();
+            bytes += generator.hr();
+          }
+        }
         bytes += generator.row([
           PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: '${cartModel.cartNotifierItem[i].product_name!.trim()}) ',
+              text: '${cartModel.cartNotifierItem[i].product_name!.trim()} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${(double.parse(cartModel.cartNotifierItem[i].price!) * cartModel.cartNotifierItem[i].quantity!).toStringAsFixed(2)}/${cartModel.cartNotifierItem[i].unit  != '' ? cartModel.cartNotifierItem[i].unit : '/each'})' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -2568,10 +2587,16 @@ class ReceiptLayout{
     * */
       //order product
       for(int i = 0; i < cartModel.cartNotifierItem.length; i++){
+        if(i != 0) {
+          if(checklistLayout != null && checklistLayout.check_list_show_separator == 1) {
+            bytes += generator.reset();
+            bytes += generator.hr();
+          }
+        }
         bytes += generator.row([
           PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: '${cartModel.cartNotifierItem[i].product_name})',
+              text: '${cartModel.cartNotifierItem[i].product_name} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${(double.parse(cartModel.cartNotifierItem[i].price!) * cartModel.cartNotifierItem[i].quantity!).toStringAsFixed(2)}/${cartModel.cartNotifierItem[i].unit  != '' ? cartModel.cartNotifierItem[i].unit : '/each'})' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
