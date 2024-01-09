@@ -71,7 +71,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 10, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 11, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -234,6 +234,35 @@ class PosDatabase {
           ${KitchenListFields.created_at} $textType,
           ${KitchenListFields.updated_at} $textType,
           ${KitchenListFields.soft_delete} $textType)''');
+        }break;
+        case 10: {
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.branch_id} TEXT NOT NULL DEFAULT '$branch_id' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.enable_numbering} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.starting_number} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.table_order} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.sync_status} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.created_at} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.updated_at} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderCache ADD ${OrderCacheFields.order_queue} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrder ADD ${OrderFields.order_queue} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tablePrinter ADD ${PrinterFields.is_label} INTEGER NOT NULL DEFAULT 0");
+          await db.execute('''CREATE TABLE $tableKitchenList(
+          ${KitchenListFields.kitchen_list_sqlite_id} $idType,
+          ${KitchenListFields.kitchen_list_id} $integerType,
+          ${KitchenListFields.kitchen_list_key} $textType,
+          ${KitchenListFields.branch_id} $textType,
+          ${KitchenListFields.product_name_font_size} $integerType,
+          ${KitchenListFields.other_font_size} $integerType,
+          ${KitchenListFields.paper_size} $textType,
+          ${KitchenListFields.kitchen_list_show_price} $integerType,
+          ${KitchenListFields.print_combine_kitchen_list} $integerType,
+          ${KitchenListFields.kitchen_list_item_separator} $integerType,
+          ${KitchenListFields.sync_status} $integerType,
+          ${KitchenListFields.created_at} $textType,
+          ${KitchenListFields.updated_at} $textType,
+          ${KitchenListFields.soft_delete} $textType)''');
+
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
         }break;
       }
     }
@@ -812,6 +841,7 @@ class PosDatabase {
           ${AppSettingFields.show_second_display} $integerType,
           ${AppSettingFields.direct_payment} $integerType,
           ${AppSettingFields.print_checklist} $integerType,
+          ${AppSettingFields.print_receipt} $integerType,
           ${AppSettingFields.show_sku} $integerType,
           ${AppSettingFields.enable_numbering} $integerType,
           ${AppSettingFields.starting_number} $integerType,
@@ -1763,14 +1793,15 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableCashRecord(branch_id, open_cash_drawer, show_second_display, direct_payment, print_checklist, '
-            'show_sku, enable_numbering, starting_number, sync_status, created_at, updated_at) '
-            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'print_receipt, show_sku, enable_numbering, starting_number, sync_status, created_at, updated_at) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.branch_id,
           data.open_cash_drawer,
           data.show_second_display,
           data.direct_payment,
           data.print_checklist,
+          data.print_receipt,
           data.show_sku,
           data.enable_numbering,
           data.starting_number,
@@ -5310,8 +5341,8 @@ class PosDatabase {
 */
   Future<int> updateReceiptSettings(AppSetting data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableAppSetting SET print_checklist = ?, enable_numbering = ?, starting_number = ?, sync_status = ?, updated_at = ?',
-        [data.print_checklist, data.enable_numbering, data.starting_number, 2, data.updated_at]);
+    return await db.rawUpdate('UPDATE $tableAppSetting SET print_checklist = ?, print_receipt = ?, enable_numbering = ?, starting_number = ?, sync_status = ?, updated_at = ?',
+        [data.print_checklist, data.print_receipt, data.enable_numbering, data.starting_number, 2, data.updated_at]);
   }
 
 /*
@@ -5609,7 +5640,8 @@ class PosDatabase {
 */
   Future<int> updateKitchenList(KitchenList data) async {
     final db = await instance.database;
-    return await db.rawUpdate("UPDATE $tableKitchenList SET updated_at = ?, sync_status = ?, kitchen_list_item_separator = ?, print_combine_kitchen_list = ?, kitchen_list_show_price = ?, product_name_font_size = ?, other_font_size = ? WHERE kitchen_list_sqlite_id = ?",
+    return await db.rawUpdate("UPDATE $tableKitchenList SET updated_at = ?, sync_status = ?, kitchen_list_item_separator = ?, print_combine_kitchen_list = ?, "
+        "kitchen_list_show_price = ?, product_name_font_size = ?, other_font_size = ? WHERE kitchen_list_sqlite_id = ?",
         [data.updated_at, data.sync_status, data.kitchen_list_item_separator, data.print_combine_kitchen_list, data.kitchen_list_show_price, data.product_name_font_size, data.other_font_size, data.kitchen_list_sqlite_id]);
   }
 
