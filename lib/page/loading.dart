@@ -1326,7 +1326,6 @@ getAllOrderTaxDetail() async {
   save order cache to database
 */
 getAllOrderCache() async {
-  print('sync order cache loading called!!!');
   String tableUseLocalId = '', orderLocalId = '';
   final prefs = await SharedPreferences.getInstance();
   final int? branch_id = prefs.getInt('branch_id');
@@ -1340,7 +1339,11 @@ getAllOrderCache() async {
       if (cloudData.table_use_key != '' && cloudData.table_use_key != null) {
         // print("table use key: ${cloudData.table_use_key}");
         TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(cloudData.table_use_key!);
-        tableUseLocalId = tableUseData!.table_use_sqlite_id.toString();
+        if(tableUseData != null){
+          tableUseLocalId = tableUseData.table_use_sqlite_id.toString();
+        } else {
+          continue;
+        }
       } else {
         tableUseLocalId = '';
       }
@@ -1398,16 +1401,19 @@ getAllOrderDetail() async {
     List responseJson = data['order'];
     for (var i = 0; i < responseJson.length; i++) {
       //OrderDetail item = OrderDetail.fromJson(responseJson[i]);
-      OrderCache cacheData = await PosDatabase.instance.readOrderCacheSqliteID(responseJson[i]['order_cache_key']);
+      OrderCache? cacheData = await PosDatabase.instance.readOrderCacheSqliteID(responseJson[i]['order_cache_key']);
       Categories? categoriesData = await PosDatabase.instance.readCategorySqliteID(responseJson[i]['category_id'].toString());
       BranchLinkProduct? branchLinkProductData = await PosDatabase.instance.readBranchLinkProductSqliteID(responseJson[i]['branch_link_product_id'].toString());
+      if(cacheData == null || categoriesData == null || branchLinkProductData == null){
+        continue;
+      }
       OrderDetail data = await PosDatabase.instance.insertOrderDetail(OrderDetail(
           order_detail_id: responseJson[i]['order_detail_id'],
           order_detail_key: responseJson[i]['order_detail_key'].toString(),
           order_cache_sqlite_id: cacheData.order_cache_sqlite_id.toString(),
           order_cache_key: responseJson[i]['order_cache_key'],
-          branch_link_product_sqlite_id: branchLinkProductData != null ? branchLinkProductData.branch_link_product_sqlite_id.toString() : '',
-          category_sqlite_id: categoriesData != null ? categoriesData.category_sqlite_id.toString() : '0',
+          branch_link_product_sqlite_id: branchLinkProductData.branch_link_product_sqlite_id.toString(),
+          category_sqlite_id: categoriesData.category_sqlite_id.toString(),
           category_name: responseJson[i]['category_name'],
           productName: responseJson[i]['product_name'],
           has_variant: responseJson[i]['has_variant'],
@@ -1449,7 +1455,10 @@ getAllOrderDetailCancel() async {
         Settlement settlementData = await PosDatabase.instance.readSettlementSqliteID(responseJson[i]['settlement_key']);
         settlement = settlementData;
       }
-      OrderDetail detailData = await PosDatabase.instance.readOrderDetailSqliteID(responseJson[i]['order_detail_key']);
+      OrderDetail? detailData = await PosDatabase.instance.readOrderDetailSqliteID(responseJson[i]['order_detail_key']);
+      if(detailData == null){
+        continue;
+      }
       OrderDetailCancel data = await PosDatabase.instance.insertOrderDetailCancel(OrderDetailCancel(
         order_detail_cancel_id: responseJson[i]['order_detail_cancel_id'],
         order_detail_cancel_key: responseJson[i]['order_detail_cancel_key'],
@@ -1482,7 +1491,10 @@ getAllOrderModifierDetail() async {
   if (data['status'] == '1') {
     List responseJson = data['order'];
     for (var i = 0; i < responseJson.length; i++) {
-      OrderDetail detailData = await PosDatabase.instance.readOrderDetailSqliteID(responseJson[i]['order_detail_key']);
+      OrderDetail? detailData = await PosDatabase.instance.readOrderDetailSqliteID(responseJson[i]['order_detail_key']);
+      if(detailData == null){
+        continue;
+      }
       OrderModifierDetail data = await PosDatabase.instance.insertOrderModifierDetail(OrderModifierDetail(
           order_modifier_detail_id: responseJson[i]['order_modifier_detail_id'],
           order_modifier_detail_key: responseJson[i]['order_modifier_detail_key'],
