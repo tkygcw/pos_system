@@ -28,7 +28,7 @@ class _DeviceDialogState extends State<DeviceDialog> {
   String wifi = "";
   List<String> ips = [];
   double percentage = 0.0;
-  bool isLoad = false;
+  bool isLoad = false, isButtonDisable = false;
   Text? info;
 
   @override
@@ -83,36 +83,6 @@ class _DeviceDialogState extends State<DeviceDialog> {
         await scan_network();
       }
     }
-
-    // bool isOn = await location.serviceEnabled();
-    // if (!isOn) {
-    //   bool isTurnedOn = await location.requestService();
-    //   if (isTurnedOn) {
-    //     print("GPS device is turned ON");
-    //     await scan_network();
-    //   }else{
-    //     print("GPS Device is still OFF");
-    //     Navigator.of(context).pop();
-    //   }
-    // }
-    // var status = await Permission.location.status;
-    // if (status.isDenied || status.isRestricted) {
-    //   if(await Permission.location.request().isGranted){
-    //     if(await Permission.locationWhenInUse.serviceStatus.isEnabled){
-    //       await scan_network();
-    //     }else {
-    //       AppSettings.openLocationSettings();
-    //       Navigator.of(context).pop();
-    //     }
-    //   }
-    // } else {
-    //   if(await Permission.locationWhenInUse.serviceStatus.isEnabled){
-    //     await scan_network();
-    //   } else {
-    //     AppSettings.openLocationSettings();
-    //     Navigator.of(context).pop();
-    //   }
-    // }
   }
 
   scan_network() async {
@@ -170,16 +140,18 @@ class _DeviceDialogState extends State<DeviceDialog> {
                           children: _buildList(devices, printerModel),
                         )
                       : ListView.builder(
-                          //shrinkWrap: true,
+                          shrinkWrap: true,
+                          padding: EdgeInsets.zero,
                           itemCount: ips.length,
                           itemBuilder: (context, index) {
                             return Card(
                               elevation: 5,
                               child: ListTile(
-                                onTap: () {
+                                onTap: isButtonDisable ? null : () {
+                                  setState(() {
+                                    isButtonDisable = true;
+                                  });
                                   widget.callBack(jsonEncode(ips[index]));
-                                  // printerModel
-                                  //     .addPrinter(jsonEncode(ips[index]));
                                   Navigator.of(context).pop();
                                 },
                                 leading: Icon(

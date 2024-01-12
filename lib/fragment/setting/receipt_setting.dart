@@ -34,7 +34,8 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
   // List<AppSetting> appSettingList = [];
   Receipt? receiptObject;
   bool printCheckList = false,
-      enableNumbering = false;
+      enableNumbering = false,
+      printReceipt = false;
   int startingNumber = 0, compareStartingNumber = 0;
 
   @override
@@ -79,6 +80,12 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
         printCheckList = true;
       } else {
         printCheckList = false;
+      }
+
+      if(appSetting.print_receipt == 1){
+        printReceipt = true;
+      } else {
+        printReceipt = false;
       }
 
       if(appSetting.enable_numbering == 1){
@@ -163,7 +170,13 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                                   borderSide: BorderSide(color: Colors.black.withOpacity(0.5)),
                                 ),
                               ),
-                              onChanged: (value) => setState(() => startingNumber = int.parse(orderNumberController.text)),
+                              onChanged: (value) => setState(() {
+                                try {
+                                  startingNumber = int.parse(orderNumberController.text);
+                                } catch (e) {
+                                  startingNumber = 0;
+                                }
+                              }),
                               onSubmitted: (value) async {
                                 await updateAppSetting();
                                 Navigator.of(context).pop();
@@ -299,6 +312,19 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
                             ),
                           ),
                           ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('auto_print_receipt')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('auto_print_receipt_desc')),
+                            trailing: Switch(
+                              value: printReceipt,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) async {
+                                printReceipt = value;
+                                appSettingModel.setPrintReceiptStatus(printReceipt);
+                                actionController.sink.add("switch");
+                              },
+                            ),
+                          ),
+                          ListTile(
                             title: Text(AppLocalizations.of(context)!.translate('order_numbering')),
                             subtitle: Text(AppLocalizations.of(context)!.translate('enable_order_numbering')),
                             trailing: Switch(
@@ -358,6 +384,7 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
     String dateTime = dateFormat.format(DateTime.now());
     AppSetting object = AppSetting(
         print_checklist: printCheckList == true ? 1 : 0,
+        print_receipt: printReceipt == true ? 1 : 0,
         enable_numbering: enableNumbering == true ? 1 : 0,
         starting_number: startingNumber != 0 ? startingNumber : 0,
         app_setting_sqlite_id: appSetting.app_setting_sqlite_id,

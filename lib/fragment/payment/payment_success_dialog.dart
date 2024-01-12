@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/print_receipt.dart';
@@ -59,6 +60,7 @@ class PaymentSuccessDialog extends StatefulWidget {
 class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   List<Printer> printerList = [];
+  late AppSettingModel _appSettingModel;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   String? order_value,
       order_cache_value,
@@ -77,6 +79,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    readAllPrinters();
     callUpdateOrder();
   }
 
@@ -110,281 +113,284 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cartModel, child) {
-        return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
-          return WillPopScope(
-            onWillPop: () async => false,
-            child: LayoutBuilder(builder: (context, constraints) {
-              if (constraints.maxWidth > 800) {
-                return AlertDialog(
-                  //contentPadding: EdgeInsets.zero,
-                  title: Text(AppLocalizations.of(context)!
-                      .translate('payment_success')),
-                  content: isLoaded
-                      ? Container(
-                          width: 360,
-                          height: 350,
-                          child: Column(
+        return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
+          _appSettingModel = appSettingModel;
+          return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
+            return WillPopScope(
+              onWillPop: () async => false,
+              child: LayoutBuilder(builder: (context, constraints) {
+                if (constraints.maxWidth > 800) {
+                  return AlertDialog(
+                    //contentPadding: EdgeInsets.zero,
+                    title: Text(AppLocalizations.of(context)!
+                        .translate('payment_success')),
+                    content: isLoaded
+                        ? Container(
+                      width: 360,
+                      height: 350,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Visibility(
+                              visible: widget.change != null ? true : false,
+                              child: Text(
+                                '${AppLocalizations.of(context)?.translate('change')}: ${widget.change}',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 24),
+                              )),
+                          SizedBox(height: 15),
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Visibility(
-                                  visible: widget.change != null ? true : false,
-                                  child: Text(
-                                    '${AppLocalizations.of(context)?.translate('change')}: ${widget.change}',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 24),
-                                  )),
-                              SizedBox(height: 15),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 150,
-                                    height: 60,
-                                    child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                            backgroundColor: color.buttonColor),
-                                        onPressed: isButtonDisabled
-                                            ? null
-                                            : () async {
-                                                // Disable the button after it has been pressed
-                                                setState(() {
-                                                  isButtonDisabled = true;
-                                                });
-                                                // await createCashRecord();
-                                                // await syncAllToCloud();
-                                                // if(this.isLogOut == true){
-                                                //   openLogOutDialog();
-                                                //   return;
-                                                // }
-                                                if (notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true) {
-                                                  reInitSecondDisplay();
-                                                }
-                                                await callPrinter();
-                                                //await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
-                                                tableModel.changeContent(true);
-                                                cartModel.initialLoad();
-                                                Navigator.of(context).pop();
-                                                Navigator.of(context).pop();
-                                                Navigator.of(context).pop();
-                                              },
-                                        child: Row(
-                                          children: [
-                                            Text(AppLocalizations.of(context)!
-                                                .translate('print_receipt')),
-                                            Spacer(),
-                                            Icon(Icons.print),
-                                          ],
-                                        )),
-                                  ),
-                                  Visibility(
-                                    visible: widget.isCashMethod == true
-                                        ? true
-                                        : false,
-                                    child: Container(
-                                        //width: 160,
-                                        height: 60,
-                                        margin: EdgeInsets.only(left: 15),
-                                        child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  color.buttonColor,
-                                            ),
-                                            onPressed: () async {
-                                              await callOpenCashDrawer();
-                                              //int printStatus = await PrintReceipt().cashDrawer(context, printerList: this.printerList);
-                                              if (notificationModel
-                                                          .hasSecondScreen ==
-                                                      true &&
-                                                  notificationModel
-                                                          .secondScreenEnable ==
-                                                      true) {
-                                                reInitSecondDisplay();
-                                              }
-                                            },
-                                            child: Row(
-                                              children: [
-                                                Text(
-                                                    '${AppLocalizations.of(context)?.translate('open_cash_drawer')}',
-                                                    overflow: TextOverflow.fade,
-                                                    maxLines: 2,
-                                                    style: TextStyle(
-                                                        fontSize: 15)),
-                                                SizedBox(width: 5),
-                                                Icon(Icons.point_of_sale),
-                                              ],
-                                            ))),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 15),
-                              SizedBox(
+                              Container(
                                 width: 150,
                                 height: 60,
                                 child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                        backgroundColor: color.backgroundColor),
+                                        backgroundColor: color.buttonColor),
                                     onPressed: isButtonDisabled
                                         ? null
-                                        : () {
-                                            // Disable the button after it has been pressed
-                                            setState(() {
-                                              isButtonDisabled = true;
-                                            });
-                                            tableModel.changeContent(true);
-                                            cartModel.initialLoad();
-                                            if (notificationModel
-                                                        .hasSecondScreen ==
-                                                    true &&
-                                                notificationModel
-                                                        .secondScreenEnable ==
-                                                    true) {
-                                              reInitSecondDisplay();
-                                            }
-                                            Navigator.of(context).pop();
-                                            Navigator.of(context).pop();
-                                            Navigator.of(context).pop();
-                                          },
+                                        : () async {
+                                      // Disable the button after it has been pressed
+                                      setState(() {
+                                        isButtonDisabled = true;
+                                      });
+                                      // await createCashRecord();
+                                      // await syncAllToCloud();
+                                      // if(this.isLogOut == true){
+                                      //   openLogOutDialog();
+                                      //   return;
+                                      // }
+                                      if (notificationModel.hasSecondScreen == true && notificationModel.secondScreenEnable == true) {
+                                        reInitSecondDisplay();
+                                      }
+                                      await callPrinter();
+                                      //await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
+                                      tableModel.changeContent(true);
+                                      cartModel.initialLoad();
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
+                                    },
                                     child: Row(
                                       children: [
-                                        Text(
-                                            '${AppLocalizations.of(context)?.translate('close')}'),
+                                        Text(AppLocalizations.of(context)!
+                                            .translate('print_receipt')),
                                         Spacer(),
-                                        Icon(Icons.close)
+                                        Icon(Icons.print),
                                       ],
                                     )),
-                              )
-                            ],
-                          ),
-                        )
-                      : Container(
-                          width: 360, height: 350, child: CustomProgressBar()),
-                  // actions: [
-                  //   Center(
-                  //     child: SizedBox(
-                  //       height: MediaQuery.of(context).size.height / 12,
-                  //       child: ElevatedButton(
-                  //           style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
-                  //           onPressed: isButtonDisabled ? null : (){
-                  //             // Disable the button after it has been pressed
-                  //             setState(() {
-                  //               isButtonDisabled = true;
-                  //             });
-                  //             tableModel.changeContent(true);
-                  //             cartModel.initialLoad();
-                  //             Navigator.of(context).pop();
-                  //             Navigator.of(context).pop();
-                  //             Navigator.of(context).pop();
-                  //           },
-                  //           child: Text('${AppLocalizations.of(context)?.translate('close')}')),
-                  //     ),
-                  //   )
-                  // ],
-                );
-              } else {
-                ///Mobile layout
-                return AlertDialog(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(AppLocalizations.of(context)!
-                      .translate('payment_success')),
-                  content: isLoaded
-                      ? Container(
-                          width: MediaQuery.of(context).size.width / 2,
-                          height: MediaQuery.of(context).size.height / 3,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
+                              ),
                               Visibility(
-                                  visible: widget.change != null ? true : false,
-                                  child: Text(
-                                    '${AppLocalizations.of(context)?.translate('change')}: ${widget.change}',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20),
-                                  )),
-                              SizedBox(height: 15),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
+                                visible: widget.isCashMethod == true
+                                    ? true
+                                    : false,
+                                child: Container(
+                                  //width: 160,
+                                    height: 60,
+                                    margin: EdgeInsets.only(left: 15),
                                     child: ElevatedButton(
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor:
-                                              color.backgroundColor,
+                                          color.buttonColor,
                                         ),
-                                        onPressed: isButtonDisabled
-                                            ? null
-                                            : () async {
-                                                // Disable the button after it has been pressed
-                                                setState(() {
-                                                  isButtonDisabled = true;
-                                                });
-                                                await callPrinter();
-                                                //await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
-                                                // await createCashRecord();
-                                                // await syncAllToCloud();
-                                                // if(this.isLogOut == true){
-                                                //   openLogOutDialog();
-                                                //   return;
-                                                // }
-                                                tableModel.changeContent(true);
-                                                cartModel.initialLoad();
-                                                Navigator.of(context).pop();
-                                                Navigator.of(context).pop();
-                                                Navigator.of(context).pop();
-                                              },
-                                        child: Text(
-                                            '${AppLocalizations.of(context)?.translate('print_receipt')}',
-                                            style: TextStyle(fontSize: 15),
-                                            textAlign: TextAlign.center)),
-                                  ),
-                                  SizedBox(width: 10),
-                                  Visibility(
-                                    visible: widget.isCashMethod == true
-                                        ? true
-                                        : false,
-                                    child: Container(
-                                      child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: color.buttonColor,
-                                          ),
-                                          onPressed: () async {
-                                            await callOpenCashDrawer();
-                                          },
-                                          child: Text(
-                                              '${AppLocalizations.of(context)?.translate('open_cash_drawer')}',
-                                              style: TextStyle(fontSize: 15),
-                                              textAlign: TextAlign.center)),
-                                    ),
-                                  ),
-                                ],
-                              )
+                                        onPressed: () async {
+                                          await callOpenCashDrawer();
+                                          //int printStatus = await PrintReceipt().cashDrawer(context, printerList: this.printerList);
+                                          if (notificationModel
+                                              .hasSecondScreen ==
+                                              true &&
+                                              notificationModel
+                                                  .secondScreenEnable ==
+                                                  true) {
+                                            reInitSecondDisplay();
+                                          }
+                                        },
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                                '${AppLocalizations.of(context)?.translate('open_cash_drawer')}',
+                                                overflow: TextOverflow.fade,
+                                                maxLines: 2,
+                                                style: TextStyle(
+                                                    fontSize: 15)),
+                                            SizedBox(width: 5),
+                                            Icon(Icons.point_of_sale),
+                                          ],
+                                        ))),
+                              ),
                             ],
                           ),
-                        )
-                      : CustomProgressBar(),
-                  actions: [
-                    TextButton(
-                        onPressed: isButtonDisabled
-                            ? null
-                            : () {
-                                // Disable the button after it has been pressed
-                                setState(() {
-                                  isButtonDisabled = true;
-                                });
-                                tableModel.changeContent(true);
-                                cartModel.initialLoad();
-                                Navigator.of(context).pop();
-                                Navigator.of(context).pop();
-                                Navigator.of(context).pop();
-                              },
-                        child: Text(
-                            '${AppLocalizations.of(context)?.translate('close')}'))
-                  ],
-                );
-              }
-            }),
-          );
+                          SizedBox(height: 15),
+                          SizedBox(
+                            width: 150,
+                            height: 60,
+                            child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: color.backgroundColor),
+                                onPressed: isButtonDisabled
+                                    ? null
+                                    : () {
+                                  // Disable the button after it has been pressed
+                                  setState(() {
+                                    isButtonDisabled = true;
+                                  });
+                                  tableModel.changeContent(true);
+                                  cartModel.initialLoad();
+                                  if (notificationModel
+                                      .hasSecondScreen ==
+                                      true &&
+                                      notificationModel
+                                          .secondScreenEnable ==
+                                          true) {
+                                    reInitSecondDisplay();
+                                  }
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+                                },
+                                child: Row(
+                                  children: [
+                                    Text(
+                                        '${AppLocalizations.of(context)?.translate('close')}'),
+                                    Spacer(),
+                                    Icon(Icons.close)
+                                  ],
+                                )),
+                          )
+                        ],
+                      ),
+                    )
+                        : Container(
+                        width: 360, height: 350, child: CustomProgressBar()),
+                    // actions: [
+                    //   Center(
+                    //     child: SizedBox(
+                    //       height: MediaQuery.of(context).size.height / 12,
+                    //       child: ElevatedButton(
+                    //           style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                    //           onPressed: isButtonDisabled ? null : (){
+                    //             // Disable the button after it has been pressed
+                    //             setState(() {
+                    //               isButtonDisabled = true;
+                    //             });
+                    //             tableModel.changeContent(true);
+                    //             cartModel.initialLoad();
+                    //             Navigator.of(context).pop();
+                    //             Navigator.of(context).pop();
+                    //             Navigator.of(context).pop();
+                    //           },
+                    //           child: Text('${AppLocalizations.of(context)?.translate('close')}')),
+                    //     ),
+                    //   )
+                    // ],
+                  );
+                } else {
+                  ///Mobile layout
+                  return AlertDialog(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(AppLocalizations.of(context)!
+                        .translate('payment_success')),
+                    content: isLoaded
+                        ? Container(
+                      width: MediaQuery.of(context).size.width / 2,
+                      height: MediaQuery.of(context).size.height / 3,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Visibility(
+                              visible: widget.change != null ? true : false,
+                              child: Text(
+                                '${AppLocalizations.of(context)?.translate('change')}: ${widget.change}',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20),
+                              )),
+                          SizedBox(height: 15),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                      color.backgroundColor,
+                                    ),
+                                    onPressed: isButtonDisabled
+                                        ? null
+                                        : () async {
+                                      // Disable the button after it has been pressed
+                                      setState(() {
+                                        isButtonDisabled = true;
+                                      });
+                                      await callPrinter();
+                                      //await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList, context);
+                                      // await createCashRecord();
+                                      // await syncAllToCloud();
+                                      // if(this.isLogOut == true){
+                                      //   openLogOutDialog();
+                                      //   return;
+                                      // }
+                                      tableModel.changeContent(true);
+                                      cartModel.initialLoad();
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text(
+                                        '${AppLocalizations.of(context)?.translate('print_receipt')}',
+                                        style: TextStyle(fontSize: 15),
+                                        textAlign: TextAlign.center)),
+                              ),
+                              SizedBox(width: 10),
+                              Visibility(
+                                visible: widget.isCashMethod == true
+                                    ? true
+                                    : false,
+                                child: Container(
+                                  child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: color.buttonColor,
+                                      ),
+                                      onPressed: () async {
+                                        await callOpenCashDrawer();
+                                      },
+                                      child: Text(
+                                          '${AppLocalizations.of(context)?.translate('open_cash_drawer')}',
+                                          style: TextStyle(fontSize: 15),
+                                          textAlign: TextAlign.center)),
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    )
+                        : CustomProgressBar(),
+                    actions: [
+                      TextButton(
+                          onPressed: isButtonDisabled
+                              ? null
+                              : () {
+                            // Disable the button after it has been pressed
+                            setState(() {
+                              isButtonDisabled = true;
+                            });
+                            tableModel.changeContent(true);
+                            cartModel.initialLoad();
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                              '${AppLocalizations.of(context)?.translate('close')}'))
+                    ],
+                  );
+                }
+              }),
+            );
+          });
         });
       });
     });
@@ -417,11 +423,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   }
 
   callUpdateOrder() async {
+    print("callUpdateOrder called");
     String dateTime = dateFormat.format(DateTime.now());
     await updateOrder(dateTime: dateTime);
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
     if (widget.dining_name == 'Dine in' && widget.selectedTableList.isNotEmpty) {
       await deleteCurrentTableUseDetail(dateTime: dateTime);
       await deleteCurrentTableUseId(dateTime: dateTime);
@@ -429,7 +433,9 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     }
     await updateOrderCache(dateTime: dateTime);
     await createCashRecord(dateTime: dateTime);
-    await callPrinter();
+    if(_appSettingModel.autoPrintReceipt == true) {
+      await callPrinter();
+    }
     if (widget.isCashMethod == true) {
       await callOpenCashDrawer();
     }
@@ -446,7 +452,6 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
   }
 
   callPrinter() async {
-    await readAllPrinters();
     int printStatus = await PrintReceipt().printPaymentReceiptList(printerList, widget.orderId, widget.selectedTableList);
     if (printStatus == 1) {
       Fluttertoast.showToast(

@@ -5,6 +5,7 @@ import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'dart:io' as Platform;
 
 import '../../notifier/report_notifier.dart';
 import '../../notifier/theme_color.dart';
@@ -171,7 +172,15 @@ class _TransferRecordState extends State<TransferRecord> {
   }
 
   getDeviceName() async {
+    if (Platform.Platform.isAndroid) {
     AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
     deviceModel = androidInfo.model;
+  }
+    else if(Platform.Platform.isIOS){
+      deviceModel = 'IOS Device';
+    }
+    else{
+      deviceModel = 'Web';
+    }
   }
 }

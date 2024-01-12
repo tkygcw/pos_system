@@ -734,7 +734,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                 ),
                               ),
                               Visibility(
-                                visible: selectedValue == 'general_printer',
+                                visible: selectedValue != 'label_printer',
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -775,7 +775,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                 AppLocalizations.of(context)!.translate('paper_size'),
                                 style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey),
                               ),
-                              selectedValue == 'general_printer' ?
+                              selectedValue != 'label_printer' ?
                               Row(
                                 children: [
                                   Expanded(
