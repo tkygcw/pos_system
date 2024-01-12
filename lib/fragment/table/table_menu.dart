@@ -129,7 +129,6 @@ class _TableMenuState extends State<TableMenu> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<CartModel>(builder: (context, CartModel cart, child) {
         return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
-          print("MediaQuery - Height: ${MediaQuery.of(context).size.height}, Width: ${MediaQuery.of(context).size.width}");
           if (tableModel.isChange) {
             readAllTable(model: tableModel);
           }

@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:esc_pos_utils/esc_pos_utils.dart';
+import 'package:esc_pos_utils_plus/gbk_codec/gbk_codec.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
@@ -176,14 +178,10 @@ class ReceiptLayout{
     return bytes;
   }
 
-/*
-  test print layout 58mm
-*/
   testTicket35mm(bool isUSB, {value}) async {
     DateTime dateTime = DateTime.now();
     String date = DateFormat('dd-MM-yyyy h:mm a').format(dateTime);
     String time = DateFormat('h:mm a').format(dateTime);
-    print("Current Datetime: ${dateTime}");
     var generator;
     try {
       if (isUSB) {
@@ -193,24 +191,31 @@ class ReceiptLayout{
         generator = value;
       }
 
+      List<int> bytes = [];
       List<String> commands = [];
       int leftPadding = 20;
+      String headerText = "Restaurant";
+      String productName = "Testing Testing 测试测试";
+
       commands.add('SIZE 35 mm,25 mm\n');
       commands.add('DIRECTION 1\n');
       commands.add('CLS\n');
-      String headerText = "Restaurant";
       commands.add('TEXT ${leftPadding},15,"2",0,1,1,"${headerText.length > 12 ? headerText.substring(0, 12) : headerText}"\n');
       commands.add('TEXT 205,15,"2",0,1,1,"1034"\n');
-      commands.add('TEXT ${leftPadding},45,"TSS24.BF2",0,1,1,"${headerText}"\n');
+      // commands.add('TEXT ${leftPadding},45,"TSS24.BF2",0,1,1,"${productName}"\n');
+
+      List<String> productNameCommands = generateTextCommands(leftPadding, 45, productName);
+      commands.addAll(productNameCommands);
 
       commands.add('TEXT ${leftPadding},175,"2",0,1,1,"01/02"\n');
       commands.add('TEXT 225,180,"1",0,1,1,2,"${time}"\n');
       commands.add('PRINT 1\n');
       commands.add('END\n');
-      List<int> bytes = commands.map((command) => command.codeUnits).expand((codeUnit) => codeUnit).toList();
-      String textToPrint = String.fromCharCodes(bytes);
-      List<int> result = generator.text(textToPrint, containsChinese: true);
-      return result;
+
+      String commandString = commands.join();
+      bytes = Uint8List.fromList(gbk_bytes.encode(commandString.toString()));
+      return bytes;
+
     } catch (e) {
       print('testTicket35mm Error: $e');
       return [];
@@ -219,33 +224,44 @@ class ReceiptLayout{
 
   List<String> generateTextCommands(int x, int y, String productName) {
     List<String> commands = [];
-    int maxLineLength = 18;
-    List<String> words = productName.split(" ");
+    int maxLineLength = 40;
+    int wordLength = 0;
+    List<String> characters = productName.runes.map((rune) => String.fromCharCode(rune)).toList();
+
     int currentLineLength = 0;
     StringBuffer currentLine = StringBuffer();
+    int rowCount = 0;
 
-    for (String word in words) {
-      if (currentLineLength + word.length > maxLineLength) {
-        commands.add('TEXT $x,$y,"2",0,1,1,"${currentLine.toString()}"\n');
-
+    for (String char in characters) {
+      int wordLength = (isChineseCharacter(char) ? 3 : 1);
+      if (currentLineLength + wordLength > maxLineLength) {
+        commands.add('TEXT $x,$y,"TSS24.BF2",0,1,1,"${currentLine.toString()}"\n');
         y += 25;
         currentLine.clear();
         currentLineLength = 0;
+        rowCount++;
 
-        if (word.length > 0 && word[0] == ' ') {
-          word = word.substring(1);
+        if (rowCount >= 5) {
+          break;
+        }
+        if (char.length > 0 && char[0] == ' ') {
+          char = char.substring(1);
         }
       }
-      currentLine.write(word);
-      currentLineLength += word.length;
+      print("currentLine Write: ${char}");
+      currentLine.write(char);
+      currentLineLength += wordLength;
 
       if (currentLineLength < maxLineLength) {
-        currentLine.write(' ');
+        // currentLine.write(' ');
         currentLineLength++;
       }
     }
-    commands.add('TEXT $x,$y,"2",0,1,1,"${currentLine.toString()}"\n');
 
+    if (rowCount < 5 && currentLine.isNotEmpty) {
+      print("add command");
+      commands.add('TEXT $x,$y,"TSS24.BF2",0,1,1,"${currentLine.toString()}"\n');
+    }
     return commands;
   }
 
@@ -285,7 +301,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 1${checklist != null && checklist.check_list_show_price == 1 ? ' (6.90/each)' : '' }',
+            text: 'Product 1',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -301,7 +317,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 2${checklist != null && checklist.check_list_show_price == 1 ? ' (8.80/each)' : '' }',
+            text: 'Product 2',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -315,9 +331,9 @@ class ReceiptLayout{
             width: 10,
             containsChinese: true,
             styles: PosStyles(
-              align: PosAlign.left,
-              height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-              width: PosTextSize.size1)),
+                align: PosAlign.left,
+                height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
       ]);
       bytes += generator.row([
         PosColumn(text: '1',
@@ -327,7 +343,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 3${checklist != null && checklist.check_list_show_price == 1 ? ' (3.50/each)' : '' }',
+            text: 'Product 3',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -352,7 +368,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 4${checklist != null && checklist.check_list_show_price == 1 ? ' (15.90/each)' : '' }',
+            text: 'Product 4',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -378,7 +394,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 5${checklist != null && checklist.check_list_show_price == 1 ? ' (10.90/each)' : '' }',
+            text: 'Product 5',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -449,7 +465,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 1${checklist != null && checklist.check_list_show_price == 1 ? ' (6.90/each)' : '' }',
+            text: 'Product 1',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -460,7 +476,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 2${checklist != null && checklist.check_list_show_price == 1 ? ' (8.80/each)' : '' }',
+            text: 'Product 2',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -479,7 +495,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 3${checklist != null && checklist.check_list_show_price == 1 ? ' (3.50/each)' : '' }',
+            text: 'Product 3',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -499,7 +515,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 4${checklist != null && checklist.check_list_show_price == 1 ? ' (15.90/each)' : '' }',
+            text: 'Product 4',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -519,7 +535,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 5${checklist != null && checklist.check_list_show_price == 1 ? ' (10.90/each)' : '' }',
+            text: 'Product 5',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -1811,7 +1827,7 @@ class ReceiptLayout{
           bytes += generator.row([
             PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2),
             PosColumn(
-                // text: '${cartModel.cartNotifierItem[i].product_name} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit})',
+              // text: '${cartModel.cartNotifierItem[i].product_name} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit})',
                 text: productUnitPriceSplit  ? '${cartModel.cartNotifierItem[i].product_name}'
                     : '${cartModel.cartNotifierItem[i].product_name} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit})',
                 width: 7,
@@ -1852,11 +1868,11 @@ class ReceiptLayout{
           if(cartModel.cartNotifierItem[i].orderModifierDetail!.isNotEmpty){
             cartProductItem cartItem = cartModel.cartNotifierItem[i];
             for(int j = 0; j < cartItem.orderModifierDetail!.length; j++)
-            bytes += generator.row([
-              PosColumn(text: '', width: 2),
-              PosColumn(text: '+${cartItem.orderModifierDetail![j].mod_name!}', width: 7, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
-              PosColumn(text: '', width: 3, styles: PosStyles(align: PosAlign.right)),
-            ]);
+              bytes += generator.row([
+                PosColumn(text: '', width: 2),
+                PosColumn(text: '+${cartItem.orderModifierDetail![j].mod_name!}', width: 7, containsChinese: true, styles: PosStyles(align: PosAlign.left)),
+                PosColumn(text: '', width: 3, styles: PosStyles(align: PosAlign.right)),
+              ]);
           }
           // if(cartModel.cartNotifierItem[i].modifier!.isNotEmpty){
           //   for (int j = 0; j < cartModel.cartNotifierItem[i].modifier!.length; j++) {
@@ -1885,7 +1901,7 @@ class ReceiptLayout{
         bytes += generator.reset();
 
 
-    //item count
+        //item count
         num receiptItemCount = 0;
         for(int i = 0; i < cartModel.cartNotifierItem.length; i++){
           receiptItemCount += cartModel.cartNotifierItem[i].quantity!.toString().contains('.') ? 1 : cartModel.cartNotifierItem[i].quantity!;
@@ -2023,7 +2039,7 @@ class ReceiptLayout{
                 width: 6,
                 containsChinese: true,
                 styles: PosStyles(bold: true)),
-            PosColumn(
+            PosColumn(//Utils.convertTo2Dec()
                 text: '${(double.parse(cartModel.cartNotifierItem[i].price!)*cartModel.cartNotifierItem[i].quantity!).toStringAsFixed(2)}',
                 width: 4,
             ),
@@ -2097,8 +2113,8 @@ class ReceiptLayout{
           if(cartModel.selectedPromotion != null){
             bytes += generator.row([
               PosColumn(text: '${cartModel.selectedPromotion!.name}(${cartModel.selectedPromotion!.promoRate})',
-                  width: 8,
-                  containsChinese: true,
+                width: 8,
+                containsChinese: true,
               ),
               PosColumn(text: '-${cartModel.selectedPromotion!.promoAmount!.toStringAsFixed(2)}', width: 4),
             ]);
@@ -2107,8 +2123,8 @@ class ReceiptLayout{
             for(int p = 0; p < cartModel.cartNotifierPayment[0].promotionList!.length; p++){
               bytes += generator.row([
                 PosColumn(text: '${cartModel.cartNotifierPayment[0].promotionList![p].name}(${cartModel.cartNotifierPayment[0].promotionList![p].promoRate})',
-                    width: 8,
-                    containsChinese: true,
+                  width: 8,
+                  containsChinese: true,
                 ),
                 PosColumn(text: '-${cartModel.cartNotifierPayment[0].promotionList![p].promoAmount!.toStringAsFixed(2)}', width: 4),
               ]);
@@ -2125,7 +2141,7 @@ class ReceiptLayout{
           for(int t = 0; t < cartModel.cartNotifierPayment[0].taxList!.length; t++){
             bytes += generator.row([
               PosColumn(text: '${cartModel.cartNotifierPayment[0].taxList![t].name}(${cartModel.cartNotifierPayment[0].taxList![t].tax_rate}%)',
-                  width: 8,
+                width: 8,
               ),
               PosColumn(text: '${cartModel.cartNotifierPayment[0].taxList![t].tax_amount!.toStringAsFixed(2)}', width: 4),
             ]);
@@ -2214,17 +2230,10 @@ class ReceiptLayout{
     * */
       //order product
       for(int i = 0; i < orderDetailList.length; i++){
-        if(i != 0) {
-          if(checklistLayout != null && checklistLayout.check_list_show_separator == 1) {
-            bytes += generator.reset();
-            bytes += generator.hr();
-          }
-        }
         bytes += generator.row([
           PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(bold: true)),
           PosColumn(
-              // text: '${orderDetailList[i].productName}',
-              text: '${orderDetailList[i].productName} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${(double.parse(orderDetailList[i].price!) * double.parse(orderDetailList[i].quantity!)).toStringAsFixed(2)}/${orderDetailList[i].unit  != '' ? orderDetailList[i].unit : '/each'})' : '' }',
+              text: '${orderDetailList[i].productName}',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -2341,16 +2350,10 @@ class ReceiptLayout{
     * */
       //order product
       for(int i = 0; i < orderDetailList.length; i++){
-        if(i != 0) {
-          if(checklistLayout != null && checklistLayout.check_list_show_separator == 1) {
-            bytes += generator.reset();
-            bytes += generator.hr();
-          }
-        }
         bytes += generator.row([
           PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(bold: true)),
           PosColumn(
-              text: '${orderDetailList[i].productName} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${(double.parse(orderDetailList[i].price!) * double.parse(orderDetailList[i].quantity!)).toStringAsFixed(2)}/${orderDetailList[i].unit  != '' ? orderDetailList[i].unit : '/each'})' : '' }',
+              text: '${orderDetailList[i].productName}',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -2454,16 +2457,10 @@ class ReceiptLayout{
     * */
       //order product
       for(int i = 0; i < cartModel.cartNotifierItem.length; i++){
-        if(i != 0) {
-          if(checklistLayout != null && checklistLayout.check_list_show_separator == 1) {
-            bytes += generator.reset();
-            bytes += generator.hr();
-          }
-        }
         bytes += generator.row([
           PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: '${cartModel.cartNotifierItem[i].product_name!.trim()} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${(double.parse(cartModel.cartNotifierItem[i].price!) * cartModel.cartNotifierItem[i].quantity!).toStringAsFixed(2)}/${cartModel.cartNotifierItem[i].unit  != '' ? cartModel.cartNotifierItem[i].unit : '/each'})' : '' }',
+              text: '${cartModel.cartNotifierItem[i].product_name!.trim()}) ',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -2587,16 +2584,10 @@ class ReceiptLayout{
     * */
       //order product
       for(int i = 0; i < cartModel.cartNotifierItem.length; i++){
-        if(i != 0) {
-          if(checklistLayout != null && checklistLayout.check_list_show_separator == 1) {
-            bytes += generator.reset();
-            bytes += generator.hr();
-          }
-        }
         bytes += generator.row([
           PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: '${cartModel.cartNotifierItem[i].product_name} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${(double.parse(cartModel.cartNotifierItem[i].price!) * cartModel.cartNotifierItem[i].quantity!).toStringAsFixed(2)}/${cartModel.cartNotifierItem[i].unit  != '' ? cartModel.cartNotifierItem[i].unit : '/each'})' : '' }',
+              text: '${cartModel.cartNotifierItem[i].product_name})',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -2921,10 +2912,10 @@ class ReceiptLayout{
               : '${cartItem.quantity}',
               width: 2,
               styles: PosStyles(
-                align: PosAlign.left,
-                bold: true,
-                height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
-                width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
+                  align: PosAlign.left,
+                  bold: true,
+                  height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
+                  width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
           PosColumn(
               text: '${cartItem.product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
               width: 10,
@@ -3068,9 +3059,9 @@ class ReceiptLayout{
           PosColumn(text: cartItem.unit != 'each' ? '${(cartItem.quantity!*int.parse(cartItem.per_quantity_unit!)).toStringAsFixed(2)}${cartItem.unit}' : '${cartItem.quantity}',
               width: 3,
               styles: PosStyles(
-                bold: true,
-                height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
-                width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
+                  bold: true,
+                  height: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2,
+                  width: kitchenListLayout != null && kitchenListLayout.product_name_font_size == 1 ? PosTextSize.size1 : PosTextSize.size2)),
           PosColumn(
               text: '${cartItem.product_name}${kitchenListLayout != null && kitchenListLayout.kitchen_list_show_price == 1 ? '(RM${(double.parse(cartItem.price!) * cartItem.quantity!).toStringAsFixed(2)})' : '' }',
               width: 9,
@@ -3467,14 +3458,14 @@ class ReceiptLayout{
       }
 
       try {
+        List<int> bytes = [];
         List<String> commands = [];
         int leftPadding = 20;
         commands.add('SIZE 35 mm,25 mm\n');
-        // commands.add('GAP 2.88 mm,0 mm\n');
         commands.add('DIRECTION 1\n');
         commands.add('CLS\n');
         if(receiptLayout!.header_text != '')
-          commands.add('TEXT ${leftPadding},15,"2",0,1,1,"${receiptLayout.header_text!.length > 12 ? receiptLayout.header_text!.substring(0, 12) : receiptLayout.header_text}"\n');
+          commands.add('TEXT ${leftPadding},15,"TSS24.BF2",0,1,1,"${receiptLayout.header_text!.length > 12 ? receiptLayout.header_text!.substring(0, 12) : receiptLayout.header_text}"\n');
         if(int.tryParse(this.orderCache!.order_queue!) != null)
           commands.add('TEXT 210,15,"2",0,1,1,"${this.orderCache!.order_queue!}"\n');
 
@@ -3485,11 +3476,9 @@ class ReceiptLayout{
         commands.add('PRINT 1\n');
         commands.add('END\n');
 
-        List<int> bytes = commands.map((command) => command.codeUnits).expand((codeUnit) => codeUnit).toList();
-        String textToPrint = String.fromCharCodes(bytes);
-        List<int> result = generator.text(textToPrint, containsChinese: true);
-
-        return result;
+        String commandString = commands.join();
+        bytes = Uint8List.fromList(gbk_bytes.encode(commandString.toString()));
+        return bytes;
       } catch (e) {
         print('printLabel35mm error: $e');
         return null;
@@ -3706,59 +3695,59 @@ class ReceiptLayout{
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('pos_pin_user');
     Map userObject = json.decode(user!);
-      var generator;
-      if (isUSB) {
-        final profile = await CapabilityProfile.load();
-        generator = Generator(PaperSize.mm80, profile);
-      } else {
-        generator = value;
-      }
+    var generator;
+    if (isUSB) {
+      final profile = await CapabilityProfile.load();
+      generator = Generator(PaperSize.mm80, profile);
+    } else {
+      generator = value;
+    }
 
-      List<int> bytes = [];
-      try {
-        bytes += generator.text('** CASH BALANCE LIST **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
-        bytes += generator.emptyLines(1);
-        bytes += generator.reset();
+    List<int> bytes = [];
+    try {
+      bytes += generator.text('** CASH BALANCE LIST **', styles: PosStyles(align: PosAlign.center, width: PosTextSize.size2, height: PosTextSize.size2));
+      bytes += generator.emptyLines(1);
+      bytes += generator.reset();
 
-        bytes += generator.text('Transfer to: ${userObject['name']}', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.text('Transfer time: ${Utils.formatDate(dateTime)}', styles: PosStyles(align: PosAlign.center));
-        bytes += generator.hr();
-        bytes += generator.reset();
-        /*
+      bytes += generator.text('Transfer to: ${userObject['name']}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('Transfer time: ${Utils.formatDate(dateTime)}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.hr();
+      bytes += generator.reset();
+      /*
     *
     * body
     *
     * */
-        bytes += generator.row([
-          PosColumn(text: 'REMARK', width: 6, styles: PosStyles(bold: true)),
-          PosColumn(text: 'AMOUNT', width: 5, styles: PosStyles(bold: true, align: PosAlign.right)),
-          PosColumn(text: '', width: 1, styles: PosStyles(bold: true, align: PosAlign.center)),
-        ]);
-        bytes += generator.hr();
-        //order product
-        bytes += generator.row([
-          PosColumn(
-              text: 'Cash Balance',
-              width: 9,
-              containsChinese: true,
-              styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1)),
-          PosColumn(
-              text: '${cashBalance}',
-              width: 2,
-              styles: PosStyles(align: PosAlign.right)),
-          PosColumn(
-              text: '',
-              width: 1,
-              styles: PosStyles(align: PosAlign.right)),
-        ]);
+      bytes += generator.row([
+        PosColumn(text: 'REMARK', width: 6, styles: PosStyles(bold: true)),
+        PosColumn(text: 'AMOUNT', width: 5, styles: PosStyles(bold: true, align: PosAlign.right)),
+        PosColumn(text: '', width: 1, styles: PosStyles(bold: true, align: PosAlign.center)),
+      ]);
+      bytes += generator.hr();
+      //order product
+      bytes += generator.row([
+        PosColumn(
+            text: 'Cash Balance',
+            width: 9,
+            containsChinese: true,
+            styles: PosStyles(align: PosAlign.left, height: PosTextSize.size1, width: PosTextSize.size1)),
+        PosColumn(
+            text: '${cashBalance}',
+            width: 2,
+            styles: PosStyles(align: PosAlign.right)),
+        PosColumn(
+            text: '',
+            width: 1,
+            styles: PosStyles(align: PosAlign.right)),
+      ]);
 
-        bytes += generator.feed(1);
-        bytes += generator.cut(mode: PosCutMode.partial);
-        return bytes;
-      } catch (e) {
-        print('layout error: $e');
-        return null;
-      }
+      bytes += generator.feed(1);
+      bytes += generator.cut(mode: PosCutMode.partial);
+      return bytes;
+    } catch (e) {
+      print('layout error: $e');
+      return null;
+    }
 
   }
 
@@ -4855,10 +4844,37 @@ class ReceiptLayout{
 /*
   get paid order modifier detail
 */
- getPaidOrderModifierDetail(OrderDetail orderDetail) async {
-   List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetail.order_detail_sqlite_id.toString());
-   orderModifierDetailList = List.from(modDetail);
- }
+  getPaidOrderModifierDetail(OrderDetail orderDetail) async {
+    List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetail.order_detail_sqlite_id.toString());
+    orderModifierDetailList = List.from(modDetail);
+  }
+
+  List<String> customSplit(String input) {
+    List<String> result = [];
+    StringBuffer currentWord = StringBuffer();
+
+    for (int i = 0; i < input.length; i++) {
+      String currentChar = input[i];
+
+      // Customize your splitting logic here
+      if ('[ ]&()'.contains(currentChar)) {
+        if (currentWord.isNotEmpty) {
+          result.add(currentWord.toString());
+          currentWord.clear();
+        }
+        result.add(currentChar);
+      } else {
+        currentWord.write(currentChar);
+      }
+    }
+
+    // Add the last word if not empty
+    if (currentWord.isNotEmpty) {
+      result.add(currentWord.toString());
+    }
+
+    return result;
+  }
 
 /*
   reformat variant name

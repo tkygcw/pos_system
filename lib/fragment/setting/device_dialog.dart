@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:lan_scanner/lan_scanner.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:location/location.dart';
@@ -91,6 +93,16 @@ class _DeviceDialogState extends State<DeviceDialog> {
 
     var wifiIP = await NetworkInfo().getWifiIP();
     var wifiName = await NetworkInfo().getWifiName();
+    if(wifiIP == null) {
+      List<NetworkInterface> interfaces = await NetworkInterface.list();
+      for (var interface in interfaces) {
+        for (var address in interface.addresses) {
+          wifiIP = address.address;
+          wifiName = "Ethernet";
+        }
+      }
+    }
+
 
     var subnet = ipToCSubnet(wifiIP!);
 

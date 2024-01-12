@@ -252,6 +252,7 @@ class PosDatabase {
         case 11: {
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
         }break;
       }
     }
