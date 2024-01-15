@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/qr_order/adjust_stock_dialog.dart';
 import 'package:pos_system/object/branch_link_product.dart';
@@ -85,6 +86,9 @@ class _QrMainPageState extends State<QrMainPage> {
                                     text: AppLocalizations.of(context)!.translate('amount')+': ${Utils.convertTo2Dec(qrOrderCacheList[index].total_amount)}',
                                     style: TextStyle(color: Colors.black87, fontSize: 14),
                                   ),
+                                  TextSpan(text: '\n'),
+                                  TextSpan(text: 'Batch ID: #${qrOrderCacheList[index].batch_id}',
+                                    style: TextStyle(color: Colors.black54, fontSize: 14)),
                                 ],
                               ),
                             ),
@@ -94,7 +98,19 @@ class _QrMainPageState extends State<QrMainPage> {
                                   Icons.qr_code,
                                   color: Colors.grey,
                                 )),
-                            trailing: Text('#${qrOrderCacheList[index].batch_id}', style: TextStyle(fontSize: 18)),
+                            trailing: Container(
+                              width: 130,
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                '${getDuration(qrOrderCacheList[index].created_at)}',
+                                style: TextStyle(fontSize: 18, color: Colors.white),
+                                textAlign: TextAlign.center,
+                              ),// as needed
+                              decoration: BoxDecoration(
+                                color: getBackgroundColor(qrOrderCacheList[index].created_at),
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                            ),
                             onTap: () async {
                               await checkOrderDetail(qrOrderCacheList[index].order_cache_sqlite_id!, index);
                               //pop stock adjust dialog
@@ -204,6 +220,40 @@ class _QrMainPageState extends State<QrMainPage> {
     _isLoaded = true;
     if (!controller.isClosed) {
       controller.sink.add('refresh');
+    }
+  }
+
+  String getDuration(String? created_at) {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    DateTime currentDateTime = dateFormat.parse(dateFormat.format(DateTime.now()));
+    DateTime qrOrderCreatedAt = dateFormat.parse(created_at!);
+
+    Duration difference = currentDateTime.difference(qrOrderCreatedAt);
+
+    if (difference.inMinutes < 1) {
+      return '1 minute';
+    } else if (difference.inHours < 1) {
+      return '${difference.inMinutes} minutes';
+    } else if (difference.inDays < 1) {
+      return '${difference.inHours} hours';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days';
+    } else {
+      return '${difference.inDays ~/ 7} weeks';
+    }
+  }
+
+  Color getBackgroundColor(String? created_at) {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    DateTime currentDateTime = dateFormat.parse(dateFormat.format(DateTime.now()));
+    DateTime qrOrderCreatedAt = dateFormat.parse(created_at!);
+
+    Duration difference = currentDateTime.difference(qrOrderCreatedAt);
+
+    if (difference.inMinutes > 10) {
+      return Colors.red;
+    } else {
+      return Colors.green;
     }
   }
 
