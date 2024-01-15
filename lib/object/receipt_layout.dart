@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:esc_pos_utils/esc_pos_utils.dart';
+import 'package:esc_pos_utils_plus/gbk_codec/gbk_codec.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
@@ -176,9 +178,6 @@ class ReceiptLayout{
     return bytes;
   }
 
-/*
-  test print layout 58mm
-*/
   testTicket35mm(bool isUSB, {value}) async {
     DateTime dateTime = DateTime.now();
     String date = DateFormat('dd-MM-yyyy h:mm a').format(dateTime);
@@ -193,24 +192,31 @@ class ReceiptLayout{
         generator = value;
       }
 
+      List<int> bytes = [];
       List<String> commands = [];
       int leftPadding = 20;
+      String headerText = "Restaurant";
+      String productName = "Testing Testing 测试测试";
+
       commands.add('SIZE 35 mm,25 mm\n');
       commands.add('DIRECTION 1\n');
       commands.add('CLS\n');
-      String headerText = "测试店名";
       commands.add('TEXT ${leftPadding},15,"2",0,1,1,"${headerText.length > 12 ? headerText.substring(0, 12) : headerText}"\n');
       commands.add('TEXT 205,15,"2",0,1,1,"1034"\n');
-      commands.add('TEXT ${leftPadding},45,"TSS24.BF2",0,1,1,"${headerText}"\n');
+      // commands.add('TEXT ${leftPadding},45,"TSS24.BF2",0,1,1,"${productName}"\n');
+
+      List<String> productNameCommands = generateTextCommands(leftPadding, 45, productName);
+      commands.addAll(productNameCommands);
 
       commands.add('TEXT ${leftPadding},175,"2",0,1,1,"01/02"\n');
       commands.add('TEXT 225,180,"1",0,1,1,2,"${time}"\n');
       commands.add('PRINT 1\n');
       commands.add('END\n');
-      List<int> bytes = commands.map((command) => command.codeUnits).expand((codeUnit) => codeUnit).toList();
-      String textToPrint = String.fromCharCodes(bytes);
-      List<int> result = generator.text(textToPrint, containsChinese: true);
-      return result;
+
+      String commandString = commands.join();
+      bytes = Uint8List.fromList(gbk_bytes.encode(commandString.toString()));
+      return bytes;
+
     } catch (e) {
       print('testTicket35mm Error: $e');
       return [];
@@ -219,33 +225,44 @@ class ReceiptLayout{
 
   List<String> generateTextCommands(int x, int y, String productName) {
     List<String> commands = [];
-    int maxLineLength = 18;
-    List<String> words = productName.split(" ");
+    int maxLineLength = 40;
+    int wordLength = 0;
+    List<String> characters = productName.runes.map((rune) => String.fromCharCode(rune)).toList();
+
     int currentLineLength = 0;
     StringBuffer currentLine = StringBuffer();
+    int rowCount = 0;
 
-    for (String word in words) {
-      if (currentLineLength + word.length > maxLineLength) {
-        commands.add('TEXT $x,$y,"2",0,1,1,"${currentLine.toString()}"\n');
-
+    for (String char in characters) {
+      int wordLength = (isChineseCharacter(char) ? 3 : 1);
+      if (currentLineLength + wordLength > maxLineLength) {
+        commands.add('TEXT $x,$y,"TSS24.BF2",0,1,1,"${currentLine.toString()}"\n');
         y += 25;
         currentLine.clear();
         currentLineLength = 0;
+        rowCount++;
 
-        if (word.length > 0 && word[0] == ' ') {
-          word = word.substring(1);
+        if (rowCount >= 5) {
+          break;
+        }
+        if (char.length > 0 && char[0] == ' ') {
+          char = char.substring(1);
         }
       }
-      currentLine.write(word);
-      currentLineLength += word.length;
+      print("currentLine Write: ${char}");
+      currentLine.write(char);
+      currentLineLength += wordLength;
 
       if (currentLineLength < maxLineLength) {
-        currentLine.write(' ');
+        // currentLine.write(' ');
         currentLineLength++;
       }
     }
-    commands.add('TEXT $x,$y,"2",0,1,1,"${currentLine.toString()}"\n');
 
+    if (rowCount < 5 && currentLine.isNotEmpty) {
+      print("add command");
+      commands.add('TEXT $x,$y,"TSS24.BF2",0,1,1,"${currentLine.toString()}"\n');
+    }
     return commands;
   }
 
@@ -315,9 +332,9 @@ class ReceiptLayout{
             width: 10,
             containsChinese: true,
             styles: PosStyles(
-              align: PosAlign.left,
-              height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
-              width: PosTextSize.size1)),
+                align: PosAlign.left,
+                height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
+                width: PosTextSize.size1)),
       ]);
       bytes += generator.row([
         PosColumn(text: '1',
@@ -3442,14 +3459,14 @@ class ReceiptLayout{
       }
 
       try {
+        List<int> bytes = [];
         List<String> commands = [];
         int leftPadding = 20;
         commands.add('SIZE 35 mm,25 mm\n');
-        // commands.add('GAP 2.88 mm,0 mm\n');
         commands.add('DIRECTION 1\n');
         commands.add('CLS\n');
         if(receiptLayout!.header_text != '')
-          commands.add('TEXT ${leftPadding},15,"2",0,1,1,"${receiptLayout.header_text!.length > 12 ? receiptLayout.header_text!.substring(0, 12) : receiptLayout.header_text}"\n');
+          commands.add('TEXT ${leftPadding},15,"TSS24.BF2",0,1,1,"${receiptLayout.header_text!.length > 12 ? receiptLayout.header_text!.substring(0, 12) : receiptLayout.header_text}"\n');
         if(int.tryParse(this.orderCache!.order_queue!) != null)
           commands.add('TEXT 210,15,"2",0,1,1,"${this.orderCache!.order_queue!}"\n');
 
@@ -3460,11 +3477,9 @@ class ReceiptLayout{
         commands.add('PRINT 1\n');
         commands.add('END\n');
 
-        List<int> bytes = commands.map((command) => command.codeUnits).expand((codeUnit) => codeUnit).toList();
-        String textToPrint = String.fromCharCodes(bytes);
-        List<int> result = generator.text(textToPrint, containsChinese: true);
-
-        return result;
+        String commandString = commands.join();
+        bytes = Uint8List.fromList(gbk_bytes.encode(commandString.toString()));
+        return bytes;
       } catch (e) {
         print('printLabel35mm error: $e');
         return null;
