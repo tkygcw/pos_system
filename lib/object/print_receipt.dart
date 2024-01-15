@@ -1380,20 +1380,20 @@ class PrintReceipt{
                     //print USB 35mm
                     int totalItem = 0;
                     // get total item in order
-                    for (int x = 0; x < orderDetail.length; x++)
-                      for (int y = 0; y < int.parse(orderDetail[x].quantity!); y++)
+                    for (int x = 0; x < orderDetailList.length; x++)
+                      for (int y = 0; y < int.parse(orderDetailList[x].quantity!); y++)
                         totalItem += 1;
 
-                    for (int j = 0; j < int.parse(orderDetail[k].quantity!); j++) {
+                    for (int j = 0; j < int.parse(orderDetailList[k].quantity!); j++) {
                       currentItem++;
                       var data = Uint8List.fromList(
-                          await ReceiptLayout().printLabel35mm(true, orderCacheLocalId, totalItem, currentItem, orderDetail: orderDetail[k]));
+                          await ReceiptLayout().printLabel35mm(true, orderCacheLocalId, totalItem, currentItem, orderDetail: orderDetailList[k]));
                       bool? isConnected = await flutterUsbPrinter.connect(
                           int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                       if (isConnected == true) {
                         await flutterUsbPrinter.write(data);
                       } else {
-                        failedPrintOrderDetail.add(orderDetail[k]);
+                        failedPrintOrderDetail.add(orderDetailList[k]);
                       }
                     }
                   }
