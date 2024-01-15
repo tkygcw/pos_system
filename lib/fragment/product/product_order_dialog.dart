@@ -929,8 +929,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         List<BranchLinkProduct> productVariant = await PosDatabase.instance.checkProductVariant(await getProductVariant(productId!), productId.toString());
         basePrice = productVariant[0].price!;
         finalPrice = basePrice;
-        dialogPrice = basePrice;
-
         //loop has variant product modifier group
         for (int j = 0; j < modifierGroup.length; j++) {
           ModifierGroup group = modifierGroup[j];
@@ -944,6 +942,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
             }
           }
         }
+        dialogPrice = finalPrice;
       }
     } catch (error) {
       print('Get product base price error ${error}');
