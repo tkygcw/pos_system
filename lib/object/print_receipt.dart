@@ -106,7 +106,6 @@ class PrintReceipt{
   cashDrawer({required printerList}) async {
     try{
       int printStatus = 0;
-      print("printerList: ${printerList.length}");
       List<Printer> cashierPrinterList = printerList.where((item) => item.printer_status == 1 && item.is_counter == 1).toList();
       if(cashierPrinterList.isNotEmpty){
         for (int i = 0; i < cashierPrinterList.length; i++) {
@@ -130,7 +129,6 @@ class PrintReceipt{
           }
         }
       } else {
-        print("cashierPrinterList is null");
         printStatus = 4;
       }
       return printStatus;
@@ -1377,6 +1375,26 @@ class PrintReceipt{
                       await flutterUsbPrinter.write(data);
                     } else {
                       failedPrintOrderDetail.add(orderDetailList[k]);
+                    }
+                  } else {
+                    //print USB 35mm
+                    int totalItem = 0;
+                    // get total item in order
+                    for (int x = 0; x < orderDetailList.length; x++)
+                      for (int y = 0; y < int.parse(orderDetailList[x].quantity!); y++)
+                        totalItem += 1;
+
+                    for (int j = 0; j < int.parse(orderDetailList[k].quantity!); j++) {
+                      currentItem++;
+                      var data = Uint8List.fromList(
+                          await ReceiptLayout().printLabel35mm(true, orderCacheLocalId, totalItem, currentItem, orderDetail: orderDetailList[k]));
+                      bool? isConnected = await flutterUsbPrinter.connect(
+                          int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+                      if (isConnected == true) {
+                        await flutterUsbPrinter.write(data);
+                      } else {
+                        failedPrintOrderDetail.add(orderDetailList[k]);
+                      }
                     }
                   } else {
                     //print USB 35mm

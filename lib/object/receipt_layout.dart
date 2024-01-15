@@ -248,7 +248,6 @@ class ReceiptLayout{
           char = char.substring(1);
         }
       }
-      print("currentLine Write: ${char}");
       currentLine.write(char);
       currentLineLength += wordLength;
 
@@ -259,7 +258,6 @@ class ReceiptLayout{
     }
 
     if (rowCount < 5 && currentLine.isNotEmpty) {
-      print("add command");
       commands.add('TEXT $x,$y,"TSS24.BF2",0,1,1,"${currentLine.toString()}"\n');
     }
     return commands;
