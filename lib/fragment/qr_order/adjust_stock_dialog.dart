@@ -367,7 +367,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                           } else {
                             await callOtherOrder();
                           }
-                          printCheckList();
+                          await printCheckList();
                           syncToCloudFunction();
                           widget.callBack;
                           Navigator.of(context).pop();
@@ -613,7 +613,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                         } else {
                           await callOtherOrder();
                         }
-                        printCheckList();
+                        await printCheckList();
                         syncToCloudFunction();
                         widget.callBack;
                         Navigator.of(context).pop();
