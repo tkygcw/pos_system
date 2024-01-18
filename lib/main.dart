@@ -64,12 +64,16 @@ Future<void> main() async {
   //create default app color
   await appLanguage.fetchLocale();
 
-  runApp(
-      ChangeNotifierProvider.value(
-        value: notificationModel,
-        child: MyApp(appLanguage: appLanguage),
-      )
-  );
+  runApp(MyApp(
+    appLanguage: appLanguage,
+  ));
+
+  // runApp(
+  //     ChangeNotifierProvider.value(
+  //       value: notificationModel,
+  //       child: MyApp(appLanguage: appLanguage),
+  //     )
+  // );
 }
 
 deviceDetect() async {
@@ -149,6 +153,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => FailPrintModel(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => notificationModel,
         ),
       ],
       child: Consumer<AppLanguage>(builder: (context, model, child) {

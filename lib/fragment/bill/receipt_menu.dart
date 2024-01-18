@@ -755,10 +755,11 @@ class _ReceiptMenuState extends State<ReceiptMenu> {
         paidOrderList = List.from(data);
       }
     }
-
-    setState(() {
-      _isLoaded = true;
-    });
+    if(mounted){
+      setState(() {
+        _isLoaded = true;
+      });
+    }
   }
 
   callReadOrderTaxPromoDetail(Order order) async {

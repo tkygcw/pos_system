@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
+import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -29,6 +30,8 @@ class FoodMenu extends StatefulWidget {
 }
 
 class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
+  StreamController controller = StreamController();
+  late Stream contentStream;
   List<Tab> categoryTab = [];
   List<Widget> categoryTabContent = [];
   List<String> categoryList = [];
@@ -46,12 +49,12 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     if(mounted){
+      contentStream = controller.stream.asBroadcastStream();
       readAllCategories();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.cartModel.initialLoad();
       });
     }
-    // _tabController = TabController(length: 0, vsync: this);
   }
 
   @override
@@ -67,62 +70,67 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
-        _appSettingModel = appSettingModel;
-        if(notificationModel.contentLoad == true) {
-          isLoading = true;
-          //print('notification refresh called!');
-        }
-        if(notificationModel.contentLoad == true && notificationModel.contentLoaded == true){
-          notificationModel.resetContentLoaded();
-          notificationModel.resetContentLoad();
-          Future.delayed(const Duration(seconds: 1), () {
-            if(mounted){
-              setState(() {
-                readAllCategories(hasNotification: true);
-              });
-            }
-          });
-        }
-        return isLoading ? CustomProgressBar() :
-        Scaffold(
-          appBar: AppBar(
-            automaticallyImplyLeading: false,
-            elevation: 0,
-            title: Text(AppLocalizations.of(context)!.translate('menu'),
-              style: TextStyle(fontSize: 25, color: color.backgroundColor),
+        return Consumer<NotificationModel>(builder: (context, NotificationModel notificationModel, child) {
+          _appSettingModel = appSettingModel;
+          if(notificationModel.contentLoad == true){
+            categoryTab.clear();
+            categoryList.clear();
+            categoryTabContent.clear();
+          }
+          if(notificationModel.contentLoaded == true){
+            notificationModel.resetContentLoaded();
+            notificationModel.resetContentLoad();
+            Future.delayed(const Duration(seconds: 2), () {
+              readAllCategories();
+            });
+          }
+          return Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              elevation: 0,
+              title: Text(AppLocalizations.of(context)!.translate('menu'),
+                style: TextStyle(fontSize: 25, color: color.backgroundColor),
+              ),
+              actions: [
+                IconButton(
+                  color: color.buttonColor,
+                  onPressed: (){
+                    showSearch(context: context, delegate: ProductSearchDelegate(productList: allProduct, imagePath: imagePath, cartModel: widget.cartModel));
+                  },
+                  icon: Icon(Icons.search),
+                )
+              ],
             ),
-            actions: [
-              IconButton(
-                color: color.buttonColor,
-                onPressed: (){
-                  showSearch(context: context, delegate: ProductSearchDelegate(productList: allProduct, imagePath: imagePath, cartModel: widget.cartModel));
-                },
-                icon: Icon(Icons.search),
-              )
-            ],
-          ),
-          resizeToAvoidBottomInset: false,
-          body: Container(
-            child: Column(
-                children: [
-                  TabBar(
-                    isScrollable: true,
-                    unselectedLabelColor: Colors.black,
-                    labelColor: color.buttonColor,
-                    indicatorColor: color.buttonColor,
-                    tabs: categoryTab,
-                    controller: _tabController,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: TabBarView(controller: _tabController, children: categoryTabContent),
-                    ),
-                  ),
-                ]),
-          ),
-        );
+            resizeToAvoidBottomInset: false,
+            body: StreamBuilder(
+              stream: contentStream,
+              builder: (context, snapshot) {
+                if(snapshot.hasData && categoryTab.isNotEmpty){
+                  return Column(
+                      children: [
+                        TabBar(
+                          isScrollable: true,
+                          unselectedLabelColor: Colors.black,
+                          labelColor: color.buttonColor,
+                          indicatorColor: color.buttonColor,
+                          tabs: categoryTab,
+                          controller: _tabController,
+                          indicatorSize: TabBarIndicatorSize.tab,
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: TabBarView(controller: _tabController, children: categoryTabContent),
+                          ),
+                        ),
+                      ]);
+                } else {
+                  return CustomProgressBar();
+                }
+              }
+            ),
+          );
+        });
       });
     });
   }
@@ -152,146 +160,145 @@ class _FoodMenuState extends State<FoodMenu> with TickerProviderStateMixin {
   }
 
   void refresh() {
-    isLoading = false;
-    setState(() {});
+    print("refresh called!!!");
+    controller.sink.add("refresh");
   }
 
-  readAllCategories({hasNotification}) async {
+  readAllCategories() async {
     List<Categories> _data = [];
-    if(hasNotification == true){
-      categoryTab.clear();
-      categoryList.clear();
-      categoryTabContent.clear();
-    }
     await getPreferences();
-    _data = await PosDatabase.instance.readAllCategories();
-    _data = sortCategory(_data);
-    categoryTab.add(Tab(
-      text: AppLocalizations.of(context)!.translate('all_category'),
-    ));
-    categoryList.add(AppLocalizations.of(context)!.translate('all_category'));
-    for (int i = 0; i < _data.length; i++) {
+    if(categoryTab.isEmpty){
+      _data = await PosDatabase.instance.readAllCategories();
+      _data = sortCategory(_data);
       categoryTab.add(Tab(
-        text: _data[i].name!,
+        text: AppLocalizations.of(MyApp.navigatorKey.currentContext!)!.translate('all_category'),
       ));
-      categoryList.add(_data[i].name!);
+      categoryList.add(AppLocalizations.of(MyApp.navigatorKey.currentContext!)!.translate('all_category'));
+      for (int i = 0; i < _data.length; i++) {
+        categoryTab.add(Tab(
+          text: _data[i].name!,
+        ));
+        categoryList.add(_data[i].name!);
+      }
+
+      for (int i = 0; i < categoryList.length; i++) {
+        if (categoryList[i] == AppLocalizations.of(MyApp.navigatorKey.currentContext!)!.translate('all_category')) {
+          List<Product> data = await PosDatabase.instance.readAllProduct();
+          data = sortProduct(data);
+          allProduct = data;
+          categoryTabContent.add(GridView.count(
+              shrinkWrap: true,
+              //MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.height
+              crossAxisCount: MediaQuery.of(MyApp.navigatorKey.currentContext!).size.height > 500 && MediaQuery.of(MyApp.navigatorKey.currentContext!).size.width > 900 ? 5 : 3,
+              children: List.generate(data.length, (index) {
+                return Card(
+                  child: Container(
+                    decoration: (data[index].graphic_type == '2'
+                        ? BoxDecoration(image: DecorationImage(image: FileImage(File(imagePath + '/' + data[index].image!)), fit: BoxFit.cover))
+                        : BoxDecoration(color: HexColor(data[index].color!))),
+                    child: InkWell(
+                      splashColor: Colors.blue.withAlpha(30),
+                      onTap: () {
+                        openProductOrderDialog(data[index], widget.cartModel);
+                      },
+                      child: Stack(
+                        alignment: Alignment.bottomLeft,
+                        children: [
+                          Container(
+                            height: 50,
+                            padding: EdgeInsets.fromLTRB(5, 2, 5, 2),
+                            color: Colors.black.withOpacity(0.5),
+                            width: 200,
+                            alignment: Alignment.center,
+                            child: _appSettingModel.show_sku! ?
+                            Text(
+                              data[index].SKU! + ' ' + data[index].name!,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 13,
+                              ),
+                            ) :
+                            Text(
+                              data[index].name!,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 13,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              })));
+        } else {
+          List<Product> data = await PosDatabase.instance.readSpecificProduct(categoryList[i]);
+          data = sortProduct(data);
+          categoryTabContent.add(GridView.count(
+              shrinkWrap: true,
+              padding: const EdgeInsets.all(10),
+              crossAxisCount: MediaQuery.of(MyApp.navigatorKey.currentContext!).size.height > 500 ? 5 : 3,
+              children: List.generate(data.length, (index) {
+                return Card(
+                  child: Container(
+                    decoration: (data[index].graphic_type == '2'
+                        ? BoxDecoration(image: DecorationImage(image: FileImage(File(imagePath + '/' + data[index].image!)), fit: BoxFit.cover))
+                        : BoxDecoration(color: HexColor(data[index].color!))),
+                    child: InkWell(
+                      splashColor: Colors.blue.withAlpha(30),
+                      onTap: () {
+                        openProductOrderDialog(data[index], widget.cartModel);
+                      },
+                      child: Stack(
+                        alignment: Alignment.bottomLeft,
+                        children: [
+                          Container(
+                            color: Colors.black.withOpacity(0.5),
+                            padding: EdgeInsets.fromLTRB(5, 2, 5, 2),
+                            height: 50,
+                            width: 200,
+                            alignment: Alignment.center,
+                            child:  _appSettingModel.show_sku! ? Text(
+                              data[index].SKU! + ' ' + data[index].name!,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 13,
+                              ),
+                            ) :
+                            Text(
+                              data[index].name!,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 13,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              })));
+        }
+      }
+      if(!mounted) return;
+      _tabController = TabController(length: categoryTab.length, vsync: this);
+      refresh();
     }
 
-    for (int i = 0; i < categoryList.length; i++) {
-      if (categoryList[i] == AppLocalizations.of(context)!.translate('all_category')) {
-        List<Product> data = await PosDatabase.instance.readAllProduct();
-        data = sortProduct(data);
-        allProduct = data;
-        categoryTabContent.add(GridView.count(
-            shrinkWrap: true,
-            //MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.height
-            crossAxisCount: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 5 : 3,
-            children: List.generate(data.length, (index) {
-              return Card(
-                child: Container(
-                  decoration: (data[index].graphic_type == '2'
-                      ? BoxDecoration(image: DecorationImage(image: FileImage(File(imagePath + '/' + data[index].image!)), fit: BoxFit.cover))
-                      : BoxDecoration(color: HexColor(data[index].color!))),
-                  child: InkWell(
-                    splashColor: Colors.blue.withAlpha(30),
-                    onTap: () {
-                      openProductOrderDialog(data[index], widget.cartModel);
-                    },
-                    child: Stack(
-                      alignment: Alignment.bottomLeft,
-                      children: [
-                        Container(
-                          height: 50,
-                          padding: EdgeInsets.fromLTRB(5, 2, 5, 2),
-                          color: Colors.black.withOpacity(0.5),
-                          width: 200,
-                          alignment: Alignment.center,
-                          child: _appSettingModel.show_sku! ?
-                          Text(
-                            data[index].SKU! + ' ' + data[index].name!,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 13,
-                            ),
-                          ) :
-                          Text(
-                            data[index].name!,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 13,
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            })));
-      } else {
-        List<Product> data = await PosDatabase.instance.readSpecificProduct(categoryList[i]);
-        data = sortProduct(data);
-        categoryTabContent.add(GridView.count(
-            shrinkWrap: true,
-            padding: const EdgeInsets.all(10),
-            crossAxisCount: MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.height > 500 ? 5 : 3,
-            children: List.generate(data.length, (index) {
-              return Card(
-                child: Container(
-                  decoration: (data[index].graphic_type == '2'
-                      ? BoxDecoration(image: DecorationImage(image: FileImage(File(imagePath + '/' + data[index].image!)), fit: BoxFit.cover))
-                      : BoxDecoration(color: HexColor(data[index].color!))),
-                  child: InkWell(
-                    splashColor: Colors.blue.withAlpha(30),
-                    onTap: () {
-                      openProductOrderDialog(data[index], widget.cartModel);
-                    },
-                    child: Stack(
-                      alignment: Alignment.bottomLeft,
-                      children: [
-                        Container(
-                          color: Colors.black.withOpacity(0.5),
-                          padding: EdgeInsets.fromLTRB(5, 2, 5, 2),
-                          height: 50,
-                          width: 200,
-                          alignment: Alignment.center,
-                          child:  _appSettingModel.show_sku! ? Text(
-                            data[index].SKU! + ' ' + data[index].name!,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 13,
-                            ),
-                          ) :
-                          Text(
-                            data[index].name!,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 13,
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            })));
-      }
-    }
-    _tabController = TabController(length: categoryTab.length, vsync: this);
-    refresh();
   }
 
   sortCategory(List<Categories> list){

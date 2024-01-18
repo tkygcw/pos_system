@@ -784,7 +784,7 @@ class PrintReceipt{
 
   }
 
-  printKitchenList(List<Printer> printerList, int orderCacheLocalId, context) async {
+  printKitchenList(List<Printer> printerList, int orderCacheLocalId) async {
     print("printKitchenList called");
     try{
       KitchenList? kitchenListLayout58mm = await PosDatabase.instance.readSpecificKitchenList('58');

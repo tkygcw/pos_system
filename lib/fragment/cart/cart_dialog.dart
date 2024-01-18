@@ -268,7 +268,9 @@ class CartDialogState extends State<CartDialog> {
                               onPressed: isButtonDisabled
                                   ? null
                                   : () {
-                                      print('called');
+                                      setState(() {
+                                        isButtonDisabled = true;
+                                      });
                                       Navigator.of(context).pop();
                                     },
                             ),
