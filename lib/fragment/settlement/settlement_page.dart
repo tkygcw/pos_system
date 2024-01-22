@@ -912,7 +912,7 @@ class _SettlementPageState extends State<SettlementPage> {
         }
       }
     }
-
+    if(!mounted) return;
     setState(() {
       isLoad = true;
     });

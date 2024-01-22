@@ -784,7 +784,7 @@ class PrintReceipt{
 
   }
 
-  printKitchenList(List<Printer> printerList, int orderCacheLocalId, context) async {
+  printKitchenList(List<Printer> printerList, int orderCacheLocalId) async {
     print("printKitchenList called");
     try{
       KitchenList? kitchenListLayout58mm = await PosDatabase.instance.readSpecificKitchenList('58');
@@ -868,11 +868,11 @@ class PrintReceipt{
                         if (res == PosPrintResult.success) {
                           print("currentItem: ${currentItem}");
                           await ReceiptLayout().printLabel35mm(false, orderCacheLocalId, totalItem, currentItem, value: printer, orderDetail: orderDetail[k]);
+                          printer.disconnect();
                         } else {
                           failedPrintOrderDetail.add(orderDetail[k]);
                         }
                       }
-                      printer.disconnect();
                     }
                   } else {
                     //print USB
@@ -1175,6 +1175,7 @@ class PrintReceipt{
                         currentItem++;
                         if (res == PosPrintResult.success) {
                           await ReceiptLayout().printLabel35mm(false, int.parse(reprintList[k].order_cache_sqlite_id!), totalItem, currentItem, value: printer, orderDetail: reprintList[k]);
+                          printer.disconnect();
                         } else {
                           failedPrintOrderDetail.add(reprintList[k]);
                         }
@@ -1314,18 +1315,16 @@ class PrintReceipt{
                     for (int x = 0; x < orderDetail.length; x++)
                       for (int y = 0; y < int.parse(orderDetail[x].quantity!); y++)
                         totalItem += 1;
-                    print("totalItem: ${totalItem}");
 
                     for (int j = 0; j < int.parse(orderDetail[k].quantity!); j++) {
                       currentItem++;
                       if (res == PosPrintResult.success) {
-                        print("currentItem: ${currentItem}");
                         await ReceiptLayout().printLabel35mm(false, orderCacheLocalId, totalItem, currentItem, value: printer, orderDetail: orderDetail[k]);
+                        printer.disconnect();
                       } else {
                         failedPrintOrderDetail.add(orderDetail[k]);
                       }
                     }
-                    printer.disconnect();
                     // if (res == PosPrintResult.success) {
                     //   // await ReceiptLayout().printQrKitchenList58mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
                     //   if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)
