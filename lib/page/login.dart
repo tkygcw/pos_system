@@ -224,6 +224,14 @@ class _LoginPageState extends State<LoginPage> {
 
     path.create();
     _createOtherImgFolder();
+    _createPaymentQrFolder();
+  }
+
+  _createPaymentQrFolder() async {
+    final folderName = 'payment_qr';
+    final path = await _localPath;
+    final pathPaymentQr = Directory('$path/assets/$folderName');
+    pathPaymentQr.create();
   }
 
   _createOtherImgFolder() async {

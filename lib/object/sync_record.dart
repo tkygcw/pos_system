@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch_link_promotion.dart';
 import 'package:pos_system/object/payment_link_company.dart';
@@ -624,12 +625,23 @@ class SyncRecord {
 
   callPaymentLinkCompanyQuery({data, method}) async {
     bool isComplete = false;
-    PaymentLinkCompany paymentData = PaymentLinkCompany.fromJson(data[0]);
     try{
+      PaymentLinkCompany paymentData = PaymentLinkCompany.fromJson(data[0]);
+      final folderName = paymentData.payment_link_company_id.toString();
+      final directory = await _localPath;
+      final path = '$directory/assets/payment_qr/$folderName';
+      bool isPathExisted = await Directory(path).exists();
       if(method == '0'){
         PaymentLinkCompany? checkData = await PosDatabase.instance.checkSpecificPaymentLinkCompanyId(paymentData.payment_link_company_id!);
         if(checkData == null){
           PaymentLinkCompany data = await PosDatabase.instance.insertPaymentLinkCompany(paymentData);
+          if(data.allow_image == 1 && data.image_name != null && data.image_name != ''){
+            if(isPathExisted){
+              await _downloadPaymentImage(path, data);
+            } else {
+              await _createPaymentQrFolder(paymentLinkCompany: data);
+            }
+          }
           if(data.created_at != ''){
             isComplete = true;
           }
@@ -638,13 +650,94 @@ class SyncRecord {
         }
       } else {
         int data = await PosDatabase.instance.updatePaymentLinkCompany(paymentData);
+        PaymentLinkCompany? checkData = await PosDatabase.instance.checkSpecificPaymentLinkCompanyId(paymentData.payment_link_company_id!);
+        if(checkData != null && checkData.allow_image == 1 && checkData.image_name != null && checkData.image_name != ''){
+          if(isPathExisted && checkData.soft_delete == ''){
+            if(await File(path + '/' + checkData.image_name!).exists() == false){
+              await _downloadPaymentImage(path, checkData);
+            }
+          } else if (!isPathExisted && checkData.soft_delete == '') {
+            await _createPaymentQrFolder(paymentLinkCompany: checkData);
+
+          } else if (isPathExisted && checkData.soft_delete != ''){
+            await deleteDirectory(paymentLinkCompany: checkData);
+          }
+        }
+
         if(data == 1){
           isComplete = true;
         }
       }
       return isComplete;
     } catch(e){
+      print("paymentLinkCompany query error: $e");
       return isComplete = false;
+    }
+  }
+
+  Future<String> get _localPath async {
+    final directory = await getApplicationSupportDirectory();
+    return directory.path;
+  }
+
+  Future<void> deleteDirectory({required PaymentLinkCompany paymentLinkCompany}) async {
+    try {
+      final folderName = paymentLinkCompany.payment_link_company_id.toString();
+      final localPath = await _localPath;
+      final folder = await Directory('$localPath/assets/payment_qr/$folderName');
+      folder.delete(recursive: true);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  _createPaymentQrFolder({required PaymentLinkCompany paymentLinkCompany}) async {
+    try{
+      final folderName = 'payment_qr';
+      final path = await _localPath;
+      final pathPaymentQr = Directory('$path/assets/$folderName');
+      bool isPathExisted = await pathPaymentQr.exists();
+      if(isPathExisted){
+        await _createPaymentImgFolder(paymentLinkCompany: paymentLinkCompany);
+      } else {
+        await pathPaymentQr.create();
+        await _createPaymentImgFolder(paymentLinkCompany: paymentLinkCompany);
+      }
+    }catch(e){
+      return;
+    }
+  }
+
+  _createPaymentImgFolder({required PaymentLinkCompany paymentLinkCompany}) async {
+    try{
+      final folderName = paymentLinkCompany.payment_link_company_id.toString();
+      final directory = await _localPath;
+      final path = '$directory/assets/payment_qr/$folderName';
+      final pathImg = Directory(path);
+      pathImg.create();
+      if(paymentLinkCompany.image_name != null && paymentLinkCompany.image_name != ''){
+        await _downloadPaymentImage(path, paymentLinkCompany);
+      }
+    }catch(e){
+      return;
+    }
+  }
+
+  _downloadPaymentImage(String path, PaymentLinkCompany paymentLinkCompany) async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final String? user = prefs.getString('user');
+      Map userObject = json.decode(user!);
+      String url = '';
+      String paymentLinkCompanyId =  paymentLinkCompany.payment_link_company_id.toString();
+      String name = paymentLinkCompany.image_name!;
+      url = '${Domain.backend_domain}api/payment_QR/' + userObject['company_id'] + '/' + paymentLinkCompanyId + '/' + name;
+      final response = await http.get(Uri.parse(url));
+      var localPath = path + '/' + name;
+      final imageFile = File(localPath);
+      await imageFile.writeAsBytes(response.bodyBytes);
+    } catch(e){
+      return;
     }
   }
 
