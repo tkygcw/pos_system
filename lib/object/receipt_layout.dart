@@ -213,7 +213,8 @@ class ReceiptLayout{
       commands.add('END\n');
 
       String commandString = commands.join();
-      bytes = Uint8List.fromList(gbk_bytes.encode(commandString.toString()));
+      // bytes = Uint8List.fromList(gbk_bytes.encode(commandString.toString()));
+      bytes += generator.rawBytes(Uint8List.fromList(gbk_bytes.encode(commandString.toString())));
       return bytes;
 
     } catch (e) {
@@ -2852,6 +2853,7 @@ class ReceiptLayout{
   kitchen layout 80mm
 */
   printKitchenList80mm(bool isUSB, int localId, {value, required OrderDetail orderDetail}) async {
+    print("printKitchenList80mm called");
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     KitchenList? kitchenListLayout = await PosDatabase.instance.readSpecificKitchenList('80');
@@ -3475,7 +3477,8 @@ class ReceiptLayout{
         commands.add('END\n');
 
         String commandString = commands.join();
-        bytes = Uint8List.fromList(gbk_bytes.encode(commandString.toString()));
+        // bytes = Uint8List.fromList(gbk_bytes.encode(commandString.toString()));
+        bytes += generator.rawBytes(Uint8List.fromList(gbk_bytes.encode(commandString.toString())));
         return bytes;
       } catch (e) {
         print('printLabel35mm error: $e');

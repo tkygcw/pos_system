@@ -246,7 +246,6 @@ class SyncRecord {
         print('sync record length: ${syncRecordIdList.length}');
         //update sync record
         await Domain().updateAllCloudSyncRecord('${branchObject['branchID']}', syncRecordIdList.toString());
-        notificationModel.setContentLoad();
         notificationModel.setContentLoaded();
         notificationModel.setCartContentLoaded();
         status = 0;

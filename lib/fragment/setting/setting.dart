@@ -353,9 +353,11 @@ class _SettingMenuState extends State<SettingMenu> {
   checkCashRecord() async {
     List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord();
     cashRecordList = List.from(data);
-    setState(() {
-      this.isLoaded = true;
-    });
+    if(mounted){
+      setState(() {
+        this.isLoaded = true;
+      });
+    }
   }
 
 }

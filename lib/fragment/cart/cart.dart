@@ -35,6 +35,7 @@ import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/page/loading_dialog.dart';
+import 'package:pos_system/page/progress_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -43,6 +44,7 @@ import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../main.dart';
 import '../../notifier/app_setting_notifier.dart';
+import '../../notifier/notification_notifier.dart';
 import '../../object/app_setting.dart';
 import '../../object/cart_payment.dart';
 import '../../object/cash_record.dart';
@@ -198,235 +200,244 @@ class CartPageState extends State<CartPage> {
         _appSettingModel = appSettingModel;
         return Consumer<FailPrintModel>(builder: (context, FailPrintModel failPrintModel, child) {
           _failPrintModel = failPrintModel;
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Consumer<CartModel>(builder: (context, CartModel cart, child) {
-              if (lastDiningOption == false) readAllBranchLinkDiningOption(cart: cart);
+          print("rebuild ui");
+          return Consumer<CartModel>(builder: (context, CartModel cart, child) {
+            return Consumer<NotificationModel>(builder: (context, NotificationModel notificationModel, child) {
+              if(cart.cartNotifierItem.isEmpty){
+                isButtonDisabled = true;
+              } else {
+                isButtonDisabled = false;
+              }
+              if(lastDiningOption == false) readAllBranchLinkDiningOption(cart: cart);
 
               if (notificationModel.cartContentLoaded == true) {
-                print('cart refresh!');
                 notificationModel.resetCartContentLoaded();
+                WidgetsBinding.instance.addPostFrameCallback((_){
+                  cart.removeAllCartItem();
+                  cart.removeAllTable();
+                  cart.removeAllPromotion();
+                });
                 Future.delayed(const Duration(seconds: 1), () {
-                  print('cart delay refresh!');
-                  if (mounted) {
-                    setState(() {
-                      cart.removeAllCartItem();
-                      cart.removeAllTable();
-                      cart.removeAllPromotion();
-                      // cart.removePromotion();
-                      readAllBranchLinkDiningOption(cart: cart);
-                      getPromotionData();
-                      getSubTotal(cart);
-                      getReceiptPaymentDetail(cart);
-                    });
-                  }
+                  readAllBranchLinkDiningOption(cart: cart);
+                  getPromotionData();
+                  getSubTotal(cart);
+                  getReceiptPaymentDetail(cart);
                 });
               }
               widget.currentPage == 'menu' || widget.currentPage == 'table' || widget.currentPage == 'qr_order' || widget.currentPage == 'other_order'
                   ? getSubTotal(cart)
                   : getReceiptPaymentDetail(cart);
-              return Scaffold(
-                resizeToAvoidBottomInset: false,
-                appBar: AppBar(
-                  automaticallyImplyLeading: false,
-                  title: Row(
-                    children: [
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Scaffold(
+                  resizeToAvoidBottomInset: false,
+                  appBar: AppBar(
+                    automaticallyImplyLeading: false,
+                    title: Row(
+                      children: [
+                        Visibility(
+                          visible: widget.currentPage == 'table' ? true: true,
+                          child: Text('${getSelectedTable(cart, appSettingModel)}'),
+                        ),
+                        // MediaQuery.of(context).size.height > 500
+                        //     ? Text(AppLocalizations.of(context)!.translate('bill'), style: TextStyle(fontSize: 20, color: Colors.black))
+                        //     : SizedBox.shrink(),
+                        // Visibility(
+                        //   visible: widget.currentPage == 'table' ? true: false,
+                        //   child: Expanded(
+                        //     child: Padding(
+                        //       padding: const EdgeInsets.all(8.0),
+                        //       child: Text(AppLocalizations.of(context)!.translate('table')+': ${getSelectedTable(cart)}'),
+                        //     ),
+                        //   ),
+                        // ),
+                      ],
+                    ),
+                    backgroundColor: Colors.white,
+                    actions: [
                       Visibility(
-                        visible: widget.currentPage == 'table' ? true : true,
-                        child: Text('${getSelectedTable(cart, appSettingModel)}'),
+                        visible: widget.currentPage == 'menu' ? true : false,
+                        child: Expanded(
+                          child: IconButton(
+                            tooltip: 'kitchen print',
+                            icon: Badge(
+                              isLabelVisible: failPrintModel.failedPrintOrderDetail.isEmpty ? false : true,
+                              label: Text(failPrintModel.failedPrintOrderDetail.length.toString()),
+                              child: const Icon(
+                                Icons.print,
+                              ),
+                            ),
+                            color: color.backgroundColor,
+                            onPressed: () {
+                              //tableDialog(context);
+                              openReprintKitchenDialog();
+                            },
+                          ),
+                        ),
                       ),
-                      // MediaQuery.of(context).size.height > 500
-                      //     ? Text(AppLocalizations.of(context)!.translate('bill'), style: TextStyle(fontSize: 20, color: Colors.black))
-                      //     : SizedBox.shrink(),
-                      // Visibility(
-                      //   visible: widget.currentPage == 'table' ? true: false,
-                      //   child: Expanded(
-                      //     child: Padding(
-                      //       padding: const EdgeInsets.all(8.0),
-                      //       child: Text(AppLocalizations.of(context)!.translate('table')+': ${getSelectedTable(cart)}'),
-                      //     ),
-                      //   ),
-                      // ),
+                      Visibility(
+                        visible: cart.selectedOption == 'Dine in' && widget.currentPage == 'menu' && appSettingModel.table_order == true
+                            ? true
+                            : false,
+                        child: Expanded(
+                          child: IconButton(
+                            tooltip: 'table',
+                            icon: Badge(
+                              isLabelVisible: cart.selectedTable.isEmpty ? false : true,
+                              label: Text("${cart.selectedTable.length}"),
+                              child: const Icon(
+                                Icons.table_restaurant,
+                              ),
+                            ),
+                            color: color.backgroundColor,
+                            onPressed: () {
+                              //tableDialog(context);
+                              openChooseTableDialog(cart);
+                            },
+                          ),
+                        ),
+                      ),
+                      Visibility(
+                        visible: (widget.currentPage == 'menu' && cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) ||
+                            (widget.currentPage == 'menu' && cart.selectedOption != 'Dine in' && appSettingModel.directPaymentStatus == false) ||
+                            widget.currentPage == 'qr_order' ||
+                            widget.currentPage == 'bill'
+                            ? false
+                            : true,
+                        child: IconButton(
+                          tooltip: 'promotion',
+                          icon: Icon(Icons.discount),
+                          color: color.backgroundColor,
+                          onPressed: () {
+                            print("app setting: ${appSettingModel.directPaymentStatus}");
+                            openPromotionDialog();
+                          },
+                        ),
+                      ),
+                      Visibility(
+                        visible: widget.currentPage == 'menu' ? true : false,
+                        child: Expanded(
+                          child: IconButton(
+                            tooltip: 'clear cart',
+                            icon: const Icon(
+                              Icons.delete,
+                            ),
+                            color: color.backgroundColor,
+                            onPressed: () {
+                              cart.removePartialCartItem();
+                              //cart.removeAllTable();
+                            },
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                  backgroundColor: Colors.white,
-                  actions: [
-                    Visibility(
-                      visible: widget.currentPage == 'menu' ? true : false,
-                      child: Expanded(
-                        child: IconButton(
-                          tooltip: 'kitchen print',
-                          icon: Badge(
-                            isLabelVisible: failPrintModel.failedPrintOrderDetail.isEmpty ? false : true,
-                            label: Text(failPrintModel.failedPrintOrderDetail.length.toString()),
-                            child: const Icon(
-                              Icons.print,
+                  body: StreamBuilder(
+                      stream: controller.stream,
+                      builder: (context, snapshot) {
+                        if(snapshot.hasData && notificationModel.contentLoad == false){
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey.shade100, width: 3.0),
                             ),
-                          ),
-                          color: color.backgroundColor,
-                          onPressed: () {
-                            //tableDialog(context);
-                            openReprintKitchenDialog();
-                          },
-                        ),
-                      ),
-                    ),
-                    Visibility(
-                      visible: cart.selectedOption == 'Dine in' && widget.currentPage == 'menu' && appSettingModel.table_order == true ? true : false,
-                      child: Expanded(
-                        child: IconButton(
-                          tooltip: 'table',
-                          icon: Badge(
-                            isLabelVisible: cart.selectedTable.isEmpty ? false : true,
-                            label: Text("${cart.selectedTable.length}"),
-                            child: const Icon(
-                              Icons.table_restaurant,
-                            ),
-                          ),
-                          color: color.backgroundColor,
-                          onPressed: () {
-                            //tableDialog(context);
-                            openChooseTableDialog(cart);
-                          },
-                        ),
-                      ),
-                    ),
-                    Visibility(
-                      visible: (widget.currentPage == 'menu' && cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) ||
-                              (widget.currentPage == 'menu' && cart.selectedOption != 'Dine in' && appSettingModel.directPaymentStatus == false) ||
-                              widget.currentPage == 'qr_order' ||
-                              widget.currentPage == 'bill'
-                          ? false
-                          : true,
-                      child: IconButton(
-                        tooltip: 'promotion',
-                        icon: Icon(Icons.discount),
-                        color: color.backgroundColor,
-                        onPressed: () {
-                          print("app setting: ${appSettingModel.directPaymentStatus}");
-                          openPromotionDialog();
-                        },
-                      ),
-                    ),
-                    Visibility(
-                      visible: widget.currentPage == 'menu' ? true : false,
-                      child: Expanded(
-                        child: IconButton(
-                          tooltip: 'clear cart',
-                          icon: const Icon(
-                            Icons.delete,
-                          ),
-                          color: color.backgroundColor,
-                          onPressed: () {
-                            cart.removePartialCartItem();
-                            //cart.removeAllTable();
-                          },
-                        ),
-                      ),
-                    ),
-                    // PopupMenuButton<Text>(
-                    //     icon: Icon(Icons.more_vert, color: color.backgroundColor),
-                    //     itemBuilder: (context) {
-                    //       return [
-                    //         PopupMenuItem(
-                    //           child: Text(
-                    //             'test',
-                    //           ),
-                    //         ),
-                    //       ];
-                    //     })
-                  ],
-                ),
-                body: StreamBuilder(
-                    stream: controller.stream,
-                    builder: (context, snapshot) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: Colors.grey.shade100, width: 3.0),
-                        ),
-                        child: Column(
-                          children: [
-                            Container(
-                              margin: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? EdgeInsets.only(bottom: 10) : EdgeInsets.zero,
-                              child: GridView(
-                                  physics: NeverScrollableScrollPhysics(),
-                                  shrinkWrap: true,
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: diningList.length == 3 ? 3 : 2, childAspectRatio: 2.0, mainAxisExtent: 50),
-                                  children: List.generate(diningList.length, (index) {
-                                    return InkWell(
-                                      onTap: () {
-                                        widget.currentPage == 'menu'
-                                            ? cart.cartNotifierItem.isEmpty
-                                                ? setState(() {
-                                                    cart.removeAllTable();
-                                                    cart.selectedOption = diningList[index].name!;
-                                                    cart.selectedOptionId = diningList[index].dining_id!;
-                                                  })
-                                                : cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status != 1 && cart.selectedOption != diningList[index].name!
-                                                    ? setState(() {
-                                                        showSecondDialog(context, color, cart, diningList[index]);
-                                                      })
-                                                    : null
-                                            : null;
-                                      },
-                                      child: Container(
-                                          color: cart.selectedOption == diningList[index].name! ? color.buttonColor : color.backgroundColor,
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            diningList[index].name!,
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.w600, color: cart.selectedOption == diningList[index].name! ? color.iconColor : Colors.white, fontSize: 16),
-                                          )),
-                                    );
-                                  })),
-                            ),
-                            Expanded(
-                              child: ListView.builder(
-                                  controller: _scrollController,
-                                  shrinkWrap: true,
-                                  itemCount: cart.cartNotifierItem.length,
-                                  itemBuilder: (context, index) {
-                                    return Dismissible(
-                                      background: Container(
-                                        color: Colors.red,
-                                        padding: EdgeInsets.only(left: 25.0),
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.delete, color: Colors.white),
-                                          ],
-                                        ),
+                            child: Column(
+                              children: [
+                                Container(
+                                  margin: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
+                                      ? EdgeInsets.only(bottom: 10)
+                                      : EdgeInsets.zero,
+                                  child: GridView(
+                                      physics: NeverScrollableScrollPhysics(),
+                                      shrinkWrap: true,
+                                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: diningList.length == 3 ?  3 : 2,
+                                          childAspectRatio: 2.0,
+                                          mainAxisExtent: 50
                                       ),
-                                      key: ValueKey(cart.cartNotifierItem[index].product_name),
-                                      direction: widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
+                                      children: List.generate(diningList.length, (index) {
+                                        return InkWell(
+                                          onTap: () {
+                                            widget.currentPage == 'menu'
+                                                ? cart.cartNotifierItem.isEmpty
+                                                ? setState(() {
+                                              cart.removeAllTable();
+                                              cart.selectedOption = diningList[index].name!;
+                                              cart.selectedOptionId =
+                                              diningList[index].dining_id!;
+                                            })
+                                                : cart.cartNotifierItem.isNotEmpty &&
+                                                cart.cartNotifierItem[0].status != 1 &&
+                                                cart.selectedOption != diningList[index].name!
+                                                ? setState(() {
+                                              showSecondDialog(
+                                                  context, color, cart, diningList[index]);
+                                            })
+                                                : null
+                                                : null;
+                                          },
+                                          child: Container(
+                                              color: cart.selectedOption == diningList[index].name!
+                                                  ? color.buttonColor
+                                                  : color.backgroundColor,
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                diningList[index].name!,
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.w600,
+                                                    color: cart.selectedOption == diningList[index].name!
+                                                        ? color.iconColor
+                                                        : Colors.white,
+                                                    fontSize: 16),
+                                              )),
+                                        );
+                                      })),
+                                ),
+                                Expanded(
+                                  child: ListView.builder(
+                                      controller: _scrollController,
+                                      shrinkWrap: true,
+                                      itemCount: cart.cartNotifierItem.length,
+                                      itemBuilder: (context, index) {
+                                        return Dismissible(
+                                          background: Container(
+                                            color: Colors.red,
+                                            padding: EdgeInsets.only(left: 25.0),
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.delete, color: Colors.white),
+                                              ],
+                                            ),
+                                          ),
+                                          key: ValueKey(cart.cartNotifierItem[index].product_name),
+                                          direction: widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
                                               widget.currentPage == 'table' ||
                                               widget.currentPage == 'other_order'
-                                          ? DismissDirection.startToEnd
-                                          : DismissDirection.none,
-                                      confirmDismiss: (direction) async {
-                                        if (direction == DismissDirection.startToEnd) {
-                                          await openRemoveCartItemDialog(cart.cartNotifierItem[index], widget.currentPage);
-                                        }
-                                        return null;
-                                      },
-                                      child: ListTile(
-                                        hoverColor: Colors.transparent,
-                                        isThreeLine: true,
-                                        title: RichText(
-                                          text: TextSpan(
-                                            children: <TextSpan>[
-                                              TextSpan(
-                                                text: cart.cartNotifierItem[index].product_name! + '\n',
-                                                style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
-                                                    fontWeight: FontWeight.bold),
-                                              ),
-                                              TextSpan(
-                                                  // text: "RM" + cart.cartNotifierItem[index].price! + " (" +  ,
-                                                  text:
+                                              ? DismissDirection.startToEnd
+                                              : DismissDirection.none,
+                                          confirmDismiss: (direction) async {
+                                            if (direction == DismissDirection.startToEnd) {
+                                              await openRemoveCartItemDialog(cart.cartNotifierItem[index], widget.currentPage);
+                                            }
+                                            return null;
+                                          },
+                                          child: ListTile(
+                                            hoverColor: Colors.transparent,
+                                            isThreeLine: true,
+                                            title: RichText(
+                                              text: TextSpan(
+                                                children: <TextSpan>[
+                                                  TextSpan(
+                                                    text: cart.cartNotifierItem[index].product_name! + '\n',
+                                                    style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
+                                                        fontWeight: FontWeight.bold),
+                                                  ),
+                                                  TextSpan(
+                                                    // text: "RM" + cart.cartNotifierItem[index].price! + " (" +  ,
+                                                      text:
                                                       "RM ${cart.cartNotifierItem[index].price!} (${cart.cartNotifierItem[index].unit! != '' ? cart.cartNotifierItem[index].per_quantity_unit! + cart.cartNotifierItem[index].unit! : 'each'})",
                                                   style: TextStyle(
                                                     fontSize: 13,
@@ -2294,8 +2305,8 @@ class CartPageState extends State<CartPage> {
   printKitchenList() async {
     try {
       String flushbarStatus = '';
-      List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheId), context);
-      if (returnData != null) {
+      List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheId));
+      if(returnData != null){
         if (returnData.isNotEmpty) {
           _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
           playSound();
@@ -2318,7 +2329,8 @@ class CartPageState extends State<CartPage> {
             onStatusChanged: (status) {
               flushbarStatus = status.toString();
             },
-          )..show(context);
+          )
+            ..show(context);
           Future.delayed(Duration(seconds: 3), () {
             print("status change: ${flushbarStatus}");
             if (flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED") playSound();
@@ -2711,7 +2723,8 @@ class CartPageState extends State<CartPage> {
           orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
         }
       } else {
-        if (orderCacheList[0].order_key == '') {
+        // after settlement
+        if(orderCacheList[0].order_key == '' && orderCacheList[0].cancel_by == '') {
           orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
         } else {
           orderQueue = localSetting.starting_number!;
