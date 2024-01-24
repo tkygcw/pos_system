@@ -71,7 +71,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 12, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 13, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -215,6 +215,12 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
           await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.allow_image} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.image_name} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by_user_id} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
         }break;
         case 9: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.branch_id} TEXT NOT NULL DEFAULT '$branch_id' ");
@@ -246,23 +252,40 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
           await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.allow_image} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.image_name} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by_user_id} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
         }break;
         case 10: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
           //new
           await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.allow_image} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.image_name} $textType DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by_user_id} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
         }break;
         case 11: {
           await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.allow_image} $integerType DEFAULT 0");
           await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.image_name} $textType DEFAULT '' ");
-        }break;
-        case 10: {
+          //new
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by} TEXT NOT NULL DEFAULT '' ");
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by_user_id} TEXT NOT NULL DEFAULT '' ");
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
         }break;
-        case 11: {
+        case 12: {
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by_user_id} TEXT NOT NULL DEFAULT '' ");
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
