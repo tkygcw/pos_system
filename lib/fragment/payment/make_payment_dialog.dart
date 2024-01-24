@@ -181,14 +181,16 @@ class _MakePaymentState extends State<MakePayment> {
       await displayManager.transferDataToPresentation("init");
     } else {
       SecondDisplayData data = SecondDisplayData(
-          tableNo: getSelectedTable(),
-          itemList: cart.cartNotifierItem,
-          subtotal: cart.cartNotifierPayment[0].subtotal.toStringAsFixed(2),
-          totalDiscount: getTotalDiscount(),
-          totalTax: getTotalTax(),
-          amount: cart.cartNotifierPayment[0].amount.toStringAsFixed(2),
-          rounding: cart.cartNotifierPayment[0].rounding.toStringAsFixed(2),
-          finalAmount: cart.cartNotifierPayment[0].finalAmount);
+        tableNo: getSelectedTable(),
+        itemList: cart.cartNotifierItem,
+        subtotal: cart.cartNotifierPayment[0].subtotal.toStringAsFixed(2),
+        totalDiscount: getTotalDiscount(),
+        totalTax: getTotalTax(),
+        amount: cart.cartNotifierPayment[0].amount.toStringAsFixed(2),
+        rounding: cart.cartNotifierPayment[0].rounding.toStringAsFixed(2),
+        finalAmount: cart.cartNotifierPayment[0].finalAmount,
+        payment_link_company_id: widget.payment_link_company_id
+      );
       await displayManager.transferDataToPresentation(jsonEncode(data));
     }
   }
