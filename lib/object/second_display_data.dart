@@ -9,6 +9,7 @@ class SecondDisplayData {
   String? amount;
   String? rounding;
   String? finalAmount;
+  int? payment_link_company_id;
 
   SecondDisplayData({
     this.tableNo,
@@ -18,7 +19,8 @@ class SecondDisplayData {
     this.totalTax,
     this.amount,
     this.rounding,
-    this.finalAmount
+    this.finalAmount,
+    this.payment_link_company_id
 
   });
 
@@ -33,7 +35,8 @@ class SecondDisplayData {
       totalTax: json['totalTax'] as String?,
       amount: json['amount'] as String?,
       rounding: json['rounding'] as String?,
-      finalAmount: json['finalAmount'] as String?
+      finalAmount: json['finalAmount'] as String?,
+      payment_link_company_id: json['payment_link_company_id'] as int?
     );
   }
 
@@ -52,7 +55,8 @@ class SecondDisplayData {
       'totalTax': totalTax,
       'amount': amount,
       'rounding': rounding,
-      'finalAmount': finalAmount
+      'finalAmount': finalAmount,
+      'payment_link_company_id': payment_link_company_id
     };
   }
 

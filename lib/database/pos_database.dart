@@ -173,6 +173,8 @@ class PosDatabase {
           ${KitchenListFields.soft_delete} $textType)''');
           //new
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.allow_image} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.image_name} $textType DEFAULT '' ");
         }break;
         case 8 :{
           await db.execute('''CREATE TABLE $tableSecondScreen(
@@ -211,6 +213,8 @@ class PosDatabase {
           ${KitchenListFields.soft_delete} $textType)''');
           //new
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.allow_image} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.image_name} $textType DEFAULT '' ");
         }break;
         case 9: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.branch_id} TEXT NOT NULL DEFAULT '$branch_id' ");
@@ -240,9 +244,18 @@ class PosDatabase {
           ${KitchenListFields.soft_delete} $textType)''');
           //new
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.allow_image} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.image_name} $textType DEFAULT '' ");
         }break;
         case 10: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
+          //new
+          await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.allow_image} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.image_name} $textType DEFAULT '' ");
+        }break;
+        case 11: {
+          await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.allow_image} $integerType DEFAULT 0");
+          await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.image_name} $textType DEFAULT '' ");
         }break;
         case 10: {
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by} TEXT NOT NULL DEFAULT '' ");
@@ -461,7 +474,11 @@ class PosDatabase {
     create payment link company
 */
     await db.execute('''CREATE TABLE $tablePaymentLinkCompany ( ${PaymentLinkCompanyFields.payment_link_company_id} $idType, ${PaymentLinkCompanyFields.payment_type_id} $textType,
-           ${PaymentLinkCompanyFields.company_id} $textType,${PaymentLinkCompanyFields.name} $textType, ${PaymentLinkCompanyFields.type} $integerType, 
+           ${PaymentLinkCompanyFields.company_id} $textType, 
+           ${PaymentLinkCompanyFields.name} $textType, 
+           ${PaymentLinkCompanyFields.allow_image} $integerType, 
+           ${PaymentLinkCompanyFields.image_name} $textType, 
+           ${PaymentLinkCompanyFields.type} $integerType, 
            ${PaymentLinkCompanyFields.ipay_code} $textType, 
            ${PaymentLinkCompanyFields.created_at} $textType, ${PaymentLinkCompanyFields.updated_at} $textType, ${PaymentLinkCompanyFields.soft_delete} $textType)''');
 /*
@@ -4216,44 +4233,6 @@ class PosDatabase {
   }
 
 /*
-  read all order detail with category
-*/
-  // Future<List<OrderDetail>> readAllPaidOrderDetailWithCategory(int category_sqlite_id, String date1, String date2) async {
-  //   final db = await instance.database;
-  //   final result = await db.rawQuery(
-  //     'SELECT a.created_at, a.product_name, a.product_variant_name, SUM(a.original_price * a.quantity + 0.0) AS net_sales, SUM(a.price * a.quantity + 0.0) AS gross_price, '
-  //         'SUM(a.quantity) AS item_sum '
-  //         'FROM $tableOrderDetail AS a JOIN $tableOrderCache AS b ON a.order_cache_sqlite_id = b.order_cache_sqlite_id '
-  //         'JOIN $tableOrder AS c ON b.order_sqlite_id = c.order_sqlite_id '
-  //         'WHERE a.soft_delete = ? AND a.status = ? AND b.soft_delete = ? AND b.accepted = ? AND c.soft_delete = ? AND c.payment_status = ? AND a.category_sqlite_id = ? '
-  //         'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? '
-  //         'GROUP BY a.product_name, a.product_variant_name ORDER BY a.product_name',
-  //     ['', 0, '', 0, '', 1, category_sqlite_id, date1, date2]
-  //   );
-  //   return result.map((json) => OrderDetail.fromJson(json)).toList();
-  // }
-
-/*
-  read all category with product
-*/
-  // Future<List<Categories>> readAllCategoryWithOrderDetail(String date1, String date2) async {
-  //   final db = await instance.database;
-  //   final result = await db.rawQuery(
-  //     'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_sales, SUM(b.price * b.quantity + 0.0) AS category_gross_sales, '
-  //         'IFNULL( (SELECT category_sqlite_id FROM $tableCategories WHERE category_sqlite_id = b.category_sqlite_id), 0) AS category_sqlite_id, '
-  //         'IFNULL( (SELECT name FROM $tableCategories WHERE category_sqlite_id = b.category_sqlite_id), "Other") AS name, '
-  //         'SUM(b.quantity) AS item_sum '
-  //         'FROM $tableOrderDetail AS b JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
-  //         'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
-  //         'WHERE b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? AND b.status = ? AND d.payment_status = ? '
-  //         'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY b.category_sqlite_id '
-  //         'ORDER BY b.category_sqlite_id DESC',
-  //       ['', '', 0, '', '', 0, 1, date1, date2]
-  //   );
-  //   return result.map((json) => Categories.fromJson(json)).toList();
-  // }
-
-/*
   read all category with product
 */
   Future<List<OrderDetail>> readAllCategoryWithOrderDetail2(String date1, String date2) async {
@@ -5218,8 +5197,8 @@ class PosDatabase {
   Future<int> updatePaymentLinkCompany(PaymentLinkCompany data) async {
     final db = await instance.database;
     return await db.rawUpdate(
-        'UPDATE $tablePaymentLinkCompany SET payment_type_id = ?, company_id = ?, name = ?, updated_at = ?, soft_delete = ? WHERE payment_link_company_id = ?',
-        [data.payment_type_id, data.company_id, data.name, data.updated_at, data.soft_delete, data.payment_link_company_id]);
+        'UPDATE $tablePaymentLinkCompany SET payment_type_id = ?, company_id = ?, name = ?, allow_image = ?, image_name = ?, updated_at = ?, soft_delete = ? WHERE payment_link_company_id = ?',
+        [data.payment_type_id, data.company_id, data.name, data.allow_image, data.image_name, data.updated_at, data.soft_delete, data.payment_link_company_id]);
   }
 
 /*
@@ -7348,7 +7327,7 @@ class PosDatabase {
 */
   Future<PaymentLinkCompany?> checkSpecificPaymentLinkCompanyId(int payment_link_company_id) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tablePaymentLinkCompany WHERE soft_delete = ? AND payment_link_company_id = ? LIMIT 1 ', ['', payment_link_company_id]);
+    final result = await db.rawQuery('SELECT * FROM $tablePaymentLinkCompany WHERE payment_link_company_id = ? LIMIT 1 ', [payment_link_company_id]);
     if (result.isNotEmpty) {
       return PaymentLinkCompany.fromJson(result.first);
     } else {

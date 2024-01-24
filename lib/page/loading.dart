@@ -116,7 +116,6 @@ class _LoadingPageState extends State<LoadingPage> {
       await getTransferOwner();
       await clearCloudSyncRecord();
       await getAllReceipt();
-
     } catch (e) {
       Navigator.of(context).pushAndRemoveUntil(
         // the new route
@@ -824,8 +823,48 @@ getPaymentLinkCompany() async {
   if (data['status'] == '1') {
     List responseJson = data['payment'];
     for (var i = 0; i < responseJson.length; i++) {
-      PaymentLinkCompany data = await PosDatabase.instance.insertPaymentLinkCompany(PaymentLinkCompany.fromJson(responseJson[i]));
+      PaymentLinkCompany object = PaymentLinkCompany.fromJson(responseJson[i]);
+      PaymentLinkCompany data = await PosDatabase.instance.insertPaymentLinkCompany(object);
+      if(object.soft_delete == ''){
+        await _createPaymentImgFolder(paymentLinkCompany: data);
+      }
     }
+  }
+}
+
+/*
+  create payment link company image folder
+*/
+_createPaymentImgFolder({required PaymentLinkCompany paymentLinkCompany}) async {
+  final folderName = paymentLinkCompany.payment_link_company_id.toString();
+  final directory = await _localPath;
+  final path = '$directory/assets/payment_qr/$folderName';
+  final pathImg = Directory(path);
+  await pathImg.create();
+  if(paymentLinkCompany.image_name != null && paymentLinkCompany.image_name != ''){
+    downloadPaymentImage(path, paymentLinkCompany);
+  }
+}
+
+/*
+  download payment image
+*/
+downloadPaymentImage(String path, PaymentLinkCompany paymentLinkCompany) async {
+  try{
+    final prefs = await SharedPreferences.getInstance();
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    String url = '';
+    String paymentLinkCompanyId =  paymentLinkCompany.payment_link_company_id.toString();
+    String name = paymentLinkCompany.image_name!;
+    url = '${Domain.backend_domain}api/payment_QR/' + userObject['company_id'] + '/' + paymentLinkCompanyId + '/' + name;
+    final response = await http.get(Uri.parse(url));
+    var localPath = path + '/' + name;
+    final imageFile = File(localPath);
+    await imageFile.writeAsBytes(response.bodyBytes);
+  } catch(e){
+    print("download payment image error: ${e}");
+    return;
   }
 }
 
@@ -1647,7 +1686,6 @@ downloadProductImage(String path) async {
 
 _createBannerImgFolder() async {
   final prefs = await SharedPreferences.getInstance();
-  final String? user = prefs.getString('user');
   final folderName = 'banner';
   final directory = await _localPath;
   final path = '$directory/assets/$folderName';
