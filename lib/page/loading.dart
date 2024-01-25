@@ -1376,7 +1376,7 @@ getAllOrderCache() async {
     for (var i = 0; i < responseJson.length; i++) {
       OrderCache cloudData = OrderCache.fromJson(responseJson[i]);
       if (cloudData.table_use_key != '' && cloudData.table_use_key != null) {
-        print("table use key: ${cloudData.table_use_key}");
+        // print("table use key: ${cloudData.table_use_key}");
         TableUse? tableUseData = await PosDatabase.instance.readTableUseSqliteID(cloudData.table_use_key!);
         if(tableUseData != null){
           tableUseLocalId = tableUseData.table_use_sqlite_id.toString();
