@@ -162,9 +162,11 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                               isButtonDisabled = true;
                             });
                             Navigator.of(context).pop();
-                            setState(() {
-                              isButtonDisabled = false;
-                            });
+                            if(mounted){
+                              setState(() {
+                                isButtonDisabled = false;
+                              });
+                            }
                           },
                         ),
                       ),
@@ -288,9 +290,11 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                           isButtonDisabled = true;
                         });
                         Navigator.of(context).pop();
-                        setState(() {
-                          isButtonDisabled = false;
-                        });
+                        if(mounted) {
+                          setState(() {
+                            isButtonDisabled = false;
+                          });
+                        }
                       },
                     ),
                   ),
@@ -387,11 +391,6 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
         callUpdateCart(userData, dateTime, cart);
-        // if (userData.user_id == userObject['user_id']) {
-        //   callUpdateCart(userData, dateTime, cart);
-        // } else {
-        //   Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('pin_not_match')}");
-        // }
       } else {
         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");
       }
@@ -401,10 +400,11 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
   }
 
   callUpdateCart(User userData, String dateTime, CartModel cart) async {
-
     if (widget.currentPage == 'menu') {
+      // before adding to order cache
       widget.cartItem.price = double.parse(priceController.text).toStringAsFixed(2);
       widget.callBack(widget.cartItem);
+      Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(context)!.translate('price_updated'));
     } else {
       // for other order, table order
       await updateOrderDetailUnitPrice(userData, dateTime, cart);

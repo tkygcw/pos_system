@@ -278,9 +278,6 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                       isButtonDisabled = true;
                     });
                     Navigator.of(context).pop();
-                    setState(() {
-                      isButtonDisabled = false;
-                    });
                   },
                 ),
               ),

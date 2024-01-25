@@ -300,14 +300,20 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 1',
+            text: 'Product 1 ${checklist != null && checklist.check_list_show_price == 1 ? '(6.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
+                bold: true,
                 align: PosAlign.left,
                 height:  checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)),
       ]);
+      if(checklist.check_list_show_separator == 1) {
+        bytes += generator.reset();
+        bytes += generator.hr();
+      }
+
       bytes += generator.row([
         PosColumn(text: '1',
             width: 2,
@@ -316,10 +322,11 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 2',
+            text: 'Product 2 ${checklist != null && checklist.check_list_show_price == 1 ? '(8.80/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
+                bold: true,
                 height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)),
       ]);
@@ -334,6 +341,11 @@ class ReceiptLayout{
                 height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)),
       ]);
+      if(checklist.check_list_show_separator == 1) {
+        bytes += generator.reset();
+        bytes += generator.hr();
+      }
+
       bytes += generator.row([
         PosColumn(text: '1',
             width: 2,
@@ -342,10 +354,11 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 3',
+            text: 'Product 3 ${checklist != null && checklist.check_list_show_price == 1 ? '(3.50/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
+                bold: true,
                 height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)),
       ]);
@@ -359,6 +372,11 @@ class ReceiptLayout{
                 height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)),
       ]);
+      if(checklist.check_list_show_separator == 1) {
+        bytes += generator.reset();
+        bytes += generator.hr();
+      }
+
       bytes += generator.row([
         PosColumn(text: '1',
             width: 2,
@@ -367,10 +385,11 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 4',
+            text: 'Product 4 ${checklist != null && checklist.check_list_show_price == 1 ? '(15.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
+                bold: true,
                 height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)),
       ]);
@@ -385,6 +404,11 @@ class ReceiptLayout{
                 height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)),
       ]);
+      if(checklist.check_list_show_separator == 1) {
+        bytes += generator.reset();
+        bytes += generator.hr();
+      }
+
       bytes += generator.row([
         PosColumn(text: '1',
             width: 2,
@@ -393,10 +417,11 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 5',
+            text: 'Product 5 ${checklist != null && checklist.check_list_show_price == 1 ? '(10.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
+                bold: true,
                 height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)),
       ]);
@@ -464,21 +489,28 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 1',
+            text: 'Product 1 ${checklist != null && checklist.check_list_show_price == 1 ? '(6.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
+                bold: true,
                 height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)
         ),
       ]);
+      if(checklist.check_list_show_separator == 1) {
+        bytes += generator.reset();
+        bytes += generator.hr();
+      }
+
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 2',
+            text: 'Product 2 ${checklist != null && checklist.check_list_show_price == 1 ? '(8.80/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
+                bold: true,
                 height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)
         ),
@@ -491,13 +523,19 @@ class ReceiptLayout{
                 height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)),
       ]);
+      if(checklist.check_list_show_separator == 1) {
+        bytes += generator.reset();
+        bytes += generator.hr();
+      }
+
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 3',
+            text: 'Product 3 ${checklist != null && checklist.check_list_show_price == 1 ? '(3.50/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
+                bold: true,
                 height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)
         ),
@@ -511,13 +549,19 @@ class ReceiptLayout{
                 height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)),
       ]);
+      if(checklist.check_list_show_separator == 1) {
+        bytes += generator.reset();
+        bytes += generator.hr();
+      }
+
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 4',
+            text: 'Product 4 ${checklist != null && checklist.check_list_show_price == 1 ? '(15.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
+                bold: true,
                 height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)
         ),
@@ -531,13 +575,19 @@ class ReceiptLayout{
                 height: checklist.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)),
       ]);
+      if(checklist.check_list_show_separator == 1) {
+        bytes += generator.reset();
+        bytes += generator.hr();
+      }
+
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 5',
+            text: 'Product 5 ${checklist != null && checklist.check_list_show_price == 1 ? '(10.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
+                bold: true,
                 height: checklist.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: PosTextSize.size1)
         ),
@@ -2229,10 +2279,16 @@ class ReceiptLayout{
     * */
       //order product
       for(int i = 0; i < orderDetailList.length; i++){
+        if(i != 0) {
+          if(checklistLayout != null && checklistLayout.check_list_show_separator == 1) {
+            bytes += generator.reset();
+            bytes += generator.hr();
+          }
+        }
         bytes += generator.row([
           PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(bold: true)),
           PosColumn(
-              text: '${orderDetailList[i].productName}',
+              text: '${orderDetailList[i].productName} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${orderDetailList[i].price!}/${orderDetailList[i].unit!})' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -2349,10 +2405,17 @@ class ReceiptLayout{
     * */
       //order product
       for(int i = 0; i < orderDetailList.length; i++){
+        if(i != 0) {
+          if(checklistLayout != null && checklistLayout.check_list_show_separator == 1) {
+            bytes += generator.reset();
+            bytes += generator.hr();
+          }
+        }
+
         bytes += generator.row([
           PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(bold: true)),
           PosColumn(
-              text: '${orderDetailList[i].productName}',
+              text: '${orderDetailList[i].productName} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${orderDetailList[i].price!}/${orderDetailList[i].unit!})' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
