@@ -2611,9 +2611,7 @@ class CartPageState extends State<CartPage> {
     final String? loginUser = prefs.getString('user');
 
     AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
-    int orderQueue = localSetting!.enable_numbering == 1 && ((localSetting.table_order == 1 && cart.selectedOption != 'Dine in') || localSetting.table_order == 0)
-        ? await generateOrderQueue()
-        : -1;
+    int orderQueue = localSetting!.enable_numbering == 1 && localSetting.table_order == 0 ? await generateOrderQueue() : -1;
 
     List<TableUse> _tableUse = [];
     List<String> _value = [];
@@ -2710,37 +2708,43 @@ class CartPageState extends State<CartPage> {
 
   Future<int> generateOrderQueue() async {
     print("generateOrderQueue called");
-    readAllOrder();
-    readAllOrderCache();
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
     int orderQueue = localSetting!.starting_number!;
+    try {
+      await readAllOrder();
+      await readAllOrderCache();
 
-    // not yet make settlement
-    if (orderList.isNotEmpty) {
-      if (orderList[0].settlement_key! == '') {
-        if (int.tryParse(orderCacheList[0].order_queue!) == null || int.parse(orderCacheList[0].order_queue!) >= 9999) {
-          orderQueue = localSetting.starting_number!;
+      // not yet make settlement
+      if(orderList.isNotEmpty) {
+        if(orderList[0].settlement_key! == '') {
+          if(int.tryParse(orderCacheList[0].order_queue!) == null || int.parse(orderCacheList[0].order_queue!) >= 9999) {
+            orderQueue = localSetting.starting_number!;
+          }
+          else {
+            orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+          }
         } else {
-          orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+          // after settlement
+          if(orderCacheList[0].order_key == '' && orderCacheList[0].cancel_by == '') {
+            orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
+          } else {
+            orderQueue = localSetting.starting_number!;
+          }
         }
       } else {
-        // after settlement
-        if(orderCacheList[0].order_key == '' && orderCacheList[0].cancel_by == '') {
+        if(orderCacheList.isNotEmpty && orderCacheList[0].order_key == '') {
           orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
         } else {
           orderQueue = localSetting.starting_number!;
         }
       }
-    } else {
-      if (orderCacheList.isNotEmpty && orderCacheList[0].order_key == '') {
-        orderQueue = int.parse(orderCacheList[0].order_queue!) + 1;
-      } else {
-        orderQueue = localSetting.starting_number!;
-      }
+      return orderQueue;
+    } catch(e) {
+      print("generateOrderQueue error");
+      return orderQueue = localSetting.starting_number!;
     }
-    return orderQueue;
   }
 
   insertOrderCacheKey(OrderCache orderCache, String dateTime) async {
