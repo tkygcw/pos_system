@@ -330,6 +330,9 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                             Navigator.of(context).pop();
                           }
                         } else {
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
                           //no changes
                           Navigator.of(context).pop();
                           // Navigator.of(context).pop();
