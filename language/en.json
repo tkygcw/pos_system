@@ -461,6 +461,7 @@
   "successfully_update": "Successfully update",
   "sync": "Sync",
   "sync_done": "Sync complete",
+  "sync_failed": "Sync incomplete",
   "sync_reset": "Sync reset",
   "sync_reset_success": "Sync reset success",
   "table": "Table",

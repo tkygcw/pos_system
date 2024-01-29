@@ -461,6 +461,7 @@
   "successfully_update": "Berjaya dikemaskini",
   "sync": "Penyegerakan",
   "sync_done": "Penyegerakan selesai",
+  "sync_failed": "Penyegerakan gagal",
   "sync_reset": "Tetapan semula penyegerakan",
   "sync_reset_success": "Tetapan semula penyegerakan berjaya",
   "table": "Meja",
