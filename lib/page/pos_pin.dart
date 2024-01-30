@@ -17,6 +17,7 @@ import 'package:custom_pin_screen/custom_pin_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:version/version.dart';
 import '../database/domain.dart';
 import '../database/pos_database.dart';
 import '../fragment/logout_dialog.dart';
@@ -94,7 +95,9 @@ class _PosPinPageState extends State<PosPinPage> {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String version = packageInfo.version;
     if(latestVersion != ''){
-      if(version != latestVersion){
+      Version newVersion = Version.parse(latestVersion);
+      Version currentVersion = Version.parse(version);
+      if(currentVersion < newVersion){
         openUpdateDialog();
       }
     }

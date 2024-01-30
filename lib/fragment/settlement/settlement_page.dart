@@ -154,14 +154,10 @@ class _SettlementPageState extends State<SettlementPage> {
                                   ElevatedButton(
                                     child: Text(AppLocalizations.of(context)!.translate('settlement')),
                                     onPressed: () {
-                                      if (cashRecordList.length > 1 && unpaidOrderCacheList.isEmpty) {
+                                      if (cashRecordList.isNotEmpty) {
                                         openSettlementDialog(cashRecordList);
-                                      } else if (cashRecordList.isEmpty) {
+                                      } else {
                                         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
-                                      } else if (unpaidOrderCacheList.isNotEmpty) {
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('still_have_order_not_yet_paid'));
-                                      } else if (cashRecordList.length == 1) {
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('cannot_do_settlement_with_opening_balance'));
                                       }
                                     },
                                     style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
@@ -470,15 +466,10 @@ class _SettlementPageState extends State<SettlementPage> {
                                     ElevatedButton(
                                       child: Text(AppLocalizations.of(context)!.translate('settlement')),
                                       onPressed: () {
-                                        if (cashRecordList.length > 1 && unpaidOrderCacheList.isEmpty) {
+                                        if (cashRecordList.isNotEmpty) {
                                           openSettlementDialog(cashRecordList);
-                                        } else if (cashRecordList.isEmpty) {
+                                        } else {
                                           Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
-                                        } else if (unpaidOrderCacheList.isNotEmpty) {
-                                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('still_have_order_not_yet_paid'));
-                                        } else if (cashRecordList.length == 1) {
-                                          Fluttertoast.showToast(
-                                              backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('cannot_do_settlement_with_opening_balance'));
                                         }
                                       },
                                       style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),

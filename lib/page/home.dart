@@ -258,7 +258,7 @@ class _HomePageState extends State<HomePage> {
       ),
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('report'),
-        icon: Icons.monetization_on,
+        icon: Icons.analytics_rounded,
         onPressed: () => setState(() => currentPage = 'report'),
       ),
       CollapsibleItem(
