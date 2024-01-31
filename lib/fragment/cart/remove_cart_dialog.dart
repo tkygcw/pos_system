@@ -309,7 +309,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                         final String? pos_user = prefs.getString('pos_pin_user');
                         Map<String, dynamic> userMap = json.decode(pos_user!);
                         User userData = User.fromJson(userMap);
-                        if(userData!.edit_price_without_pin != 1) {
+                        if(userData.edit_price_without_pin != 1) {
                           showSecondDialog(context, color, cart);
                         } else {
                           callUpdateCart(userData, dateTime, cart);

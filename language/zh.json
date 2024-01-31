@@ -6,6 +6,7 @@
   "add_product": "添加产品",
   "add_receipt_layout": "添加收据布局",
   "adjust_price": "调整产品单价",
+  "adjust_price_error": "最低单价为 RM",
   "adjust_promotion": "调整促销",
   "adjust_quantity": "移除数量",
   "advanced": "高级",

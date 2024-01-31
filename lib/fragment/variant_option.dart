@@ -135,7 +135,7 @@ class _VariantOptionDialogState extends State<VariantOptionDialog> {
   }
 
   addOption() {
-    if(modGroupNameController.text == null || modGroupNameController.text == ''){
+    if(modGroupNameController.text == ''){
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFFC107),
           msg: AppLocalizations.of(context)!.translate('please_fill_the_name'));

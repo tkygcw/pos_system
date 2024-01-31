@@ -307,11 +307,11 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                                           msg:
                                           AppLocalizations.of(context)!.translate('quantity_invalid'));
                                     } else {
-                                      if(userData!.edit_price_without_pin != 1) {
+                                      if(userData.edit_price_without_pin != 1) {
                                         await showSecondDialog(context, color, cart);
                                         Navigator.of(context).pop();
                                       } else {
-                                        callUpdateCart(userData, dateTime, cart);
+                                        await callUpdateCart(userData, dateTime, cart);
                                         Navigator.of(context).pop();
                                         Navigator.of(context).pop();
                                       }
@@ -408,11 +408,11 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                                 msg:
                                 AppLocalizations.of(context)!.translate('quantity_invalid'));
                           } else {
-                            if(userData!.edit_price_without_pin != 1) {
+                            if(userData.edit_price_without_pin != 1) {
                               await showSecondDialog(context, color, cart);
                               Navigator.of(context).pop();
                             } else {
-                              callUpdateCart(userData, dateTime, cart);
+                              await callUpdateCart(userData, dateTime, cart);
                               Navigator.of(context).pop();
                               Navigator.of(context).pop();
                             }
@@ -515,7 +515,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       //List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
-        callUpdateCart(userData, dateTime, cart);
+        await callUpdateCart(userData, dateTime, cart);
         // if (userData.user_id == userObject['user_id']) {
         //   callUpdateCart(userData, dateTime, cart);
         // } else {

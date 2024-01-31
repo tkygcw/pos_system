@@ -111,7 +111,7 @@ class _LoadingPageState extends State<LoadingPage> {
       await getModifierGroup();
       await getModifierItem();
       await getBranchLinkModifier();
-      await getSale();
+      // await getSale();
       await getCashRecord();
       await getTransferOwner();
       await clearCloudSyncRecord();

@@ -191,7 +191,7 @@ class _PromotionDialogState extends State<PromotionDialog> {
                               child: TextField(
                                 autofocus: true,
                                 onSubmitted: (input) {
-                                  if(_textFieldController != null && _textFieldController != '' && double.parse(_textFieldController.text).toStringAsFixed(2) != 0.00) {
+                                  if(_textFieldController != '' && double.parse(_textFieldController.text).toStringAsFixed(2) != 0.00) {
                                     String value = double.parse(_textFieldController.text.replaceAll(',', '')).toStringAsFixed(2);
                                     setState(() {
                                       isButtonDisabled = true;
@@ -249,7 +249,7 @@ class _PromotionDialogState extends State<PromotionDialog> {
                         onPressed: isButtonDisabled
                             ? null
                             : () async {
-                          if(_textFieldController != null && _textFieldController != '' && double.parse(_textFieldController.text).toStringAsFixed(2) != 0.00) {
+                          if(_textFieldController != '' && double.parse(_textFieldController.text).toStringAsFixed(2) != 0.00) {
                             String value = double.parse(_textFieldController.text.replaceAll(',', '')).toStringAsFixed(2);
                             print("cartFinalAmount: ${widget.cartFinalAmount}");
                             setState(() {

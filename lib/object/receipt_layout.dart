@@ -300,7 +300,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 1 ${checklist != null && checklist.check_list_show_price == 1 ? '(6.90/each)' : '' }',
+            text: 'Product 1 ${checklist.check_list_show_price == 1 ? '(6.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -322,7 +322,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 2 ${checklist != null && checklist.check_list_show_price == 1 ? '(8.80/each)' : '' }',
+            text: 'Product 2 ${checklist.check_list_show_price == 1 ? '(8.80/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -354,7 +354,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 3 ${checklist != null && checklist.check_list_show_price == 1 ? '(3.50/each)' : '' }',
+            text: 'Product 3 ${checklist.check_list_show_price == 1 ? '(3.50/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -385,7 +385,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 4 ${checklist != null && checklist.check_list_show_price == 1 ? '(15.90/each)' : '' }',
+            text: 'Product 4 ${checklist.check_list_show_price == 1 ? '(15.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -417,7 +417,7 @@ class ReceiptLayout{
                 height: PosTextSize.size1,
                 width: PosTextSize.size1)),
         PosColumn(
-            text: 'Product 5 ${checklist != null && checklist.check_list_show_price == 1 ? '(10.90/each)' : '' }',
+            text: 'Product 5 ${checklist.check_list_show_price == 1 ? '(10.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -489,7 +489,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 1 ${checklist != null && checklist.check_list_show_price == 1 ? '(6.90/each)' : '' }',
+            text: 'Product 1 ${checklist.check_list_show_price == 1 ? '(6.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -506,7 +506,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 2 ${checklist != null && checklist.check_list_show_price == 1 ? '(8.80/each)' : '' }',
+            text: 'Product 2 ${checklist.check_list_show_price == 1 ? '(8.80/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -531,7 +531,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 3 ${checklist != null && checklist.check_list_show_price == 1 ? '(3.50/each)' : '' }',
+            text: 'Product 3 ${checklist.check_list_show_price == 1 ? '(3.50/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -557,7 +557,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 4 ${checklist != null && checklist.check_list_show_price == 1 ? '(15.90/each)' : '' }',
+            text: 'Product 4 ${checklist.check_list_show_price == 1 ? '(15.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -583,7 +583,7 @@ class ReceiptLayout{
       bytes += generator.row([
         PosColumn(text: '1', width: 2, styles: PosStyles(bold: true)),
         PosColumn(
-            text: 'Product 5 ${checklist != null && checklist.check_list_show_price == 1 ? '(10.90/each)' : '' }',
+            text: 'Product 5 ${checklist.check_list_show_price == 1 ? '(10.90/each)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -654,7 +654,7 @@ class ReceiptLayout{
                 height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                 width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
         PosColumn(
-            text: 'Product 1${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
+            text: 'Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -672,7 +672,7 @@ class ReceiptLayout{
                 width: kitchen_list.other_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
       ]);
 
-      if(kitchen_list != null && kitchen_list.print_combine_kitchen_list == 1) {
+      if(kitchen_list.print_combine_kitchen_list == 1) {
         bytes += generator.emptyLines(1);
         if(kitchen_list.kitchen_list_item_separator == 1) {
           bytes += generator.reset();
@@ -687,7 +687,7 @@ class ReceiptLayout{
                   height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
           PosColumn(
-              text: 'Product 2${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM8.80)' : '' }',
+              text: 'Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(RM8.80)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -719,7 +719,7 @@ class ReceiptLayout{
                   height: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1,
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)),
           PosColumn(
-              text: 'Product 3${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
+              text: 'Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -787,7 +787,7 @@ class ReceiptLayout{
                 width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
         ),
         PosColumn(
-            text: 'Product 1${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
+            text: 'Product 1${kitchen_list.kitchen_list_show_price == 1 ? '(RM6.90)' : '' }',
             width: 10,
             containsChinese: true,
             styles: PosStyles(
@@ -806,7 +806,7 @@ class ReceiptLayout{
         ),
       ]);
 
-      if(kitchen_list != null && kitchen_list.print_combine_kitchen_list == 1) {
+      if(kitchen_list.print_combine_kitchen_list == 1) {
         bytes += generator.emptyLines(1);
         if(kitchen_list.kitchen_list_item_separator == 1) {
           bytes += generator.reset();
@@ -823,7 +823,7 @@ class ReceiptLayout{
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
           ),
           PosColumn(
-              text: 'Product 2${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM9.90)' : '' }',
+              text: 'Product 2${kitchen_list.kitchen_list_show_price == 1 ? '(RM9.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -858,7 +858,7 @@ class ReceiptLayout{
                   width: kitchen_list.product_name_font_size == 0 ? PosTextSize.size2 : PosTextSize.size1)
           ),
           PosColumn(
-              text: 'Product 3${kitchen_list != null && kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
+              text: 'Product 3${kitchen_list.kitchen_list_show_price == 1 ? '(RM15.90)' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(

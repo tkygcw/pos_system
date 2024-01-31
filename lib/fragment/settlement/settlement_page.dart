@@ -1037,7 +1037,7 @@ class _SettlementPageState extends State<SettlementPage> {
   }
 
   setScreenLayout() {
-    final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
+    final double screenWidth = MediaQueryData.fromView(WidgetsBinding.instance.window).size.width;
     if (screenWidth < 500) {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,

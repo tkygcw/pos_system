@@ -2294,6 +2294,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return User.fromJson(maps.first);
     }
+    return null;
   }
 
   Future<Product?> readProductSqliteID(String product_id) async {
@@ -2325,6 +2326,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return VariantGroup.fromJson(maps.first);
     }
+    return null;
   }
 
   Future<VariantGroup?> readVariantGroupID(String variant_group_sqlite_id) async {
@@ -2333,6 +2335,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return VariantGroup.fromJson(maps.first);
     }
+    return null;
   }
 
   Future<ProductVariant?> readProductVariantSqliteID(String product_variant_id) async {
@@ -2351,6 +2354,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return ProductVariant.fromJson(maps.first);
     }
+    return null;
   }
 
   Future<VariantItem?> readVariantItemSqliteID(String variant_item_id) async {
@@ -2359,6 +2363,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return VariantItem.fromJson(maps.first);
     }
+    return null;
   }
 
   Future<Categories?> readCategorySqliteID(String category_id) async {
@@ -2387,6 +2392,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return TableUse.fromJson(maps.first);
     }
+    return null;
   }
 
   Future<OrderCache?> readOrderCacheSqliteID(String orderCacheKey) async {
@@ -2446,6 +2452,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return Branch.fromJson(maps.first);
     }
+    return null;
   }
 
   /*
@@ -2457,6 +2464,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return VariantItem.fromJson(maps.first);
     }
+    return null;
   }
 
 /*
@@ -2508,6 +2516,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return ProductVariant.fromJson(maps.first);
     }
+    return null;
   }
 
   /*
@@ -2519,6 +2528,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return VariantGroup.fromJson(maps.first);
     }
+    return null;
   }
 
   /*
@@ -3716,6 +3726,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return CashRecord.fromJson(maps.first);
     }
+    return null;
   }
 
 /*
@@ -5191,8 +5202,8 @@ class PosDatabase {
 */
   Future<int> updateUser(User data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableUser SET name = ?, email = ?, phone = ?, role = ?, pos_pin = ?, status = ?, updated_at = ?, soft_delete = ? WHERE user_id = ? ',
-        [data.name, data.email, data.phone, data.role, data.pos_pin, data.status, data.updated_at, data.soft_delete, data.user_id]);
+    return await db.rawUpdate('UPDATE $tableUser SET name = ?, email = ?, phone = ?, role = ?, pos_pin = ?, edit_price_without_pin = ?, status = ?, updated_at = ?, soft_delete = ? WHERE user_id = ? ',
+        [data.name, data.email, data.phone, data.role, data.pos_pin, data.edit_price_without_pin, data.status, data.updated_at, data.soft_delete, data.user_id]);
   }
 
 /*

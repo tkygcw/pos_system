@@ -6,7 +6,6 @@ import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/checklist.dart';
 import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/printer.dart';
@@ -990,7 +989,7 @@ class PrintReceipt{
                               print("orderQueue not null");
                               // distinctOrderNumbers.add(orderDetail.orderQueue!);
                               distinctOrderNumbers = reprintList.map((orderDetail) => orderDetail.orderQueue!).toSet().toList();
-                            } else if (orderDetail.tableNumber != null && orderDetail.tableNumber.isNotEmpty) {
+                            } else if (orderDetail.tableNumber.isNotEmpty) {
                               // distinctTableNumbers.add(orderDetail.tableNumber.map((num) => num.toString()).join(', '));
                               distinctTableNumbers = reprintList.map((orderDetail) => orderDetail.tableNumber.map((num) => num.toString()).join(', ')).toSet().toList();
                             } else {
@@ -1085,7 +1084,7 @@ class PrintReceipt{
                               print("orderQueue not null");
                               // distinctOrderNumbers.add(orderDetail.orderQueue!);
                               distinctOrderNumbers = reprintList.map((orderDetail) => orderDetail.orderQueue!).toSet().toList();
-                            } else if (orderDetail.tableNumber != null && orderDetail.tableNumber.isNotEmpty) {
+                            } else if (orderDetail.tableNumber.isNotEmpty) {
                               // distinctTableNumbers.add(orderDetail.tableNumber.map((num) => num.toString()).join(', '));
                               distinctTableNumbers = reprintList.map((orderDetail) => orderDetail.tableNumber.map((num) => num.toString()).join(', ')).toSet().toList();
                             } else {

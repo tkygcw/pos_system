@@ -450,8 +450,9 @@ class CartPageState extends State<CartPage> {
                                                 getVariant(cart.cartNotifierItem[index]) + getModifier(cart.cartNotifierItem[index]) + getRemark(cart.cartNotifierItem[index]),
                                                 style: TextStyle(fontSize: 10)),
                                             onTap: () async {
-                                              if(widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
-                                                  widget.currentPage == 'table' || widget.currentPage == 'other_order')
+                                              // if(widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
+                                              //     widget.currentPage == 'table' || widget.currentPage == 'other_order')
+                                              if(widget.currentPage == 'table' || widget.currentPage == 'other_order')
                                                 await openAdjustPriceDialog(cart, cart.cartNotifierItem[index], widget.currentPage, index);
                                             },
                                             trailing: Container(
@@ -2032,7 +2033,9 @@ class CartPageState extends State<CartPage> {
             child: Opacity(
               opacity: a1.value,
               child: AdjustPriceDialog(
+                cart: cart,
                 cartItem: item,
+                index: index,
                 currentPage: currentPage,
                 callBack: (cartProductItem object) {
                   cart.refresh();
