@@ -345,6 +345,9 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                           } else {
                             //no changes
                             print("Price Adjust: no changes");
+                            setState(() {
+                              isButtonDisabled = true;
+                            });
                             Navigator.of(context).pop();
                           }
                         } else {
