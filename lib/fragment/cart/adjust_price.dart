@@ -459,7 +459,7 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
       num data = await PosDatabase.instance.updateOrderDetailUnitPrice(orderDetailObject);
       if (data == 1) {
         OrderDetail detailData = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);
-        await updateOrderCacheSubtotal(detailData.order_cache_sqlite_id!, orderDetail!.quantity, detailData.price, dateTime);
+        await updateOrderCacheSubtotal(detailData.order_cache_sqlite_id!, orderDetail!.quantity, orderDetail!.price, detailData.price, dateTime);
         _value.add(jsonEncode(detailData.syncJson()));
       }
       order_detail_value = _value.toString();
@@ -468,12 +468,10 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
     }
   }
 
-  updateOrderCacheSubtotal(String orderCacheLocalId, quantity, newPrice, String dateTime) async {
+  updateOrderCacheSubtotal(String orderCacheLocalId, quantity, oldPrice, newPrice, String dateTime) async {
     num subtotal = 0.0;
     OrderCache data = await PosDatabase.instance.readSpecificOrderCacheByLocalId(int.parse(orderCacheLocalId));
-    // subtotal = double.parse(newPrice);
-    subtotal = double.parse(quantity) * double.parse(newPrice);
-    print("subtotal: ${subtotal}");
+    subtotal = (double.parse(data.total_amount!) - double.parse(oldPrice)*double.parse(quantity)) + (double.parse(quantity) * double.parse(newPrice));
     OrderCache orderCache =
         OrderCache(order_cache_sqlite_id: data.order_cache_sqlite_id, total_amount: subtotal.toStringAsFixed(2), sync_status: data.sync_status == 0 ? 0 : 2, updated_at: dateTime);
     int status = await PosDatabase.instance.updateOrderCacheSubtotal(orderCache);
