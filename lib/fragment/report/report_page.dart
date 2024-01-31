@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:pos_system/fragment/report/cancel_modifier_report.dart';
 import 'package:pos_system/fragment/report/cancellation_report.dart';
+import 'package:pos_system/fragment/report/cash_record_report.dart';
 import 'package:pos_system/fragment/report/category_report.dart';
 import 'package:pos_system/fragment/report/daily_sales_report.dart';
 import 'package:pos_system/fragment/report/dining_report.dart';
@@ -86,7 +87,7 @@ class _ReportPageState extends State<ReportPage> {
                       Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
                       Spacer(),
                       Visibility(
-                        visible: this.currentPage != 10 ? true : false,
+                        visible: this.currentPage != 11 ? true : false,
                         child: Container(
                           child: IconButton(
                               icon: Icon(Icons.print),
@@ -125,18 +126,20 @@ class _ReportPageState extends State<ReportPage> {
                                     child: AlertDialog(
                                       title: Text(AppLocalizations.of(context)!.translate('select_a_date_range')),
                                       content: Container(
-                                        height: 350,
-                                        width: 350,
+                                        height: 400,
+                                        width: 450,
                                         child: Container(
                                           child: Card(
                                             elevation: 10,
                                             child: SfDateRangePicker(
+                                              view: DateRangePickerView.month,
                                               controller: _dateRangePickerController,
                                               selectionMode: DateRangePickerSelectionMode.range,
-                                              allowViewNavigation: false,
+                                              allowViewNavigation: true,
+                                              showActionButtons: true,
+                                              showTodayButton: true,
                                               onSelectionChanged: _onSelectionChanged,
                                               maxDate: DateTime.now(),
-                                              showActionButtons: true,
                                               confirmText: AppLocalizations.of(context)!.translate('ok'),
                                               cancelText: AppLocalizations.of(context)!.translate('cancel'),
                                               onSubmit: (object) {
@@ -243,6 +246,10 @@ class _ReportPageState extends State<ReportPage> {
                             label: AppLocalizations.of(context)!.translate('refund_report'),
                           ),
                           SideNavigationBarItem(
+                            icon: Icons.monetization_on,
+                            label: AppLocalizations.of(context)!.translate('cash_record_report'),
+                          ),
+                          SideNavigationBarItem(
                             icon: Icons.compare_arrows,
                             label: AppLocalizations.of(context)!.translate('transfer_report'),
                           ),
@@ -275,7 +282,7 @@ class _ReportPageState extends State<ReportPage> {
                       Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
                       Spacer(),
                       Visibility(
-                        visible: this.currentPage != 10 ? true : false,
+                        visible: this.currentPage != 11 ? true : false,
                         child: IconButton(
                           icon: Icon(Icons.print),
                           color: color.backgroundColor,
@@ -313,32 +320,29 @@ class _ReportPageState extends State<ReportPage> {
                                       content: Container(
                                         height: MediaQuery.of(context).size.height,
                                         width: MediaQuery.of(context).size.width,
-                                        child: Container(
-                                          child: Card(
-                                            child: SfDateRangePicker(
-                                              controller: _dateRangePickerController,
-                                              selectionMode: DateRangePickerSelectionMode.range,
-                                              allowViewNavigation: false,
-                                              onSelectionChanged: _onSelectionChanged,
-                                              maxDate: DateTime.now(),
-                                              showActionButtons: true,
-                                              onSubmit: (object) {
-                                                _controller = _range != '' ?
-                                                new TextEditingController(text: '${_range}')
-                                                    :
-                                                new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
-                                                setState(() {
-                                                  reportModel.setDateTime(this.currentStDate, this.currentEdDate);
-                                                  reportModel.resetLoad();
-                                                });
-                                                Navigator.of(context).pop();
-                                              },
-                                              onCancel: (){
-                                                Navigator.of(context).pop();
-                                              },
+                                        child: SfDateRangePicker(
+                                          controller: _dateRangePickerController,
+                                          selectionMode: DateRangePickerSelectionMode.range,
+                                          allowViewNavigation: true,
+                                          showActionButtons: true,
+                                          showTodayButton: true,
+                                          onSelectionChanged: _onSelectionChanged,
+                                          maxDate: DateTime.now(),
+                                          onSubmit: (object) {
+                                            _controller = _range != '' ?
+                                            new TextEditingController(text: '${_range}')
+                                                :
+                                            new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
+                                            setState(() {
+                                              reportModel.setDateTime(this.currentStDate, this.currentEdDate);
+                                              reportModel.resetLoad();
+                                            });
+                                            Navigator.of(context).pop();
+                                          },
+                                          onCancel: (){
+                                            Navigator.of(context).pop();
+                                          },
 
-                                            ),
-                                          ),
                                         ),
                                       ),
                                     ),
@@ -428,6 +432,10 @@ class _ReportPageState extends State<ReportPage> {
                             label: AppLocalizations.of(context)!.translate('refund_report'),
                           ),
                           SideNavigationBarItem(
+                            icon: Icons.monetization_on,
+                            label: AppLocalizations.of(context)!.translate('cash_record_report'),
+                          ),
+                          SideNavigationBarItem(
                             icon: Icons.compare_arrows,
                             label: AppLocalizations.of(context)!.translate('transfer_report'),
                           ),
@@ -486,6 +494,9 @@ class _ReportPageState extends State<ReportPage> {
       ),
       Container(
         child: RefundReport(),
+      ),
+      Container(
+        child: CashRecordReport(),
       ),
       Container(
         child: TransferRecord(),

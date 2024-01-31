@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
@@ -64,6 +65,16 @@ class ReportObject{
       this.dateSettlementPaymentList,
       this.dateOrderDetailCancelList,
       this.dateTransferList});
+
+  Future<List<CashRecord>> getAllCashRecord({currentStDate, currentEdDate}) async {
+    DateTime _startDate = DateTime.parse(currentStDate);
+    DateTime _endDate = DateTime.parse(currentEdDate);
+    //convert time to string
+    DateTime addEndDate = addDays(date: _endDate);
+    String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+    String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+    return await PosDatabase.instance.readAllTodayCashRecord(stringStDate, stringEdDate);
+  }
 
   getAllTransferRecord({currentStDate, currentEdDate}) async {
     dateTransferList = [];

@@ -10,6 +10,8 @@ import 'package:pos_system/utils/Utils.dart';
 import 'package:printing/printing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'cash_record.dart';
+
 
 
 class ReportFormat {
@@ -1253,6 +1255,95 @@ class ReportFormat {
     return pdf.save();
   }
 
+  Future<Uint8List> generateCashRecordReport(PdfPageFormat format, String title, ReportModel reportModel) async {
+    List valueList = reportModel.reportValue2;
+    final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
+    final imageByteData = await rootBundle.load('drawable/logo.png');
+    // Convert ByteData to Uint8List
+    final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
+    final image = pw.MemoryImage(imageUint8List);
+    pdf.addPage(
+      pw.MultiPage(
+          pageFormat: format,
+          orientation: pw.PageOrientation.portrait,
+          build: (pw.Context context) => [
+            pw.Center(
+              child: pw.SizedBox(
+                  height: 100,
+                  width: 100,
+                  child: pw.Image(image)
+              ),
+            ),
+            pw.Table(
+                border: pw.TableBorder(
+                  left: pw.BorderSide(width: 0),
+                  top: pw.BorderSide(width: 0),
+                  right: pw.BorderSide(width: 0),
+                  bottom: pw.BorderSide(width: 0),
+                  horizontalInside: pw.BorderSide(width: 0),
+                  verticalInside: pw.BorderSide.none,
+                ),
+                children: [
+                  pw.TableRow(
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.black,
+                      ),
+                      children: [
+                        pw.Padding(
+                          padding: pw.EdgeInsets.all(10),
+                          child: pw.Text('DateTime', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('DateTime'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('User', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('User'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Remark', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Remark'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Amount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Amount'))),
+                        ),
+                      ]
+                  ),
+                  for(int j = 0; j < valueList.length; j++)
+                    pw.TableRow(
+                        children: [
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text('${Utils.formatDate(valueList[j].created_at!)}', style: pw.TextStyle(font: getFontFormat(valueList[j].created_at))),
+                          ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text('${valueList[j].userName}', style: pw.TextStyle(font: getFontFormat(valueList[j].userName))),
+                          ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text('${valueList[j].remark}', style: pw.TextStyle(font: getFontFormat(valueList[j].remark))),
+                          ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            child: pw.Text('${formatAmount(cashRecord: valueList[j])}', style: pw.TextStyle(font: getFontFormat(formatAmount(cashRecord: valueList[j])))),
+                          ),
+                        ]
+                    ),
+                ]
+            ),
+          ]
+      ),
+    );
+
+    return pdf.save();
+  }
+
+  String formatAmount({required CashRecord cashRecord}){
+    String newAmount = Utils.to2Decimal(double.parse(cashRecord.amount!));
+    if(cashRecord.type == 2 || cashRecord.type == 4){
+      newAmount = "-${Utils.to2Decimal(double.parse(cashRecord.amount!))}";
+    }
+    return newAmount;
+  }
 
   Future<Uint8List> generateReportPdf(PdfPageFormat format, String title) async {
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);

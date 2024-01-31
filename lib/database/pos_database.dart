@@ -3952,6 +3952,18 @@ class PosDatabase {
 */
 
 /*
+  read all cash record
+*/
+  Future<List<CashRecord>> readAllTodayCashRecord(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, b.name AS name FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ?',
+        ['', '', date1, date2]);
+    return result.map((json) => CashRecord.fromJson(json)).toList();
+  }
+
+/*
   read all settlement link payment
 */
   Future<List<SettlementLinkPayment>> readSpecificSettlementLinkPaymentBySettlementKey(String settlement_key, String payment_link_company_id) async {
