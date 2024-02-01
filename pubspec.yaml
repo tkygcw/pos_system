@@ -104,7 +104,6 @@ dependencies:
   version: ^3.0.2
   f_logs: ^2.0.1
   flutter_file_dialog: ^3.0.2
-  share_plus: ^7.2.2
 
 dependency_overrides:
   image_picker_android: 0.8.6+6
