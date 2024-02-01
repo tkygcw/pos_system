@@ -84,9 +84,8 @@ dependencies:
   app_settings: ^4.2.0
   location: ^4.4.0
   internet_connection_checker: ^1.0.0+1
-  syncfusion_flutter_datepicker: ^20.4.54
+  syncfusion_flutter_datepicker: ^22.2.12
   device_info_plus: ^8.1.0
-  syncfusion_flutter_pdf: ^20.4.54
   pdf: ^3.10.6
   printing: ^5.10.4
   qr_flutter:
