@@ -25,6 +25,8 @@ class OrderDetailFields {
     quantity,
     remark,
     account,
+    edited_by,
+    edited_by_user_id,
     cancel_by,
     cancel_by_user_id,
     status,
@@ -52,6 +54,8 @@ class OrderDetailFields {
   static String quantity = 'quantity';
   static String remark = 'remark';
   static String account = 'account';
+  static String edited_by = 'edited_by';
+  static String edited_by_user_id = 'edited_by_user_id';
   static String cancel_by = 'cancel_by';
   static String cancel_by_user_id = 'cancel_by_user_id';
   static String status = 'status';
@@ -80,6 +84,8 @@ class OrderDetail{
   String? quantity;
   String? remark;
   String? account;
+  String? edited_by;
+  String? edited_by_user_id;
   String? cancel_by;
   String? cancel_by_user_id;
   int? status;
@@ -115,6 +121,9 @@ class OrderDetail{
   bool isSelected = true;
   List<String> tableNumber = [];
   String? orderQueue = '';
+  String? order_number = '';
+  String? branch_id = '';
+  String? order_created_at = '';
 
   OrderDetail(
       {this.order_detail_sqlite_id,
@@ -133,6 +142,8 @@ class OrderDetail{
         this.quantity,
         this.remark,
         this.account,
+        this.edited_by,
+        this.edited_by_user_id,
         this.cancel_by,
         this.cancel_by_user_id,
         this.status,
@@ -154,7 +165,10 @@ class OrderDetail{
         this.total_record,
         this.available_stock,
         this.isRemove,
-        this.item_cancel
+        this.item_cancel,
+        this.order_number,
+        this.branch_id,
+        this.order_created_at
       });
 
   OrderDetail copy({
@@ -174,6 +188,8 @@ class OrderDetail{
     String? quantity,
     String? remark,
     String? account,
+    String? edited_by,
+    String? edited_by_user_id,
     String? cancel_by,
     String? cancel_by_user_id,
     int? status,
@@ -201,6 +217,8 @@ class OrderDetail{
           quantity: quantity ?? this.quantity,
           remark: remark ?? this.remark,
           account: account ?? this.account,
+          edited_by: edited_by ?? this.edited_by,
+          edited_by_user_id: edited_by_user_id ?? this.edited_by_user_id,
           cancel_by: cancel_by ?? this.cancel_by,
           cancel_by_user_id: cancel_by_user_id ?? this.cancel_by_user_id,
           status: status ?? this.status,
@@ -228,6 +246,8 @@ class OrderDetail{
     quantity: json[OrderDetailFields.quantity] as String?,
     remark: json[OrderDetailFields.remark] as String?,
     account: json[OrderDetailFields.account] as String?,
+    edited_by: json[OrderDetailFields.edited_by] as String?,
+    edited_by_user_id: json[OrderDetailFields.edited_by_user_id] as String?,
     cancel_by: json[OrderDetailFields.cancel_by] as String?,
     cancel_by_user_id: json[OrderDetailFields.cancel_by_user_id] as String?,
     status: json[OrderDetailFields.status] as int?,
@@ -248,7 +268,10 @@ class OrderDetail{
     double_price: json['net_sales'] as double?,
     gross_price: json['gross_price'] as double?,
     total_record: json['total_record'] as int?,
-    item_cancel: json['item_cancel'] as String?
+    item_cancel: json['item_cancel'] as String?,
+    order_number: json['order_number'] as String?,
+    branch_id: json['branch_id'] as String?,
+    order_created_at: json['order_created_at'] as String?
 
   );
 
@@ -269,6 +292,8 @@ class OrderDetail{
     OrderDetailFields.quantity: quantity,
     OrderDetailFields.remark: remark,
     OrderDetailFields.account: account,
+    OrderDetailFields.edited_by: edited_by,
+    OrderDetailFields.edited_by_user_id: edited_by_user_id,
     OrderDetailFields.cancel_by: cancel_by,
     OrderDetailFields.cancel_by_user_id: cancel_by_user_id,
     OrderDetailFields.status: status,
@@ -292,6 +317,8 @@ class OrderDetail{
     OrderDetailFields.quantity: quantity,
     OrderDetailFields.remark: remark,
     OrderDetailFields.account: account,
+    OrderDetailFields.edited_by: edited_by,
+    OrderDetailFields.edited_by_user_id: edited_by_user_id,
     OrderDetailFields.cancel_by: cancel_by,
     OrderDetailFields.cancel_by_user_id: cancel_by_user_id,
     OrderDetailFields.status: status,

@@ -11,6 +11,7 @@ import '../../notifier/report_notifier.dart';
 import '../../notifier/theme_color.dart';
 import '../../object/report_class.dart';
 
+
 class TransferRecord extends StatefulWidget {
   const TransferRecord({Key? key}) : super(key: key);
 

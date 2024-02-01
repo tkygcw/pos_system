@@ -1201,6 +1201,7 @@ class SyncToCloud {
           _value.add(jsonEncode(notSyncOrderDetailList[i].syncJson()));
         }
         this.order_detail_value = _value.toString();
+        print("order detail: ${this.order_detail_value}");
       }
     } catch(error){
       print('15 order detail sync error: ${error}');

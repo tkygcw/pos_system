@@ -406,10 +406,10 @@ class _PosPinPageState extends State<PosPinPage> {
     User? user = await PosDatabase.instance.verifyPosPin(pos_pin, branch_id.toString());
     if (user != '' && user != null) {
       if (await settlementCheck(user) == true) {
-        if(this.isLogOut == true){
-          openLogOutDialog();
-          return;
-        }
+        // if(this.isLogOut == true){
+        //   openLogOutDialog();
+        //   return;
+        // }
         print('pop a start cash dialog');
         Navigator.push(
           context,
@@ -422,10 +422,10 @@ class _PosPinPageState extends State<PosPinPage> {
           ),
         );
       } else {
-        if(this.isLogOut == true){
-          openLogOutDialog();
-          return;
-        }
+        // if(this.isLogOut == true){
+        //   openLogOutDialog();
+        //   return;
+        // }
         Navigator.push(
           context,
           PageTransition(

@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:another_flushbar/flushbar.dart';
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -651,10 +653,59 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     }
   }
 
+  //print qr kitchen list
   callPrinter() async {
-    List<OrderDetail> returnData = await PrintReceipt().printQrKitchenList(printerList, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
-    if(returnData.isNotEmpty){
-      _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
+    try {
+      print("callPrinter called");
+      BuildContext _context = MyApp.navigatorKey.currentContext!;
+      String flushbarStatus = '';
+      List<OrderDetail> returnData = await PrintReceipt().printQrKitchenList(printerList, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
+      if(returnData.isNotEmpty){
+        _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
+        playSound();
+        Flushbar(
+          icon: Icon(Icons.error, size: 32, color: Colors.white),
+          shouldIconPulse: false,
+          title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
+          message: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
+          duration: Duration(seconds: 5),
+          backgroundColor: Colors.red,
+          messageColor: Colors.white,
+          flushbarPosition: FlushbarPosition.TOP,
+          maxWidth: 350,
+          margin: EdgeInsets.all(8),
+          borderRadius: BorderRadius.circular(8),
+          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+          onTap: (flushbar) {
+            flushbar.dismiss(true);
+          },
+          onStatusChanged: (status) {
+            flushbarStatus = status.toString();
+          },
+        )..show(_context);
+        Future.delayed(Duration(seconds: 3), () {
+          if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
+            playSound();
+        });
+      } else {
+        Fluttertoast.showToast(
+            backgroundColor: Colors.red,
+            msg: "${AppLocalizations.of(_context)?.translate('no_printer_added')}");
+      }
+    } catch(e) {
+      print("callPrinter error: ${e}");
+    }
+
+  }
+
+  playSound() {
+    try {
+      final assetsAudioPlayer = AssetsAudioPlayer();
+      assetsAudioPlayer.open(
+        Audio("audio/review.mp3"),
+      );
+    } catch(e) {
+      print("Play Sound Error: ${e}");
     }
   }
 
