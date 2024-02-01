@@ -7,7 +7,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/fragment/table/table_change_dialog.dart';
 import 'package:pos_system/fragment/table/table_dialog.dart';
-import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/order_cache.dart';

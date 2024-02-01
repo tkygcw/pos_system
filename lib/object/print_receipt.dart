@@ -6,7 +6,6 @@ import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/checklist.dart';
 import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/printer.dart';
@@ -990,7 +989,7 @@ class PrintReceipt{
                               print("orderQueue not null");
                               // distinctOrderNumbers.add(orderDetail.orderQueue!);
                               distinctOrderNumbers = reprintList.map((orderDetail) => orderDetail.orderQueue!).toSet().toList();
-                            } else if (orderDetail.tableNumber != null && orderDetail.tableNumber.isNotEmpty) {
+                            } else if (orderDetail.tableNumber.isNotEmpty) {
                               // distinctTableNumbers.add(orderDetail.tableNumber.map((num) => num.toString()).join(', '));
                               distinctTableNumbers = reprintList.map((orderDetail) => orderDetail.tableNumber.map((num) => num.toString()).join(', ')).toSet().toList();
                             } else {
@@ -1085,7 +1084,7 @@ class PrintReceipt{
                               print("orderQueue not null");
                               // distinctOrderNumbers.add(orderDetail.orderQueue!);
                               distinctOrderNumbers = reprintList.map((orderDetail) => orderDetail.orderQueue!).toSet().toList();
-                            } else if (orderDetail.tableNumber != null && orderDetail.tableNumber.isNotEmpty) {
+                            } else if (orderDetail.tableNumber.isNotEmpty) {
                               // distinctTableNumbers.add(orderDetail.tableNumber.map((num) => num.toString()).join(', '));
                               distinctTableNumbers = reprintList.map((orderDetail) => orderDetail.tableNumber.map((num) => num.toString()).join(', ')).toSet().toList();
                             } else {
@@ -1379,20 +1378,20 @@ class PrintReceipt{
                     //print USB 35mm
                     int totalItem = 0;
                     // get total item in order
-                    for (int x = 0; x < orderDetailList.length; x++)
-                      for (int y = 0; y < int.parse(orderDetailList[x].quantity!); y++)
+                    for (int x = 0; x < orderDetail.length; x++)
+                      for (int y = 0; y < int.parse(orderDetail[x].quantity!); y++)
                         totalItem += 1;
 
-                    for (int j = 0; j < int.parse(orderDetailList[k].quantity!); j++) {
+                    for (int j = 0; j < int.parse(orderDetail[k].quantity!); j++) {
                       currentItem++;
                       var data = Uint8List.fromList(
-                          await ReceiptLayout().printLabel35mm(true, orderCacheLocalId, totalItem, currentItem, orderDetail: orderDetailList[k]));
+                          await ReceiptLayout().printLabel35mm(true, orderCacheLocalId, totalItem, currentItem, orderDetail: orderDetail[k]));
                       bool? isConnected = await flutterUsbPrinter.connect(
                           int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
                       if (isConnected == true) {
                         await flutterUsbPrinter.write(data);
                       } else {
-                        failedPrintOrderDetail.add(orderDetailList[k]);
+                        failedPrintOrderDetail.add(orderDetail[k]);
                       }
                     }
                   }

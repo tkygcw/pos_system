@@ -177,17 +177,17 @@ class _SettlementPageState extends State<SettlementPage> {
                                     height: 30,
                                     child: VerticalDivider(color: Colors.grey, thickness: 1),
                                   ),
-                                  ElevatedButton(
-                                    child: Text(AppLocalizations.of(context)!.translate('cash_record_history')),
-                                    onPressed: () {
-                                      openSettlementHistoryDialog();
-                                    },
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                  ),
-                                  Container(
-                                    height: 30,
-                                    child: VerticalDivider(color: Colors.grey, thickness: 1),
-                                  ),
+                                  // ElevatedButton(
+                                  //   child: Text(AppLocalizations.of(context)!.translate('cash_record_history')),
+                                  //   onPressed: () {
+                                  //     openSettlementHistoryDialog();
+                                  //   },
+                                  //   style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                  // ),
+                                  // Container(
+                                  //   height: 30,
+                                  //   child: VerticalDivider(color: Colors.grey, thickness: 1),
+                                  // ),
                                   ElevatedButton(
                                     child: Text(AppLocalizations.of(context)!.translate('transfer_ownership')),
                                     onPressed: () async {
@@ -205,7 +205,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('close_counter_warn')}");
                                       }
                                     },
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                   ),
                                   Container(
                                     height: 30,
@@ -216,7 +216,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                     onPressed: () {
                                       openCashBoxDialog();
                                     },
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                    style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                                   ),
                                   Container(
                                     height: 30,
@@ -1037,7 +1037,7 @@ class _SettlementPageState extends State<SettlementPage> {
   }
 
   setScreenLayout() {
-    final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
+    final double screenWidth = MediaQueryData.fromView(WidgetsBinding.instance.window).size.width;
     if (screenWidth < 500) {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,

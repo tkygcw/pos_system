@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/food/food_setting.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
