@@ -2168,6 +2168,8 @@ getAllOrderDetail() async {
               quantity: responseJson[i]['quantity'],
               remark: responseJson[i]['remark'],
               account: responseJson[i]['account'],
+              edited_by: responseJson[i]['edited_by'],
+              edited_by_user_id: responseJson[i]['edited_by_user_id'],
               cancel_by: responseJson[i]['cancel_by'],
               cancel_by_user_id: responseJson[i]['cancel_by_user_id'],
               status: responseJson[i]['status'],

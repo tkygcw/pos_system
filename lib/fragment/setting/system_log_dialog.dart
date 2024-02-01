@@ -4,13 +4,13 @@ import 'dart:io';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:f_logs/model/flog/log.dart';
-import 'package:f_logs/utils/formatter/formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../notifier/theme_color.dart';
 import '../../translation/AppLocalizations.dart';
@@ -150,52 +150,80 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                     setState(() {
                       isButtonDisabled = true;
                     });
+                    Directory appDocDir = await getApplicationDocumentsDirectory();
+                    String sourceFilePath = appDocDir.path + '/flog.db';
+                    String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+                    if (Platform.isAndroid) {
+                      try {
+                        File file = await File(sourceFilePath);
 
-                    try {
-                      Directory appDocDir = await getApplicationDocumentsDirectory();
-                      String dbFilePath = appDocDir.path + '/flog.db';
-                      File file = await File(dbFilePath);
-                      String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-
-                      if (!await FlutterFileDialog.isPickDirectorySupported()) {
-                        print("Picking directory not supported");
-                        return;
-                      }
-
-                      final pickedDirectory = await FlutterFileDialog.pickDirectory();
-
-                      if (pickedDirectory != null) {
-                        final filePath = await FlutterFileDialog.saveFileToDirectory(
-                          directory: pickedDirectory!,
-                          data: file.readAsBytesSync(),
-                          mimeType: "application/octet-stream",
-                          fileName: "optimy_log_$timestamp.db",
-                          replace: true,
-                        );
-
-                        if (filePath != null) {
-                          Fluttertoast.showToast(msg: '${AppLocalizations.of(context)!.translate('file_saved_to')}: $filePath');
-                          setState(() {
-                            isButtonDisabled = false;
-                            Navigator.of(context).pop();
-                          });
+                        if (!await FlutterFileDialog.isPickDirectorySupported()) {
+                          print("Picking directory not supported");
+                          Fluttertoast.showToast(backgroundColor: Colors.red, msg: 'Picking directory not supported');
+                          return;
                         } else {
-                          Fluttertoast.showToast(msg: '${AppLocalizations.of(context)!.translate('file_save_cancel')}');
-                          setState(() {
-                            isButtonDisabled = false;
-                          });
+                          final pickedDirectory = await FlutterFileDialog.pickDirectory();
+
+                          if (pickedDirectory != null) {
+                            print("pickedDirectory not null");
+                            final filePath = await FlutterFileDialog.saveFileToDirectory(
+                              directory: pickedDirectory!,
+                              data: file.readAsBytesSync(),
+                              mimeType: "application/octet-stream",
+                              fileName: "optimy_log_$timestamp.db",
+                              replace: true,
+                            );
+
+                            if (filePath != null) {
+                              Fluttertoast.showToast(msg: '${AppLocalizations.of(context)!.translate('file_saved_to')}: $filePath');
+                              setState(() {
+                                isButtonDisabled = false;
+                                Navigator.of(context).pop();
+                              });
+                            } else {
+                              Fluttertoast.showToast(msg: '${AppLocalizations.of(context)!.translate('file_save_cancel')}');
+                              setState(() {
+                                isButtonDisabled = false;
+                              });
+                            }
+                          } else {
+                            Fluttertoast.showToast(msg: '${AppLocalizations.of(context)!.translate('file_save_cancel')}');
+                            setState(() {
+                              isButtonDisabled = false;
+                            });
+                          }
                         }
+                      } catch (e) {
+                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: '${AppLocalizations.of(context)!.translate('file_saved_to_error')}: $e');
+                        FLog.error(
+                          className: "system_log_dialog",
+                          text: "log export error",
+                          exception: e,
+                        );
+                        setState(() {
+                          isButtonDisabled = false;
+                        });
                       }
-                    } catch (e) {
-                      Fluttertoast.showToast(backgroundColor: Colors.red, msg: '${AppLocalizations.of(context)!.translate('file_saved_to_error')}: $e');
-                      FLog.error(
-                        className: "system_log_dialog",
-                        text: "log export error",
-                        exception: e,
-                      );
-                      setState(() {
-                        isButtonDisabled = false;
-                      });
+                    }
+                    else if (Platform.isIOS) {
+                      try {
+                        if (await File(sourceFilePath).exists()) {
+                          Directory tempDir = await getTemporaryDirectory();
+                          String tempFilePath = tempDir.path + '/optimy_log_$timestamp.db';
+
+                          await File(sourceFilePath).copy(tempFilePath);
+                          // await Share.shareFiles([sourceFilePath], text: 'Sharing flog.db file');
+                          await Share.shareXFiles([XFile('${tempFilePath}')], text: 'Sharing optimy_log.db file');
+
+                        } else {
+                          print('File not found');
+                        }
+                      } catch (e) {
+                        print('Error sharing file: $e');
+                      }
+                    }
+                    else {
+                      Fluttertoast.showToast(msg: 'System Log export not supported for this device');
                     }
                   },
                 ),
