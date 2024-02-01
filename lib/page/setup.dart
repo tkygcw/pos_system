@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:animations/animations.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -272,6 +273,12 @@ class _SetupPageState extends State<SetupPage> {
     await prefs.setInt('branch_id', selectedBranch!.branchID!);
     await prefs.setInt('device_id', selectedDevice!.deviceID!);
     await prefs.setString("branch", json.encode(selectedBranch!));
+    String userEmail = jsonDecode(prefs.getString('user') ?? '')['email'] ?? '';
+    FLog.info(
+      className: "setup",
+      text: "Account logged in",
+      exception: "Email: ${userEmail}\nBranch: ${selectedBranch!.name}\nDevice: ${selectedDevice!.name}",
+    );
   }
 
   updateBranchToken() async {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/setting/features_setting.dart';
@@ -152,6 +153,34 @@ class _SettingMenuState extends State<SettingMenu> {
                               },
                               child: Text(AppLocalizations.of(context)!.translate('close_counter')),
                             ),
+                            ElevatedButton(
+                              onPressed: () async {
+                                try {
+                                  var result = 9 ~/ 0;
+                                  print(result);
+                                } on Exception catch (exception) {
+                                  FLog.error(
+                                    text: "Error Description",
+                                    exception: exception,
+                                  );
+                                }
+                              },
+                              child: Text("Error"),
+                            ),
+                            ElevatedButton(
+                              onPressed: () async {
+                                try {
+                                  var result = 9 ~/ 0;
+                                  print(result);
+                                } on Exception {
+                                  FLog.info(
+                                    className: "setting",
+                                    text: "Info Test",
+                                  );
+                                }
+                              },
+                              child: Text("Info"),
+                            ),
                           ],
                         )),
                     theme: SideNavigationBarTheme(
@@ -252,6 +281,34 @@ class _SettingMenuState extends State<SettingMenu> {
 
                                 },
                                 child: Text(AppLocalizations.of(context)!.translate('close_counter')),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  try {
+                                    var result = 9 ~/ 0;
+                                    print(result);
+                                  } on Exception catch (exception) {
+                                    FLog.error(
+                                      text: "Error Description",
+                                      exception: exception,
+                                    );
+                                  }
+                                },
+                                child: Text("Error"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  try {
+                                    var result = 9 ~/ 0;
+                                    print(result);
+                                  } on Exception {
+                                    FLog.info(
+                                      className: "setting",
+                                      text: "Info Test",
+                                    );
+                                  }
+                                },
+                                child: Text("Info"),
                               ),
                             ],
                           )),

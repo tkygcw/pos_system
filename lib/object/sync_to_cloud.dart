@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/app_setting.dart';
@@ -211,6 +212,11 @@ class SyncToCloud {
       emptyResponse = true;
       status = 2;
       print("sync to cloud error: ${e}");
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "sync to cloud error",
+        exception: e,
+      );
     }
     return status;
   }
@@ -278,6 +284,11 @@ class SyncToCloud {
       }
     } catch(e){
       print('15 checklist error: $e');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "checklist sync to cloud error",
+        exception: e,
+      );
       checklist_value = null;
     }
   }
@@ -294,6 +305,11 @@ class SyncToCloud {
       }
     } catch(e){
       print('15 kitchen_list error: $e');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "kitchen list sync to cloud error",
+        exception: e,
+      );
       kitchen_list_value = null;
     }
   }
@@ -311,6 +327,11 @@ class SyncToCloud {
       //print('receipt value: ${receipt_value}');
     } catch(error){
       print('15 receipt error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "receipt sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -332,8 +353,13 @@ class SyncToCloud {
         this.printer_link_category_value = _value.toString();
         print('value: ${printer_link_category_value}');
       }
-    }catch (error){
+    }catch(error){
       print('15 printer category error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "printer category sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -351,6 +377,11 @@ class SyncToCloud {
       }
     } catch(error){
       print('15 printer sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "printer sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -395,8 +426,13 @@ class SyncToCloud {
         }
         this.branch_link_product_value = _value.toString();
       }
-    } catch (error){
+    } catch(error){
       print('15 branch link product sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "branch link product sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -442,6 +478,11 @@ class SyncToCloud {
       }
     }catch(error){
       print('15 settlement payment sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "settlement payment sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -487,6 +528,11 @@ class SyncToCloud {
       }
     }catch(error){
       print('15 settlement sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "settlement sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -535,6 +581,11 @@ class SyncToCloud {
       }
     }catch(error){
       print('15 transfer owner sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "transfer owner sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -580,8 +631,13 @@ class SyncToCloud {
         }
         this.refund_value = _value.toString();
       }
-    } catch (error){
+    } catch(error){
       print('15 refund sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "refund sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -643,6 +699,11 @@ class SyncToCloud {
       }
     }catch(error){
       print('15 cash record sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "cash record sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -672,6 +733,11 @@ class SyncToCloud {
       }
     }catch(error){
       print('15 app setting sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "app setting sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -729,6 +795,11 @@ class SyncToCloud {
       }
     }catch(error){
       print('15 table sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "table sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -790,6 +861,11 @@ class SyncToCloud {
       }
     }catch(error){
       print('15 order promotion sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "order promotion sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -851,6 +927,11 @@ class SyncToCloud {
       }
     } catch(error){
       print('15 order tax sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "order tax sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -890,6 +971,11 @@ class SyncToCloud {
       }
     }catch(error){
       print('15 table use detail error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "table use detail sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -929,6 +1015,11 @@ class SyncToCloud {
       }
     }catch(error){
       print('15 table use sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "table use sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -990,6 +1081,11 @@ class SyncToCloud {
       }
     } catch(error){
       print('15 order modifier detail sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "order modifier detail sync to cloud error",
+        exception: error,
+      );
       return;
     }
 
@@ -1038,6 +1134,11 @@ class SyncToCloud {
       }
     } catch(error){
       print('15 order detail cancel error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "order detail cancel sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -1103,6 +1204,11 @@ class SyncToCloud {
       }
     } catch(error){
       print('15 order detail sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "order detail sync to cloud error",
+        exception: error,
+      );
       return;
     }
 
@@ -1141,6 +1247,11 @@ class SyncToCloud {
       }
     } catch(error){
       print('15 order cache sync error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "order cache sync to cloud error",
+        exception: error,
+      );
       return;
     }
   }
@@ -1203,6 +1314,11 @@ class SyncToCloud {
       }
     }catch(error){
       print('15 sync order error: ${error}');
+      FLog.error(
+        className: "sync_to_cloud",
+        text: "order sync to cloud error",
+        exception: error,
+      );
       return;
     }
 

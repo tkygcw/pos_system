@@ -19,7 +19,6 @@ import '../../database/domain.dart';
 import '../../database/pos_database.dart';
 import '../../main.dart';
 import '../../notifier/theme_color.dart';
-import '../../object/app_setting.dart';
 import '../../object/cash_record.dart';
 import '../../object/order.dart';
 import '../../object/order_cache.dart';

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -157,9 +158,18 @@ class _SyncDialogState extends State<SyncDialog> {
         syncRecord.count = 1;
         await syncRecord.syncFromCloud();
         syncRecord.count = 0;
+        FLog.info(
+          className: "sync_dialog",
+          text: "Manual sync: Start",
+        );
       }
     }catch(e){
       syncRecord.count = 0;
+      FLog.error(
+        className: "sync_dialog",
+        text: "Manual sync data from cloud error",
+        exception: e,
+      );
     }
   }
 
@@ -207,6 +217,11 @@ class _SyncDialogState extends State<SyncDialog> {
       timer?.cancel();
       controller.sink.addError(Exception(e));
       print("sync to cloud checking error: ${e}");
+      FLog.error(
+        className: "sync_dialog",
+        text: "Manual sync to cloud error",
+        exception: e,
+      );
     }
   }
 }

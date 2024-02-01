@@ -2253,6 +2253,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return User.fromJson(maps.first);
     }
+    return null;
   }
 
   Future<Product?> readProductSqliteID(String product_id) async {
@@ -2284,6 +2285,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return VariantGroup.fromJson(maps.first);
     }
+    return null;
   }
 
   Future<VariantGroup?> readVariantGroupID(String variant_group_sqlite_id) async {
@@ -2292,6 +2294,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return VariantGroup.fromJson(maps.first);
     }
+    return null;
   }
 
   Future<ProductVariant?> readProductVariantSqliteID(String product_variant_id) async {
@@ -2310,6 +2313,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return ProductVariant.fromJson(maps.first);
     }
+    return null;
   }
 
   Future<VariantItem?> readVariantItemSqliteID(String variant_item_id) async {
@@ -2318,6 +2322,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return VariantItem.fromJson(maps.first);
     }
+    return null;
   }
 
   Future<Categories?> readCategorySqliteID(String category_id) async {
@@ -2346,6 +2351,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return TableUse.fromJson(maps.first);
     }
+    return null;
   }
 
   Future<OrderCache?> readOrderCacheSqliteID(String orderCacheKey) async {
@@ -2405,6 +2411,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return Branch.fromJson(maps.first);
     }
+    return null;
   }
 
   /*
@@ -2416,6 +2423,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return VariantItem.fromJson(maps.first);
     }
+    return null;
   }
 
 /*
@@ -2467,6 +2475,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return ProductVariant.fromJson(maps.first);
     }
+    return null;
   }
 
   /*
@@ -2478,6 +2487,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return VariantGroup.fromJson(maps.first);
     }
+    return null;
   }
 
   /*
@@ -3675,6 +3685,7 @@ class PosDatabase {
     if (maps.isNotEmpty) {
       return CashRecord.fromJson(maps.first);
     }
+    return null;
   }
 
 /*

@@ -103,6 +103,8 @@ dependencies:
   another_flushbar: ^1.12.30
   flash: ^3.0.5
   version: ^3.0.2
+  f_logs: ^2.0.1
+  flutter_file_dialog: ^3.0.2
 
 dependency_overrides:
   image_picker_android: 0.8.6+6
