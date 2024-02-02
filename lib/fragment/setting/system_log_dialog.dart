@@ -155,14 +155,12 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                     try {
                       File file = await File(sourceFilePath);
                       if (!await FlutterFileDialog.isPickDirectorySupported()) {
-                        print("Picking directory not supported");
-                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: 'Picking directory not supported');
+                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('file_export_not_supported'));
                         return;
                       } else {
                         final pickedDirectory = await FlutterFileDialog.pickDirectory();
 
                         if (pickedDirectory != null) {
-                          print("pickedDirectory not null");
                           final filePath = await FlutterFileDialog.saveFileToDirectory(
                             directory: pickedDirectory!,
                             data: file.readAsBytesSync(),
@@ -172,22 +170,22 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                           );
 
                           if (filePath != null) {
-                            Fluttertoast.showToast(msg: '${AppLocalizations.of(context)!.translate('file_saved_to')}: $filePath');
+                            Fluttertoast.showToast(msg: '${AppLocalizations.of(context)!.translate('file_export_success')}');
                           } else {
-                            Fluttertoast.showToast(msg: '${AppLocalizations.of(context)!.translate('file_save_cancel')}');
+                            Fluttertoast.showToast(backgroundColor: Colors.red, msg: '${AppLocalizations.of(context)!.translate('file_export_cancel')}');
                           }
                         } else {
-                          Fluttertoast.showToast(msg: '${AppLocalizations.of(context)!.translate('file_save_cancel')}');
+                          Fluttertoast.showToast(backgroundColor: Colors.red, msg: '${AppLocalizations.of(context)!.translate('file_export_cancel')}');
                         }
                       }
                       setState(() {
                         isButtonDisabled = false;
                       });
                     } catch (e) {
-                      Fluttertoast.showToast(backgroundColor: Colors.red, msg: '${AppLocalizations.of(context)!.translate('file_saved_to_error')}: $e');
+                      Fluttertoast.showToast(backgroundColor: Colors.red, msg: '${AppLocalizations.of(context)!.translate('file_export_error')}');
                       FLog.error(
                         className: "system_log_dialog",
-                        text: "log export error",
+                        text: "system log export error",
                         exception: e,
                       );
                       setState(() {
@@ -315,14 +313,12 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                           try {
                             File file = await File(sourceFilePath);
                             if (!await FlutterFileDialog.isPickDirectorySupported()) {
-                              print("Picking directory not supported");
-                              Fluttertoast.showToast(backgroundColor: Colors.red, msg: 'Picking directory not supported');
+                              Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('file_export_not_supported'));
                               return;
                             } else {
                               final pickedDirectory = await FlutterFileDialog.pickDirectory();
 
                               if (pickedDirectory != null) {
-                                print("pickedDirectory not null");
                                 final filePath = await FlutterFileDialog.saveFileToDirectory(
                                   directory: pickedDirectory!,
                                   data: file.readAsBytesSync(),
@@ -332,22 +328,22 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                                 );
 
                                 if (filePath != null) {
-                                  Fluttertoast.showToast(msg: '${AppLocalizations.of(context)!.translate('file_saved_to')}: $filePath');
+                                  Fluttertoast.showToast(msg: '${AppLocalizations.of(context)!.translate('file_export_success')}');
                                 } else {
-                                  Fluttertoast.showToast(msg: '${AppLocalizations.of(context)!.translate('file_save_cancel')}');
+                                  Fluttertoast.showToast(backgroundColor: Colors.red, msg: '${AppLocalizations.of(context)!.translate('file_export_cancel')}');
                                 }
                               } else {
-                                Fluttertoast.showToast(msg: '${AppLocalizations.of(context)!.translate('file_save_cancel')}');
+                                Fluttertoast.showToast(backgroundColor: Colors.red, msg: '${AppLocalizations.of(context)!.translate('file_export_cancel')}');
                               }
                             }
                             setState(() {
                               isButtonDisabled = false;
                             });
                           } catch (e) {
-                            Fluttertoast.showToast(backgroundColor: Colors.red, msg: '${AppLocalizations.of(context)!.translate('file_saved_to_error')}: $e');
+                            Fluttertoast.showToast(backgroundColor: Colors.red, msg: '${AppLocalizations.of(context)!.translate('file_export_error')}');
                             FLog.error(
                               className: "system_log_dialog",
-                              text: "log export error",
+                              text: "system log export error",
                               exception: e,
                             );
                             setState(() {
