@@ -135,12 +135,6 @@ class _CashRecordReportState extends State<CashRecordReport> {
     List<CashRecord> cashRecordData = await getAllCashRecord();
     controller.sink.add("refresh");
     reportModel.addOtherValue(valueList: cashRecordData);
-    // reportModel.addOtherValue(valueList: categoryData);
-    // if(mounted){
-    //   setState(() {
-    //     isLoaded = true;
-    //   });
-    // }
   }
 
   Future<List<CashRecord>>getAllCashRecord() async {

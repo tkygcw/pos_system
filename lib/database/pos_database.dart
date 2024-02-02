@@ -4052,14 +4052,14 @@ class PosDatabase {
 /*
   read all settlement
 */
-  Future<List<Settlement>> readAllSettlement() async {
+  Future<List<Settlement>> readAllSettlement(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT *, SUM(total_bill) AS all_bill, SUM(total_sales) AS all_sales, SUM(total_refund_bill) AS all_refund_bill, '
         'SUM(total_refund_amount) AS all_refund_amount, SUM(total_discount) AS all_discount, '
         'SUM(total_tax) AS all_tax_amount, SUM(total_cancellation) AS all_cancellation '
-        'FROM $tableSettlement WHERE soft_delete = ? AND status = ? GROUP BY SUBSTR(created_at, 1, 10) ORDER BY SUBSTR(created_at, 1, 10) DESC ',
-        ['', 0]);
+        'FROM $tableSettlement WHERE soft_delete = ? AND status = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? GROUP BY SUBSTR(created_at, 1, 10) ORDER BY SUBSTR(created_at, 1, 10) DESC ',
+        ['', 0, date1, date2]);
     return result.map((json) => Settlement.fromJson(json)).toList();
   }
 

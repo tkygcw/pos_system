@@ -19,7 +19,7 @@ class ReportModel extends ChangeNotifier {
     this.endDateTime = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
     this.startDateTime2 = new DateFormat("dd/MM/yyyy").format(DateTime.now());
     this.endDateTime2 = new DateFormat("dd/MM/yyyy").format(DateTime.now());
-    notifyListeners();
+    //notifyListeners();
   }
 
   void setDateTime (String startDateTime, String endDateTime) {
