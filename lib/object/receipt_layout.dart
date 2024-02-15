@@ -1533,7 +1533,7 @@ class ReceiptLayout{
         //footer
         if(receipt!.footer_text_status == 1 && paidOrder!.payment_status == 1){
           bytes += generator.emptyLines(1);
-          bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1));
+          bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, align: PosAlign.center, height: PosTextSize.size1, width: PosTextSize.size1), containsChinese: true);
         } else if(paidOrder!.payment_status == 2) {
           bytes += generator.hr();
           bytes += generator.text('refund by:', styles: PosStyles(align: PosAlign.center));
@@ -1793,7 +1793,7 @@ class ReceiptLayout{
         //footer
         if(receipt!.footer_text_status == 1 && paidOrder!.payment_status == 1){
           bytes += generator.emptyLines(1);
-          bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, height: PosTextSize.size1, width: PosTextSize.size1, align: PosAlign.center));
+          bytes += generator.text('${receipt!.footer_text}', styles: PosStyles(bold: true, height: PosTextSize.size1, width: PosTextSize.size1, align: PosAlign.center), containsChinese: true);
         } else if (paidOrder!.payment_status == 2) {
           bytes += generator.hr();
           bytes += generator.text('refund by:', styles: PosStyles(align: PosAlign.center));

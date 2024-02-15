@@ -2148,7 +2148,7 @@ getAllOrderDetail() async {
         OrderCache? cacheData = await PosDatabase.instance.readOrderCacheSqliteID(responseJson[i]['order_cache_key']);
         Categories? categoriesData = await PosDatabase.instance.readCategorySqliteID(responseJson[i]['category_id'].toString());
         BranchLinkProduct? branchLinkProductData = await PosDatabase.instance.readBranchLinkProductSqliteID(responseJson[i]['branch_link_product_id'].toString());
-        if(cacheData == null || categoriesData == null || branchLinkProductData == null){
+        if(cacheData == null || branchLinkProductData == null){
           continue;
         }
         try {
@@ -2158,7 +2158,7 @@ getAllOrderDetail() async {
               order_cache_sqlite_id: cacheData.order_cache_sqlite_id.toString(),
               order_cache_key: responseJson[i]['order_cache_key'],
               branch_link_product_sqlite_id: branchLinkProductData.branch_link_product_sqlite_id.toString(),
-              category_sqlite_id: categoriesData.category_sqlite_id.toString(),
+              category_sqlite_id: categoriesData != null ? categoriesData.category_sqlite_id.toString() : '0',
               category_name: responseJson[i]['category_name'],
               productName: responseJson[i]['product_name'],
               has_variant: responseJson[i]['has_variant'],

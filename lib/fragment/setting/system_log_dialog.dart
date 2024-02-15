@@ -74,7 +74,6 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                           FLog.clearLogs();
                           logs.clear();
                         }
-                        //Navigator.of(context).pop();
                       },
                     ),
                   ),
@@ -244,7 +243,7 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                           textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
                         )) {
                           FLog.clearLogs();
-                          setState(() {});
+                          logs.clear();
                         }
                         //Navigator.of(context).pop();
                       },
