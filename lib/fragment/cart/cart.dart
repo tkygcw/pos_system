@@ -200,7 +200,6 @@ class CartPageState extends State<CartPage> {
         _appSettingModel = appSettingModel;
         return Consumer<FailPrintModel>(builder: (context, FailPrintModel failPrintModel, child) {
           _failPrintModel = failPrintModel;
-          print("rebuild ui");
           return Consumer<CartModel>(builder: (context, CartModel cart, child) {
             return Consumer<NotificationModel>(builder: (context, NotificationModel notificationModel, child) {
               if(cart.cartNotifierItem.isEmpty){
@@ -335,6 +334,7 @@ class CartPageState extends State<CartPage> {
                   body: StreamBuilder(
                       stream: controller.stream,
                       builder: (context, snapshot) {
+                        print("rebuild ui");
                         if(snapshot.hasData && notificationModel.contentLoad == false){
                           return Container(
                             decoration: BoxDecoration(
@@ -358,9 +358,9 @@ class CartPageState extends State<CartPage> {
                                       children: List.generate(diningList.length, (index) {
                                         return InkWell(
                                           onTap: () {
-                                            widget.currentPage == 'menu'
-                                                ? cart.cartNotifierItem.isEmpty
-                                                ? setState(() {
+                                            widget.currentPage == 'menu' ?
+                                            cart.cartNotifierItem.isEmpty ?
+                                            setState(() {
                                               cart.removeAllTable();
                                               cart.selectedOption = diningList[index].name!;
                                               cart.selectedOptionId =
@@ -1199,9 +1199,9 @@ class CartPageState extends State<CartPage> {
     promoAmount = 0.0;
     getAutoApplyPromotion(cart);
     getManualApplyPromotion(cart);
-    if (!controller.isClosed) {
-      controller.sink.add('refresh');
-    }
+    // if (!controller.isClosed) {
+    //   controller.sink.add('refresh');
+    // }
   }
 
   getManualApplyPromotion(CartModel cart) {
@@ -1792,9 +1792,9 @@ class CartPageState extends State<CartPage> {
     } catch (error) {
       print('get dining tax in cart error: $error');
     }
-    if (!controller.isClosed) {
-      controller.sink.add('refresh');
-    }
+    // if (!controller.isClosed) {
+    //   controller.sink.add('refresh');
+    // }
   }
 
 /*
@@ -1881,9 +1881,9 @@ class CartPageState extends State<CartPage> {
     } catch (e) {
       print('get tax amount error: $e');
     }
-    if (!controller.isClosed) {
-      controller.sink.add('refresh');
-    }
+    // if (!controller.isClosed) {
+    //   controller.sink.add('refresh');
+    // }
   }
 
   getAllTaxAmount() {
@@ -1904,9 +1904,9 @@ class CartPageState extends State<CartPage> {
     _round = Utils.roundToNearestFiveSen(double.parse(totalAmount.toStringAsFixed(2))) - double.parse(totalAmount.toStringAsFixed(2));
     rounding = _round;
 
-    if (!controller.isClosed) {
-      controller.sink.add('refresh');
-    }
+    // if (!controller.isClosed) {
+    //   controller.sink.add('refresh');
+    // }
   }
 
   getAllTotal() {
@@ -1916,9 +1916,9 @@ class CartPageState extends State<CartPage> {
       print('Total calc error: $error');
     }
 
-    if (!controller.isClosed) {
-      controller.sink.add('refresh');
-    }
+    // if (!controller.isClosed) {
+    //   controller.sink.add('refresh');
+    // }
   }
 
 /*
@@ -2167,14 +2167,14 @@ class CartPageState extends State<CartPage> {
       branchLinkDiningIdList.add(data[i].dining_id!);
     }
     if (serverCall == null) {
+      if (diningList.length == 3) {
+        cart.selectedOption = 'Dine in';
+      } else {
+        cart.selectedOption = "Take Away";
+      }
       if (!controller.isClosed) {
         controller.sink.add('refresh');
       }
-    }
-    if (diningList.length == 3) {
-      cart.selectedOption = 'Dine in';
-    } else {
-      cart.selectedOption = "Take Away";
     }
     //cart.selectedOption = diningList.first.name;
     lastDiningOption = true;

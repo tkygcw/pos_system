@@ -16,6 +16,7 @@ import 'package:pos_system/object/sync_record.dart';
 import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/page/second_display.dart';
+import 'package:pos_system/second_device/server.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/translation/appLanguage.dart';
 import 'package:presentation_displays/display.dart';
@@ -156,6 +157,11 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => notificationModel,
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            return Server.instance;
+          },
         ),
       ],
       child: Consumer<AppLanguage>(builder: (context, model, child) {

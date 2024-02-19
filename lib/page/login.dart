@@ -17,6 +17,8 @@ import '../fragment/network_dialog.dart';
 import '../notifier/theme_color.dart';
 import 'package:flutter_login/flutter_login.dart';
 
+import '../second_device/server.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -32,6 +34,7 @@ class _LoginPageState extends State<LoginPage> {
     // TODO: implement initState
     super.initState();
     loginCheck();
+    bindSocket();
     //setScreenLayout();
   }
 
@@ -183,6 +186,14 @@ class _LoginPageState extends State<LoginPage> {
         });
       }
     });
+  }
+
+/*
+  bind server socket
+*/
+  bindSocket() async {
+    await Server.instance.bindServer();
+    await Server.instance.bindRequestServer();
   }
 
   Future<Future<Object?>> openLogOutDialog() async {

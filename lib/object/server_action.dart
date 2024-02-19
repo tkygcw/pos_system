@@ -6,6 +6,7 @@ import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/product.dart';
+import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/pos_database.dart';
@@ -17,27 +18,12 @@ class ServerAction {
 
   ServerAction({this.action});
 
-   encodeAllImage() async {
-    List<String> encodedImage = [];
+  Future<String> encodeImage(String imageName) async {
     final prefs = await SharedPreferences.getInstance();
     final String imagePath = prefs.getString('local_path')!;
-    final directory = Directory(imagePath);
-    final List<File> imageFiles = directory
-        .listSync()
-        .where((entity) => entity is File && entity.path.endsWith('.jpeg'))
-        .map<File>((entity) => entity as File)
-        .toList();
-
-    // for (var file in imageFiles) {
-    //   final imageBytes = file.readAsBytesSync();
-    //   final base64Image = base64Encode(imageBytes);
-    //   encodedImage.add(base64Image);
-    // }
-    final imageBytes = imageFiles[0].readAsBytesSync();
+    final imageBytes = await File(imagePath + '/' + imageName).readAsBytes();
     final base64Image = base64Encode(imageBytes);
-    encodedImage.add(base64Image);
-    print('encoded image length: ${encodedImage.length}');
-    return encodedImage;
+    return base64Image;
   }
 
   checkAction({required String action, param}) async {
@@ -48,6 +34,13 @@ class ServerAction {
 
     try{
       switch(action){
+        case '0': {
+          objectData = {
+            'image_name': await encodeImage(param)
+          };
+          result = {'status': '1','data': objectData};
+        }
+        break;
         case '1': {
           var data = await PosDatabase.instance.readAllCategories();
           var data2 = await PosDatabase.instance.readAllClientProduct();
@@ -55,7 +48,8 @@ class ServerAction {
           var data4 = await PosDatabase.instance.readAllBranchLinkProduct();
           var data5 = await PosDatabase.instance.readAllBranchLinkModifier();
           var data6 = await PosDatabase.instance.readAllProductVariant();
-          //List<String> encodedList = await encodeAllImage();
+          var data7 = await PosDatabase.instance.readAppSetting();
+          var data8 = await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
           objectData = {
             'tb_categories': data,
             'tb_product': data2,
@@ -63,7 +57,8 @@ class ServerAction {
             'tb_branch_link_product': data4,
             'tb_branch_link_modifier': data5,
             'tb_product_variant': data6,
-            //'image_list': encodedList,
+            'tb_app_setting': data7,
+            'tb_branch_link_dining_option': data8
           };
           result = {'status': '1','data': objectData};
         }
@@ -109,10 +104,12 @@ class ServerAction {
           CartPageState cartPageState = CartPageState();
           await cartPageState.readAllBranchLinkDiningOption(serverCall: 1);
           await cartPageState.getPromotionData();
+          List<TaxLinkDining> taxLinkDiningList = await PosDatabase.instance.readAllTaxLinkDining();
           objectData = {
             'dining_list': cartPageState.diningList,
             'branch_link_dining_id_list': cartPageState.branchLinkDiningIdList,
-            'promotion_list': cartPageState.promotionList
+            'promotion_list': cartPageState.promotionList,
+            'taxLinkDiningList': taxLinkDiningList
           };
           result = {'status': '1', 'data': objectData};
 

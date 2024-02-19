@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pos_system/fragment/setting/device_setting.dart';
 import 'package:pos_system/fragment/setting/features_setting.dart';
 import 'package:pos_system/fragment/setting/hardware_setting.dart';
 import 'package:pos_system/fragment/setting/logout_dialog.dart';
@@ -10,6 +11,7 @@ import 'package:pos_system/fragment/setting/receipt_setting.dart';
 import 'package:pos_system/fragment/setting/table_setting.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:side_navigation/side_navigation.dart';
@@ -34,6 +36,7 @@ class _SettingMenuState extends State<SettingMenu> {
   String userEmail = '';
   int count = 0;
   bool isLoaded = false;
+  String serverIp = '';
 
   List<Widget> views = [
     // General Setting
@@ -57,9 +60,9 @@ class _SettingMenuState extends State<SettingMenu> {
     Container(
       child: DataProcessingSetting(),
     ),
-    // Container(
-    //   child: MultiDevicePage(),
-    // ),
+    Container(
+      child: DeviceSetting(),
+    ),
     // Container(
     //   child: TestCategorySync(),
     // ),
@@ -188,6 +191,10 @@ class _SettingMenuState extends State<SettingMenu> {
                         icon: Icons.sync,
                         label: AppLocalizations.of(context)!.translate('data_processing'),
                       ),
+                      SideNavigationBarItem(
+                        icon: Icons.devices_other,
+                        label: "Device setting",
+                      ),
                     ],
                     onTap: (index) {
                       setState(() {
@@ -203,7 +210,7 @@ class _SettingMenuState extends State<SettingMenu> {
                 ],
               ),
             ) : CustomProgressBar(),
-          ); 
+          );
         } else {
           ///mobile layout
           return Padding(

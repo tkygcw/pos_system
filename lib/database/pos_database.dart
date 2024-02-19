@@ -1131,7 +1131,7 @@ class PosDatabase {
 */
   Future<TaxLinkDining> insertTaxLinkDining(TaxLinkDining data) async {
     final db = await instance.database;
-    final id = await db.insert(tableTaxLinkDining!, data.toJson());
+    final id = await db.insert(tableTaxLinkDining!, data.toInsertJson());
     return data.copy(tax_link_dining_id: id);
   }
 
@@ -2708,6 +2708,20 @@ class PosDatabase {
         ['', '', branch_id]);
 
     return result.map((json) => BranchLinkDining.fromJson(json)).toList();
+  }
+
+/*
+  read all tax link dining
+*/
+  Future<List<TaxLinkDining>> readAllTaxLinkDining() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.tax_rate, b.name AS tax_name, c.name AS dining_name '
+            'FROM $tableTaxLinkDining AS a JOIN $tableTax AS b ON a.tax_id = b.tax_id '
+            'JOIN $tableDiningOption AS c ON a.dining_id = c.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ?',
+        ['', '', '']);
+
+    return result.map((json) => TaxLinkDining.fromJson(json)).toList();
   }
 
 /*
