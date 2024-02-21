@@ -168,7 +168,8 @@ class OrderDetail{
         this.item_cancel,
         this.order_number,
         this.branch_id,
-        this.order_created_at
+        this.order_created_at,
+        this.product_category_id
       });
 
   OrderDetail copy({
@@ -271,11 +272,43 @@ class OrderDetail{
     item_cancel: json['item_cancel'] as String?,
     order_number: json['order_number'] as String?,
     branch_id: json['branch_id'] as String?,
-    order_created_at: json['order_created_at'] as String?
+    order_created_at: json['order_created_at'] as String?,
+    product_category_id: json['product_category_id'] as String?
 
   );
 
   Map<String, Object?> toJson() => {
+    OrderDetailFields.order_detail_sqlite_id: order_detail_sqlite_id,
+    OrderDetailFields.order_detail_id: order_detail_id,
+    OrderDetailFields.order_detail_key: order_detail_key,
+    OrderDetailFields.order_cache_sqlite_id: order_cache_sqlite_id,
+    OrderDetailFields.order_cache_key: order_cache_key,
+    OrderDetailFields.branch_link_product_sqlite_id: branch_link_product_sqlite_id,
+    OrderDetailFields.category_sqlite_id: category_sqlite_id,
+    OrderDetailFields.category_name: category_name,
+    OrderDetailFields.productName: productName,
+    OrderDetailFields.has_variant: has_variant,
+    OrderDetailFields.product_variant_name: product_variant_name,
+    OrderDetailFields.price: price,
+    OrderDetailFields.original_price: original_price,
+    OrderDetailFields.quantity: quantity,
+    OrderDetailFields.remark: remark,
+    OrderDetailFields.account: account,
+    OrderDetailFields.edited_by: edited_by,
+    OrderDetailFields.edited_by_user_id: edited_by_user_id,
+    OrderDetailFields.cancel_by: cancel_by,
+    OrderDetailFields.cancel_by_user_id: cancel_by_user_id,
+    OrderDetailFields.status: status,
+    OrderDetailFields.sync_status: sync_status,
+    OrderDetailFields.unit: unit,
+    OrderDetailFields.per_quantity_unit: per_quantity_unit,
+    OrderDetailFields.created_at: created_at,
+    OrderDetailFields.updated_at: updated_at,
+    OrderDetailFields.soft_delete: soft_delete,
+    'product_category_id': product_category_id
+  };
+
+  Map<String, Object?> toInsertJson() => {
     OrderDetailFields.order_detail_sqlite_id: order_detail_sqlite_id,
     OrderDetailFields.order_detail_id: order_detail_id,
     OrderDetailFields.order_detail_key: order_detail_key,

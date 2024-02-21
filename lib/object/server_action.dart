@@ -6,7 +6,10 @@ import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/product.dart';
+import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
+import 'package:pos_system/second_device/cart_dialog_function.dart';
+import 'package:pos_system/second_device/place_order.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/pos_database.dart';
@@ -126,31 +129,35 @@ class ServerAction {
         }
         break;
         case '8': {
-          // List<String> encodedList = await encodeAllImage();
-          // objectData = {
-          //   'image_list': encodedList,
-          // };
-          // result = {'status': '1','data':objectData};
-        }
-        break;
-        case '9': {
           try{
             CartModel cart = CartModel();
-            CartPageState cartPageState = CartPageState();
+            PlaceOrder order = PlaceOrder();
+            await order.readAllPrinters();
             var decodeParam = jsonDecode(param);
-            var cartJson = decodeParam as List;
-            List<cartProductItem> cartList = cartJson.map((tagJson) => cartProductItem.fromJson(tagJson)).toList();
-            cart.addAllItem(cartItemList: cartList);
-            print("cart list length: ${cart.cartNotifierItem[0].product_name}");
-            cart.selectedOption = 'Take Away';
-            await cartPageState.readAllPrinters();
-            await cartPageState.getSubTotalMultiDevice(cart);
-            await cartPageState.callCreateNewNotDineOrder2(cart);
+            cart = CartModel.fromJson(decodeParam);
+            if(cart.selectedOption == 'Dine in'){
+              await order.callCreateNewOrder(cart);
+            } else {
+              await order.callCreateNewNotDineOrder(cart);
+            }
             result = {'status': '1'};
           } catch(e){
             result = {'status': '4'};
             print('place order request error: $e');
           }
+        }
+        break;
+        case '9': {
+          var decodeParam = jsonDecode(param);
+          PosTable posTable = PosTable.fromJson(decodeParam);
+          CartDialogFunction function = CartDialogFunction();
+          await function.readSpecificTableDetail(posTable);
+          objectData = {
+            'order_detail': function.orderDetailList,
+            'order_cache': function.orderCacheList,
+            //'pos_table': data3,
+          };
+          result = {'status': '1', 'data':objectData};
         }
         break;
       }

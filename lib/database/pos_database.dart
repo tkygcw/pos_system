@@ -1760,7 +1760,7 @@ class PosDatabase {
 */
   Future<OrderDetail> insertSqliteOrderDetail(OrderDetail data) async {
     final db = await instance.database;
-    final id = await db.insert(tableOrderDetail!, data.toJson());
+    final id = await db.insert(tableOrderDetail!, data.toInsertJson());
     return data.copy(order_detail_sqlite_id: id);
   }
 

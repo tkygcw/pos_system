@@ -776,7 +776,6 @@ class CartDialogState extends State<CartDialog> {
           first_cache_created_date_time: orderCacheList.last.created_at,  //orderCacheList[0].created_at,
           first_cache_batch: orderCacheList.last.batch_id,
           first_cache_order_by: orderCacheList.last.order_by,
-          refColor: Colors.black,
       );
       cart.addItem(value);
     }
