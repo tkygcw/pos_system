@@ -4,6 +4,8 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/object/app_setting.dart';
+import 'package:pos_system/object/qr_order_auto_accept.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,6 +28,7 @@ class QrOrder {
     final String? login_user = prefs.getString('user');
     final int? branch_id = prefs.getInt('branch_id');
     Map logInUser = json.decode(login_user!);
+    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
 
     Map response = await Domain().SyncQrOrderFromCloud(branch_id.toString(), logInUser['company_id'].toString());
     if (response['status'] == '1') {
@@ -153,6 +156,9 @@ class QrOrder {
       )..show(context);
     } else {
       return 1;
+    }
+    if(localSetting!.qr_order_auto_accept == 1){
+      QrOrderAutoAccept(context).load();
     }
   }
 

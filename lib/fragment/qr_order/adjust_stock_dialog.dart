@@ -687,10 +687,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
           if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
             playSound();
         });
-      } else {
-        Fluttertoast.showToast(
-            backgroundColor: Colors.red,
-            msg: "${AppLocalizations.of(_context)?.translate('no_printer_added')}");
       }
     } catch(e) {
       print("callPrinter error: ${e}");

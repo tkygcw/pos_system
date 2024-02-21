@@ -19,6 +19,8 @@
   "app_device_setting": "App-Device Setting",
   "app_notification_setting": "App Notification setting",
   "are_you_sure_to_exit_app": "Are you sure to exit app?",
+  "auto_accept_qr_order": "Auto Accept QR Order",
+  "auto_accept_qr_order_desc": "Once received in the POS system the QR order will be automatically accepted",
   "auto_open_cash_drawer": "Auto open cash drawer",
   "auto_open_cash_drawer_after_insert_opening_balance": "Auto open cash drawer after insert opening balance",
   "auto_print_checklist": "Auto print check list",

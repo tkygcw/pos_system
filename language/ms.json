@@ -19,6 +19,8 @@
   "app_device_setting": "Tetapan Aplikasi-Peranti",
   "app_notification_setting": "Tetapan Pemberitahuan Aplikasi",
   "are_you_sure_to_exit_app": "Adakah anda pasti ingin keluar aplikasi?",
+  "auto_accept_qr_order": "Auto Terima Pesanan QR",
+  "auto_accept_qr_order_desc": "Pesanan QR akan diterima secara automatik setelah menerima dalam sistem pos",
   "auto_open_cash_drawer": "Buka laci wang secara automatik",
   "auto_open_cash_drawer_after_insert_opening_balance": "Buka laci wang secara automatik selepas memasukkan baki mula",
   "auto_print_checklist": "Senarai semak cetakan automatik",

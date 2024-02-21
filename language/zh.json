@@ -19,6 +19,8 @@
   "app_device_setting": "应用设备设置",
   "app_notification_setting": "应用通知设置",
   "are_you_sure_to_exit_app": "确定要退出应用吗？",
+  "auto_accept_qr_order": "自动通过二维码订单",
+  "auto_accept_qr_order_desc": "二维码订单无需审核将自动被通过",
   "auto_open_cash_drawer": "自动打开钱箱",
   "auto_open_cash_drawer_after_insert_opening_balance": "插入期初余额后自动打开钱箱",
   "auto_print_checklist": "自动打印清单",

@@ -71,7 +71,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 13, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 14, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -293,6 +293,9 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
+        }break;
+        case 13: {
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_auto_accept} INTEGER NOT NULL DEFAULT 0");
         }break;
       }
     }
@@ -879,6 +882,7 @@ class PosDatabase {
           ${AppSettingFields.print_checklist} $integerType,
           ${AppSettingFields.print_receipt} $integerType,
           ${AppSettingFields.show_sku} $integerType,
+          ${AppSettingFields.qr_order_auto_accept} $integerType,
           ${AppSettingFields.enable_numbering} $integerType,
           ${AppSettingFields.starting_number} $integerType,
           ${AppSettingFields.table_order} $integerType,
@@ -1833,8 +1837,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableCashRecord(branch_id, open_cash_drawer, show_second_display, direct_payment, print_checklist, '
-            'print_receipt, show_sku, enable_numbering, starting_number, sync_status, created_at, updated_at) '
-            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'print_receipt, show_sku, qr_order_auto_accept, enable_numbering, starting_number, sync_status, created_at, updated_at) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.branch_id,
           data.open_cash_drawer,
@@ -1843,6 +1847,7 @@ class PosDatabase {
           data.print_checklist,
           data.print_receipt,
           data.show_sku,
+          data.qr_order_auto_accept,
           data.enable_numbering,
           data.starting_number,
           data.sync_status,
@@ -5434,6 +5439,14 @@ class PosDatabase {
   Future<int> updateShowSKUSettings(AppSetting data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAppSetting SET show_sku = ?, sync_status = ?, updated_at = ?', [data.show_sku, 2, data.updated_at]);
+  }
+
+/*
+  update auto accept qr order Setting
+*/
+  Future<int> updateQrOrderAutoAcceptSetting(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET qr_order_auto_accept = ?, sync_status = ?, updated_at = ?', [data.qr_order_auto_accept, 2, data.updated_at]);
   }
 
 /*
