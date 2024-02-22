@@ -29,7 +29,7 @@ class ServerAction {
     return base64Image;
   }
 
-  checkAction({required String action, param}) async {
+  Future<Map<String, dynamic>?> checkAction({required String action, param}) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     Map<String, dynamic>? result;
@@ -148,6 +148,21 @@ class ServerAction {
         }
         break;
         case '9': {
+          try{
+            CartModel cart = CartModel();
+            PlaceOrder order = PlaceOrder();
+            await order.readAllPrinters();
+            var decodeParam = jsonDecode(param);
+            cart = CartModel.fromJson(decodeParam);
+            await order.callAddOrderCache(cart);
+            result = {'status': '1'};
+          } catch(e){
+            result = {'status': '4'};
+            print('add order request error: $e');
+          }
+        }
+        break;
+        case '10': {
           var decodeParam = jsonDecode(param);
           PosTable posTable = PosTable.fromJson(decodeParam);
           CartDialogFunction function = CartDialogFunction();

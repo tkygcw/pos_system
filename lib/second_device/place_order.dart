@@ -21,6 +21,7 @@ import '../object/table_use.dart';
 import '../object/table_use_detail.dart';
 import '../object/variant_group.dart';
 
+
 class PlaceOrder {
   PrintReceipt printReceipt = PrintReceipt();
   List<Printer> printerList = [];
@@ -154,6 +155,44 @@ class PlaceOrder {
     printKitchenList();
   }
 
+  Future<void> callCreateNewOrder(CartModel cart) async {
+    await createTableUseID();
+    await createTableUseDetail(cart);
+    await createOrderCache(cart, isAddOrder: false);
+    await createOrderDetail(cart);
+    await updatePosTable(cart);
+    //print check list
+    int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheSqliteId));
+    // if (_appSettingModel.autoPrintChecklist == true) {
+    //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
+    //   if (printStatus == 1) {
+    //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    //   } else if (printStatus == 2) {
+    //     Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    //   } else if (printStatus == 5) {
+    //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+    //   }
+    // }
+    printKitchenList();
+  }
+
+  Future<void> callAddOrderCache(CartModel cart) async {
+    await createOrderCache(cart, isAddOrder: true);
+    await createOrderDetail(cart);
+    int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheSqliteId));
+    // if (_appSettingModel.autoPrintChecklist == true) {
+    //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
+    //   if (printStatus == 1) {
+    //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    //   } else if (printStatus == 2) {
+    //     Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    //   } else if (printStatus == 5) {
+    //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+    //   }
+    // }
+    printKitchenList();
+  }
+
   printKitchenList() async {
     try {
       String flushbarStatus = '';
@@ -194,28 +233,6 @@ class PlaceOrder {
     } catch (e) {
       print("print kitchen list error: $e");
     }
-  }
-
-
-  Future<void> callCreateNewOrder(CartModel cart) async {
-    await createTableUseID();
-    await createTableUseDetail(cart);
-    await createOrderCache(cart, isAddOrder: false);
-    await createOrderDetail(cart);
-    await updatePosTable(cart);
-    //print check list
-    int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheSqliteId));
-    // if (_appSettingModel.autoPrintChecklist == true) {
-    //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-    //   if (printStatus == 1) {
-    //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-    //   } else if (printStatus == 2) {
-    //     Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-    //   } else if (printStatus == 5) {
-    //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
-    //   }
-    // }
-    printKitchenList();
   }
 
   Future<void> createTableUseID() async {
