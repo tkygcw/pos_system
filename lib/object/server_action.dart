@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/rendering.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
@@ -10,6 +11,7 @@ import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
 import 'package:pos_system/second_device/place_order.dart';
+import 'package:pos_system/second_device/table_function.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/pos_database.dart';
@@ -119,13 +121,17 @@ class ServerAction {
         }
         break;
         case '7': {
-          CartDialogState state = CartDialogState();
-          await state.readAllTable(isServerCall: true);
-          // await state.readAllTableAmount();
-          objectData = {
-            'table_list': state.tableList,
-          };
-          result = {'status': '1', 'data': objectData};
+          try{
+            CartDialogFunction function = CartDialogFunction();
+            await function.readAllTable();
+            objectData = {
+              'table_list': function.tableList,
+            };
+            result = {'status': '1', 'data': objectData};
+          }catch(e){
+            result = {'status': '4'};
+            print("cart dialog read all table error: $e");
+          }
         }
         break;
         case '8': {
@@ -173,6 +179,45 @@ class ServerAction {
             //'pos_table': data3,
           };
           result = {'status': '1', 'data':objectData};
+        }
+        break;
+        case '11': {
+          try{
+            CartDialogFunction function = CartDialogFunction();
+            var jsonValue = param;
+            await function.callRemoveTableQuery(int.parse(jsonValue));
+            result = {'status': '1'};
+          }catch(e){
+            result = {'status': '4'};
+            print("cart dialog remove merged table request error: $e");
+          }
+        }
+        break;
+        case '12': {
+          try{
+            CartDialogFunction function = CartDialogFunction();
+            var jsonValue = jsonDecode(param);
+            print("json value: ${jsonValue['dragTableId']}");
+            await function.callMergeTableQuery(dragTableId: jsonValue['dragTableId'], targetTableId: jsonValue['targetTableId']);
+            result = {'status': '1'};
+          }catch(e){
+            result = {'status': '4'};
+            print("cart dialog remove merged table request error: $e");
+          }
+        }
+        break;
+        case '13': {
+          try{
+            TableFunction function = TableFunction();
+            await function.readAllTable();
+            objectData = {
+              'table_list': function.tableList,
+            };
+            result = {'status': '1', 'data': objectData};
+          }catch(e){
+            result = {'status': '4'};
+            print("cart dialog remove merged table request error: $e");
+          }
         }
         break;
       }

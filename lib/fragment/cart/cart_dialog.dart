@@ -594,6 +594,7 @@ class CartDialogState extends State<CartDialog> {
   }
 
   readAllTableAmount() async {
+    double tableAmount = 0.0;
     for (int i = 0; i < tableList.length; i++) {
       if(tableList[i].status == 1){
         List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
@@ -605,8 +606,9 @@ class CartDialogState extends State<CartDialog> {
           tableList[i].card_color = data[0].card_color;
 
           for (int j = 0; j < data.length; j++) {
-            tableList[i].total_Amount += double.parse(data[j].total_amount!);
+            tableAmount += double.parse(data[j].total_amount!);
           }
+          tableList[i].total_amount = tableAmount.toStringAsFixed(2);
         }
       }
     }

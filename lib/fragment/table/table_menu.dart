@@ -285,8 +285,8 @@ class _TableMenuState extends State<TableMenu> {
                         ),
                       ),
                       SizedBox(height: 20),
-                      !showAdvanced
-                          ? Expanded(
+                      !showAdvanced ?
+                      Expanded(
                         child: GridView.count(
                           shrinkWrap: true,
                           crossAxisCount: MediaQuery.of(context).size.height > 500 ? 5 : 3,
@@ -389,7 +389,7 @@ class _TableMenuState extends State<TableMenu> {
                                               visible: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? true : false,
                                               child: Container(
                                                   alignment: Alignment.bottomCenter,
-                                                  child: Text("RM ${tableList[index].total_Amount.toStringAsFixed(2)}", style: TextStyle(fontSize: 18))),
+                                                  child: Text("RM ${tableList[index].total_amount ?? '0.00'}", style: TextStyle(fontSize: 18))),
                                             ),
                                           ],
                                         ),
@@ -845,9 +845,7 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   readAllTableGroup() async {
-    priceSST = 0.0;
-    priceServeTax = 0.0;
-
+    double tableAmount = 0.0;
     bool hasTableInUse = tableList.any((item) => item.status == 1);
     if(hasTableInUse){
       for (int i = 0; i < tableList.length; i++) {
@@ -858,11 +856,10 @@ class _TableMenuState extends State<TableMenu> {
             if(data.isNotEmpty){
               tableList[i].group = data[0].table_use_sqlite_id;
               tableList[i].card_color = data[0].card_color;
-              //tableList[i].total_Amount = double.parse(data[0].total_amount!);
-
               for(int j = 0; j < data.length; j++){
-                tableList[i].total_Amount += double.parse(data[j].total_amount!);
+                tableAmount += double.parse(data[j].total_amount!);
               }
+              tableList[i].total_amount = tableAmount.toStringAsFixed(2);
             }
           }
         }
