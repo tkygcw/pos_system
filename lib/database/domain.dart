@@ -40,6 +40,7 @@ class Domain {
   static Uri printer = Uri.parse(domain + 'mobile-api/printer/index.php');
   static Uri app_version = Uri.parse(domain + 'mobile-api/app_version/index.php');
   static Uri app_setting = Uri.parse(domain + 'mobile-api/app_setting/index.php');
+  static Uri subscription = Uri.parse(domain + 'mobile-api/subscription/index.php');
   static Uri receipt = Uri.parse(domain + 'mobile-api/receipt/index.php');
   static Uri checklist = Uri.parse(domain + 'mobile-api/checklist/index.php');
   static Uri kitchen_list = Uri.parse(domain + 'mobile-api/kitchen_list/index.php');
@@ -2036,6 +2037,19 @@ class Domain {
   /*
   * get app setting
   * */
+  getSubscription(company_id) async {
+    try {
+      var response = await http.post(Domain.subscription,
+          body: {'getAllSubscription': '1', 'company_id': company_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
+  * get app setting
+  * */
   getAppSetting(branch_id) async {
     try {
       var response = await http.post(Domain.app_setting,
@@ -2049,9 +2063,6 @@ class Domain {
   /*
   * get printer
   * */
-
-
-
   getPrinter(branch_id) async {
     try {
       var response = await http.post(Domain.printer,
