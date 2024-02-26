@@ -153,7 +153,7 @@ class MyApp extends StatelessWidget {
           },
         ),
         ChangeNotifierProvider(
-          create: (_) => FailPrintModel(),
+          create: (_) => FailPrintModel.instance,
         ),
         ChangeNotifierProvider(
           create: (_) => notificationModel,

@@ -3,7 +3,9 @@ import 'package:flutter/cupertino.dart';
 import '../object/order_detail.dart';
 
 class FailPrintModel extends ChangeNotifier {
+  static final FailPrintModel instance = FailPrintModel.init();
   List<OrderDetail> failedPrintOrderDetail = [];
+  FailPrintModel.init();
 
   List<OrderDetail> get failPrint => failedPrintOrderDetail;
 

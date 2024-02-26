@@ -2,12 +2,19 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:another_flushbar/flushbar.dart';
+import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/object/app_setting.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
 import '../database/pos_database.dart';
+import '../main.dart';
 import '../notifier/cart_notifier.dart';
+import '../notifier/fail_print_notifier.dart';
 import '../object/branch_link_product.dart';
 import '../object/cart_product.dart';
 import '../object/modifier_item.dart';
@@ -20,16 +27,20 @@ import '../object/table.dart';
 import '../object/table_use.dart';
 import '../object/table_use_detail.dart';
 import '../object/variant_group.dart';
+import '../translation/AppLocalizations.dart';
 
 
 class PlaceOrder {
+  BuildContext context = MyApp.navigatorKey.currentContext!;
+  AppSetting? appSetting;
   PrintReceipt printReceipt = PrintReceipt();
   List<Printer> printerList = [];
   String localTableUseId = '';
   String tableUseKey = '', tableUseDetailKey = '', orderCacheSqliteId = '', orderCacheKey = '', orderDetailKey = '';
 
 
-  readAllPrinters() async {
+  initData() async {
+    appSetting = await PosDatabase.instance.readAppSetting();
     printerList = await printReceipt.readAllPrinters();
   }
 
@@ -136,7 +147,7 @@ class PlaceOrder {
     print("callCreateNewNotDineOrder");
     await createOrderCache(cart, isAddOrder: false);
     await createOrderDetail(cart);
-    int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheSqliteId));
+    printCheckList();
     // if (_appSettingModel.autoPrintChecklist == true) {
     //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
     //   if (printStatus == 1) {
@@ -162,7 +173,7 @@ class PlaceOrder {
     await createOrderDetail(cart);
     await updatePosTable(cart);
     //print check list
-    int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheSqliteId));
+    printCheckList();
     // if (_appSettingModel.autoPrintChecklist == true) {
     //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
     //   if (printStatus == 1) {
@@ -179,7 +190,7 @@ class PlaceOrder {
   Future<void> callAddOrderCache(CartModel cart) async {
     await createOrderCache(cart, isAddOrder: true);
     await createOrderDetail(cart);
-    int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheSqliteId));
+    printCheckList();
     // if (_appSettingModel.autoPrintChecklist == true) {
     //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
     //   if (printStatus == 1) {
@@ -193,45 +204,62 @@ class PlaceOrder {
     printKitchenList();
   }
 
+  printCheckList() async {
+    if(appSetting?.print_checklist == 1){
+      int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheSqliteId));
+    }
+  }
+
   printKitchenList() async {
     try {
       String flushbarStatus = '';
       List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheSqliteId));
-      // if(returnData != null){
-      //   if (returnData.isNotEmpty) {
-      //     _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-      //     playSound();
-      //     Flushbar(
-      //       icon: Icon(Icons.error, size: 32, color: Colors.white),
-      //       shouldIconPulse: false,
-      //       title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-      //       message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-      //       duration: Duration(seconds: 5),
-      //       backgroundColor: Colors.red,
-      //       messageColor: Colors.white,
-      //       flushbarPosition: FlushbarPosition.TOP,
-      //       maxWidth: 350,
-      //       margin: EdgeInsets.all(8),
-      //       borderRadius: BorderRadius.circular(8),
-      //       padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-      //       onTap: (flushbar) {
-      //         flushbar.dismiss(true);
-      //       },
-      //       onStatusChanged: (status) {
-      //         flushbarStatus = status.toString();
-      //       },
-      //     )
-      //       ..show(context);
-      //     Future.delayed(Duration(seconds: 3), () {
-      //       print("status change: ${flushbarStatus}");
-      //       if (flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED") playSound();
-      //     });
-      //   }
-      // } else {
-      //   Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('no_printer_added')}");
-      // }
+      if(returnData != null){
+        if (returnData.isNotEmpty) {
+          FailPrintModel.instance.addAllFailedOrderDetail(orderDetailList: returnData);
+          playSound();
+          Flushbar(
+            icon: Icon(Icons.error, size: 32, color: Colors.white),
+            shouldIconPulse: false,
+            title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
+            message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+            duration: Duration(seconds: 5),
+            backgroundColor: Colors.red,
+            messageColor: Colors.white,
+            flushbarPosition: FlushbarPosition.TOP,
+            maxWidth: 350,
+            margin: EdgeInsets.all(8),
+            borderRadius: BorderRadius.circular(8),
+            padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+            onTap: (flushbar) {
+              flushbar.dismiss(true);
+            },
+            onStatusChanged: (status) {
+              flushbarStatus = status.toString();
+            },
+          )
+            ..show(context);
+          Future.delayed(Duration(seconds: 3), () {
+            print("status change: ${flushbarStatus}");
+            if (flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED") playSound();
+          });
+        }
+      } else {
+        //Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('no_printer_added')}");
+      }
     } catch (e) {
       print("print kitchen list error: $e");
+    }
+  }
+
+  playSound() {
+    try {
+      final assetsAudioPlayer = AssetsAudioPlayer();
+      assetsAudioPlayer.open(
+        Audio("audio/review.mp3"),
+      );
+    } catch (e) {
+      print("Play Sound Error: ${e}");
     }
   }
 

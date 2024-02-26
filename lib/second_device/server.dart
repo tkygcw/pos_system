@@ -56,6 +56,12 @@ class Server extends ChangeNotifier {
     });
   }
 
+  sendRefreshMessage(){
+    for (var otherClient in clientList) {
+      otherClient.write("refresh");
+    }
+  }
+
   bindRequestServer()async {
     List<Socket> client2 = [];
     final ips = await instance.serverIp;
@@ -143,7 +149,7 @@ class Server extends ChangeNotifier {
       },
           onDone: (){
             print('Client disconnected 2: ${clientSocket.remoteAddress}:${clientSocket.remotePort}');
-            clientSocket.flush();
+            // clientSocket.flush();
             clientSocket.close();
             clients.remove(clientSocket);
           },
@@ -152,7 +158,7 @@ class Server extends ChangeNotifier {
             clientSocket.close();
             clients.remove(clientSocket);
           });
-      await streamSubscription.asFuture();
+      // await streamSubscription.asFuture();
     } catch(e){
       print("handle client 2 error: ${e}");
     }

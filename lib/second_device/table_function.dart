@@ -5,13 +5,9 @@ import '../object/order_cache.dart';
 import '../object/table.dart';
 import '../object/table_use_detail.dart';
 
-abstract class Table{
-  late List<PosTable> tableList;
-  late List<PosTable> initialTableList;
-
-}
-
-class TableFunction extends Table{
+class TableFunction {
+  List<PosTable> tableList = [];
+  List<PosTable> initialTableList = [];
 
   readAllTable() async {
     tableList = await PosDatabase.instance.readAllTable();

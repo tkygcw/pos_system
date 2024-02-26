@@ -138,7 +138,7 @@ class ServerAction {
           try{
             CartModel cart = CartModel();
             PlaceOrder order = PlaceOrder();
-            await order.readAllPrinters();
+            await order.initData();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam);
             if(cart.selectedOption == 'Dine in'){
@@ -157,7 +157,7 @@ class ServerAction {
           try{
             CartModel cart = CartModel();
             PlaceOrder order = PlaceOrder();
-            await order.readAllPrinters();
+            await order.initData();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam);
             await order.callAddOrderCache(cart);

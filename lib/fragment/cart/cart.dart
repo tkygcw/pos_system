@@ -36,6 +36,7 @@ import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/page/loading_dialog.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -2255,6 +2256,7 @@ class CartPageState extends State<CartPage> {
     }
     cart.removeAllCartItem();
     cart.removeAllTable();
+    Server.instance.sendRefreshMessage();
     Navigator.of(context).pop();
 
     syncAllToCloud();
@@ -2286,6 +2288,7 @@ class CartPageState extends State<CartPage> {
     }
     cart.removeAllCartItem();
     cart.removeAllTable();
+    Server.instance.sendRefreshMessage();
     Navigator.of(context).pop();
 
     syncAllToCloud();
