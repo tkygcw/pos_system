@@ -114,9 +114,7 @@ class _PosPinPageState extends State<PosPinPage> {
     if (data != null) {
       DateTime subscriptionEndDate = dateFormat.parse(data.end_date!);
       Duration difference = subscriptionEndDate.difference(DateTime.now());
-      // Duration difference = DateTime.now().difference(subscriptionEndDate);
-      // if (subscriptionEndDate.isAfter(DateTime.now())) {
-      if (DateTime.now().isAfter(subscriptionEndDate)) {
+      if (subscriptionEndDate.isAfter(DateTime.now())) {
         showDialog(
             context: context,
             barrierDismissible: false,
