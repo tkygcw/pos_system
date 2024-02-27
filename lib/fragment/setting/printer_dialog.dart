@@ -327,8 +327,10 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                       _isLabel = (value == 'label_printer');
                                       if(selectedValue != 'label_printer')
                                         _paperSize = 0;
-                                      else
-                                        _paperSize =2;
+                                      else {
+                                        _paperSize = 2;
+                                        _isCashier = false;
+                                      }
                                     });
                                   },
                                 ),
@@ -728,6 +730,12 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                     setState(() {
                                       selectedValue = value;
                                       _isLabel = (value == 'label_printer');
+                                      if(selectedValue != 'label_printer')
+                                        _paperSize = 0;
+                                      else {
+                                        _paperSize = 2;
+                                        _isCashier = false;
+                                      }
                                     });
                                   },
                                 ),
