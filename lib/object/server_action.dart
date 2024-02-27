@@ -6,6 +6,7 @@ import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
+import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
@@ -146,9 +147,12 @@ class ServerAction {
             } else {
               await order.callCreateNewNotDineOrder(cart);
             }
-            result = {'status': '1'};
+            objectData = {
+              'tb_branch_link_product': order.branchLinkProductList,
+            };
+            result = {'status': '1', 'data': objectData};
           } catch(e){
-            result = {'status': '4'};
+            result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
             print('place order request error: $e');
           }
         }
@@ -161,9 +165,12 @@ class ServerAction {
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam);
             await order.callAddOrderCache(cart);
-            result = {'status': '1'};
+            objectData = {
+              'tb_branch_link_product': order.branchLinkProductList,
+            };
+            result = {'status': '1', 'data': objectData};
           } catch(e){
-            result = {'status': '4'};
+            result = {'status': '4', 'exception': "add-order error: ${e.toString()}"};
             print('add order request error: $e');
           }
         }
