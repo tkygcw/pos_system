@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:async_queue/async_queue.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -36,6 +37,7 @@ final SyncToCloud mainSyncToCloud = SyncToCloud();
 final SyncRecord syncRecord = SyncRecord();
 final QrOrder qrOrder = QrOrder();
 final LCDDisplay lcdDisplay = LCDDisplay();
+final asyncQ = AsyncQueue.autoStart();
 DisplayManager displayManager = DisplayManager();
 final snackBarKey = GlobalKey<ScaffoldMessengerState>();
 

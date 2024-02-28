@@ -16,6 +16,7 @@ import 'package:pos_system/second_device/table_function.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/pos_database.dart';
+import '../main.dart';
 import 'cart_product.dart';
 
 class ServerAction {
@@ -137,18 +138,32 @@ class ServerAction {
         break;
         case '8': {
           try{
+            List<BranchLinkProduct> branchLinkProductList = [];
             CartModel cart = CartModel();
-            PlaceOrder order = PlaceOrder();
-            await order.initData();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam);
             if(cart.selectedOption == 'Dine in'){
-              await order.callCreateNewOrder(cart);
+              PlaceNewDineInOrder order = PlaceNewDineInOrder();
+              asyncQ.addJob((_) async {
+                try{
+                  await order.callCreateNewOrder(cart);
+                }catch(e){
+                  print("request catch error !!!");
+                  //result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
+                  return Exception(e.toString());
+                }
+              });
+              // await order.callCreateNewOrder(cart);
+              branchLinkProductList = order.branchLinkProductList;
             } else {
-              await order.callCreateNewNotDineOrder(cart);
+              PlaceNotDineInOrder order = PlaceNotDineInOrder();
+              asyncQ.addJob((previousResult) => order.callCreateNewNotDineOrder(cart));
+              // await order.callCreateNewNotDineOrder(cart);
+              branchLinkProductList = order.branchLinkProductList;
             }
+            print("outside else if called!!!");
             objectData = {
-              'tb_branch_link_product': order.branchLinkProductList,
+              'tb_branch_link_product': branchLinkProductList,
             };
             result = {'status': '1', 'data': objectData};
           } catch(e){
@@ -160,11 +175,11 @@ class ServerAction {
         case '9': {
           try{
             CartModel cart = CartModel();
-            PlaceOrder order = PlaceOrder();
-            await order.initData();
+            PlaceAddOrder order = PlaceAddOrder();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam);
-            await order.callAddOrderCache(cart);
+            asyncQ.addJob((previousResult) => order.callAddOrderCache(cart));
+            // await order.callAddOrderCache(cart);
             objectData = {
               'tb_branch_link_product': order.branchLinkProductList,
             };

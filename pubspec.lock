@@ -81,6 +81,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
+  async_queue:
+    dependency: "direct main"
+    description:
+      name: async_queue
+      sha256: d380f4967afb3723209ee8e6156196ba19ba53b41b53bf5a4d72254426642be7
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   auto_size_text:
     dependency: transitive
     description:

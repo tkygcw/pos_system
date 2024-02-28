@@ -723,9 +723,11 @@ class CartPageState extends State<CartPage> {
                                                         //_startTimer();
                                                         print('has new item ${hasNewItem}');
                                                         if (cart.cartNotifierItem[0].status == 1 && hasNewItem == true) {
-                                                          await callAddOrderCache(cart);
+                                                          asyncQ.addJob((_) async => await callAddOrderCache(cart));
+                                                          // await callAddOrderCache(cart);
                                                         } else if (cart.cartNotifierItem[0].status == 0) {
-                                                          await callCreateNewOrder(cart);
+                                                          asyncQ.addJob((_) async => await callCreateNewOrder(cart));
+                                                          // await callCreateNewOrder(cart);
                                                         } else {
                                                           Fluttertoast.showToast(
                                                               backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('cannot_replace_same_order'));
@@ -744,7 +746,8 @@ class CartPageState extends State<CartPage> {
                                                       cart.removeAllTable();
                                                       if (cart.cartNotifierItem.isNotEmpty) {
                                                         openLoadingDialogBox();
-                                                        await callCreateNewNotDineOrder(cart, appSettingModel);
+                                                        asyncQ.addJob((_) async => await callCreateNewNotDineOrder(cart, appSettingModel));
+                                                        //await callCreateNewNotDineOrder(cart, appSettingModel);
                                                       } else {
                                                         Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
                                                       }
