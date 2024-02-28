@@ -1401,7 +1401,7 @@ class ReceiptLayout{
           bool productUnitPriceSplit = productNameDisplayOrder(orderDetailList, i, 80);
           bytes += generator.row([
             PosColumn(text: '${orderDetailList[i].quantity}', width: 2),
-            orderDetailList[i].unit != '' ?
+            orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ?
             PosColumn(
                 text: productUnitPriceSplit  ? '${orderDetailList[i].productName}'
                     : '${orderDetailList[i].productName} (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
@@ -1424,7 +1424,7 @@ class ReceiptLayout{
           if(productUnitPriceSplit){
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: orderDetailList[i].unit != '' ? '(${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})' : '(${orderDetailList[i].price}/each)', width: 7),
+              PosColumn(text: orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ? '(${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})' : '(${orderDetailList[i].price}/each)', width: 7),
               PosColumn(text: '', width: 3, styles: PosStyles(align: PosAlign.right)),
             ]);
           }
@@ -1675,7 +1675,7 @@ class ReceiptLayout{
           bool productUnitPriceSplit = productNameDisplayOrder(orderDetailList, i, 58);
           bytes += generator.row([
             PosColumn(text: '${orderDetailList[i].quantity}', width: 2),
-            orderDetailList[i].unit != '' ?
+            orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ?
             PosColumn(
                 text: productUnitPriceSplit  ? '${orderDetailList[i].productName!.trim()}'
                     : '${orderDetailList[i].productName!.trim()} (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})',
@@ -1695,7 +1695,7 @@ class ReceiptLayout{
           if(productUnitPriceSplit){
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: orderDetailList[i].unit != '' ? '(${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})' : '(${orderDetailList[i].price}/each)', width: 10),
+              PosColumn(text: orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ? '(${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})' : '(${orderDetailList[i].price}/each)', width: 10),
             ]);
           }
           bytes += generator.reset();
@@ -1878,7 +1878,7 @@ class ReceiptLayout{
             PosColumn(
               // text: '${cartModel.cartNotifierItem[i].product_name} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit})',
                 text: productUnitPriceSplit  ? '${cartModel.cartNotifierItem[i].product_name}'
-                    : '${cartModel.cartNotifierItem[i].product_name} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit})',
+                    : '${cartModel.cartNotifierItem[i].product_name} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit != 'each' && cartModel.cartNotifierItem[i].unit != 'each_c' ? cartModel.cartNotifierItem[i].unit : 'each'})',
                 width: 7,
                 containsChinese: true,
                 styles: PosStyles(align: PosAlign.left, bold: true)),
@@ -2084,13 +2084,13 @@ class ReceiptLayout{
             PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2),
             PosColumn(
                 text: productUnitPriceSplit  ? '${cartModel.cartNotifierItem[i].product_name!.trim()}'
-                    : '${cartModel.cartNotifierItem[i].product_name!.trim()} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit!}${cartModel.cartNotifierItem[i].unit!})',
+                    : '${cartModel.cartNotifierItem[i].product_name!.trim()} (${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit != 'each' && cartModel.cartNotifierItem[i].unit != 'each_c' ? cartModel.cartNotifierItem[i].unit : 'each'})',
                 width: 6,
                 containsChinese: true,
                 styles: PosStyles(bold: true)),
             PosColumn(//Utils.convertTo2Dec()
-                text: '${(double.parse(cartModel.cartNotifierItem[i].price!)*cartModel.cartNotifierItem[i].quantity!).toStringAsFixed(2)}',
-                width: 4,
+              text: '${(double.parse(cartModel.cartNotifierItem[i].price!)*cartModel.cartNotifierItem[i].quantity!).toStringAsFixed(2)}',
+              width: 4,
             ),
           ]);
           bytes += generator.reset();
@@ -2985,7 +2985,7 @@ class ReceiptLayout{
         bytes += generator.row([
           // PosColumn(text: '${cartItem.quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true, height: PosTextSize.size2)),
           // PosColumn(text: '${cartItem.quantity!*int.parse(cartItem.per_quantity_unit!)}${cartItem.unit}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true, height: PosTextSize.size2)),
-          PosColumn(text: cartItem.unit != 'each' ? '${(cartItem.quantity!*int.parse(cartItem.per_quantity_unit!)).toStringAsFixed(2)}${cartItem.unit}'
+          PosColumn(text: cartItem.unit != 'each' && cartItem.unit != 'each_c' ? '${(cartItem.quantity!*int.parse(cartItem.per_quantity_unit!)).toStringAsFixed(2)}${cartItem.unit}'
               : '${cartItem.quantity}',
               width: 2,
               styles: PosStyles(
@@ -3133,7 +3133,7 @@ class ReceiptLayout{
     * */
         //order product
         bytes += generator.row([
-          PosColumn(text: cartItem.unit != 'each' ? '${(cartItem.quantity!*int.parse(cartItem.per_quantity_unit!)).toStringAsFixed(2)}${cartItem.unit}' : '${cartItem.quantity}',
+          PosColumn(text: cartItem.unit != 'each' && cartItem.unit != 'each_c' ? '${(cartItem.quantity!*int.parse(cartItem.per_quantity_unit!)).toStringAsFixed(2)}${cartItem.unit}' : '${cartItem.quantity}',
               width: 3,
               styles: PosStyles(
                   bold: true,
@@ -3281,7 +3281,7 @@ class ReceiptLayout{
           }
           bytes += generator.row([
             PosColumn(
-                text: cartItemList[i].unit != 'each' ? '${(cartItemList[i].quantity! * int.parse(cartItemList[i].per_quantity_unit!)).toStringAsFixed(2)}${cartItemList[i].unit}' : '${cartItemList[i].quantity}',
+                text: cartItemList[i].unit != 'each' && cartItemList[i].unit != 'each_c' ? '${(cartItemList[i].quantity! * int.parse(cartItemList[i].per_quantity_unit!)).toStringAsFixed(2)}${cartItemList[i].unit}' : '${cartItemList[i].quantity}',
                 width: 2,
                 styles: PosStyles(
                     align: PosAlign.left,
@@ -3429,7 +3429,7 @@ class ReceiptLayout{
             }
           }
           bytes += generator.row([
-            PosColumn(text: cartItemList[i].unit != 'each' ? '${(cartItemList[i].quantity!*int.parse(cartItemList[i].per_quantity_unit!)).toStringAsFixed(2)}${cartItemList[i].unit}' : '${cartItemList[i].quantity}',
+            PosColumn(text: cartItemList[i].unit != 'each' && cartItemList[i].unit != 'each_c' ? '${(cartItemList[i].quantity!*int.parse(cartItemList[i].per_quantity_unit!)).toStringAsFixed(2)}${cartItemList[i].unit}' : '${cartItemList[i].quantity}',
                 width: 3,
                 styles: PosStyles(
                     bold: true,
@@ -3620,7 +3620,7 @@ class ReceiptLayout{
                 containsChinese: true,
                 styles: PosStyles(align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2, bold: true)),
             PosColumn(
-                text: orderDetailList[i].unit != 'each' ?
+                text: orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ?
                 '-${(double.parse(orderDetailList[i].item_cancel!)*int.parse(orderDetailList[i].per_quantity_unit!)).toStringAsFixed(2)}${orderDetailList[i].unit}' :
                 '-${orderDetailList[i].item_cancel}',
                 width: 4,
@@ -3718,7 +3718,7 @@ class ReceiptLayout{
                 width: 8,
                 containsChinese: true,
                 styles: PosStyles(bold: true)),
-            PosColumn(text: orderDetailList[i].unit != 'each' ?
+            PosColumn(text: orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c' ?
             '-${(double.parse(orderDetailList[i].item_cancel!)*int.parse(orderDetailList[i].per_quantity_unit!)).toStringAsFixed(2)}${orderDetailList[i].unit}' :
             '-${orderDetailList[i].item_cancel}',
                 width: 4, styles: PosStyles(bold: true)),
@@ -4963,9 +4963,10 @@ class ReceiptLayout{
 }
 
 bool productNameDisplayOrder(List<OrderDetail> orderDetailList, int i, int paperSize) {
+  print("productNameDisplayOrder called");
   int productNameWidth = 0;
   String productUnitPrice = '';
-  if(orderDetailList[i].unit != '')
+  if(orderDetailList[i].unit != 'each' && orderDetailList[i].unit != 'each_c')
     productUnitPrice = ' (${orderDetailList[i].price}/${orderDetailList[i].per_quantity_unit}${orderDetailList[i].unit})';
   else
     productUnitPrice = ' (${orderDetailList[i].price}/each)';
@@ -4985,7 +4986,7 @@ bool productNameDisplayOrder(List<OrderDetail> orderDetailList, int i, int paper
 
 bool productNameDisplayCart(List<cartProductItem> cartNotifierItem, int i, int paperSize) {
   int productNameWidth = 0;
-  String productUnitPrice = '(${cartNotifierItem[i].price}/${cartNotifierItem[i].per_quantity_unit}${cartNotifierItem[i].unit})';
+  String productUnitPrice = '(${cartNotifierItem[i].price}/${cartNotifierItem[i].per_quantity_unit}${cartNotifierItem[i].unit != 'each' && cartNotifierItem[i].unit != 'each_c' ? cartNotifierItem[i].unit : 'each'})';
   int productNameSpaceConsumed = calculateSpaceConsumed(cartNotifierItem[i].product_name!);
 
   if(paperSize == 80)

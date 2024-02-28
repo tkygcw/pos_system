@@ -59,7 +59,10 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   List<int> preSelectedVariantItemId = [];
   final remarkController = TextEditingController();
   TextEditingController quantityController = TextEditingController();
+  TextEditingController priceController = TextEditingController();
+  TextEditingController nameController = TextEditingController();
   int checkedModifierLength = 0;
+  String newPrice = '';
 
   bool checkboxValueA = false;
   bool isLoaded = false;
@@ -74,9 +77,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     actionStream = actionController.stream.asBroadcastStream();
     productChecking();
     listenAction();
-    simpleIntInput = widget.productDetail!.unit != 'each' ? 0 : 1;
-    quantityController = TextEditingController(text: widget.productDetail!.unit != 'each' ? '' : '${simpleIntInput}');
-
+    simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? 0 : 1;
+    newPrice = widget.productDetail!.price!;
+    quantityController = TextEditingController(text: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? '' : '${simpleIntInput}');
+    priceController = TextEditingController(text:  widget.productDetail!.price);
+    nameController = TextEditingController(text:  widget.productDetail!.name);
     //getProductPrice(widget.productDetail?.product_id);
   }
 
@@ -147,12 +152,12 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
             onChanged: modifierGroup.modifierChild![i].mod_status! == '2'
                 ? null
                 : (isChecked) {
-                    setState(() {
-                      modifierGroup.modifierChild![i].isChecked = isChecked!;
-                      addCheckedModItem(modifierGroup.modifierChild![i]);
-                      actionController.sink.add("add-on");
-                    });
-                  },
+              setState(() {
+                modifierGroup.modifierChild![i].isChecked = isChecked!;
+                addCheckedModItem(modifierGroup.modifierChild![i]);
+                actionController.sink.add("add-on");
+              });
+            },
             controlAffinity: ListTileControlAffinity.trailing,
           )
       ],
@@ -196,24 +201,24 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
-                                    widget.productDetail!.unit != 'each' ?
+                                    widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ?
                                     Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
-                                        )) :
-                                    Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.unit!}",
+                                        ))
+                                        : Text("RM ${Utils.convertTo2Dec(dialogPrice)} / each",
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         )),
                                     Visibility(
                                       visible: dialogStock != '' ? true : false,
-                                      child: Text("In stock: ${dialogStock}${widget.productDetail!.unit != 'each'? widget.productDetail!.unit : ''}",
+                                      child: Text("In stock: ${dialogStock}${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
                                           style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: dialogStock == '0' ? Colors.red : Colors.black
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: dialogStock == '0' ? Colors.red : Colors.black
                                           )),
                                     )
 
@@ -234,6 +239,109 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Visibility(
+                                      visible: widget.productDetail!.unit == 'each_c' ? true : false,
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "${AppLocalizations.of(context)!.translate('product_name')}",
+                                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Container(
+                                            width: 400,
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Container(
+                                                  width: 273,
+                                                  child: TextField(
+                                                    autofocus: false,
+                                                    controller: nameController,
+                                                    keyboardType: TextInputType.text,
+                                                    textAlign: TextAlign.center,
+                                                    decoration: InputDecoration(
+                                                      focusedBorder: OutlineInputBorder(
+                                                        borderSide: BorderSide(color: color.backgroundColor),
+                                                      ),
+                                                    ),
+                                                    onChanged: (value) => setState(() {
+                                                      try{
+                                                        widget.productDetail!.name = value;
+                                                      }catch (e){
+                                                        widget.productDetail!.name = "Custom";
+                                                      }
+                                                    }),
+                                                    onSubmitted: (value) {
+                                                      setState(() {
+                                                        widget.productDetail!.name = value;
+                                                      });
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "${AppLocalizations.of(context)!.translate('price')}",
+                                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Container(
+                                            width: 400,
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Container(
+                                                  width: 273,
+                                                  child: TextField(
+                                                    autofocus: true,
+                                                    controller: priceController,
+                                                    keyboardType: TextInputType.number,
+                                                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                                    textAlign: TextAlign.center,
+                                                    decoration: InputDecoration(
+                                                      prefixText: 'RM ',
+                                                      focusedBorder: OutlineInputBorder(
+                                                        borderSide: BorderSide(color: color.backgroundColor),
+                                                      ),
+                                                      hintText: "${Utils.convertTo2Dec(dialogPrice)}",
+                                                    ),
+                                                    onChanged: (value) => setState(() {
+                                                      try{
+                                                        double.parse(value.replaceAll(',', ''));
+                                                        dialogPrice = value;
+                                                      }catch (e){
+                                                        priceController.text = "";
+                                                      }
+                                                    }),
+                                                    onSubmitted: (value) {
+                                                      setState(() {
+                                                        dialogPrice = value;
+                                                      });
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                     for (int i = 0; i < variantGroup.length; i++)
                                       variantGroupLayout(variantGroup[i]),
                                     for (int j = 0; j < modifierGroup.length; j++)
@@ -243,6 +351,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                       ),
                                     Column(
                                       children: [
+
                                         Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: Row(
@@ -273,14 +382,14 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                     if(simpleIntInput >= 1){
                                                       setState(() {
                                                         simpleIntInput -= 1;
-                                                        quantityController.text = widget.productDetail!.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                                        simpleIntInput = widget.productDetail!.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                                        quantityController.text = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                                        simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
                                                       });
                                                     } else{
                                                       setState(() {
                                                         simpleIntInput = 0;
-                                                        quantityController.text =  widget.productDetail!.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                                        simpleIntInput = widget.productDetail!.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                                        quantityController.text =  widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                                        simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
                                                       });
                                                     }
                                                   },
@@ -291,10 +400,10 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                               Container(
                                                 width: 273,
                                                 child: TextField(
-                                                  autofocus: widget.productDetail!.unit != 'each' ? true : false,
+                                                  autofocus: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? true : false,
                                                   controller: quantityController,
                                                   keyboardType: TextInputType.number,
-                                                  inputFormatters: widget.productDetail!.unit != 'each' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
+                                                  inputFormatters: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
                                                       : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                                                   textAlign: TextAlign.center,
                                                   decoration: InputDecoration(
@@ -304,12 +413,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                   ),
                                                   onChanged: (value) {
                                                     if(value != ''){
-                                                      setState(() => simpleIntInput = widget.productDetail!.unit != 'each' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', '')));
+                                                      setState(() => simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', '')));
                                                     } else {
                                                       simpleIntInput = 0;
                                                     }
                                                   },
-                                                  onSubmitted: _onSubmitted,
                                                 ),
                                               ),
                                               SizedBox(width: 10),
@@ -489,7 +597,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  widget.productDetail!.unit != 'each' ?
+                                  widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ?
                                   Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.per_quantity_unit!}${widget.productDetail!.unit!}",
                                       style: TextStyle(
                                         fontSize: 16,
@@ -502,7 +610,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                       )),
                                   Visibility(
                                     visible: dialogStock != '' ? true : false,
-                                    child: Text("In stock: ${dialogStock}${widget.productDetail!.unit != 'each'? widget.productDetail!.unit : ''}",
+                                    child: Text("In stock: ${dialogStock}${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
                                         style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
@@ -561,14 +669,14 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                   if(simpleIntInput >= 1){
                                                     setState(() {
                                                       simpleIntInput -= 1;
-                                                      quantityController.text = widget.productDetail!.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                                      simpleIntInput = widget.productDetail!.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                                      quantityController.text = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                                      simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
                                                     });
                                                   } else{
                                                     setState(() {
                                                       simpleIntInput = 0;
-                                                      quantityController.text =  widget.productDetail!.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                                      simpleIntInput = widget.productDetail!.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                                      quantityController.text =  widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                                      simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
                                                     });
                                                   }
                                                 },
@@ -579,10 +687,10 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                             Container(
                                               width: 273,
                                               child: TextField(
-                                                autofocus: widget.productDetail!.unit != 'each' ? true : false,
+                                                autofocus: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? true : false,
                                                 controller: quantityController,
                                                 keyboardType: TextInputType.number,
-                                                inputFormatters: widget.productDetail!.unit != 'each' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
+                                                inputFormatters: widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
                                                     : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                                                 textAlign: TextAlign.center,
                                                 decoration: InputDecoration(
@@ -592,7 +700,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                 ),
                                                 onChanged: (value) {
                                                   if(value != ''){
-                                                    setState(() => simpleIntInput = widget.productDetail!.unit != 'each' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', '')));
+                                                    setState(() => simpleIntInput = widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', '')));
                                                   } else {
                                                     simpleIntInput = 0;
                                                   }
@@ -828,12 +936,12 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     if(data.isNotEmpty){
       for (int i = 0; i < data.length; i++) {
         modifierGroup.add(ModifierGroup(
-          modifierChild: [],
-          name: data[i].name,
-          mod_group_id: data[i].mod_group_id,
-          dining_id: data[i].dining_id,
-          compulsory: data[i].compulsory,
-          sequence_number: data[i].sequence_number
+            modifierChild: [],
+            name: data[i].name,
+            mod_group_id: data[i].mod_group_id,
+            dining_id: data[i].dining_id,
+            compulsory: data[i].compulsory,
+            sequence_number: data[i].sequence_number
         ));
         print("data: ${modifierGroup.length}");
         List<ModifierItem> itemData = await PosDatabase.instance.readProductModifierItem(data[i].mod_group_id!);
@@ -903,7 +1011,13 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
 
       List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), productId.toString());
       if (data[0].has_variant == '0') {
-        basePrice = data[0].price!;
+        if(dialogPrice != '' && data[0].price! != dialogPrice) {
+          // take new price input
+          basePrice = priceController.text;
+        } else {
+          // take original base price
+          basePrice = data[0].price!;
+        }
         finalPrice = basePrice;
         //check product mod group
         for (int j = 0; j < modifierGroup.length; j++) {
@@ -913,7 +1027,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
             if (group.modifierChild![k].isChecked == true) {
               List<BranchLinkModifier> modPrice = await PosDatabase.instance.readBranchLinkModifier(group.modifierChild![k].mod_item_id.toString());
               totalModPrice += double.parse(modPrice[0].price!);
-              totalBasePrice = double.parse(data[0].price!) + totalModPrice;
+              totalBasePrice = double.parse(basePrice) + totalModPrice;
               finalPrice = totalBasePrice.toStringAsFixed(2);
             }
           }
@@ -1005,7 +1119,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       switch(data1[0].stock_type){
         case '1' :{
           if (int.parse(data1[0].daily_limit!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit!)) {
-            num stockLeft =  widget.productDetail!.unit == 'each' ? int.parse(data1[0].daily_limit!) : double.parse(data1[0].daily_limit!) - checkCartProductQuantity(cart, data1[0]);
+            num stockLeft =  widget.productDetail!.unit == 'each' || widget.productDetail!.unit == 'each_c' ? int.parse(data1[0].daily_limit!) : double.parse(data1[0].daily_limit!) - checkCartProductQuantity(cart, data1[0]);
             bool isQtyNotExceed = simpleIntInput <= stockLeft;
             print('stock left: ${stockLeft}');
             if(stockLeft > 0 && isQtyNotExceed){
@@ -1218,7 +1332,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
   quantityStack({required cartProductItem cartItem, required cartProductItem newAddItem}){
     num value;
     try{
-      if(cartItem.unit != 'each'){
+      if(cartItem.unit != 'each' && cartItem.unit != 'each_c'){
         value = num.parse((cartItem.quantity! + newAddItem.quantity!).toStringAsFixed(2));
       } else {
         value = cartItem.quantity! + newAddItem.quantity!;
@@ -1270,7 +1384,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         base_price: basePrice,
         refColor: Colors.black,
         unit: widget.productDetail!.unit!,
-        per_quantity_unit: widget.productDetail!.unit! != 'each' ? widget.productDetail!.per_quantity_unit! : ''
+        per_quantity_unit: widget.productDetail!.unit! != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.per_quantity_unit! : ''
     );
     print('value checked item length: ${value.checkedModifierLength}');
     print(jsonEncode((value)));

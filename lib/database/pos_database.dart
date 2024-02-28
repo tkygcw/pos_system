@@ -113,9 +113,9 @@ class PosDatabase {
           ${ChecklistFields.created_at} $textType,
           ${ChecklistFields.updated_at} $textType,
           ${ChecklistFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dy} TEXT NOT NULL DEFAULT '' ");
-          await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dx} TEXT NOT NULL DEFAULT '' ");
-        }break;
+            await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dy} TEXT NOT NULL DEFAULT '' ");
+            await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dx} TEXT NOT NULL DEFAULT '' ");
+          }break;
         case 5: {
           await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dy} TEXT NOT NULL DEFAULT '' ");
           await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dx} TEXT NOT NULL DEFAULT '' ");
@@ -1017,7 +1017,7 @@ class PosDatabase {
           ${SecondScreenFields.created_at} $textType,
           ${SecondScreenFields.soft_delete} $textType)''');
 
-  /*
+    /*
     create kitchen list table
 */
     await db.execute('''CREATE TABLE $tableKitchenList(
@@ -1232,8 +1232,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableRefund(refund_id, refund_key, company_id, branch_id, order_cache_sqlite_id, '
-        'order_cache_key, order_sqlite_id, order_key, refund_by, refund_by_user_id, bill_id, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'order_cache_key, order_sqlite_id, order_key, refund_by, refund_by_user_id, bill_id, sync_status, created_at, updated_at, soft_delete) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.refund_id,
           data.refund_key,
@@ -1572,8 +1572,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableOrderPromotionDetail(order_promotion_detail_id, order_promotion_detail_key, order_sqlite_id, order_id, '
-        'order_key, promotion_name, rate, promotion_id, branch_link_promotion_id, promotion_amount, '
-        'promotion_type, auto_apply, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'order_key, promotion_name, rate, promotion_id, branch_link_promotion_id, promotion_amount, '
+            'promotion_type, auto_apply, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.order_promotion_detail_id,
           data.order_promotion_detail_key,
@@ -1602,8 +1602,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableOrderTaxDetail(order_tax_detail_id, order_tax_detail_key, order_sqlite_id,  '
-        'order_id, order_key, tax_name, rate, tax_id, branch_link_tax_id, tax_amount, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?)',
+            'order_id, order_key, tax_name, rate, tax_id, branch_link_tax_id, tax_amount, sync_status, created_at, updated_at, soft_delete) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?)',
         [
           data.order_tax_detail_id,
           data.order_tax_detail_key,
@@ -1639,7 +1639,7 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.rawInsert(
         'INSERT INTO $tableTableUse(table_use_id, table_use_key, branch_id, order_cache_key, '
-        'card_color, status, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'card_color, status, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.table_use_id,
           data.table_use_key,
@@ -1694,9 +1694,9 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableOrderCache(order_cache_id, order_cache_key, order_queue, company_id, branch_id, order_detail_id, '
-        'table_use_sqlite_id, table_use_key, batch_id, dining_id, order_sqlite_id, order_key, order_by, order_by_user_id, '
-        'cancel_by, cancel_by_user_id, customer_id, total_amount, qr_order, qr_order_table_sqlite_id, qr_order_table_id, accepted, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
+            'table_use_sqlite_id, table_use_key, batch_id, dining_id, order_sqlite_id, order_key, order_by, order_by_user_id, '
+            'cancel_by, cancel_by_user_id, customer_id, total_amount, qr_order, qr_order_table_sqlite_id, qr_order_table_id, accepted, sync_status, created_at, updated_at, soft_delete) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
         [
           data.order_cache_id,
           data.order_cache_key,
@@ -1744,9 +1744,9 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableOrderDetail(order_detail_id, order_detail_key, order_cache_sqlite_id, order_cache_key, '
-        'branch_link_product_sqlite_id, category_sqlite_id, category_name, product_name, has_variant, product_variant_name, price, original_price, quantity, '
-        'remark, account, edited_by, edited_by_user_id, cancel_by, cancel_by_user_id, status, sync_status, unit, per_quantity_unit, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
+            'branch_link_product_sqlite_id, category_sqlite_id, category_name, product_name, has_variant, product_variant_name, price, original_price, quantity, '
+            'remark, account, edited_by, edited_by_user_id, cancel_by, cancel_by_user_id, status, sync_status, unit, per_quantity_unit, created_at, updated_at, soft_delete) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ',
         [
           data.order_detail_id,
           data.order_detail_key,
@@ -1794,7 +1794,7 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableOrderModifierDetail(order_modifier_detail_id, order_modifier_detail_key, order_detail_sqlite_id, '
-        'order_detail_id, order_detail_key, mod_item_id, mod_name, mod_price, mod_group_id, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'order_detail_id, order_detail_key, mod_item_id, mod_name, mod_price, mod_group_id, sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.order_modifier_detail_id,
           data.order_modifier_detail_key,
@@ -1901,8 +1901,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.rawInsert(
         'INSERT INTO $tablePrinter(soft_delete, updated_at, created_at, sync_status, is_counter, is_label, '
-        'printer_status, paper_size, printer_label, type, value, printer_link_category_id, company_id, branch_id, printer_key, printer_id) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'printer_status, paper_size, printer_label, type, value, printer_link_category_id, company_id, branch_id, printer_key, printer_id) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
@@ -1940,8 +1940,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.rawInsert(
         'INSERT INTO $tablePrinterLinkCategory(soft_delete, updated_at, created_at, sync_status, category_id, '
-        'category_sqlite_id, printer_key, printer_sqlite_id, printer_link_category_id, printer_link_category_key) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'category_sqlite_id, printer_key, printer_sqlite_id, printer_link_category_id, printer_link_category_key) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
@@ -1973,8 +1973,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableReceipt(soft_delete, updated_at, created_at, sync_status, header_font_size, status, paper_size, promotion_detail_status, '
-        'footer_text_status, footer_text, footer_image_status, footer_image, receipt_email, show_email, show_address, '
-        'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'footer_text_status, footer_text, footer_image_status, footer_image, receipt_email, show_email, show_address, '
+            'header_text_status, header_text, header_image_status, header_image, branch_id, receipt_key, receipt_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.soft_delete,
           data.updated_at,
@@ -2027,8 +2027,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableCashRecord(cash_record_id, cash_record_key, company_id, branch_id, remark, '
-        'payment_name, payment_type_id, type, amount, user_id, settlement_key, settlement_date, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'payment_name, payment_type_id, type, amount, user_id, settlement_key, settlement_date, sync_status, created_at, updated_at, soft_delete) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.cash_record_id,
           data.cash_record_key,
@@ -2084,8 +2084,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableTransferOwner(transfer_owner_key, branch_id, device_id, transfer_from_user_id, transfer_to_user_id, '
-        'cash_balance, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'cash_balance, sync_status, created_at, updated_at, soft_delete) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.transfer_owner_key,
           data.branch_id,
@@ -2135,9 +2135,9 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableSettlement(settlement_id, settlement_key, company_id, branch_id, total_bill, '
-        'total_sales, total_refund_bill, total_refund_amount, total_discount, total_cancellation, total_tax, '
-        'settlement_by_user_id, settlement_by, status, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?, ?, ?)',
+            'total_sales, total_refund_bill, total_refund_amount, total_discount, total_cancellation, total_tax, '
+            'settlement_by_user_id, settlement_by, status, sync_status, created_at, updated_at, soft_delete) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?, ?, ?, ?, ?, ?)',
         [
           data.settlement_id,
           data.settlement_key,
@@ -2177,8 +2177,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableSettlementLinkPayment(settlement_link_payment_id, settlement_link_payment_key, '
-        'company_id, branch_id, settlement_sqlite_id, settlement_key, total_bill, total_sales, payment_link_company_id, status, '
-        'sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'company_id, branch_id, settlement_sqlite_id, settlement_key, total_bill, total_sales, payment_link_company_id, status, '
+            'sync_status, created_at, updated_at, soft_delete) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.settlement_link_payment_id,
           data.settlement_link_payment_key,
@@ -2214,8 +2214,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableOrderDetailCancel(order_detail_cancel_id, order_detail_cancel_key, order_detail_sqlite_id, order_detail_key, '
-        'quantity, cancel_by, cancel_by_user_id, settlement_sqlite_id, settlement_key, status, sync_status, created_at, updated_at, soft_delete) '
-        'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'quantity, cancel_by, cancel_by_user_id, settlement_sqlite_id, settlement_key, status, sync_status, created_at, updated_at, soft_delete) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.order_detail_cancel_id,
           data.order_detail_cancel_key,
@@ -2549,7 +2549,7 @@ class PosDatabase {
   Future<ProductVariant?> readProductVariantForUpdate(String variant_name, String product_sqlite_id) async {
     final db = await instance.database;
     final maps =
-        await db.rawQuery('SELECT * FROM $tableProductVariant WHERE soft_delete = ? AND variant_name = ? AND product_sqlite_id = ?', ['', variant_name, product_sqlite_id]);
+    await db.rawQuery('SELECT * FROM $tableProductVariant WHERE soft_delete = ? AND variant_name = ? AND product_sqlite_id = ?', ['', variant_name, product_sqlite_id]);
     if (maps.isNotEmpty) {
       return ProductVariant.fromJson(maps.first);
     }
@@ -2596,7 +2596,7 @@ class PosDatabase {
   Future<List<ModifierLinkProduct>> readModifierLinkProduct(String mod_group_id, String product_sqlite_id) async {
     final db = await instance.database;
     final result =
-        await db.rawQuery('SELECT * FROM $tableModifierLinkProduct WHERE soft_delete = ? AND mod_group_id = ? AND product_sqlite_id = ?', ['', mod_group_id, product_sqlite_id]);
+    await db.rawQuery('SELECT * FROM $tableModifierLinkProduct WHERE soft_delete = ? AND mod_group_id = ? AND product_sqlite_id = ?', ['', mod_group_id, product_sqlite_id]);
 
     return result.map((json) => ModifierLinkProduct.fromJson(json)).toList();
   }
@@ -2698,7 +2698,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.name FROM $tableBranchLinkProduct AS a JOIN $tableProduct AS b ON a.product_id = b.product_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_link_product_sqlite_id = ? AND b.available = ?',
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_link_product_sqlite_id = ? AND b.available = ?',
         ['', '', branch_link_product_sqlite_id, 1]);
 
     if (result.isNotEmpty) {
@@ -3021,7 +3021,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.* FROM $tableModifierGroup AS a JOIN $tableModifierLinkProduct AS b ON a.mod_group_id = b.mod_group_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.product_sqlite_id = ?',
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.product_sqlite_id = ?',
         ['', '', productID]);
     return result.map((json) => ModifierGroup.fromJson(json)).toList();
   }
@@ -3051,7 +3051,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.status AS mod_status FROM $tableModifierItem AS a LEFT JOIN $tableBranchLinkModifier AS b ON a.mod_item_id = b.mod_item_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.mod_group_id = ? AND b.status = ? ORDER BY a.sequence',
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.mod_group_id = ? AND b.status = ? ORDER BY a.sequence',
         ['', '', modGroupID, '1']);
     return result.map((json) => ModifierItem.fromJson(json)).toList();
   }
@@ -3184,8 +3184,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.* FROM $tableTableUseDetail AS a '
-        'JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.table_sqlite_id = ? AND a.status = ? ORDER BY table_use_detail_sqlite_id DESC LIMIT 1',
+            'JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.table_sqlite_id = ? AND a.status = ? ORDER BY table_use_detail_sqlite_id DESC LIMIT 1',
         ['', '', table_sqlite_id, 0]);
 
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
@@ -3198,8 +3198,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.table_id AS table_local_id FROM $tableTableUseDetail AS a '
-        'JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.table_sqlite_id = ? AND a.status = ? AND b.status = ? ORDER BY table_use_detail_sqlite_id DESC LIMIT 1',
+            'JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.table_sqlite_id = ? AND a.status = ? AND b.status = ? ORDER BY table_use_detail_sqlite_id DESC LIMIT 1',
         ['', '', table_sqlite_id, 0, 1]);
 
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
@@ -3242,7 +3242,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.name FROM $tableOrderCache AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ? AND a.cancel_by = ? AND a.accepted = ? ORDER BY a.created_at DESC LIMIT 1',
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.branch_id = ? AND a.cancel_by = ? AND a.accepted = ? ORDER BY a.created_at DESC LIMIT 1',
         ['', '', branch_id, '', 0]);
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
@@ -3274,10 +3274,10 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.accepted, a.qr_order_table_id, a.qr_order_table_sqlite_id, a.qr_order, a.total_amount, '
-        'a.customer_id, a.cancel_by_user_id, a.cancel_by, '
-        'a.order_by_user_id, a.order_by, a.order_key, a.order_sqlite_id, a.dining_id, a.batch_id, a.table_use_key, a.table_use_sqlite_id, a.order_detail_id, a.branch_id, '
-        'a.company_id, a.order_queue, a.order_cache_key, a.order_cache_id, a.order_cache_sqlite_id, '
-        'b.name AS name FROM $tableOrderCache AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.order_cache_sqlite_id = ? AND b.soft_delete = ?',
+            'a.customer_id, a.cancel_by_user_id, a.cancel_by, '
+            'a.order_by_user_id, a.order_by, a.order_key, a.order_sqlite_id, a.dining_id, a.batch_id, a.table_use_key, a.table_use_sqlite_id, a.order_detail_id, a.branch_id, '
+            'a.company_id, a.order_queue, a.order_cache_key, a.order_cache_id, a.order_cache_sqlite_id, '
+            'b.name AS name FROM $tableOrderCache AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id WHERE a.order_cache_sqlite_id = ? AND b.soft_delete = ?',
         [order_cache_sqlite_id, '']);
     return OrderCache.fromJson(result.first);
   }
@@ -3300,7 +3300,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.name FROM $tableOrderCache AS a JOIN $tableDiningOption AS b ON a.dining_id = b.dining_id '
-        'WHERE a.order_cache_sqlite_id = ? AND b.soft_delete = ?',
+            'WHERE a.order_cache_sqlite_id = ? AND b.soft_delete = ?',
         [order_cache_sqlite_id, '']);
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
@@ -3313,8 +3313,8 @@ class PosDatabase {
       final db = await instance.database;
       final result = await db.rawQuery(
           'SELECT a.*, b.card_color FROM $tableOrderCache AS a JOIN $tableTableUse AS b ON a.table_use_key = b.table_use_key '
-          'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.table_use_key = ? AND a.cancel_by = ? AND a.accepted = ? AND b.status = ? '
-          'ORDER BY a.order_cache_sqlite_id DESC',
+              'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.table_use_key = ? AND a.cancel_by = ? AND a.accepted = ? AND b.status = ? '
+              'ORDER BY a.order_cache_sqlite_id DESC',
           ['', '', table_use_key, '', 0, 0]);
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
@@ -3331,10 +3331,10 @@ class PosDatabase {
       final db = await instance.database;
       final result = await db.rawQuery(
           'SELECT a.order_cache_sqlite_id, a.order_cache_key, a.order_queue ,a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, a.batch_id, a.order_sqlite_id, a.order_key, '
-          'a.order_by, a.total_amount, a.customer_id, a.created_at, a.updated_at, a.soft_delete, b.name AS name '
-          'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.order_key = ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
-          'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? ORDER BY a.created_at DESC  ',
+              'a.order_by, a.total_amount, a.customer_id, a.created_at, a.updated_at, a.soft_delete, b.name AS name '
+              'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+              'WHERE a.order_key = ? AND a.soft_delete= ? AND b.soft_delete = ? AND a.branch_id = ? '
+              'AND a.company_id = ? AND a.accepted = ? AND cancel_by = ? AND a.table_use_key = ? ORDER BY a.created_at DESC  ',
           ['', '', '', branch_id, company_id, 0, '', '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
@@ -3352,10 +3352,10 @@ class PosDatabase {
       final db = await instance.database;
       final result = await db.rawQuery(
           'SELECT a.order_cache_sqlite_id, a.order_queue, a.order_detail_id, a.dining_id, a.table_use_sqlite_id, a.table_use_key, a.batch_id, a.dining_id, '
-          'a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, '
-          'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
-          'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ?',
+              'a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, '
+              'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
+              'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
+              'WHERE a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ?',
           ['', '', '', '', name]);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
@@ -3372,7 +3372,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.total_amount FROM $tableOrderDetail AS a JOIN $tableOrderCache AS b ON a.order_cache_key = b.order_cache_key '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.order_cache_key = ? AND a.status = ? AND b.accepted = ? AND b.cancel_by = ? ',
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.order_cache_key = ? AND a.status = ? AND b.accepted = ? AND b.cancel_by = ? ',
         ['', '', order_cache_key, 0, 0, '']);
 
     return result.map((json) => OrderDetail.fromJson(json)).toList();
@@ -3385,9 +3385,9 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.remark, a.product_variant_name, a.has_variant, a.product_name, a.category_sqlite_id, a.per_quantity_unit, a.unit, '
-        'a.branch_link_product_sqlite_id, a.order_cache_key, a.order_cache_key, a.order_detail_key, a.order_detail_sqlite_id, '
-        'b.quantity AS item_cancel, b.cancel_by FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
-        'WHERE a.order_cache_sqlite_id = ? AND a.soft_delete = ? ORDER BY b.order_detail_cancel_sqlite_id DESC LIMIT 1',
+            'a.branch_link_product_sqlite_id, a.order_cache_key, a.order_cache_key, a.order_detail_key, a.order_detail_sqlite_id, '
+            'b.quantity AS item_cancel, b.cancel_by FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
+            'WHERE a.order_cache_sqlite_id = ? AND a.soft_delete = ? ORDER BY b.order_detail_cancel_sqlite_id DESC LIMIT 1',
         [order_cache_sqlite_id, '']);
 
     return result.map((json) => OrderDetail.fromJson(json)).toList();
@@ -3400,11 +3400,11 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.per_quantity_unit, a.unit, a.sync_status, a.status, a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, '
-        'a.account, a.remark, a.quantity, a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_cache_sqlite_id, '
-        'a.order_detail_key, IFNULL( (SELECT category_id FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), 0) AS category_id,'
-        'c.branch_link_product_id FROM $tableOrderDetail AS a '
-        'LEFT JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
-        'WHERE a.order_detail_sqlite_id = ? ',
+            'a.account, a.remark, a.quantity, a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_cache_sqlite_id, '
+            'a.order_detail_key, IFNULL( (SELECT category_id FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), 0) AS category_id,'
+            'c.branch_link_product_id FROM $tableOrderDetail AS a '
+            'LEFT JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
+            'WHERE a.order_detail_sqlite_id = ? ',
         [order_detail_sqlite_id]);
 
     return OrderDetail.fromJson(result.first);
@@ -3707,7 +3707,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id '
-        'WHERE a.soft_delete = ? AND a.settlement_key = ? AND b.soft_delete = ? ORDER BY a.created_at DESC',
+            'WHERE a.soft_delete = ? AND a.settlement_key = ? AND b.soft_delete = ? ORDER BY a.created_at DESC',
         ['', '', '']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
@@ -3720,7 +3720,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.name FROM $tableCashRecord AS a JOIN $tableUser AS b ON a.user_id = b.user_id '
-        'WHERE a.soft_delete = ? AND a.settlement_date != ? AND a.branch_id = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? AND b.soft_delete = ? ORDER BY a.cash_record_sqlite_id DESC',
+            'WHERE a.soft_delete = ? AND a.settlement_date != ? AND a.branch_id = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? AND b.soft_delete = ? ORDER BY a.cash_record_sqlite_id DESC',
         ['', '', branch_id, date1, date2, '']);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
@@ -3772,7 +3772,7 @@ class PosDatabase {
   Future<List<CashRecord>> readSpecificLatestSettlementCashRecord(String branch_id) async {
     final db = await instance.database;
     final result =
-        await db.rawQuery('SELECT * FROM $tableCashRecord WHERE soft_delete = ? AND branch_id = ? AND type = ? ORDER BY settlement_date DESC LIMIT 1', ['', branch_id, 0]);
+    await db.rawQuery('SELECT * FROM $tableCashRecord WHERE soft_delete = ? AND branch_id = ? AND type = ? ORDER BY settlement_date DESC LIMIT 1', ['', branch_id, 0]);
     return result.map((json) => CashRecord.fromJson(json)).toList();
   }
 
@@ -3880,8 +3880,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.name, b.payment_type_id FROM $tableOrder AS a '
-        'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-        'WHERE a.payment_status = ? AND a.soft_delete = ? AND a.order_sqlite_id = ?',
+            'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+            'WHERE a.payment_status = ? AND a.soft_delete = ? AND a.order_sqlite_id = ?',
         [1, '', order_sqlite_id]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -3893,8 +3893,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id FROM $tableOrder AS a '
-        'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-        'WHERE a.payment_status = ? AND a.settlement_key = ? AND a.soft_delete = ? ORDER BY a.created_at DESC',
+            'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+            'WHERE a.payment_status = ? AND a.settlement_key = ? AND a.soft_delete = ? ORDER BY a.created_at DESC',
         [1, '', '']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -3964,7 +3964,7 @@ class PosDatabase {
   Future<OrderPromotionDetail> readSpecificOrderPromotionDetailByLocalId(int order_promotion_detail_sqlite_id) async {
     final db = await instance.database;
     final result =
-        await db.rawQuery('SELECT * FROM $tableOrderPromotionDetail WHERE soft_delete = ? AND order_promotion_detail_sqlite_id = ?', ['', order_promotion_detail_sqlite_id]);
+    await db.rawQuery('SELECT * FROM $tableOrderPromotionDetail WHERE soft_delete = ? AND order_promotion_detail_sqlite_id = ?', ['', order_promotion_detail_sqlite_id]);
 
     return OrderPromotionDetail.fromJson(result.first);
   }
@@ -4074,9 +4074,9 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.payment_link_company_id, a.total_sales, a.total_bill, a.settlement_key, a.settlement_sqlite_id, a.branch_id, '
-        'a.company_id, a.settlement_link_payment_key, a.settlement_link_payment_id, a.settlement_link_payment_sqlite_id,  '
-        'SUM(a.total_sales) AS all_payment_sales FROM $tableSettlementLinkPayment AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id  '
-        'WHERE a.soft_delete = ? AND a.status = ? AND a.settlement_key = ? AND a.payment_link_company_id = ? ',
+            'a.company_id, a.settlement_link_payment_key, a.settlement_link_payment_id, a.settlement_link_payment_sqlite_id,  '
+            'SUM(a.total_sales) AS all_payment_sales FROM $tableSettlementLinkPayment AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id  '
+            'WHERE a.soft_delete = ? AND a.status = ? AND a.settlement_key = ? AND a.payment_link_company_id = ? ',
         ['', 0, settlement_key, payment_link_company_id]);
     return result.map((json) => SettlementLinkPayment.fromJson(json)).toList();
   }
@@ -4089,9 +4089,9 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.payment_link_company_id, a.total_sales, a.total_bill, a.settlement_key, a.settlement_sqlite_id, a.branch_id, '
-        'a.company_id, a.settlement_link_payment_key, a.settlement_link_payment_id, a.settlement_link_payment_sqlite_id,  '
-        'SUM(a.total_sales) AS all_payment_sales FROM $tableSettlementLinkPayment AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id  '
-        'WHERE a.soft_delete = ? AND a.status = ? AND SUBSTR(a.created_at, 1, 10) = SUBSTR(?, 1, 10) AND a.payment_link_company_id = ? GROUP BY a.payment_link_company_id ORDER BY b.name ',
+            'a.company_id, a.settlement_link_payment_key, a.settlement_link_payment_id, a.settlement_link_payment_sqlite_id,  '
+            'SUM(a.total_sales) AS all_payment_sales FROM $tableSettlementLinkPayment AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id  '
+            'WHERE a.soft_delete = ? AND a.status = ? AND SUBSTR(a.created_at, 1, 10) = SUBSTR(?, 1, 10) AND a.payment_link_company_id = ? GROUP BY a.payment_link_company_id ORDER BY b.name ',
         ['', 0, settlement_date, payment_link_company_id]);
     return result.map((json) => SettlementLinkPayment.fromJson(json)).toList();
   }
@@ -4103,9 +4103,9 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT *, SUM(total_bill) AS all_bill, SUM(total_sales) AS all_sales, SUM(total_refund_bill) AS all_refund_bill, '
-        'SUM(total_refund_amount) AS all_refund_amount, SUM(total_discount) AS all_discount, '
-        'SUM(total_tax) AS all_tax_amount, SUM(total_cancellation) AS all_cancellation '
-        'FROM $tableSettlement WHERE soft_delete = ? AND status = ? GROUP BY SUBSTR(created_at, 1, 10) ORDER BY SUBSTR(created_at, 1, 10) DESC ',
+            'SUM(total_refund_amount) AS all_refund_amount, SUM(total_discount) AS all_discount, '
+            'SUM(total_tax) AS all_tax_amount, SUM(total_cancellation) AS all_cancellation '
+            'FROM $tableSettlement WHERE soft_delete = ? AND status = ? GROUP BY SUBSTR(created_at, 1, 10) ORDER BY SUBSTR(created_at, 1, 10) DESC ',
         ['', 0]);
     return result.map((json) => Settlement.fromJson(json)).toList();
   }
@@ -4117,8 +4117,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT SUM(tax_amount) AS total_tax_amount FROM $tableOrderTaxDetail '
-        'WHERE soft_delete = ? AND tax_id = ? AND order_sqlite_id = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? '
-        'GROUP BY tax_id ORDER BY tax_id ',
+            'WHERE soft_delete = ? AND tax_id = ? AND order_sqlite_id = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? '
+            'GROUP BY tax_id ORDER BY tax_id ',
         ['', tax_id, order_sqlite_id, date1, date2]);
     return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
   }
@@ -4130,8 +4130,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT * FROM $tableOrderTaxDetail '
-        'WHERE soft_delete = ? AND order_sqlite_id = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? '
-        'GROUP BY tax_id ORDER BY tax_id ',
+            'WHERE soft_delete = ? AND order_sqlite_id = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? '
+            'GROUP BY tax_id ORDER BY tax_id ',
         ['', order_sqlite_id, date1, date2]);
     return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
   }
@@ -4143,10 +4143,10 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.bill_id AS bill_no, b.refund_by AS refund_name, b.created_at AS refund_at, '
-        '(SELECT SUM(promotion_amount) FROM $tableOrderPromotionDetail WHERE order_sqlite_id = a.order_sqlite_id) AS promo_amount '
-        'FROM $tableOrder AS a JOIN $tableRefund AS b ON a.refund_sqlite_id = b.refund_sqlite_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.payment_status = ? '
-        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? ',
+            '(SELECT SUM(promotion_amount) FROM $tableOrderPromotionDetail WHERE order_sqlite_id = a.order_sqlite_id) AS promo_amount '
+            'FROM $tableOrder AS a JOIN $tableRefund AS b ON a.refund_sqlite_id = b.refund_sqlite_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.payment_status = ? '
+            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? ',
         ['', '', 2, date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4158,10 +4158,10 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, SUM(c.quantity) AS item_sum, SUM(c.quantity * a.mod_price + 0.0) AS net_sales '
-        'FROM $tableOrderModifierDetail AS a JOIN $tableOrderDetail AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
-        'JOIN $tableOrderDetailCancel AS c ON b.order_detail_sqlite_id = c.order_detail_sqlite_id  '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.mod_group_id = ? '
-        'AND SUBSTR(c.created_at, 1, 10) >= ? AND SUBSTR(c.created_at, 1, 10) < ? GROUP BY a.mod_name ',
+            'FROM $tableOrderModifierDetail AS a JOIN $tableOrderDetail AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
+            'JOIN $tableOrderDetailCancel AS c ON b.order_detail_sqlite_id = c.order_detail_sqlite_id  '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.mod_group_id = ? '
+            'AND SUBSTR(c.created_at, 1, 10) >= ? AND SUBSTR(c.created_at, 1, 10) < ? GROUP BY a.mod_name ',
         ['', '', '', mod_group_id, date1, date2]);
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
   }
@@ -4173,11 +4173,11 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT d.created_at, b.*, SUM(d.quantity * a.mod_price + 0.0) AS net_sales, SUM(d.quantity) AS item_sum '
-        'FROM $tableOrderModifierDetail AS a JOIN $tableModifierGroup AS b ON a.mod_group_id = b.mod_group_id '
-        'JOIN $tableOrderDetail AS c ON a.order_detail_sqlite_id = c.order_detail_sqlite_id '
-        'JOIN $tableOrderDetailCancel AS d ON c.order_detail_sqlite_id = d.order_detail_sqlite_id '
-        'WHERE a.soft_delete = ? AND c.soft_delete = ? AND d.soft_delete = ? '
-        'AND SUBSTR(d.created_at, 1, 10) >= ? AND SUBSTR(d.created_at, 1, 10) < ? GROUP BY b.mod_group_id ',
+            'FROM $tableOrderModifierDetail AS a JOIN $tableModifierGroup AS b ON a.mod_group_id = b.mod_group_id '
+            'JOIN $tableOrderDetail AS c ON a.order_detail_sqlite_id = c.order_detail_sqlite_id '
+            'JOIN $tableOrderDetailCancel AS d ON c.order_detail_sqlite_id = d.order_detail_sqlite_id '
+            'WHERE a.soft_delete = ? AND c.soft_delete = ? AND d.soft_delete = ? '
+            'AND SUBSTR(d.created_at, 1, 10) >= ? AND SUBSTR(d.created_at, 1, 10) < ? GROUP BY b.mod_group_id ',
         ['', '', '', date1, date2]);
     return result.map((json) => ModifierGroup.fromJson(json)).toList();
   }
@@ -4189,12 +4189,12 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.created_at, a.product_name, a.product_variant_name, b.cancel_by, SUM(b.quantity * a.price + 0.0) AS gross_price, '
-        'SUM(b.quantity * a.original_price + 0.0) AS net_sales, '
-        'SUM(b.quantity) AS item_sum '
-        'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.category_sqlite_id = ? '
-        'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? '
-        'GROUP BY a.product_name, a.product_variant_name ORDER BY a.product_name',
+            'SUM(b.quantity * a.original_price + 0.0) AS net_sales, '
+            'SUM(b.quantity) AS item_sum '
+            'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.category_sqlite_id = ? '
+            'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? '
+            'GROUP BY a.product_name, a.product_variant_name ORDER BY a.product_name',
         ['', '', category_sqlite_id, date1, date2]);
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
@@ -4207,13 +4207,13 @@ class PosDatabase {
     final result = await db.rawQuery(
       //CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE b.quantity END
         'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, b.cancel_by, SUM(b.quantity * a.price + 0.0) AS gross_price, '
-        'SUM(b.quantity * a.original_price + 0.0) AS net_sales, '
-        'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * b.quantity ELSE b.quantity END) AS item_sum '
-        'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.category_name = ? '
-        'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? '
-        'GROUP BY a.product_name, a.product_variant_name ORDER BY a.product_name',
-        ['each', '', '', '', category_name, date1, date2]);
+            'SUM(b.quantity * a.original_price + 0.0) AS net_sales, '
+            'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * b.quantity ELSE b.quantity END) AS item_sum '
+            'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.category_name = ? '
+            'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? '
+            'GROUP BY a.product_name, a.product_variant_name ORDER BY a.product_name',
+        ['each', 'each_c', '', '', category_name, date1, date2]);
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
 
@@ -4224,13 +4224,13 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, SUM(b.quantity * a.original_price + 0.0) AS category_sales, SUM(b.quantity * a.price + 0.0) AS category_gross_sales,'
-        'IFNULL( (SELECT category_sqlite_id FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), 0) AS category_sqlite_id, '
-        'IFNULL( (SELECT name FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), "Other") AS name, '
-        'SUM(b.quantity) AS item_sum '
-        'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? '
-        'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY a.category_sqlite_id '
-        'ORDER BY a.category_sqlite_id DESC',
+            'IFNULL( (SELECT category_sqlite_id FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), 0) AS category_sqlite_id, '
+            'IFNULL( (SELECT name FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), "Other") AS name, '
+            'SUM(b.quantity) AS item_sum '
+            'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? '
+            'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY a.category_sqlite_id '
+            'ORDER BY a.category_sqlite_id DESC',
         ['', '', date1, date2]);
     return result.map((json) => Categories.fromJson(json)).toList();
   }
@@ -4244,12 +4244,12 @@ class PosDatabase {
         'SELECT a.*, SUM(b.quantity * a.original_price + 0.0) AS category_net_sales, SUM(b.quantity * a.price + 0.0) AS category_gross_sales,'
         // 'IFNULL( (SELECT category_sqlite_id FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), 0) AS category_sqlite_id, '
         // 'IFNULL( (SELECT name FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), "Other") AS name, '
-        'SUM(CASE WHEN a.unit != ? OR a.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
-        'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? '
-        'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY a.category_name '
-        'ORDER BY a.category_name DESC',
-        ['each', '', '', '', date1, date2]);
+            'SUM(CASE WHEN a.unit != ? OR a.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
+            'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? '
+            'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY a.category_name '
+            'ORDER BY a.category_name DESC',
+        ['each', 'each_c', '', '', date1, date2]);
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
 
@@ -4261,8 +4261,8 @@ class PosDatabase {
     final result = await db.rawQuery(
 
         'SELECT a.*, c.order_number, c.branch_id, c.created_at as order_created_at FROM $tableOrderDetail AS a JOIN $tableOrderCache '
-        'AS b ON a.order_cache_key = b.order_cache_key JOIN $tableOrder AS c ON b.order_key = c.order_key '
-        'WHERE a.soft_delete = ? AND a.edited_by_user_id != ? AND a.status = ? AND SUBSTR(a.updated_at, 1, 10) >= ? AND SUBSTR(a.updated_at, 1, 10) < ? AND b.order_key != ? ',
+            'AS b ON a.order_cache_key = b.order_cache_key JOIN $tableOrder AS c ON b.order_key = c.order_key '
+            'WHERE a.soft_delete = ? AND a.edited_by_user_id != ? AND a.status = ? AND SUBSTR(a.updated_at, 1, 10) >= ? AND SUBSTR(a.updated_at, 1, 10) < ? AND b.order_key != ? ',
         ['', '', 0, date1, date2, '']);
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
@@ -4274,9 +4274,9 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.name AS name, COUNT(order_sqlite_id) AS item_sum, SUM(final_amount + 0.0) AS gross_sales, SUM(subtotal + 0.0) AS net_sales '
-        'FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-        'WHERE a.soft_delete = ? AND a.payment_status = ? '
-        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.payment_link_company_id ',
+            'FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+            'WHERE a.soft_delete = ? AND a.payment_status = ? '
+            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.payment_link_company_id ',
         ['', 1, date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4288,8 +4288,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, COUNT(order_sqlite_id) AS item_sum, SUM(final_amount + 0.0) AS gross_sales, SUM(subtotal + 0.0) AS net_sales '
-        'FROM $tableOrder AS a WHERE a.soft_delete = ? AND a.payment_status = ? '
-        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.dining_id',
+            'FROM $tableOrder AS a WHERE a.soft_delete = ? AND a.payment_status = ? '
+            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.dining_id',
         ['', 1, date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4301,12 +4301,12 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, COUNT(a.order_modifier_detail_sqlite_id) AS item_sum, SUM(a.mod_price + 0.0) AS net_sales '
-        'FROM $tableOrderModifierDetail AS a JOIN $tableOrderDetail AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
-        'JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
-        'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? '
-        'AND a.mod_group_id = ? AND b.status = ? AND d.payment_status = ? '
-        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.mod_name  ',
+            'FROM $tableOrderModifierDetail AS a JOIN $tableOrderDetail AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
+            'JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
+            'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? '
+            'AND a.mod_group_id = ? AND b.status = ? AND d.payment_status = ? '
+            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.mod_name  ',
         ['', '', '', 0, '', '', mod_group_id, 0, 1, date1, date2]);
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
   }
@@ -4318,13 +4318,13 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.created_at, b.*, SUM(a.mod_price + 0.0) AS net_sales, COUNT(a.order_modifier_detail_sqlite_id) AS item_sum '
-        'FROM $tableOrderModifierDetail AS a JOIN $tableModifierGroup AS b ON a.mod_group_id = b.mod_group_id '
-        'JOIN $tableOrderDetail AS c ON a.order_detail_sqlite_id = c.order_detail_sqlite_id '
-        'JOIN $tableOrderCache AS d ON c.order_cache_sqlite_id = d.order_cache_sqlite_id '
-        'JOIN $tableOrder AS e ON d.order_sqlite_id = e.order_sqlite_id '
-        'WHERE a.soft_delete = ? AND c.soft_delete = ? AND d.soft_delete = ? AND e.soft_delete = ? '
-        'AND c.status = ? AND d.accepted = ? AND d.cancel_by = ? AND e.payment_status = ? '
-        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY b.mod_group_id  ',
+            'FROM $tableOrderModifierDetail AS a JOIN $tableModifierGroup AS b ON a.mod_group_id = b.mod_group_id '
+            'JOIN $tableOrderDetail AS c ON a.order_detail_sqlite_id = c.order_detail_sqlite_id '
+            'JOIN $tableOrderCache AS d ON c.order_cache_sqlite_id = d.order_cache_sqlite_id '
+            'JOIN $tableOrder AS e ON d.order_sqlite_id = e.order_sqlite_id '
+            'WHERE a.soft_delete = ? AND c.soft_delete = ? AND d.soft_delete = ? AND e.soft_delete = ? '
+            'AND c.status = ? AND d.accepted = ? AND d.cancel_by = ? AND e.payment_status = ? '
+            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY b.mod_group_id  ',
         ['', '', '', '', 0, 0, '', 1, date1, date2]);
     return result.map((json) => ModifierGroup.fromJson(json)).toList();
   }
@@ -4338,13 +4338,13 @@ class PosDatabase {
         'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_net_sales, SUM(b.price * b.quantity + 0.0) AS category_gross_sales, '
         // 'IFNULL( (SELECT category_sqlite_id FROM $tableCategories WHERE category_sqlite_id = b.category_sqlite_id), 0) AS category_sqlite_id, '
         // 'IFNULL( (SELECT name FROM $tableCategories WHERE category_sqlite_id = b.category_sqlite_id), "Other") AS name, '
-        'SUM(CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
-        'FROM $tableOrderDetail AS b JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
-        'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
-        'WHERE b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? AND b.status = ? AND d.payment_status = ? '
-        'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY b.category_name '
-        'ORDER BY b.category_name DESC',
-        ['each', '', '', '', 0, '', '', 0, 1, date1, date2]);
+            'SUM(CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
+            'FROM $tableOrderDetail AS b JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
+            'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
+            'WHERE b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? AND b.status = ? AND d.payment_status = ? '
+            'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY b.category_name '
+            'ORDER BY b.category_name DESC',
+        ['each', 'each_c', '', '', 0, '', '', 0, 1, date1, date2]);
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
 
@@ -4355,13 +4355,13 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, SUM(a.original_price * a.quantity + 0.0) AS net_sales, SUM(a.price * a.quantity + 0.0) AS gross_price, '
-        'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * a.quantity ELSE a.quantity END) AS item_sum '
-        'FROM $tableOrderDetail AS a JOIN $tableOrderCache AS b ON a.order_cache_sqlite_id = b.order_cache_sqlite_id '
-        'JOIN $tableOrder AS c ON b.order_sqlite_id = c.order_sqlite_id '
-        'WHERE a.soft_delete = ? AND a.status = ? AND b.soft_delete = ? AND b.accepted = ? AND c.soft_delete = ? AND c.payment_status = ? AND a.category_name = ? '
-        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? '
-        'GROUP BY a.product_name, a.product_variant_name ORDER BY a.product_name',
-        ['each', '', '', 0, '', 0, '', 1, category_name, date1, date2]);
+            'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * a.quantity ELSE a.quantity END) AS item_sum '
+            'FROM $tableOrderDetail AS a JOIN $tableOrderCache AS b ON a.order_cache_sqlite_id = b.order_cache_sqlite_id '
+            'JOIN $tableOrder AS c ON b.order_sqlite_id = c.order_sqlite_id '
+            'WHERE a.soft_delete = ? AND a.status = ? AND b.soft_delete = ? AND b.accepted = ? AND c.soft_delete = ? AND c.payment_status = ? AND a.category_name = ? '
+            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? '
+            'GROUP BY a.product_name, a.product_variant_name ORDER BY a.product_name',
+        ['each', 'each_c', '', 0, '', 0, '', 1, category_name, date1, date2]);
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
 
@@ -4382,11 +4382,11 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a '
-        'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-        'JOIN $tableRefund AS c ON a.refund_key = c.refund_key '
-        'WHERE a.payment_status = ? AND a.refund_key != ? AND a.soft_delete = ? AND c.soft_delete = ? '
-        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? '
-        'ORDER BY a.created_at DESC',
+            'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+            'JOIN $tableRefund AS c ON a.refund_key = c.refund_key '
+            'WHERE a.payment_status = ? AND a.refund_key != ? AND a.soft_delete = ? AND c.soft_delete = ? '
+            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? '
+            'ORDER BY a.created_at DESC',
         [2, '', '', '', date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4398,9 +4398,9 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a '
-        'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-        'JOIN $tableRefund AS c ON a.refund_key = c.refund_key '
-        'WHERE a.payment_status = ? AND a.refund_key != ? AND a.settlement_key = ? AND a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? ORDER BY a.created_at DESC',
+            'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+            'JOIN $tableRefund AS c ON a.refund_key = c.refund_key '
+            'WHERE a.payment_status = ? AND a.refund_key != ? AND a.settlement_key = ? AND a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? ORDER BY a.created_at DESC',
         [2, '', '', '', '', '']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4412,8 +4412,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.name AS name1, c.name AS name2 FROM $tableTransferOwner AS a JOIN $tableUser AS b ON a.transfer_from_user_id = b.user_id '
-        'JOIN $tableUser AS c ON a.transfer_to_user_id = c.user_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? '
-        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? ORDER BY a.created_at DESC',
+            'JOIN $tableUser AS c ON a.transfer_to_user_id = c.user_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? '
+            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? ORDER BY a.created_at DESC',
         ['', '', '', date1, date2]);
     return result.map((json) => TransferOwner.fromJson(json)).toList();
   }
@@ -4434,10 +4434,10 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, '
-        '(SELECT SUM(tax_amount + 0.0) FROM $tableOrderTaxDetail WHERE order_tax_detail_sqlite_id = a.order_tax_detail_sqlite_id) '
-        'AS total_tax_amount FROM $tableOrderTaxDetail AS a '
-        'JOIN $tableOrder AS b ON a.order_sqlite_id = b.order_sqlite_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.payment_status = ?',
+            '(SELECT SUM(tax_amount + 0.0) FROM $tableOrderTaxDetail WHERE order_tax_detail_sqlite_id = a.order_tax_detail_sqlite_id) '
+            'AS total_tax_amount FROM $tableOrderTaxDetail AS a '
+            'JOIN $tableOrder AS b ON a.order_sqlite_id = b.order_sqlite_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.payment_status = ?',
         ['', '', 1]);
 
     return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
@@ -4450,7 +4450,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.name FROM $tableBranchLinkTax AS a JOIN $tableTax AS b ON a.tax_id = b.tax_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? ORDER BY b.tax_id ',
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? ORDER BY b.tax_id ',
         ['', '']);
     return result.map((json) => BranchLinkTax.fromJson(json)).toList();
   }
@@ -4464,7 +4464,7 @@ class PosDatabase {
         'SELECT a.*, SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE a.quantity END) AS total_item '
             'FROM $tableOrderDetailCancel AS a JOIN $tableOrderDetail AS b ON a.order_detail_key = b.order_detail_key '
             'WHERE a.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? ',
-        ['each', '', '', date1, date2]);
+        ['each', 'each_c', '', date1, date2]);
     return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
   }
 
@@ -4484,7 +4484,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.* FROM $tableOrderPromotionDetail AS a JOIN '
-        '$tableOrder AS b ON a.order_sqlite_id = b.order_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.payment_status = ?',
+            '$tableOrder AS b ON a.order_sqlite_id = b.order_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.payment_status = ?',
         ['', '', 1]);
     return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
   }
@@ -4496,9 +4496,9 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id '
-        'FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b '
-        'ON a.payment_link_company_id = b.payment_link_company_id '
-        'WHERE a.soft_delete = ? AND a.payment_status != ? ORDER BY a.created_at DESC',
+            'FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b '
+            'ON a.payment_link_company_id = b.payment_link_company_id '
+            'WHERE a.soft_delete = ? AND a.payment_status != ? ORDER BY a.created_at DESC',
         ['', 0]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4551,7 +4551,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT *, SUM(final_amount + 0.0) AS gross_sales FROM $tableOrder '
-        'WHERE soft_delete = ? AND refund_key = ? AND settlement_key = ? GROUP BY dining_id ',
+            'WHERE soft_delete = ? AND refund_key = ? AND settlement_key = ? GROUP BY dining_id ',
         ['', '', settlement_key]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4563,8 +4563,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT c.*, (SELECT SUM(a.tax_amount + 0.0) FROM $tableOrderTaxDetail AS a JOIN $tableOrder AS b ON a.order_key = b.order_key WHERE b.settlement_key = ? AND a.tax_id = c.tax_id AND b.refund_key = ?) AS total_tax_amount '
-        'FROM $tableOrderTaxDetail AS c JOIN $tableOrder AS d ON c.order_key = d.order_key '
-        'WHERE c.soft_delete = ? AND d.soft_delete = ? AND d.settlement_key = ? AND d.refund_key = ? GROUP BY c.tax_name ',
+            'FROM $tableOrderTaxDetail AS c JOIN $tableOrder AS d ON c.order_key = d.order_key '
+            'WHERE c.soft_delete = ? AND d.soft_delete = ? AND d.settlement_key = ? AND d.refund_key = ? GROUP BY c.tax_name ',
         [settlement_key, '', '', '', settlement_key, '']);
     return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
   }
@@ -4588,7 +4588,7 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tableOrderDetailCancel SET updated_at = ?, sync_status = ?, settlement_key = ?, settlement_sqlite_id = ? '
-        'WHERE order_detail_cancel_sqlite_id = ? ',
+            'WHERE order_detail_cancel_sqlite_id = ? ',
         [data.updated_at, data.sync_status, data.settlement_key, data.settlement_sqlite_id, data.order_detail_cancel_sqlite_id]);
   }
 
@@ -4610,7 +4610,7 @@ class PosDatabase {
         'SELECT SUM(CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE a.quantity END) AS total_item '
             'FROM $tableOrderDetailCancel AS a JOIN $tableOrderDetail AS b ON a.order_detail_key = b.order_detail_key '
             'WHERE a.soft_delete = ? AND a.settlement_key = ? ',
-        ['each', '', '', '']);
+        ['each', 'each_c', '', '']);
     if(result.isNotEmpty){
       return OrderDetailCancel.fromJson(result.first);
     } else {
@@ -4634,8 +4634,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT c.*, (SELECT SUM(promotion_amount + 0.0) FROM $tableOrderPromotionDetail AS a JOIN $tableOrder AS b ON a.order_key = b.order_key WHERE b.settlement_key = ? AND b.refund_key = ? ) '
-        'AS total_promotion_amount FROM $tableOrderPromotionDetail AS c JOIN $tableOrder AS d ON c.order_key = d.order_key '
-        'WHERE c.soft_delete = ? AND d.soft_delete = ? AND d.settlement_key = ? AND d.refund_key = ? ',
+            'AS total_promotion_amount FROM $tableOrderPromotionDetail AS c JOIN $tableOrder AS d ON c.order_key = d.order_key '
+            'WHERE c.soft_delete = ? AND d.soft_delete = ? AND d.settlement_key = ? AND d.refund_key = ? ',
         ['', '', '', '', '', '']);
     return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
   }
@@ -4647,8 +4647,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT c.*, (SELECT SUM(a.tax_amount + 0.0) FROM $tableOrderTaxDetail AS a JOIN $tableOrder AS b ON a.order_key = b.order_key WHERE b.settlement_key = ? AND b.refund_key = ?) AS total_tax_amount '
-        'FROM $tableOrderTaxDetail AS c JOIN $tableOrder AS d ON c.order_key = d.order_key '
-        'WHERE c.soft_delete = ? AND d.soft_delete = ? AND d.settlement_key = ? AND d.refund_key = ? ',
+            'FROM $tableOrderTaxDetail AS c JOIN $tableOrder AS d ON c.order_key = d.order_key '
+            'WHERE c.soft_delete = ? AND d.soft_delete = ? AND d.settlement_key = ? AND d.refund_key = ? ',
         ['', '', '', '', '', '']);
     return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
   }
@@ -4669,7 +4669,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT *, (SELECT SUM(final_amount + 0.0) FROM $tableOrder WHERE settlement_key = ? AND refund_key = ?) AS gross_sales '
-        'FROM $tableOrder WHERE soft_delete = ? AND settlement_key = ? ',
+            'FROM $tableOrder WHERE soft_delete = ? AND settlement_key = ? ',
         ['', '', '', '']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4681,7 +4681,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT *, (SELECT SUM(final_amount + 0.0) FROM $tableOrder WHERE refund_key != ? AND settlement_key = ?) AS gross_sales FROM $tableOrder '
-        'WHERE soft_delete = ? AND refund_key != ? AND settlement_key = ? ',
+            'WHERE soft_delete = ? AND refund_key != ? AND settlement_key = ? ',
         ['', '', '', '', '']);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4714,7 +4714,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT * FROM $tableSettlementLinkPayment WHERE soft_delete = ? AND settlement_link_payment_sqlite_id = ? '
-        'ORDER BY settlement_link_payment_sqlite_id DESC LIMIT 1 ',
+            'ORDER BY settlement_link_payment_sqlite_id DESC LIMIT 1 ',
         ['', settlement_link_payment_sqlite_id]);
 
     return SettlementLinkPayment.fromJson(result.first);
@@ -4737,8 +4737,8 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tableSettlement SET updated_at = ?, sync_status = ?, total_tax = ?, total_cancellation = ?, total_discount = ?, '
-        'total_refund_amount = ?, total_refund_bill = ?, total_sales = ?, total_bill = ? '
-        'WHERE settlement_sqlite_id = ? ',
+            'total_refund_amount = ?, total_refund_bill = ?, total_sales = ?, total_bill = ? '
+            'WHERE settlement_sqlite_id = ? ',
         [
           data.updated_at,
           data.sync_status,
@@ -4760,7 +4760,7 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tableSettlementLinkPayment SET updated_at = ?, sync_status = ?, total_sales = ?, total_bill = ? '
-        'WHERE settlement_link_payment_sqlite_id = ? ',
+            'WHERE settlement_link_payment_sqlite_id = ? ',
         [
           data.updated_at,
           data.sync_status,
@@ -4823,7 +4823,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.* FROM $tableOrderDetail AS a '
-        'WHERE a.soft_delete = ? AND a.status = ? AND a.order_cache_sqlite_id = ?',
+            'WHERE a.soft_delete = ? AND a.status = ? AND a.order_cache_sqlite_id = ?',
         ['', 0, order_cache_sqlite_id]);
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
@@ -4835,12 +4835,12 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT * FROM (SELECT a.*, b.number AS table_number, c.name '
-        'FROM $tableOrderCache AS a LEFT JOIN $tablePosTable AS b ON a.qr_order_table_id = b.table_id '
-        'LEFT JOIN $tableDiningOption AS c ON a.dining_id = c.dining_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.qr_order = ? AND a.accepted = ? '
-        'UNION '
-        'SELECT d.*, null AS table_number, e.name FROM $tableOrderCache AS d LEFT JOIN $tableDiningOption AS e ON d.dining_id = e.dining_id '
-        'WHERE d.soft_delete = ? AND e.soft_delete = ? AND d.qr_order_table_id = ? AND d.qr_order = ? AND d.accepted = ?) ORDER BY created_at DESC ',
+            'FROM $tableOrderCache AS a LEFT JOIN $tablePosTable AS b ON a.qr_order_table_id = b.table_id '
+            'LEFT JOIN $tableDiningOption AS c ON a.dining_id = c.dining_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.qr_order = ? AND a.accepted = ? '
+            'UNION '
+            'SELECT d.*, null AS table_number, e.name FROM $tableOrderCache AS d LEFT JOIN $tableDiningOption AS e ON d.dining_id = e.dining_id '
+            'WHERE d.soft_delete = ? AND e.soft_delete = ? AND d.qr_order_table_id = ? AND d.qr_order = ? AND d.accepted = ?) ORDER BY created_at DESC ',
         ['', '', '', 1, 1, '', '', '', 1, 1]);
     return result.map((json) => OrderCache.fromJson(json)).toList();
   }
@@ -5102,8 +5102,8 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tableProduct SET category_sqlite_id = ?, category_id = ?, name = ?, price = ?, description = ?, SKU = ?, '
-        'image = ?, has_variant = ?, stock_type = ?, stock_quantity = ?, available = ?, graphic_type = ?, color = ?, '
-        'daily_limit_amount = ?, daily_limit = ?, sync_status = ?, unit = ?, per_quantity_unit = ?, sequence_number = ?, updated_at = ?, soft_delete = ? WHERE product_id = ?',
+            'image = ?, has_variant = ?, stock_type = ?, stock_quantity = ?, available = ?, graphic_type = ?, color = ?, '
+            'daily_limit_amount = ?, daily_limit = ?, sync_status = ?, unit = ?, per_quantity_unit = ?, sequence_number = ?, updated_at = ?, soft_delete = ? WHERE product_id = ?',
         [
           data.category_sqlite_id,
           data.category_id,
@@ -5176,7 +5176,7 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tableProductVariant SET product_sqlite_id = ?, product_id = ?, variant_name = ?, SKU = ?, price = ?, '
-        'stock_type = ?, daily_limit = ?, daily_limit_amount = ?, stock_quantity = ?, sync_status = ?, updated_at = ?, soft_delete = ? WHERE product_variant_id = ? ',
+            'stock_type = ?, daily_limit = ?, daily_limit_amount = ?, stock_quantity = ?, sync_status = ?, updated_at = ?, soft_delete = ? WHERE product_variant_id = ? ',
         [
           data.product_sqlite_id,
           data.product_id,
@@ -5201,7 +5201,7 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tableProductVariantDetail SET product_variant_id = ?, product_variant_sqlite_id = ?, variant_item_sqlite_id = ?, variant_item_id = ?, '
-        'sync_status = ?, updated_at = ?, soft_delete = ? WHERE product_variant_detail_id = ?',
+            'sync_status = ?, updated_at = ?, soft_delete = ? WHERE product_variant_detail_id = ?',
         [
           data.product_variant_id,
           data.product_variant_sqlite_id,
@@ -5221,9 +5221,9 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tableBranchLinkProduct '
-        'SET product_sqlite_id = ?, product_id = ?, has_variant = ?, product_variant_sqlite_id = ?, product_variant_id = ?, '
-        'b_SKU = ?, price = ?, stock_type = ?, daily_limit = ?, daily_limit_amount = ?, stock_quantity = ?, sync_status = ?, updated_at = ?, soft_delete = ? '
-        'WHERE branch_link_product_id = ? ',
+            'SET product_sqlite_id = ?, product_id = ?, has_variant = ?, product_variant_sqlite_id = ?, product_variant_id = ?, '
+            'b_SKU = ?, price = ?, stock_type = ?, daily_limit = ?, daily_limit_amount = ?, stock_quantity = ?, sync_status = ?, updated_at = ?, soft_delete = ? '
+            'WHERE branch_link_product_id = ? ',
         [
           data.product_sqlite_id,
           data.product_id,
@@ -5363,7 +5363,7 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tablePromotion SET name = ?, amount = ?, specific_category = ?, category_id = ?, type = ?, '
-        'auto_apply = ?, all_day = ?, all_time = ?, sdate = ?, edate = ?, stime = ?, etime = ?, updated_at = ?, soft_delete = ? WHERE promotion_id = ? ',
+            'auto_apply = ?, all_day = ?, all_time = ?, sdate = ?, edate = ?, stime = ?, etime = ?, updated_at = ?, soft_delete = ? WHERE promotion_id = ? ',
         [
           data.name,
           data.amount,
@@ -5681,7 +5681,7 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tableOrderCache SET table_use_sqlite_id = ?, table_use_key = ?, batch_id = ?, total_amount = ?, '
-        'order_by = ?, order_by_user_id = ?, accepted = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
+            'order_by = ?, order_by_user_id = ?, accepted = ?, sync_status = ?, updated_at = ? WHERE order_cache_sqlite_id = ?',
         [
           data.table_use_sqlite_id,
           data.table_use_key,
@@ -5729,8 +5729,8 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tableReceipt SET header_image = ?, header_image_status = ?, header_text = ?, header_text_status = ?, '
-        'header_font_size = ?, show_address = ?, show_email = ?, receipt_email = ?, '
-        'footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, promotion_detail_status = ?, sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
+            'header_font_size = ?, show_address = ?, show_email = ?, receipt_email = ?, '
+            'footer_image = ?, footer_image_status = ?, footer_text = ?, footer_text_status = ?, promotion_detail_status = ?, sync_status = ?, updated_at = ? WHERE receipt_sqlite_id = ?',
         [
           data.header_image,
           data.header_image_status,
@@ -6961,7 +6961,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.table_use_key, a.table_use_detail_key, CAST(b.table_id AS TEXT) AS table_id '
-        'FROM $tableTableUseDetail AS a JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id WHERE b.soft_delete = ? AND a.sync_status = ? ',
+            'FROM $tableTableUseDetail AS a JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id WHERE b.soft_delete = ? AND a.sync_status = ? ',
         ['', 2]);
 
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
@@ -6994,10 +6994,10 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.quantity, '
-        'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id '
-        'FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id '
-        'JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
-        'WHERE b.soft_delete = ? AND c.soft_delete = ? AND a.sync_status = ? ',
+            'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id '
+            'FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id '
+            'JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
+            'WHERE b.soft_delete = ? AND c.soft_delete = ? AND a.sync_status = ? ',
         ['', '', 2]);
 
     return result.map((json) => OrderDetail.fromJson(json)).toList();
@@ -7084,7 +7084,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.* FROM $tablePrinterLinkCategory AS a JOIN $tablePrinter AS b ON a.printer_key = b.printer_key '
-        'WHERE b.type = ? AND a.sync_status != ? LIMIT 10 ',
+            'WHERE b.type = ? AND a.sync_status != ? LIMIT 10 ',
         [1, 1]);
 
     return result.map((json) => PrinterLinkCategory.fromJson(json)).toList();
@@ -7176,8 +7176,8 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.status, a.table_use_key, a.table_use_detail_key, CAST(b.table_id AS TEXT) AS table_id '
-        'FROM $tableTableUseDetail AS a JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
-        'WHERE b.soft_delete = ? AND a.table_use_detail_key != ? AND a.sync_status != ? LIMIT 10 ',
+            'FROM $tableTableUseDetail AS a JOIN $tablePosTable AS b ON a.table_sqlite_id = b.table_sqlite_id '
+            'WHERE b.soft_delete = ? AND a.table_use_detail_key != ? AND a.sync_status != ? LIMIT 10 ',
         ['', '', 1]);
 
     return result.map((json) => TableUseDetail.fromJson(json)).toList();
@@ -7199,7 +7199,7 @@ class PosDatabase {
   Future<List<OrderModifierDetail>> readAllNotSyncOrderModDetail() async {
     final db = await instance.database;
     final result =
-        await db.rawQuery('SELECT * FROM $tableOrderModifierDetail WHERE order_modifier_detail_key != ? AND soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', '', 1]);
+    await db.rawQuery('SELECT * FROM $tableOrderModifierDetail WHERE order_modifier_detail_key != ? AND soft_delete = ? AND sync_status != ? LIMIT 10 ', ['', '', 1]);
 
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
   }
@@ -7220,16 +7220,16 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.per_quantity_unit, a.unit, a.status, a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.quantity,'
-        'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id '
-        'FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id '
-        'JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.order_detail_key != ? AND a.sync_status != ? '
-        'UNION ALL '
-        'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.per_quantity_unit, a.unit, a.status, a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.quantity, '
-        'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, 0 AS category_id, b.branch_link_product_id '
-        'FROM $tableOrderDetail AS a '
-        'JOIN $tableBranchLinkProduct AS b ON a.branch_link_product_sqlite_id = b.branch_link_product_sqlite_id '
-        'WHERE a.category_sqlite_id = ? AND a.soft_delete = ? AND b.soft_delete = ? AND a.order_detail_key != ? AND a.sync_status != ? LIMIT 10 ',
+            'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, b.category_id, c.branch_link_product_id '
+            'FROM $tableOrderDetail AS a JOIN $tableCategories as b ON a.category_sqlite_id = b.category_sqlite_id '
+            'JOIN $tableBranchLinkProduct AS c ON a.branch_link_product_sqlite_id = c.branch_link_product_sqlite_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.order_detail_key != ? AND a.sync_status != ? '
+            'UNION ALL '
+            'SELECT a.soft_delete, a.updated_at, a.created_at, a.sync_status, a.per_quantity_unit, a.unit, a.status, a.cancel_by_user_id, a.cancel_by, a.edited_by_user_id, a.edited_by, a.account, a.remark, a.quantity, '
+            'a.original_price, a.price, a.product_variant_name, a.has_variant, a.product_name, a.category_name, a.order_cache_key, a.order_detail_key, 0 AS category_id, b.branch_link_product_id '
+            'FROM $tableOrderDetail AS a '
+            'JOIN $tableBranchLinkProduct AS b ON a.branch_link_product_sqlite_id = b.branch_link_product_sqlite_id '
+            'WHERE a.category_sqlite_id = ? AND a.soft_delete = ? AND b.soft_delete = ? AND a.order_detail_key != ? AND a.sync_status != ? LIMIT 10 ',
         ['', '', '', '', 1, 0, '', '', '', 1]);
 
     return result.map((json) => OrderDetail.fromJson(json)).toList();
@@ -7604,9 +7604,9 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT DISTINCT a.*, '
-        'IFNULL ((SELECT name FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), "NaN") AS category_name '
-        'FROM $tableProduct AS a JOIN $tableBranchLinkProduct AS b ON a.product_id = b.product_id '
-        'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.available = ? ',
+            'IFNULL ((SELECT name FROM $tableCategories WHERE category_sqlite_id = a.category_sqlite_id), "NaN") AS category_name '
+            'FROM $tableProduct AS a JOIN $tableBranchLinkProduct AS b ON a.product_id = b.product_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.available = ? ',
         ['', '', 1]);
     return result.map((json) => Product.fromJson(json)).toList();
   }
