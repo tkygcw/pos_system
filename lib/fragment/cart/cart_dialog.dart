@@ -484,7 +484,9 @@ class CartDialogState extends State<CartDialog> {
                                   }
                                 }
                                 if (sameGroupTbList.length > 1) {
-                                  await callRemoveTableQuery(tableList[index].table_sqlite_id!);
+                                  asyncQ.addJob((_) async {
+                                    await callRemoveTableQuery(tableList[index].table_sqlite_id!);
+                                  });
                                   tableList[index].isSelected = false;
                                   tableList[index].group = null;
                                   cart.removeAllTable();

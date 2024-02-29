@@ -206,27 +206,35 @@ abstract class PlaceOrder {
     return tableInUse;
   }
 
-  // Future<void> callAddOrderCache(CartModel cart) async {
-  //   if(await checkTableStatus(cart) == true){
-  //     cart.selectedTable.removeWhere((e) => e.status == 0);
-  //     await createOrderCache(cart, isAddOrder: true);
-  //     await createOrderDetail(cart);
-  //     printCheckList();
-  //     // if (_appSettingModel.autoPrintChecklist == true) {
-  //     //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-  //     //   if (printStatus == 1) {
-  //     //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-  //     //   } else if (printStatus == 2) {
-  //     //     Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-  //     //   } else if (printStatus == 5) {
-  //     //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
-  //     //   }
-  //     // }
-  //     printKitchenList();
-  //   } else {
-  //     throw Exception("Contain table not in-used");
-  //   }
-  // }
+  Future<List<cartProductItem>> checkOrderStock(CartModel cartModel) async {
+    List<cartProductItem> outOfStockItem = [];
+    //bool hasStock = false;
+    List<cartProductItem> unitCartItem = cartModel.cartNotifierItem.where((e) => e.unit == 'each').toList();
+    if(unitCartItem.isNotEmpty){
+      for(int i = 0 ; i < unitCartItem.length; i++){
+        List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(unitCartItem[i].branch_link_product_sqlite_id!);
+        switch (checkData[0].stock_type) {
+          case '1':
+            {
+             if(int.parse(checkData[0].daily_limit_amount!) < unitCartItem[i].quantity!){
+               outOfStockItem.add(unitCartItem[i]);
+               branchLinkProductList.add(checkData[0]);
+             }
+            }
+            break;
+          case '2':
+            {
+              if(int.parse(checkData[0].stock_quantity!) < unitCartItem[i].quantity!){
+                outOfStockItem.add(unitCartItem[i]);
+                branchLinkProductList.add(checkData[0]);
+              }
+            }
+            break;
+        }
+      }
+    }
+    return outOfStockItem;
+  }
 
   printCheckList() async {
     if(appSetting?.print_checklist == 1){

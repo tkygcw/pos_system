@@ -111,9 +111,29 @@ class CartDialogFunction {
   callRemoveTableQuery(int table_sqlite_id) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
-    await deleteCurrentTableUseDetail(table_sqlite_id, dateTime);
-    await updatePosTableStatus(table_sqlite_id, 0, '', '', dateTime);
-    //await readAllTable(isReset: true);
+    if(await checkTableStatus(table_sqlite_id) == true){
+      await deleteCurrentTableUseDetail(table_sqlite_id, dateTime);
+      await updatePosTableStatus(table_sqlite_id, 0, '', '', dateTime);
+      //await readAllTable(isReset: true);
+    } else {
+      throw Exception("Table already been removed");
+    }
+  }
+
+  Future<bool> checkTableStatus(int table_sqlite_id) async {
+    bool tableInUse = false;
+    List<PosTable> table = await PosDatabase.instance.checkPosTableStatus(table_sqlite_id);
+    if(table[0].status == 1) {
+      tableInUse = true;
+    }
+    // for(int i = 0; i < cart.selectedTable.length; i++){
+    //   List<PosTable> table = await PosDatabase.instance.checkPosTableStatus(cart.selectedTable[i].table_sqlite_id!);
+    //   if(table[0].status == 1){
+    //     tableInUse = true;
+    //     break;
+    //   }
+    // }
+    return tableInUse;
   }
 
   deleteCurrentTableUseDetail(int currentTableId, String dateTime) async {
@@ -149,8 +169,12 @@ class CartDialogFunction {
   callMergeTableQuery({required int dragTableId, required int targetTableId}) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
-    await createTableUseDetail(dragTableId, targetTableId);
-    await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!, tableUseKey!, dateTime);
+    if(await checkTableStatus(dragTableId) == false){
+      await createTableUseDetail(dragTableId, targetTableId);
+      await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!, tableUseKey!, dateTime);
+    } else {
+      throw Exception("Table has already been merged");
+    }
   }
 
   createTableUseDetail(int newTableId, int oldTableId) async {

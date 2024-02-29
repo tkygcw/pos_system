@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/server_action.dart';
 
 
@@ -133,19 +134,21 @@ class Server extends ChangeNotifier {
         print("received data: ${receivedData}");
         buffer.write(receivedData);
 
-        if (buffer.toString().endsWith(messageDelimiter)) {
-          final message = buffer.toString().trim();
-          var msg = jsonDecode(jsonEncode(jsonDecode(message)));
-          if(msg['param'] != ''){
-            response = await ServerAction().checkAction(action: msg['action'], param: msg['param']);
-          } else {
-            response = await ServerAction().checkAction(action: msg['action']);
-          }
-          print("server response 2: ${response}");
+        asyncQ.addJob((_) async {
+          if (buffer.toString().endsWith(messageDelimiter)) {
+            final message = buffer.toString().trim();
+            var msg = jsonDecode(jsonEncode(jsonDecode(message)));
+            if(msg['param'] != ''){
+              response = await ServerAction().checkAction(action: msg['action'], param: msg['param']);
+            } else {
+              response = await ServerAction().checkAction(action: msg['action']);
+            }
+            print("server response 2: ${response}");
 
-          clientSocket.write("${jsonEncode(response)}\n");
-          buffer.clear();
-        }
+            clientSocket.write("${jsonEncode(response)}\n");
+            buffer.clear();
+          }
+        });
       },
           onDone: (){
             print('Client disconnected 2: ${clientSocket.remoteAddress}:${clientSocket.remotePort}');

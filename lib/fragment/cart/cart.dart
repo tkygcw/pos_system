@@ -56,6 +56,7 @@ import '../../object/table.dart';
 import '../../object/tax.dart';
 import '../../translation/AppLocalizations.dart';
 import '../../utils/Utils.dart';
+import '../custom_flushbar.dart';
 import '../logout_dialog.dart';
 import '../settlement/cash_dialog.dart';
 import '../payment/payment_select_dialog.dart';
@@ -2207,6 +2208,18 @@ class CartPageState extends State<CartPage> {
     this.table_value = [].toString();
   }
 
+  Future<bool> checkTableStatus(CartModel cart) async {
+    bool tableInUse = false;
+    for(int i = 0; i < cart.selectedTable.length; i++){
+      List<PosTable> table = await PosDatabase.instance.checkPosTableStatus(cart.selectedTable[i].table_sqlite_id!);
+      if(table[0].status == 1){
+        tableInUse = true;
+        break;
+      }
+    }
+    return tableInUse;
+  }
+
 /*
   Not dine in call
 */
@@ -2242,34 +2255,44 @@ class CartPageState extends State<CartPage> {
 */
   callCreateNewOrder(CartModel cart) async {
     resetValue();
-    await createTableUseID();
-    await createTableUseDetail(cart);
-    await createOrderCache(cart, isAddOrder: false);
-    await createOrderDetail(cart);
-    await updatePosTable(cart);
-    if (_appSettingModel.autoPrintChecklist == true) {
-      int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-      if (printStatus == 1) {
-        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-      } else if (printStatus == 2) {
-        Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-      } else if (printStatus == 5) {
-        Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+    if(await checkTableStatus(cart) == false){
+      await createTableUseID();
+      await createTableUseDetail(cart);
+      await createOrderCache(cart, isAddOrder: false);
+      await createOrderDetail(cart);
+      await updatePosTable(cart);
+      if (_appSettingModel.autoPrintChecklist == true) {
+        int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
+        if (printStatus == 1) {
+          Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+        } else if (printStatus == 2) {
+          Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+        } else if (printStatus == 5) {
+          Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+        }
       }
+      cart.removeAllCartItem();
+      cart.removeAllTable();
+      // Server.instance.sendRefreshMessage();
+      Navigator.of(context).pop();
+
+      //syncAllToCloud();
+      // print('finish sync');
+      // if (this.isLogOut == true) {
+      //   openLogOutDialog();
+      //   return;
+      // }
+
+      printKitchenList();
+    } else {
+      cart.removeAllCartItem();
+      cart.removeAllTable();
+      // Server.instance.sendRefreshMessage();
+      Navigator.of(context).pop();
+      CustomFlushbar.instance.showFlushbar("Place order failed", "Table already in-used", Colors.red, (flushbar) async {
+        flushbar.dismiss(true);
+      }, duration: Duration(seconds: 3));
     }
-    cart.removeAllCartItem();
-    cart.removeAllTable();
-    Server.instance.sendRefreshMessage();
-    Navigator.of(context).pop();
-
-    syncAllToCloud();
-    // print('finish sync');
-    // if (this.isLogOut == true) {
-    //   openLogOutDialog();
-    //   return;
-    // }
-
-    printKitchenList();
   }
 
 /*
@@ -2277,30 +2300,41 @@ class CartPageState extends State<CartPage> {
 */
   callAddOrderCache(CartModel cart) async {
     resetValue();
-    await createOrderCache(cart, isAddOrder: true);
-    await createOrderDetail(cart);
-    if (_appSettingModel.autoPrintChecklist == true) {
-      int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-      if (printStatus == 1) {
-        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-      } else if (printStatus == 2) {
-        Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-      } else if (printStatus == 5) {
-        Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+    if(checkTableStatus(cart) == true){
+      cart.selectedTable.removeWhere((e) => e.status == 0);
+      await createOrderCache(cart, isAddOrder: true);
+      await createOrderDetail(cart);
+      if (_appSettingModel.autoPrintChecklist == true) {
+        int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
+        if (printStatus == 1) {
+          Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+        } else if (printStatus == 2) {
+          Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+        } else if (printStatus == 5) {
+          Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+        }
       }
+      cart.removeAllCartItem();
+      cart.removeAllTable();
+      // Server.instance.sendRefreshMessage();
+      Navigator.of(context).pop();
+
+      //syncAllToCloud();
+      // if (this.isLogOut == true) {
+      //   openLogOutDialog();
+      //   return;
+      // }
+
+      printKitchenList();
+    } else {
+      cart.removeAllCartItem();
+      cart.removeAllTable();
+      // Server.instance.sendRefreshMessage();
+      Navigator.of(context).pop();
+      CustomFlushbar.instance.showFlushbar("Place order failed", "Contain table not in-used", Colors.red, (flushbar) async {
+        flushbar.dismiss(true);
+      }, duration: Duration(seconds: 3));
     }
-    cart.removeAllCartItem();
-    cart.removeAllTable();
-    Server.instance.sendRefreshMessage();
-    Navigator.of(context).pop();
-
-    syncAllToCloud();
-    // if (this.isLogOut == true) {
-    //   openLogOutDialog();
-    //   return;
-    // }
-
-    printKitchenList();
   }
 
   checkDirectPayment(AppSettingModel appSettingModel, cart) {
@@ -2893,6 +2927,7 @@ class CartPageState extends State<CartPage> {
   }
 
   updateProductStock(String branch_link_product_sqlite_id, num quantity, String dateTime) async {
+    print("update product stock called!!!");
     num _totalStockQty = 0, updateStock = 0;
     BranchLinkProduct? object;
     try {

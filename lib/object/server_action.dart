@@ -144,21 +144,29 @@ class ServerAction {
             cart = CartModel.fromJson(decodeParam);
             if(cart.selectedOption == 'Dine in'){
               PlaceNewDineInOrder order = PlaceNewDineInOrder();
-              asyncQ.addJob((_) async {
-                try{
-                  await order.callCreateNewOrder(cart);
-                }catch(e){
-                  print("request catch error !!!");
-                  //result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
-                  return Exception(e.toString());
-                }
-              });
-              // await order.callCreateNewOrder(cart);
+              // asyncQ.addJob((_) async {
+              //   try{
+              //     await order.callCreateNewOrder(cart);
+              //   }catch(e){
+              //     print("request catch error !!!");
+              //     //result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
+              //     return Exception(e.toString());
+              //   }
+              // });
+              List<cartProductItem> cartItem = await order.checkOrderStock(cart);
+              if(cartItem.isNotEmpty){
+                objectData = {
+                  'cartItem': cartItem,
+                  'tb_branch_link_product': order.branchLinkProductList,
+                };
+                return result = {'status': '2', 'data': objectData};
+              }
+              await order.callCreateNewOrder(cart);
               branchLinkProductList = order.branchLinkProductList;
             } else {
               PlaceNotDineInOrder order = PlaceNotDineInOrder();
-              asyncQ.addJob((previousResult) => order.callCreateNewNotDineOrder(cart));
-              // await order.callCreateNewNotDineOrder(cart);
+              // asyncQ.addJob((previousResult) => order.callCreateNewNotDineOrder(cart));
+              await order.callCreateNewNotDineOrder(cart);
               branchLinkProductList = order.branchLinkProductList;
             }
             print("outside else if called!!!");
@@ -178,8 +186,8 @@ class ServerAction {
             PlaceAddOrder order = PlaceAddOrder();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam);
-            asyncQ.addJob((previousResult) => order.callAddOrderCache(cart));
-            // await order.callAddOrderCache(cart);
+            // asyncQ.addJob((previousResult) => order.callAddOrderCache(cart));
+            await order.callAddOrderCache(cart);
             objectData = {
               'tb_branch_link_product': order.branchLinkProductList,
             };
@@ -210,7 +218,7 @@ class ServerAction {
             await function.callRemoveTableQuery(int.parse(jsonValue));
             result = {'status': '1'};
           }catch(e){
-            result = {'status': '4'};
+            result = {'status': '4', 'exception': e.toString()};
             print("cart dialog remove merged table request error: $e");
           }
         }
@@ -223,7 +231,7 @@ class ServerAction {
             await function.callMergeTableQuery(dragTableId: jsonValue['dragTableId'], targetTableId: jsonValue['targetTableId']);
             result = {'status': '1'};
           }catch(e){
-            result = {'status': '4'};
+            result = {'status': '4', 'exception': e.toString()};
             print("cart dialog remove merged table request error: $e");
           }
         }
