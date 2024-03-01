@@ -32,10 +32,16 @@ class _RefundReportState extends State<RefundReport> {
 
   @override
   void initState() {
+    contentStream = controller.stream;
     super.initState();
-    contentStream = controller.stream.asBroadcastStream();
   }
 
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    controller.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,15 +110,13 @@ class _RefundReportState extends State<RefundReport> {
                                                 ),
                                               ),
                                             ),
-                                            for(int i = 0; i < taxList.length; i++)
-                                              DataColumn(
-                                                label: Expanded(
-                                                  child: Text(
-                                                    '${taxList[i].tax_name}',
-                                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                                  ),
+                                            DataColumn(
+                                              label: Expanded(
+                                                child: Text('Total tax',
+                                                  style: TextStyle(fontWeight: FontWeight.bold),
                                                 ),
                                               ),
+                                            ),
                                             DataColumn(
                                               label: Expanded(
                                                 child: Text(
@@ -317,6 +321,7 @@ class _RefundReportState extends State<RefundReport> {
     await getAllBranchLinkTax();
     await getAllRefundOrder();
     reportModel.addOtherValue(headerValue: taxList, valueList: orderList);
+    if(controller.isClosed) return;
     controller.sink.add("refresh");
   }
 
@@ -331,10 +336,6 @@ class _RefundReportState extends State<RefundReport> {
     orderList = object.dateRefundOrderList!;
     if(orderList.isNotEmpty){
       for(int i = 0; i < orderList.length; i++){
-        ReportObject object = await ReportObject().getAllTaxDetail(orderList[i].order_sqlite_id!, currentStDate: currentStDate, currentEdDate: currentEdDate);
-        orderList[i].taxDetailList = object.dateTaxDetail!;
-        // print(' tax length');
-        orderList[i].taxDetailList.isNotEmpty ?
         _dataRow.addAll([
           DataRow(
             cells: <DataCell>[
@@ -343,38 +344,13 @@ class _RefundReportState extends State<RefundReport> {
               ),
               DataCell(Text('${orderList[i].subtotal}')),
               orderList[i].promo_amount == null ?
-              DataCell(Text('-0.00'))
-                  :
-              DataCell(Text('-${orderList[i].promo_amount?.toStringAsFixed(2)}')),
-              for(int j = 0; j < orderList[i].taxDetailList.length; j++)
-                DataCell(Text('${orderList[i].taxDetailList[j].total_tax_amount!.toStringAsFixed(2)}')) ,
+              DataCell(Text('-0.00')) : DataCell(Text('-${orderList[i].promo_amount?.toStringAsFixed(2)}')),
+              DataCell(Text('${orderList[i].total_tax_amount?.toStringAsFixed(2)}')),
               DataCell(Text('${orderList[i].amount}')),
               DataCell(Text('${orderList[i].rounding}')),
               DataCell(Text('${orderList[i].final_amount}')),
               DataCell(Text('${orderList[i].refund_by}')),
               DataCell(Text('${orderList[i].refund_at}')),
-            ],
-          ),
-        ])
-            :
-        _dataRow.addAll([
-          DataRow(
-            cells: <DataCell>[
-              DataCell(
-                Text('${orderList[i].bill_no}'),
-              ),
-              DataCell(Text('${orderList[i].subtotal}')),
-              orderList[i].promo_amount == null ?
-              DataCell(Text('-0.00'))
-                  :
-              DataCell(Text('-${orderList[i].promo_amount?.toStringAsFixed(2)}')),
-              for(int i = 0; i < taxList.length; i++)
-                DataCell(Text('0.00')),
-              DataCell(Text('${orderList[i].amount}')),
-              DataCell(Text('${orderList[i].rounding}')),
-              DataCell(Text('${orderList[i].final_amount}')),
-              DataCell(Text('${orderList[i].refund_by}')),
-              DataCell(Text('${Utils.formatDate(orderList[i].refund_at)}')),
             ],
           ),
         ]);
