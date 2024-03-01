@@ -1545,7 +1545,7 @@ class _MakePaymentState extends State<MakePayment> {
     await createOrder(double.parse(paymentReceived!), orderChange);
     await crateOrderTaxDetail();
     await createOrderPromotionDetail();
-    await syncAllToCloud();
+    //await syncAllToCloud();
   }
 
   readBranchPref() async {
