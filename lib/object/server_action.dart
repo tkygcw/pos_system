@@ -78,12 +78,11 @@ class ServerAction {
           await state.readProductModifier(product.product_sqlite_id!);
           await state.getProductPrice(product.product_sqlite_id!);
           await PosDatabase.instance.readSpecificCategoryById(product.category_sqlite_id!);
+          List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
           objectData = {
             'variant': state.variantGroup,
             'modifier': state.modifierGroup,
-            'final_price': state.finalPrice,
-            'base_price': state.basePrice,
-            'dialog_price': state.dialogPrice,
+            'branch_link_product': data
           };
           result = {'status': '1','data':objectData};
         }
@@ -144,28 +143,18 @@ class ServerAction {
             cart = CartModel.fromJson(decodeParam);
             if(cart.selectedOption == 'Dine in'){
               PlaceNewDineInOrder order = PlaceNewDineInOrder();
-              // asyncQ.addJob((_) async {
-              //   try{
-              //     await order.callCreateNewOrder(cart);
-              //   }catch(e){
-              //     print("request catch error !!!");
-              //     //result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
-              //     return Exception(e.toString());
-              //   }
-              // });
-              List<cartProductItem> cartItem = await order.checkOrderStock(cart);
-              if(cartItem.isNotEmpty){
-                objectData = {
-                  'cartItem': cartItem,
-                  'tb_branch_link_product': order.branchLinkProductList,
-                };
-                return result = {'status': '2', 'data': objectData};
+              Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
+              if(cartItem != null){
+                return result = cartItem;
               }
               await order.callCreateNewOrder(cart);
               branchLinkProductList = order.branchLinkProductList;
             } else {
               PlaceNotDineInOrder order = PlaceNotDineInOrder();
-              // asyncQ.addJob((previousResult) => order.callCreateNewNotDineOrder(cart));
+              Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
+              if(cartItem != null){
+                return result = cartItem;
+              }
               await order.callCreateNewNotDineOrder(cart);
               branchLinkProductList = order.branchLinkProductList;
             }
@@ -186,7 +175,10 @@ class ServerAction {
             PlaceAddOrder order = PlaceAddOrder();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam);
-            // asyncQ.addJob((previousResult) => order.callAddOrderCache(cart));
+            Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
+            if(cartItem != null){
+              return result = cartItem;
+            }
             await order.callAddOrderCache(cart);
             objectData = {
               'tb_branch_link_product': order.branchLinkProductList,

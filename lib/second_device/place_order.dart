@@ -206,17 +206,19 @@ abstract class PlaceOrder {
     return tableInUse;
   }
 
-  Future<List<cartProductItem>> checkOrderStock(CartModel cartModel) async {
+  Future<Map<String, dynamic>?> checkOrderStock(CartModel cartModel) async {
     List<cartProductItem> outOfStockItem = [];
+    Map<String, dynamic>? result;
     //bool hasStock = false;
     List<cartProductItem> unitCartItem = cartModel.cartNotifierItem.where((e) => e.unit == 'each').toList();
     if(unitCartItem.isNotEmpty){
       for(int i = 0 ; i < unitCartItem.length; i++){
+        print("loop: $i");
         List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(unitCartItem[i].branch_link_product_sqlite_id!);
         switch (checkData[0].stock_type) {
           case '1':
             {
-             if(int.parse(checkData[0].daily_limit_amount!) < unitCartItem[i].quantity!){
+             if(int.parse(checkData[0].daily_limit!) < unitCartItem[i].quantity!){
                outOfStockItem.add(unitCartItem[i]);
                branchLinkProductList.add(checkData[0]);
              }
@@ -232,8 +234,13 @@ abstract class PlaceOrder {
             break;
         }
       }
+      Map<String, dynamic>? objectData = {
+        'cartItem': outOfStockItem,
+        'tb_branch_link_product': branchLinkProductList,
+      };
+      result = {'status': '2', 'data': objectData};
     }
-    return outOfStockItem;
+    return result;
   }
 
   printCheckList() async {

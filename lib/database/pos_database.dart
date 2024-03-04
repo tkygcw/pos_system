@@ -2591,9 +2591,9 @@ class PosDatabase {
 /*
   read branch link specific product
 */
-  Future<List<BranchLinkProduct>> readBranchLinkSpecificProduct(String branch_id, String product_id) async {
+  Future<List<BranchLinkProduct>> readBranchLinkSpecificProduct(String product_id) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND branch_id = ? AND product_sqlite_id = ?', ['', branch_id, product_id]);
+    final result = await db.rawQuery('SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND product_sqlite_id = ?', ['', product_id]);
 
     return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
   }

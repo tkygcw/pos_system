@@ -907,7 +907,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
 
-      List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), productId.toString());
+      List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(productId.toString());
       if (data[0].has_variant == '0') {
         basePrice = data[0].price!;
         finalPrice = basePrice;
@@ -954,7 +954,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     if (product.has_variant == 0) {
-      List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
+      List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
       switch(data1[0].stock_type){
         case '1': {
           dialogStock = data1[0].daily_limit.toString();
@@ -1001,7 +1001,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     if (product.has_variant == 0) {
-      List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
+      List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
       print("Stock type: ${data1[0].stock_type}");
       switch(data1[0].stock_type){
         case '1' :{
@@ -1078,7 +1078,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
+      List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
       if(data.length == 1){
         branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
       } else {

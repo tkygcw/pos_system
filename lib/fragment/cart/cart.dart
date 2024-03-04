@@ -2300,7 +2300,7 @@ class CartPageState extends State<CartPage> {
 */
   callAddOrderCache(CartModel cart) async {
     resetValue();
-    if(checkTableStatus(cart) == true){
+    if(await checkTableStatus(cart) == true){
       cart.selectedTable.removeWhere((e) => e.status == 0);
       await createOrderCache(cart, isAddOrder: true);
       await createOrderDetail(cart);
