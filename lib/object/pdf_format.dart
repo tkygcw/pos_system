@@ -35,7 +35,7 @@ class ReportFormat {
     String returnValue = '';
     try{
       if(value.item_sum is double){
-        returnValue = '${value.item_qty.toString()} /${double.parse(value.item_sum.toString()).toStringAsFixed(2)}(${value.unit})';
+        returnValue = '${value.item_qty.toString()}/${double.parse(value.item_sum.toString()).toStringAsFixed(2)}(${value.unit})';
         print("is double: ${value.item_sum}");
       } else {
         print("not double");
