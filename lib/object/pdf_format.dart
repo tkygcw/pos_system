@@ -35,7 +35,7 @@ class ReportFormat {
     String returnValue = '';
     try{
       if(value.item_sum is double){
-        returnValue = double.parse(value.item_sum.toString()).toStringAsFixed(2) + '(${value.unit})';
+        returnValue = '${value.item_qty.toString()}/${double.parse(value.item_sum.toString()).toStringAsFixed(2)}(${value.unit})';
         print("is double: ${value.item_sum}");
       } else {
         print("not double");
@@ -1192,8 +1192,7 @@ class ReportFormat {
                     verticalInside: pw.BorderSide.none,
                   ),
                   children: [
-                    for(int j = 0; j < valueList.length; j++)
-                      pw.TableRow(
+                    pw.TableRow(
                         decoration: pw.BoxDecoration(
                           color: PdfColors.black,
                         ),
@@ -1206,14 +1205,12 @@ class ReportFormat {
                             padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
                             child: pw.Text('Total Discount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Discount'))),
                           ),
-                          for(int i = 0; i < headerList.length; i++)
-                            pw.Padding(
-                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('${headerList[i].tax_name}',
-                                  style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat(headerList[i].tax_name))),
-                            ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                            child: pw.Text('Total Tax', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Discount'))),
+                          ),
                         ]
-                      ),
+                    ),
                     for(int j = 0; j < valueList.length; j++)
                       pw.TableRow(
                           children: [
@@ -1231,18 +1228,23 @@ class ReportFormat {
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
                               child: pw.Text('-${valueList[j].promo_amount}', style: pw.TextStyle(font: getFontFormat(valueList[j].promo_amount))),
                             ),
-                            if(valueList[j].taxDetailList.length == 0)
-                              for(int i = 0; i < headerList.length; i++)
-                                pw.Padding(
-                                  padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                                  child: pw.Text('0.00', style: pw.TextStyle(font: getFontFormat('0.00'))))
-                            else
-                            for(int i = 0; i < valueList[j].taxDetailList.length; i++)
-                              pw.Padding(
-                                padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                                child: pw.Text('${valueList[j].taxDetailList[i].total_tax_amount!.toStringAsFixed(2)}',
-                                    style: pw.TextStyle(font: getFontFormat(valueList[j].taxDetailList[i].total_tax_amount!.toStringAsFixed(2)))),
-                              ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('${valueList[j].total_tax_amount!.toStringAsFixed(2)}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].total_tax_amount!.toStringAsFixed(2)))),
+                            ),
+                            // if(valueList[j].taxDetailList.length == 0)
+                            //   for(int i = 0; i < headerList.length; i++)
+                            //     pw.Padding(
+                            //       padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            //       child: pw.Text('0.00', style: pw.TextStyle(font: getFontFormat('0.00'))))
+                            // else
+                            // for(int i = 0; i < valueList[j].taxDetailList.length; i++)
+                            //   pw.Padding(
+                            //     padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            //     child: pw.Text('${valueList[j].taxDetailList[i].total_tax_amount!.toStringAsFixed(2)}',
+                            //         style: pw.TextStyle(font: getFontFormat(valueList[j].taxDetailList[i].total_tax_amount!.toStringAsFixed(2)))),
+                            //   ),
 
                           ]
                       ),

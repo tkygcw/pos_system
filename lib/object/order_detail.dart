@@ -124,6 +124,7 @@ class OrderDetail{
   String? order_number = '';
   String? branch_id = '';
   String? order_created_at = '';
+  num? item_qty;
 
   OrderDetail(
       {this.order_detail_sqlite_id,
@@ -169,6 +170,7 @@ class OrderDetail{
         this.order_number,
         this.branch_id,
         this.order_created_at,
+        this.item_qty,
         this.product_category_id
       });
 
@@ -273,6 +275,7 @@ class OrderDetail{
     order_number: json['order_number'] as String?,
     branch_id: json['branch_id'] as String?,
     order_created_at: json['order_created_at'] as String?,
+    item_qty: json['item_qty'] as num?,
     product_category_id: json['product_category_id'] as String?
 
   );

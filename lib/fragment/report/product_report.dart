@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pos_system/notifier/report_notifier.dart';
 import 'package:pos_system/object/categories.dart';
@@ -18,112 +20,109 @@ class ProductReport extends StatefulWidget {
 }
 
 class _ProductReportState extends State<ProductReport> {
+  StreamController controller = StreamController();
+  late Stream contentStream;
   List<DataRow> _dataRow = [];
   List<Categories> categoryData = [];
   List<OrderDetail> orderDetailCategoryData = [];
   String currentStDate = '';
   String currentEdDate = '';
-  bool isLoaded = false;
 
   @override
   void initState() {
     super.initState();
+    contentStream = controller.stream.asBroadcastStream();
   }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child){
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          print('product load: ${reportModel.load}');
-          if(reportModel.load == 0){
-            preload(reportModel);
-            reportModel.setLoaded();
-          }
-        });
-          return LayoutBuilder(builder: (context, constraints) {
-            if (constraints.maxWidth > 800) {
-              return Scaffold(
-                resizeToAvoidBottomInset: false,
-                body: this.isLoaded ?
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              child: Text(AppLocalizations.of(context)!.translate('product_report'),
-                                  style: TextStyle(fontSize: 25, color: Colors.black)),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 5),
-                        Divider(
-                          height: 10,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 5),
-                        _dataRow.isNotEmpty ?
-                        Container(
-                          margin: EdgeInsets.all(10),
-                          child: isLoaded ?
-                          SingleChildScrollView(
-                            child: DataTable(
-                              border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                              headingTextStyle: TextStyle(color: Colors.white),
-                              headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                                columns: <DataColumn>[
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('product'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('variant'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(AppLocalizations.of(context)!.translate('quantity'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('net_sales'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('gross_sales'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
+        preload(reportModel);
+          return StreamBuilder(
+            stream: contentStream,
+            builder: (context, snapshot) {
+              if(snapshot.hasData){
+                return LayoutBuilder(builder: (context, constraints) {
+                  if (constraints.maxWidth > 800) {
+                    return Scaffold(
+                      resizeToAvoidBottomInset: false,
+                      body: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    child: Text(AppLocalizations.of(context)!.translate('product_report'),
+                                        style: TextStyle(fontSize: 25, color: Colors.black)),
                                   ),
                                 ],
-                              rows: _dataRow
-                            ),
-                          ) : Center(
-                            child: CustomProgressBar(),
-                          ),
-                        ):
-                            Center(
-                              heightFactor: 12,
+                              ),
+                              SizedBox(height: 5),
+                              Divider(
+                                height: 10,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 5),
+                              _dataRow.isNotEmpty ?
+                              Container(
+                                  margin: EdgeInsets.all(10),
+                                  child: SingleChildScrollView(
+                                    child: DataTable(
+                                        border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                                        headingTextStyle: TextStyle(color: Colors.white),
+                                        headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                                        columns: <DataColumn>[
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('product'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('variant'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(AppLocalizations.of(context)!.translate('quantity'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('net_sales'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('gross_sales'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                        rows: _dataRow
+                                    ),
+                                  )
+                              ) :
+                              Center(
+                                heightFactor: 12,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
@@ -131,110 +130,114 @@ class _ProductReportState extends State<ProductReport> {
                                     Text(AppLocalizations.of(context)!.translate('no_record_found')),
                                   ],
                                 ),
-                            )
-                      ],
-                    ),
-                  ),
-                ) : CustomProgressBar(),
-              );
-            } else {
-              ///mobile layout
-              return Scaffold(
-                resizeToAvoidBottomInset: false,
-                body: this.isLoaded ?
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              child: Text(AppLocalizations.of(context)!.translate('product_report'),
-                                  style: TextStyle(fontSize: 25, color: Colors.black)),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 5),
-                        Divider(
-                          height: 10,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 5),
-                        _dataRow.isNotEmpty ?
-                        Container(
-                          margin: EdgeInsets.all(10),
-                          child:
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: DataTable(
-                                border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                                headingTextStyle: TextStyle(color: Colors.white),
-                                headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                                columns: <DataColumn>[
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('product'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('variant'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(AppLocalizations.of(context)!.translate('quantity'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('net_sales'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('gross_sales'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                                rows: _dataRow
-                            ),
-                          )
-                        ):
-                        Center(
-                          heightFactor: 4,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Icon(Icons.menu),
-                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
+                              )
                             ],
                           ),
-                        )
-                      ],
-                    ),
-                  ),
-                ) : CustomProgressBar(),
-              );
+                        ),
+                      ),
+                    );
+                  } else {
+                    ///mobile layout
+                    return Scaffold(
+                      resizeToAvoidBottomInset: false,
+                      body: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    child: Text(AppLocalizations.of(context)!.translate('product_report'),
+                                        style: TextStyle(fontSize: 25, color: Colors.black)),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 5),
+                              Divider(
+                                height: 10,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 5),
+                              _dataRow.isNotEmpty ?
+                              Container(
+                                  margin: EdgeInsets.all(10),
+                                  child:
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: DataTable(
+                                        border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                                        headingTextStyle: TextStyle(color: Colors.white),
+                                        headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                                        columns: <DataColumn>[
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('product'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('variant'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(AppLocalizations.of(context)!.translate('quantity'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('net_sales'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('gross_sales'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                        rows: _dataRow
+                                    ),
+                                  )
+                              ):
+                              Center(
+                                heightFactor: 4,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.menu),
+                                    Text(AppLocalizations.of(context)!.translate('no_record_found')),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      )
+                    );
+                  }
+                });
+              } else {
+                return CustomProgressBar();
+              }
             }
-          });
+          );
         }
       );
     });
@@ -245,12 +248,7 @@ class _ProductReportState extends State<ProductReport> {
     this.currentEdDate = reportModel.endDateTime;
     await getAllProductWithOrder();
     reportModel.addOtherValue(valueList: orderDetailCategoryData);
-    //reportModel.addOtherValue(valueList: categoryData);
-    if(mounted){
-      setState(() {
-        isLoaded = true;
-      });
-    }
+    controller.sink.add("refresh");
   }
 
   getAllProductWithOrder() async {
@@ -262,8 +260,6 @@ class _ProductReportState extends State<ProductReport> {
       for(int i = 0; i < orderDetailCategoryData.length; i++){
         ReportObject object2 = await ReportObject().getAllPaidOrderDetailWithCategory(orderDetailCategoryData[i].category_name!, currentStDate: currentStDate, currentEdDate: currentEdDate);
         orderDetailCategoryData[i].categoryOrderDetailList = object2.dateOrderDetail!;
-        print('length: ${orderDetailCategoryData[i].categoryOrderDetailList.length}');
-        //categoryData[i].categoryOrderDetailList = object.dateOrderDetail!;
         _dataRow.addAll([
           DataRow(
             color: MaterialStateColor.resolveWith((states) {return Colors.grey;},),
@@ -276,7 +272,7 @@ class _ProductReportState extends State<ProductReport> {
                 Text(AppLocalizations.of(context)!.translate('category_other'), style: TextStyle(fontWeight: FontWeight.bold)),
               ),
               DataCell(Text('')),
-              DataCell(Text(orderDetailCategoryData[i].category_item_sum is double ? '${orderDetailCategoryData[i].category_item_sum!.toStringAsFixed(2)}' : '${orderDetailCategoryData[i].category_item_sum}')),
+              DataCell(Text('${orderDetailCategoryData[i].category_item_sum.toString()}')),
               DataCell(Text('${orderDetailCategoryData[i].category_net_sales!.toStringAsFixed(2)}')),
               //DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
               DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].category_gross_sales!)}'))
@@ -289,69 +285,16 @@ class _ProductReportState extends State<ProductReport> {
                 DataCell(orderDetailCategoryData[i].categoryOrderDetailList[j].product_variant_name != '' ?
                     Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].product_variant_name}'): Text('-')),
                 DataCell(Text(orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum is double ?
-                '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum!.toStringAsFixed(2)}(${orderDetailCategoryData[i].categoryOrderDetailList[j].unit})' :
+                '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_qty}/${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum!.toStringAsFixed(2)}(${orderDetailCategoryData[i].categoryOrderDetailList[j].unit})' :
                 '${orderDetailCategoryData[i].categoryOrderDetailList[j].item_sum}')),
                 DataCell(Text('${orderDetailCategoryData[i].categoryOrderDetailList[j].double_price!.toStringAsFixed(2)}')),
                 //DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
                 DataCell(Text('${Utils.to2Decimal(orderDetailCategoryData[i].categoryOrderDetailList[j].gross_price!)}'))
               ],
             ),
-          // for(int j = 0; j < categoryData[i].categoryOrderDetailList.length; j++)
-          //   DataRow(
-          //     cells: <DataCell>[
-          //       DataCell(Text('${categoryData[i].categoryOrderDetailList[j].productName}')),
-          //       DataCell(
-          //           categoryData[i].categoryOrderDetailList[j].product_variant_name != '' ?
-          //           Text('${categoryData[i].categoryOrderDetailList[j].product_variant_name}'): Text('-')),
-          //       DataCell(Text('${categoryData[i].categoryOrderDetailList[j].item_sum}')),
-          //       DataCell(Text('${categoryData[i].categoryOrderDetailList[j].double_price!.toStringAsFixed(2)}')),
-          //       //DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
-          //       DataCell(Text('${Utils.to2Decimal(categoryData[i].categoryOrderDetailList[j].gross_price!)}'))
-          //     ],
-          //   ),
         ]);
       }
     }
   }
 
-  // getAllProductWithOrder() async {
-  //   _dataRow.clear();
-  //   ReportObject object = await ReportObject().getAllPaidCategory(currentStDate: currentStDate, currentEdDate: currentEdDate);
-  //   categoryData = object.dateCategory!;
-  //   print('date category data: ${categoryData.length}');
-  //   if(categoryData.isNotEmpty){
-  //     for(int i = 0; i < categoryData.length; i++){
-  //       ReportObject object = await ReportObject().getAllPaidOrderDetailWithCategory(categoryData[i].category_sqlite_id!, currentStDate: currentStDate, currentEdDate: currentEdDate);
-  //       categoryData[i].categoryOrderDetailList = object.dateOrderDetail!;
-  //       _dataRow.addAll([
-  //         DataRow(
-  //           color: MaterialStateColor.resolveWith((states) {return Colors.grey;},),
-  //           cells: <DataCell>[
-  //             DataCell(
-  //               Text('Category - ${categoryData[i].name}', style: TextStyle(fontWeight: FontWeight.bold)),
-  //             ),
-  //             DataCell(Text('')),
-  //             DataCell(Text('${categoryData[i].item_sum}')),
-  //             DataCell(Text('${categoryData[i].net_sales!.toStringAsFixed(2)}')),
-  //             //DataCell(Text('${categoryData[i].gross_sales!.toStringAsFixed(2)}')),
-  //             DataCell(Text('${Utils.to2Decimal(categoryData[i].gross_sales!)}'))
-  //           ],
-  //         ),
-  //         for(int j = 0; j < categoryData[i].categoryOrderDetailList.length; j++)
-  //         DataRow(
-  //           cells: <DataCell>[
-  //             DataCell(Text('${categoryData[i].categoryOrderDetailList[j].productName}')),
-  //             DataCell(
-  //                 categoryData[i].categoryOrderDetailList[j].product_variant_name != '' ?
-  //                 Text('${categoryData[i].categoryOrderDetailList[j].product_variant_name}'): Text('-')),
-  //             DataCell(Text('${categoryData[i].categoryOrderDetailList[j].item_sum}')),
-  //             DataCell(Text('${categoryData[i].categoryOrderDetailList[j].double_price!.toStringAsFixed(2)}')),
-  //             //DataCell(Text('${categoryData[i].categoryOrderDetailList[j].gross_price!.toStringAsFixed(2)}')),
-  //             DataCell(Text('${Utils.to2Decimal(categoryData[i].categoryOrderDetailList[j].gross_price!)}'))
-  //           ],
-  //         ),
-  //       ]);
-  //     }
-  //   }
-  // }
 }

@@ -21,6 +21,7 @@ class CashRecordReport extends StatefulWidget {
 class _CashRecordReportState extends State<CashRecordReport> {
   StreamController controller = StreamController();
   late Stream contentStream;
+  late ReportModel reportModel;
   List<DataRow> _dataRow = [];
   String currentStDate = '';
   String currentEdDate = '';
@@ -29,16 +30,15 @@ class _CashRecordReportState extends State<CashRecordReport> {
   @override
   void initState() {
     super.initState();
-    contentStream = controller.stream.asBroadcastStream();
+    contentStream = controller.stream;
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child){
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          preload(reportModel);
-        });
+        this.reportModel = reportModel;
+        preload();
         return Padding(
           padding: const EdgeInsets.only(bottom: 8.0, right: 8.0, left: 8.0),
           child: Scaffold(
@@ -129,18 +129,12 @@ class _CashRecordReportState extends State<CashRecordReport> {
     });
   }
 
-  preload(ReportModel reportModel) async {
+  preload() async {
     this.currentStDate = reportModel.startDateTime;
     this.currentEdDate = reportModel.endDateTime;
     List<CashRecord> cashRecordData = await getAllCashRecord();
     controller.sink.add("refresh");
     reportModel.addOtherValue(valueList: cashRecordData);
-    // reportModel.addOtherValue(valueList: categoryData);
-    // if(mounted){
-    //   setState(() {
-    //     isLoaded = true;
-    //   });
-    // }
   }
 
   Future<List<CashRecord>>getAllCashRecord() async {

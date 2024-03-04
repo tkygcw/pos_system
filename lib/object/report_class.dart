@@ -94,25 +94,12 @@ class ReportObject{
 
   getAllSettlementPaymentDetail(String settlement_date, List<PaymentLinkCompany> paymentLinkCompanyList) async {
     dateSettlementPaymentList = [];
-    // List<SettlementLinkPayment> settlementData = await PosDatabase.instance.readSpecificSettlementLinkPayment(settlement_date);
-    // settlementPaymentList = settlementData;
-    //print('length: ${settlementPaymentList.length}');
-    // if (settlementPaymentList.isNotEmpty) {
-    //   for (int i = 0; i < settlementPaymentList.length; i++) {
-    //     dateSettlementPaymentList!.add(settlementPaymentList[i]);
-    //     //print('payment method: ${settlementPaymentList[i].payment_link_company_id}');
-    //   }
-    // }
-    print("settlement date: ${settlement_date}");
     for(int i = 0; i < paymentLinkCompanyList.length; i++){
-      print("payment link company id: ${paymentLinkCompanyList[i].payment_link_company_id}");
       List<SettlementLinkPayment> settlementData = await PosDatabase.instance.readSpecificSettlementLinkPayment(settlement_date, paymentLinkCompanyList[i].payment_link_company_id.toString());
-      print("settlement data: ${settlementData.length}");
       settlementPaymentList = settlementData;
       if (settlementPaymentList.isNotEmpty) {
         for (int i = 0; i < settlementPaymentList.length; i++) {
           dateSettlementPaymentList!.add(settlementPaymentList[i]);
-          //print('payment method: ${settlementPaymentList[i].payment_link_company_id}');
         }
       } else {
         dateSettlementPaymentList!.add(SettlementLinkPayment(all_payment_sales: 0.0));
@@ -123,20 +110,14 @@ class ReportObject{
     return value;
   }
 
-  getAllSettlement({currentStDate, currentEdDate}) async {
-    dateSettlementList = [];
-    List<Settlement> settlementData = await PosDatabase.instance.readAllSettlement();
-    settlementList = settlementData;
-    if (settlementList.isNotEmpty) {
-      for (int i = 0; i < settlementList.length; i++) {
-        // DateTime dataDate = DateTime.parse(settlementList[i].created_at!);
-        // String stringDate = new DateFormat("dd-MM-yyyy").format(dataDate);
-        // settlementList[i].created_at = stringDate;
-        dateSettlementList!.add(settlementList[i]);
-      }
-    }
-    ReportObject value = ReportObject(dateSettlementList: dateSettlementList);
-    return value;
+  Future<List<Settlement>> getAllSettlement({required currentStDate, required currentEdDate}) async {
+    DateTime _startDate = DateTime.parse(currentStDate);
+    DateTime _endDate = DateTime.parse(currentEdDate);
+    //convert time to string
+    DateTime addEndDate = addDays(date: _endDate);
+    String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+    String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+    return await PosDatabase.instance.readAllSettlement(stringStDate, stringEdDate);
   }
 
   getAllTaxDetail(int order_sqlite_id, {currentStDate, currentEdDate}) async {
