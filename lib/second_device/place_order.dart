@@ -210,7 +210,7 @@ abstract class PlaceOrder {
     List<cartProductItem> outOfStockItem = [];
     Map<String, dynamic>? result;
     //bool hasStock = false;
-    List<cartProductItem> unitCartItem = cartModel.cartNotifierItem.where((e) => e.unit == 'each').toList();
+    List<cartProductItem> unitCartItem = cartModel.cartNotifierItem.where((e) => e.unit == 'each' && e.status == 0).toList();
     if(unitCartItem.isNotEmpty){
       for(int i = 0 ; i < unitCartItem.length; i++){
         print("loop: $i");
