@@ -284,7 +284,7 @@ class _SetupPageState extends State<SetupPage> {
 /*
       ------------------------sync to cloud--------------------------------
 */
-      if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi) {
+      if (connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi || connectivityResult == ConnectivityResult.ethernet) {
         Map response = await Domain().updateBranchNotificationToken(this.token, selectedBranch!.branchID);
         if (response['status'] == '1') {
           Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoadingPage()));

@@ -30,7 +30,7 @@ class NotificationModel extends ChangeNotifier {
 
   void resetNotification(){
     notificationStatus = false;
-    notifyListeners();
+    // notifyListeners();
   }
 
   void setNotificationAsStarted(){
@@ -47,6 +47,7 @@ class NotificationModel extends ChangeNotifier {
 
   void setContentLoad(){
     contentLoad = true;
+    notifyListeners();
   }
 
   void resetContentLoad(){

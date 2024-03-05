@@ -12,9 +12,10 @@ import '../object/table.dart';
 
 class CartModel extends ChangeNotifier {
   List<cartProductItem> cartNotifierItem = [];
-  List<cartPaymentDetail> cartNotifierPayment  = [];
+  List<cartPaymentDetail> cartNotifierPayment = [];
   List<Promotion> autoPromotion = [];
-  Promotion? selectedPromotion ;
+  Promotion? selectedPromotion;
+
   List<PosTable> selectedTable = [];
   List<OrderCache> selectedOrderQueue = [];
   String selectedOption = '';
@@ -28,7 +29,7 @@ class CartModel extends ChangeNotifier {
     final int? branch_id = prefs.getInt('branch_id');
     List<BranchLinkDining> data = await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
 
-    if(data.length == 3){
+    if (data.length == 3) {
       selectedOption = 'Dine in';
     } else {
       selectedOption = "Take Away";
@@ -46,7 +47,7 @@ class CartModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void notDineInInitLoad(){
+  void notDineInInitLoad() {
     removeAllTable();
     removeAllCartItem();
     removeAutoPromotion();
@@ -57,7 +58,7 @@ class CartModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void resetCount(){
+  void resetCount() {
     myCount = 0;
     notifyListeners();
   }
@@ -71,17 +72,17 @@ class CartModel extends ChangeNotifier {
     isInit = action;
   }
 
-  void setSelectedOption(String option){
+  void setSelectedOption(String option) {
     selectedOption = option;
     notifyListeners();
   }
 
-  void removePaymentDetail(){
+  void removePaymentDetail() {
     cartNotifierPayment.clear();
     notifyListeners();
   }
 
-  void addPaymentDetail(cartPaymentDetail object){
+  void addPaymentDetail(cartPaymentDetail object) {
     cartNotifierPayment.add(object);
     notifyListeners();
   }
@@ -103,9 +104,9 @@ class CartModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void removeSpecificItem(cartProductItem object){
-    for(int i = 0; i < cartNotifierItem.length; i++){
-      if(object.order_cache_sqlite_id == cartNotifierItem[i].order_cache_sqlite_id){
+  void removeSpecificItem(cartProductItem object) {
+    for (int i = 0; i < cartNotifierItem.length; i++) {
+      if (object.order_cache_sqlite_id == cartNotifierItem[i].order_cache_sqlite_id) {
         cartNotifierItem.removeAt(i);
         break;
       }
@@ -113,34 +114,34 @@ class CartModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void removeAllCartItem(){
+  void removeAllCartItem() {
     cartNotifierItem.clear();
     notifyListeners();
   }
 
-  void removePartialCartItem(){
+  void removePartialCartItem() {
     List<cartProductItem> _removeItem = [];
-    for(int j = 0; j < cartNotifierItem.length; j++){
-      if(cartNotifierItem[j].status == 0){
+    for (int j = 0; j < cartNotifierItem.length; j++) {
+      if (cartNotifierItem[j].status == 0) {
         _removeItem.add(cartNotifierItem[j]);
       }
     }
     cartNotifierItem.removeWhere((element) => _removeItem.contains(element));
   }
 
-  void addTable(PosTable posTable){
+  void addTable(PosTable posTable) {
     selectedTable.add(posTable);
     notifyListeners();
   }
 
-  void removeAllTable(){
+  void removeAllTable() {
     selectedTable.clear();
     notifyListeners();
   }
 
-  void removeSpecificTable(PosTable posTable){
-    for(int i= 0; i < selectedTable.length; i++){
-      if(posTable.table_id == selectedTable[i].table_id){
+  void removeSpecificTable(PosTable posTable) {
+    for (int i = 0; i < selectedTable.length; i++) {
+      if (posTable.table_id == selectedTable[i].table_id) {
         selectedTable.removeAt(i);
         break;
       }
@@ -148,37 +149,38 @@ class CartModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addOrder(OrderCache orderCache){
+  void addOrder(OrderCache orderCache) {
     selectedOrderQueue.add(orderCache);
     notifyListeners();
   }
 
-  void addPromotion(Promotion promo){
+  void addPromotion(Promotion promo) {
     selectedPromotion = promo;
     notifyListeners();
   }
 
-  void removePromotion(){
+  void removePromotion() {
     selectedPromotion = null;
     notifyListeners();
   }
 
-  void addAutoApplyPromo(Promotion promo){
+  void addAutoApplyPromo(Promotion promo) {
     autoPromotion.add(promo);
     notifyListeners();
   }
 
-  void removeAutoPromotion(){
+  void removeAutoPromotion() {
     autoPromotion.clear();
     notifyListeners();
   }
 
-  void removeAllPromotion(){
+  void removeAllPromotion() {
     autoPromotion.clear();
     selectedPromotion = null;
     notifyListeners();
   }
 
-
-
+  void refresh() {
+    notifyListeners();
+  }
 }

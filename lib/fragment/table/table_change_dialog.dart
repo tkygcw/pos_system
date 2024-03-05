@@ -39,13 +39,12 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   List<OrderCache> orderCacheList = [];
   List<Printer> printerList = [];
   String? table_use_value, table_use_detail_value, order_cache_value, table_value;
-  bool _submitted = false, isLogOut = false, isButtonDisabled = false, willPop = true;
+  bool _submitted = false, isLogOut = false, isButtonDisabled = false, willPop = true, enableTextField = true;
 
 
   @override
   void initState() {
     // TODO: implement initState
-    //readAllTableCache();
     readAllPrinters();
     super.initState();
   }
@@ -268,6 +267,16 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       List<TableUseDetail> tableUseDetailList = await PosDatabase.instance.readTableUseDetailByTableUseKey(widget.object.table_use_key!);
       List<TableUseDetail> NowUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(widget.object.table_sqlite_id!);
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTableByTableNo(tableNoController.text);
+      if(tableData.isEmpty) {
+        Fluttertoast.showToast(
+            backgroundColor: Colors.red,
+            msg: "${AppLocalizations.of(context)?.translate("table_not_found")}");
+        Navigator.of(context).pop();
+        Future.delayed(Duration(seconds: 2), () {
+          if(mounted) Navigator.of(context).pop();
+        });
+        return;
+      }
       List<TableUseDetail> NewUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableData[0].table_sqlite_id!);
       //check new table is in use or not
       if(NewUseDetailData.isNotEmpty){
@@ -293,8 +302,11 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       }
       widget.callBack();
       Navigator.of(context).pop();
+      Future.delayed(Duration(seconds: 2), () {
+        if(mounted) Navigator.of(context).pop();
+      });
     } catch(e){
-      print('update table error: $e');
+      print('update table error in table change dialog: $e');
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
           msg: "${AppLocalizations.of(context)?.translate("table_not_found")}");
@@ -379,6 +391,10 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
   void _submit(BuildContext context) async {
     setState(() => _submitted = true);
     if (errorTableNo == null) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      setState(() {
+        enableTextField = false;
+      });
       await updateTable();
     } else {
       setState(() {
@@ -408,6 +424,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
                         padding: const EdgeInsets.all(8.0),
                         child: TextField(
                           autofocus: true,
+                          enabled: enableTextField,
                           onSubmitted: (input) {
                             setState(() {
                               isButtonDisabled = true;

@@ -7,7 +7,6 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/main.dart';
-import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/object/order_detail_cancel.dart';
 import 'package:pos_system/object/order_promotion_detail.dart';
 import 'package:pos_system/object/print_receipt.dart';

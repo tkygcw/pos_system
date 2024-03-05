@@ -154,14 +154,10 @@ class _SettlementPageState extends State<SettlementPage> {
                                   ElevatedButton(
                                     child: Text(AppLocalizations.of(context)!.translate('settlement')),
                                     onPressed: () {
-                                      if (cashRecordList.length > 1 && unpaidOrderCacheList.isEmpty) {
+                                      if (cashRecordList.isNotEmpty) {
                                         openSettlementDialog(cashRecordList);
-                                      } else if (cashRecordList.isEmpty) {
+                                      } else {
                                         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
-                                      } else if (unpaidOrderCacheList.isNotEmpty) {
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('still_have_order_not_yet_paid'));
-                                      } else if (cashRecordList.length == 1) {
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('cannot_do_settlement_with_opening_balance'));
                                       }
                                     },
                                     style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
@@ -181,17 +177,17 @@ class _SettlementPageState extends State<SettlementPage> {
                                     height: 30,
                                     child: VerticalDivider(color: Colors.grey, thickness: 1),
                                   ),
-                                  ElevatedButton(
-                                    child: Text(AppLocalizations.of(context)!.translate('cash_record_history')),
-                                    onPressed: () {
-                                      openSettlementHistoryDialog();
-                                    },
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                  ),
-                                  Container(
-                                    height: 30,
-                                    child: VerticalDivider(color: Colors.grey, thickness: 1),
-                                  ),
+                                  // ElevatedButton(
+                                  //   child: Text(AppLocalizations.of(context)!.translate('cash_record_history')),
+                                  //   onPressed: () {
+                                  //     openSettlementHistoryDialog();
+                                  //   },
+                                  //   style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                  // ),
+                                  // Container(
+                                  //   height: 30,
+                                  //   child: VerticalDivider(color: Colors.grey, thickness: 1),
+                                  // ),
                                   ElevatedButton(
                                     child: Text(AppLocalizations.of(context)!.translate('transfer_ownership')),
                                     onPressed: () async {
@@ -209,7 +205,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('close_counter_warn')}");
                                       }
                                     },
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                   ),
                                   Container(
                                     height: 30,
@@ -220,7 +216,7 @@ class _SettlementPageState extends State<SettlementPage> {
                                     onPressed: () {
                                       openCashBoxDialog();
                                     },
-                                    style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                    style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                                   ),
                                   Container(
                                     height: 30,
@@ -470,15 +466,10 @@ class _SettlementPageState extends State<SettlementPage> {
                                     ElevatedButton(
                                       child: Text(AppLocalizations.of(context)!.translate('settlement')),
                                       onPressed: () {
-                                        if (cashRecordList.length > 1 && unpaidOrderCacheList.isEmpty) {
+                                        if (cashRecordList.isNotEmpty) {
                                           openSettlementDialog(cashRecordList);
-                                        } else if (cashRecordList.isEmpty) {
+                                        } else {
                                           Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
-                                        } else if (unpaidOrderCacheList.isNotEmpty) {
-                                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('still_have_order_not_yet_paid'));
-                                        } else if (cashRecordList.length == 1) {
-                                          Fluttertoast.showToast(
-                                              backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('cannot_do_settlement_with_opening_balance'));
                                         }
                                       },
                                       style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
@@ -912,7 +903,7 @@ class _SettlementPageState extends State<SettlementPage> {
         }
       }
     }
-
+    if(!mounted) return;
     setState(() {
       isLoad = true;
     });
@@ -1046,7 +1037,7 @@ class _SettlementPageState extends State<SettlementPage> {
   }
 
   setScreenLayout() {
-    final double screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
+    final double screenWidth = MediaQueryData.fromView(WidgetsBinding.instance.window).size.width;
     if (screenWidth < 500) {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,

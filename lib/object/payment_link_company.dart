@@ -6,6 +6,8 @@ class PaymentLinkCompanyFields {
     payment_type_id,
     company_id,
     name,
+    allow_image,
+    image_name,
     type,
     ipay_code,
     created_at,
@@ -17,6 +19,8 @@ class PaymentLinkCompanyFields {
   static String payment_type_id = 'payment_type_id';
   static String company_id = 'company_id';
   static String name = 'name';
+  static String allow_image = 'allow_image';
+  static String image_name = 'image_name';
   static String type = 'type';
   static String ipay_code = 'ipay_code';
   static String created_at = 'created_at';
@@ -29,6 +33,8 @@ class PaymentLinkCompany{
   String? payment_type_id;
   String? company_id;
   String? name;
+  int? allow_image;
+  String? image_name;
   int? type;
   String? ipay_code;
   String? created_at;
@@ -45,6 +51,8 @@ class PaymentLinkCompany{
         this.payment_type_id,
         this.company_id,
         this.name,
+        this.allow_image,
+        this.image_name,
         this.type,
         this.ipay_code,
         this.created_at,
@@ -60,6 +68,8 @@ class PaymentLinkCompany{
     String? payment_type_id,
     String? company_id,
     String? name,
+    int? allow_image,
+    String? image_name,
     int? type,
     String? ipay_code,
     String? created_at,
@@ -71,6 +81,8 @@ class PaymentLinkCompany{
           payment_type_id: payment_type_id ?? this.payment_type_id,
           company_id: company_id ?? this.company_id,
           name: name ?? this.name,
+          allow_image: allow_image ?? this.allow_image,
+          image_name: image_name ?? this.image_name,
           type: type ?? this.type,
           ipay_code: ipay_code ?? this.ipay_code,
           created_at: created_at ?? this.created_at,
@@ -82,6 +94,8 @@ class PaymentLinkCompany{
     payment_type_id: json[PaymentLinkCompanyFields.payment_type_id] as String?,
     company_id: json[PaymentLinkCompanyFields.company_id] as String?,
     name: json[PaymentLinkCompanyFields.name] as String?,
+    allow_image: json[PaymentLinkCompanyFields.allow_image] as int?,
+    image_name: json[PaymentLinkCompanyFields.image_name] as String?,
     type: json[PaymentLinkCompanyFields.type] as int?,
     ipay_code: json[PaymentLinkCompanyFields.ipay_code] as String?,
     created_at: json[PaymentLinkCompanyFields.created_at] as String?,
@@ -97,6 +111,8 @@ class PaymentLinkCompany{
     PaymentLinkCompanyFields.payment_type_id: payment_type_id,
     PaymentLinkCompanyFields.company_id: company_id,
     PaymentLinkCompanyFields.name: name,
+    PaymentLinkCompanyFields.allow_image: allow_image,
+    PaymentLinkCompanyFields.image_name: image_name,
     PaymentLinkCompanyFields.type: type,
     PaymentLinkCompanyFields.ipay_code: ipay_code,
     PaymentLinkCompanyFields.created_at: created_at,

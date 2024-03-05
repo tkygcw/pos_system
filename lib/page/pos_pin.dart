@@ -17,6 +17,7 @@ import 'package:custom_pin_screen/custom_pin_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:version/version.dart';
 import '../database/domain.dart';
 import '../database/pos_database.dart';
 import '../fragment/logout_dialog.dart';
@@ -51,6 +52,7 @@ class _PosPinPageState extends State<PosPinPage> {
     //readAllPrinters();
     preload();
     checkVersion();
+
   }
 
   @override
@@ -65,10 +67,6 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   preload() async {
-    // bool _hasInternetAccess = await Domain().isHostReachable();
-    // if(_hasInternetAccess){
-    //
-    // }
     syncRecord.syncFromCloud();
     if(notificationModel.syncCountStarted == false){
       startTimers();
@@ -97,7 +95,9 @@ class _PosPinPageState extends State<PosPinPage> {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     String version = packageInfo.version;
     if(latestVersion != ''){
-      if(version != latestVersion){
+      Version newVersion = Version.parse(latestVersion);
+      Version currentVersion = Version.parse(version);
+      if(currentVersion < newVersion){
         openUpdateDialog();
       }
     }
@@ -406,10 +406,10 @@ class _PosPinPageState extends State<PosPinPage> {
     User? user = await PosDatabase.instance.verifyPosPin(pos_pin, branch_id.toString());
     if (user != '' && user != null) {
       if (await settlementCheck(user) == true) {
-        if(this.isLogOut == true){
-          openLogOutDialog();
-          return;
-        }
+        // if(this.isLogOut == true){
+        //   openLogOutDialog();
+        //   return;
+        // }
         print('pop a start cash dialog');
         Navigator.push(
           context,
@@ -422,10 +422,10 @@ class _PosPinPageState extends State<PosPinPage> {
           ),
         );
       } else {
-        if(this.isLogOut == true){
-          openLogOutDialog();
-          return;
-        }
+        // if(this.isLogOut == true){
+        //   openLogOutDialog();
+        //   return;
+        // }
         Navigator.push(
           context,
           PageTransition(
@@ -447,17 +447,16 @@ class _PosPinPageState extends State<PosPinPage> {
     print('cash balance: ${widget.cashBalance}');
     final prefs = await SharedPreferences.getInstance();
     bool isNewDay = false;
-    double totalCashBalance = 0.0;
+    String totalCashBalance = '';
     List<CashRecord> data = await PosDatabase.instance.readBranchCashRecord();
+    print("data length: ${data.length}");
     if (data.isNotEmpty) {
       if(widget.cashBalance == null){
-        for(int i = 0; i < data.length; i++){
-          totalCashBalance += double.parse(data[i].amount!);
-        }
+        totalCashBalance = calcCashDrawer(cashRecordList: data);
       }
-      if (await settlementUserCheck(user.user_id.toString(), totalCashBalance: totalCashBalance.toStringAsFixed(2)) == true) {
+      if (await settlementUserCheck(user.user_id.toString(), totalCashBalance: totalCashBalance) == true) {
         await prefs.setString("pos_pin_user", jsonEncode(user));
-        await PrintReceipt().printCashBalanceList(printerList, context, cashBalance: widget.cashBalance != null ? widget.cashBalance : totalCashBalance.toStringAsFixed(2));  //_printCashBalanceList();
+        await PrintReceipt().printCashBalanceList(printerList, context, cashBalance: widget.cashBalance != null ? widget.cashBalance : totalCashBalance);  //_printCashBalanceList();
         isNewDay = false;
         print('print a cash balance receipt');
       } else {
@@ -469,6 +468,33 @@ class _PosPinPageState extends State<PosPinPage> {
       isNewDay = true;
     }
     return isNewDay;
+  }
+
+  calcCashDrawer({required List<CashRecord> cashRecordList}) {
+    try {
+      double totalCashIn = 0.0;
+      double totalCashOut = 0.0;
+      double totalCashDrawer = 0.0;
+      double totalCashRefund = 0.0;
+      for (int i = 0; i < cashRecordList.length; i++) {
+        if (cashRecordList[i].type == 0) {
+          totalCashIn += double.parse(cashRecordList[i].amount!);
+        } else if (cashRecordList[i].type == 1) {
+          totalCashIn += double.parse(cashRecordList[i].amount!);
+        } else if (cashRecordList[i].type == 3 && cashRecordList[i].payment_type_id == '1') {
+          totalCashIn += double.parse(cashRecordList[i].amount!);
+        } else if (cashRecordList[i].type == 2 && cashRecordList[i].payment_type_id == '') {
+          totalCashOut += double.parse(cashRecordList[i].amount!);
+        } else if (cashRecordList[i].type == 4 && cashRecordList[i].payment_type_id == '1') {
+          totalCashRefund += double.parse(cashRecordList[i].amount!);
+        }
+      }
+      totalCashDrawer = totalCashIn - (totalCashOut + totalCashRefund);
+      return totalCashDrawer.toStringAsFixed(2);
+    } catch (e) {
+      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('calculate_cash_drawer_error')+" ${e}");
+      return 0.0;
+    }
   }
 
   settlementUserCheck(String user_id, {totalCashBalance}) async {
@@ -483,14 +509,14 @@ class _PosPinPageState extends State<PosPinPage> {
         isNewUser = false;
       } else {
         isNewUser = true;
-        await createTransferOwnerRecord(fromUser: userObject['user_id'].toString(), toUser: user_id);
-        await syncAllToCloud();
+        await createTransferOwnerRecord(fromUser: userObject['user_id'].toString(), toUser: user_id, totalCashBalance: totalCashBalance);
+        //await syncAllToCloud();
       }
     } else {
       if(cashRecord!.user_id != user_id){
         isNewUser = true;
         await createTransferOwnerRecord(fromUser: cashRecord.user_id, toUser: user_id, totalCashBalance: totalCashBalance);
-        await syncAllToCloud();
+        //await syncAllToCloud();
       } else {
         isNewUser = false;
       }
@@ -521,7 +547,6 @@ class _PosPinPageState extends State<PosPinPage> {
   }
 
   createTransferOwnerRecord({fromUser, toUser, totalCashBalance}) async {
-    print('user changed!');
     List<String> _value = [];
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');

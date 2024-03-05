@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:io' as Platform;
 
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -460,7 +459,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                       Container(
                                         alignment: Alignment.center,
                                         child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(primary: color.backgroundColor),
+                                            style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                             onPressed: () {
                                               setState(() {
                                                 openCategoriesDialog();
@@ -857,7 +856,7 @@ class _PrinterDialogState extends State<PrinterDialog> {
                                     Container(
                                       alignment: Alignment.center,
                                       child: ElevatedButton(
-                                          style: ElevatedButton.styleFrom(primary: color.backgroundColor),
+                                          style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                           onPressed: () {
                                             setState(() {
                                               openCategoriesDialog();

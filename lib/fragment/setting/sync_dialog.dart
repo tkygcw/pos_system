@@ -48,11 +48,17 @@ class _SyncDialogState extends State<SyncDialog> {
           await syncToCloudChecking();
         }
         break;
+        case 'retry':{
+          controller.sink.add(null);
+          await syncData();
+          await syncToCloudChecking();
+        }
+        break;
         case 'close': {
           isButtonDisable = true;
-          controller.sink.add("refresh");
           Navigator.of(context).pop(true);
         }
+        break;
       }
     });
   }
@@ -81,6 +87,60 @@ class _SyncDialogState extends State<SyncDialog> {
                         padding: EdgeInsets.all(20)
                       ),
                     ),
+                    SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: isButtonDisable ? null : () {
+                        actionController.sink.add("close");
+                      },
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent
+                      ),
+                      label: Text(AppLocalizations.of(context)!.translate('close')),
+                      icon: Icon(Icons.close),
+                    ),
+                  ],
+                );
+              } else if (snapshot.hasError){
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(AppLocalizations.of(context)!.translate('sync_failed')),
+                    SizedBox(height: 15),
+                    ElevatedButton(
+                      onPressed: isButtonDisable ? null : () {
+                        actionController.sink.add("close");
+                      },
+                      child: Icon(Icons.close, color: Colors.white),
+                      style: ElevatedButton.styleFrom(
+                          shape: CircleBorder(),
+                          backgroundColor: Colors.redAccent,
+                          padding: EdgeInsets.all(20)
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: isButtonDisable ? null : () {
+                            actionController.sink.add("retry");
+                          },
+                          label: Text(AppLocalizations.of(context)!.translate('retry')),
+                          icon: Icon(Icons.refresh),
+                        ),
+                        SizedBox(width: 10),
+                        ElevatedButton.icon(
+                          onPressed: isButtonDisable ? null : () {
+                            actionController.sink.add("close");
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent
+                          ),
+                          label: Text(AppLocalizations.of(context)!.translate('close')),
+                          icon: Icon(Icons.close),
+                        ),
+                      ],
+                    )
                   ],
                 );
               } else {
@@ -105,15 +165,20 @@ class _SyncDialogState extends State<SyncDialog> {
 
   syncToCloudChecking() async {
     try{
+      int status = 0;
       if(mainSyncToCloud.count == 0){
         mainSyncToCloud.count = 1;
         //start sync
         do{
-          await syncToCloud.syncAllToCloud(isManualSync: true);
+          status = await syncToCloud.syncAllToCloud(isManualSync: true);
         }while(syncToCloud.emptyResponse == false);
         mainSyncToCloud.count = 0;
         Future.delayed(const Duration(seconds: 2), () {
-          controller.sink.add("refresh");
+          if(status == 0){
+            controller.sink.add("refresh");
+          } else {
+            controller.sink.addError(Exception("Sync failed"));
+          }
         });
       } else {
         //if auto sync is running, check every 2 second
@@ -124,19 +189,24 @@ class _SyncDialogState extends State<SyncDialog> {
             this.timer?.cancel();
             mainSyncToCloud.count = 1;
             do{
-              await syncToCloud.syncAllToCloud(isManualSync: true);
+              status = await syncToCloud.syncAllToCloud(isManualSync: true);
             }while(syncToCloud.emptyResponse == false);
             mainSyncToCloud.count = 0;
+
             Future.delayed(const Duration(seconds: 2), () {
-              controller.sink.add("refresh");
+              if(status == 0){
+                controller.sink.add("refresh");
+              } else {
+                controller.sink.addError(Exception("Sync failed"));
+              }
             });
           }
         });
       }
     }catch(e){
       timer?.cancel();
-      controller.sink.add("refresh");
-      print("sync to cloud checking: ${e}");
+      controller.sink.addError(Exception(e));
+      print("sync to cloud checking error: ${e}");
     }
   }
 }

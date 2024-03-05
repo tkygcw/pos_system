@@ -2188,7 +2188,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                       getImage(ImageSource.gallery);
                                     }:null,
                                     style: ElevatedButton.styleFrom(
-                                        primary: color.backgroundColor,
+                                        backgroundColor: color.backgroundColor,
                                         textStyle: TextStyle(
                                             color: Colors.white70,
                                             fontWeight: FontWeight.bold)),
@@ -2207,7 +2207,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                                       getImage(ImageSource.camera);
                                     }:null,
                                     style: ElevatedButton.styleFrom(
-                                        primary: color.backgroundColor,
+                                        backgroundColor: color.backgroundColor,
                                         textStyle: TextStyle(
                                             color: Colors.white70,
                                             fontWeight: FontWeight.bold)),

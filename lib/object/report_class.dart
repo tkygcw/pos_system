@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/modifier_group.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/payment_link_company.dart';
@@ -21,7 +22,7 @@ class ReportObject{
   List<Order> paidOrderList = [];
   List<Order>? dateOrderList;
   List<Order>? dateRefundOrderList;
-  List<OrderDetail> cancelledOrderDetail = [], paidOrderDetail = [];
+  List<OrderDetail> cancelledOrderDetail = [], paidOrderDetail = [], editedOrderDetail = [];
   List<OrderDetail>? dateOrderDetail;
   List<OrderPromotionDetail> paidPromotionDetail = [];
   List<OrderPromotionDetail>? datePromotionDetail = [];
@@ -65,6 +66,16 @@ class ReportObject{
       this.dateOrderDetailCancelList,
       this.dateTransferList});
 
+  Future<List<CashRecord>> getAllCashRecord({currentStDate, currentEdDate}) async {
+    DateTime _startDate = DateTime.parse(currentStDate);
+    DateTime _endDate = DateTime.parse(currentEdDate);
+    //convert time to string
+    DateTime addEndDate = addDays(date: _endDate);
+    String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+    String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+    return await PosDatabase.instance.readAllTodayCashRecord(stringStDate, stringEdDate);
+  }
+
   getAllTransferRecord({currentStDate, currentEdDate}) async {
     dateTransferList = [];
     DateTime _startDate = DateTime.parse(currentStDate);
@@ -83,25 +94,12 @@ class ReportObject{
 
   getAllSettlementPaymentDetail(String settlement_date, List<PaymentLinkCompany> paymentLinkCompanyList) async {
     dateSettlementPaymentList = [];
-    // List<SettlementLinkPayment> settlementData = await PosDatabase.instance.readSpecificSettlementLinkPayment(settlement_date);
-    // settlementPaymentList = settlementData;
-    //print('length: ${settlementPaymentList.length}');
-    // if (settlementPaymentList.isNotEmpty) {
-    //   for (int i = 0; i < settlementPaymentList.length; i++) {
-    //     dateSettlementPaymentList!.add(settlementPaymentList[i]);
-    //     //print('payment method: ${settlementPaymentList[i].payment_link_company_id}');
-    //   }
-    // }
-    print("settlement date: ${settlement_date}");
     for(int i = 0; i < paymentLinkCompanyList.length; i++){
-      print("payment link company id: ${paymentLinkCompanyList[i].payment_link_company_id}");
       List<SettlementLinkPayment> settlementData = await PosDatabase.instance.readSpecificSettlementLinkPayment(settlement_date, paymentLinkCompanyList[i].payment_link_company_id.toString());
-      print("settlement data: ${settlementData.length}");
       settlementPaymentList = settlementData;
       if (settlementPaymentList.isNotEmpty) {
         for (int i = 0; i < settlementPaymentList.length; i++) {
           dateSettlementPaymentList!.add(settlementPaymentList[i]);
-          //print('payment method: ${settlementPaymentList[i].payment_link_company_id}');
         }
       } else {
         dateSettlementPaymentList!.add(SettlementLinkPayment(all_payment_sales: 0.0));
@@ -112,20 +110,14 @@ class ReportObject{
     return value;
   }
 
-  getAllSettlement({currentStDate, currentEdDate}) async {
-    dateSettlementList = [];
-    List<Settlement> settlementData = await PosDatabase.instance.readAllSettlement();
-    settlementList = settlementData;
-    if (settlementList.isNotEmpty) {
-      for (int i = 0; i < settlementList.length; i++) {
-        // DateTime dataDate = DateTime.parse(settlementList[i].created_at!);
-        // String stringDate = new DateFormat("dd-MM-yyyy").format(dataDate);
-        // settlementList[i].created_at = stringDate;
-        dateSettlementList!.add(settlementList[i]);
-      }
-    }
-    ReportObject value = ReportObject(dateSettlementList: dateSettlementList);
-    return value;
+  Future<List<Settlement>> getAllSettlement({required currentStDate, required currentEdDate}) async {
+    DateTime _startDate = DateTime.parse(currentStDate);
+    DateTime _endDate = DateTime.parse(currentEdDate);
+    //convert time to string
+    DateTime addEndDate = addDays(date: _endDate);
+    String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+    String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+    return await PosDatabase.instance.readAllSettlement(stringStDate, stringEdDate);
   }
 
   getAllTaxDetail(int order_sqlite_id, {currentStDate, currentEdDate}) async {
@@ -308,18 +300,29 @@ class ReportObject{
     if (paidOrderDetail.isNotEmpty) {
       for (int i = 0; i < paidOrderDetail.length; i++) {
         dateOrderDetail!.add(paidOrderDetail[i]);
-        //DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderDetail[i].created_at!);
-        // if(currentStDate != currentEdDate){
-        //   if(convertDate.isAfter(_startDate)){
-        //     if(convertDate.isBefore(addDays(date: _endDate))){
-        //       dateOrderDetail!.add(paidOrderDetail[i]);
-        //     }
-        //   }
-        // } else {
-        //   if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
-        //     dateOrderDetail!.add(paidOrderDetail[i]);
-        //   }
-        // }
+
+      }
+    }
+    ReportObject value = ReportObject(dateOrderDetail: dateOrderDetail);
+    return value;
+  }
+
+  getAllEditedOrderDetail({currentStDate, currentEdDate}) async {
+    dateOrderDetail = [];
+    DateTime _startDate = DateTime.parse(currentStDate);
+    DateTime _endDate = DateTime.parse(currentEdDate);
+    //convert time to string
+    DateTime addEndDate = addDays(date: _endDate);
+    String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
+    String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
+    //get data
+    List<OrderDetail> detailData = await PosDatabase.instance.readAllEditedOrderDetail(stringStDate, stringEdDate);
+    print("detailData: ${detailData.length}");
+    this.editedOrderDetail = detailData;
+    if (editedOrderDetail.isNotEmpty) {
+      for (int i = 0; i < editedOrderDetail.length; i++) {
+        dateOrderDetail!.add(editedOrderDetail[i]);
+
       }
     }
     ReportObject value = ReportObject(dateOrderDetail: dateOrderDetail);

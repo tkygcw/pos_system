@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
@@ -63,7 +62,7 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
   }
 
   getOrderList({model}) async {
-    print('refresh UI!');
+    List<OrderCache> data = [];
     if (model != null) {
       model.changeContent2(false);
     }
@@ -72,17 +71,14 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
     Map userObject = json.decode(user!);
     final int? branch_id = prefs.getInt('branch_id');
     if (selectDiningOption == 'All') {
-      List<OrderCache> data = await PosDatabase.instance.readOrderCacheNoDineIn(branch_id.toString(), userObject['company_id']);
-      print('data length: ${data.length}');
-      setState(() {
-        orderCacheList = data;
-      });
+      data = await PosDatabase.instance.readOrderCacheNoDineIn(branch_id.toString(), userObject['company_id']);
     } else {
-      List<OrderCache> data = await PosDatabase.instance.readOrderCacheSpecial(selectDiningOption!);
-      setState(() {
-        orderCacheList = data;
-      });
+      data = await PosDatabase.instance.readOrderCacheSpecial(selectDiningOption!);
     }
+    if(!mounted) return;
+    setState(() {
+      orderCacheList = data;
+    });
   }
 
   // Future<Future<Object?>> openViewOrderDialog(OrderCache data) async {

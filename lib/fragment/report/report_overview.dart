@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -27,6 +28,8 @@ class ReportOverview extends StatefulWidget {
 }
 
 class _ReportOverviewState extends State<ReportOverview> {
+  StreamController controller = StreamController();
+  late Stream contentStream;
   DateFormat dateFormat = DateFormat("dd/MM/yyyy");
   String currentStDate = '';
   String currentEdDate = '';
@@ -41,29 +44,27 @@ class _ReportOverviewState extends State<ReportOverview> {
   String jsonPayment = '';
   double totalSales = 0.0, totalRefundAmount = 0.0;
   double totalPromotionAmount = 0.0;
-  bool isLoaded = false;
   int count = 0;
   List<String> stringList = [], branchTaxStringList = [];
 
   @override
   void initState() {
     super.initState();
+    contentStream = controller.stream.asBroadcastStream();
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (reportModel.load == 0) {
-            preload(reportModel);
-            reportModel.setLoaded();
-          }
-        });
-        return LayoutBuilder(builder: (context, constraints) {
-          if (constraints.maxWidth > 800) {
-            return isLoaded == true
-                ? Scaffold(
+        preload(reportModel);
+        return StreamBuilder(
+          stream: contentStream,
+          builder: (context, snapshot) {
+            if(snapshot.hasData){
+              return LayoutBuilder(builder: (context, constraints) {
+                if (constraints.maxWidth > 800) {
+                  return Scaffold(
                     resizeToAvoidBottomInset: false,
                     body: Container(
                       padding: const EdgeInsets.all(8),
@@ -160,9 +161,9 @@ class _ReportOverviewState extends State<ReportOverview> {
                                       title: Text(AppLocalizations.of(context)!.translate('total_cancelled_item')),
                                       subtitle: dateOrderDetailCancel[0].total_item != null
                                           ? Text('${dateOrderDetailCancel[0].total_item!}',
-                                              style: TextStyle(color: Colors.black, fontSize: 24))
+                                          style: TextStyle(color: Colors.black, fontSize: 24))
                                           : Text('0',
-                                              style: TextStyle(color: Colors.black, fontSize: 24)),
+                                          style: TextStyle(color: Colors.black, fontSize: 24)),
                                       trailing: Icon(Icons.no_food),
                                     ),
                                   ),
@@ -179,7 +180,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                               crossAxisCount: 2,
                               crossAxisSpacing: 10,
                               childAspectRatio:
-                                  MediaQuery.of(context).size.height < 750 ? (1 / .6) : (1 / .7),
+                              MediaQuery.of(context).size.height < 750 ? (1 / .6) : (1 / .7),
                               children: [
                                 Container(
                                   child: Card(
@@ -216,7 +217,7 @@ class _ReportOverviewState extends State<ReportOverview> {
                                                   ]),
                                               ],
                                             )
-                                            :Center(
+                                                :Center(
                                               child: Column(
                                                 children: [
                                                   Icon(Icons.credit_card_off_outlined),
@@ -244,33 +245,33 @@ class _ReportOverviewState extends State<ReportOverview> {
                                             child: Text(AppLocalizations.of(context)!.translate('charges_overview'),
                                                 style: TextStyle(fontSize: 20)),
                                           ),
-                                              Container(
-                                                  child: branchTaxList.isNotEmpty ? Table(
-                                                    children: [
-                                                      for (var branchTax in branchTaxList)
-                                                        TableRow(children: [
-                                                          Container(
-                                                            padding: EdgeInsets.only(bottom: 10),
-                                                            child: Text('${branchTax.tax_name}'),
-                                                          ),
-                                                          Container(
-                                                            padding: EdgeInsets.only(bottom: 10),
-                                                            child: Text(
-                                                                '${branchTax.total_amount.toStringAsFixed(2)}'),
-                                                          ),
-                                                        ]),
-                                                    ],
-                                                  )
-                                                  : Center(
-                                                    child: Column(
-                                                      children: [
-                                                        Icon(Icons.no_meals_ouline),
-                                                        Text(AppLocalizations.of(context)!.translate('no_charges_record'))
-                                                      ],
+                                          Container(
+                                            child: branchTaxList.isNotEmpty ? Table(
+                                              children: [
+                                                for (var branchTax in branchTaxList)
+                                                  TableRow(children: [
+                                                    Container(
+                                                      padding: EdgeInsets.only(bottom: 10),
+                                                      child: Text('${branchTax.tax_name}'),
                                                     ),
-                                                  ),
-                                              )
-                                          ],
+                                                    Container(
+                                                      padding: EdgeInsets.only(bottom: 10),
+                                                      child: Text(
+                                                          '${branchTax.total_amount.toStringAsFixed(2)}'),
+                                                    ),
+                                                  ]),
+                                              ],
+                                            )
+                                                : Center(
+                                              child: Column(
+                                                children: [
+                                                  Icon(Icons.no_meals_ouline),
+                                                  Text(AppLocalizations.of(context)!.translate('no_charges_record'))
+                                                ],
+                                              ),
+                                            ),
+                                          )
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -281,12 +282,10 @@ class _ReportOverviewState extends State<ReportOverview> {
                         ],
                       ),
                     ),
-                  )
-                : CustomProgressBar();
-          } else {
-            ///mobile layout
-            return isLoaded == true
-                ? Scaffold(
+                  );
+                } else {
+                  ///mobile layout
+                  return Scaffold(
                     resizeToAvoidBottomInset: false,
                     body: Container(
                       padding: const EdgeInsets.all(8),
@@ -438,34 +437,34 @@ class _ReportOverviewState extends State<ReportOverview> {
                                             children: [
                                               branchTaxList.isNotEmpty
                                                   ? Container(
-                                                      child: Table(
-                                                        children: [
-                                                          for (var branchTax in branchTaxList)
-                                                            TableRow(children: [
-                                                              Container(
-                                                                padding:
-                                                                    EdgeInsets.only(bottom: 10),
-                                                                child:
-                                                                    Text('${branchTax.tax_name}'),
-                                                              ),
-                                                              Container(
-                                                                padding:
-                                                                    EdgeInsets.only(bottom: 10),
-                                                                child: Text(
-                                                                    '${branchTax.total_amount.toStringAsFixed(2)}'),
-                                                              ),
-                                                            ]),
-                                                        ],
-                                                      ),
-                                                    )
+                                                child: Table(
+                                                  children: [
+                                                    for (var branchTax in branchTaxList)
+                                                      TableRow(children: [
+                                                        Container(
+                                                          padding:
+                                                          EdgeInsets.only(bottom: 10),
+                                                          child:
+                                                          Text('${branchTax.tax_name}'),
+                                                        ),
+                                                        Container(
+                                                          padding:
+                                                          EdgeInsets.only(bottom: 10),
+                                                          child: Text(
+                                                              '${branchTax.total_amount.toStringAsFixed(2)}'),
+                                                        ),
+                                                      ]),
+                                                  ],
+                                                ),
+                                              )
                                                   : Center(
-                                                      child: Column(
-                                                        children: [
-                                                          Icon(Icons.no_meals_ouline),
-                                                          Text(AppLocalizations.of(context)!.translate('no_charges_record'))
-                                                        ],
-                                                      ),
-                                                    )
+                                                child: Column(
+                                                  children: [
+                                                    Icon(Icons.no_meals_ouline),
+                                                    Text(AppLocalizations.of(context)!.translate('no_charges_record'))
+                                                  ],
+                                                ),
+                                              )
                                             ],
                                           ),
                                         ],
@@ -477,10 +476,14 @@ class _ReportOverviewState extends State<ReportOverview> {
                         ),
                       ),
                     ),
-                  )
-                : CustomProgressBar();
+                  );
+                }
+              });
+            } else {
+              return CustomProgressBar();
+            }
           }
-        });
+        );
       });
     });
   }
@@ -504,30 +507,11 @@ class _ReportOverviewState extends State<ReportOverview> {
       stringList.toString(),
       branchTaxStringList.toString(),
     );
-    //check is loaded or not
-    // if (count == 0) {
-    //   reportModel.addValue(
-    //     dateOrderList.length.toString(),
-    //     totalSales.toStringAsFixed(2),
-    //     dateRefundList.length.toString(),
-    //     totalRefundAmount.toStringAsFixed(2),
-    //     totalPromotionAmount.toStringAsFixed(2),
-    //     dateOrderDetailCancel[0].total_item.toString(),
-    //     stringList.toString(),
-    //     branchTaxStringList.toString(),
-    //   );
-    // }
-    // count += 1;
-    if (mounted) {
-      setState(() {
-        isLoaded = true;
-      });
-    }
+    controller.sink.add("refresh");
   }
 
   readPaymentLinkCompany() async {
     this.stringList.clear();
-    List<String> value = [];
     final prefs = await SharedPreferences.getInstance();
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);

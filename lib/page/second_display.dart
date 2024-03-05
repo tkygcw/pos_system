@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/second_screen.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
@@ -26,10 +27,11 @@ class SecondDisplay extends StatefulWidget {
 
 class _SecondDisplayState extends State<SecondDisplay> {
   String value = "init", imagePath = '';
+  FileImage? paymentImg;
   List<FileImage> imageList = [];
   SecondDisplayData? obj;
   late SharedPreferences prefs;
-  bool isLoaded = false, bannerLoaded = false;
+  bool isLoaded = false, bannerLoaded = false, paymentImgLoaded = false;
 
   @override
   void initState() {
@@ -55,9 +57,10 @@ class _SecondDisplayState extends State<SecondDisplay> {
                 default: {
                   var decode = jsonDecode(argument);
                   obj = SecondDisplayData.fromJson(decode);
-                  isLoaded = true;
+                  await initPaymentImage(secondDisplayData: obj!);
                   setState(() {
                     value = argument;
+                    paymentImgLoaded = true;
                   });
                 }
               }
@@ -107,7 +110,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                     )
                 ),
               ) :
-          obj != null ?
+          obj != null && paymentImgLoaded ?
           Container(
             color: Colors.white24,
             child: Row(
@@ -121,15 +124,23 @@ class _SecondDisplayState extends State<SecondDisplay> {
                             fit: BoxFit.cover,
                           )
                       ),
-                      child: Center(
-                          child: Column(
-                            children: [
-                              Container(
-                                  height: 150,
-                                  child: Image(image: AssetImage("drawable/logo.png"),)
-                              ),
-                            ],
+                      child: Column(
+                        children: [
+                          Container(
+                              height: 150,
+                              child: Image(image: AssetImage("drawable/logo.png"))
+                          ),
+                          paymentImg != null ?
+                          Card(
+                            clipBehavior: Clip.antiAlias,
+                            child: Container(
+                                height: 200,
+                                child: Image(image: paymentImg!)
+                            ),
                           )
+                              :
+                              Container(),
+                        ],
                       ),
                     )
                 ),
@@ -238,6 +249,78 @@ class _SecondDisplayState extends State<SecondDisplay> {
     );
   }
 
+  initPaymentImage({required SecondDisplayData secondDisplayData}) async {
+    try{
+      paymentImg = null;
+      PaymentLinkCompany? data = await PosDatabase.instance.readSpecificPaymentLinkCompany(secondDisplayData.payment_link_company_id!);
+      if(data != null && data.allow_image == 1 && data.image_name != null && data.image_name != ''){
+        final folderName = secondDisplayData.payment_link_company_id.toString();
+        final directory = await _localPath;
+        final path = '$directory/assets/payment_qr/$folderName';
+        bool isPathExisted = await Directory(path).exists();
+        if(isPathExisted){
+          //check is image file exist or not
+          if(await FileImage(File(path + '/' + data.image_name!)).file.exists() == true){
+            print("Payment qr image found!!!");
+            paymentImg = FileImage(File(path + '/' + data.image_name!));
+          } else {
+            //download payment image
+            await _downloadPaymentImage(path, data);
+            paymentImg = FileImage(File(path + '/' + data.image_name!));
+          }
+        } else {
+          await _createPaymentQrFolder(paymentLinkCompany: data);
+          paymentImg = FileImage(File(path + '/' + data.image_name!));
+        }
+      }
+    }catch(e){
+      paymentImg = null;
+    }
+
+  }
+
+  _createPaymentQrFolder({required PaymentLinkCompany paymentLinkCompany}) async {
+    final folderName = 'payment_qr';
+    final path = await _localPath;
+    final pathPaymentQr = Directory('$path/assets/$folderName');
+    bool isPathExisted = await pathPaymentQr.exists();
+    if(isPathExisted){
+      await _createPaymentImgFolder(paymentLinkCompany: paymentLinkCompany);
+    } else {
+      await pathPaymentQr.create();
+      await _createPaymentImgFolder(paymentLinkCompany: paymentLinkCompany);
+    }
+  }
+
+  _createPaymentImgFolder({required PaymentLinkCompany paymentLinkCompany}) async {
+    final folderName = paymentLinkCompany.payment_link_company_id.toString();
+    final directory = await _localPath;
+    final path = '$directory/assets/payment_qr/$folderName';
+    final pathImg = Directory(path);
+    pathImg.create();
+    if(paymentLinkCompany.image_name != null && paymentLinkCompany.image_name != ''){
+      await _downloadPaymentImage(path, paymentLinkCompany);
+    }
+  }
+
+  _downloadPaymentImage(String path, PaymentLinkCompany paymentLinkCompany) async {
+    try{
+      final prefs = await SharedPreferences.getInstance();
+      final String? user = prefs.getString('user');
+      Map userObject = json.decode(user!);
+      String url = '';
+      String paymentLinkCompanyId =  paymentLinkCompany.payment_link_company_id.toString();
+      String name = paymentLinkCompany.image_name!;
+      url = '${Domain.backend_domain}api/payment_QR/' + userObject['company_id'] + '/' + paymentLinkCompanyId + '/' + name;
+      final response = await http.get(Uri.parse(url));
+      var localPath = path + '/' + name;
+      final imageFile = File(localPath);
+      await imageFile.writeAsBytes(response.bodyBytes);
+    } catch(e){
+      print("download payment image error: ${e}");
+    }
+  }
+
   initBanner() async {
     try{
       imageList.clear();
@@ -271,7 +354,6 @@ class _SecondDisplayState extends State<SecondDisplay> {
       for(int i = 0; i < data.length; i++){
         //check is image exist or not
         if(await FileImage(File(imagePath + '/' + data[i].name!)).file.exists() == true){
-          print("direct add image called");
           imageList.add(FileImage(File(imagePath + '/' + data[i].name!)));
         } else {
           await downloadBannerImage(imagePath);
@@ -304,7 +386,6 @@ class _SecondDisplayState extends State<SecondDisplay> {
 */
   downloadBannerImage(String path) async {
     try{
-      print("download called!!!");
       final int? branchId = prefs.getInt('branch_id');
       final String? user = prefs.getString('user');
       Map userObject = json.decode(user!);
@@ -315,7 +396,6 @@ class _SecondDisplayState extends State<SecondDisplay> {
         List responseJson = data['second_screen'];
         for (var i = 0; i < responseJson.length; i++) {
           name = responseJson[i]['name'];
-          print("second screen img name: ${name}");
           if (name != '') {
             url = '${Domain.backend_domain}api/banner/' + userObject['company_id'] + '/' + branchId.toString() + '/' + name;
             final response = await http.get(Uri.parse(url));

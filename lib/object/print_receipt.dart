@@ -6,7 +6,6 @@ import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/checklist.dart';
 import 'package:pos_system/object/kitchen_list.dart';
 import 'package:pos_system/object/printer.dart';
@@ -784,7 +783,7 @@ class PrintReceipt{
 
   }
 
-  printKitchenList(List<Printer> printerList, int orderCacheLocalId, context) async {
+  printKitchenList(List<Printer> printerList, int orderCacheLocalId) async {
     print("printKitchenList called");
     try{
       KitchenList? kitchenListLayout58mm = await PosDatabase.instance.readSpecificKitchenList('58');
@@ -868,11 +867,11 @@ class PrintReceipt{
                         if (res == PosPrintResult.success) {
                           print("currentItem: ${currentItem}");
                           await ReceiptLayout().printLabel35mm(false, orderCacheLocalId, totalItem, currentItem, value: printer, orderDetail: orderDetail[k]);
+                          printer.disconnect();
                         } else {
                           failedPrintOrderDetail.add(orderDetail[k]);
                         }
                       }
-                      printer.disconnect();
                     }
                   } else {
                     //print USB
@@ -990,7 +989,7 @@ class PrintReceipt{
                               print("orderQueue not null");
                               // distinctOrderNumbers.add(orderDetail.orderQueue!);
                               distinctOrderNumbers = reprintList.map((orderDetail) => orderDetail.orderQueue!).toSet().toList();
-                            } else if (orderDetail.tableNumber != null && orderDetail.tableNumber.isNotEmpty) {
+                            } else if (orderDetail.tableNumber.isNotEmpty) {
                               // distinctTableNumbers.add(orderDetail.tableNumber.map((num) => num.toString()).join(', '));
                               distinctTableNumbers = reprintList.map((orderDetail) => orderDetail.tableNumber.map((num) => num.toString()).join(', ')).toSet().toList();
                             } else {
@@ -1085,7 +1084,7 @@ class PrintReceipt{
                               print("orderQueue not null");
                               // distinctOrderNumbers.add(orderDetail.orderQueue!);
                               distinctOrderNumbers = reprintList.map((orderDetail) => orderDetail.orderQueue!).toSet().toList();
-                            } else if (orderDetail.tableNumber != null && orderDetail.tableNumber.isNotEmpty) {
+                            } else if (orderDetail.tableNumber.isNotEmpty) {
                               // distinctTableNumbers.add(orderDetail.tableNumber.map((num) => num.toString()).join(', '));
                               distinctTableNumbers = reprintList.map((orderDetail) => orderDetail.tableNumber.map((num) => num.toString()).join(', ')).toSet().toList();
                             } else {
@@ -1175,6 +1174,7 @@ class PrintReceipt{
                         currentItem++;
                         if (res == PosPrintResult.success) {
                           await ReceiptLayout().printLabel35mm(false, int.parse(reprintList[k].order_cache_sqlite_id!), totalItem, currentItem, value: printer, orderDetail: reprintList[k]);
+                          printer.disconnect();
                         } else {
                           failedPrintOrderDetail.add(reprintList[k]);
                         }
@@ -1254,6 +1254,7 @@ class PrintReceipt{
       KitchenList? kitchenListLayout80mm = await PosDatabase.instance.readSpecificKitchenList('80');
       List<OrderDetail> failedPrintOrderDetail = [];
       List<OrderDetail> orderDetail = await PosDatabase.instance.readSpecificOrderDetailByOrderCacheId(orderCacheLocalId.toString());
+      int currentItem = 0;
 
       for (int i = 0; i < printerList.length; i++) {
         if(printerList[i].printer_status == 1){
@@ -1285,7 +1286,7 @@ class PrintReceipt{
                     } else {
                       failedPrintOrderDetail.add(orderDetailList[k]);
                     }
-                  } else {
+                  } else if (printerList[i].paper_size == 1){
                     //print LAN 58mm
                     final profile = await CapabilityProfile.load();
                     final printer = NetworkPrinter(PaperSize.mm58, profile);
@@ -1303,6 +1304,38 @@ class PrintReceipt{
                     } else {
                       failedPrintOrderDetail.add(orderDetailList[k]);
                     }
+                  } else {
+                    //print LAN 35mm
+                    final profile = await CapabilityProfile.load();
+                    final printer = NetworkPrinter(PaperSize.mm35, profile);
+                    final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
+                    int totalItem = 0;
+                    // get total item in order
+                    for (int x = 0; x < orderDetail.length; x++)
+                      for (int y = 0; y < int.parse(orderDetail[x].quantity!); y++)
+                        totalItem += 1;
+
+                    for (int j = 0; j < int.parse(orderDetail[k].quantity!); j++) {
+                      currentItem++;
+                      if (res == PosPrintResult.success) {
+                        await ReceiptLayout().printLabel35mm(false, orderCacheLocalId, totalItem, currentItem, value: printer, orderDetail: orderDetail[k]);
+                        printer.disconnect();
+                      } else {
+                        failedPrintOrderDetail.add(orderDetail[k]);
+                      }
+                    }
+                    // if (res == PosPrintResult.success) {
+                    //   // await ReceiptLayout().printQrKitchenList58mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
+                    //   if(kitchenListLayout58mm == null || kitchenListLayout58mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)
+                    //     await ReceiptLayout().printKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetail: orderDetailList[k]);
+                    //   else if(kitchenListLayout58mm.print_combine_kitchen_list == 1 && printCombinedKitchenList == false) {
+                    //     await ReceiptLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: orderDetailList);
+                    //     printCombinedKitchenList = true;
+                    //   }
+                    //   printer.disconnect();
+                    // } else {
+                    //   failedPrintOrderDetail.add(orderDetailList[k]);
+                    // }
                   }
                 } else {
                   //print USB
@@ -1323,7 +1356,7 @@ class PrintReceipt{
                     } else {
                       failedPrintOrderDetail.add(orderDetailList[k]);
                     }
-                  } else {
+                  } else if (printerList[i].paper_size == 1){
                     //print 58mm
                     // var data = Uint8List.fromList(
                     //     await ReceiptLayout().printQrKitchenList58mm(true, orderDetailList[k], orderCacheLocalId));
@@ -1340,6 +1373,26 @@ class PrintReceipt{
                       await flutterUsbPrinter.write(data);
                     } else {
                       failedPrintOrderDetail.add(orderDetailList[k]);
+                    }
+                  } else {
+                    //print USB 35mm
+                    int totalItem = 0;
+                    // get total item in order
+                    for (int x = 0; x < orderDetail.length; x++)
+                      for (int y = 0; y < int.parse(orderDetail[x].quantity!); y++)
+                        totalItem += 1;
+
+                    for (int j = 0; j < int.parse(orderDetail[k].quantity!); j++) {
+                      currentItem++;
+                      var data = Uint8List.fromList(
+                          await ReceiptLayout().printLabel35mm(true, orderCacheLocalId, totalItem, currentItem, orderDetail: orderDetail[k]));
+                      bool? isConnected = await flutterUsbPrinter.connect(
+                          int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
+                      if (isConnected == true) {
+                        await flutterUsbPrinter.write(data);
+                      } else {
+                        failedPrintOrderDetail.add(orderDetail[k]);
+                      }
                     }
                   }
                 }
