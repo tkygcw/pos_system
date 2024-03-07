@@ -93,10 +93,13 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     if (errorPassword == null && _isLoaded == true) {
       // Disable the button after it has been pressed
       await readAdminData(adminPosPinController.text, cart);
-      if(this.isLogOut == false){
-        Navigator.of(context).pop();
-        Navigator.of(context).pop();
-      }
+      // if(this.isLogOut == false){
+      //   Navigator.of(context).pop();
+      //   Navigator.of(context).pop();
+      // }
+      setState(() {
+        isButtonDisabled = false;
+      });
       return;
     } else {
       setState(() {
@@ -121,7 +124,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
               child: SingleChildScrollView(
                 physics: NeverScrollableScrollPhysics(),
                 child: AlertDialog(
-                  title: Text(AppLocalizations.of(context)!.translate('enter_current_user_pin')),
+                  title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
                   content: SizedBox(
                     height: 100.0,
                     width: 350.0,
@@ -381,6 +384,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   }
 
   readAdminData(String pin, CartModel cart) async {
+    print("readAdminData");
     List<String> _posTableValue = [];
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -393,7 +397,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
         // if (userData.user_id == userObject['user_id']) {
-
+        if(userData.edit_price_without_pin == 1) {
           if(cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1){
             print('delete order detail called');
             await callDeleteOrderDetail(userData, dateTime, cart);
@@ -435,15 +439,15 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
 
           //sync to cloud
           syncAllToCloud();
-          // if(this.isLogOut == true){
-          //   openLogOutDialog();
-          //   return;
-          // }
 
-        // } else {
-        //   Fluttertoast.showToast(
-        //       backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('pin_not_match')}");
-        // }
+          if (this.isLogOut == false) {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          }
+        } else {
+          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('no_permission')}");
+        }
+
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");

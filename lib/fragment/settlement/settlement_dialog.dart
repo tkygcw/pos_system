@@ -251,7 +251,7 @@ class _SettlementDialogState extends State<SettlementDialog> {
                 child: SingleChildScrollView(
                   child: AlertDialog(
                     title: Text(AppLocalizations.of(context)!
-                        .translate('enter_current_user_pin')),
+                        .translate('enter_admin_pin')),
                     content: SizedBox(
                       height: 100.0,
                       width: 350.0,
@@ -350,8 +350,38 @@ class _SettlementDialogState extends State<SettlementDialog> {
           TextButton(
             child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
             onPressed: () async {
-              await showSecondDialog(context, color);
-              closeDialog(context);
+              final prefs = await SharedPreferences.getInstance();
+              final String? pos_user = prefs.getString('pos_pin_user');
+              Map<String, dynamic> userMap = json.decode(pos_user!);
+              User userData = User.fromJson(userMap);
+
+              if(userData.settlement_permission != 1) {
+                await showSecondDialog(context, color);
+                closeDialog(context);
+              } else {
+                currentSettlementDateTime = dateFormat.format(DateTime.now());
+                await callSettlement();
+                if (await confirm(
+                  context,
+                  title: Text('${AppLocalizations.of(context)?.translate('confirm_sync')}'),
+                  content: Text('${AppLocalizations.of(context)?.translate('confirm_sync_desc')}'),
+                  textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                  textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                )) {
+                  bool? status = await openSyncDialog();
+                  if(status != null && status == true){
+                    widget.callBack();
+                    Navigator.of(context).pop();
+                  } else {
+                    widget.callBack();
+                    Navigator.of(context).pop();
+                  }
+                } else {
+                  widget.callBack();
+                  Navigator.of(context).pop();
+                }
+                // Navigator.of(context).pop();
+              }
             },
           )
         ],
@@ -371,26 +401,13 @@ class _SettlementDialogState extends State<SettlementDialog> {
       currentSettlementDateTime = dateFormat.format(DateTime.now());
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
-        if (userData.user_id == userObject['user_id']) {
-          if (userData.role != 3) {
-            await callSettlement();
-          } else {
-            Fluttertoast.showToast(
-                backgroundColor: Color(0xFFFF0000),
-                msg:
-                    "${AppLocalizations.of(context)?.translate('settlement_role_error')}");
-          }
+        if (userData.settlement_permission == 1) {
+          await callSettlement();
         } else {
-          Fluttertoast.showToast(
-              backgroundColor: Color(0xFFFF0000),
-              msg:
-                  "${AppLocalizations.of(context)?.translate('pin_not_match')}");
+          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('no_permission')}");
         }
       } else {
-        Fluttertoast.showToast(
-            backgroundColor: Color(0xFFFF0000),
-            msg:
-                "${AppLocalizations.of(context)?.translate('user_not_found')}");
+        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");
       }
     } catch (e) {
       print('user checking error ${e}');

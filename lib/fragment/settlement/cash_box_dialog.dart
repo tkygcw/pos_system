@@ -75,7 +75,7 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
         child: SingleChildScrollView(
           child: AlertDialog(
             title: Text(AppLocalizations.of(context)!
-                .translate('enter_current_user_pin')),
+                .translate('enter_admin_pin')),
             content: SizedBox(
               height: 100.0,
               width: 350.0,
@@ -154,19 +154,16 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
       Map userObject = json.decode(pos_user!);
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
-        if (userData.user_id == userObject['user_id']) {
+        if (userData.cash_drawer_permission == 1) {
           await callOpenCashDrawer();
           //await PrintReceipt().cashDrawer(context, printerList: this.printerList);
           closeDialog(context);
           //ReceiptLayout().openCashDrawer();
         } else {
-          setState(() {
-            isButtonDisabled = false;
-          });
           Fluttertoast.showToast(
               backgroundColor: Color(0xFFFF0000),
               msg:
-                  "${AppLocalizations.of(context)?.translate('pin_not_match')}");
+                  "${AppLocalizations.of(context)?.translate('no_permission')}");
         }
       } else {
         setState(() {

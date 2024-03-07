@@ -72,7 +72,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 14, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 16, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -310,6 +310,14 @@ class PosDatabase {
           ${SubscriptionFields.end_date} $textType,
           ${SubscriptionFields.created_at} $textType)''');
         }break;
+        case 14: {
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.refund_permission} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.settlement_permission} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.report_permission} INTEGER NOT NULL DEFAULT 0");
+        }break;
+        case 15: {
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.cash_drawer_permission} INTEGER NOT NULL DEFAULT 0");
+        }break;
       }
     }
   }
@@ -324,7 +332,9 @@ class PosDatabase {
 */
     await db.execute('''CREATE TABLE $tableUser ( ${UserFields.user_id} $idType, ${UserFields.name} $textType, ${UserFields.email} $textType, 
            ${UserFields.phone} $textType, ${UserFields.role} $integerType, ${UserFields.pos_pin} $textType, ${UserFields.edit_price_without_pin} $integerType, 
-           ${UserFields.status} $integerType, ${UserFields.created_at} $textType, ${UserFields.updated_at} $textType, ${UserFields.soft_delete} $textType)''');
+           ${UserFields.refund_permission} $integerType, ${UserFields.cash_drawer_permission} $integerType, ${UserFields.settlement_permission} $integerType, 
+           ${UserFields.report_permission} $integerType, ${UserFields.status} $integerType, ${UserFields.created_at} $textType, 
+           ${UserFields.updated_at} $textType, ${UserFields.soft_delete} $textType)''');
 /*
     create subscription table
 */
@@ -5277,8 +5287,10 @@ class PosDatabase {
 */
   Future<int> updateUser(User data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableUser SET name = ?, email = ?, phone = ?, role = ?, pos_pin = ?, edit_price_without_pin = ?, status = ?, updated_at = ?, soft_delete = ? WHERE user_id = ? ',
-        [data.name, data.email, data.phone, data.role, data.pos_pin, data.edit_price_without_pin, data.status, data.updated_at, data.soft_delete, data.user_id]);
+    return await db.rawUpdate('UPDATE $tableUser SET name = ?, email = ?, phone = ?, role = ?, pos_pin = ?, edit_price_without_pin = ?, refund_permission = ?, '
+        'cash_drawer_permission = ?, settlement_permission = ?, report_permission = ?, status = ?, updated_at = ?, soft_delete = ? WHERE user_id = ? ',
+        [data.name, data.email, data.phone, data.role, data.pos_pin, data.edit_price_without_pin, data.refund_permission, data.cash_drawer_permission,
+          data.settlement_permission, data.report_permission, data.status, data.updated_at, data.soft_delete, data.user_id]);
   }
 
 /*

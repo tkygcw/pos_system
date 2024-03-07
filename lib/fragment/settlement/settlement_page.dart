@@ -16,6 +16,7 @@ import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/object/settlement.dart';
+import 'package:pos_system/object/user.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/utils/Utils.dart';
@@ -132,8 +133,17 @@ class _SettlementPageState extends State<SettlementPage> {
                                 children: [
                                   ElevatedButton(
                                       child: Text(AppLocalizations.of(context)!.translate('cash_in')),
-                                      onPressed: () {
-                                        openCashDialog(true, false);
+                                      onPressed: () async {
+                                        final prefs = await SharedPreferences.getInstance();
+                                        final String? pos_user = prefs.getString('pos_pin_user');
+                                        Map<String, dynamic> userMap = json.decode(pos_user!);
+                                        User userData = User.fromJson(userMap);
+
+                                        if (userData.cash_drawer_permission != 1) {
+                                          openCashInDialog();
+                                        } else {
+                                          await openCashDialog(true, false);
+                                        }
                                       },
                                       style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor)),
                                   Container(
@@ -142,8 +152,17 @@ class _SettlementPageState extends State<SettlementPage> {
                                   ),
                                   ElevatedButton(
                                     child: Text(AppLocalizations.of(context)!.translate('cash_out')),
-                                    onPressed: () {
-                                      openCashOutDialog();
+                                    onPressed: () async {
+                                      final prefs = await SharedPreferences.getInstance();
+                                      final String? pos_user = prefs.getString('pos_pin_user');
+                                      Map<String, dynamic> userMap = json.decode(pos_user!);
+                                      User userData = User.fromJson(userMap);
+
+                                      if (userData.cash_drawer_permission != 1) {
+                                        openCashOutDialog();
+                                      } else {
+                                        await openCashDialog(false, true);
+                                      }
                                     },
                                     style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                                   ),
@@ -213,8 +232,18 @@ class _SettlementPageState extends State<SettlementPage> {
                                   ),
                                   ElevatedButton(
                                     child: Text(AppLocalizations.of(context)!.translate('open_cash_drawer')),
-                                    onPressed: () {
-                                      openCashBoxDialog();
+                                    onPressed: () async {
+                                      // openCashBoxDialog();
+                                      final prefs = await SharedPreferences.getInstance();
+                                      final String? pos_user = prefs.getString('pos_pin_user');
+                                      Map<String, dynamic> userMap = json.decode(pos_user!);
+                                      User userData = User.fromJson(userMap);
+
+                                      if (userData.cash_drawer_permission != 1) {
+                                        openCashBoxDialog();
+                                      } else {
+                                        await callOpenCashDrawer();
+                                      }
                                     },
                                     style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                                   ),
@@ -439,8 +468,17 @@ class _SettlementPageState extends State<SettlementPage> {
                                   children: [
                                     ElevatedButton(
                                         child: Text(AppLocalizations.of(context)!.translate('cash_in')),
-                                        onPressed: () {
-                                          openCashDialog(true, false);
+                                        onPressed: () async {
+                                          final prefs = await SharedPreferences.getInstance();
+                                          final String? pos_user = prefs.getString('pos_pin_user');
+                                          Map<String, dynamic> userMap = json.decode(pos_user!);
+                                          User userData = User.fromJson(userMap);
+
+                                          if (userData.cash_drawer_permission != 1) {
+                                            openCashInDialog();
+                                          } else {
+                                            await openCashDialog(true, false);
+                                          }
                                         },
                                         style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor)),
                                     Container(
@@ -449,10 +487,20 @@ class _SettlementPageState extends State<SettlementPage> {
                                     ),
                                     ElevatedButton(
                                       child: Text(AppLocalizations.of(context)!.translate('cash_out')),
-                                      onPressed: () {
+                                      onPressed: () async {
                                         if (cashRecordList.isNotEmpty) {
-                                          openCashOutDialog();
+                                          // openCashOutDialog();
                                           // openCashDialog(false, true);
+                                          final prefs = await SharedPreferences.getInstance();
+                                          final String? pos_user = prefs.getString('pos_pin_user');
+                                          Map<String, dynamic> userMap = json.decode(pos_user!);
+                                          User userData = User.fromJson(userMap);
+
+                                          if (userData.cash_drawer_permission != 1) {
+                                            openCashOutDialog();
+                                          } else {
+                                            await openCashDialog(false, true);
+                                          }
                                         } else {
                                           Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('no_record'));
                                         }
@@ -525,8 +573,18 @@ class _SettlementPageState extends State<SettlementPage> {
                                     ),
                                     ElevatedButton(
                                       child: Text(AppLocalizations.of(context)!.translate('open_cash_drawer')),
-                                      onPressed: () {
-                                        openCashBoxDialog();
+                                      onPressed: () async {
+                                        // openCashBoxDialog();
+                                        final prefs = await SharedPreferences.getInstance();
+                                        final String? pos_user = prefs.getString('pos_pin_user');
+                                        Map<String, dynamic> userMap = json.decode(pos_user!);
+                                        User userData = User.fromJson(userMap);
+
+                                        if (userData.cash_drawer_permission != 1) {
+                                          openCashBoxDialog();
+                                        } else {
+                                          await callOpenCashDrawer();
+                                        }
                                       },
                                       style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
                                     ),
@@ -708,9 +766,34 @@ class _SettlementPageState extends State<SettlementPage> {
             child: Opacity(
               opacity: a1.value,
               child: PosPinDialog(
+                transfer_ownership: true,
                 callBack: () => toPosPinPage(),
               ),
             ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
+
+  Future<Future<Object?>> openCashInDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: PosPinDialog(
+                  transfer_ownership: false,
+                  callBack: () => openCashDialog(true, false),
+                )),
           );
         },
         transitionDuration: Duration(milliseconds: 200),
@@ -732,6 +815,7 @@ class _SettlementPageState extends State<SettlementPage> {
             child: Opacity(
                 opacity: a1.value,
                 child: PosPinDialog(
+                  transfer_ownership: false,
                   callBack: () => openCashDialog(false, true),
                 )),
           );
@@ -1160,6 +1244,31 @@ class _SettlementPageState extends State<SettlementPage> {
     } catch (e) {
       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('calculate_cash_drawer_error')+" ${e}");
       return 0.0;
+    }
+  }
+
+  callOpenCashDrawer() async {
+    int printStatus = await PrintReceipt().cashDrawer(printerList: this.printerList);
+    if (printStatus == 1) {
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg:
+          "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+    } else if (printStatus == 2) {
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg:
+          "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+    } else if (printStatus == 3) {
+      Fluttertoast.showToast(
+          backgroundColor: Colors.red,
+          msg: AppLocalizations.of(context)!
+              .translate('no_cashier_printer_added'));
+    } else if (printStatus == 4) {
+      Fluttertoast.showToast(
+          backgroundColor: Colors.orangeAccent,
+          msg:
+          "${AppLocalizations.of(context)?.translate('no_cashier_printer')}");
     }
   }
 }

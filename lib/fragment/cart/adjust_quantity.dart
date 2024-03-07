@@ -96,13 +96,17 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   }
 
   void _submit(BuildContext context, CartModel cart) async {
+    print("adjust quantity");
     setState(() => _submitted = true);
     if (errorPassword == null) {
       await readAdminData(adminPosPinController.text, cart);
-      if (this.isLogOut == false) {
-        Navigator.of(context).pop();
-        Navigator.of(context).pop();
-      }
+      // if (this.isLogOut == false) {
+      //   Navigator.of(context).pop();
+      //   Navigator.of(context).pop();
+      // }
+      setState(() {
+        isButtonDisabled = false;
+      });
       return;
     } else {
       setState(() {
@@ -125,7 +129,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                   physics: NeverScrollableScrollPhysics(),
                   child: AlertDialog(
                     title: Text(AppLocalizations.of(context)!
-                        .translate('enter_current_user_pin')),
+                        .translate('enter_admin_pin')),
                     content: SizedBox(
                       height: 100.0,
                       width: 350.0,
@@ -515,15 +519,15 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       //List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
-        await callUpdateCart(userData, dateTime, cart);
-        // if (userData.user_id == userObject['user_id']) {
-        //   callUpdateCart(userData, dateTime, cart);
-        // } else {
-        //   Fluttertoast.showToast(
-        //       backgroundColor: Color(0xFFFF0000),
-        //       msg:
-        //           "${AppLocalizations.of(context)?.translate('pin_not_match')}");
-        // }
+        if(userData.edit_price_without_pin == 1) {
+          await callUpdateCart(userData, dateTime, cart);
+          if (this.isLogOut == false) {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          }
+        } else {
+          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('no_permission')}");
+        }
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000),
