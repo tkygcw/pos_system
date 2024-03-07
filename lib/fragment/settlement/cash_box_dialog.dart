@@ -61,6 +61,13 @@ class _CashBoxDialogState extends State<CashBoxDialog> {
         isButtonDisabled = true;
       });
       await readAdminData(adminPosPinController.text);
+      setState(() {
+        isButtonDisabled = false;
+      });
+    } else {
+      setState(() {
+        isButtonDisabled = false;
+      });
     }
   }
 

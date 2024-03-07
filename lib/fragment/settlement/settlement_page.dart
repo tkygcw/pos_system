@@ -218,7 +218,8 @@ class _SettlementPageState extends State<SettlementPage> {
                                           textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                                           textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
                                         )) {
-                                          return openPosPinDialog();
+                                          // return openPosPinDialog();
+                                          return toPosPinPage();
                                         }
                                       } else {
                                         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('close_counter_warn')}");
@@ -559,7 +560,8 @@ class _SettlementPageState extends State<SettlementPage> {
                                             textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                                             textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
                                           )) {
-                                            return openPosPinDialog();
+                                            // return openPosPinDialog();
+                                            return toPosPinPage();
                                           }
                                         } else {
                                           Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('close_counter_warn')}");

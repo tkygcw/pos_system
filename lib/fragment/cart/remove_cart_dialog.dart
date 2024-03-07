@@ -92,6 +92,9 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     setState(() => _submitted = true);
     if (errorPassword == null && _isLoaded == true) {
       // Disable the button after it has been pressed
+      setState(() {
+        isButtonDisabled = true;
+      });
       await readAdminData(adminPosPinController.text, cart);
       // if(this.isLogOut == false){
       //   Navigator.of(context).pop();
@@ -137,7 +140,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                               autofocus: true,
                               onSubmitted: (input) {
                                 setState(() {
-                                  isButtonDisabled = true;
+                                  // isButtonDisabled = true;
                                   willPop = false;
                                 });
                                 _submit(context, cart);
@@ -203,10 +206,10 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                         onPressed: isButtonDisabled
                             ? null
                             : () async {
-                          setState(() {
-                            isButtonDisabled = true;
-                            willPop = false;
-                          });
+                          // setState(() {
+                          //   isButtonDisabled = true;
+                          //   willPop = false;
+                          // });
                           _submit(context, cart);
                         },
                       ),

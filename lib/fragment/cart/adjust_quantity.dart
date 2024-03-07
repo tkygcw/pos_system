@@ -99,11 +99,10 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     print("adjust quantity");
     setState(() => _submitted = true);
     if (errorPassword == null) {
+      setState(() {
+        isButtonDisabled = true;
+      });
       await readAdminData(adminPosPinController.text, cart);
-      // if (this.isLogOut == false) {
-      //   Navigator.of(context).pop();
-      //   Navigator.of(context).pop();
-      // }
       setState(() {
         isButtonDisabled = false;
       });
@@ -142,7 +141,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                                 autofocus: true,
                                 onSubmitted: (input) {
                                   setState(() {
-                                    isButtonDisabled = true;
+                                    // isButtonDisabled = true;
                                     willPop = false;
                                   });
                                   _submit(context, cart);
@@ -210,10 +209,10 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                           onPressed: isButtonDisabled
                               ? null
                               : () async {
-                            setState(() {
-                              isButtonDisabled = true;
-                              willPop = false;
-                            });
+                            // setState(() {
+                            //   isButtonDisabled = true;
+                            //   willPop = false;
+                            // });
                             _submit(context, cart);
                           },
                         ),
