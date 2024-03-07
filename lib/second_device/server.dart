@@ -139,9 +139,9 @@ class Server extends ChangeNotifier {
             final message = buffer.toString().trim();
             var msg = jsonDecode(jsonEncode(jsonDecode(message)));
             if(msg['param'] != ''){
-              response = await ServerAction().checkAction(action: msg['action'], param: msg['param']);
+              response = await ServerAction().checkAction(action: msg['action'], param: msg['param'], address: clientSocket.remoteAddress.address);
             } else {
-              response = await ServerAction().checkAction(action: msg['action']);
+              response = await ServerAction().checkAction(action: msg['action'], address: clientSocket.remoteAddress.address);
             }
             print("server response 2: ${response}");
 

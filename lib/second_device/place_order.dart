@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:another_flushbar/flushbar.dart';
@@ -6,6 +7,7 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/app_setting.dart';
+import 'package:pos_system/second_device/server.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
@@ -234,6 +236,8 @@ abstract class PlaceOrder {
             break;
         }
       }
+    }
+    if(outOfStockItem.isNotEmpty){
       Map<String, dynamic>? objectData = {
         'cartItem': outOfStockItem,
         'tb_branch_link_product': branchLinkProductList,
@@ -249,12 +253,13 @@ abstract class PlaceOrder {
     }
   }
 
-  printKitchenList() async {
+  printKitchenList({String? address}) async {
     try {
       String flushbarStatus = '';
       List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheSqliteId));
       if(returnData != null){
         if (returnData.isNotEmpty) {
+          sendFailPrintOrderDetail(address: address, failList: returnData);
           FailPrintModel.instance.addAllFailedOrderDetail(orderDetailList: returnData);
           playSound();
           Flushbar(
@@ -289,6 +294,12 @@ abstract class PlaceOrder {
     } catch (e) {
       print("print kitchen list error: $e");
     }
+  }
+
+  sendFailPrintOrderDetail({String? address, List<OrderDetail>? failList}){
+    Socket client = Server.instance.clientList.firstWhere((e) => e.remoteAddress.address == address);
+    Map<String, dynamic>? result = {'status': '1', 'action': '0', 'failedPrintOrderDetail': failList};
+    client.write("${jsonEncode(result)}\n");
   }
 
   playSound() {
@@ -615,7 +626,7 @@ abstract class PlaceOrder {
 
 class PlaceNewDineInOrder extends PlaceOrder {
 
-  Future<void> callCreateNewOrder(CartModel cart) async {
+  Future<void> callCreateNewOrder(CartModel cart, String address) async {
     await initData();
     if(await checkTableStatus(cart) == false){
       await createTableUseID();
@@ -635,7 +646,7 @@ class PlaceNewDineInOrder extends PlaceOrder {
       //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
       //   }
       // }
-      printKitchenList();
+      printKitchenList(address: address);
     } else {
       throw Exception("Contain table in-used");
     }

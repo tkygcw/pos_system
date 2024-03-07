@@ -33,7 +33,7 @@ class ServerAction {
     return base64Image;
   }
 
-  Future<Map<String, dynamic>?> checkAction({required String action, param}) async {
+  Future<Map<String, dynamic>?> checkAction({required String action, param, String? address}) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     Map<String, dynamic>? result;
@@ -147,7 +147,7 @@ class ServerAction {
               if(cartItem != null){
                 return result = cartItem;
               }
-              await order.callCreateNewOrder(cart);
+              await order.callCreateNewOrder(cart, address!);
               branchLinkProductList = order.branchLinkProductList;
             } else {
               PlaceNotDineInOrder order = PlaceNotDineInOrder();

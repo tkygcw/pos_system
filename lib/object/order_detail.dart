@@ -309,7 +309,8 @@ class OrderDetail{
     OrderDetailFields.updated_at: updated_at,
     OrderDetailFields.soft_delete: soft_delete,
     'product_category_id': product_category_id,
-    'order_modifier_detail': orderModifierDetail
+    'order_modifier_detail': orderModifierDetail,
+    'table_number': tableNumber
   };
 
   Map<String, Object?> toInsertJson() => {
