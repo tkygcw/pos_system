@@ -7,11 +7,13 @@ import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
+import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
 import 'package:pos_system/second_device/place_order.dart';
+import 'package:pos_system/second_device/reprint_kitchen_list.dart';
 import 'package:pos_system/second_device/table_function.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -239,6 +241,30 @@ class ServerAction {
           }catch(e){
             result = {'status': '4'};
             print("cart dialog remove merged table request error: $e");
+          }
+        }
+        break;
+        case '14': {
+          try{
+            ReprintKitchenList reprintKitchenList = ReprintKitchenList();
+            var decodeParam = jsonDecode(param);
+            List<OrderDetail> reprintList =  List<OrderDetail>.from(decodeParam.map((json) => OrderDetail.fromJson(json)));
+            List<OrderDetail> returnData = await reprintKitchenList.printFailKitchenList(reprintList);
+            if(returnData.isNotEmpty){
+              objectData = {
+                'order_detail': returnData,
+              };
+            } else {
+              return result = {'status': '2'};
+            }
+            // await function.readAllTable();
+            // objectData = {
+            //   'table_list': function.tableList,
+            // };
+            result = {'status': '1', 'data': objectData};
+          }catch(e){
+            result = {'status': '4'};
+            print("reprint fail kitchen print list request error: $e");
           }
         }
         break;
