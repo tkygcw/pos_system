@@ -24,6 +24,13 @@ class FailPrintModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void removeOrderDetailWithList(List<OrderDetail> orderDetail){
+    for(int i = 0; i < orderDetail.length; i++){
+      failedPrintOrderDetail.removeWhere((e) => e.order_detail_sqlite_id == orderDetail[i].order_detail_sqlite_id);
+    }
+    notifyListeners();
+  }
+
   void removeAllFailedOrderDetail(){
     failedPrintOrderDetail.clear();
     notifyListeners();

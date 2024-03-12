@@ -157,7 +157,7 @@ class ServerAction {
               if(cartItem != null){
                 return result = cartItem;
               }
-              await order.callCreateNewNotDineOrder(cart);
+              await order.callCreateNewNotDineOrder(cart, address!);
               branchLinkProductList = order.branchLinkProductList;
             }
             print("outside else if called!!!");
@@ -181,7 +181,7 @@ class ServerAction {
             if(cartItem != null){
               return result = cartItem;
             }
-            await order.callAddOrderCache(cart);
+            await order.callAddOrderCache(cart, address!);
             objectData = {
               'tb_branch_link_product': order.branchLinkProductList,
             };
@@ -249,19 +249,19 @@ class ServerAction {
             ReprintKitchenList reprintKitchenList = ReprintKitchenList();
             var decodeParam = jsonDecode(param);
             List<OrderDetail> reprintList =  List<OrderDetail>.from(decodeParam.map((json) => OrderDetail.fromJson(json)));
-            List<OrderDetail> returnData = await reprintKitchenList.printFailKitchenList(reprintList);
-            if(returnData.isNotEmpty){
-              objectData = {
-                'order_detail': returnData,
-              };
-            } else {
-              return result = {'status': '2'};
-            }
+            reprintKitchenList.printFailKitchenList(reprintList);
+            // if(returnData.isNotEmpty){
+            //   objectData = {
+            //     'order_detail': returnData,
+            //   };
+            // } else {
+            //   return result = {'status': '2'};
+            // }
             // await function.readAllTable();
             // objectData = {
             //   'table_list': function.tableList,
             // };
-            result = {'status': '1', 'data': objectData};
+            result = {'status': '1'};
           }catch(e){
             result = {'status': '4'};
             print("reprint fail kitchen print list request error: $e");

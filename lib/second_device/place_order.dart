@@ -7,6 +7,7 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/app_setting.dart';
+import 'package:pos_system/object/order.dart';
 import 'package:pos_system/second_device/server.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -253,14 +254,25 @@ abstract class PlaceOrder {
     }
   }
 
-  printKitchenList({String? address}) async {
+  List<OrderDetail> updateBatch(List<OrderDetail> orderDetail, String address, String batchId){
+    List<OrderDetail> updatedList = [];
+    for(int i = 0; i < orderDetail.length; i++){
+      orderDetail[i].failPrintBatch = '$batchId-$address';
+    }
+    updatedList.addAll(orderDetail);
+    return updatedList;
+  }
+
+  printKitchenList(String address) async {
     try {
+      final String batchId = DateTime.now().toString().replaceAll(RegExp(r'[^0-9]'), '');
       String flushbarStatus = '';
       List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheSqliteId));
       if(returnData != null){
-        if (returnData.isNotEmpty) {
-          sendFailPrintOrderDetail(address: address, failList: returnData);
-          FailPrintModel.instance.addAllFailedOrderDetail(orderDetailList: returnData);
+        List<OrderDetail> updatedBatch = updateBatch(returnData, address!, batchId);
+        if (updatedBatch.isNotEmpty) {
+          sendFailPrintOrderDetail(address: address, failList: updatedBatch);
+          FailPrintModel.instance.addAllFailedOrderDetail(orderDetailList: updatedBatch);
           playSound();
           Flushbar(
             icon: Icon(Icons.error, size: 32, color: Colors.white),
@@ -646,7 +658,7 @@ class PlaceNewDineInOrder extends PlaceOrder {
       //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
       //   }
       // }
-      printKitchenList(address: address);
+      printKitchenList(address);
     } else {
       throw Exception("Contain table in-used");
     }
@@ -749,7 +761,7 @@ class PlaceNewDineInOrder extends PlaceOrder {
 
 class PlaceNotDineInOrder extends PlaceOrder {
 
-  Future<void> callCreateNewNotDineOrder(CartModel cart) async {
+  Future<void> callCreateNewNotDineOrder(CartModel cart, String address) async {
     print("callCreateNewNotDineOrder");
     await initData();
     await createOrderCache(cart);
@@ -770,7 +782,7 @@ class PlaceNotDineInOrder extends PlaceOrder {
     //   return;
     // }
 
-    printKitchenList();
+    printKitchenList(address);
   }
 
   @override
@@ -853,7 +865,7 @@ class PlaceNotDineInOrder extends PlaceOrder {
 
 class PlaceAddOrder extends PlaceOrder {
 
-  Future<void> callAddOrderCache(CartModel cart) async {
+  Future<void> callAddOrderCache(CartModel cart, String address) async {
     await initData();
     if(await checkTableStatus(cart) == true){
       cart.selectedTable.removeWhere((e) => e.status == 0);
@@ -870,7 +882,7 @@ class PlaceAddOrder extends PlaceOrder {
       //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
       //   }
       // }
-      printKitchenList();
+      printKitchenList(address);
     } else {
       throw Exception("Contain table not in-used");
     }

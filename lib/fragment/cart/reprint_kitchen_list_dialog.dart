@@ -234,7 +234,8 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
                 child: ElevatedButton(
                     onPressed: isButtonDisable || orderDetail.isEmpty  ? null : () async {
                       disableButton();
-                      await callPrinter();
+                      asyncQ.addJob((_) async => await callPrinter());
+                      //await callPrinter();
                     },
                     child: Text(AppLocalizations.of(context)!.translate('reprint'))),
               ),

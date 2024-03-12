@@ -174,9 +174,11 @@ class OrderDetail{
         this.item_qty,
         this.product_category_id,
         this.failPrintBatch,
-        List<String>? tableNumber
+        List<String>? tableNumber,
+        bool? isSelected
       }) {
     this.tableNumber = tableNumber ?? [];
+    this.isSelected = isSelected ?? true;
   }
 
   OrderDetail copy({
@@ -244,52 +246,53 @@ class OrderDetail{
       tableNumber= List<String>.from(tableNumberJson);
     }
     return OrderDetail(
-        order_detail_sqlite_id: json[OrderDetailFields.order_detail_sqlite_id] as int?,
-        order_detail_id: json[OrderDetailFields.order_detail_id] as int?,
-        order_detail_key: json[OrderDetailFields.order_detail_key] as String?,
-        order_cache_sqlite_id: json[OrderDetailFields.order_cache_sqlite_id] as String?,
-        order_cache_key: json[OrderDetailFields.order_cache_key] as String?,
-        branch_link_product_sqlite_id: json[OrderDetailFields.branch_link_product_sqlite_id] as String?,
-        category_sqlite_id: json[OrderDetailFields.category_sqlite_id] as String?,
-        category_name: json[OrderDetailFields.category_name] as String?,
-        productName: json[OrderDetailFields.productName] as String?,
-        has_variant: json[OrderDetailFields.has_variant] as String?,
-        product_variant_name: json[OrderDetailFields.product_variant_name] as String?,
-        price: json[OrderDetailFields.price] as String?,
-        original_price: json[OrderDetailFields.original_price] as String?,
-        quantity: json[OrderDetailFields.quantity] as String?,
-        remark: json[OrderDetailFields.remark] as String?,
-        account: json[OrderDetailFields.account] as String?,
-        edited_by: json[OrderDetailFields.edited_by] as String?,
-        edited_by_user_id: json[OrderDetailFields.edited_by_user_id] as String?,
-        cancel_by: json[OrderDetailFields.cancel_by] as String?,
-        cancel_by_user_id: json[OrderDetailFields.cancel_by_user_id] as String?,
-        status: json[OrderDetailFields.status] as int?,
-        sync_status: json[OrderDetailFields.sync_status] as int?,
-        unit: json[OrderDetailFields.unit] as String?,
-        per_quantity_unit: json[OrderDetailFields.per_quantity_unit] as String?,
-        created_at: json[OrderDetailFields.created_at] as String?,
-        updated_at: json[OrderDetailFields.updated_at] as String?,
-        soft_delete: json[OrderDetailFields.soft_delete] as String?,
-        total_amount: json['total_amount'] as String?,
-        category_id: json['category_id'] as int?,
-        branch_link_product_id: json['branch_link_product_id'] as int?,
-        //category_name: json['category_name'] as String?,
-        category_item_sum: json['category_item_sum'] as num?,
-        item_sum: json['item_sum'] as num?,
-        category_net_sales: json['category_net_sales'] as double?,
-        category_gross_sales: json['category_gross_sales'] as double?,
-        double_price: json['net_sales'] as double?,
-        gross_price: json['gross_price'] as double?,
-        total_record: json['total_record'] as int?,
-        item_cancel: json['item_cancel'] as String?,
-        order_number: json['order_number'] as String?,
-        branch_id: json['branch_id'] as String?,
-        order_created_at: json['order_created_at'] as String?,
-        item_qty: json['item_qty'] as num?,
-        product_category_id: json['product_category_id'] as String?,
-        tableNumber: tableNumber,
-        failPrintBatch: json['failPrintBatch'] as String?
+      order_detail_sqlite_id: json[OrderDetailFields.order_detail_sqlite_id] as int?,
+      order_detail_id: json[OrderDetailFields.order_detail_id] as int?,
+      order_detail_key: json[OrderDetailFields.order_detail_key] as String?,
+      order_cache_sqlite_id: json[OrderDetailFields.order_cache_sqlite_id] as String?,
+      order_cache_key: json[OrderDetailFields.order_cache_key] as String?,
+      branch_link_product_sqlite_id: json[OrderDetailFields.branch_link_product_sqlite_id] as String?,
+      category_sqlite_id: json[OrderDetailFields.category_sqlite_id] as String?,
+      category_name: json[OrderDetailFields.category_name] as String?,
+      productName: json[OrderDetailFields.productName] as String?,
+      has_variant: json[OrderDetailFields.has_variant] as String?,
+      product_variant_name: json[OrderDetailFields.product_variant_name] as String?,
+      price: json[OrderDetailFields.price] as String?,
+      original_price: json[OrderDetailFields.original_price] as String?,
+      quantity: json[OrderDetailFields.quantity] as String?,
+      remark: json[OrderDetailFields.remark] as String?,
+      account: json[OrderDetailFields.account] as String?,
+      edited_by: json[OrderDetailFields.edited_by] as String?,
+      edited_by_user_id: json[OrderDetailFields.edited_by_user_id] as String?,
+      cancel_by: json[OrderDetailFields.cancel_by] as String?,
+      cancel_by_user_id: json[OrderDetailFields.cancel_by_user_id] as String?,
+      status: json[OrderDetailFields.status] as int?,
+      sync_status: json[OrderDetailFields.sync_status] as int?,
+      unit: json[OrderDetailFields.unit] as String?,
+      per_quantity_unit: json[OrderDetailFields.per_quantity_unit] as String?,
+      created_at: json[OrderDetailFields.created_at] as String?,
+      updated_at: json[OrderDetailFields.updated_at] as String?,
+      soft_delete: json[OrderDetailFields.soft_delete] as String?,
+      total_amount: json['total_amount'] as String?,
+      category_id: json['category_id'] as int?,
+      branch_link_product_id: json['branch_link_product_id'] as int?,
+      //category_name: json['category_name'] as String?,
+      category_item_sum: json['category_item_sum'] as num?,
+      item_sum: json['item_sum'] as num?,
+      category_net_sales: json['category_net_sales'] as double?,
+      category_gross_sales: json['category_gross_sales'] as double?,
+      double_price: json['net_sales'] as double?,
+      gross_price: json['gross_price'] as double?,
+      total_record: json['total_record'] as int?,
+      item_cancel: json['item_cancel'] as String?,
+      order_number: json['order_number'] as String?,
+      branch_id: json['branch_id'] as String?,
+      order_created_at: json['order_created_at'] as String?,
+      item_qty: json['item_qty'] as num?,
+      product_category_id: json['product_category_id'] as String?,
+      tableNumber: tableNumber,
+      failPrintBatch: json['failPrintBatch'] as String?,
+      isSelected: json['isSelected'] as bool?
     );
   }
 
@@ -324,7 +327,8 @@ class OrderDetail{
     'product_category_id': product_category_id,
     'order_modifier_detail': orderModifierDetail,
     'tableNumber': tableNumber,
-    'failPrintBatch': failPrintBatch
+    'failPrintBatch': failPrintBatch,
+    'isSelected': isSelected
   };
 
   Map<String, Object?> toInsertJson() => {
