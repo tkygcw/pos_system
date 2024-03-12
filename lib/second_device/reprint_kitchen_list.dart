@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/second_device/server.dart';
-import 'package:provider/provider.dart';
 
 import '../main.dart';
 import '../object/order_detail.dart';
@@ -48,7 +47,7 @@ class ReprintKitchenList {
   }
 
   splitOrderDetail(List<OrderDetail> returnData){
-    print("return data: ${returnData.length}");
+    //print("return data: ${returnData.length}");
     Map<String, List<OrderDetail>> groupedOrder = groupOrder(returnData);
     List<String> keyList = groupedOrder.keys.toList();
     for(int i = 0; i < keyList.length; i++){

@@ -69,7 +69,7 @@ class ServerAction {
             'tb_app_setting': data7,
             'tb_branch_link_dining_option': data8
           };
-          result = {'status': '1','data': objectData};
+          result = {'status': '1', 'action': '1', 'data': objectData};
         }
         break;
         case '2': {
