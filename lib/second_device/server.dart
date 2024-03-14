@@ -128,13 +128,13 @@ class Server extends ChangeNotifier {
       String receivedData = '';
 
       StreamSubscription streamSubscription = clientSocket.listen((List<int> data) async {
-        print("socket2 called");
-        // receivedData += utf8.decode(data);
-        receivedData = utf8.decode(data);
-        print("received data: ${receivedData}");
-        buffer.write(receivedData);
-
         asyncQ.addJob((_) async {
+          print("socket2 called");
+          // receivedData += utf8.decode(data);
+          receivedData = utf8.decode(data);
+          print("received data: ${receivedData}");
+          buffer.write(receivedData);
+
           if (buffer.toString().endsWith(messageDelimiter)) {
             final message = buffer.toString().trim();
             var msg = jsonDecode(jsonEncode(jsonDecode(message)));

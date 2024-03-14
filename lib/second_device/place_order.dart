@@ -269,7 +269,7 @@ abstract class PlaceOrder {
       String flushbarStatus = '';
       List<OrderDetail>? returnData = await printReceipt.printKitchenList(printerList, int.parse(this.orderCacheSqliteId));
       if(returnData != null){
-        List<OrderDetail> updatedBatch = updateBatch(returnData, address!, batchId);
+        List<OrderDetail> updatedBatch = updateBatch(returnData, address, batchId);
         if (updatedBatch.isNotEmpty) {
           sendFailPrintOrderDetail(address: address, failList: updatedBatch);
           FailPrintModel.instance.addAllFailedOrderDetail(orderDetailList: updatedBatch);
