@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:pos_system/database/pos_database.dart';
+import 'package:pos_system/fragment/report/attedance_report.dart';
 import 'package:pos_system/fragment/report/cancel_modifier_report.dart';
 import 'package:pos_system/fragment/report/cancellation_report.dart';
 import 'package:pos_system/fragment/report/cash_record_report.dart';
@@ -324,6 +325,10 @@ class _ReportPageState extends State<ReportPage> {
                               icon: Icons.compare_arrows,
                               label: AppLocalizations.of(context)!.translate('transfer_report'),
                             ),
+                            SideNavigationBarItem(
+                              icon: Icons.access_time_outlined,
+                              label: AppLocalizations.of(context)!.translate('attendance_report'),
+                            ),
                           ],
                           onTap: (index) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -364,6 +369,9 @@ class _ReportPageState extends State<ReportPage> {
                                         isButtonDisabled = true;
                                       });
                                       _submit(context);
+                                      setState(() {
+                                        isButtonDisabled = false;
+                                      });
                                     },
                                     obscureText: true,
                                     controller: adminPosPinController,
@@ -515,7 +523,6 @@ class _ReportPageState extends State<ReportPage> {
                                             onCancel: (){
                                               Navigator.of(context).pop();
                                             },
-
                                           ),
                                         ),
                                       ),
@@ -616,6 +623,10 @@ class _ReportPageState extends State<ReportPage> {
                               icon: Icons.compare_arrows,
                               label: AppLocalizations.of(context)!.translate('transfer_report'),
                             ),
+                            SideNavigationBarItem(
+                              icon: Icons.access_time_outlined,
+                              label: AppLocalizations.of(context)!.translate('attendance_report'),
+                            ),
                           ],
                           onTap: (index) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -656,6 +667,9 @@ class _ReportPageState extends State<ReportPage> {
                                         isButtonDisabled = true;
                                       });
                                       _submit(context);
+                                      setState(() {
+                                        isButtonDisabled = false;
+                                      });
                                     },
                                     obscureText: true,
                                     controller: adminPosPinController,
@@ -782,6 +796,9 @@ class _ReportPageState extends State<ReportPage> {
       ),
       Container(
         child: TransferRecord(),
+      ),
+      Container(
+        child: AttendanceReport(),
       ),
     ]);
   }

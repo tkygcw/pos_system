@@ -81,23 +81,29 @@ class _PrintReportPageState extends State<PrintReportPage> {
                     //generate modifier report
                     return reportFormat.generateModifierReportPdf(format, 'Modifier Report', reportModel);
                   case 5:
+                    //generate edit report
+                    return reportFormat.generatePriceEditReportPdf(format, 'Price Edit Report', reportModel);
+                  case 6:
                     //generate cancel report
                     return reportFormat.generateCancelProductReportPdf(format, 'Cancellation Report', reportModel);
-                  case 6:
+                  case 7:
                     //generate cancel modifier report
                     return reportFormat.generateCancelModifierReportPdf(format, 'Cancel Modifier Report', reportModel);
-                  case 7:
+                  case 8:
                     //generate dining report
                     return reportFormat.generateDiningReport(format, 'Dining Report', reportModel);
-                  case 8:
+                  case 9:
                     //generate payment report
                     return reportFormat.generatePaymentReport(format, 'Payment Report', reportModel);
-                  case 9:
+                  case 10:
                     //generate refund report
                     return reportFormat.generateRefundReport(format, 'Refund Report', reportModel);
-                  case 10:
+                  case 11:
                   //generate cash record report
                     return reportFormat.generateCashRecordReport(format, 'Cash Record Report', reportModel);
+                  case 13:
+                  // generate attendance report
+                    return reportFormat.generateAttendanceReport(format, 'Attendance Report', reportModel);
                   default:
                     // generate transfer report
                     return reportFormat.generateReportPdf(format, 'Report');

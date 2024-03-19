@@ -31,6 +31,17 @@ class ReportFormat {
     }
   }
 
+  String getDuration(int? duration) {
+    if (duration == null || duration == 0) {
+      return '-';
+    }
+
+    int hours = duration ~/ 60;
+    int minutes = duration % 60;
+
+    return '${hours > 0 ? '$hours hours' : ''} ${minutes > 0 ? '$minutes minutes' : ''}';
+  }
+
   getQuantityFormat({value}){
     String returnValue = '';
     try{
@@ -708,6 +719,126 @@ class ReportFormat {
     return pdf.save();
   }
 
+  Future<Uint8List> generatePriceEditReportPdf(PdfPageFormat format, String title, ReportModel reportModel) async {
+    List valueList = reportModel.reportValue2;
+    final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
+    final imageByteData = await rootBundle.load('drawable/logo.png');
+    // Convert ByteData to Uint8List
+    final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
+    final image = pw.MemoryImage(imageUint8List);
+
+    // Define a function to generate the parent row
+    pw.TableRow _generateParentRow(List<String> rowData) {
+      return pw.TableRow(
+        children: [
+          for (final item in rowData)
+            pw.Padding(
+              padding: pw.EdgeInsets.all(5),
+              child: pw.Text(item),
+            ),
+        ],
+      );
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+          pageFormat: format,
+          orientation: pw.PageOrientation.landscape,
+          build: (pw.Context context) => [
+            pw.Center(
+              child: pw.SizedBox(
+                  height: 100,
+                  width: 100,
+                  child: pw.Image(image)
+              ),
+            ),
+            pw.Table(
+                border: pw.TableBorder(
+                  left: pw.BorderSide(width: 0),
+                  top: pw.BorderSide(width: 0),
+                  right: pw.BorderSide(width: 0),
+                  bottom: pw.BorderSide(width: 0),
+                  horizontalInside: pw.BorderSide(width: 0),
+                  verticalInside: pw.BorderSide.none,
+                ),
+                children: [
+                  pw.TableRow(
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.black,
+                      ),
+                      children: [
+                        pw.Padding(
+                          padding: pw.EdgeInsets.all(10),
+                          child: pw.Text('Receipt No', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Receipt No'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Product', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Original Price', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Original Price'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Price', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Price'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Edit By', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Edit By'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Edit At', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Edit At'))),
+                        ),
+                      ]
+                  ),
+                  for(int j = 0; j < valueList.length; j++)
+                    // for(int i = 0; i < valueList[j].categoryOrderDetailList.length; i++)
+                      pw.TableRow(
+                          children: [
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('#${valueList[j].categoryOrderDetailList[j].order_number}-${valueList[j].categoryOrderDetailList[j].branch_id?.padLeft(3,'0')}-${valueList[j].categoryOrderDetailList[j].created_at.toString().replaceAll(' ', '').replaceAll('-', '').replaceAll(':', '')}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[j].order_number))),
+                            ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child:
+                              pw.Text('${valueList[j].categoryOrderDetailList[j].productName}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[j].productName)))
+                            ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child:
+                              pw.Text('${valueList[j].categoryOrderDetailList[j].original_price}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[j].original_price)))
+                            ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('${valueList[j].categoryOrderDetailList[j].price}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[j].price))),
+                            ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('${valueList[j].categoryOrderDetailList[j].edited_by}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[j].edited_by))),
+                            ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('${valueList[j].categoryOrderDetailList[j].updated_at}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[j].updated_at))),
+                            ),
+                          ]
+                      ),
+                ]
+            ),
+          ]
+      ),
+    );
+    return pdf.save();
+  }
+
   Future<Uint8List> generateCancelProductReportPdf(PdfPageFormat format, String title, ReportModel reportModel) async {
     List valueList = reportModel.reportValue2;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
@@ -1333,6 +1464,106 @@ class ReportFormat {
       ),
     );
 
+    return pdf.save();
+  }
+
+  Future<Uint8List> generateAttendanceReport(PdfPageFormat format, String title, ReportModel reportModel) async {
+    List valueList = reportModel.reportValue2;
+    final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
+    final imageByteData = await rootBundle.load('drawable/logo.png');
+    // Convert ByteData to Uint8List
+    final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
+    final image = pw.MemoryImage(imageUint8List);
+
+    // Define a function to generate the parent row
+    pw.TableRow _generateParentRow(List<String> rowData) {
+      return pw.TableRow(
+        children: [
+          for (final item in rowData)
+            pw.Padding(
+              padding: pw.EdgeInsets.all(5),
+              child: pw.Text(item),
+            ),
+        ],
+      );
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+          pageFormat: format,
+          orientation: pw.PageOrientation.landscape,
+          build: (pw.Context context) => [
+            pw.Center(
+              child: pw.SizedBox(
+                  height: 100,
+                  width: 100,
+                  child: pw.Image(image)
+              ),
+            ),
+            pw.Table(
+                border: pw.TableBorder(
+                  left: pw.BorderSide(width: 0),
+                  top: pw.BorderSide(width: 0),
+                  right: pw.BorderSide(width: 0),
+                  bottom: pw.BorderSide(width: 0),
+                  horizontalInside: pw.BorderSide(width: 0),
+                  verticalInside: pw.BorderSide.none,
+                ),
+                children: [
+                  pw.TableRow(
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.black,
+                      ),
+                      children: [
+                        pw.Padding(
+                          padding: pw.EdgeInsets.all(10),
+                          child: pw.Text('User', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('User'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Clock in', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Clock in'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Clock out', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Clock out'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Hour/Minute', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Hour/Minute'))),
+                        ),
+                      ]
+                  ),
+                  for(int j = 0; j < valueList.length; j++)
+                    for(int i = 0; i < valueList[j].groupAttendanceList.length; i++)
+                      pw.TableRow(
+                          children: [
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('${valueList[j].userName}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].userName))),
+                            ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('${valueList[j].groupAttendanceList[i].clock_in_at}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].groupAttendanceList[i].clock_in_at))),
+                            ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('${valueList[j].groupAttendanceList[i].clock_out_at}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].groupAttendanceList[i].clock_out_at))),
+                            ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('${getDuration(valueList[j].groupAttendanceList[i].duration)}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].groupAttendanceList[i].duration))),
+                            ),
+                          ]
+                      ),
+                ]
+            ),
+          ]
+      ),
+    );
     return pdf.save();
   }
 
