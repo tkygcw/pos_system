@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:collection/collection.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -767,13 +768,6 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         } else {
           Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
         }
-      } else if (cart.selectedOption == 'Dine in' && localSetting.table_order == 1) {
-        // Disable the button after it has been pressed
-        setState(() {
-          isButtonDisabled = true;
-        });
-        await addToCart(cart);
-        Navigator.of(context).pop();
       } else {
         // Disable the button after it has been pressed
         setState(() {
@@ -944,8 +938,13 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         }
         dialogPrice = finalPrice;
       }
-    } catch (error) {
-      print('Get product base price error ${error}');
+    } catch (e) {
+      print('Get product base price error ${e}');
+      FLog.error(
+        className: "product_order_dialog",
+        text: "Get product base price error",
+        exception: e,
+      );
     }
     return finalPrice;
   }
@@ -1005,12 +1004,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       print("Stock type: ${data1[0].stock_type}");
       switch(data1[0].stock_type){
         case '1' :{
-          if (widget.productDetail!.unit == 'each' ? int.parse(data1[0].daily_limit!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit!)
-          : double.parse(data1[0].daily_limit!) > 0 && simpleIntInput <= double.parse(data1[0].daily_limit!)
-          ) {
+          if (int.parse(data1[0].daily_limit!) > 0 && simpleIntInput <= int.parse(data1[0].daily_limit!)) {
             num stockLeft =  widget.productDetail!.unit == 'each' ? int.parse(data1[0].daily_limit!) : double.parse(data1[0].daily_limit!) - checkCartProductQuantity(cart, data1[0]);
+            bool isQtyNotExceed = simpleIntInput <= stockLeft;
             print('stock left: ${stockLeft}');
-            if(stockLeft > 0){
+            if(stockLeft > 0 && isQtyNotExceed){
               hasStock = true;
             } else {
               hasStock = false;
@@ -1020,10 +1018,10 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
           }
         }break;
         case '2': {
-          if (widget.productDetail!.unit == 'each' ? int.parse(data1[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data1[0].stock_quantity!)
-          : double.parse(data1[0].stock_quantity!) > 0 && simpleIntInput <= double.parse(data1[0].stock_quantity!)) {
-            num stockLeft =  widget.productDetail!.unit == 'each' ? int.parse(data1[0].stock_quantity!) : double.parse(data1[0].stock_quantity!) - checkCartProductQuantity(cart, data1[0]);
-            if(stockLeft > 0){
+          if (int.parse(data1[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data1[0].stock_quantity!)) {
+            num stockLeft =  int.parse(data1[0].stock_quantity!) - checkCartProductQuantity(cart, data1[0]);
+            bool isQtyNotExceed = simpleIntInput <= stockLeft;
+            if(stockLeft > 0 && isQtyNotExceed){
               hasStock = true;
             } else {
               hasStock = false;
@@ -1043,8 +1041,9 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         case '1' :{
           if (int.parse(data[0].daily_limit!) > 0 && simpleIntInput <= int.parse(data[0].daily_limit!)) {
             num stockLeft =  int.parse(data[0].daily_limit!) - checkCartProductQuantity(cart, data[0]);
+            bool isQtyNotExceed = simpleIntInput <= stockLeft;
             print('stock left: ${stockLeft}');
-            if(stockLeft > 0){
+            if(stockLeft > 0 && isQtyNotExceed){
               hasStock = true;
             } else {
               hasStock = false;
@@ -1056,7 +1055,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         case '2': {
           if (int.parse(data[0].stock_quantity!) > 0 && simpleIntInput <= int.parse(data[0].stock_quantity!)) {
             num stockLeft =  int.parse(data[0].stock_quantity!) - checkCartProductQuantity(cart, data[0]);
-            if(stockLeft > 0){
+            bool isQtyNotExceed = simpleIntInput <= stockLeft;
+            if(stockLeft > 0 && isQtyNotExceed){
               hasStock = true;
             } else {
               hasStock = false;
@@ -1135,8 +1135,13 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       // print('variant string: ${variant}');
       // print('product variant: ${productVariant}');
       return productVariant;
-    } catch (error) {
-      print('get product variant error: ${error}');
+    } catch (e) {
+      print('get product variant error: ${e}');
+      FLog.error(
+        className: "product_order_dialog",
+        text: "get product_id: ${product_id} variant error",
+        exception: e,
+      );
       return;
     }
   }
@@ -1220,6 +1225,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       }
     }catch(e){
       print("quantity stack error: $e");
+      FLog.error(
+        className: "product_order_dialog",
+        text: "quantity stack error",
+        exception: e,
+      );
       value = cartItem.quantity! + newAddItem.quantity!;
     }
     return value;

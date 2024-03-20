@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
@@ -421,11 +422,21 @@ class Domain {
       return jsonDecode(response.body);
     } on TimeoutException catch(_){
       print('domain sync to cloud time out');
+      FLog.error(
+        className: "domain",
+        text: "sync to cloud timeout",
+        exception: _,
+      );
       Map<String, dynamic>? result = {'status': '8'};
       return result;
     }
     catch (error) {
       print('domain sync to cloud error: ${error}');
+      FLog.error(
+        className: "domain",
+        text: "sync to cloud error",
+        exception: error,
+      );
       Map<String, dynamic>? result = {'status': '8'};
       return result;
       //Fluttertoast.showToast(msg: error.toString());

@@ -3,6 +3,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
+import 'package:pos_system/fragment/setting/system_log_dialog.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/page/select_table_dialog.dart';
 
@@ -25,6 +26,13 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            ListTile(
+              title: Text(AppLocalizations.of(context)!.translate('system_log')),
+              trailing: Icon(Icons.history),
+              onTap: () async {
+                openSystemLog();
+              },
+            ),
             ListTile(
               title: Text(AppLocalizations.of(context)!.translate('sync')),
               trailing: Icon(Icons.sync),
@@ -144,6 +152,27 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
     }
   }
 
+  Future<Future<Object?>> openSystemLog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: SystemLogDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
+  }
 
   Future<Future<Object?>> openSyncDialog() async {
     return showGeneralDialog(
