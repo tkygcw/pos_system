@@ -273,7 +273,7 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                       contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
                       title: Text(
                         isErrorLog ?
-                        "${getFormattedTimeStamp(logs[index].timestamp.toString())}: ${logs[index].className}(${logs[index].methodName}) - ${logs[index].exception}"
+                        "${getFormattedTimeStamp(logs[index].timestamp.toString())}: ${logs[index].className}(${logs[index].methodName}) - ${logs[index].text}"
                             : "${getFormattedTimeStamp(logs[index].timestamp.toString())}: ${logs[index].text}",
                         style: TextStyle(
                           color: fontColor,
@@ -281,6 +281,15 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                           fontWeight: FontWeight.normal,
                         ),
                       ),
+                      onTap: () {
+                        setState(() {
+                          logs[index].isTapped = !logs[index].isTapped;
+                        });
+                      },
+                      subtitle: logs[index].isTapped
+                          ? Text(logs[index].exception == "null" ? "No description" : "${logs[index].exception}",
+                          style: TextStyle(fontSize: 12.0))
+                          : null,
                     );
                   },
                 ) :
