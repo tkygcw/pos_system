@@ -88,7 +88,7 @@ class _ReportPageState extends State<ReportPage> {
                       Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
                       Spacer(),
                       Visibility(
-                        visible: this.currentPage != 12 && this.currentPage != 5 ? true : false,
+                        visible: this.currentPage != 12 ? true : false,
                         child: Container(
                           child: IconButton(
                               icon: Icon(Icons.print),
