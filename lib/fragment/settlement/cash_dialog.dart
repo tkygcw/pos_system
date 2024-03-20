@@ -382,7 +382,7 @@ class _CashDialogState extends State<CashDialog> {
                                         onPressed: () {
                                           amountController.text = amount;
                                         },
-                                        style: ElevatedButton.styleFrom(primary: color.backgroundColor),
+                                        style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
                                       ))
                                     ],
                                   )),
