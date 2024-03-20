@@ -195,7 +195,7 @@ class CartModel extends ChangeNotifier {
 
   void addAutoApplyPromo(Promotion promo) {
     autoPromotion.add(promo);
-    notifyListeners();
+    //notifyListeners();
   }
 
   void removeAutoPromotion() {

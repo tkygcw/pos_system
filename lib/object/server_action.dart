@@ -43,6 +43,20 @@ class ServerAction {
 
     try{
       switch(action){
+        case '-1': {
+          String status = '';
+          var branchId = jsonDecode(param);
+          print("branchId: ${branchId}");
+          print("server branch id: ${branch_id.toString()}");
+          if(branchId.toString() == branch_id.toString()){
+            status = '1';
+          } else {
+            status = '2';
+          }
+          print("status: $status");
+          result = {'status': status};
+        }
+        break;
         case '0': {
           objectData = {
             'image_name': await encodeImage(param)

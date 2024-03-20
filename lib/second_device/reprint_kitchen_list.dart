@@ -26,27 +26,54 @@ class ReprintKitchenList {
       _failPrintModel.removeOrderDetailWithList(reprintList.where((e) => e.isSelected == false).toList());
       //group all selected sub-pos order detail
       selectedList.addAll(reprintList.where((e) => e.isSelected == true).toList());
-      //reprint process
-      List<Printer> printerList = await printReceipt.readAllPrinters();
-      List<OrderDetail> returnData = await printReceipt.reprintKitchenList(printerList, reprintList: selectedList);
-      if (returnData.isNotEmpty) {
-        splitOrderDetail(returnData);
-        showFlushBar();
-        playSound();
-        Future.delayed(Duration(seconds: 3), () {
-          print("status change: ${flushbarStatus}");
-          if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
-            playSound();
-        });
+      if(selectedList.isNotEmpty){
+        //reprint process
+        List<Printer> printerList = await printReceipt.readAllPrinters();
+        List<OrderDetail> returnData = await printReceipt.reprintKitchenList(printerList, reprintList:  checkExistedOrderDetail());
+        if (returnData.isNotEmpty) {
+          splitOrderDetail(returnData);
+          showFlushBar();
+          playSound();
+          Future.delayed(Duration(seconds: 3), () {
+            print("status change: ${flushbarStatus}");
+            if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
+              playSound();
+          });
 
-      } else {
-        //remove all success printed failed order detail
-        _failPrintModel.removeOrderDetailWithList(reprintList);
+        } else {
+          //remove all success printed failed order detail
+          _failPrintModel.removeOrderDetailWithList(reprintList);
+        }
       }
     }
   }
 
-  splitOrderDetail(List<OrderDetail> returnData){
+  List<OrderDetail> checkExistedOrderDetail(){
+   List<OrderDetail> reprintList = [];
+   List<OrderDetail> sameBatch = _failPrintModel.failedPrintOrderDetail.where((e) => e.failPrintBatch == selectedList[0].failPrintBatch).toList();
+   print("sameBatch list length: ${sameBatch.length}");
+   if(sameBatch.isNotEmpty){
+     List<int> id = List.generate(sameBatch.length, (index) => sameBatch[index].order_detail_sqlite_id!, growable: true);
+     for(int i = 0; i < sameBatch.length; i++){
+       if(id.any((element) => element == sameBatch[i].order_detail_sqlite_id)){
+         reprintList.add(sameBatch[i]);
+         // sameBatch.removeAt(i);
+       }
+     }
+   }
+   print("reprint list length: ${reprintList.length}");
+   return reprintList;
+  }
+
+  // List<int> extractOrderDetailSqliteId(List<OrderDetail> orderDetail){
+  //  List<int> orderDetailSqliteId = [];
+  //   for(int i = 0; i < orderDetail.length; i++){
+  //     orderDetailSqliteId.add(orderDetail[i].order_detail_sqlite_id!);
+  //   }
+  //   return orderDetailSqliteId;
+  // }
+
+  void splitOrderDetail(List<OrderDetail> returnData){
     //print("return data: ${returnData.length}");
     Map<String, List<OrderDetail>> groupedOrder = groupOrder(returnData);
     List<String> keyList = groupedOrder.keys.toList();
@@ -57,7 +84,7 @@ class ReprintKitchenList {
     }
   }
 
-  sendFailPrintOrderDetail({String? address, List<OrderDetail>? failList}){
+  void sendFailPrintOrderDetail({String? address, List<OrderDetail>? failList}){
     Socket client = Server.instance.clientList.firstWhere((e) => e.remoteAddress.address == address);
     Map<String, dynamic>? result = {'status': '1', 'action': '0', 'failedPrintOrderDetail': failList};
     client.write("${jsonEncode(result)}\n");

@@ -49,12 +49,66 @@ class Server extends ChangeNotifier {
     // }
     final ips = await instance.getDeviceIp();
     print("server ip running at: ${ips}");
-    serverSocket = await ServerSocket.bind(ips, 9999, shared: true);
-    serverSocket!.listen((currentClient) async {
-      addClient(currentClient);
-      //print("client length in bind: ${server.clientList.length}");
-      await handleClient(currentClient, clientList);
-    });
+    if(ips != null){
+      serverSocket = await ServerSocket.bind(ips, 9999, shared: true);
+      serverSocket!.listen((currentClient) async {
+        addClient(currentClient);
+        //print("client length in bind: ${server.clientList.length}");
+        await handleClient(currentClient);
+      });
+    } else {
+      _serverIp = "-";
+    }
+  }
+
+  Future<void> handleClient(Socket clientSocket) async {
+    // clientList.add(clientSocket);
+    StringBuffer buffer = StringBuffer();
+    Map<String, dynamic>? response;
+
+    clientSocket.listen((List<int> data) async {
+      String receivedData = utf8.decode(data);
+      buffer.write(receivedData);
+
+      List<String> messageList = buffer.toString().split('\n');
+      print("message length: ${messageList.length}");
+      List<String> messages = messageList.where((e) => e != '\n').toList();
+      for(int i = 0; i < messages.length; i++){
+        //print("message: ${messages[i]}");
+        final message = messages[i];
+        if(message.isNotEmpty){
+          //process the request
+          var msg = jsonDecode(message);
+          if(msg['param'] != ''){
+            response = await ServerAction().checkAction(action: msg['action'], param: msg['param']);
+          } else {
+            response = await ServerAction().checkAction(action: msg['action']);
+          }
+          //Broadcast the message to all other clients
+          clientSocket.write("${jsonEncode(response)}\n");
+          // for (var otherClient in clients) {
+          //   otherClient.write("${jsonEncode(response)}\n");
+          // }
+        }
+      }
+      //Update the buffer with the remaining incomplete message
+      buffer.clear();
+      buffer.write(messageList.last);
+      print("after process buffer: ${buffer.toString()}");
+
+    },
+      onDone: (){
+        //print('Client disconnected: ${clientSocket.remoteAddress}:${clientSocket.remotePort}');
+        removeClient(clientSocket);
+        clientSocket.close();
+        //clientList.remove(clientSocket);
+        print("on done client list: ${clientList.length}");
+      },
+      onError: (error){
+        print("server handle client error: ${error}");
+        serverSocket?.close();
+      },
+    );
   }
 
   sendRefreshMessage(){
@@ -72,54 +126,6 @@ class Server extends ChangeNotifier {
       await handleClient2(clientSocket, client2);
     }
   }
-
-  Future<void> handleClient(Socket clientSocket, List<Socket> clients) async {
-    // clientList.add(clientSocket);
-    StringBuffer buffer = StringBuffer();
-    Map<String, dynamic>? response;
-
-    clientSocket.listen((List<int> data) async {
-      String receivedData = utf8.decode(data);
-      buffer.write(receivedData);
-
-      final messages = buffer.toString().split('\n');
-      print("message length: ${messages.length}");
-      for(int i = 0; i < messages.length; i++){
-        //print("message: ${messages[i]}");
-        final message = messages[i];
-        if(message.isNotEmpty){
-          //process the request
-          var msg = jsonDecode(message);
-          if(msg['param'] != ''){
-            response = await ServerAction().checkAction(action: msg['action'], param: msg['param']);
-          } else {
-            response = await ServerAction().checkAction(action: msg['action']);
-          }
-          //Broadcast the message to all other clients
-          for (var otherClient in clients) {
-            otherClient.write("${jsonEncode(response)}\n");
-          }
-        }
-      }
-      //Update the buffer with the remaining incomplete message
-      buffer.clear();
-      buffer.write(messages.last);
-      print("after process buffer: ${buffer.toString()}");
-
-    },
-        onDone: (){
-          print('Client disconnected: ${clientSocket.remoteAddress}:${clientSocket.remotePort}');
-          clientSocket.close();
-          //clientList.remove(clientSocket);
-          removeClient(clientSocket);
-          print("on done client list: ${clientList.length}");
-        });
-  }
-
-  addClientList(){
-
-  }
-
 
   Future<void> handleClient2(Socket clientSocket, List<Socket> clients) async {
     try{
