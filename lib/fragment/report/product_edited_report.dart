@@ -23,7 +23,7 @@ class _ProductEditedReportState extends State<ProductEditedReport> {
   late Stream contentStream;
   List<DataRow> _dataRow = [];
   List<Categories> categoryData = [];
-  List<OrderDetail> orderDetailCategoryData = [];
+  List<OrderDetail> categoryOrderDetailList = [];
   List<OrderDetail> orderDetailList = [];
   String currentStDate = '';
   String currentEdDate = '';
@@ -268,28 +268,29 @@ class _ProductEditedReportState extends State<ProductEditedReport> {
     this.currentStDate = reportModel.startDateTime;
     this.currentEdDate = reportModel.endDateTime;
     await getAllCancelItemData();
-    reportModel.addOtherValue(valueList: orderDetailCategoryData);
+    reportModel.addOtherValue(valueList: categoryOrderDetailList);
     controller.sink.add("refresh");
   }
 
   getAllCancelItemData() async {
     _dataRow.clear();
     ReportObject object = await ReportObject().getAllEditedOrderDetail(currentStDate: currentStDate, currentEdDate: currentEdDate);
-    orderDetailList = object.dateOrderDetail!;
+    print("dateOrderDetail: ${object.dateOrderDetail!.length}");
+    categoryOrderDetailList = object.dateOrderDetail!;
     //print('date category data: ${categoryData.length}');
-    if(orderDetailList.isNotEmpty){
-      for(int i = 0; i < orderDetailList.length; i++){
-        orderDetailList[i].categoryOrderDetailList = object.dateOrderDetail!;
+    if(categoryOrderDetailList.isNotEmpty){
+      for(int i = 0; i < categoryOrderDetailList.length; i++){
+        categoryOrderDetailList[i].categoryOrderDetailList = object.dateOrderDetail!;
         _dataRow.addAll([
           DataRow(
             cells: <DataCell>[
               // DataCell(Text('Receipt No')),
-              DataCell(Text('#${orderDetailList[i].order_number}-${orderDetailList[i].branch_id?.padLeft(3,'0')}-${orderDetailList[i].created_at.toString().replaceAll(' ', '').replaceAll('-', '').replaceAll(':', '')}')),
-              DataCell(Text('${orderDetailList[i].productName}')),
-              DataCell(Text('${orderDetailList[i].original_price}')),
-              DataCell(Text('${orderDetailList[i].price}')),
-              DataCell(Text('${orderDetailList[i].edited_by}')),
-              DataCell(Text('${Utils.formatDate(orderDetailList[i].updated_at)}')),
+              DataCell(Text('#${categoryOrderDetailList[i].order_number}-${categoryOrderDetailList[i].branch_id?.padLeft(3,'0')}-${categoryOrderDetailList[i].created_at.toString().replaceAll(' ', '').replaceAll('-', '').replaceAll(':', '')}')),
+              DataCell(Text('${categoryOrderDetailList[i].productName}')),
+              DataCell(Text('${categoryOrderDetailList[i].original_price}')),
+              DataCell(Text('${categoryOrderDetailList[i].price}')),
+              DataCell(Text('${categoryOrderDetailList[i].edited_by}')),
+              DataCell(Text('${Utils.formatDate(categoryOrderDetailList[i].updated_at)}')),
             ]),
         ]);
       }

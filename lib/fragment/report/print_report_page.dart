@@ -79,6 +79,9 @@ class _PrintReportPageState extends State<PrintReportPage> {
                   case 4:
                     //generate modifier report
                     return reportFormat.generateModifierReportPdf(format, 'Modifier Report', reportModel);
+                  case 5:
+                    //generate edit report
+                    return reportFormat.generatePriceEditReportPdf(format, 'Price Edit Report', reportModel);
                   case 6:
                     //generate cancel report
                     return reportFormat.generateCancelProductReportPdf(format, 'Cancellation Report', reportModel);

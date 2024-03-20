@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:another_flushbar/flushbar.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -2224,117 +2225,147 @@ class CartPageState extends State<CartPage> {
   Not dine in call
 */
   callCreateNewNotDineOrder(CartModel cart, AppSettingModel appSettingModel) async {
-    print("callCreateNewNotDineOrder");
-    resetValue();
-    await createOrderCache(cart, isAddOrder: false);
-    await createOrderDetail(cart);
-    if (_appSettingModel.autoPrintChecklist == true) {
-      int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-      if (printStatus == 1) {
-        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-      } else if (printStatus == 2) {
-        Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-      } else if (printStatus == 5) {
-        Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+    try {
+      print("callCreateNewNotDineOrder");
+      resetValue();
+      await createOrderCache(cart, isAddOrder: false);
+      await createOrderDetail(cart);
+      if(_appSettingModel.autoPrintChecklist == true){
+        int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
+        if (printStatus == 1) {
+          Fluttertoast.showToast(
+              backgroundColor: Colors.red,
+              msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+        } else if (printStatus == 2) {
+          Fluttertoast.showToast(
+              backgroundColor: Colors.orangeAccent,
+              msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+        } else if (printStatus == 5) {
+          Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+        }
       }
+      Navigator.of(context).pop();
+      checkDirectPayment(appSettingModel, cart);
+
+      syncAllToCloud();
+      // if (this.isLogOut == true) {
+      //   openLogOutDialog();
+      //   return;
+      // }
+
+      printKitchenList();
+    } catch(e) {
+      FLog.error(
+        className: "cart",
+        text: "callCreateNewNotDineOrder error",
+        exception: e,
+      );
     }
-    Navigator.of(context).pop();
-    checkDirectPayment(appSettingModel, cart);
-
-    syncAllToCloud();
-    // if (this.isLogOut == true) {
-    //   openLogOutDialog();
-    //   return;
-    // }
-
-    printKitchenList();
   }
 
 /*
   dine in call
 */
   callCreateNewOrder(CartModel cart) async {
-    resetValue();
-    if(await checkTableStatus(cart) == false){
-      await createTableUseID();
-      await createTableUseDetail(cart);
-      await createOrderCache(cart, isAddOrder: false);
-      await createOrderDetail(cart);
-      await updatePosTable(cart);
-      if (_appSettingModel.autoPrintChecklist == true) {
-        int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-        if (printStatus == 1) {
-          Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-        } else if (printStatus == 2) {
-          Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-        } else if (printStatus == 5) {
-          Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+    try{
+      resetValue();
+      if(await checkTableStatus(cart) == false){
+        await createTableUseID();
+        await createTableUseDetail(cart);
+        await createOrderCache(cart, isAddOrder: false);
+        await createOrderDetail(cart);
+        await updatePosTable(cart);
+        if (_appSettingModel.autoPrintChecklist == true) {
+          int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
+          if (printStatus == 1) {
+            Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+          } else if (printStatus == 2) {
+            Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+          } else if (printStatus == 5) {
+            Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+          }
         }
+        cart.removeAllCartItem();
+        cart.removeAllTable();
+        // Server.instance.sendRefreshMessage();
+        Navigator.of(context).pop();
+
+        //syncAllToCloud();
+        // print('finish sync');
+        // if (this.isLogOut == true) {
+        //   openLogOutDialog();
+        //   return;
+        // }
+
+        printKitchenList();
+      } else {
+        cart.removeAllCartItem();
+        cart.removeAllTable();
+        // Server.instance.sendRefreshMessage();
+        Navigator.of(context).pop();
+        CustomFlushbar.instance.showFlushbar("Place order failed", "Table already in-used", Colors.red, (flushbar) async {
+          flushbar.dismiss(true);
+        }, duration: Duration(seconds: 3));
       }
-      cart.removeAllCartItem();
-      cart.removeAllTable();
-      // Server.instance.sendRefreshMessage();
-      Navigator.of(context).pop();
-
-      //syncAllToCloud();
-      // print('finish sync');
-      // if (this.isLogOut == true) {
-      //   openLogOutDialog();
-      //   return;
-      // }
-
-      printKitchenList();
-    } else {
-      cart.removeAllCartItem();
-      cart.removeAllTable();
-      // Server.instance.sendRefreshMessage();
-      Navigator.of(context).pop();
-      CustomFlushbar.instance.showFlushbar("Place order failed", "Table already in-used", Colors.red, (flushbar) async {
-        flushbar.dismiss(true);
-      }, duration: Duration(seconds: 3));
+    }catch(e){
+      FLog.error(
+        className: "cart",
+        text: "dine in call create new order error",
+        exception: e,
+      );
     }
+
   }
 
 /*
   add-on call (dine in)
 */
   callAddOrderCache(CartModel cart) async {
-    resetValue();
-    if(await checkTableStatus(cart) == true){
-      cart.selectedTable.removeWhere((e) => e.status == 0);
-      await createOrderCache(cart, isAddOrder: true);
-      await createOrderDetail(cart);
-      if (_appSettingModel.autoPrintChecklist == true) {
-        int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-        if (printStatus == 1) {
-          Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-        } else if (printStatus == 2) {
-          Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-        } else if (printStatus == 5) {
-          Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+    try{
+      resetValue();
+      if(await checkTableStatus(cart) == true){
+        cart.selectedTable.removeWhere((e) => e.status == 0);
+        await createOrderCache(cart, isAddOrder: true);
+        await createOrderDetail(cart);
+        if (_appSettingModel.autoPrintChecklist == true) {
+          int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
+          if (printStatus == 1) {
+            Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+          } else if (printStatus == 2) {
+            Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+          } else if (printStatus == 5) {
+            Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+          }
         }
+        cart.removeAllCartItem();
+        cart.removeAllTable();
+        // Server.instance.sendRefreshMessage();
+        Navigator.of(context).pop();
+
+        //syncAllToCloud();
+        // if (this.isLogOut == true) {
+        //   openLogOutDialog();
+        //   return;
+        // }
+
+        printKitchenList();
+      } else {
+        cart.removeAllCartItem();
+        cart.removeAllTable();
+        // Server.instance.sendRefreshMessage();
+        Navigator.of(context).pop();
+        CustomFlushbar.instance.showFlushbar("Place order failed", "Contain table not in-used", Colors.red, (flushbar) async {
+          flushbar.dismiss(true);
+        }, duration: Duration(seconds: 3));
       }
-      cart.removeAllCartItem();
-      cart.removeAllTable();
-      // Server.instance.sendRefreshMessage();
-      Navigator.of(context).pop();
-
-      //syncAllToCloud();
-      // if (this.isLogOut == true) {
-      //   openLogOutDialog();
-      //   return;
-      // }
-
-      printKitchenList();
-    } else {
-      cart.removeAllCartItem();
-      cart.removeAllTable();
-      // Server.instance.sendRefreshMessage();
-      Navigator.of(context).pop();
-      CustomFlushbar.instance.showFlushbar("Place order failed", "Contain table not in-used", Colors.red, (flushbar) async {
-        flushbar.dismiss(true);
-      }, duration: Duration(seconds: 3));
+    }catch(e){
+      FLog.error(
+        className: "cart",
+        text: "callAddOrderCache error",
+        exception: e,
+      );
     }
+
   }
 
   checkDirectPayment(AppSettingModel appSettingModel, cart) {
@@ -2537,7 +2568,13 @@ class CartPageState extends State<CartPage> {
       }
     } catch (e) {
       print(e);
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_table_id_error') + " ${e}");
+      Fluttertoast.showToast(
+          backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_table_id_error')+" ${e}");
+      FLog.error(
+        className: "cart",
+        text: "create table use id error",
+        exception: e,
+      );
     }
   }
 
@@ -2604,28 +2641,43 @@ class CartPageState extends State<CartPage> {
     List<String> _value = [];
     try {
       for (int i = 0; i < cart.selectedTable.length; i++) {
-        //create table use detail
-        TableUseDetail tableUseDetailData = await PosDatabase.instance.insertSqliteTableUseDetail(TableUseDetail(
-            table_use_detail_id: 0,
-            table_use_detail_key: '',
-            table_use_sqlite_id: localTableUseId,
-            table_use_key: tableUseKey,
-            table_sqlite_id: cart.selectedTable[i].table_sqlite_id.toString(),
-            table_id: cart.selectedTable[i].table_id.toString(),
-            status: 0,
-            sync_status: 0,
-            created_at: dateTime,
-            updated_at: '',
-            soft_delete: ''));
-        TableUseDetail updatedDetail = await insertTableUseDetailKey(tableUseDetailData, dateTime);
-        _value.add(jsonEncode(updatedDetail));
+        try {
+          //create table use detail
+          TableUseDetail tableUseDetailData = await PosDatabase.instance.insertSqliteTableUseDetail(
+              TableUseDetail(
+                  table_use_detail_id: 0,
+                  table_use_detail_key: '',
+                  table_use_sqlite_id: localTableUseId,
+                  table_use_key: tableUseKey,
+                  table_sqlite_id: cart.selectedTable[i].table_sqlite_id.toString(),
+                  table_id: cart.selectedTable[i].table_id.toString(),
+                  status: 0,
+                  sync_status: 0,
+                  created_at: dateTime,
+                  updated_at: '',
+                  soft_delete: ''));
+          TableUseDetail updatedDetail = await insertTableUseDetailKey(tableUseDetailData, dateTime);
+          _value.add(jsonEncode(updatedDetail));
+        } catch(e) {
+          FLog.error(
+            className: "cart",
+            text: "table use detail insert failed (table_id: ${cart.selectedTable[i].table_id.toString()})",
+            exception: "$e\n${cart.selectedTable[i].toJson()}",
+          );
+        }
       }
       table_use_detail_value = _value.toString();
       //sync to cloud
       //syncTableUseDetailToCloud(_value.toString());
     } catch (e) {
       print(e);
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_table_detail_error') + " ${e}");
+      Fluttertoast.showToast(
+          backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_table_detail_error')+" ${e}");
+      FLog.error(
+        className: "cart",
+        text: "createTableUseDetail error",
+        exception: e,
+      );
     }
   }
 
@@ -2644,88 +2696,112 @@ class CartPageState extends State<CartPage> {
   // }
 
   createOrderCache(CartModel cart, {required bool isAddOrder}) async {
-    print("createOrderCache called");
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
-
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    final String? user = prefs.getString('pos_pin_user');
-    final String? loginUser = prefs.getString('user');
-
-    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
-    int orderQueue = localSetting!.enable_numbering == 1 && localSetting.table_order == 0 ? await generateOrderQueue() : -1;
-
-    List<TableUse> _tableUse = [];
-    List<String> _value = [];
-    Map userObject = json.decode(user!);
-    Map loginUserObject = json.decode(loginUser!);
-    String _tableUseId = '';
-    String batch = '';
     try {
-      if (isAddOrder == true) {
-        batch = cart.cartNotifierItem[0].first_cache_batch!;
-      } else {
-        batch = await batchChecking();
-      }
-      //check selected table is in use or not
-      if (cart.selectedOption == 'Dine in' && localSetting.table_order == 1) {
-        for (int i = 0; i < cart.selectedTable.length; i++) {
-          List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
-          if (useDetail.isNotEmpty) {
-            _tableUseId = useDetail[0].table_use_sqlite_id!;
-          } else {
-            _tableUseId = this.localTableUseId;
+      print("createOrderCache called");
+      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+      String dateTime = dateFormat.format(DateTime.now());
+
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      final String? user = prefs.getString('pos_pin_user');
+      final String? loginUser = prefs.getString('user');
+
+      AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+      int orderQueue = localSetting!.enable_numbering == 1 && ((localSetting.table_order == 1 && cart.selectedOption != 'Dine in') ||  localSetting.table_order == 0) ? await generateOrderQueue() : -1;
+
+      List<TableUse> _tableUse = [];
+      List<String> _value = [];
+      Map userObject = json.decode(user!);
+      Map loginUserObject = json.decode(loginUser!);
+      String _tableUseId = '';
+      String batch = '';
+      try {
+        if (isAddOrder == true) {
+          batch = cart.cartNotifierItem[0].first_cache_batch!;
+        } else {
+          batch = await batchChecking();
+        }
+        //check selected table is in use or not
+        if (cart.selectedOption == 'Dine in' && localSetting.table_order == 1) {
+          for (int i = 0; i < cart.selectedTable.length; i++) {
+            List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
+            if (useDetail.isNotEmpty) {
+              _tableUseId = useDetail[0].table_use_sqlite_id!;
+            } else {
+              _tableUseId = this.localTableUseId;
+            }
+          }
+          List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
+          _tableUse = tableUseData;
+        }
+        if (batch != '') {
+          try {
+            //create order cache
+            OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(OrderCache(
+                order_cache_id: 0,
+                order_cache_key: '',
+                order_queue: orderQueue != -1 ? orderQueue.toString().padLeft(4, '0') : '',
+                company_id: loginUserObject['company_id'].toString(),
+                branch_id: branch_id.toString(),
+                order_detail_id: '',
+                table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting.table_order == 1 ? _tableUseId : '',
+                table_use_key: cart.selectedOption == 'Dine in' && localSetting.table_order == 1 ? _tableUse[0].table_use_key : '',
+                batch_id: batch.toString().padLeft(6, '0'),
+                dining_id: this.diningOptionID.toString(),
+                order_sqlite_id: '',
+                order_key: '',
+                order_by: userObject['name'].toString(),
+                order_by_user_id: userObject['user_id'].toString(),
+                cancel_by: '',
+                cancel_by_user_id: '',
+                customer_id: '0',
+                total_amount: newOrderSubtotal.toStringAsFixed(2),
+                qr_order: 0,
+                qr_order_table_sqlite_id: '',
+                qr_order_table_id: '',
+                accepted: 0,
+                sync_status: 0,
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+            orderCacheId = data.order_cache_sqlite_id.toString();
+            orderNumber = data.order_queue.toString();
+
+            try {
+              OrderCache updatedCache = await insertOrderCacheKey(data, dateTime);
+              if (updatedCache.sync_status == 0 && isAddOrder == false) {
+                //sync updated table use (with order cache key)
+                await insertOrderCacheKeyIntoTableUse(cart, updatedCache, dateTime);
+              }
+              _value.add(jsonEncode(updatedCache));
+              order_cache_value = _value.toString();
+              //sync to cloud
+              //syncOrderCacheToCloud(updatedCache);
+              cart.addOrder(data);
+            } catch(e) {
+              FLog.error(
+                className: "cart",
+                text: "order cache key insert failed ()",
+                exception: "$e\n${data.toJson()}",
+              );
+            }
+          } catch(e) {
+            FLog.error(
+              className: "cart",
+              text: "order cache create insert error",
+              exception: e,
+            );
           }
         }
-        List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
-        _tableUse = tableUseData;
+      } catch (e) {
+        print('createOrderCache error: ${e}');
       }
-      if (batch != '') {
-        //create order cache
-        OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(OrderCache(
-            order_cache_id: 0,
-            order_cache_key: '',
-            order_queue: orderQueue != -1 ? orderQueue.toString().padLeft(4, '0') : '',
-            company_id: loginUserObject['company_id'].toString(),
-            branch_id: branch_id.toString(),
-            order_detail_id: '',
-            table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting.table_order == 1 ? _tableUseId : '',
-            table_use_key: cart.selectedOption == 'Dine in' && localSetting.table_order == 1 ? _tableUse[0].table_use_key : '',
-            batch_id: batch.toString().padLeft(6, '0'),
-            dining_id: this.diningOptionID.toString(),
-            order_sqlite_id: '',
-            order_key: '',
-            order_by: userObject['name'].toString(),
-            order_by_user_id: userObject['user_id'].toString(),
-            cancel_by: '',
-            cancel_by_user_id: '',
-            customer_id: '0',
-            total_amount: newOrderSubtotal.toStringAsFixed(2),
-            qr_order: 0,
-            qr_order_table_sqlite_id: '',
-            qr_order_table_id: '',
-            accepted: 0,
-            sync_status: 0,
-            created_at: dateTime,
-            updated_at: '',
-            soft_delete: ''));
-        orderCacheId = data.order_cache_sqlite_id.toString();
-        orderNumber = data.order_queue.toString();
-        OrderCache updatedCache = await insertOrderCacheKey(data, dateTime);
-        if (updatedCache.sync_status == 0 && isAddOrder == false) {
-          //sync updated table use (with order cache key)
-          await insertOrderCacheKeyIntoTableUse(cart, updatedCache, dateTime);
-        }
-        _value.add(jsonEncode(updatedCache));
-        order_cache_value = _value.toString();
-        //sync to cloud
-        //syncOrderCacheToCloud(updatedCache);
-        cart.addOrder(data);
-      }
-    } catch (e) {
-      print('createOrderCache error: ${e}');
-      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('create_order_cache_error') + " ${e}");
+    } catch(e) {
+      FLog.error(
+        className: "cart",
+        text: "createOrderCache error",
+        exception: e,
+      );
     }
   }
 
@@ -2807,25 +2883,35 @@ class CartPageState extends State<CartPage> {
   }
 
   insertOrderCacheKeyIntoTableUse(CartModel cart, OrderCache orderCache, String dateTime) async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? branch_id = prefs.getInt('branch_id');
-    AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
-    List<String> _tableUseValue = [];
-    if (cart.selectedOption == "Dine in" && localSetting!.table_order == 1) {
-      List<TableUse> checkTableUse = await PosDatabase.instance.readSpecificTableUseId(int.parse(orderCache.table_use_sqlite_id!));
-      TableUse tableUseObject = TableUse(
-          order_cache_key: orderCacheKey,
-          sync_status: checkTableUse[0].sync_status == 0 ? 0 : 2,
-          updated_at: dateTime,
-          table_use_sqlite_id: int.parse(orderCache.table_use_sqlite_id!));
-      int tableUseCacheKey = await PosDatabase.instance.updateTableUseOrderCacheUniqueKey(tableUseObject);
-      if (tableUseCacheKey == 1) {
-        List<TableUse> updatedTableUseRead = await PosDatabase.instance.readSpecificTableUseId(tableUseObject.table_use_sqlite_id!);
-        _tableUseValue.add(jsonEncode(updatedTableUseRead[0]));
-        table_use_value = _tableUseValue.toString();
-        //sync to cloud
-        //syncUpdatedTableUseIdToCloud(_tableUseValue.toString());
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final int? branch_id = prefs.getInt('branch_id');
+      AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+      List<String> _tableUseValue = [];
+      if (cart.selectedOption == "Dine in" && localSetting!.table_order == 1) {
+        List<TableUse> checkTableUse = await PosDatabase.instance.readSpecificTableUseId(int.parse(orderCache.table_use_sqlite_id!));
+        TableUse tableUseObject = TableUse(
+            order_cache_key: orderCacheKey,
+            sync_status: checkTableUse[0].sync_status == 0 ? 0 : 2,
+            updated_at: dateTime,
+            table_use_sqlite_id: int.parse(orderCache.table_use_sqlite_id!));
+        int tableUseCacheKey =
+        await PosDatabase.instance.updateTableUseOrderCacheUniqueKey(tableUseObject);
+        if (tableUseCacheKey == 1) {
+          List<TableUse> updatedTableUseRead =
+          await PosDatabase.instance.readSpecificTableUseId(tableUseObject.table_use_sqlite_id!);
+          _tableUseValue.add(jsonEncode(updatedTableUseRead[0]));
+          table_use_value = _tableUseValue.toString();
+          //sync to cloud
+          //syncUpdatedTableUseIdToCloud(_tableUseValue.toString());
+        }
       }
+    } catch(e) {
+      FLog.error(
+        className: "cart",
+        text: "insertOrderCacheKeyIntoTableUse error",
+        exception: e,
+      );
     }
   }
 
@@ -2881,47 +2967,57 @@ class CartPageState extends State<CartPage> {
           created_at: dateTime,
           updated_at: '',
           soft_delete: '');
-      OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(object);
-      BranchLinkProduct? branchLinkProductData = await updateProductStock(
-          orderDetailData.branch_link_product_sqlite_id.toString(),
-          int.tryParse(orderDetailData.quantity!) != null ? int.parse(orderDetailData.quantity!) : double.parse(orderDetailData.quantity!),
-          // int.parse(orderDetailData.quantity!),
-          dateTime);
-      if (branchLinkProductData != null) {
-        _branchLinkProductValue.add(jsonEncode(branchLinkProductData.toJson()));
-        branch_link_product_value = _branchLinkProductValue.toString();
-      }
 
-      ///insert order detail key
-      OrderDetail updatedOrderDetailData = await insertOrderDetailKey(orderDetailData, dateTime);
-      _orderDetailValue.add(jsonEncode(updatedOrderDetailData.syncJson()));
-      order_detail_value = _orderDetailValue.toString();
+      try {
+        OrderDetail orderDetailData = await PosDatabase.instance.insertSqliteOrderDetail(object);
+        BranchLinkProduct? branchLinkProductData = await updateProductStock(
+            orderDetailData.branch_link_product_sqlite_id.toString(),
+            int.tryParse(orderDetailData.quantity!) != null ? int.parse(orderDetailData.quantity!): double.parse(orderDetailData.quantity!),
+            // int.parse(orderDetailData.quantity!),
+            dateTime);
+        if(branchLinkProductData != null){
+          _branchLinkProductValue.add(jsonEncode(branchLinkProductData.toJson()));
+          branch_link_product_value = _branchLinkProductValue.toString();
+        }
+        ///insert order detail key
+        OrderDetail updatedOrderDetailData = await insertOrderDetailKey(orderDetailData, dateTime);
+        _orderDetailValue.add(jsonEncode(updatedOrderDetailData.syncJson()));
+        order_detail_value = _orderDetailValue.toString();
 
-      ///insert order modifier detail
-      if (newOrderDetailList[j].checkedModifierItem!.isNotEmpty) {
-        List<ModifierItem> modItem = newOrderDetailList[j].checkedModifierItem!;
-        for (int k = 0; k < modItem.length; k++) {
-          OrderModifierDetail orderModifierDetailData = await PosDatabase.instance.insertSqliteOrderModifierDetail(OrderModifierDetail(
-              order_modifier_detail_id: 0,
-              order_modifier_detail_key: '',
-              order_detail_sqlite_id: orderDetailData.order_detail_sqlite_id.toString(),
-              order_detail_id: '0',
-              order_detail_key: await orderDetailKey,
-              mod_item_id: modItem[k].mod_item_id.toString(),
-              mod_name: modItem[k].name,
-              mod_price: modItem[k].price,
-              mod_group_id: modItem[k].mod_group_id.toString(),
-              sync_status: 0,
-              created_at: dateTime,
-              updated_at: '',
-              soft_delete: ''));
-          //insert unique key
-          OrderModifierDetail updatedOrderModifierDetail = await insertOrderModifierDetailKey(orderModifierDetailData, dateTime);
-          if (updatedOrderModifierDetail.order_modifier_detail_key != '') {
-            _orderModifierValue.add(jsonEncode(updatedOrderModifierDetail));
-            order_modifier_detail_value = _orderModifierValue.toString();
+        ///insert order modifier detail
+        if (newOrderDetailList[j].checkedModifierItem!.isNotEmpty) {
+          List<ModifierItem> modItem = newOrderDetailList[j].checkedModifierItem!;
+          for (int k = 0; k < modItem.length; k++) {
+            OrderModifierDetail orderModifierDetailData = await PosDatabase.instance
+                .insertSqliteOrderModifierDetail(OrderModifierDetail(
+                order_modifier_detail_id: 0,
+                order_modifier_detail_key: '',
+                order_detail_sqlite_id: orderDetailData.order_detail_sqlite_id.toString(),
+                order_detail_id: '0',
+                order_detail_key: await orderDetailKey,
+                mod_item_id: modItem[k].mod_item_id.toString(),
+                mod_name: modItem[k].name,
+                mod_price: modItem[k].price,
+                mod_group_id: modItem[k].mod_group_id.toString(),
+                sync_status: 0,
+                created_at: dateTime,
+                updated_at: '',
+                soft_delete: ''));
+            //insert unique key
+            OrderModifierDetail updatedOrderModifierDetail =
+            await insertOrderModifierDetailKey(orderModifierDetailData, dateTime);
+            if (updatedOrderModifierDetail.order_modifier_detail_key != '') {
+              _orderModifierValue.add(jsonEncode(updatedOrderModifierDetail));
+              order_modifier_detail_value = _orderModifierValue.toString();
+            }
           }
         }
+      } catch(e) {
+        FLog.error(
+          className: "cart",
+          text: "order detail insert failed",
+          exception: "$e\n${object.toJson()}",
+        );
       }
     }
   }
@@ -2966,6 +3062,11 @@ class CartPageState extends State<CartPage> {
       }
     } catch (e) {
       print("cart update product stock error: $e");
+      FLog.error(
+        className: "cart",
+        text: "product stock update failed (branch_link_product_sqlite_id: ${branch_link_product_sqlite_id})",
+        exception: e,
+      );
     }
   }
 
@@ -3003,6 +3104,11 @@ class CartPageState extends State<CartPage> {
       return detailData;
     } catch (e) {
       print('insert order detail key error: ${e}');
+      FLog.error(
+        className: "cart",
+        text: "order detail key insert failed",
+        exception: "$e\n${orderDetail.toJson()}",
+      );
       return;
     }
   }
@@ -3053,6 +3159,11 @@ class CartPageState extends State<CartPage> {
     } catch (e) {
       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('update_table_error') + " ${e}");
       print("update table error: $e");
+      FLog.error(
+        className: "cart",
+        text: "table update error",
+        exception: e,
+      );
     }
   }
 

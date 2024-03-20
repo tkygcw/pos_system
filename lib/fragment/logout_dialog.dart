@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_system/database/domain.dart';
@@ -108,6 +109,10 @@ class _LogoutConfirmDialogState extends State<LogoutConfirmDialog> {
     cart.removePromotion();
     displayManager.transferDataToPresentation("refresh_img");
     setState(() {});
+    FLog.info(
+      className: "logout_dialog",
+      text: "Account logged out",
+    );
     //deleteFile2();
     Navigator.of(context).pushAndRemoveUntil(
       // the new route

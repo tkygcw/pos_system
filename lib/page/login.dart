@@ -93,6 +93,7 @@ class _LoginPageState extends State<LoginPage> {
         Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('please_try_again_later'));
         toNextPage = false;
       }
+      return null;
     });
   }
 

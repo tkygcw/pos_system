@@ -171,8 +171,8 @@ class CartDialogState extends State<CartDialog> {
                       Visibility(
                         visible: checkIsSelected(),
                         child: SizedBox(
-                          width: MediaQuery.of(context).size.width / 10,
-                          height: MediaQuery.of(context).size.height / 20,
+                          width: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? MediaQuery.of(context).size.width / 10 : MediaQuery.of(context).size.width / 8,
+                          height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? MediaQuery.of(context).size.height / 20 : MediaQuery.of(context).size.height / 12,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               padding: EdgeInsets.zero,
