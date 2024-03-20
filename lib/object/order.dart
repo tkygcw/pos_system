@@ -106,6 +106,7 @@ class Order {
   double? gross_sales;
   String? bill_no;
   double? promo_amount;
+  double? total_tax_amount;
   String? tax_id;
   List<OrderTaxDetail> taxDetailList = [];
 
@@ -154,6 +155,7 @@ class Order {
         this.gross_sales,
         this.bill_no,
         this.promo_amount,
+        this.total_tax_amount,
         this.tax_id});
 
   Order copy({
@@ -259,7 +261,8 @@ class Order {
       gross_sales: json['gross_sales'] as double?,
       bill_no: json['bill_no'] as String?,
       promo_amount: json['promo_amount'] as double?,
-      tax_id: json['tax_id'] as String?
+      total_tax_amount: json['total_tax_amount'] as double?,
+      tax_id: json['tax_id'] as String?,
   );
 
   Map<String, Object?> toJson() => {

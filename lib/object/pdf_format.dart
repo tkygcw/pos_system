@@ -35,7 +35,7 @@ class ReportFormat {
     String returnValue = '';
     try{
       if(value.item_sum is double){
-        returnValue = double.parse(value.item_sum.toString()).toStringAsFixed(2) + '(${value.unit})';
+        returnValue = '${value.item_qty.toString()}/${double.parse(value.item_sum.toString()).toStringAsFixed(2)}(${value.unit})';
         print("is double: ${value.item_sum}");
       } else {
         print("not double");
@@ -708,6 +708,126 @@ class ReportFormat {
     return pdf.save();
   }
 
+  Future<Uint8List> generatePriceEditReportPdf(PdfPageFormat format, String title, ReportModel reportModel) async {
+    List valueList = reportModel.reportValue2;
+    final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
+    final imageByteData = await rootBundle.load('drawable/logo.png');
+    // Convert ByteData to Uint8List
+    final imageUint8List = imageByteData.buffer.asUint8List(imageByteData.offsetInBytes, imageByteData.lengthInBytes);
+    final image = pw.MemoryImage(imageUint8List);
+
+    // Define a function to generate the parent row
+    pw.TableRow _generateParentRow(List<String> rowData) {
+      return pw.TableRow(
+        children: [
+          for (final item in rowData)
+            pw.Padding(
+              padding: pw.EdgeInsets.all(5),
+              child: pw.Text(item),
+            ),
+        ],
+      );
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+          pageFormat: format,
+          orientation: pw.PageOrientation.landscape,
+          build: (pw.Context context) => [
+            pw.Center(
+              child: pw.SizedBox(
+                  height: 100,
+                  width: 100,
+                  child: pw.Image(image)
+              ),
+            ),
+            pw.Table(
+                border: pw.TableBorder(
+                  left: pw.BorderSide(width: 0),
+                  top: pw.BorderSide(width: 0),
+                  right: pw.BorderSide(width: 0),
+                  bottom: pw.BorderSide(width: 0),
+                  horizontalInside: pw.BorderSide(width: 0),
+                  verticalInside: pw.BorderSide.none,
+                ),
+                children: [
+                  pw.TableRow(
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.black,
+                      ),
+                      children: [
+                        pw.Padding(
+                          padding: pw.EdgeInsets.all(10),
+                          child: pw.Text('Receipt No', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Receipt No'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Product', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Product'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Original Price', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Original Price'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Price', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Price'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Edit By', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Edit By'))),
+                        ),
+                        pw.Padding(
+                          padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                          child: pw.Text('Edit At', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Edit At'))),
+                        ),
+                      ]
+                  ),
+                  for(int j = 0; j < valueList.length; j++)
+                    // for(int i = 0; i < valueList[j].categoryOrderDetailList.length; i++)
+                      pw.TableRow(
+                          children: [
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('#${valueList[j].categoryOrderDetailList[j].order_number}-${valueList[j].categoryOrderDetailList[j].branch_id?.padLeft(3,'0')}-${valueList[j].categoryOrderDetailList[j].created_at.toString().replaceAll(' ', '').replaceAll('-', '').replaceAll(':', '')}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[j].order_number))),
+                            ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child:
+                              pw.Text('${valueList[j].categoryOrderDetailList[j].productName}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[j].productName)))
+                            ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child:
+                              pw.Text('${valueList[j].categoryOrderDetailList[j].original_price}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[j].original_price)))
+                            ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('${valueList[j].categoryOrderDetailList[j].price}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[j].price))),
+                            ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('${valueList[j].categoryOrderDetailList[j].edited_by}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[j].edited_by))),
+                            ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('${valueList[j].categoryOrderDetailList[j].updated_at}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].categoryOrderDetailList[j].updated_at))),
+                            ),
+                          ]
+                      ),
+                ]
+            ),
+          ]
+      ),
+    );
+    return pdf.save();
+  }
+
   Future<Uint8List> generateCancelProductReportPdf(PdfPageFormat format, String title, ReportModel reportModel) async {
     List valueList = reportModel.reportValue2;
     final pdf = pw.Document(version: PdfVersion.pdf_1_5, compress: true);
@@ -1192,8 +1312,7 @@ class ReportFormat {
                     verticalInside: pw.BorderSide.none,
                   ),
                   children: [
-                    for(int j = 0; j < valueList.length; j++)
-                      pw.TableRow(
+                    pw.TableRow(
                         decoration: pw.BoxDecoration(
                           color: PdfColors.black,
                         ),
@@ -1206,14 +1325,12 @@ class ReportFormat {
                             padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
                             child: pw.Text('Total Discount', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Discount'))),
                           ),
-                          for(int i = 0; i < headerList.length; i++)
-                            pw.Padding(
-                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                              child: pw.Text('${headerList[i].tax_name}',
-                                  style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat(headerList[i].tax_name))),
-                            ),
+                          pw.Padding(
+                            padding: pw.EdgeInsets.fromLTRB(5, 10, 10, 10),
+                            child: pw.Text('Total Tax', style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, font: getFontFormat('Total Discount'))),
+                          ),
                         ]
-                      ),
+                    ),
                     for(int j = 0; j < valueList.length; j++)
                       pw.TableRow(
                           children: [
@@ -1231,18 +1348,23 @@ class ReportFormat {
                               padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
                               child: pw.Text('-${valueList[j].promo_amount}', style: pw.TextStyle(font: getFontFormat(valueList[j].promo_amount))),
                             ),
-                            if(valueList[j].taxDetailList.length == 0)
-                              for(int i = 0; i < headerList.length; i++)
-                                pw.Padding(
-                                  padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                                  child: pw.Text('0.00', style: pw.TextStyle(font: getFontFormat('0.00'))))
-                            else
-                            for(int i = 0; i < valueList[j].taxDetailList.length; i++)
-                              pw.Padding(
-                                padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
-                                child: pw.Text('${valueList[j].taxDetailList[i].total_tax_amount!.toStringAsFixed(2)}',
-                                    style: pw.TextStyle(font: getFontFormat(valueList[j].taxDetailList[i].total_tax_amount!.toStringAsFixed(2)))),
-                              ),
+                            pw.Padding(
+                              padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                              child: pw.Text('${valueList[j].total_tax_amount!.toStringAsFixed(2)}',
+                                  style: pw.TextStyle(font: getFontFormat(valueList[j].total_tax_amount!.toStringAsFixed(2)))),
+                            ),
+                            // if(valueList[j].taxDetailList.length == 0)
+                            //   for(int i = 0; i < headerList.length; i++)
+                            //     pw.Padding(
+                            //       padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            //       child: pw.Text('0.00', style: pw.TextStyle(font: getFontFormat('0.00'))))
+                            // else
+                            // for(int i = 0; i < valueList[j].taxDetailList.length; i++)
+                            //   pw.Padding(
+                            //     padding: pw.EdgeInsets.fromLTRB(5, 5, 10, 5),
+                            //     child: pw.Text('${valueList[j].taxDetailList[i].total_tax_amount!.toStringAsFixed(2)}',
+                            //         style: pw.TextStyle(font: getFontFormat(valueList[j].taxDetailList[i].total_tax_amount!.toStringAsFixed(2)))),
+                            //   ),
 
                           ]
                       ),

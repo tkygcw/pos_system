@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
@@ -15,180 +17,179 @@ class CancelModifierReport extends StatefulWidget {
 }
 
 class _CancelModifierReportState extends State<CancelModifierReport> {
+  StreamController controller = StreamController();
+  late Stream contentStream;
   List<DataRow> _dataRow = [];
   List<ModifierGroup> modGroupData = [];
   String currentStDate = '';
   String currentEdDate = '';
-  bool isLoaded = false;
 
   @override
   void initState() {
     super.initState();
+    contentStream = controller.stream.asBroadcastStream();
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if(reportModel.load == 0){
-            preload(reportModel);
-            reportModel.setLoaded();
-          }
-        });
-          return LayoutBuilder(builder: (context, constraints) {
-            if (constraints.maxWidth > 800) {
-              return Scaffold(
-                body: this.isLoaded ?
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              child: Text(AppLocalizations.of(context)!.translate('cancelled_modifier_report'),
-                                  style: TextStyle(fontSize: 25, color: Colors.black)),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 5),
-                        Divider(
-                          height: 10,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 5),
-                        _dataRow.isNotEmpty ?
-                        Container(
-                          margin: EdgeInsets.all(10),
-                          child:  isLoaded ?
-                          DataTable(
-                              border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                              headingTextStyle: TextStyle(color: Colors.white),
-                              headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                              columns: <DataColumn>[
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(AppLocalizations.of(context)!.translate('modifier'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
+        preload(reportModel);
+          return StreamBuilder(
+            stream: contentStream,
+            builder: (context, snapshot) {
+              if(snapshot.hasData){
+                return LayoutBuilder(builder: (context, constraints) {
+                  if (constraints.maxWidth > 800) {
+                    return Scaffold(
+                        body: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      child: Text(AppLocalizations.of(context)!.translate('cancelled_modifier_report'),
+                                          style: TextStyle(fontSize: 25, color: Colors.black)),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(AppLocalizations.of(context)!.translate('quantity'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
+                                SizedBox(height: 5),
+                                Divider(
+                                  height: 10,
+                                  color: Colors.grey,
                                 ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(AppLocalizations.of(context)!.translate('net_sales'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
+                                SizedBox(height: 5),
+                                _dataRow.isNotEmpty ?
+                                Container(
+                                    margin: EdgeInsets.all(10),
+                                    child: DataTable(
+                                        border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                                        headingTextStyle: TextStyle(color: Colors.white),
+                                        headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                                        columns: <DataColumn>[
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(AppLocalizations.of(context)!.translate('modifier'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(AppLocalizations.of(context)!.translate('quantity'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(AppLocalizations.of(context)!.translate('net_sales'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                        rows: _dataRow
+                                    )
+                                ):
+                                Center(
+                                  heightFactor: 12,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.menu),
+                                      Text(AppLocalizations.of(context)!.translate('no_record_found')),
+                                    ],
                                   ),
-                                ),
+                                )
                               ],
-                              rows: _dataRow
-                          ) : Center(
-                            child: CustomProgressBar(),
-                          ),
-                        ):
-                        Center(
-                          heightFactor: 12,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Icon(Icons.menu),
-                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
-                            ],
+                            ),
                           ),
                         )
-                      ],
-                    ),
-                  ),
-                ) : CustomProgressBar(),
-              );
-            } else {
-              return Scaffold(
-                body: this.isLoaded ?
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              child: Text(AppLocalizations.of(context)!.translate('cancelled_modifier_report'),
-                                  style: TextStyle(fontSize: 25, color: Colors.black)),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 5),
-                        Divider(
-                          height: 10,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 5),
-                        _dataRow.isNotEmpty ?
-                        Container(
-                          margin: EdgeInsets.all(10),
-                          child:  isLoaded ?
-                          DataTable(
-                              border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                              headingTextStyle: TextStyle(color: Colors.white),
-                              headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                              columns: <DataColumn>[
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(AppLocalizations.of(context)!.translate('modifier'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(AppLocalizations.of(context)!.translate('quantity'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(AppLocalizations.of(context)!.translate('net_sales'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              rows: _dataRow
-                          ) : Center(
-                            child: CustomProgressBar(),
-                          ),
-                        ):
-                        Center(
-                          heightFactor: 4,
+                    );
+                  } else {
+                    return Scaffold(
+                      body: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(Icons.menu),
-                              Text(AppLocalizations.of(context)!.translate('no_record_found')),
+                              Row(
+                                children: [
+                                  Container(
+                                    child: Text(AppLocalizations.of(context)!.translate('cancelled_modifier_report'),
+                                        style: TextStyle(fontSize: 25, color: Colors.black)),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 5),
+                              Divider(
+                                height: 10,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 5),
+                              _dataRow.isNotEmpty ?
+                              Container(
+                                margin: EdgeInsets.all(10),
+                                child:  DataTable(
+                                    border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                                    headingTextStyle: TextStyle(color: Colors.white),
+                                    headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                                    columns: <DataColumn>[
+                                      DataColumn(
+                                        label: Expanded(
+                                          child: Text(AppLocalizations.of(context)!.translate('modifier'),
+                                            style: TextStyle(fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ),
+                                      DataColumn(
+                                        label: Expanded(
+                                          child: Text(AppLocalizations.of(context)!.translate('quantity'),
+                                            style: TextStyle(fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ),
+                                      DataColumn(
+                                        label: Expanded(
+                                          child: Text(AppLocalizations.of(context)!.translate('net_sales'),
+                                            style: TextStyle(fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                    rows: _dataRow
+                                )
+                              ):
+                              Center(
+                                heightFactor: 4,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.menu),
+                                    Text(AppLocalizations.of(context)!.translate('no_record_found')),
+                                  ],
+                                ),
+                              )
                             ],
                           ),
-                        )
-                      ],
-                    ),
-                  ),
-                ) : CustomProgressBar(),
-              );
+                        ),
+                      )
+                    );
+                  }
+                });
+              } else {
+                return CustomProgressBar();
+              }
             }
-          });
+          );
         }
       );
     });
@@ -199,19 +200,13 @@ class _CancelModifierReportState extends State<CancelModifierReport> {
     this.currentEdDate = reportModel.endDateTime;
     await getAllCancelledModifier();
     reportModel.addOtherValue(valueList: modGroupData);
-    if(mounted){
-      setState(() {
-        isLoaded = true;
-      });
-    }
+    controller.sink.add("refresh");
   }
 
   getAllCancelledModifier() async {
     _dataRow.clear();
-    //List<OrderModifierDetail> modifierData = [];
     ReportObject object = await ReportObject().getAllCancelledModifierGroup(currentStDate: currentStDate, currentEdDate: currentEdDate);
     modGroupData = object.dateModifierGroup!;
-    print('modifier group data: ${modGroupData.length}');
     if(modGroupData.isNotEmpty){
       for(int i = 0; i < modGroupData.length; i++){
         ReportObject object = await ReportObject().getAllCancelledOrderModifierDetail(modGroupData[i].mod_group_id.toString(), currentStDate: currentStDate, currentEdDate: currentEdDate);
