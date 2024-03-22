@@ -1953,8 +1953,8 @@ class _EditProductDialogState extends State<EditProductDialog> {
                             ),
                           ),
                           SimpleGroupedCheckbox<int>(
-                            disableItems: List.generate(modifierElement.length,
-                                    (index) => modifierElement[index].name!),
+                            // disableItems: List.generate(modifierElement.length,
+                            //         (index) => modifierElement[index].name!),
                             controller: switchController,
                             itemsTitle: List.generate(modifierElement.length,
                                 (index) => modifierElement[index].name!),
@@ -1969,7 +1969,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                               ),
                               activeColor: color.backgroundColor,
                             ),
-                            checkFirstElement: false,
+                            // checkFirstElement: false,
                             onItemSelected: isAdd? (data) {
                               print(data);
                             }:null,
