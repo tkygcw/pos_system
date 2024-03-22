@@ -128,13 +128,12 @@ class Server extends ChangeNotifier {
   }
 
   Future<void> handleClient2(Socket clientSocket, List<Socket> clients) async {
-    try{
-      StringBuffer buffer = StringBuffer();
-      Map<String, dynamic>? response;
-      String receivedData = '';
-
-      StreamSubscription streamSubscription = clientSocket.listen((List<int> data) async {
-        asyncQ.addJob((_) async {
+    asyncQ.addJob((_) {
+      try{
+        StringBuffer buffer = StringBuffer();
+        Map<String, dynamic>? response;
+        String receivedData = '';
+        StreamSubscription streamSubscription = clientSocket.listen((List<int> data) async {
           print("socket2 called");
           // receivedData += utf8.decode(data);
           receivedData = utf8.decode(data);
@@ -154,23 +153,27 @@ class Server extends ChangeNotifier {
             clientSocket.write("${jsonEncode(response)}\n");
             buffer.clear();
           }
-        });
-      },
-          onDone: (){
-            print('Client disconnected 2: ${clientSocket.remoteAddress}:${clientSocket.remotePort}');
-            // clientSocket.flush();
-            clientSocket.close();
-            clients.remove(clientSocket);
-          },
-          onError: (error){
-            print("handle client 2 error: ${error}");
-            clientSocket.close();
-            clients.remove(clientSocket);
-          });
-      // await streamSubscription.asFuture();
-    } catch(e){
-      print("handle client 2 error: ${e}");
-    }
+          // asyncQ.addJob((_) async {
+          //
+          // });
+        },cancelOnError: true,
+            onDone: (){
+              //print('Client disconnected 2: ${clientSocket.remoteAddress}:${clientSocket.remotePort}');
+              // clientSocket.flush();
+              print("client done called!!!");
+              clientSocket.close();
+              clients.remove(clientSocket);
+            },
+            onError: (error){
+              print("handle client 2 error: ${error}");
+              clientSocket.close();
+              clients.remove(clientSocket);
+            });
+        // await streamSubscription.asFuture();
+      } catch(e){
+        print("handle client 2 error: ${e}");
+      }
+    });
   }
 
 }
