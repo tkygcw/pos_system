@@ -195,7 +195,8 @@ class PosDatabase {
           ${SubscriptionFields.branch_amount} $integerType,
           ${SubscriptionFields.start_date} $textType,
           ${SubscriptionFields.end_date} $textType,
-          ${SubscriptionFields.created_at} $textType)''');
+          ${SubscriptionFields.created_at} $textType,
+          ${SubscriptionFields.soft_delete} $textType)''');
         }break;
         case 8 :{
           await db.execute('''CREATE TABLE $tableSecondScreen(
@@ -255,7 +256,8 @@ class PosDatabase {
           ${SubscriptionFields.branch_amount} $integerType,
           ${SubscriptionFields.start_date} $textType,
           ${SubscriptionFields.end_date} $textType,
-          ${SubscriptionFields.created_at} $textType)''');
+          ${SubscriptionFields.created_at} $textType,
+          ${SubscriptionFields.soft_delete} $textType)''');
         }break;
         case 9: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.branch_id} TEXT NOT NULL DEFAULT '$branch_id' ");
@@ -306,7 +308,8 @@ class PosDatabase {
           ${SubscriptionFields.branch_amount} $integerType,
           ${SubscriptionFields.start_date} $textType,
           ${SubscriptionFields.end_date} $textType,
-          ${SubscriptionFields.created_at} $textType)''');
+          ${SubscriptionFields.created_at} $textType,
+          ${SubscriptionFields.soft_delete} $textType)''');
         }break;
         case 10: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
@@ -332,7 +335,8 @@ class PosDatabase {
           ${SubscriptionFields.branch_amount} $integerType,
           ${SubscriptionFields.start_date} $textType,
           ${SubscriptionFields.end_date} $textType,
-          ${SubscriptionFields.created_at} $textType)''');
+          ${SubscriptionFields.created_at} $textType,
+          ${SubscriptionFields.soft_delete} $textType)''');
         }break;
         case 11: {
           await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.allow_image} $integerType DEFAULT 0");
@@ -356,7 +360,8 @@ class PosDatabase {
           ${SubscriptionFields.branch_amount} $integerType,
           ${SubscriptionFields.start_date} $textType,
           ${SubscriptionFields.end_date} $textType,
-          ${SubscriptionFields.created_at} $textType)''');
+          ${SubscriptionFields.created_at} $textType,
+          ${SubscriptionFields.soft_delete} $textType)''');
         }break;
         case 12: {
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by} TEXT NOT NULL DEFAULT '' ");
@@ -377,7 +382,8 @@ class PosDatabase {
           ${SubscriptionFields.branch_amount} $integerType,
           ${SubscriptionFields.start_date} $textType,
           ${SubscriptionFields.end_date} $textType,
-          ${SubscriptionFields.created_at} $textType)''');
+          ${SubscriptionFields.created_at} $textType,
+          ${SubscriptionFields.soft_delete} $textType)''');
         }break;
         case 13: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_auto_accept} INTEGER NOT NULL DEFAULT 0");
@@ -392,7 +398,8 @@ class PosDatabase {
           ${SubscriptionFields.branch_amount} $integerType,
           ${SubscriptionFields.start_date} $textType,
           ${SubscriptionFields.end_date} $textType,
-          ${SubscriptionFields.created_at} $textType)''');
+          ${SubscriptionFields.created_at} $textType,
+          ${SubscriptionFields.soft_delete} $textType)''');
         }break;
       }
     }
@@ -414,7 +421,8 @@ class PosDatabase {
 */
     await db.execute('''CREATE TABLE $tableSubscription ( ${SubscriptionFields.subscription_sqlite_id} $idType, ${SubscriptionFields.id} $integerType, ${SubscriptionFields.company_id} $textType, 
            ${SubscriptionFields.subscription_plan_id} $textType, ${SubscriptionFields.subscribe_package} $textType, ${SubscriptionFields.subscribe_fee} $textType, ${SubscriptionFields.duration} $textType, 
-           ${SubscriptionFields.branch_amount} $integerType, ${SubscriptionFields.start_date} $textType, ${SubscriptionFields.end_date} $textType, ${SubscriptionFields.created_at} $textType)''');
+           ${SubscriptionFields.branch_amount} $integerType, ${SubscriptionFields.start_date} $textType, ${SubscriptionFields.end_date} $textType, ${SubscriptionFields.created_at} $textType, 
+           ${SubscriptionFields.soft_delete} $textType)''');
 /*
     create category table
 */
@@ -4059,7 +4067,7 @@ class PosDatabase {
   Future<Subscription?> readAllSubscription() async {
     final db = await instance.database;
     // final result = await db.rawQuery('SELECT * FROM $tableSubscription');
-    final result = await db.rawQuery('SELECT * FROM $tableSubscription ORDER BY end_date DESC');
+    final result = await db.rawQuery('SELECT * FROM $tableSubscription WHERE soft_delete = ? ORDER BY end_date DESC ', ['']);
     if (result.isNotEmpty) {
       return Subscription.fromJson(result.first);
     } else {
@@ -4663,9 +4671,9 @@ class PosDatabase {
     final db = await instance.database;
     return await db.rawUpdate(
         'UPDATE $tableSubscription SET subscription_plan_id = ?, subscribe_package = ?, subscribe_fee = ?, duration = ?, '
-            'branch_amount = ?, start_date = ? , end_date = ? WHERE id = ?',
+            'branch_amount = ?, start_date = ? , end_date = ? , soft_delete = ? WHERE id = ?',
         [data.subscription_plan_id, data.subscribe_package, data.subscribe_fee, data.duration, data.branch_amount,
-          data.start_date, data.end_date, data.id]);
+          data.start_date, data.end_date, data.soft_delete, data.id]);
   }
 
 /*

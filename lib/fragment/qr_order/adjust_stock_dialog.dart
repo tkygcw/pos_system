@@ -7,6 +7,7 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
 import 'package:pos_system/object/print_receipt.dart';
 import 'package:pos_system/object/printer.dart';
@@ -38,11 +39,11 @@ class AdjustStockDialog extends StatefulWidget {
 
   const AdjustStockDialog(
       {Key? key,
-      required this.orderDetailList,
-      required this.orderCacheLocalId,
-      required this.callBack,
-      required this.tableLocalId,
-      required this.orderCacheList, required this.currentBatch})
+        required this.orderDetailList,
+        required this.orderCacheLocalId,
+        required this.callBack,
+        required this.tableLocalId,
+        required this.orderCacheList, required this.currentBatch})
       : super(key: key);
 
   @override
@@ -60,6 +61,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   bool hasNoStockProduct = false, hasNotAvailableProduct = false, tableInUsed = false;
   bool isButtonDisabled = false, isLogOut = false;
   bool willPop = true;
+  late AppSettingModel _appSettingModel;
 
   late FailPrintModel _failPrintModel;
 
@@ -104,42 +106,300 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Consumer<FailPrintModel>(builder: (context, FailPrintModel failPrintModel, child) {
-        _failPrintModel = failPrintModel;
-        return LayoutBuilder(builder: (context, constraints) {
-          if (constraints.maxWidth > 800) {
-            return WillPopScope(
-              onWillPop: () async => willPop,
-              child: AlertDialog(
-                title: Row(
-                  children: [
-                    Text(AppLocalizations.of(context)!.translate('order_detail'),
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+      return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
+        _appSettingModel = appSettingModel;
+        return Consumer<FailPrintModel>(builder: (context, FailPrintModel failPrintModel, child) {
+          _failPrintModel = failPrintModel;
+          return LayoutBuilder(builder: (context, constraints) {
+            if (constraints.maxWidth > 800) {
+              return WillPopScope(
+                onWillPop: () async => willPop,
+                child: AlertDialog(
+                  title: Row(
+                    children: [
+                      Text(AppLocalizations.of(context)!.translate('order_detail'),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Spacer(),
+                      IconButton(
+                          onPressed: (){
+                            if(removeDetailList.isNotEmpty){
+                              if(mounted){
+                                setState(() {
+                                  widget.orderDetailList.addAll(removeDetailList);
+                                  removeDetailList.clear();
+                                });
+                                Fluttertoast.showToast(msg: "${AppLocalizations.of(context)?.translate('content_reset_success')}", backgroundColor: Colors.green);
+                              }
+                            } else {
+                              Fluttertoast.showToast(msg: "${AppLocalizations.of(context)?.translate('content_already_reset')}", backgroundColor: Colors.red);
+                            }
+                          },
+                          icon: Icon(Icons.refresh))
+                    ],
+                  ),
+                  content: Container(
+                    height: MediaQuery.of(context).size.height,
+                    width: MediaQuery.of(context).size.width / 1.5,
+                    child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        itemCount: widget.orderDetailList.length,
+                        shrinkWrap: true,
+                        itemBuilder: (context, index) {
+                          return Dismissible(
+                            background: Container(
+                              color: Colors.red,
+                              padding: EdgeInsets.only(left: 25.0),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Colors.white),
+                                ],
+                              ),
+                            ),
+                            key: ValueKey(widget.orderDetailList[index].productName),
+                            direction: DismissDirection.startToEnd,
+                            confirmDismiss: (direction) async {
+                              if (direction == DismissDirection.startToEnd) {
+                                print('detail remove');
+                                if (mounted) {
+                                  setState(() {
+                                    widget.orderDetailList[index].isRemove = true;
+                                    removeDetailList.add(widget.orderDetailList[index]);
+                                    widget.orderDetailList.removeAt(index);
+                                  });
+                                }
+                              }
+                              return null;
+                            },
+                            child: Card(
+                              elevation: 5,
+                              child: Container(
+                                margin: EdgeInsets.all(10),
+                                child: Column(children: [
+                                  ListTile(
+                                    onTap: null,
+                                    isThreeLine: true,
+                                    title: RichText(
+                                      text: TextSpan(
+                                        children: <TextSpan>[
+                                          TextSpan(
+                                              text: "${widget.orderDetailList[index].productName}" + "\n",
+                                              style: TextStyle(fontSize: 14, color: Colors.black)),
+                                          TextSpan(
+                                              text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
+                                        ],
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Visibility(
+                                          visible: widget.orderDetailList[index].product_variant_name != '' ? true : false,
+                                          child: Text("(${Utils.formatProductVariant(widget.orderDetailList[index].product_variant_name!)})"),
+                                        ),
+                                        Visibility(
+                                          visible: getOrderDetailModifier(widget.orderDetailList[index]) != '' ? true : false,
+                                          child: Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
+                                        ),
+                                        widget.orderDetailList[index].remark != '' ? Text("*${widget.orderDetailList[index].remark}") : Text('')
+                                      ],
+                                    ),
+                                    trailing: Container(
+                                      child: FittedBox(
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                IconButton(
+                                                    hoverColor: Colors.transparent,
+                                                    icon: Icon(
+                                                      Icons.remove,
+                                                      size: 40,
+                                                    ),
+                                                    onPressed: () {
+                                                      print('qty remove');
+                                                      int qty = int.parse(widget.orderDetailList[index].quantity!);
+                                                      int totalQty = qty - 1;
+                                                      if (totalQty <= 0) {
+                                                        setState(() {
+                                                          widget.orderDetailList[index].isRemove = true;
+                                                          removeDetailList.add(widget.orderDetailList[index]);
+                                                          widget.orderDetailList.removeAt(index);
+                                                        });
+                                                      } else {
+                                                        setState(() {
+                                                          widget.orderDetailList[index].quantity = totalQty.toString();
+                                                        });
+                                                      }
+                                                    }),
+                                                Padding(
+                                                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                                  child: Text(
+                                                    '${widget.orderDetailList[index].quantity}',
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(color: Colors.black, fontSize: 30),
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                    hoverColor: Colors.transparent,
+                                                    icon: Icon(
+                                                      Icons.add,
+                                                      size: 40,
+                                                    ),
+                                                    onPressed: () {
+                                                      if(widget.orderDetailList[index].available_stock != ''){
+                                                        if (int.parse(widget.orderDetailList[index].quantity!) < int.parse(widget.orderDetailList[index].available_stock!)) {
+                                                          setState(() {
+                                                            int qty = int.parse(widget.orderDetailList[index].quantity!);
+                                                            int totalQty = qty + 1;
+                                                            widget.orderDetailList[index].quantity = totalQty.toString();
+                                                          });
+                                                        } else {
+                                                          Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('out_of_stock'));
+                                                        }
+                                                      } else {
+                                                        setState(() {
+                                                          int qty = int.parse(widget.orderDetailList[index].quantity!);
+                                                          int totalQty = qty + 1;
+                                                          widget.orderDetailList[index].quantity = totalQty.toString();
+                                                        });
+                                                      }
+                                                    })
+                                              ],
+                                            ),
+                                            Visibility(
+                                                visible: widget.orderDetailList[index].available_stock != '' ? true : false,
+                                                child: Text(AppLocalizations.of(context)!.translate('available_stock')+': ${widget.orderDetailList[index].available_stock}')
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ]),
+                              ),
+                            ),
+                          );
+                        }),
+                  ),
+                  actions: <Widget>[
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width / 4,
+                      height: MediaQuery.of(context).size.height / 12,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color.backgroundColor,
+                        ),
+                        child: Text(AppLocalizations.of(context)!.translate('close'),
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () {
+                          // Disable the button after it has been pressed
+                          setState(() {
+                            isButtonDisabled = true;
+                          });
+                          Navigator.of(context).pop();
+                        },
                       ),
                     ),
-                    Spacer(),
-                    IconButton(
-                        onPressed: (){
-                          if(removeDetailList.isNotEmpty){
-                            if(mounted){
-                              setState(() {
-                                widget.orderDetailList.addAll(removeDetailList);
-                                removeDetailList.clear();
-                              });
-                              Fluttertoast.showToast(msg: "${AppLocalizations.of(context)?.translate('content_reset_success')}", backgroundColor: Colors.green);
-                            }
-                          } else {
-                            Fluttertoast.showToast(msg: "${AppLocalizations.of(context)?.translate('content_already_reset')}", backgroundColor: Colors.red);
-                          }
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width / 4,
+                      height: MediaQuery.of(context).size.height / 12,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                        ),
+                        child: Text(AppLocalizations.of(context)!.translate('reject'),
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () async {
+                          // Disable the button after it has been pressed
+                          setState(() {
+                            isButtonDisabled = true;
+                            willPop = false;
+                          });
+                          await callRejectOrder();
+                          syncToCloudFunction();
                         },
-                        icon: Icon(Icons.refresh))
+                      ),
+                    ),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width / 4,
+                      height: MediaQuery.of(context).size.height / 12,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color.buttonColor,
+                        ),
+                        child: Text(AppLocalizations.of(context)!.translate('add'),
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : widget.orderDetailList.isNotEmpty
+                            ? () async {
+                          await checkOrderDetailStock();
+                          print('available check: ${hasNotAvailableProduct}');
+                          if (hasNoStockProduct) {
+                            Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
+                          } else if(hasNotAvailableProduct){
+                            Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
+                          } else {
+                            // Disable the button after it has been pressed
+                            setState(() {
+                              isButtonDisabled = true;
+                              willPop = false;
+                            });
+                            if (removeDetailList.isNotEmpty) {
+                              await removeOrderDetail();
+                            }
+                            if (widget.tableLocalId != '') {
+                              await checkTable();
+                              if (tableInUsed == true) {
+                                await updateOrderDetail();
+                                await updateOrderCache();
+                                await updateProductStock();
+                              } else {
+                                await callNewOrder();
+                                await updateProductStock();
+                              }
+                            } else {
+                              await callOtherOrder();
+                            }
+                            if(_appSettingModel.autoPrintChecklist == true){
+                              await printCheckList();
+                            }
+                            syncToCloudFunction();
+                            widget.callBack;
+                            Navigator.of(context).pop();
+                            await callPrinter();
+                          }
+                        }
+                            : null,
+                      ),
+                    ),
                   ],
                 ),
+              );
+            } else {
+              ///mobile layout
+              return AlertDialog(
+                title: Text(AppLocalizations.of(context)!.translate('order_detail'),
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 content: Container(
-                  height: MediaQuery.of(context).size.height,
-                  width: MediaQuery.of(context).size.width / 1.5,
+                  //height: MediaQuery.of(context).size.height,
+                  width: MediaQuery.of(context).size.width,
                   child: ListView.builder(
                       padding: EdgeInsets.zero,
                       itemCount: widget.orderDetailList.length,
@@ -174,104 +434,108 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                             elevation: 5,
                             child: Container(
                               margin: EdgeInsets.all(10),
+                              height: MediaQuery.of(context).size.height / 4,
                               child: Column(children: [
-                                ListTile(
-                                  onTap: null,
-                                  isThreeLine: true,
-                                  title: RichText(
-                                    text: TextSpan(
-                                      children: <TextSpan>[
-                                        TextSpan(
-                                            text: "${widget.orderDetailList[index].productName}" + "\n",
-                                            style: TextStyle(fontSize: 14, color: Colors.black)),
-                                        TextSpan(
-                                            text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
+                                Expanded(
+                                  child: ListTile(
+                                    onTap: null,
+                                    isThreeLine: true,
+                                    title: RichText(
+                                      text: TextSpan(
+                                        children: <TextSpan>[
+                                          TextSpan(
+                                              text: "${widget.orderDetailList[index].productName}" + "\n",
+                                              style: TextStyle(fontSize: 14, color: Colors.black)),
+                                          TextSpan(
+                                              text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
+                                        ],
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Visibility(
+                                          visible: widget.orderDetailList[index].product_variant_name != '' ? true : false,
+                                          child: Text("+${widget.orderDetailList[index].product_variant_name}"),
+                                        ),
+                                        //modifier
+                                        Visibility(
+                                          visible: getOrderDetailModifier(widget.orderDetailList[index]) != '' ? true : false,
+                                          child: Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
+                                        ),
+                                        widget.orderDetailList[index].remark != '' ? Text("*${widget.orderDetailList[index].remark}") : Text('')
                                       ],
                                     ),
-                                  ),
-                                  subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Visibility(
-                                        visible: widget.orderDetailList[index].product_variant_name != '' ? true : false,
-                                        child: Text("(${Utils.formatProductVariant(widget.orderDetailList[index].product_variant_name!)})"),
-                                      ),
-                                      Visibility(
-                                        visible: getOrderDetailModifier(widget.orderDetailList[index]) != '' ? true : false,
-                                        child: Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
-                                      ),
-                                      widget.orderDetailList[index].remark != '' ? Text("*${widget.orderDetailList[index].remark}") : Text('')
-                                    ],
-                                  ),
-                                  trailing: Container(
-                                    child: FittedBox(
-                                      child: Column(
-                                        children: [
-                                          Row(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              IconButton(
-                                                  hoverColor: Colors.transparent,
-                                                  icon: Icon(
-                                                    Icons.remove,
-                                                    size: 40,
+                                    trailing: Container(
+                                      child: FittedBox(
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                IconButton(
+                                                    hoverColor: Colors.transparent,
+                                                    icon: Icon(
+                                                      Icons.remove,
+                                                      size: 40,
+                                                    ),
+                                                    onPressed: () {
+                                                      print('qty remove');
+                                                      int qty = int.parse(widget.orderDetailList[index].quantity!);
+                                                      int totalQty = qty - 1;
+                                                      if (totalQty <= 0) {
+                                                        setState(() {
+                                                          widget.orderDetailList[index].isRemove = true;
+                                                          removeDetailList.add(widget.orderDetailList[index]);
+                                                          widget.orderDetailList.removeAt(index);
+                                                        });
+                                                      } else {
+                                                        setState(() {
+                                                          widget.orderDetailList[index].quantity = totalQty.toString();
+                                                        });
+                                                      }
+                                                    }),
+                                                Padding(
+                                                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                                  child: Text(
+                                                    '${widget.orderDetailList[index].quantity}',
+                                                    style: TextStyle(color: Colors.black, fontSize: 30),
                                                   ),
-                                                  onPressed: () {
-                                                    print('qty remove');
-                                                    int qty = int.parse(widget.orderDetailList[index].quantity!);
-                                                    int totalQty = qty - 1;
-                                                    if (totalQty <= 0) {
-                                                      setState(() {
-                                                        widget.orderDetailList[index].isRemove = true;
-                                                        removeDetailList.add(widget.orderDetailList[index]);
-                                                        widget.orderDetailList.removeAt(index);
-                                                      });
-                                                    } else {
-                                                      setState(() {
-                                                        widget.orderDetailList[index].quantity = totalQty.toString();
-                                                      });
-                                                    }
-                                                  }),
-                                              Padding(
-                                                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                                child: Text(
-                                                  '${widget.orderDetailList[index].quantity}',
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(color: Colors.black, fontSize: 30),
                                                 ),
-                                              ),
-                                              IconButton(
-                                                  hoverColor: Colors.transparent,
-                                                  icon: Icon(
-                                                    Icons.add,
-                                                    size: 40,
-                                                  ),
-                                                  onPressed: () {
-                                                    if(widget.orderDetailList[index].available_stock != ''){
-                                                      if (int.parse(widget.orderDetailList[index].quantity!) < int.parse(widget.orderDetailList[index].available_stock!)) {
+                                                IconButton(
+                                                    hoverColor: Colors.transparent,
+                                                    icon: Icon(
+                                                      Icons.add,
+                                                      size: 40,
+                                                    ),
+                                                    onPressed: () {
+                                                      if(int.tryParse(widget.orderDetailList[index].available_stock!) != null){
+                                                        if (int.parse(widget.orderDetailList[index].quantity!) <
+                                                            int.parse(widget.orderDetailList[index].available_stock!)) {
+                                                          setState(() {
+                                                            int qty = int.parse(widget.orderDetailList[index].quantity!);
+                                                            int totalQty = qty + 1;
+                                                            widget.orderDetailList[index].quantity = totalQty.toString();
+                                                          });
+                                                        } else {
+                                                          Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('out_of_stock'));
+                                                        }
+                                                      } else {
                                                         setState(() {
                                                           int qty = int.parse(widget.orderDetailList[index].quantity!);
                                                           int totalQty = qty + 1;
                                                           widget.orderDetailList[index].quantity = totalQty.toString();
                                                         });
-                                                      } else {
-                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('out_of_stock'));
                                                       }
-                                                    } else {
-                                                      setState(() {
-                                                        int qty = int.parse(widget.orderDetailList[index].quantity!);
-                                                        int totalQty = qty + 1;
-                                                        widget.orderDetailList[index].quantity = totalQty.toString();
-                                                      });
-                                                    }
-                                                  })
-                                            ],
-                                          ),
-                                          Visibility(
-                                              visible: widget.orderDetailList[index].available_stock != '' ? true : false,
-                                              child: Text(AppLocalizations.of(context)!.translate('available_stock')+': ${widget.orderDetailList[index].available_stock}')
-                                          )
-                                        ],
+                                                    })
+                                              ],
+                                            ),
+                                            Visibility(
+                                                visible: widget.orderDetailList[index].available_stock != '' ? true : false,
+                                                child: Text(AppLocalizations.of(context)!.translate('available_stock')+': ${widget.orderDetailList[index].available_stock}')
+                                            )
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -284,15 +548,13 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                 ),
                 actions: <Widget>[
                   SizedBox(
-                    width: MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.height / 12,
+                    width: MediaQuery.of(context).size.width / 3.6,
+                    height: MediaQuery.of(context).size.height / 8,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: color.backgroundColor,
                       ),
-                      child: Text(AppLocalizations.of(context)!.translate('close'),
-                        style: TextStyle(color: Colors.white),
-                      ),
+                      child: Text(AppLocalizations.of(context)!.translate('close')),
                       onPressed: isButtonDisabled
                           ? null
                           : () {
@@ -305,22 +567,19 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                     ),
                   ),
                   SizedBox(
-                    width: MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.height / 12,
+                    width: MediaQuery.of(context).size.width / 3.6,
+                    height: MediaQuery.of(context).size.height / 8,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.redAccent,
                       ),
-                      child: Text(AppLocalizations.of(context)!.translate('reject'),
-                        style: TextStyle(color: Colors.white),
-                      ),
+                      child: Text(AppLocalizations.of(context)!.translate('reject')),
                       onPressed: isButtonDisabled
                           ? null
                           : () async {
                         // Disable the button after it has been pressed
                         setState(() {
                           isButtonDisabled = true;
-                          willPop = false;
                         });
                         await callRejectOrder();
                         syncToCloudFunction();
@@ -328,305 +587,55 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                     ),
                   ),
                   SizedBox(
-                    width: MediaQuery.of(context).size.width / 4,
-                    height: MediaQuery.of(context).size.height / 12,
+                    width: MediaQuery.of(context).size.width / 3.6,
+                    height: MediaQuery.of(context).size.height / 8,
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: color.buttonColor,
-                      ),
-                      child: Text(AppLocalizations.of(context)!.translate('add'),
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onPressed: isButtonDisabled
-                          ? null
-                          : widget.orderDetailList.isNotEmpty
-                          ? () async {
-                        await checkOrderDetailStock();
-                        print('available check: ${hasNotAvailableProduct}');
-                        if (hasNoStockProduct) {
-                          Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
-                        } else if(hasNotAvailableProduct){
-                          Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
-                        } else {
-                          // Disable the button after it has been pressed
-                          setState(() {
-                            isButtonDisabled = true;
-                            willPop = false;
-                          });
-                          if (removeDetailList.isNotEmpty) {
-                            await removeOrderDetail();
-                          }
-                          if (widget.tableLocalId != '') {
-                            await checkTable();
-                            if (tableInUsed == true) {
-                              await updateOrderDetail();
-                              await updateOrderCache();
-                              await updateProductStock();
-                            } else {
-                              await callNewOrder();
-                              await updateProductStock();
-                            }
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: color.buttonColor,
+                        ),
+                        child: Text(AppLocalizations.of(context)!.translate('add')),
+                        onPressed: isButtonDisabled || widget.orderDetailList.isEmpty ? null : () async {
+                          await checkOrderDetailStock();
+                          if (hasNoStockProduct) {
+                            Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
+                          } else if (hasNotAvailableProduct){
+                            Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
                           } else {
-                            await callOtherOrder();
+                            // Disable the button after it has been pressed
+                            setState(() {
+                              isButtonDisabled = true;
+                            });
+                            if (removeDetailList.isNotEmpty) {
+                              await removeOrderDetail();
+                            }
+                            if (widget.tableLocalId != '') {
+                              await checkTable();
+                              if (tableInUsed == true) {
+                                await updateOrderDetail();
+                                await updateOrderCache();
+                                await updateProductStock();
+                              } else {
+                                await callNewOrder();
+                                await updateProductStock();
+                              }
+                            } else {
+                              await callOtherOrder();
+                            }
+                            if(_appSettingModel.autoPrintChecklist == true){
+                              await printCheckList();
+                            }
+                            syncToCloudFunction();
+                            widget.callBack;
+                            Navigator.of(context).pop();
+                            await callPrinter();
                           }
-                          await printCheckList();
-                          syncToCloudFunction();
-                          widget.callBack;
-                          Navigator.of(context).pop();
-                          await callPrinter();
                         }
-                      }
-                          : null,
                     ),
                   ),
                 ],
-              ),
-            );
-          } else {
-            ///mobile layout
-            return AlertDialog(
-              title: Text(AppLocalizations.of(context)!.translate('order_detail'),
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              content: Container(
-                //height: MediaQuery.of(context).size.height,
-                width: MediaQuery.of(context).size.width,
-                child: ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: widget.orderDetailList.length,
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      return Dismissible(
-                        background: Container(
-                          color: Colors.red,
-                          padding: EdgeInsets.only(left: 25.0),
-                          child: Row(
-                            children: [
-                              Icon(Icons.delete, color: Colors.white),
-                            ],
-                          ),
-                        ),
-                        key: ValueKey(widget.orderDetailList[index].productName),
-                        direction: DismissDirection.startToEnd,
-                        confirmDismiss: (direction) async {
-                          if (direction == DismissDirection.startToEnd) {
-                            print('detail remove');
-                            if (mounted) {
-                              setState(() {
-                                widget.orderDetailList[index].isRemove = true;
-                                removeDetailList.add(widget.orderDetailList[index]);
-                                widget.orderDetailList.removeAt(index);
-                              });
-                            }
-                          }
-                          return null;
-                        },
-                        child: Card(
-                          elevation: 5,
-                          child: Container(
-                            margin: EdgeInsets.all(10),
-                            height: MediaQuery.of(context).size.height / 4,
-                            child: Column(children: [
-                              Expanded(
-                                child: ListTile(
-                                  onTap: null,
-                                  isThreeLine: true,
-                                  title: RichText(
-                                    text: TextSpan(
-                                      children: <TextSpan>[
-                                        TextSpan(
-                                            text: "${widget.orderDetailList[index].productName}" + "\n",
-                                            style: TextStyle(fontSize: 14, color: Colors.black)),
-                                        TextSpan(
-                                            text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
-                                      ],
-                                    ),
-                                  ),
-                                  subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Visibility(
-                                        visible: widget.orderDetailList[index].product_variant_name != '' ? true : false,
-                                        child: Text("+${widget.orderDetailList[index].product_variant_name}"),
-                                      ),
-                                      //modifier
-                                      Visibility(
-                                        visible: getOrderDetailModifier(widget.orderDetailList[index]) != '' ? true : false,
-                                        child: Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
-                                      ),
-                                      widget.orderDetailList[index].remark != '' ? Text("*${widget.orderDetailList[index].remark}") : Text('')
-                                    ],
-                                  ),
-                                  trailing: Container(
-                                    child: FittedBox(
-                                      child: Column(
-                                        children: [
-                                          Row(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              IconButton(
-                                                  hoverColor: Colors.transparent,
-                                                  icon: Icon(
-                                                    Icons.remove,
-                                                    size: 40,
-                                                  ),
-                                                  onPressed: () {
-                                                    print('qty remove');
-                                                    int qty = int.parse(widget.orderDetailList[index].quantity!);
-                                                    int totalQty = qty - 1;
-                                                    if (totalQty <= 0) {
-                                                      setState(() {
-                                                        widget.orderDetailList[index].isRemove = true;
-                                                        removeDetailList.add(widget.orderDetailList[index]);
-                                                        widget.orderDetailList.removeAt(index);
-                                                      });
-                                                    } else {
-                                                      setState(() {
-                                                        widget.orderDetailList[index].quantity = totalQty.toString();
-                                                      });
-                                                    }
-                                                  }),
-                                              Padding(
-                                                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                                child: Text(
-                                                  '${widget.orderDetailList[index].quantity}',
-                                                  style: TextStyle(color: Colors.black, fontSize: 30),
-                                                ),
-                                              ),
-                                              IconButton(
-                                                  hoverColor: Colors.transparent,
-                                                  icon: Icon(
-                                                    Icons.add,
-                                                    size: 40,
-                                                  ),
-                                                  onPressed: () {
-                                                    if(int.tryParse(widget.orderDetailList[index].available_stock!) != null){
-                                                      if (int.parse(widget.orderDetailList[index].quantity!) <
-                                                          int.parse(widget.orderDetailList[index].available_stock!)) {
-                                                        setState(() {
-                                                          int qty = int.parse(widget.orderDetailList[index].quantity!);
-                                                          int totalQty = qty + 1;
-                                                          widget.orderDetailList[index].quantity = totalQty.toString();
-                                                        });
-                                                      } else {
-                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('out_of_stock'));
-                                                      }
-                                                    } else {
-                                                      setState(() {
-                                                        int qty = int.parse(widget.orderDetailList[index].quantity!);
-                                                        int totalQty = qty + 1;
-                                                        widget.orderDetailList[index].quantity = totalQty.toString();
-                                                      });
-                                                    }
-                                                  })
-                                            ],
-                                          ),
-                                          Visibility(
-                                              visible: widget.orderDetailList[index].available_stock != '' ? true : false,
-                                              child: Text(AppLocalizations.of(context)!.translate('available_stock')+': ${widget.orderDetailList[index].available_stock}')
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ]),
-                          ),
-                        ),
-                      );
-                    }),
-              ),
-              actions: <Widget>[
-                SizedBox(
-                  width: MediaQuery.of(context).size.width / 3.6,
-                  height: MediaQuery.of(context).size.height / 8,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: color.backgroundColor,
-                    ),
-                    child: Text(AppLocalizations.of(context)!.translate('close')),
-                    onPressed: isButtonDisabled
-                        ? null
-                        : () {
-                      // Disable the button after it has been pressed
-                      setState(() {
-                        isButtonDisabled = true;
-                      });
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width / 3.6,
-                  height: MediaQuery.of(context).size.height / 8,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                    ),
-                    child: Text(AppLocalizations.of(context)!.translate('reject')),
-                    onPressed: isButtonDisabled
-                        ? null
-                        : () async {
-                      // Disable the button after it has been pressed
-                      setState(() {
-                        isButtonDisabled = true;
-                      });
-                      await callRejectOrder();
-                      syncToCloudFunction();
-                    },
-                  ),
-                ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width / 3.6,
-                  height: MediaQuery.of(context).size.height / 8,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: color.buttonColor,
-                    ),
-                    child: Text(AppLocalizations.of(context)!.translate('add')),
-                    onPressed: isButtonDisabled || widget.orderDetailList.isEmpty ? null : () async {
-                      await checkOrderDetailStock();
-                      if (hasNoStockProduct) {
-                        Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
-                      } else if (hasNotAvailableProduct){
-                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
-                      } else {
-                        // Disable the button after it has been pressed
-                        setState(() {
-                          isButtonDisabled = true;
-                        });
-                        if (removeDetailList.isNotEmpty) {
-                          await removeOrderDetail();
-                        }
-                        if (widget.tableLocalId != '') {
-                          await checkTable();
-                          if (tableInUsed == true) {
-                            await updateOrderDetail();
-                            await updateOrderCache();
-                            await updateProductStock();
-                          } else {
-                            await callNewOrder();
-                            await updateProductStock();
-                          }
-                        } else {
-                          await callOtherOrder();
-                        }
-                        await printCheckList();
-                        syncToCloudFunction();
-                        widget.callBack;
-                        Navigator.of(context).pop();
-                        await callPrinter();
-                      }
-                    }
-                  ),
-                ),
-              ],
-            );
-          }
+              );
+            }
+          });
         });
       });
     });
@@ -660,33 +669,39 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       BuildContext _context = MyApp.navigatorKey.currentContext!;
       String flushbarStatus = '';
       List<OrderDetail> returnData = await PrintReceipt().printQrKitchenList(printerList, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
-      if(returnData.isNotEmpty){
-        _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-        playSound();
-        Flushbar(
-          icon: Icon(Icons.error, size: 32, color: Colors.white),
-          shouldIconPulse: false,
-          title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
-          message: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
-          duration: Duration(seconds: 5),
-          backgroundColor: Colors.red,
-          messageColor: Colors.white,
-          flushbarPosition: FlushbarPosition.TOP,
-          maxWidth: 350,
-          margin: EdgeInsets.all(8),
-          borderRadius: BorderRadius.circular(8),
-          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-          onTap: (flushbar) {
-            flushbar.dismiss(true);
-          },
-          onStatusChanged: (status) {
-            flushbarStatus = status.toString();
-          },
-        )..show(_context);
-        Future.delayed(Duration(seconds: 3), () {
-          if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
-            playSound();
-        });
+      if(returnData != null) {
+        if(returnData.isNotEmpty){
+          _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
+          playSound();
+          Flushbar(
+            icon: Icon(Icons.error, size: 32, color: Colors.white),
+            shouldIconPulse: false,
+            title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
+            message: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
+            duration: Duration(seconds: 5),
+            backgroundColor: Colors.red,
+            messageColor: Colors.white,
+            flushbarPosition: FlushbarPosition.TOP,
+            maxWidth: 350,
+            margin: EdgeInsets.all(8),
+            borderRadius: BorderRadius.circular(8),
+            padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+            onTap: (flushbar) {
+              flushbar.dismiss(true);
+            },
+            onStatusChanged: (status) {
+              flushbarStatus = status.toString();
+            },
+          )..show(_context);
+          Future.delayed(Duration(seconds: 3), () {
+            if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
+              playSound();
+          });
+        }
+      } else {
+        Fluttertoast.showToast(
+            backgroundColor: Colors.red,
+            msg: "${AppLocalizations.of(_context)?.translate('no_printer_added')}");
       }
     } catch(e) {
       print("callPrinter error: ${e}");
@@ -1024,7 +1039,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     TableUse? _tbUseList;
     tableUseKey = await generateTableUseKey(tableUse);
     TableUse tableUseObject =
-        TableUse(table_use_key: tableUseKey, sync_status: 0, updated_at: dateTime, table_use_sqlite_id: tableUse.table_use_sqlite_id);
+    TableUse(table_use_key: tableUseKey, sync_status: 0, updated_at: dateTime, table_use_sqlite_id: tableUse.table_use_sqlite_id);
     int tableUseData = await PosDatabase.instance.updateTableUseUniqueKey(tableUseObject);
     if (tableUseData == 1) {
       TableUse data = await PosDatabase.instance.readSpecificTableUseIdByLocalId(tableUseObject.table_use_sqlite_id!);
@@ -1101,13 +1116,13 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
       String dateTime = dateFormat.format(DateTime.now());
       OrderDetail orderDetail = OrderDetail(
-          updated_at: dateTime,
-          sync_status: 2,
-          status: 2,
-          cancel_by: '',
-          cancel_by_user_id: '',
-          order_detail_key: removeDetailList[i].order_detail_key,
-          order_detail_sqlite_id: removeDetailList[i].order_detail_sqlite_id,
+        updated_at: dateTime,
+        sync_status: 2,
+        status: 2,
+        cancel_by: '',
+        cancel_by_user_id: '',
+        order_detail_key: removeDetailList[i].order_detail_key,
+        order_detail_sqlite_id: removeDetailList[i].order_detail_sqlite_id,
       );
       int deleteOrderDetail = await PosDatabase.instance.updateOrderDetailStatus(orderDetail);
       if (deleteOrderDetail == 1) {

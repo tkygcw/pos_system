@@ -2035,7 +2035,7 @@ class Domain {
   }
 
   /*
-  * get app setting
+  * get subscription
   * */
   getSubscription(company_id) async {
     try {
