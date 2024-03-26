@@ -76,17 +76,13 @@ class SyncRecord {
         }
         //update sync record
         await Domain().updateAllCloudSyncRecord('${branchObject['branchID']}', syncRecordIdList.toString());
-        notificationModel.setContentLoaded();
-        notificationModel.setCartContentLoaded();
         status = 0;
       } else if (data['status'] == '7'){
         status = 1;
-        notificationModel.setContentLoaded();
       } else if(data['status'] == '8'){
         throw TimeoutException("Timeout");
       } else {
         status = 0;
-        notificationModel.setContentLoaded();
       }
       return status;
 
