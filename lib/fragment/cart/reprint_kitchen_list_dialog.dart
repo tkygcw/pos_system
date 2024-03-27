@@ -401,7 +401,7 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
   }
 
   checkSubPosOrderDetail(List<OrderDetail> orderDetail){
-    ReprintKitchenList reprintFunction = ReprintKitchenList();
+    ReprintKitchenListFunction reprintFunction = ReprintKitchenListFunction();
     List<OrderDetail> subPosOrder = orderDetail.where((e) => e.failPrintBatch != null).toList();
     print("sub pos order length: ${subPosOrder.length}");
     if(subPosOrder.isNotEmpty){

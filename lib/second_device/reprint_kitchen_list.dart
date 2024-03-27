@@ -13,7 +13,7 @@ import '../object/order_detail.dart';
 import '../object/print_receipt.dart';
 import '../translation/AppLocalizations.dart';
 
-class ReprintKitchenList {
+class ReprintKitchenListFunction {
   FailPrintModel _failPrintModel = FailPrintModel.instance;
   List<OrderDetail> selectedList = [];
   BuildContext _context = MyApp.navigatorKey.currentContext!;

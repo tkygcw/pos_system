@@ -73,6 +73,7 @@ class ServerAction {
           var data6 = await PosDatabase.instance.readAllProductVariant();
           var data7 = await PosDatabase.instance.readAppSetting();
           var data8 = await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
+          var data9 = await PosDatabase.instance.readAllTaxLinkDining();
           objectData = {
             'tb_categories': data,
             'tb_product': data2,
@@ -81,7 +82,8 @@ class ServerAction {
             'tb_branch_link_modifier': data5,
             'tb_product_variant': data6,
             'tb_app_setting': data7,
-            'tb_branch_link_dining_option': data8
+            'tb_branch_link_dining_option': data8,
+            'taxLinkDiningList': data9
           };
           result = {'status': '1', 'action': '1', 'data': objectData};
         }
@@ -126,12 +128,10 @@ class ServerAction {
           CartPageState cartPageState = CartPageState();
           await cartPageState.readAllBranchLinkDiningOption(serverCall: 1);
           await cartPageState.getPromotionData();
-          List<TaxLinkDining> taxLinkDiningList = await PosDatabase.instance.readAllTaxLinkDining();
           objectData = {
-            'dining_list': cartPageState.diningList,
-            'branch_link_dining_id_list': cartPageState.branchLinkDiningIdList,
+            // 'dining_list': cartPageState.diningList,
+            // 'branch_link_dining_id_list': cartPageState.branchLinkDiningIdList,
             'promotion_list': cartPageState.promotionList,
-            'taxLinkDiningList': taxLinkDiningList
           };
           result = {'status': '1', 'data': objectData};
 
@@ -260,7 +260,7 @@ class ServerAction {
         break;
         case '14': {
           try{
-            ReprintKitchenList reprintKitchenList = ReprintKitchenList();
+            ReprintKitchenListFunction reprintKitchenList = ReprintKitchenListFunction();
             var decodeParam = jsonDecode(param);
             List<OrderDetail> reprintList =  List<OrderDetail>.from(decodeParam.map((json) => OrderDetail.fromJson(json)));
             reprintKitchenList.printFailKitchenList(reprintList);

@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:pos_system/object/server_action.dart';
 import 'package:pos_system/second_device/other_device.dart';
 import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
@@ -40,6 +42,15 @@ class _DeviceSettingState extends State<DeviceSetting> {
             indent: 20,
             endIndent: 20,
           ),
+          ElevatedButton(
+              onPressed: () async {
+                List<Socket> clientSocketList = Server.instance.clientList;
+                for(int i = 0; i < clientSocketList.length; i++){
+                  Map<String, dynamic>? result = await ServerAction().checkAction(action: '1');
+                  clientSocketList[i].write("${jsonEncode(result)}\n");
+                }
+              },
+              child: Text("Backend received notification"))
           // Consumer<Server>(
           //     builder: (context, server, child) {
           //       return ListTile(

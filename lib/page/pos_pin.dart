@@ -51,7 +51,7 @@ class _PosPinPageState extends State<PosPinPage> {
     super.initState();
     //readAllPrinters();
     preload();
-    checkVersion();
+    //checkVersion();
 
   }
 
