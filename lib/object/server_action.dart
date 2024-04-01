@@ -58,10 +58,12 @@ class ServerAction {
         }
         break;
         case '0': {
-          objectData = {
-            'image_name': await encodeImage(param)
-          };
-          result = {'status': '1','data': objectData};
+          if(param != 'Null'){
+            objectData = {
+              'image_name': await encodeImage(param)
+            };
+            result = {'status': '1','data': objectData};
+          }
         }
         break;
         case '1': {
@@ -224,7 +226,7 @@ class ServerAction {
             CartDialogFunction function = CartDialogFunction();
             var jsonValue = param;
             await function.callRemoveTableQuery(int.parse(jsonValue));
-            result = {'status': '1'};
+            result = {'status': '1', 'data': jsonValue};
           }catch(e){
             result = {'status': '4', 'exception': e.toString()};
             print("cart dialog remove merged table request error: $e");
@@ -268,6 +270,19 @@ class ServerAction {
           }catch(e){
             result = {'status': '4'};
             print("reprint fail kitchen print list request error: $e");
+          }
+        }
+        break;
+        case '15': {
+          try{
+            var data1 = await PosDatabase.instance.readAllBranchLinkProduct();
+            objectData = {
+              'tb_branch_link_product': data1,
+            };
+            result = {'status': '1', 'action': '15', 'data': objectData};
+          }catch(e){
+            result = {'status': '4'};
+            print("resend branch link product request error: $e");
           }
         }
         break;

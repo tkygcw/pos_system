@@ -297,6 +297,10 @@ class _SettingMenuState extends State<SettingMenu> {
                           icon: Icons.sync,
                           label: AppLocalizations.of(context)!.translate('data_processing'),
                         ),
+                        SideNavigationBarItem(
+                          icon: Icons.devices_other,
+                          label: "Device setting",
+                        ),
                       ],
                       onTap: (index) {
                         setState(() {
