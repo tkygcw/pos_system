@@ -4,7 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/fragment/setting/system_log_dialog.dart';
+import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/table.dart';
+import 'package:pos_system/page/loading.dart';
 import 'package:pos_system/page/select_table_dialog.dart';
 
 import '../../main.dart';
@@ -20,12 +22,54 @@ class DataProcessingSetting extends StatefulWidget {
 }
 
 class _DataProcessingSettingState extends State<DataProcessingSetting> {
+  String subscriptionEndDate = '';
+  int daysLeft = 0;
+  @override
+  void initState() {
+    super.initState();
+    getSubscriptionDate();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           children: [
+            Card(
+              child: ListTile(
+                contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Optimy Pos License',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      '${AppLocalizations.of(context)!.translate('active_until')} $subscriptionEndDate',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
+                ),
+                trailing: Text('$daysLeft ${AppLocalizations.of(context)!.translate('days')}',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20
+                    )
+                ),
+              ),
+              color: daysLeft < 7 ? Colors.red : Colors.green,
+            ),
             ListTile(
               title: Text(AppLocalizations.of(context)!.translate('system_log')),
               trailing: Icon(Icons.history),
@@ -194,5 +238,16 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
           // ignore: null_check_always_fails
           return null!;
         });
+  }
+
+  getSubscriptionDate() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd");
+    Subscription? data = await PosDatabase.instance.readAllSubscription();
+    DateTime subscriptionEnd = dateFormat.parse(data!.end_date!);
+    Duration difference = subscriptionEnd.difference(DateTime.now());
+    setState(() {
+      subscriptionEndDate = DateFormat("dd/MM/yyyy").format(subscriptionEnd);
+      daysLeft = difference.inDays +1;
+    });
   }
 }

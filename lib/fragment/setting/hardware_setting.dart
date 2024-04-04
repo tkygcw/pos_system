@@ -32,7 +32,7 @@ class _HardwareSettingState extends State<HardwareSetting> {
   late StreamController streamController;
   late Stream actionStream;
   Receipt? receiptObject;
-  bool cashDrawer = false, secondDisplay = false, tableOrder = true, directPayment = false, showSKU = false;
+  bool cashDrawer = false, secondDisplay = false, tableOrder = true, directPayment = false, showSKU = false, qrOrderAutoAccept = false;
 
   @override
   void initState() {
@@ -64,6 +64,11 @@ class _HardwareSettingState extends State<HardwareSetting> {
         break;
         case 'show_sku':{
           await updateShowSKUAppSetting();
+          controller.refresh(streamController);
+        }
+        break;
+        case 'qr_order_auto_accept':{
+          await updateQrOrderAutoAcceptAppSetting();
           controller.refresh(streamController);
         }
         break;
@@ -110,6 +115,12 @@ class _HardwareSettingState extends State<HardwareSetting> {
         this.showSKU = true;
       } else {
         this.showSKU = false;
+      }
+
+      if(appSetting.qr_order_auto_accept == 1){
+        this.qrOrderAutoAccept = true;
+      } else {
+        this.qrOrderAutoAccept = false;
       }
     }
   }
@@ -301,6 +312,26 @@ class _HardwareSettingState extends State<HardwareSetting> {
                               },
                             ),
                           ),
+                          Divider(
+                            color: Colors.grey,
+                            height: 1,
+                            thickness: 1,
+                            indent: 20,
+                            endIndent: 20,
+                          ),
+                          ListTile(
+                            title: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order')),
+                            subtitle: Text(AppLocalizations.of(context)!.translate('auto_accept_qr_order_desc')),
+                            trailing: Switch(
+                              value: qrOrderAutoAccept,
+                              activeColor: color.backgroundColor,
+                              onChanged: (value) {
+                                qrOrderAutoAccept = value;
+                                appSettingModel.setQrOrderAutoAcceptStatus(qrOrderAutoAccept);
+                                actionController.sink.add("qr_order_auto_accept");
+                              },
+                            ),
+                          ),
                         ],
                       ),
                     );
@@ -353,6 +384,17 @@ class _HardwareSettingState extends State<HardwareSetting> {
         updated_at: dateTime
     );
     int data = await PosDatabase.instance.updateShowSKUSettings(object);
+  }
+
+  updateQrOrderAutoAcceptAppSetting() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    String dateTime = dateFormat.format(DateTime.now());
+    AppSetting object = AppSetting(
+        qr_order_auto_accept: this.qrOrderAutoAccept == true ? 1 : 0,
+        app_setting_sqlite_id: appSetting.app_setting_sqlite_id,
+        updated_at: dateTime
+    );
+    int data = await PosDatabase.instance.updateQrOrderAutoAcceptSetting(object);
   }
 
   Future<bool> anyTableUse() async {

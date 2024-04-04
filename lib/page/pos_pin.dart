@@ -7,8 +7,11 @@ import 'package:flutter_usb_printer/flutter_usb_printer.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:pos_system/fragment/setting/sync_dialog.dart';
+import 'package:pos_system/fragment/subscription_expired.dart';
 import 'package:pos_system/fragment/update_dialog.dart';
 import 'package:pos_system/main.dart';
+import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/transfer_owner.dart';
 import 'package:pos_system/page/home.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
@@ -41,6 +44,7 @@ class _PosPinPageState extends State<PosPinPage> {
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   PrintReceipt printReceipt = PrintReceipt();
   List response = [];
+  List subscription = [];
   List<Printer> printerList = [];
   String latestVersion = '';
   String? userValue, transferOwnerValue;
@@ -51,8 +55,8 @@ class _PosPinPageState extends State<PosPinPage> {
     super.initState();
     //readAllPrinters();
     preload();
-    //checkVersion();
-
+    checkVersion();
+    checkSubscription();
   }
 
   @override
@@ -104,6 +108,131 @@ class _PosPinPageState extends State<PosPinPage> {
     print('current version: $version');
   }
 
+  checkSubscription() async {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd");
+    Subscription? data = await PosDatabase.instance.readAllSubscription();
+    if (data != null) {
+      DateTime subscriptionEndDate = dateFormat.parse(data.end_date!);
+      Duration difference = subscriptionEndDate.difference(DateTime.now());
+      if (DateTime.now().isAfter(subscriptionEndDate.add(Duration(days: 1)))) {
+        showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return WillPopScope(
+                onWillPop: () async => false,
+                child: AlertDialog(
+                  title: Text(AppLocalizations.of(context)!.translate('subscription_expired')),
+                  contentPadding: EdgeInsets.fromLTRB(24, 10, 24, 10),
+                  content: Container(
+                    height: 100,
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.warning,
+                          color: Colors.red,
+                          size: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? 60 : 35,
+                        ),
+                        SizedBox(height: 10),
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)!.translate('subscription_expired_desc'),
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    ElevatedButton(
+                        onPressed: () async {
+                          await openSyncDialog();
+                          Subscription? item = await PosDatabase.instance.readAllSubscription();
+                          DateTime newEndDate = dateFormat.parse(item!.end_date!);
+                          setState(() {
+                            if(DateTime.now().isBefore(newEndDate)) {
+                              Navigator.of(context).pop();
+                            }
+                          });
+                        },
+                        child: Text(AppLocalizations.of(context)!.translate('refresh'))
+                    )
+                  ],
+                ),
+              );
+            }
+        );
+      } else if (difference.inDays < 7) {
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                contentPadding: EdgeInsets.fromLTRB(24, 10, 24, 10),
+                title: Text(AppLocalizations.of(context)!.translate('subscription_is_about_to_expire')),
+                content: Container(
+                  height: 100,
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.warning,
+                        color: Colors.yellow,
+                        size: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? 60 : 35,
+                      ),
+                      SizedBox(height: 10),
+                      Expanded(
+                          child: Text(
+                          '${AppLocalizations.of(context)!.translate('subscription_is_about_to_expire_desc')}${DateFormat('dd/MM/yyyy').format(subscriptionEndDate)})',
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
+                          )
+                      )
+                    ],
+                  ),
+                ),
+                actions: [
+                  ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(AppLocalizations.of(context)!.translate('close')))
+                ],
+              );
+            }
+        );
+      }
+    }
+  }
+
+  Future<void> openSyncDialog() async {
+    Completer<void> completer = Completer<void>();
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+              opacity: a1.value,
+              child: SyncDialog(),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        }).then((_) {
+      completer.complete(); // Completing the Future when the dialog is dismissed
+    });
+
+    return completer.future;
+  }
+
   startTimers() {
     int timerCount = 0;
     notificationModel.setSyncCountAsStarted();
@@ -131,6 +260,19 @@ class _PosPinPageState extends State<PosPinPage> {
         qrOrder.count = 1;
         await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
         qrOrder.count = 0;
+      }
+
+      //sync subscription
+      if(syncRecord.count == 0){
+        print('subscription sync');
+        syncRecord.count = 1;
+        int syncStatus = await syncRecord.syncSubscriptionFromCloud();
+        syncRecord.count = 0;
+        print('is log out: ${syncStatus}');
+        if (syncStatus == 1) {
+          openLogOutDialog();
+          return;
+        }
       }
       //30 sec sync
       // if (timerCount == 0) {
@@ -180,6 +322,28 @@ class _PosPinPageState extends State<PosPinPage> {
       //   timerCount = 0;
       // }
     });
+  }
+
+  Future<Future<Object?>> openSubscriptionExpiredDialog() async {
+    return showGeneralDialog(
+        barrierColor: Colors.black.withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
+          return Transform(
+            transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
+            child: Opacity(
+                opacity: a1.value,
+                child: SubscriptionExpired()
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200),
+        barrierDismissible: false,
+        context: context,
+        pageBuilder: (context, animation1, animation2) {
+          // ignore: null_check_always_fails
+          return null!;
+        });
   }
 
   Future<Future<Object?>> openUpdateDialog() async {

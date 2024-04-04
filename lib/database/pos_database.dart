@@ -29,6 +29,7 @@ import 'package:pos_system/object/receipt.dart';
 import 'package:pos_system/object/refund.dart';
 import 'package:pos_system/object/sale.dart';
 import 'package:pos_system/object/settlement.dart';
+import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
@@ -71,7 +72,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 13, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 14, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -181,6 +182,21 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
+          //new case 13
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_auto_accept} INTEGER NOT NULL DEFAULT 0");
+          await db.execute('''CREATE TABLE $tableSubscription(
+          ${SubscriptionFields.subscription_sqlite_id} $idType,
+          ${SubscriptionFields.id} $integerType,
+          ${SubscriptionFields.company_id} $textType,
+          ${SubscriptionFields.subscription_plan_id} $textType,
+          ${SubscriptionFields.subscribe_package} $textType,
+          ${SubscriptionFields.subscribe_fee} $textType,
+          ${SubscriptionFields.duration} $textType,
+          ${SubscriptionFields.branch_amount} $integerType,
+          ${SubscriptionFields.start_date} $textType,
+          ${SubscriptionFields.end_date} $textType,
+          ${SubscriptionFields.created_at} $textType,
+          ${SubscriptionFields.soft_delete} $textType)''');
         }break;
         case 8 :{
           await db.execute('''CREATE TABLE $tableSecondScreen(
@@ -227,6 +243,21 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
+          //new case 13
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_auto_accept} INTEGER NOT NULL DEFAULT 0");
+          await db.execute('''CREATE TABLE $tableSubscription(
+          ${SubscriptionFields.subscription_sqlite_id} $idType,
+          ${SubscriptionFields.id} $integerType,
+          ${SubscriptionFields.company_id} $textType,
+          ${SubscriptionFields.subscription_plan_id} $textType,
+          ${SubscriptionFields.subscribe_package} $textType,
+          ${SubscriptionFields.subscribe_fee} $textType,
+          ${SubscriptionFields.duration} $textType,
+          ${SubscriptionFields.branch_amount} $integerType,
+          ${SubscriptionFields.start_date} $textType,
+          ${SubscriptionFields.end_date} $textType,
+          ${SubscriptionFields.created_at} $textType,
+          ${SubscriptionFields.soft_delete} $textType)''');
         }break;
         case 9: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.branch_id} TEXT NOT NULL DEFAULT '$branch_id' ");
@@ -264,6 +295,21 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
+          //new case 13
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_auto_accept} INTEGER NOT NULL DEFAULT 0");
+          await db.execute('''CREATE TABLE $tableSubscription(
+          ${SubscriptionFields.subscription_sqlite_id} $idType,
+          ${SubscriptionFields.id} $integerType,
+          ${SubscriptionFields.company_id} $textType,
+          ${SubscriptionFields.subscription_plan_id} $textType,
+          ${SubscriptionFields.subscribe_package} $textType,
+          ${SubscriptionFields.subscribe_fee} $textType,
+          ${SubscriptionFields.duration} $textType,
+          ${SubscriptionFields.branch_amount} $integerType,
+          ${SubscriptionFields.start_date} $textType,
+          ${SubscriptionFields.end_date} $textType,
+          ${SubscriptionFields.created_at} $textType,
+          ${SubscriptionFields.soft_delete} $textType)''');
         }break;
         case 10: {
           await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_receipt} INTEGER NOT NULL DEFAULT 1");
@@ -276,6 +322,21 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
+          //new case 13
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_auto_accept} INTEGER NOT NULL DEFAULT 0");
+          await db.execute('''CREATE TABLE $tableSubscription(
+          ${SubscriptionFields.subscription_sqlite_id} $idType,
+          ${SubscriptionFields.id} $integerType,
+          ${SubscriptionFields.company_id} $textType,
+          ${SubscriptionFields.subscription_plan_id} $textType,
+          ${SubscriptionFields.subscribe_package} $textType,
+          ${SubscriptionFields.subscribe_fee} $textType,
+          ${SubscriptionFields.duration} $textType,
+          ${SubscriptionFields.branch_amount} $integerType,
+          ${SubscriptionFields.start_date} $textType,
+          ${SubscriptionFields.end_date} $textType,
+          ${SubscriptionFields.created_at} $textType,
+          ${SubscriptionFields.soft_delete} $textType)''');
         }break;
         case 11: {
           await db.execute("ALTER TABLE $tablePaymentLinkCompany ADD ${PaymentLinkCompanyFields.allow_image} $integerType DEFAULT 0");
@@ -286,6 +347,21 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
+          //new case 13
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_auto_accept} INTEGER NOT NULL DEFAULT 0");
+          await db.execute('''CREATE TABLE $tableSubscription(
+          ${SubscriptionFields.subscription_sqlite_id} $idType,
+          ${SubscriptionFields.id} $integerType,
+          ${SubscriptionFields.company_id} $textType,
+          ${SubscriptionFields.subscription_plan_id} $textType,
+          ${SubscriptionFields.subscribe_package} $textType,
+          ${SubscriptionFields.subscribe_fee} $textType,
+          ${SubscriptionFields.duration} $textType,
+          ${SubscriptionFields.branch_amount} $integerType,
+          ${SubscriptionFields.start_date} $textType,
+          ${SubscriptionFields.end_date} $textType,
+          ${SubscriptionFields.created_at} $textType,
+          ${SubscriptionFields.soft_delete} $textType)''');
         }break;
         case 12: {
           await db.execute("ALTER TABLE $tableOrderDetail ADD ${OrderDetailFields.edited_by} TEXT NOT NULL DEFAULT '' ");
@@ -293,6 +369,37 @@ class PosDatabase {
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_price} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableChecklist ADD ${ChecklistFields.check_list_show_separator} INTEGER NOT NULL DEFAULT 0");
           await db.execute("ALTER TABLE $tableUser ADD ${UserFields.edit_price_without_pin} INTEGER NOT NULL DEFAULT 0");
+          //new case 13
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_auto_accept} INTEGER NOT NULL DEFAULT 0");
+          await db.execute('''CREATE TABLE $tableSubscription(
+          ${SubscriptionFields.subscription_sqlite_id} $idType,
+          ${SubscriptionFields.id} $integerType,
+          ${SubscriptionFields.company_id} $textType,
+          ${SubscriptionFields.subscription_plan_id} $textType,
+          ${SubscriptionFields.subscribe_package} $textType,
+          ${SubscriptionFields.subscribe_fee} $textType,
+          ${SubscriptionFields.duration} $textType,
+          ${SubscriptionFields.branch_amount} $integerType,
+          ${SubscriptionFields.start_date} $textType,
+          ${SubscriptionFields.end_date} $textType,
+          ${SubscriptionFields.created_at} $textType,
+          ${SubscriptionFields.soft_delete} $textType)''');
+        }break;
+        case 13: {
+          await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.qr_order_auto_accept} INTEGER NOT NULL DEFAULT 0");
+          await db.execute('''CREATE TABLE $tableSubscription(
+          ${SubscriptionFields.subscription_sqlite_id} $idType,
+          ${SubscriptionFields.id} $integerType,
+          ${SubscriptionFields.company_id} $textType,
+          ${SubscriptionFields.subscription_plan_id} $textType,
+          ${SubscriptionFields.subscribe_package} $textType,
+          ${SubscriptionFields.subscribe_fee} $textType,
+          ${SubscriptionFields.duration} $textType,
+          ${SubscriptionFields.branch_amount} $integerType,
+          ${SubscriptionFields.start_date} $textType,
+          ${SubscriptionFields.end_date} $textType,
+          ${SubscriptionFields.created_at} $textType,
+          ${SubscriptionFields.soft_delete} $textType)''');
         }break;
       }
     }
@@ -309,6 +416,13 @@ class PosDatabase {
     await db.execute('''CREATE TABLE $tableUser ( ${UserFields.user_id} $idType, ${UserFields.name} $textType, ${UserFields.email} $textType, 
            ${UserFields.phone} $textType, ${UserFields.role} $integerType, ${UserFields.pos_pin} $textType, ${UserFields.edit_price_without_pin} $integerType, 
            ${UserFields.status} $integerType, ${UserFields.created_at} $textType, ${UserFields.updated_at} $textType, ${UserFields.soft_delete} $textType)''');
+/*
+    create subscription table
+*/
+    await db.execute('''CREATE TABLE $tableSubscription ( ${SubscriptionFields.subscription_sqlite_id} $idType, ${SubscriptionFields.id} $integerType, ${SubscriptionFields.company_id} $textType, 
+           ${SubscriptionFields.subscription_plan_id} $textType, ${SubscriptionFields.subscribe_package} $textType, ${SubscriptionFields.subscribe_fee} $textType, ${SubscriptionFields.duration} $textType, 
+           ${SubscriptionFields.branch_amount} $integerType, ${SubscriptionFields.start_date} $textType, ${SubscriptionFields.end_date} $textType, ${SubscriptionFields.created_at} $textType, 
+           ${SubscriptionFields.soft_delete} $textType)''');
 /*
     create category table
 */
@@ -879,6 +993,7 @@ class PosDatabase {
           ${AppSettingFields.print_checklist} $integerType,
           ${AppSettingFields.print_receipt} $integerType,
           ${AppSettingFields.show_sku} $integerType,
+          ${AppSettingFields.qr_order_auto_accept} $integerType,
           ${AppSettingFields.enable_numbering} $integerType,
           ${AppSettingFields.starting_number} $integerType,
           ${AppSettingFields.table_order} $integerType,
@@ -1833,8 +1948,8 @@ class PosDatabase {
     final db = await instance.database;
     final id = db.rawInsert(
         'INSERT INTO $tableCashRecord(branch_id, open_cash_drawer, show_second_display, direct_payment, print_checklist, '
-            'print_receipt, show_sku, enable_numbering, starting_number, sync_status, created_at, updated_at) '
-            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'print_receipt, show_sku, qr_order_auto_accept, enable_numbering, starting_number, sync_status, created_at, updated_at) '
+            'VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           data.branch_id,
           data.open_cash_drawer,
@@ -1843,6 +1958,7 @@ class PosDatabase {
           data.print_checklist,
           data.print_receipt,
           data.show_sku,
+          data.qr_order_auto_accept,
           data.enable_numbering,
           data.starting_number,
           data.sync_status,
@@ -1859,6 +1975,15 @@ class PosDatabase {
     final db = await instance.database;
     final id = await db.insert(tableAppSetting!, data.toJson());
     return data.copy(app_setting_sqlite_id: id);
+  }
+
+/*
+  add subscription to local db
+*/
+  Future<Subscription> insertSqliteSubscription(Subscription data) async {
+    final db = await instance.database;
+    final id = await db.insert(tableSubscription!, data.toJson());
+    return data.copy(subscription_sqlite_id: id);
   }
 
 /*
@@ -3951,6 +4076,20 @@ class PosDatabase {
   }
 
 /*
+  read latest subscription
+*/
+  Future<Subscription?> readAllSubscription() async {
+    final db = await instance.database;
+    // final result = await db.rawQuery('SELECT * FROM $tableSubscription');
+    final result = await db.rawQuery('SELECT * FROM $tableSubscription WHERE soft_delete = ? ORDER BY end_date DESC ', ['']);
+    if (result.isNotEmpty) {
+      return Subscription.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
   --------------------App setting part--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 */
 
@@ -4537,6 +4676,18 @@ class PosDatabase {
         'WHERE c.soft_delete = ? AND d.soft_delete = ? AND d.settlement_key = ? AND d.refund_key = ? GROUP BY c.tax_name ',
         [settlement_key, '', '', '', settlement_key, '']);
     return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
+  }
+
+/*
+  update subscription
+*/
+  Future<int> updateSubscription(Subscription data) async {
+    final db = await instance.database;
+    return await db.rawUpdate(
+        'UPDATE $tableSubscription SET subscription_plan_id = ?, subscribe_package = ?, subscribe_fee = ?, duration = ?, '
+            'branch_amount = ?, start_date = ? , end_date = ? , soft_delete = ? WHERE id = ?',
+        [data.subscription_plan_id, data.subscribe_package, data.subscribe_fee, data.duration, data.branch_amount,
+          data.start_date, data.end_date, data.soft_delete, data.id]);
   }
 
 /*
@@ -5451,6 +5602,14 @@ class PosDatabase {
   Future<int> updateShowSKUSettings(AppSetting data) async {
     final db = await instance.database;
     return await db.rawUpdate('UPDATE $tableAppSetting SET show_sku = ?, sync_status = ?, updated_at = ?', [data.show_sku, 2, data.updated_at]);
+  }
+
+/*
+  update auto accept qr order Setting
+*/
+  Future<int> updateQrOrderAutoAcceptSetting(AppSetting data) async {
+    final db = await instance.database;
+    return await db.rawUpdate('UPDATE $tableAppSetting SET qr_order_auto_accept = ?, sync_status = ?, updated_at = ?', [data.qr_order_auto_accept, 2, data.updated_at]);
   }
 
 /*
@@ -6682,6 +6841,14 @@ class PosDatabase {
   Future clearAllSecondScreen() async {
     final db = await instance.database;
     return await db.rawDelete('DELETE FROM $tableSecondScreen');
+  }
+
+/*
+  Delete All subscription
+*/
+  Future clearAllSubscription() async {
+    final db = await instance.database;
+    return await db.rawDelete('DELETE FROM $tableSubscription');
   }
 
 /*

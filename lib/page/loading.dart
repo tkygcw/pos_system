@@ -38,6 +38,7 @@ import 'package:pos_system/object/sale.dart';
 import 'package:pos_system/object/second_screen.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
+import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/object/transfer_owner.dart';
@@ -90,6 +91,7 @@ class _LoadingPageState extends State<LoadingPage> {
 
   startLoad() async {
     try{
+      await getSubscription();
       await getAppSettingCloud();
       await createDeviceLogin();
       await getAllChecklist();
@@ -139,6 +141,49 @@ class _LoadingPageState extends State<LoadingPage> {
   }
 }
 
+
+/*
+  get subscription from cloud
+*/
+getSubscription() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final String? user = prefs.getString('user');
+    Map userObject = json.decode(user!);
+    Map data = await Domain().getSubscription(userObject['company_id'].toString());
+    if (data['status'] == '1') {
+      List responseJson = data['subscription'];
+      for (var i = 0; i < responseJson.length; i++) {
+        Subscription item = Subscription.fromJson(responseJson[i]);
+        Subscription subscription = Subscription(
+          id: item.id,
+          company_id: item.company_id,
+          subscription_plan_id: item.subscription_plan_id,
+          subscribe_package: item.subscribe_package,
+          subscribe_fee: item.subscribe_fee,
+          duration: item.duration,
+          branch_amount: item.branch_amount,
+          start_date: item.start_date,
+          end_date: item.end_date,
+          created_at: item.created_at,
+          soft_delete: item.soft_delete,
+        );
+        try {
+          Subscription data = await PosDatabase.instance.insertSqliteSubscription(subscription);
+        } catch(e) {
+          FLog.error(
+            className: "loading",
+            text: "subscription insert failed",
+            exception: "$e\n${subscription.toJson()}",
+          );
+        }
+      }
+
+    }
+  } catch(e) {
+    print("getSubscription error: $e");
+  }
+}
 
 /*
   get app setting from cloud
@@ -205,6 +250,7 @@ getAppSettingLocal() async {
         print_checklist: 1,
         print_receipt: 1,
         show_sku: 0,
+        qr_order_auto_accept: 0,
         enable_numbering: 0,
         starting_number: 0,
         table_order: 1,
@@ -236,6 +282,7 @@ syncAppSettingFromCloud(AppSetting item) async {
     print_checklist: item.print_checklist,
     print_receipt: item.print_receipt,
     show_sku: item.show_sku,
+    qr_order_auto_accept: item.qr_order_auto_accept,
     enable_numbering: item.enable_numbering,
     starting_number: item.starting_number,
     table_order: item.table_order,
