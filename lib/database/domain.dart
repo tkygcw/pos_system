@@ -2035,6 +2035,19 @@ class Domain {
   }
 
   /*
+  * get subscription
+  * */
+  getSubscription(company_id) async {
+    try {
+      var response = await http.post(Domain.subscription,
+          body: {'getAllSubscription': '1', 'company_id': company_id});
+      return jsonDecode(response.body);
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
+    }
+  }
+
+  /*
   * get app setting
   * */
   getSubscription(company_id) async {

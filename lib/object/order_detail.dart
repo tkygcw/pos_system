@@ -124,6 +124,7 @@ class OrderDetail{
   String? order_number = '';
   String? branch_id = '';
   String? order_created_at = '';
+  num? item_qty;
 
   OrderDetail(
       {this.order_detail_sqlite_id,
@@ -168,7 +169,8 @@ class OrderDetail{
         this.item_cancel,
         this.order_number,
         this.branch_id,
-        this.order_created_at
+        this.order_created_at,
+        this.item_qty
       });
 
   OrderDetail copy({
@@ -271,8 +273,8 @@ class OrderDetail{
     item_cancel: json['item_cancel'] as String?,
     order_number: json['order_number'] as String?,
     branch_id: json['branch_id'] as String?,
-    order_created_at: json['order_created_at'] as String?
-
+    order_created_at: json['order_created_at'] as String?,
+    item_qty: json['item_qty'] as num?
   );
 
   Map<String, Object?> toJson() => {

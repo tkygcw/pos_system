@@ -261,11 +261,11 @@ class _HomePageState extends State<HomePage> {
         icon: Icons.insert_chart,
         onPressed: () => setState(() => currentPage = 'report'),
       ),
-      CollapsibleItem(
-        text: AppLocalizations.of(context)!.translate('product'),
-        icon: Icons.fastfood,
-        onPressed: () => setState(() => currentPage = 'product'),
-      ),
+      // CollapsibleItem(
+      //   text: AppLocalizations.of(context)!.translate('product'),
+      //   icon: Icons.fastfood,
+      //   onPressed: () => setState(() => currentPage = 'product'),
+      // ),
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('setting'),
         icon: Icons.settings,

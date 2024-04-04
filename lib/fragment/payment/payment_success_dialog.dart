@@ -448,7 +448,7 @@ class _PaymentSuccessDialogState extends State<PaymentSuccessDialog> {
     setState(() {
       isLoaded = true;
     });
-    await syncAllToCloud();
+    //await syncAllToCloud();
   }
 
   callPrinter() async {

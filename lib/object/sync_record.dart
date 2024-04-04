@@ -76,30 +76,20 @@ class SyncRecord {
         }
         //update sync record
         await Domain().updateAllCloudSyncRecord('${branchObject['branchID']}', syncRecordIdList.toString());
-        notificationModel.setContentLoaded();
-        notificationModel.setCartContentLoaded();
         status = 0;
       } else if (data['status'] == '7'){
         status = 1;
-        notificationModel.setContentLoaded();
       } else if(data['status'] == '8'){
         throw TimeoutException("Timeout");
       } else {
         status = 0;
-        notificationModel.setContentLoaded();
       }
       return status;
-
-
     }on TimeoutException catch(_){
       print('sync record 15 timeout');
-      notificationModel.setContentLoaded();
-      //notificationModel.setCartContentLoaded();
       return 2;
     }catch(e){
       print("sync record 15 error: $e");
-      notificationModel.setContentLoaded();
-      //notificationModel.setCartContentLoaded();
       return 3;
     }
   }
@@ -295,6 +285,12 @@ class SyncRecord {
             case '27':
               //table use detail
               bool status = await callTableUseDetailQuery(data: responseJson[i]['data']);
+              if(status == true){
+                syncRecordIdList.add(responseJson[i]['id']);
+              }
+              break;
+            case '28':
+              bool status = await callSubscriptionQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
               if(status == true){
                 syncRecordIdList.add(responseJson[i]['id']);
               }
