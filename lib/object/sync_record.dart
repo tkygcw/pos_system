@@ -85,17 +85,11 @@ class SyncRecord {
         status = 0;
       }
       return status;
-
-
     }on TimeoutException catch(_){
       print('sync record 15 timeout');
-      notificationModel.setContentLoaded();
-      //notificationModel.setCartContentLoaded();
       return 2;
     }catch(e){
       print("sync record 15 error: $e");
-      notificationModel.setContentLoaded();
-      //notificationModel.setCartContentLoaded();
       return 3;
     }
   }
