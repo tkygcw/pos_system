@@ -12,6 +12,7 @@ import 'package:pos_system/object/product_variant.dart';
 import 'package:pos_system/object/product_variant_detail.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/second_screen.dart';
+import 'package:pos_system/object/subscription.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
@@ -41,10 +42,56 @@ import 'modifier_link_product.dart';
 class SyncRecord {
   int count = 0;
 
+  syncSubscriptionFromCloud() async {
+    return await checkSubscriptionSyncRecord();
+  }
+
   syncFromCloud() async {
     //count++;
     print("sync from cloud call");
     return await checkAllSyncRecord();
+  }
+
+  checkSubscriptionSyncRecord() async {
+    try {
+      int status = 0;
+      final prefs = await SharedPreferences.getInstance();
+      final String? branch = prefs.getString('branch');
+      final int? device_id = prefs.getInt('device_id');
+      final String? login_value = prefs.getString('login_value');
+      Map branchObject = json.decode(branch!);
+      ///get data
+      Map data = await Domain().getAllSyncRecord('${branchObject['branchID']}', device_id.toString(), login_value.toString());
+      List<int> syncRecordIdList = [];
+      if (data['status'] == '1') {
+        print('new subscription data to sync!');
+        List responseJson = data['data'];
+        for (var i = 0; i < responseJson.length; i++) {
+          if(responseJson[i]['type'] == '28') {
+            bool status = await callSubscriptionQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+            if(status == true){
+              syncRecordIdList.add(responseJson[i]['id']);
+            }
+          }
+        }
+        //update sync record
+        await Domain().updateAllCloudSyncRecord('${branchObject['branchID']}', syncRecordIdList.toString());
+        status = 0;
+      } else if (data['status'] == '7'){
+        status = 1;
+      } else if(data['status'] == '8'){
+        throw TimeoutException("Timeout");
+      } else {
+        status = 0;
+      }
+      return status;
+    }on TimeoutException catch(_){
+      print('sync record 15 timeout');
+      return 2;
+    }catch(e){
+      print("sync record 15 error: $e");
+      return 3;
+    }
   }
 
   checkAllSyncRecord() async {
@@ -242,6 +289,12 @@ class SyncRecord {
                 syncRecordIdList.add(responseJson[i]['id']);
               }
               break;
+            case '28':
+              bool status = await callSubscriptionQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+              if(status == true){
+                syncRecordIdList.add(responseJson[i]['id']);
+              }
+              break;
           }
         }
         print('sync record length: ${syncRecordIdList.length}');
@@ -337,6 +390,23 @@ class SyncRecord {
     } catch(e){
       print("download banner image error: ${e}");
     }
+  }
+
+  callSubscriptionQuery({data, method}) async {
+    bool isComplete = false;
+    Subscription subscriptionData = Subscription.fromJson(data[0]);
+    if(method == '0'){
+      Subscription data = await PosDatabase.instance.insertSqliteSubscription(subscriptionData);
+      if(data.created_at != ''){
+        isComplete = true;
+      }
+    } else {
+      int data = await PosDatabase.instance.updateSubscription(subscriptionData);
+      if(data == 1){
+        isComplete = true;
+      }
+    }
+    return isComplete;
   }
 
   callTableUseDetailQuery({data}) async {

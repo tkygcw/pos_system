@@ -10,6 +10,7 @@ class AppSettingFields {
     print_checklist,
     print_receipt,
     show_sku,
+    qr_order_auto_accept,
     enable_numbering,
     starting_number,
     table_order,
@@ -26,6 +27,7 @@ class AppSettingFields {
   static String print_checklist = 'print_checklist';
   static String print_receipt = 'print_receipt';
   static String show_sku = 'show_sku';
+  static String qr_order_auto_accept = 'qr_order_auto_accept';
   static String enable_numbering = 'enable_numbering';
   static String starting_number = 'starting_number';
   static String table_order = 'table_order';
@@ -43,6 +45,7 @@ class AppSetting{
   int? print_checklist;
   int? print_receipt;
   int? show_sku;
+  int? qr_order_auto_accept;
   int? enable_numbering;
   int? starting_number;
   int? table_order;
@@ -59,6 +62,7 @@ class AppSetting{
         this.print_checklist,
         this.print_receipt,
         this.show_sku,
+        this.qr_order_auto_accept,
         this.enable_numbering,
         this.starting_number,
         this.table_order,
@@ -76,6 +80,7 @@ class AppSetting{
     int? print_checklist,
     int? print_receipt,
     int? show_sku,
+    int? qr_order_auto_accept,
     int? enable_numbering,
     int? starting_number,
     int? table_order,
@@ -92,6 +97,7 @@ class AppSetting{
         print_checklist: print_checklist ?? this.print_checklist,
         print_receipt: print_receipt ?? this.print_receipt,
         show_sku: show_sku ?? this.show_sku,
+        qr_order_auto_accept: qr_order_auto_accept ?? this.qr_order_auto_accept,
         enable_numbering: enable_numbering ?? this.enable_numbering,
         starting_number: starting_number ?? this.starting_number,
         table_order: table_order ?? this.table_order,
@@ -109,6 +115,7 @@ class AppSetting{
     print_checklist: json[AppSettingFields.print_checklist] as int?,
     print_receipt: json[AppSettingFields.print_receipt] as int?,
     show_sku: json[AppSettingFields.show_sku] as int?,
+    qr_order_auto_accept: json[AppSettingFields.qr_order_auto_accept] as int?,
     enable_numbering: json[AppSettingFields.enable_numbering] as int?,
     starting_number: json[AppSettingFields.starting_number] as int?,
     table_order: json[AppSettingFields.table_order] as int?,
@@ -126,6 +133,7 @@ class AppSetting{
     AppSettingFields.print_checklist: print_checklist,
     AppSettingFields.print_receipt: print_receipt,
     AppSettingFields.show_sku: show_sku,
+    AppSettingFields.qr_order_auto_accept: qr_order_auto_accept,
     AppSettingFields.enable_numbering: enable_numbering,
     AppSettingFields.starting_number: starting_number,
     AppSettingFields.table_order: table_order,
