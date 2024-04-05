@@ -1892,7 +1892,7 @@ class ReceiptLayout{
           if(productUnitPriceSplit){
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '(${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit})', width: 7),
+              PosColumn(text: '(${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit != 'each' && cartModel.cartNotifierItem[i].unit != 'each_c' ? cartModel.cartNotifierItem[i].unit : 'each'})', width: 7),
               PosColumn(text: '', width: 3, styles: PosStyles(align: PosAlign.right)),
             ]);
           }
@@ -2098,7 +2098,7 @@ class ReceiptLayout{
           if(productUnitPriceSplit){
             bytes += generator.row([
               PosColumn(text: '', width: 2),
-              PosColumn(text: '(${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit})', width: 10),
+              PosColumn(text: '(${cartModel.cartNotifierItem[i].price}/${cartModel.cartNotifierItem[i].per_quantity_unit}${cartModel.cartNotifierItem[i].unit != 'each' && cartModel.cartNotifierItem[i].unit != 'each_c' ? cartModel.cartNotifierItem[i].unit : 'each'})', width: 10),
             ]);
           }
           bytes += generator.reset();
@@ -2267,7 +2267,7 @@ class ReceiptLayout{
       if(isQrOrder != null){
         bytes += generator.text('Order By: QrOrder');
       } else {
-        bytes += generator.text('Order By: ${orderCache!.order_by}');
+        bytes += generator.text('Order By: ${orderCache!.order_by}', containsChinese: true);
       }
       bytes += generator.text('Order time: ${Utils.formatDate(orderCache!.created_at)}');
       bytes += generator.hr();
@@ -2288,7 +2288,8 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(bold: true)),
           PosColumn(
-              text: '${orderDetailList[i].productName} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${orderDetailList[i].price!}/${orderDetailList[i].unit!})' : '' }',
+              text: '${orderDetailList[i].productName} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ?
+              '(${orderDetailList[i].price!}/${orderDetailList[i].unit! != 'each' && orderDetailList[i].unit! != 'each_c' ? orderDetailList[i].unit! : 'each'})' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -2393,7 +2394,7 @@ class ReceiptLayout{
       bytes += generator.text('Batch No', styles: PosStyles(align: PosAlign.center));
       bytes += generator.text('#${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
       bytes += generator.text('Order By', styles: PosStyles(align: PosAlign.center));
-      bytes += generator.text('${orderCache!.order_by}', styles: PosStyles(align: PosAlign.center));
+      bytes += generator.text('${orderCache!.order_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
       bytes += generator.text('Order time', styles: PosStyles(align: PosAlign.center));
       bytes += generator.text('${Utils.formatDate(orderCache!.created_at)}', styles: PosStyles(align: PosAlign.center));
       bytes += generator.hr();
@@ -2415,7 +2416,7 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: '${orderDetailList[i].quantity}', width: 2, styles: PosStyles(bold: true)),
           PosColumn(
-              text: '${orderDetailList[i].productName} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${orderDetailList[i].price!}/${orderDetailList[i].unit!})' : '' }',
+              text: '${orderDetailList[i].productName} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${orderDetailList[i].price!}/${orderDetailList[i].unit! != 'each' && orderDetailList[i].unit! != 'each_c' ? orderDetailList[i].unit! : 'each'})' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -2507,7 +2508,7 @@ class ReceiptLayout{
         bytes += generator.text('${cartModel.selectedOption}');
       }
       bytes += generator.text('Batch No: #${cartModel.cartNotifierItem[0].first_cache_batch}-${branch_id.toString().padLeft(3 ,'0')}');
-      bytes += generator.text('Order By: ${cartModel.cartNotifierItem[0].first_cache_order_by}');
+      bytes += generator.text('Order By: ${cartModel.cartNotifierItem[0].first_cache_order_by}', containsChinese: true);
       bytes += generator.text('Order Time: ${Utils.formatDate(cartModel.cartNotifierItem[0].first_cache_created_date_time)}');
       // bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
       bytes += generator.hr();
@@ -2529,7 +2530,7 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: '${cartModel.cartNotifierItem[i].product_name!.trim()} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${cartModel.cartNotifierItem[i].price!}/${cartModel.cartNotifierItem[i].unit!})' : '' }',
+              text: '${cartModel.cartNotifierItem[i].product_name!.trim()} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${cartModel.cartNotifierItem[i].price!}/${cartModel.cartNotifierItem[i].unit! != 'each' && cartModel.cartNotifierItem[i].unit! != 'each_c' ? cartModel.cartNotifierItem[i].unit! : 'each'})' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(
@@ -2641,7 +2642,7 @@ class ReceiptLayout{
         }
       }
       bytes += generator.text('Batch No: #${cartModel.cartNotifierItem[0].first_cache_batch}-${branch_id.toString().padLeft(3 ,'0')}');
-      bytes += generator.text('Order By: ${cartModel.cartNotifierItem[0].first_cache_order_by}');
+      bytes += generator.text('Order By: ${cartModel.cartNotifierItem[0].first_cache_order_by}', containsChinese: true);
       bytes += generator.text('Order time: ${Utils.formatDate(cartModel.cartNotifierItem[0].first_cache_created_date_time)}');
       // bytes += generator.text('Table No: 5', styles: PosStyles(bold: true, align: PosAlign.left, height: PosTextSize.size2, width: PosTextSize.size2));
       bytes += generator.hr();
@@ -2663,7 +2664,7 @@ class ReceiptLayout{
         bytes += generator.row([
           PosColumn(text: '${cartModel.cartNotifierItem[i].quantity}', width: 2, styles: PosStyles(align: PosAlign.left, bold: true)),
           PosColumn(
-              text: '${cartModel.cartNotifierItem[i].product_name} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${cartModel.cartNotifierItem[i].price!}/${cartModel.cartNotifierItem[i].unit!})' : '' }',
+              text: '${cartModel.cartNotifierItem[i].product_name} ${checklistLayout != null && checklistLayout.check_list_show_price == 1 ? '(${cartModel.cartNotifierItem[i].price!}/${cartModel.cartNotifierItem[i].unit! != 'each' && cartModel.cartNotifierItem[i].unit! != 'each_c' ? cartModel.cartNotifierItem[i].unit! : 'each'})' : '' }',
               width: 10,
               containsChinese: true,
               styles: PosStyles(

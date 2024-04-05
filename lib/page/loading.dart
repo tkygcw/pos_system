@@ -165,6 +165,7 @@ getSubscription() async {
           start_date: item.start_date,
           end_date: item.end_date,
           created_at: item.created_at,
+          soft_delete: item.soft_delete,
         );
         try {
           Subscription data = await PosDatabase.instance.insertSqliteSubscription(subscription);
