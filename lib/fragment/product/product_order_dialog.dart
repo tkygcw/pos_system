@@ -1399,6 +1399,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         print('cart checked mod item length in cart: ${cart.cartNotifierItem[k].checkedModifierLength}');
         if(cart.cartNotifierItem[k].branch_link_product_sqlite_id == value.branch_link_product_sqlite_id
             && value.remark == cart.cartNotifierItem[k].remark
+            && value.product_name == cart.cartNotifierItem[k].product_name
+            && value.price == cart.cartNotifierItem[k].price
             && value.checkedModifierLength == cart.cartNotifierItem[k].checkedModifierLength
             && cart.cartNotifierItem[k].status == 0) {
           item.add(cart.cartNotifierItem[k]);

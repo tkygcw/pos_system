@@ -4301,7 +4301,7 @@ class PosDatabase {
       //CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE b.quantity END
         'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, b.cancel_by, SUM(b.quantity * a.price + 0.0) AS gross_price, '
             'SUM(b.quantity * a.original_price + 0.0) AS net_sales, '
-            'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * b.quantity ELSE b.quantity END) AS item_sum '
+            'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * b.quantity ELSE b.quantity END) AS item_sum, '
             'SUM(CASE WHEN a.unit != ? THEN 1 ELSE 0 END) AS item_qty '
             'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
             'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.category_name = ? '
@@ -4449,7 +4449,7 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, SUM(a.original_price * a.quantity + 0.0) AS net_sales, SUM(a.price * a.quantity + 0.0) AS gross_price, '
-            'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * a.quantity ELSE a.quantity END) AS item_sum '
+            'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * a.quantity ELSE a.quantity END) AS item_sum, '
             'SUM(CASE WHEN a.unit != ? THEN 1 ELSE 0 END) AS item_qty '
             'FROM $tableOrderDetail AS a JOIN $tableOrderCache AS b ON a.order_cache_sqlite_id = b.order_cache_sqlite_id '
             'JOIN $tableOrder AS c ON b.order_sqlite_id = c.order_sqlite_id '
