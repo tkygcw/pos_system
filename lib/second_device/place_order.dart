@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/order.dart';
 import 'package:pos_system/second_device/server.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
@@ -660,7 +661,8 @@ class PlaceNewDineInOrder extends PlaceOrder {
       // }
       printKitchenList(address);
     } else {
-      throw Exception("Contain table in-used");
+      // throw Exception("Contain table in-used");
+      branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
     }
   }
 
@@ -865,27 +867,56 @@ class PlaceNotDineInOrder extends PlaceOrder {
 
 class PlaceAddOrder extends PlaceOrder {
 
-  Future<void> callAddOrderCache(CartModel cart, String address) async {
+  Future<Map<String, dynamic>?> callAddOrderCache(CartModel cart, String address) async {
+    Map<String, dynamic>? result;
     await initData();
+    print("is table in main pos cart: ${checkIsTableSelectedInPaymentCart(cart)}");
     if(await checkTableStatus(cart) == true){
-      cart.selectedTable.removeWhere((e) => e.status == 0);
-      await createOrderCache(cart);
-      await createOrderDetail(cart);
-      printCheckList();
-      // if (_appSettingModel.autoPrintChecklist == true) {
-      //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-      //   if (printStatus == 1) {
-      //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-      //   } else if (printStatus == 2) {
-      //     Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-      //   } else if (printStatus == 5) {
-      //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
-      //   }
-      // }
-      printKitchenList(address);
+      if(checkIsTableSelectedInPaymentCart(cart) == false) {
+        cart.selectedTable.removeWhere((e) => e.status == 0);
+        await createOrderCache(cart);
+        await createOrderDetail(cart);
+        printCheckList();
+        Map<String, dynamic>? objectData = {'tb_branch_link_product': branchLinkProductList,};
+        result = {'status': '1', 'data': objectData};
+        // if (_appSettingModel.autoPrintChecklist == true) {
+        //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
+        //   if (printStatus == 1) {
+        //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+        //   } else if (printStatus == 2) {
+        //     Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+        //   } else if (printStatus == 5) {
+        //     Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+        //   }
+        // }
+        printKitchenList(address);
+      } else {
+        result = {'status': '3', 'error': "Table are selected in payment cart"};
+        // branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
+        // throw Exception("Table are selected in payment cart");
+      }
     } else {
-      throw Exception("Contain table not in-used");
+      result = {'status': '3', 'error': "Table not in-used"};
+      // branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
+      // throw Exception("Table not in-used");
     }
+    return result;
+  }
+
+  checkIsTableSelectedInPaymentCart(CartModel cart){
+    bool isTableSelected = false;
+    List<PosTable> inCartTableList = Provider.of<CartModel>(context, listen: false).selectedTable.where((e) => e.isInPaymentCart == true).toList();
+    if(inCartTableList.isNotEmpty){
+      for(int i = 0; i < cart.selectedTable.length; i++){
+        for(int j = 0; j < inCartTableList.length; j++){
+          if(cart.selectedTable[i].table_sqlite_id == inCartTableList[j].table_sqlite_id){
+            isTableSelected = true;
+            break;
+          }
+        }
+      }
+    }
+    return isTableSelected;
   }
 
   @override

@@ -116,7 +116,7 @@ class CartDialogFunction {
       await updatePosTableStatus(table_sqlite_id, 0, '', '', dateTime);
       //await readAllTable(isReset: true);
     } else {
-      throw Exception("Table already been removed");
+      return;
     }
   }
 
@@ -169,11 +169,11 @@ class CartDialogFunction {
   callMergeTableQuery({required int dragTableId, required int targetTableId}) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
-    if(await checkTableStatus(dragTableId) == false){
+    if(await checkTableStatus(dragTableId) == false && await checkTableStatus(targetTableId) == true){
       await createTableUseDetail(dragTableId, targetTableId);
       await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!, tableUseKey!, dateTime);
     } else {
-      throw Exception("Table has already been merged");
+      return;
     }
   }
 

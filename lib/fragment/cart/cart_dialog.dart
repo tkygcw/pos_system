@@ -799,14 +799,25 @@ class CartDialogState extends State<CartDialog> {
    * concurrent here
    */
   callRemoveTableQuery(int table_id) async {
-    await deleteCurrentTableUseDetail(table_id);
-    await updatePosTableStatus(table_id, 0, '', '');
-    await syncAllToCloud();
-    if (this.isLogOut == true) {
-      openLogOutDialog();
-      return;
+    if(await checkTableStatus(table_id) == true){
+      await deleteCurrentTableUseDetail(table_id);
+      await updatePosTableStatus(table_id, 0, '', '');
+      // await syncAllToCloud();
+      // if (this.isLogOut == true) {
+      //   openLogOutDialog();
+      //   return;
+      // }
+      await readAllTable(isReset: true);
     }
-    await readAllTable(isReset: true);
+  }
+
+  Future<bool> checkTableStatus(int table_id) async {
+    bool tableInUse = false;
+    List<PosTable> table = await PosDatabase.instance.checkPosTableStatus(table_id);
+    if(table[0].status == 1){
+      tableInUse = true;
+    }
+    return tableInUse;
   }
 
   deleteCurrentTableUseDetail(int currentTableId) async {
@@ -896,12 +907,15 @@ class CartDialogState extends State<CartDialog> {
 
   callAddNewTableQuery(int dragTableId, int targetTableId) async {
     //List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(targetTableId);
-    await createTableUseDetail(dragTableId, targetTableId);
-    await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!, tableUseKey!);
-    await syncAllToCloud();
-    if (this.isLogOut == true) {
-      openLogOutDialog();
-      return;
+    if(await checkTableStatus(dragTableId) == false && await checkTableStatus(targetTableId) == true){
+      await createTableUseDetail(dragTableId, targetTableId);
+      await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!, tableUseKey!);
+      // await syncAllToCloud();
+      // if (this.isLogOut == true) {
+      //   openLogOutDialog();
+      //   return;
+      // }
+
     }
     await readAllTable(isReset: true);
   }

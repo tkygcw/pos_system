@@ -9,6 +9,7 @@ import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/product.dart';
+import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
@@ -19,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/pos_database.dart';
 import '../main.dart';
+import 'branch_link_promotion.dart';
 import 'cart_product.dart';
 
 class ServerAction {
@@ -127,6 +129,11 @@ class ServerAction {
         }
         break;
         case '6': {
+          List<Promotion> promotionList = [];
+          List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion();
+          for (int i = 0; i < data.length; i++) {
+            promotionList = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
+          }
           CartPageState cartPageState = CartPageState();
           await cartPageState.readAllBranchLinkDiningOption(serverCall: 1);
           await cartPageState.getPromotionData();
@@ -197,11 +204,11 @@ class ServerAction {
             if(cartItem != null){
               return result = cartItem;
             }
-            await order.callAddOrderCache(cart, address!);
-            objectData = {
-              'tb_branch_link_product': order.branchLinkProductList,
-            };
-            result = {'status': '1', 'data': objectData};
+            result = await order.callAddOrderCache(cart, address!);
+            // objectData = {
+            //   'tb_branch_link_product': order.branchLinkProductList,
+            // };
+            // result = {'status': '1', 'data': objectData};
           } catch(e){
             result = {'status': '4', 'exception': "add-order error: ${e.toString()}"};
             print('add order request error: $e');

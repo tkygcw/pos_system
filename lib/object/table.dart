@@ -57,6 +57,7 @@ class PosTable{
   String? card_color;
   bool isSelected = false;
   String? qrOrderUrl;
+  bool? isInPaymentCart;
 
 
   PosTable(
@@ -78,7 +79,8 @@ class PosTable{
         this.group,
         this.card_color,
         this.qrOrderUrl,
-        this.total_amount
+        this.total_amount,
+        this.isInPaymentCart
       });
 
   PosTable copy({
