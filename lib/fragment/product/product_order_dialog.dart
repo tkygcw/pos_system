@@ -603,7 +603,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       )) :
-                                  Text("RM ${Utils.convertTo2Dec(dialogPrice)} / ${widget.productDetail!.unit!}",
+                                  Text("RM ${Utils.convertTo2Dec(dialogPrice)} / each",
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -630,6 +630,109 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  Visibility(
+                                    visible: widget.productDetail!.unit == 'each_c' ? true : false,
+                                    child: Column(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "${AppLocalizations.of(context)!.translate('product_name')}",
+                                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 400,
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                width: 273,
+                                                child: TextField(
+                                                  autofocus: false,
+                                                  controller: nameController,
+                                                  keyboardType: TextInputType.text,
+                                                  textAlign: TextAlign.center,
+                                                  decoration: InputDecoration(
+                                                    focusedBorder: OutlineInputBorder(
+                                                      borderSide: BorderSide(color: color.backgroundColor),
+                                                    ),
+                                                  ),
+                                                  onChanged: (value) => setState(() {
+                                                    try{
+                                                      widget.productDetail!.name = value;
+                                                    }catch (e){
+                                                      widget.productDetail!.name = "Custom";
+                                                    }
+                                                  }),
+                                                  onSubmitted: (value) {
+                                                    setState(() {
+                                                      widget.productDetail!.name = value;
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "${AppLocalizations.of(context)!.translate('price')}",
+                                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 400,
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                width: 273,
+                                                child: TextField(
+                                                  autofocus: true,
+                                                  controller: priceController,
+                                                  keyboardType: TextInputType.number,
+                                                  inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                                                  textAlign: TextAlign.center,
+                                                  decoration: InputDecoration(
+                                                    prefixText: 'RM ',
+                                                    focusedBorder: OutlineInputBorder(
+                                                      borderSide: BorderSide(color: color.backgroundColor),
+                                                    ),
+                                                    hintText: "${Utils.convertTo2Dec(dialogPrice)}",
+                                                  ),
+                                                  onChanged: (value) => setState(() {
+                                                    try{
+                                                      double.parse(value.replaceAll(',', ''));
+                                                      dialogPrice = value;
+                                                    }catch (e){
+                                                      priceController.text = "";
+                                                    }
+                                                  }),
+                                                  onSubmitted: (value) {
+                                                    setState(() {
+                                                      dialogPrice = value;
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                   for (int i = 0; i < variantGroup.length; i++)
                                     variantGroupLayout(variantGroup[i]),
                                   for (int j = 0; j < modifierGroup.length; j++)
