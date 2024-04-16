@@ -2709,7 +2709,8 @@ class CartPageState extends State<CartPage> {
       AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
       int orderQueue = localSetting!.enable_numbering == 1 && ((localSetting.table_order == 1 && cart.selectedOption != 'Dine in') ||  localSetting.table_order == 0) ? await generateOrderQueue() : -1;
 
-      List<TableUse> _tableUse = [];
+      TableUse? _tableUse;
+      List<PosTable> inUsedTable = [];
       List<String> _value = [];
       Map userObject = json.decode(user!);
       Map loginUserObject = json.decode(loginUser!);
@@ -2723,16 +2724,19 @@ class CartPageState extends State<CartPage> {
         }
         //check selected table is in use or not
         if (cart.selectedOption == 'Dine in' && localSetting.table_order == 1) {
-          for (int i = 0; i < cart.selectedTable.length; i++) {
-            List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
-            if (useDetail.isNotEmpty) {
-              _tableUseId = useDetail[0].table_use_sqlite_id!;
-            } else {
-              _tableUseId = this.localTableUseId;
-            }
+          if(isAddOrder == true){
+            inUsedTable = await checkCartTableStatus(cart.selectedTable);
+          } else {
+            inUsedTable.addAll(cart.selectedTable);
+          }
+          List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(inUsedTable[0].table_sqlite_id!);
+          if (useDetail.isNotEmpty) {
+            _tableUseId = useDetail[0].table_use_sqlite_id!;
+          } else {
+            _tableUseId = this.localTableUseId;
           }
           List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
-          _tableUse = tableUseData;
+          _tableUse = tableUseData[0];
         }
         if (batch != '') {
           try {
@@ -2744,8 +2748,8 @@ class CartPageState extends State<CartPage> {
                 company_id: loginUserObject['company_id'].toString(),
                 branch_id: branch_id.toString(),
                 order_detail_id: '',
-                table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting.table_order == 1 ? _tableUseId : '',
-                table_use_key: cart.selectedOption == 'Dine in' && localSetting.table_order == 1 ? _tableUse[0].table_use_key : '',
+                table_use_sqlite_id: cart.selectedOption == 'Dine in' && localSetting.table_order == 1 ? _tableUse!.table_use_sqlite_id.toString() : '',
+                table_use_key: cart.selectedOption == 'Dine in' && localSetting.table_order == 1 ? _tableUse!.table_use_key : '',
                 batch_id: batch.toString().padLeft(6, '0'),
                 dining_id: this.diningOptionID.toString(),
                 order_sqlite_id: '',
@@ -2803,6 +2807,17 @@ class CartPageState extends State<CartPage> {
         exception: e,
       );
     }
+  }
+
+  Future<List<PosTable>> checkCartTableStatus(List<PosTable> cartSelectedTable) async {
+    List<PosTable> inUsedTable = [];
+    for(int i = 0; i < cartSelectedTable.length; i++){
+      List<PosTable> table = await PosDatabase.instance.checkPosTableStatus(cartSelectedTable[i].table_sqlite_id!);
+      if(table[0].status == 1){
+        inUsedTable.add(table[0]);
+      }
+    }
+    return inUsedTable;
   }
 
   // syncOrderCacheToCloud(OrderCache updatedCache) async {

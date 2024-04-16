@@ -341,48 +341,48 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                         child: Text(AppLocalizations.of(context)!.translate('add'),
                           style: TextStyle(color: Colors.white),
                         ),
-                        onPressed: isButtonDisabled
-                            ? null
-                            : widget.orderDetailList.isNotEmpty
-                            ? () async {
-                          await checkOrderDetailStock();
-                          print('available check: ${hasNotAvailableProduct}');
-                          if (hasNoStockProduct) {
-                            Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
-                          } else if(hasNotAvailableProduct){
-                            Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
-                          } else {
-                            // Disable the button after it has been pressed
-                            setState(() {
-                              isButtonDisabled = true;
-                              willPop = false;
-                            });
-                            if (removeDetailList.isNotEmpty) {
-                              await removeOrderDetail();
-                            }
-                            if (widget.tableLocalId != '') {
-                              await checkTable();
-                              if (tableInUsed == true) {
-                                await updateOrderDetail();
-                                await updateOrderCache();
-                                await updateProductStock();
-                              } else {
-                                await callNewOrder();
-                                await updateProductStock();
-                              }
+                        onPressed: isButtonDisabled ? null :
+                        widget.orderDetailList.isNotEmpty ? () async {
+                          asyncQ.addJob((_) async {
+                            await checkOrderDetailStock();
+                            print('available check: ${hasNotAvailableProduct}');
+                            if (hasNoStockProduct) {
+                              Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
+                            } else if(hasNotAvailableProduct){
+                              Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
                             } else {
-                              await callOtherOrder();
+                              // Disable the button after it has been pressed
+                              setState(() {
+                                isButtonDisabled = true;
+                                willPop = false;
+                              });
+                              if (removeDetailList.isNotEmpty) {
+                                await removeOrderDetail();
+                              }
+                              if (widget.tableLocalId != '') {
+                                await checkTable();
+                                if (tableInUsed == true) {
+                                  await updateOrderDetail();
+                                  await updateOrderCache();
+                                  await updateProductStock();
+                                } else {
+                                  await callNewOrder();
+                                  await updateProductStock();
+                                }
+                              } else {
+                                await callOtherOrder();
+                              }
+                              if(_appSettingModel.autoPrintChecklist == true){
+                                await printCheckList();
+                              }
+                              syncToCloudFunction();
+                              widget.callBack;
+                              Navigator.of(context).pop();
+                              await callPrinter();
                             }
-                            if(_appSettingModel.autoPrintChecklist == true){
-                              await printCheckList();
-                            }
-                            syncToCloudFunction();
-                            widget.callBack;
-                            Navigator.of(context).pop();
-                            await callPrinter();
-                          }
+                          });
                         }
-                            : null,
+                        : null,
                       ),
                     ),
                   ],
@@ -595,40 +595,42 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                         ),
                         child: Text(AppLocalizations.of(context)!.translate('add')),
                         onPressed: isButtonDisabled || widget.orderDetailList.isEmpty ? null : () async {
-                          await checkOrderDetailStock();
-                          if (hasNoStockProduct) {
-                            Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
-                          } else if (hasNotAvailableProduct){
-                            Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
-                          } else {
-                            // Disable the button after it has been pressed
-                            setState(() {
-                              isButtonDisabled = true;
-                            });
-                            if (removeDetailList.isNotEmpty) {
-                              await removeOrderDetail();
-                            }
-                            if (widget.tableLocalId != '') {
-                              await checkTable();
-                              if (tableInUsed == true) {
-                                await updateOrderDetail();
-                                await updateOrderCache();
-                                await updateProductStock();
-                              } else {
-                                await callNewOrder();
-                                await updateProductStock();
-                              }
+                          asyncQ.addJob((_) async {
+                            await checkOrderDetailStock();
+                            if (hasNoStockProduct) {
+                              Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: AppLocalizations.of(context)!.translate('contain_out_of_stock_product'));
+                            } else if (hasNotAvailableProduct){
+                              Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
                             } else {
-                              await callOtherOrder();
+                              // Disable the button after it has been pressed
+                              setState(() {
+                                isButtonDisabled = true;
+                              });
+                              if (removeDetailList.isNotEmpty) {
+                                await removeOrderDetail();
+                              }
+                              if (widget.tableLocalId != '') {
+                                await checkTable();
+                                if (tableInUsed == true) {
+                                  await updateOrderDetail();
+                                  await updateOrderCache();
+                                  await updateProductStock();
+                                } else {
+                                  await callNewOrder();
+                                  await updateProductStock();
+                                }
+                              } else {
+                                await callOtherOrder();
+                              }
+                              if(_appSettingModel.autoPrintChecklist == true){
+                                await printCheckList();
+                              }
+                              syncToCloudFunction();
+                              widget.callBack;
+                              Navigator.of(context).pop();
+                              await callPrinter();
                             }
-                            if(_appSettingModel.autoPrintChecklist == true){
-                              await printCheckList();
-                            }
-                            syncToCloudFunction();
-                            widget.callBack;
-                            Navigator.of(context).pop();
-                            await callPrinter();
-                          }
+                          });
                         }
                     ),
                   ),

@@ -870,10 +870,9 @@ class PlaceAddOrder extends PlaceOrder {
   Future<Map<String, dynamic>?> callAddOrderCache(CartModel cart, String address) async {
     Map<String, dynamic>? result;
     await initData();
-    print("is table in main pos cart: ${checkIsTableSelectedInPaymentCart(cart)}");
     if(await checkTableStatus(cart) == true){
       if(checkIsTableSelectedInPaymentCart(cart) == false) {
-        cart.selectedTable.removeWhere((e) => e.status == 0);
+        // cart.selectedTable.removeWhere((e) => e.status == 0);
         await createOrderCache(cart);
         await createOrderDetail(cart);
         printCheckList();
@@ -903,6 +902,18 @@ class PlaceAddOrder extends PlaceOrder {
     return result;
   }
 
+  Future<List<PosTable>> checkCartTableStatus(List<PosTable> cartSelectedTable) async {
+    List<PosTable> inUsedTable = [];
+    for(int i = 0; i < cartSelectedTable.length; i++){
+      List<PosTable> table = await PosDatabase.instance.checkPosTableStatus(cartSelectedTable[i].table_sqlite_id!);
+      if(table[0].status == 1){
+        inUsedTable.add(table[0]);
+      }
+    }
+    return inUsedTable;
+  }
+
+
   checkIsTableSelectedInPaymentCart(CartModel cart){
     bool isTableSelected = false;
     List<PosTable> inCartTableList = Provider.of<CartModel>(context, listen: false).selectedTable.where((e) => e.isInPaymentCart == true).toList();
@@ -929,28 +940,16 @@ class PlaceAddOrder extends PlaceOrder {
     final String? user = prefs.getString('pos_pin_user');
     final String? loginUser = prefs.getString('user');
 
-    List<TableUse> _tableUse = [];
     Map userObject = json.decode(user!);
     Map loginUserObject = json.decode(loginUser!);
-    String _tableUseId = '';
+    // String _tableUseId = '';
     String batch = '';
     try {
       batch = cart.cartNotifierItem[0].first_cache_batch!;
-      // if (isAddOrder == true) {
-      //   batch = cart.cartNotifierItem[0].first_cache_batch!;
-      // } else {
-      //   batch = await batchChecking();
-      // }
-      for (int i = 0; i < cart.selectedTable.length; i++) {
-        List<TableUseDetail> useDetail = await PosDatabase.instance.readSpecificTableUseDetail(cart.selectedTable[i].table_sqlite_id!);
-        if (useDetail.isNotEmpty) {
-          _tableUseId = useDetail[0].table_use_sqlite_id!;
-        } else {
-          _tableUseId = this.localTableUseId;
-        }
-      }
-      List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
-      _tableUse = tableUseData;
+      List<PosTable> inUsedTable = await checkCartTableStatus(cart.selectedTable);
+      TableUse tableUseData = await PosDatabase.instance.readSpecificTableUseByKey(inUsedTable[0].table_use_key!);
+      // List<TableUse> tableUseData = await PosDatabase.instance.readSpecificTableUseId(int.parse(_tableUseId));
+      TableUse _tableUse = tableUseData;
       if (batch != '') {
         //create order cache
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(OrderCache(
@@ -960,8 +959,8 @@ class PlaceAddOrder extends PlaceOrder {
             company_id: loginUserObject['company_id'].toString(),
             branch_id: branch_id.toString(),
             order_detail_id: '',
-            table_use_sqlite_id: _tableUseId,
-            table_use_key: _tableUse[0].table_use_key,
+            table_use_sqlite_id: _tableUse.table_use_sqlite_id.toString(),
+            table_use_key: _tableUse.table_use_key,
             batch_id: batch.toString().padLeft(6, '0'),
             dining_id: cart.selectedOptionId,//this.diningOptionID.toString(),
             order_sqlite_id: '',
