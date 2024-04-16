@@ -1060,7 +1060,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
         exception: e,
       );
     }
-    return finalPrice;
+    return double.parse(finalPrice).toStringAsFixed(2);
   }
 
   getProductDialogStock(Product product) async {
