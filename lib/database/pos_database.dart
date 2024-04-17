@@ -2784,6 +2784,21 @@ class PosDatabase {
   }
 
 /*
+  read specific branch link product item with no left join
+*/
+  Future<BranchLinkProduct?> readSpecificBranchLinkProduct2(String branch_link_product_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND branch_link_product_sqlite_id = ?',
+        ['', branch_link_product_sqlite_id]);
+    if(result.isNotEmpty){
+      return BranchLinkProduct.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
   read specific branch link product item
 */
   Future<BranchLinkProduct?> readSpecificAvailableBranchLinkProduct(String branch_link_product_sqlite_id) async {

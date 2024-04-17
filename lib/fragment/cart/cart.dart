@@ -2323,32 +2323,38 @@ class CartPageState extends State<CartPage> {
   callAddOrderCache(CartModel cart) async {
     try{
       resetValue();
+      List<cartProductItem> outOfStockItem = await checkOrderStock(cart);
       if(await checkTableStatus(cart) == true){
-        cart.selectedTable.removeWhere((e) => e.status == 0);
-        await createOrderCache(cart, isAddOrder: true);
-        await createOrderDetail(cart);
-        if (_appSettingModel.autoPrintChecklist == true) {
-          int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-          if (printStatus == 1) {
-            Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-          } else if (printStatus == 2) {
-            Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-          } else if (printStatus == 5) {
-            Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+        if(outOfStockItem.isEmpty){
+          cart.selectedTable.removeWhere((e) => e.status == 0);
+          await createOrderCache(cart, isAddOrder: true);
+          await createOrderDetail(cart);
+          if (_appSettingModel.autoPrintChecklist == true) {
+            int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
+            if (printStatus == 1) {
+              Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+            } else if (printStatus == 2) {
+              Fluttertoast.showToast(backgroundColor: Colors.orangeAccent, msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+            } else if (printStatus == 5) {
+              Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+            }
           }
+          cart.removeAllCartItem();
+          cart.removeAllTable();
+          // Server.instance.sendRefreshMessage();
+          Navigator.of(context).pop();
+
+          //syncAllToCloud();
+          // if (this.isLogOut == true) {
+          //   openLogOutDialog();
+          //   return;
+          // }
+
+          printKitchenList();
+        } else {
+          Navigator.of(context).pop();
+          showOutOfStockDialog(outOfStockItem);
         }
-        cart.removeAllCartItem();
-        cart.removeAllTable();
-        // Server.instance.sendRefreshMessage();
-        Navigator.of(context).pop();
-
-        //syncAllToCloud();
-        // if (this.isLogOut == true) {
-        //   openLogOutDialog();
-        //   return;
-        // }
-
-        printKitchenList();
       } else {
         cart.removeAllCartItem();
         cart.removeAllTable();
@@ -2365,7 +2371,116 @@ class CartPageState extends State<CartPage> {
         exception: e,
       );
     }
+  }
 
+  Future<List<cartProductItem>> checkOrderStock(CartModel cartModel) async {
+    List<cartProductItem> outOfStockItem = [];
+    // Map<String, dynamic>? result;
+    //bool hasStock = false;
+    List<cartProductItem> unitCartItem = cartModel.cartNotifierItem.where((e) => e.unit == 'each' && e.status == 0).toList();
+    if(unitCartItem.isNotEmpty){
+      for(int i = 0 ; i < unitCartItem.length; i++){
+        print("loop: $i");
+        List<BranchLinkProduct> checkData = await PosDatabase.instance.readSpecificBranchLinkProduct(unitCartItem[i].branch_link_product_sqlite_id!);
+        switch (checkData[0].stock_type) {
+          case '1':
+            {
+              if(int.parse(checkData[0].daily_limit!) < unitCartItem[i].quantity!){
+                outOfStockItem.add(unitCartItem[i]);
+                // branchLinkProductList.add(checkData[0]);
+              }
+            }
+            break;
+          case '2':
+            {
+              if(int.parse(checkData[0].stock_quantity!) < unitCartItem[i].quantity!){
+                outOfStockItem.add(unitCartItem[i]);
+                // branchLinkProductList.add(checkData[0]);
+              }
+            }
+            break;
+        }
+      }
+    }
+    return outOfStockItem;
+  }
+
+  Future<void> showOutOfStockDialog(List<cartProductItem> item) async {
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context){
+          return AlertDialog(
+            title: Text(AppLocalizations.of(context)!.translate("product_out_of_stock")),
+            content: Container(
+              constraints: BoxConstraints(maxHeight: 400),
+              width: 350,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('${AppLocalizations.of(context)!.translate("total_item")}: ${item.length}'),
+                    SizedBox(height: 10),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: item.length,
+                      itemBuilder: (context, index) {
+                        return Card(
+                          elevation: 5,
+                          child: ListTile(
+                            isThreeLine: true,
+                            title: Text(item[index].product_name!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                            subtitle: Text(getVariant(item[index]) + getModifier(item[index])),
+                            trailing: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text("x${item[index].quantity}"),
+                                FutureBuilder(
+                                    future: getStockLeft(item[index]),
+                                    builder: (context, snapshot){
+                                      if(snapshot.hasData){
+                                        return Text("${AppLocalizations.of(context)!.translate("available_stock")}: ${(snapshot.data)}", style: TextStyle(color: Colors.red),);
+                                      } else {
+                                        return Text("");
+                                      }
+                                    })
+                                // Text("${AppLocalizations.of(context)!.translate("available_stock")}: ${getStockLeft(item[index]) ?? ''}", style: TextStyle(color: Colors.red),)
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                    // separatorBuilder: (BuildContext context, int index) => const Divider()),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  onPressed: (){
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(AppLocalizations.of(context)!.translate("close")))
+            ],
+          );
+        });
+  }
+
+  Future<String> getStockLeft(cartProductItem cartItem) async {
+    String stockLeft = '';
+    BranchLinkProduct? product = await PosDatabase.instance.readSpecificBranchLinkProduct2(cartItem.branch_link_product_sqlite_id.toString());
+    if(product != null){
+      switch (product.stock_type) {
+        case '1':
+          return stockLeft = product.daily_limit!;
+        case '2':
+          return stockLeft = product.stock_quantity!;
+      }
+    }
+    return stockLeft;
   }
 
   checkDirectPayment(AppSettingModel appSettingModel, cart) {
