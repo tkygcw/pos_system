@@ -42,15 +42,15 @@ class _DeviceSettingState extends State<DeviceSetting> {
             indent: 20,
             endIndent: 20,
           ),
-          ElevatedButton(
-              onPressed: () async {
-                List<Socket> clientSocketList = Server.instance.clientList;
-                for(int i = 0; i < clientSocketList.length; i++){
-                  Map<String, dynamic>? result = await ServerAction().checkAction(action: '1');
-                  clientSocketList[i].write("${jsonEncode(result)}\n");
-                }
-              },
-              child: Text("Backend received notification"))
+          // ElevatedButton(
+          //     onPressed: () async {
+          //       List<Socket> clientSocketList = Server.instance.clientList;
+          //       for(int i = 0; i < clientSocketList.length; i++){
+          //         Map<String, dynamic>? result = await ServerAction().checkAction(action: '1');
+          //         clientSocketList[i].write("${jsonEncode(result)}\n");
+          //       }
+          //     },
+          //     child: Text("Backend received notification"))
           // Consumer<Server>(
           //     builder: (context, server, child) {
           //       return ListTile(

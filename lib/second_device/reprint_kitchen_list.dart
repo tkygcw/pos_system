@@ -29,7 +29,7 @@ class ReprintKitchenListFunction {
       if(selectedList.isNotEmpty){
         //reprint process
         List<Printer> printerList = await printReceipt.readAllPrinters();
-        List<OrderDetail> returnData = await printReceipt.reprintKitchenList(printerList, reprintList:  checkExistedOrderDetail());
+        List<OrderDetail> returnData = await printReceipt.reprintKitchenList(printerList, reprintList: selectedList);
         if (returnData.isNotEmpty) {
           splitOrderDetail(returnData);
           showFlushBar();
