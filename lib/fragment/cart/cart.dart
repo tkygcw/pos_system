@@ -2406,6 +2406,7 @@ class CartPageState extends State<CartPage> {
   }
 
   Future<void> showOutOfStockDialog(List<cartProductItem> item) async {
+    var screenHeight = MediaQuery.of(context).size.height;
     return showDialog(
         context: context,
         barrierDismissible: false,
@@ -2429,6 +2430,7 @@ class CartPageState extends State<CartPage> {
                         return Card(
                           elevation: 5,
                           child: ListTile(
+                            dense: screenHeight < 750.0 ? true : false,
                             isThreeLine: true,
                             title: Text(item[index].product_name!, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
                             subtitle: Text(getVariant(item[index]) + getModifier(item[index])),

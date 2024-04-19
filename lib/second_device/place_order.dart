@@ -310,6 +310,7 @@ abstract class PlaceOrder {
   }
 
   sendFailPrintOrderDetail({String? address, List<OrderDetail>? failList}){
+    print("server client list: ${ Server.instance.clientList.length}");
     Socket client = Server.instance.clientList.firstWhere((e) => e.remoteAddress.address == address);
     Map<String, dynamic>? result = {'status': '1', 'action': '0', 'failedPrintOrderDetail': failList};
     client.write("${jsonEncode(result)}\n");

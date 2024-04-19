@@ -28,7 +28,9 @@ class _DeviceSettingState extends State<DeviceSetting> {
       body: Column(
         children: [
           ListTile(
-            title: Text("Server socket ip: ${Server.instance.serverIp}"),
+            title: Text("Bind IP address"),
+            subtitle:  Text("Device IP: ${Server.instance.serverIp}"),
+            trailing: Icon(Icons.link),
             onTap: () async {
               await Server.instance.bindServer();
               await Server.instance.bindRequestServer();
@@ -51,17 +53,17 @@ class _DeviceSettingState extends State<DeviceSetting> {
           //       }
           //     },
           //     child: Text("Backend received notification"))
-          // Consumer<Server>(
-          //     builder: (context, server, child) {
-          //       return ListTile(
-          //         title: Text("Connection management"),
-          //         subtitle: Text('Connected device: ${server.clientList.length}'),
-          //         trailing: Visibility(child: Icon(Icons.navigate_next), visible: server.clientList.isEmpty ? false : true),
-          //         onTap: server.clientList.isEmpty ? null : (){
-          //           openDeviceDialog(clientSocket: server.clientList);
-          //         },
-          //       );
-          //     }),
+          Consumer<Server>(
+              builder: (context, server, child) {
+                return ListTile(
+                  title: Text("Connection management"),
+                  subtitle: Text('Connected device: ${server.clientList.length}'),
+                  trailing: Visibility(child: Icon(Icons.navigate_next), visible: server.clientList.isEmpty ? false : true),
+                  onTap: server.clientList.isEmpty ? null : (){
+                    openDeviceDialog(clientSocket: server.clientList);
+                  },
+                );
+              }),
         ],
       )
     );

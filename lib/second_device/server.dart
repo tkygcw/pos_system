@@ -32,8 +32,13 @@ class Server extends ChangeNotifier {
   }
 
   void addClient(Socket clientSocket){
-    clientList.add(clientSocket);
-    notifyListeners();
+    if(clientList.any((e) => e.remoteAddress.address == clientSocket.remoteAddress.address)){
+      return;
+    } else {
+      clientList.add(clientSocket);
+      notifyListeners();
+    }
+    // clientList.add(clientSocket);
   }
 
   void removeClient(Socket clientSocket){
