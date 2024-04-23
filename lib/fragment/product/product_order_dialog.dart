@@ -1136,7 +1136,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
 
-      List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), productId.toString());
+      List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(productId.toString());
       List<Product> productData = await PosDatabase.instance.checkSpecificProduct(productId.toString());
       if (data[0].has_variant == '0') {
         if(productData[0].unit == 'each_c') {

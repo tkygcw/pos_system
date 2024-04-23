@@ -96,10 +96,8 @@ class ServerAction {
           var parameter = jsonDecode(param);
           Product product = Product.fromJson(parameter);
           ProductOrderDialogState state = ProductOrderDialogState();
-          await state.readProductVariant(product.product_sqlite_id!); //await PosDatabase.instance.readSpecificTableToJson(param);
+          await state.readProductVariant(product.product_sqlite_id!);
           await state.readProductModifier(product.product_sqlite_id!);
-          await state.getProductPrice(product.product_sqlite_id!);
-          await PosDatabase.instance.readSpecificCategoryById(product.category_sqlite_id!);
           List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
           objectData = {
             'variant': state.variantGroup,
