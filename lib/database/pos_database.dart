@@ -2824,6 +2824,17 @@ class PosDatabase {
   }
 
 /*
+  checking product
+*/
+  Future<List<Product>> checkSpecificProduct(String product_id) async {
+    final db = await instance.database;
+    final result = await db
+        .rawQuery('SELECT * FROM $tableProduct WHERE soft_delete =? AND product_sqlite_id = ?', ['', product_id]);
+
+    return result.map((json) => Product.fromJson(json)).toList();
+  }
+
+/*
   read branch link dining option
 */
   Future<List<BranchLinkDining>> readBranchLinkDiningOption(String branch_id) async {

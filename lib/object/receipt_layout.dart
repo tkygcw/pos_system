@@ -931,7 +931,7 @@ class ReceiptLayout{
       bytes += generator.emptyLines(1);
       bytes += generator.reset();
       //Address
-      if(receipt!.show_address == 1){
+      if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
         bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
       }
       //telephone
@@ -1129,7 +1129,7 @@ class ReceiptLayout{
         }
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
-        if(receipt!.show_address == 1){
+        if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
           //Address
           bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
         }
@@ -1356,7 +1356,7 @@ class ReceiptLayout{
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         //Address
-        if(receipt!.show_address == 1){
+        if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
           bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
         }
         //telephone
@@ -1625,7 +1625,7 @@ class ReceiptLayout{
         bytes += generator.emptyLines(1);
         bytes += generator.reset();
         //Address
-        if(receipt!.show_address == 1){
+        if(receipt!.show_address == 1 && branchObject['address'].toString() != ''){
           bytes += generator.text('${branchObject['address'].toString().replaceAll(',', '\n')}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
         }
         //telephone
