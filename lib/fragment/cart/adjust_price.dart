@@ -60,7 +60,7 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
   void initState() {
     super.initState();
     readCartItemInfo();
-    simpleIntInput = widget.cartItem.unit != 'each' ? 0 : 1;
+    simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? 0 : 1;
     priceController = TextEditingController(text: '${widget.cartItem.price}');
   }
 
@@ -132,8 +132,8 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                                 decoration: InputDecoration(
                                   errorText: _submitted
                                       ? errorPassword == null
-                                          ? errorPassword
-                                          : AppLocalizations.of(context)?.translate(errorPassword!)
+                                      ? errorPassword
+                                      : AppLocalizations.of(context)?.translate(errorPassword!)
                                       : null,
                                   border: OutlineInputBorder(
                                     borderSide: BorderSide(color: color.backgroundColor),
@@ -252,32 +252,32 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                             isButtonDisabled
                                 ? null
                                 : () async {
-                                    if(priceController.text.isNotEmpty) {
-                                      if (double.parse(priceController.text).toStringAsFixed(2) != double.parse(widget.cartItem.price!).toStringAsFixed(2)) {
-                                        if(double.parse(priceController.text) >= modifierTotalPrice) {
-                                          DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-                                          String dateTime = dateFormat.format(DateTime.now());
-                                          final prefs = await SharedPreferences.getInstance();
-                                          final String? pos_user = prefs.getString('pos_pin_user');
-                                          Map<String, dynamic> userMap = json.decode(pos_user!);
-                                          User userData = User.fromJson(userMap);
+                              if(priceController.text.isNotEmpty) {
+                                if (double.parse(priceController.text).toStringAsFixed(2) != double.parse(widget.cartItem.price!).toStringAsFixed(2)) {
+                                  if(double.parse(priceController.text) >= modifierTotalPrice) {
+                                    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+                                    String dateTime = dateFormat.format(DateTime.now());
+                                    final prefs = await SharedPreferences.getInstance();
+                                    final String? pos_user = prefs.getString('pos_pin_user');
+                                    Map<String, dynamic> userMap = json.decode(pos_user!);
+                                    User userData = User.fromJson(userMap);
 
-                                          if(userData.edit_price_without_pin != 1) {
-                                            await showSecondDialog(context, color, cart);
-                                          } else {
-                                            await callUpdateCart(userData, dateTime, cart);
-                                            Navigator.of(context).pop();
-                                          }
-                                        }
-                                      } else {
-                                        //no changes
-                                        print("Price Adjust: no changes");
-                                        Navigator.of(context).pop();
-                                      }
+                                    if(userData.edit_price_without_pin != 1) {
+                                      await showSecondDialog(context, color, cart);
                                     } else {
-                                      priceController.text = "";
+                                      await callUpdateCart(userData, dateTime, cart);
+                                      Navigator.of(context).pop();
                                     }
-                                  }();
+                                  }
+                                } else {
+                                  //no changes
+                                  print("Price Adjust: no changes");
+                                  Navigator.of(context).pop();
+                                }
+                              } else {
+                                priceController.text = "";
+                              }
+                            }();
                           },
                         ),
                       ),
@@ -473,7 +473,7 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
     OrderCache data = await PosDatabase.instance.readSpecificOrderCacheByLocalId(int.parse(orderCacheLocalId));
     subtotal = (double.parse(data.total_amount!) - double.parse(oldPrice)*double.parse(quantity)) + (double.parse(quantity) * double.parse(newPrice));
     OrderCache orderCache =
-        OrderCache(order_cache_sqlite_id: data.order_cache_sqlite_id, total_amount: subtotal.toStringAsFixed(2), sync_status: data.sync_status == 0 ? 0 : 2, updated_at: dateTime);
+    OrderCache(order_cache_sqlite_id: data.order_cache_sqlite_id, total_amount: subtotal.toStringAsFixed(2), sync_status: data.sync_status == 0 ? 0 : 2, updated_at: dateTime);
     int status = await PosDatabase.instance.updateOrderCacheSubtotal(orderCache);
     if (status == 1) {
       getOrderCacheValue(orderCache);

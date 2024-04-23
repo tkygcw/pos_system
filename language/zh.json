@@ -385,6 +385,8 @@
   "printing_error": "打印错误",
   "product": "商品",
   "product_edited_report": "商品编辑报告",
+  "product_name": "产品名称",
+  "product_name_empty": "产品名称不能为空",
   "product_name_font_size": "产品名称字体大小",
   "product_out_of_stock": "产品缺货",
   "product_report": "产品报告",

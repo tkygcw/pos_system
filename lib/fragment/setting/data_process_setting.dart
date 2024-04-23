@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/setting/sync_dialog.dart';
 import 'package:pos_system/fragment/setting/system_log_dialog.dart';
@@ -22,12 +23,13 @@ class DataProcessingSetting extends StatefulWidget {
 }
 
 class _DataProcessingSettingState extends State<DataProcessingSetting> {
-  String subscriptionEndDate = '';
+  String subscriptionEndDate = '', appVersion = '';
   int daysLeft = 0;
   @override
   void initState() {
     super.initState();
     getSubscriptionDate();
+    getAppVersion();
   }
 
   @override
@@ -43,7 +45,7 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Optimy Pos License',
+                      'Optimy Pos License v$appVersion',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -249,5 +251,10 @@ class _DataProcessingSettingState extends State<DataProcessingSetting> {
       subscriptionEndDate = DateFormat("dd/MM/yyyy").format(subscriptionEnd);
       daysLeft = difference.inDays +1;
     });
+  }
+
+  getAppVersion() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    appVersion = packageInfo.version;
   }
 }

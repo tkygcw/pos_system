@@ -295,6 +295,12 @@ class SyncRecord {
                 syncRecordIdList.add(responseJson[i]['id']);
               }
               break;
+            case '28':
+              bool status = await callSubscriptionQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
+              if(status == true){
+                syncRecordIdList.add(responseJson[i]['id']);
+              }
+              break;
           }
         }
         print('sync record length: ${syncRecordIdList.length}');
