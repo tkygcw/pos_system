@@ -389,6 +389,7 @@
   "product_name_empty": "产品名称不能为空",
   "product_name_font_size": "产品名称字体大小",
   "product_out_of_stock": "产品缺货",
+  "product_price_empty": "产品价格不能为空",
   "product_report": "产品报告",
   "product_variant": "产品规格",
   "product_variant_sold_out": "产品规格售罄！",
