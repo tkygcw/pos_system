@@ -230,664 +230,660 @@ class CartPageState extends State<CartPage> {
                   ? getSubTotal(cart)
                   : getReceiptPaymentDetail(cart);
               return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Scaffold(
-                  resizeToAvoidBottomInset: false,
-                  appBar: AppBar(
-                    automaticallyImplyLeading: false,
-                    title: Row(
-                      children: [
+                  padding: const EdgeInsets.all(8.0),
+                  child: Scaffold(
+                    resizeToAvoidBottomInset: false,
+                    appBar: AppBar(
+                      automaticallyImplyLeading: false,
+                      title: Row(
+                        children: [
+                          Visibility(
+                            visible: widget.currentPage == 'table' ? true: true,
+                            child: Text('${getSelectedTable(cart, appSettingModel)}'),
+                          ),
+                          // MediaQuery.of(context).size.height > 500
+                          //     ? Text(AppLocalizations.of(context)!.translate('bill'), style: TextStyle(fontSize: 20, color: Colors.black))
+                          //     : SizedBox.shrink(),
+                          // Visibility(
+                          //   visible: widget.currentPage == 'table' ? true: false,
+                          //   child: Expanded(
+                          //     child: Padding(
+                          //       padding: const EdgeInsets.all(8.0),
+                          //       child: Text(AppLocalizations.of(context)!.translate('table')+': ${getSelectedTable(cart)}'),
+                          //     ),
+                          //   ),
+                          // ),
+                        ],
+                      ),
+                      backgroundColor: Colors.white,
+                      actions: [
                         Visibility(
-                          visible: widget.currentPage == 'table' ? true: true,
-                          child: Text('${getSelectedTable(cart, appSettingModel)}'),
+                          visible: widget.currentPage == 'menu' ? true : false,
+                          child: Expanded(
+                            child: IconButton(
+                              tooltip: 'kitchen print',
+                              icon: Badge(
+                                isLabelVisible: failPrintModel.failedPrintOrderDetail.isEmpty ? false : true,
+                                label: Text(failPrintModel.failedPrintOrderDetail.length.toString()),
+                                child: const Icon(
+                                  Icons.print,
+                                ),
+                              ),
+                              color: color.backgroundColor,
+                              onPressed: () {
+                                //tableDialog(context);
+                                openReprintKitchenDialog();
+                              },
+                            ),
+                          ),
                         ),
-                        // MediaQuery.of(context).size.height > 500
-                        //     ? Text(AppLocalizations.of(context)!.translate('bill'), style: TextStyle(fontSize: 20, color: Colors.black))
-                        //     : SizedBox.shrink(),
-                        // Visibility(
-                        //   visible: widget.currentPage == 'table' ? true: false,
-                        //   child: Expanded(
-                        //     child: Padding(
-                        //       padding: const EdgeInsets.all(8.0),
-                        //       child: Text(AppLocalizations.of(context)!.translate('table')+': ${getSelectedTable(cart)}'),
-                        //     ),
-                        //   ),
-                        // ),
+                        Visibility(
+                          visible: cart.selectedOption == 'Dine in' && widget.currentPage == 'menu' && appSettingModel.table_order == true
+                              ? true
+                              : false,
+                          child: Expanded(
+                            child: IconButton(
+                              tooltip: 'table',
+                              icon: Badge(
+                                isLabelVisible: cart.selectedTable.isEmpty ? false : true,
+                                label: Text("${cart.selectedTable.length}"),
+                                child: const Icon(
+                                  Icons.table_restaurant,
+                                ),
+                              ),
+                              color: color.backgroundColor,
+                              onPressed: () {
+                                //tableDialog(context);
+                                openChooseTableDialog(cart);
+                              },
+                            ),
+                          ),
+                        ),
+                        Visibility(
+                          visible: (widget.currentPage == 'menu' && cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) ||
+                              (widget.currentPage == 'menu' && cart.selectedOption != 'Dine in' && appSettingModel.directPaymentStatus == false) ||
+                              widget.currentPage == 'qr_order' ||
+                              widget.currentPage == 'bill'
+                              ? false
+                              : true,
+                          child: IconButton(
+                            tooltip: 'promotion',
+                            icon: Icon(Icons.discount),
+                            color: color.backgroundColor,
+                            onPressed: () {
+                              print("app setting: ${appSettingModel.directPaymentStatus}");
+                              openPromotionDialog();
+                            },
+                          ),
+                        ),
+                        Visibility(
+                          visible: widget.currentPage == 'menu' ? true : false,
+                          child: Expanded(
+                            child: IconButton(
+                              tooltip: 'clear cart',
+                              icon: const Icon(
+                                Icons.delete,
+                              ),
+                              color: color.backgroundColor,
+                              onPressed: () {
+                                cart.removePartialCartItem();
+                                //cart.removeAllTable();
+                              },
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                    backgroundColor: Colors.white,
-                    actions: [
-                      Visibility(
-                        visible: widget.currentPage == 'menu' ? true : false,
-                        child: Expanded(
-                          child: IconButton(
-                            tooltip: 'kitchen print',
-                            icon: Badge(
-                              isLabelVisible: failPrintModel.failedPrintOrderDetail.isEmpty ? false : true,
-                              label: Text(failPrintModel.failedPrintOrderDetail.length.toString()),
-                              child: const Icon(
-                                Icons.print,
+                    body: StreamBuilder(
+                        stream: controller.stream,
+                        builder: (context, snapshot) {
+                          if(snapshot.hasData && notificationModel.contentLoad == false){
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                border: Border.all(color: Colors.grey.shade100, width: 3.0),
                               ),
-                            ),
-                            color: color.backgroundColor,
-                            onPressed: () {
-                              //tableDialog(context);
-                              openReprintKitchenDialog();
-                            },
-                          ),
-                        ),
-                      ),
-                      Visibility(
-                        visible: cart.selectedOption == 'Dine in' && widget.currentPage == 'menu' && appSettingModel.table_order == true
-                            ? true
-                            : false,
-                        child: Expanded(
-                          child: IconButton(
-                            tooltip: 'table',
-                            icon: Badge(
-                              isLabelVisible: cart.selectedTable.isEmpty ? false : true,
-                              label: Text("${cart.selectedTable.length}"),
-                              child: const Icon(
-                                Icons.table_restaurant,
-                              ),
-                            ),
-                            color: color.backgroundColor,
-                            onPressed: () {
-                              //tableDialog(context);
-                              openChooseTableDialog(cart);
-                            },
-                          ),
-                        ),
-                      ),
-                      Visibility(
-                        visible: (widget.currentPage == 'menu' && cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) ||
-                            (widget.currentPage == 'menu' && cart.selectedOption != 'Dine in' && appSettingModel.directPaymentStatus == false) ||
-                            widget.currentPage == 'qr_order' ||
-                            widget.currentPage == 'bill'
-                            ? false
-                            : true,
-                        child: IconButton(
-                          tooltip: 'promotion',
-                          icon: Icon(Icons.discount),
-                          color: color.backgroundColor,
-                          onPressed: () {
-                            print("app setting: ${appSettingModel.directPaymentStatus}");
-                            openPromotionDialog();
-                          },
-                        ),
-                      ),
-                      Visibility(
-                        visible: widget.currentPage == 'menu' ? true : false,
-                        child: Expanded(
-                          child: IconButton(
-                            tooltip: 'clear cart',
-                            icon: const Icon(
-                              Icons.delete,
-                            ),
-                            color: color.backgroundColor,
-                            onPressed: () {
-                              cart.removePartialCartItem();
-                              //cart.removeAllTable();
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  body: StreamBuilder(
-                      stream: controller.stream,
-                      builder: (context, snapshot) {
-                        print("rebuild ui");
-                        if(snapshot.hasData && notificationModel.contentLoad == false){
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(color: Colors.grey.shade100, width: 3.0),
-                            ),
-                            child: Column(
-                              children: [
-                                Container(
-                                  margin: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
-                                      ? EdgeInsets.only(bottom: 10)
-                                      : EdgeInsets.zero,
-                                  child: GridView(
-                                      physics: NeverScrollableScrollPhysics(),
-                                      shrinkWrap: true,
-                                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount: diningList.length == 3 ?  3 : 2,
-                                          childAspectRatio: 2.0,
-                                          mainAxisExtent: 50
-                                      ),
-                                      children: List.generate(diningList.length, (index) {
-                                        return InkWell(
-                                          onTap: () {
-                                            widget.currentPage == 'menu' ?
-                                            cart.cartNotifierItem.isEmpty ?
-                                            setState(() {
-                                              cart.removeAllTable();
-                                              cart.selectedOption = diningList[index].name!;
-                                              cart.selectedOptionId =
-                                              diningList[index].dining_id!;
-                                            })
-                                                : cart.cartNotifierItem.isNotEmpty &&
-                                                cart.cartNotifierItem[0].status != 1 &&
-                                                cart.selectedOption != diningList[index].name!
-                                                ? setState(() {
-                                              showSecondDialog(
-                                                  context, color, cart, diningList[index]);
-                                            })
-                                                : null
-                                                : null;
-                                          },
-                                          child: Container(
-                                              color: cart.selectedOption == diningList[index].name!
-                                                  ? color.buttonColor
-                                                  : color.backgroundColor,
-                                              alignment: Alignment.center,
-                                              child: Text(
-                                                diningList[index].name!,
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.w600,
-                                                    color: cart.selectedOption == diningList[index].name!
-                                                        ? color.iconColor
-                                                        : Colors.white,
-                                                    fontSize: 16),
-                                              )),
-                                        );
-                                      })),
-                                ),
-                                Expanded(
-                                  child: ListView.builder(
-                                      controller: _scrollController,
-                                      shrinkWrap: true,
-                                      itemCount: cart.cartNotifierItem.length,
-                                      itemBuilder: (context, index) {
-                                        return Dismissible(
-                                          background: Container(
-                                            color: Colors.red,
-                                            padding: EdgeInsets.only(left: 25.0),
-                                            child: Row(
-                                              children: [
-                                                Icon(Icons.delete, color: Colors.white),
-                                              ],
-                                            ),
-                                          ),
-                                          key: ValueKey(cart.cartNotifierItem[index].product_name),
-                                          direction: widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
-                                              widget.currentPage == 'table' ||
-                                              widget.currentPage == 'other_order'
-                                              ? DismissDirection.startToEnd
-                                              : DismissDirection.none,
-                                          confirmDismiss: (direction) async {
-                                            if (direction == DismissDirection.startToEnd) {
-                                              await openRemoveCartItemDialog(cart.cartNotifierItem[index], widget.currentPage);
-                                            }
-                                            return null;
-                                          },
-                                          child: ListTile(
-                                            hoverColor: Colors.transparent,
-                                            isThreeLine: true,
-                                            title: RichText(
-                                              text: TextSpan(
-                                                children: <TextSpan>[
-                                                  TextSpan(
-                                                    text: cart.cartNotifierItem[index].product_name! + '\n',
-                                                    style: TextStyle(
-                                                        fontSize: 14,
-                                                        color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
-                                                        fontWeight: FontWeight.bold),
-                                                  ),
-                                                  TextSpan(
-                                                    // text: "RM" + cart.cartNotifierItem[index].price! + " (" +  ,
-                                                      text:
-                                                      "RM ${cart.cartNotifierItem[index].price!} (${cart.cartNotifierItem[index].unit! != '' ? cart.cartNotifierItem[index].per_quantity_unit! + cart.cartNotifierItem[index].unit! : 'each'})",
-                                                      style: TextStyle(
-                                                        fontSize: 13,
-                                                        color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
-                                                      )),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    margin: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
+                                        ? EdgeInsets.only(bottom: 10)
+                                        : EdgeInsets.zero,
+                                    child: GridView(
+                                        physics: NeverScrollableScrollPhysics(),
+                                        shrinkWrap: true,
+                                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: diningList.length == 3 ?  3 : 2,
+                                            childAspectRatio: 2.0,
+                                            mainAxisExtent: 50
+                                        ),
+                                        children: List.generate(diningList.length, (index) {
+                                          return InkWell(
+                                            onTap: () {
+                                              widget.currentPage == 'menu'
+                                                  ? cart.cartNotifierItem.isEmpty
+                                                  ? setState(() {
+                                                cart.removeAllTable();
+                                                cart.selectedOption = diningList[index].name!;
+                                                cart.selectedOptionId =
+                                                diningList[index].dining_id!;
+                                              })
+                                                  : cart.cartNotifierItem.isNotEmpty &&
+                                                  cart.cartNotifierItem[0].status != 1 &&
+                                                  cart.selectedOption != diningList[index].name!
+                                                  ? setState(() {
+                                                showSecondDialog(
+                                                    context, color, cart, diningList[index]);
+                                              })
+                                                  : null
+                                                  : null;
+                                            },
+                                            child: Container(
+                                                color: cart.selectedOption == diningList[index].name!
+                                                    ? color.buttonColor
+                                                    : color.backgroundColor,
+                                                alignment: Alignment.center,
+                                                child: Text(
+                                                  diningList[index].name!,
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                      fontWeight: FontWeight.w600,
+                                                      color: cart.selectedOption == diningList[index].name!
+                                                          ? color.iconColor
+                                                          : Colors.white,
+                                                      fontSize: 16),
+                                                )),
+                                          );
+                                        })),
+                                  ),
+                                  Expanded(
+                                    child: ListView.builder(
+                                        controller: _scrollController,
+                                        shrinkWrap: true,
+                                        itemCount: cart.cartNotifierItem.length,
+                                        itemBuilder: (context, index) {
+                                          return Dismissible(
+                                            background: Container(
+                                              color: Colors.red,
+                                              padding: EdgeInsets.only(left: 25.0),
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.delete, color: Colors.white),
                                                 ],
                                               ),
                                             ),
-                                            subtitle: Text(
-                                                getVariant(cart.cartNotifierItem[index]) + getModifier(cart.cartNotifierItem[index]) + getRemark(cart.cartNotifierItem[index]),
-                                                style: TextStyle(fontSize: 10)),
-                                            onTap: () async {
-                                              // if(widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
-                                              //     widget.currentPage == 'table' || widget.currentPage == 'other_order')
-                                              if(widget.currentPage == 'table' || widget.currentPage == 'other_order')
-                                                await openAdjustPriceDialog(cart, cart.cartNotifierItem[index], widget.currentPage, index);
+                                            key: ValueKey(cart.cartNotifierItem[index].product_name),
+                                            direction: widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
+                                                widget.currentPage == 'table' ||
+                                                widget.currentPage == 'other_order'
+                                                ? DismissDirection.startToEnd
+                                                : DismissDirection.none,
+                                            confirmDismiss: (direction) async {
+                                              if (direction == DismissDirection.startToEnd) {
+                                                await openRemoveCartItemDialog(cart.cartNotifierItem[index], widget.currentPage);
+                                              }
+                                              return null;
                                             },
-                                            trailing: Container(
-                                              child: FittedBox(
-                                                child: Row(
-                                                  children: [
-                                                    Visibility(
-                                                      visible: widget.currentPage == 'menu' ? true : false,
-                                                      child: IconButton(
-                                                          hoverColor: Colors.transparent,
-                                                          icon: Icon(Icons.remove),
-                                                          onPressed: () {
-                                                            if (cart.cartNotifierItem[index].status == 0) {
-                                                              if (cart.cartNotifierItem[index].quantity! > 1) {
-                                                                if (cart.cartNotifierItem[index].unit != 'each') {
-                                                                  setState(() {
-                                                                    cart.cartNotifierItem[index].quantity = (cart.cartNotifierItem[index].quantity! - 1).ceilToDouble();
-                                                                  });
-                                                                } else {
-                                                                  setState(() {
-                                                                    cart.cartNotifierItem[index].quantity = (cart.cartNotifierItem[index].quantity! - 1);
-                                                                  });
-                                                                }
-                                                              } else {
-                                                                cart.removeItem(cart.cartNotifierItem[index]);
-                                                              }
-                                                            } else {
-                                                              Fluttertoast.showToast(
-                                                                backgroundColor: Colors.red,
-                                                                msg: AppLocalizations.of(context)!.translate('order_already_placed'),
-                                                              );
-                                                            }
-                                                          }),
+                                            child: ListTile(
+                                              hoverColor: Colors.transparent,
+                                              isThreeLine: true,
+                                              title: RichText(
+                                                text: TextSpan(
+                                                  children: <TextSpan>[
+                                                    TextSpan(
+                                                      text: cart.cartNotifierItem[index].product_name! + '\n',
+                                                      style: TextStyle(
+                                                          fontSize: 14,
+                                                          color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
+                                                          fontWeight: FontWeight.bold),
                                                     ),
-                                                    Text(
-                                                      cart.cartNotifierItem[index].quantity.toString(),
-                                                      style: TextStyle(color: cart.cartNotifierItem[index].refColor),
-                                                    ),
-                                                    widget.currentPage == 'menu'
-                                                        ? IconButton(
-                                                        hoverColor: Colors.transparent,
-                                                        icon: Icon(Icons.add),
-                                                        onPressed: () async {
-                                                          if (cart.cartNotifierItem[index].status == 0) {
-                                                            if (await checkProductStock(cart, cart.cartNotifierItem[index]) == true) {
-                                                              setState(() {
-                                                                cart.cartNotifierItem[index].quantity = cart.cartNotifierItem[index].quantity! + 1;
-                                                              });
-                                                            } else {
-                                                              Fluttertoast.showToast(
-                                                                  backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('product_out_of_stock'));
-                                                            }
-                                                          } else {
-                                                            Fluttertoast.showToast(
-                                                                backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('order_already_placed'));
-                                                          }
-                                                          controller.add('refresh');
-                                                        })
-                                                        : Container()
+                                                    TextSpan(
+                                                      // text: "RM" + cart.cartNotifierItem[index].price! + " (" +  ,
+                                                        text:
+                                                        "RM ${cart.cartNotifierItem[index].price!} (${cart.cartNotifierItem[index].unit! != 'each' && cart.cartNotifierItem[index].unit! != 'each_c' ? cart.cartNotifierItem[index].per_quantity_unit! + cart.cartNotifierItem[index].unit! : 'each'})",
+                                                        style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: cart.cartNotifierItem[index].status == 1 ? font : cart.cartNotifierItem[index].refColor,
+                                                        )),
                                                   ],
                                                 ),
                                               ),
-                                            ),
-                                          ),
-                                        );
-                                      }),
-                                ),
-                                SizedBox(height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 20 : 5),
-                                Divider(
-                                  color: Colors.grey,
-                                  height: 1,
-                                  thickness: 1,
-                                  indent: 20,
-                                  endIndent: 20,
-                                ),
-                                SizedBox(height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 10 : 5),
-                                Container(
-                                  height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
-                                      ? widget.currentPage == 'menu' || widget.currentPage == 'table'
-                                      ? 130
-                                      : null
-                                      : 25,
-                                  child: ListView(
-                                    physics: ClampingScrollPhysics(),
-                                    children: [
-                                      ListTile(
-                                        title: Text('Subtotal', style: TextStyle(fontSize: 14)),
-                                        trailing: Text('${total.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
-                                        visualDensity: VisualDensity(vertical: -4),
-                                        dense: true,
-                                      ),
-                                      Visibility(
-                                        visible: cart.selectedPromotion != null ? true : false,
-                                        child: ListTile(
-                                          title: SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            child: Row(
-                                              children: [
-                                                Text('${allPromo} (${selectedPromoRate})', style: TextStyle(fontSize: 14)),
-                                                IconButton(
-                                                  padding: EdgeInsets.only(left: 10),
-                                                  constraints: BoxConstraints(),
-                                                  icon: Icon(Icons.close),
-                                                  iconSize: 20.0,
-                                                  color: Colors.red,
-                                                  onPressed: () {
-                                                    cart.removePromotion();
-                                                    selectedPromo = 0.0;
-                                                    hasSelectedPromo = false;
-                                                  },
+                                              subtitle: Text(
+                                                  getVariant(cart.cartNotifierItem[index]) + getModifier(cart.cartNotifierItem[index]) + getRemark(cart.cartNotifierItem[index]),
+                                                  style: TextStyle(fontSize: 10)),
+                                              onTap: () async {
+                                                // if(widget.currentPage == 'menu' && cart.cartNotifierItem[index].status == 0 ||
+                                                //     widget.currentPage == 'table' || widget.currentPage == 'other_order')
+                                                if(widget.currentPage == 'table' || widget.currentPage == 'other_order')
+                                                  await openAdjustPriceDialog(cart, cart.cartNotifierItem[index], widget.currentPage, index);
+                                              },
+                                              trailing: Container(
+                                                child: FittedBox(
+                                                  child: Row(
+                                                    children: [
+                                                      Visibility(
+                                                        visible: widget.currentPage == 'menu' ? true : false,
+                                                        child: IconButton(
+                                                            hoverColor: Colors.transparent,
+                                                            icon: Icon(Icons.remove),
+                                                            onPressed: () {
+                                                              if (cart.cartNotifierItem[index].status == 0) {
+                                                                if (cart.cartNotifierItem[index].quantity! > 1) {
+                                                                  if (cart.cartNotifierItem[index].unit != 'each' && cart.cartNotifierItem[index].unit != 'each_c') {
+                                                                    setState(() {
+                                                                      cart.cartNotifierItem[index].quantity = (cart.cartNotifierItem[index].quantity! - 1).ceilToDouble();
+                                                                    });
+                                                                  } else {
+                                                                    setState(() {
+                                                                      cart.cartNotifierItem[index].quantity = (cart.cartNotifierItem[index].quantity! - 1);
+                                                                    });
+                                                                  }
+                                                                } else {
+                                                                  cart.removeItem(cart.cartNotifierItem[index]);
+                                                                }
+                                                              } else {
+                                                                Fluttertoast.showToast(
+                                                                  backgroundColor: Colors.red,
+                                                                  msg: AppLocalizations.of(context)!.translate('order_already_placed'),
+                                                                );
+                                                              }
+                                                            }),
+                                                      ),
+                                                      Text(
+                                                        cart.cartNotifierItem[index].quantity.toString(),
+                                                        style: TextStyle(color: cart.cartNotifierItem[index].refColor),
+                                                      ),
+                                                      widget.currentPage == 'menu'
+                                                          ? IconButton(
+                                                          hoverColor: Colors.transparent,
+                                                          icon: Icon(Icons.add),
+                                                          onPressed: () async {
+                                                            if (cart.cartNotifierItem[index].status == 0) {
+                                                              if (await checkProductStock(cart, cart.cartNotifierItem[index]) == true) {
+                                                                setState(() {
+                                                                  cart.cartNotifierItem[index].quantity = cart.cartNotifierItem[index].quantity! + 1;
+                                                                });
+                                                              } else {
+                                                                Fluttertoast.showToast(
+                                                                    backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('product_out_of_stock'));
+                                                              }
+                                                            } else {
+                                                              Fluttertoast.showToast(
+                                                                  backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('order_already_placed'));
+                                                            }
+                                                            controller.add('refresh');
+                                                          })
+                                                          : Container()
+                                                    ],
+                                                  ),
                                                 ),
-                                              ],
+                                              ),
                                             ),
-                                          ),
-                                          trailing: Text('-${selectedPromo.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                          );
+                                        }),
+                                  ),
+                                  SizedBox(height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 20 : 5),
+                                  Divider(
+                                    color: Colors.grey,
+                                    height: 1,
+                                    thickness: 1,
+                                    indent: 20,
+                                    endIndent: 20,
+                                  ),
+                                  SizedBox(height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? 10 : 5),
+                                  Container(
+                                    height: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
+                                        ? widget.currentPage == 'menu' || widget.currentPage == 'table'
+                                        ? 130
+                                        : null
+                                        : 25,
+                                    child: ListView(
+                                      physics: ClampingScrollPhysics(),
+                                      children: [
+                                        ListTile(
+                                          title: Text('Subtotal', style: TextStyle(fontSize: 14)),
+                                          trailing: Text('${total.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
                                           visualDensity: VisualDensity(vertical: -4),
                                           dense: true,
                                         ),
-                                      ),
-                                      Visibility(
-                                          visible: hasPromo == true ? true : false,
+                                        Visibility(
+                                          visible: cart.selectedPromotion != null ? true : false,
+                                          child: ListTile(
+                                            title: SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: Row(
+                                                children: [
+                                                  Text('${allPromo} (${selectedPromoRate})', style: TextStyle(fontSize: 14)),
+                                                  IconButton(
+                                                    padding: EdgeInsets.only(left: 10),
+                                                    constraints: BoxConstraints(),
+                                                    icon: Icon(Icons.close),
+                                                    iconSize: 20.0,
+                                                    color: Colors.red,
+                                                    onPressed: () {
+                                                      cart.removePromotion();
+                                                      selectedPromo = 0.0;
+                                                      hasSelectedPromo = false;
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            trailing: Text('-${selectedPromo.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                            visualDensity: VisualDensity(vertical: -4),
+                                            dense: true,
+                                          ),
+                                        ),
+                                        Visibility(
+                                            visible: hasPromo == true ? true : false,
+                                            child: ListView.builder(
+                                                shrinkWrap: true,
+                                                physics: NeverScrollableScrollPhysics(),
+                                                itemCount: autoApplyPromotionList.length,
+                                                itemBuilder: (context, index) {
+                                                  return ListTile(
+                                                      title: Text('${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})', style: TextStyle(fontSize: 14)),
+                                                      visualDensity: VisualDensity(vertical: -4),
+                                                      dense: true,
+                                                      trailing: Text('-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)));
+                                                })),
+                                        Visibility(
+                                          visible: widget.currentPage == 'bill' ? true : false,
                                           child: ListView.builder(
                                               shrinkWrap: true,
                                               physics: NeverScrollableScrollPhysics(),
-                                              itemCount: autoApplyPromotionList.length,
+                                              itemCount: orderPromotionList.length,
                                               itemBuilder: (context, index) {
                                                 return ListTile(
-                                                    title: Text('${autoApplyPromotionList[index].name} (${autoApplyPromotionList[index].promoRate})', style: TextStyle(fontSize: 14)),
+                                                    title: Text('${orderPromotionList[index].promotion_name} (${orderPromotionList[index].rate})', style: TextStyle(fontSize: 14)),
                                                     visualDensity: VisualDensity(vertical: -4),
                                                     dense: true,
-                                                    trailing: Text('-${autoApplyPromotionList[index].promoAmount!.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)));
-                                              })),
-                                      Visibility(
-                                        visible: widget.currentPage == 'bill' ? true : false,
-                                        child: ListView.builder(
-                                            shrinkWrap: true,
-                                            physics: NeverScrollableScrollPhysics(),
-                                            itemCount: orderPromotionList.length,
-                                            itemBuilder: (context, index) {
-                                              return ListTile(
-                                                  title: Text('${orderPromotionList[index].promotion_name} (${orderPromotionList[index].rate})', style: TextStyle(fontSize: 14)),
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  dense: true,
-                                                  trailing: Text('-${orderPromotionList[index].promotion_amount}', style: TextStyle(fontSize: 14)));
-                                            }),
-                                      ),
-                                      Visibility(
-                                        visible:
-                                        widget.currentPage == 'menu' || widget.currentPage == 'table' || widget.currentPage == 'qr_order' || widget.currentPage == 'other_order'
-                                            ? true
-                                            : false,
-                                        child: ListView.builder(
-                                            shrinkWrap: true,
-                                            physics: NeverScrollableScrollPhysics(),
-                                            itemCount: taxRateList.length,
-                                            itemBuilder: (context, index) {
-                                              return ListTile(
-                                                title: Text('${taxRateList[index].name}(${taxRateList[index].tax_rate}%)', style: TextStyle(fontSize: 14)),
-                                                trailing: Text('${taxRateList[index].tax_amount?.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
-                                                //Text(''),
-                                                visualDensity: VisualDensity(vertical: -4),
-                                                dense: true,
-                                              );
-                                            }),
-                                      ),
-                                      Visibility(
-                                        visible: widget.currentPage == 'bill' ? true : false,
-                                        child: ListView.builder(
-                                            shrinkWrap: true,
-                                            physics: NeverScrollableScrollPhysics(),
-                                            itemCount: orderTaxList.length,
-                                            itemBuilder: (context, index) {
-                                              return ListTile(
-                                                title: Text('${orderTaxList[index].tax_name}(${orderTaxList[index].rate}%)', style: TextStyle(fontSize: 14)),
-                                                trailing: Text('${orderTaxList[index].tax_amount}', style: TextStyle(fontSize: 14)),
-                                                //Text(''),
-                                                visualDensity: VisualDensity(vertical: -4),
-                                                dense: true,
-                                              );
-                                            }),
-                                      ),
-                                      ListTile(
-                                        title: Text('Amount', style: TextStyle(fontSize: 14)),
-                                        trailing: Text('${totalAmount.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
-                                        visualDensity: VisualDensity(vertical: -4),
-                                        dense: true,
-                                      ),
-                                      ListTile(
-                                        title: Text('Rounding', style: TextStyle(fontSize: 14)),
-                                        trailing: Text('${rounding.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
-                                        visualDensity: VisualDensity(vertical: -4),
-                                        dense: true,
-                                      ),
-                                      ListTile(
-                                        visualDensity: VisualDensity(vertical: -4),
-                                        title: Text('Final Amount', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                        trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                        dense: true,
-                                      ),
-                                      Visibility(
-                                          visible: widget.currentPage == 'bill' ? true : false,
-                                          child: Column(
-                                            children: [
-                                              Container(
-                                                child: ListTile(
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  title: Text('Payment received', style: TextStyle(fontSize: 14)),
-                                                  trailing: Text("${paymentReceived.toStringAsFixed(2)}", style: TextStyle(fontSize: 14)),
-                                                  dense: true,
-                                                ),
-                                              ),
-                                              Container(
-                                                child: ListTile(
-                                                  visualDensity: VisualDensity(vertical: -4),
-                                                  title: Text('Change', style: TextStyle(fontSize: 14)),
-                                                  trailing: Text("${paymentChange.toStringAsFixed(2)}", style: TextStyle(fontSize: 14)),
-                                                  dense: true,
-                                                ),
-                                              )
-                                            ],
-                                          ))
-                                    ],
-                                    shrinkWrap: true,
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                                Divider(
-                                  color: Colors.grey,
-                                  height: 1,
-                                  thickness: 1,
-                                  indent: 20,
-                                  endIndent: 20,
-                                ),
-                                SizedBox(height: 10),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                          child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: color.backgroundColor,
-                                                minimumSize: const Size.fromHeight(50), // NEW
-                                              ),
-                                              onPressed: isButtonDisabled
-                                                  ? null
-                                                  : () async {
-                                                // setState(() {
-                                                //   isButtonDisabled = true;
-                                                // });
-                                                await checkCashRecord();
-                                                if (widget.currentPage == 'menu' || widget.currentPage == 'qr_order') {
-                                                  if (_isSettlement == true) {
-                                                    showDialog(
-                                                        barrierDismissible: false,
-                                                        context: context,
-                                                        builder: (BuildContext context) {
-                                                          return WillPopScope(
-                                                              child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true), onWillPop: () async => false);
-                                                        });
-                                                    _isSettlement = false;
-                                                  } else {
-                                                    disableButton();
-                                                    if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
-                                                      if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
-                                                        openLoadingDialogBox();
-                                                        //_startTimer();
-                                                        print('has new item ${hasNewItem}');
-                                                        if (cart.cartNotifierItem[0].status == 1 && hasNewItem == true) {
-                                                          asyncQ.addJob((_) async => await callAddOrderCache(cart));
-                                                          // await callAddOrderCache(cart);
-                                                        } else if (cart.cartNotifierItem[0].status == 0) {
-                                                          asyncQ.addJob((_) async => await callCreateNewOrder(cart));
-                                                          // await callCreateNewOrder(cart);
-                                                        } else {
-                                                          Fluttertoast.showToast(
-                                                              backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('cannot_replace_same_order'));
-                                                          Navigator.of(context).pop();
-                                                        }
-                                                        // cart.removeAllCartItem();
-                                                        // cart.removeAllTable();
-                                                      } else {
-                                                        Fluttertoast.showToast(
-                                                            backgroundColor: Colors.red,
-                                                            msg: AppLocalizations.of(context)!.translate('make_sure_cart_is_not_empty_and_table_is_selected'));
-                                                      }
-                                                    } else {
-                                                      // not dine in call
-                                                      print("Not dine in called");
-                                                      cart.removeAllTable();
-                                                      if (cart.cartNotifierItem.isNotEmpty) {
-                                                        openLoadingDialogBox();
-                                                        asyncQ.addJob((_) async => await callCreateNewNotDineOrder(cart, appSettingModel));
-                                                        //await callCreateNewNotDineOrder(cart, appSettingModel);
-                                                      } else {
-                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                                      }
-                                                    }
-                                                  }
-                                                } else if (widget.currentPage == 'table') {
-                                                  if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
-                                                    if (total == 0.0 && double.parse(finalAmount) == 0.0 || total != 0.0 && double.parse(finalAmount) != 0.0) {
-                                                      if (cart.selectedTable.length > 1) {
-                                                        if (await confirm(
-                                                          context,
-                                                          title: Text('${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
-                                                          content: Text('${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
-                                                          textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                                          textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                                        )) {
-                                                          paymentAddToCart(cart);
-                                                          return openPaymentSelect(cart);
-                                                        }
-                                                      } else {
-                                                        paymentAddToCart(cart);
-                                                        openPaymentSelect(cart);
-                                                      }
-                                                    } else {
-                                                      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Payment not match");
-                                                    }
-                                                  } else {
-                                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                                  }
-                                                } else if (widget.currentPage == 'other_order') {
-                                                  if (cart.cartNotifierItem.isNotEmpty) {
-                                                    if (total == 0.0 && double.parse(finalAmount) == 0.0 || total != 0.0 && double.parse(finalAmount) != 0.0) {
-                                                      paymentAddToCart(cart);
-                                                      openPaymentSelect(cart);
-                                                    } else {
-                                                      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Payment not match");
-                                                    }
-                                                  } else {
-                                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                                  }
-                                                } else {
-                                                  if (cart.cartNotifierItem.isNotEmpty) {
-                                                    int printStatus = await printReceipt.printCartReceiptList(printerList, cart, this.localOrderId, context);
-                                                    checkPrinterStatus(printStatus);
-                                                    cart.initialLoad();
-                                                    cart.changInit(true);
-                                                  } else {
-                                                    Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
-                                                  }
-                                                }
-                                                enableButton();
-                                              },
-                                              child: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
-                                                  ? widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
-                                                  ? Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
-                                                  : widget.currentPage == 'table' || widget.currentPage == 'other_order'
-                                                  ? Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
-                                                  : Text(AppLocalizations.of(context)!.translate('print_receipt'))
-                                                  : widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
-                                                  ? Text(AppLocalizations.of(context)!.translate('place_order'))
-                                                  : widget.currentPage == 'table' || widget.currentPage == 'other_order'
-                                                  ? Text(AppLocalizations.of(context)!.translate('pay'))
-                                                  : Text(AppLocalizations.of(context)!.translate('print_receipt')))),
-                                      Visibility(
-                                          child: SizedBox(
-                                            width: 10,
-                                          ),
-                                          visible: widget.currentPage == "table" || widget.currentPage == "other_order"
-                                              ? true
-                                              : widget.currentPage == "menu"
-                                              ? cart.cartNotifierItem.any((item) => item.status == 1)
-                                              ? true
-                                              : false
-                                              : false),
-                                      Visibility(
-                                        visible: widget.currentPage == "menu" && cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status == 1 ? true : false,
-                                        child: Expanded(
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: color.backgroundColor,
-                                              minimumSize: const Size.fromHeight(50),
-                                            ),
-                                            onPressed: () {
-                                              bool hasNotPlacedOrder = cart.cartNotifierItem.any((item) => item.status == 0);
-                                              if (hasNotPlacedOrder) {
-                                                Fluttertoast.showToast(
-                                                    backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('make_sure_all_product_is_placed_order'));
-                                              } else {
-                                                openReprintDialog(printerList, cart);
-                                              }
-                                            },
-                                            child: Text(AppLocalizations.of(context)!.translate('print_check_list')),
-                                          ),
+                                                    trailing: Text('-${orderPromotionList[index].promotion_amount}', style: TextStyle(fontSize: 14)));
+                                              }),
                                         ),
-                                      ),
-                                      Visibility(
-                                        visible: widget.currentPage == "table" || widget.currentPage == "other_order" ? true : false,
-                                        // && cart.cartNotifierItem.isNotEmpty ? true : false,
-                                        child: Expanded(
+                                        Visibility(
+                                          visible:
+                                          widget.currentPage == 'menu' || widget.currentPage == 'table' || widget.currentPage == 'qr_order' || widget.currentPage == 'other_order'
+                                              ? true
+                                              : false,
+                                          child: ListView.builder(
+                                              shrinkWrap: true,
+                                              physics: NeverScrollableScrollPhysics(),
+                                              itemCount: taxRateList.length,
+                                              itemBuilder: (context, index) {
+                                                return ListTile(
+                                                  title: Text('${taxRateList[index].name}(${taxRateList[index].tax_rate}%)', style: TextStyle(fontSize: 14)),
+                                                  trailing: Text('${taxRateList[index].tax_amount?.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                                  //Text(''),
+                                                  visualDensity: VisualDensity(vertical: -4),
+                                                  dense: true,
+                                                );
+                                              }),
+                                        ),
+                                        Visibility(
+                                          visible: widget.currentPage == 'bill' ? true : false,
+                                          child: ListView.builder(
+                                              shrinkWrap: true,
+                                              physics: NeverScrollableScrollPhysics(),
+                                              itemCount: orderTaxList.length,
+                                              itemBuilder: (context, index) {
+                                                return ListTile(
+                                                  title: Text('${orderTaxList[index].tax_name}(${orderTaxList[index].rate}%)', style: TextStyle(fontSize: 14)),
+                                                  trailing: Text('${orderTaxList[index].tax_amount}', style: TextStyle(fontSize: 14)),
+                                                  //Text(''),
+                                                  visualDensity: VisualDensity(vertical: -4),
+                                                  dense: true,
+                                                );
+                                              }),
+                                        ),
+                                        ListTile(
+                                          title: Text('Amount', style: TextStyle(fontSize: 14)),
+                                          trailing: Text('${totalAmount.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                          visualDensity: VisualDensity(vertical: -4),
+                                          dense: true,
+                                        ),
+                                        ListTile(
+                                          title: Text('Rounding', style: TextStyle(fontSize: 14)),
+                                          trailing: Text('${rounding.toStringAsFixed(2)}', style: TextStyle(fontSize: 14)),
+                                          visualDensity: VisualDensity(vertical: -4),
+                                          dense: true,
+                                        ),
+                                        ListTile(
+                                          visualDensity: VisualDensity(vertical: -4),
+                                          title: Text('Final Amount', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                          trailing: Text("${finalAmount}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                          dense: true,
+                                        ),
+                                        Visibility(
+                                            visible: widget.currentPage == 'bill' ? true : false,
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  child: ListTile(
+                                                    visualDensity: VisualDensity(vertical: -4),
+                                                    title: Text('Payment received', style: TextStyle(fontSize: 14)),
+                                                    trailing: Text("${paymentReceived.toStringAsFixed(2)}", style: TextStyle(fontSize: 14)),
+                                                    dense: true,
+                                                  ),
+                                                ),
+                                                Container(
+                                                  child: ListTile(
+                                                    visualDensity: VisualDensity(vertical: -4),
+                                                    title: Text('Change', style: TextStyle(fontSize: 14)),
+                                                    trailing: Text("${paymentChange.toStringAsFixed(2)}", style: TextStyle(fontSize: 14)),
+                                                    dense: true,
+                                                  ),
+                                                )
+                                              ],
+                                            ))
+                                      ],
+                                      shrinkWrap: true,
+                                    ),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Divider(
+                                    color: Colors.grey,
+                                    height: 1,
+                                    thickness: 1,
+                                    indent: 20,
+                                    endIndent: 20,
+                                  ),
+                                  SizedBox(height: 10),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
                                             child: ElevatedButton(
                                                 style: ElevatedButton.styleFrom(
                                                   backgroundColor: color.backgroundColor,
-                                                  minimumSize: const Size.fromHeight(50),
+                                                  minimumSize: const Size.fromHeight(50), // NEW
                                                 ),
-                                                onPressed: cart.cartNotifierItem.isEmpty || isLoading
+                                                onPressed: isButtonDisabled
                                                     ? null
                                                     : () async {
-                                                  setState(() {
-                                                    isLoading = true;
-                                                  });
-                                                  paymentAddToCart(cart);
-                                                  int printStatus = await printReceipt.printReviewReceipt(printerList, cart.selectedTable, cart, context);
-                                                  checkPrinterStatus(printStatus);
-                                                  setState(() {
-                                                    isLoading = false;
-                                                  });
+                                                  // setState(() {
+                                                  //   isButtonDisabled = true;
+                                                  // });
+                                                  await checkCashRecord();
+                                                  if (widget.currentPage == 'menu' || widget.currentPage == 'qr_order') {
+                                                    if (_isSettlement == true) {
+                                                      showDialog(
+                                                          barrierDismissible: false,
+                                                          context: context,
+                                                          builder: (BuildContext context) {
+                                                            return WillPopScope(
+                                                                child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true), onWillPop: () async => false);
+                                                          });
+                                                      _isSettlement = false;
+                                                    } else {
+                                                      disableButton();
+                                                      if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
+                                                        if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
+                                                          openLoadingDialogBox();
+                                                          //_startTimer();
+                                                          print('has new item ${hasNewItem}');
+                                                          if (cart.cartNotifierItem[0].status == 1 && hasNewItem == true) {
+                                                            await callAddOrderCache(cart);
+                                                          } else if (cart.cartNotifierItem[0].status == 0) {
+                                                            await callCreateNewOrder(cart);
+                                                          } else {
+                                                            Fluttertoast.showToast(
+                                                                backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('cannot_replace_same_order'));
+                                                            Navigator.of(context).pop();
+                                                          }
+                                                          // cart.removeAllCartItem();
+                                                          // cart.removeAllTable();
+                                                        } else {
+                                                          Fluttertoast.showToast(
+                                                              backgroundColor: Colors.red,
+                                                              msg: AppLocalizations.of(context)!.translate('make_sure_cart_is_not_empty_and_table_is_selected'));
+                                                        }
+                                                      } else {
+                                                        // not dine in call
+                                                        print("Not dine in called");
+                                                        cart.removeAllTable();
+                                                        if (cart.cartNotifierItem.isNotEmpty) {
+                                                          openLoadingDialogBox();
+                                                          await callCreateNewNotDineOrder(cart, appSettingModel);
+                                                        } else {
+                                                          Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                        }
+                                                      }
+                                                    }
+                                                  } else if (widget.currentPage == 'table') {
+                                                    if (cart.selectedTable.isNotEmpty && cart.cartNotifierItem.isNotEmpty) {
+                                                      if (total == 0.0 && double.parse(finalAmount) == 0.0 || total != 0.0 && double.parse(finalAmount) != 0.0) {
+                                                        if (cart.selectedTable.length > 1) {
+                                                          if (await confirm(
+                                                            context,
+                                                            title: Text('${AppLocalizations.of(context)?.translate('confirm_merge_bill')}'),
+                                                            content: Text('${AppLocalizations.of(context)?.translate('to_merge_bill')}'),
+                                                            textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                                            textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                                          )) {
+                                                            paymentAddToCart(cart);
+                                                            return openPaymentSelect(cart);
+                                                          }
+                                                        } else {
+                                                          paymentAddToCart(cart);
+                                                          openPaymentSelect(cart);
+                                                        }
+                                                      } else {
+                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Payment not match");
+                                                      }
+                                                    } else {
+                                                      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                    }
+                                                  } else if (widget.currentPage == 'other_order') {
+                                                    if (cart.cartNotifierItem.isNotEmpty) {
+                                                      if (total == 0.0 && double.parse(finalAmount) == 0.0 || total != 0.0 && double.parse(finalAmount) != 0.0) {
+                                                        paymentAddToCart(cart);
+                                                        openPaymentSelect(cart);
+                                                      } else {
+                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: "Payment not match");
+                                                      }
+                                                    } else {
+                                                      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                    }
+                                                  } else {
+                                                    if (cart.cartNotifierItem.isNotEmpty) {
+                                                      int printStatus = await printReceipt.printCartReceiptList(printerList, cart, this.localOrderId, context);
+                                                      checkPrinterStatus(printStatus);
+                                                      cart.initialLoad();
+                                                      cart.changInit(true);
+                                                    } else {
+                                                      Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('empty_cart')}");
+                                                    }
+                                                  }
+                                                  enableButton();
                                                 },
-                                                child: isLoading
-                                                    ? CircularProgressIndicator(
-                                                  color: Colors.white,
-                                                  strokeWidth: 3,
-                                                )
+                                                child: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900
+                                                    ? widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
+                                                    ? Text(AppLocalizations.of(context)!.translate('place_order') + '\n (RM ${this.finalAmount})')
+                                                    : widget.currentPage == 'table' || widget.currentPage == 'other_order'
+                                                    ? Text(AppLocalizations.of(context)!.translate('pay') + ' (RM ${this.finalAmount})')
+                                                    : Text(AppLocalizations.of(context)!.translate('print_receipt'))
+                                                    : widget.currentPage == 'menu' || widget.currentPage == 'qr_order'
+                                                    ? Text(AppLocalizations.of(context)!.translate('place_order'))
+                                                    : widget.currentPage == 'table' || widget.currentPage == 'other_order'
+                                                    ? Text(AppLocalizations.of(context)!.translate('pay'))
                                                     : Text(AppLocalizations.of(context)!.translate('print_receipt')))),
-                                      )
-                                    ],
+                                        Visibility(
+                                            child: SizedBox(
+                                              width: 10,
+                                            ),
+                                            visible: widget.currentPage == "table" || widget.currentPage == "other_order"
+                                                ? true
+                                                : widget.currentPage == "menu"
+                                                ? cart.cartNotifierItem.any((item) => item.status == 1)
+                                                ? true
+                                                : false
+                                                : false),
+                                        Visibility(
+                                          visible: widget.currentPage == "menu" && cart.cartNotifierItem.isNotEmpty && cart.cartNotifierItem[0].status == 1 ? true : false,
+                                          child: Expanded(
+                                            child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: color.backgroundColor,
+                                                minimumSize: const Size.fromHeight(50),
+                                              ),
+                                              onPressed: () {
+                                                bool hasNotPlacedOrder = cart.cartNotifierItem.any((item) => item.status == 0);
+                                                if (hasNotPlacedOrder) {
+                                                  Fluttertoast.showToast(
+                                                      backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('make_sure_all_product_is_placed_order'));
+                                                } else {
+                                                  openReprintDialog(printerList, cart);
+                                                }
+                                              },
+                                              child: Text(AppLocalizations.of(context)!.translate('print_check_list')),
+                                            ),
+                                          ),
+                                        ),
+                                        Visibility(
+                                          visible: widget.currentPage == "table" || widget.currentPage == "other_order" ? true : false,
+                                          // && cart.cartNotifierItem.isNotEmpty ? true : false,
+                                          child: Expanded(
+                                              child: ElevatedButton(
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor: color.backgroundColor,
+                                                    minimumSize: const Size.fromHeight(50),
+                                                  ),
+                                                  onPressed: cart.cartNotifierItem.isEmpty || isLoading
+                                                      ? null
+                                                      : () async {
+                                                    setState(() {
+                                                      isLoading = true;
+                                                    });
+                                                    paymentAddToCart(cart);
+                                                    int printStatus = await printReceipt.printReviewReceipt(printerList, cart.selectedTable, cart, context);
+                                                    checkPrinterStatus(printStatus);
+                                                    setState(() {
+                                                      isLoading = false;
+                                                    });
+                                                  },
+                                                  child: isLoading
+                                                      ? CircularProgressIndicator(
+                                                    color: Colors.white,
+                                                    strokeWidth: 3,
+                                                  )
+                                                      : Text(AppLocalizations.of(context)!.translate('print_receipt')))),
+                                        )
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          );
-                        } else {
-                          return CustomProgressBar();
-                        }
-                    }),
-                ));
+                                ],
+                              ),
+                            );
+                          } else {
+                            return CustomProgressBar();
+                          }
+                        }),
+                  ));
             });
-        });
           });
+        });
       });
     });
   }
@@ -895,7 +891,7 @@ class CartPageState extends State<CartPage> {
   num checkCartProductQuantity(CartModel cart, BranchLinkProduct branchLinkProduct) {
     ///get all same item in cart
     List<cartProductItem> sameProductList =
-        cart.cartNotifierItem.where((item) => item.branch_link_product_sqlite_id == branchLinkProduct.branch_link_product_sqlite_id.toString() && item.status == 0).toList();
+    cart.cartNotifierItem.where((item) => item.branch_link_product_sqlite_id == branchLinkProduct.branch_link_product_sqlite_id.toString() && item.status == 0).toList();
     if (sameProductList.isNotEmpty) {
       /// sum all quantity
       num totalQuantity = sameProductList.fold(0, (sum, product) => sum + product.quantity!);
@@ -1550,11 +1546,11 @@ class CartPageState extends State<CartPage> {
                   }
                 } else {
                   if (promotionDateTimeChecking(
-                          sDate: promotionList[j].sdate,
-                          eDate: promotionList[j].edate,
-                          sTime: promotionList[j].stime,
-                          eTime: promotionList[j].etime,
-                          cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) ==
+                      sDate: promotionList[j].sdate,
+                      eDate: promotionList[j].edate,
+                      sTime: promotionList[j].stime,
+                      eTime: promotionList[j].etime,
+                      cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) ==
                       true) {
                     if (promotionList[j].specific_category == '1') {
                       //Auto apply specific category promotion
@@ -1619,7 +1615,7 @@ class CartPageState extends State<CartPage> {
                   }
                 } else {
                   if (promotionDateTimeChecking(
-                          sDate: promotionList[j].sdate, eDate: promotionList[j].edate, cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) ==
+                      sDate: promotionList[j].sdate, eDate: promotionList[j].edate, cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) ==
                       true) {
                     if (promotionList[j].specific_category == '1') {
                       //Auto apply specific category promotion
@@ -1684,7 +1680,7 @@ class CartPageState extends State<CartPage> {
                   }
                 } else {
                   if (promotionDateTimeChecking(
-                          sTime: promotionList[j].stime, eTime: promotionList[j].etime, cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) ==
+                      sTime: promotionList[j].stime, eTime: promotionList[j].etime, cache_created_at: cart.cartNotifierItem[0].first_cache_created_date_time) ==
                       true) {
                     if (promotionList[j].specific_category == '1') {
                       //Auto apply specific category promotion
@@ -2742,7 +2738,7 @@ class CartPageState extends State<CartPage> {
     tableUseDetailKey = await generateTableUseDetailKey(tableUseDetail);
     if (tableUseDetailKey != null) {
       TableUseDetail tableUseDetailObject =
-          TableUseDetail(table_use_detail_key: tableUseDetailKey, sync_status: 0, updated_at: dateTime, table_use_detail_sqlite_id: tableUseDetail.table_use_detail_sqlite_id);
+      TableUseDetail(table_use_detail_key: tableUseDetailKey, sync_status: 0, updated_at: dateTime, table_use_detail_sqlite_id: tableUseDetail.table_use_detail_sqlite_id);
       int data = await PosDatabase.instance.updateTableUseDetailUniqueKey(tableUseDetailObject);
       if (data == 1) {
         TableUseDetail detailData = await PosDatabase.instance.readSpecificTableUseDetailByLocalId(tableUseDetailObject.table_use_detail_sqlite_id!);
@@ -3226,7 +3222,7 @@ class CartPageState extends State<CartPage> {
       orderDetailKey = await generateOrderDetailKey(orderDetail);
       if (orderDetailKey != null) {
         OrderDetail orderDetailObject =
-            OrderDetail(order_detail_key: orderDetailKey, sync_status: 0, updated_at: dateTime, order_detail_sqlite_id: orderDetail.order_detail_sqlite_id);
+        OrderDetail(order_detail_key: orderDetailKey, sync_status: 0, updated_at: dateTime, order_detail_sqlite_id: orderDetail.order_detail_sqlite_id);
         int updateUniqueKey = await PosDatabase.instance.updateOrderDetailUniqueKey(orderDetailObject);
         if (updateUniqueKey == 1) {
           OrderDetail data = await PosDatabase.instance.readSpecificOrderDetailByLocalId(orderDetailObject.order_detail_sqlite_id!);

@@ -91,7 +91,8 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                   shrinkWrap: false,
                   itemCount: logs.length,
                   itemBuilder: (BuildContext context, int index) {
-                    bool isErrorLog = logs[index].logLevel.toString() == "LogLevel.ERROR" ? true : false;
+                    final reversedIndex = logs.length - 1 - index;
+                    bool isErrorLog = logs[reversedIndex].logLevel.toString() == "LogLevel.ERROR" ? true : false;
                     Color? tileColor = isErrorLog ? Colors.red[50] : Colors.blue[50];
                     Color fontColor = isErrorLog ? Colors.red : Colors.blue;
                     IconData iconData = isErrorLog ? Icons.warning : Icons.info;
@@ -101,8 +102,8 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                       contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
                       title: Text(
                         isErrorLog ?
-                        "${getFormattedTimeStamp(logs[index].timestamp.toString())}: ${logs[index].className}(${logs[index].methodName}) - ${logs[index].text}"
-                        : "${getFormattedTimeStamp(logs[index].timestamp.toString())}: ${logs[index].text}",
+                        "${getFormattedTimeStamp(logs[reversedIndex].timestamp.toString())}: ${logs[reversedIndex].className}(${logs[reversedIndex].methodName}) - ${logs[reversedIndex].text}"
+                        : "${getFormattedTimeStamp(logs[reversedIndex].timestamp.toString())}: ${logs[reversedIndex].text}",
                         style: TextStyle(
                           color: fontColor,
                           fontSize: 16.0,
@@ -115,11 +116,11 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                       ),
                       onTap: () {
                         setState(() {
-                          logs[index].isTapped = !logs[index].isTapped;
+                          logs[reversedIndex].isTapped = !logs[reversedIndex].isTapped;
                         });
                       },
-                      subtitle: logs[index].isTapped
-                          ? Text(logs[index].exception == "null" ? "No description" : "${logs[index].exception}")
+                      subtitle: logs[reversedIndex].isTapped
+                          ? Text(logs[reversedIndex].exception == "null" ? "No description" : "${logs[reversedIndex].exception}")
                           : null,
                     );
                   },
@@ -263,7 +264,8 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                   shrinkWrap: false,
                   itemCount: logs.length,
                   itemBuilder: (BuildContext context, int index) {
-                    bool isErrorLog = logs[index].logLevel.toString() == "LogLevel.ERROR" ? true : false;
+                    final reversedIndex = logs.length - 1 - index;
+                    bool isErrorLog = logs[reversedIndex].logLevel.toString() == "LogLevel.ERROR" ? true : false;
                     Color? tileColor = isErrorLog ? Colors.red[50] : Colors.blue[50];
                     Color fontColor = isErrorLog ? Colors.red : Colors.blue;
                     IconData iconData = isErrorLog ? Icons.warning : Icons.info;
@@ -273,21 +275,25 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
                       contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 0),
                       title: Text(
                         isErrorLog ?
-                        "${getFormattedTimeStamp(logs[index].timestamp.toString())}: ${logs[index].className}(${logs[index].methodName}) - ${logs[index].text}"
-                            : "${getFormattedTimeStamp(logs[index].timestamp.toString())}: ${logs[index].text}",
+                        "${getFormattedTimeStamp(logs[reversedIndex].timestamp.toString())}: ${logs[reversedIndex].className}(${logs[reversedIndex].methodName}) - ${logs[reversedIndex].text}"
+                            : "${getFormattedTimeStamp(logs[reversedIndex].timestamp.toString())}: ${logs[reversedIndex].text}",
                         style: TextStyle(
                           color: fontColor,
                           fontSize: 12.0,
                           fontWeight: FontWeight.normal,
                         ),
                       ),
+                      leading: Icon(
+                        iconData,
+                        color: fontColor,
+                      ),
                       onTap: () {
                         setState(() {
-                          logs[index].isTapped = !logs[index].isTapped;
+                          logs[reversedIndex].isTapped = !logs[reversedIndex].isTapped;
                         });
                       },
-                      subtitle: logs[index].isTapped
-                          ? Text(logs[index].exception == "null" ? "No description" : "${logs[index].exception}",
+                      subtitle: logs[reversedIndex].isTapped
+                          ? Text(logs[reversedIndex].exception == "null" ? "No description" : "${logs[reversedIndex].exception}",
                           style: TextStyle(fontSize: 12.0))
                           : null,
                     );

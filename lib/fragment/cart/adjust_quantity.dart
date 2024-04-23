@@ -75,8 +75,8 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     readAllPrinters();
     readCartItemInfo();
     currentQuantity = widget.cartItem.quantity!;
-    simpleIntInput = widget.cartItem.unit != 'each' ? 0 : 1;
-    quantityController = TextEditingController(text: widget.cartItem.unit != 'each' ? '' : '${simpleIntInput}');
+    simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? 0 : 1;
+    quantityController = TextEditingController(text: widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? '' : '${simpleIntInput}');
   }
 
   @override
@@ -149,9 +149,9 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                                 decoration: InputDecoration(
                                   errorText: _submitted
                                       ? errorPassword == null
-                                          ? errorPassword
-                                          : AppLocalizations.of(context)
-                                              ?.translate(errorPassword!)
+                                      ? errorPassword
+                                      : AppLocalizations.of(context)
+                                      ?.translate(errorPassword!)
                                       : null,
                                   border: OutlineInputBorder(
                                     borderSide: BorderSide(
@@ -255,14 +255,14 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                                 if(simpleIntInput >= 1){
                                   setState(() {
                                     simpleIntInput -= 1;
-                                    quantityController.text = widget.cartItem.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                    simpleIntInput = widget.cartItem.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                    quantityController.text = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                    simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
                                   });
                                 } else{
                                   setState(() {
                                     simpleIntInput = 0;
-                                    quantityController.text =  widget.cartItem.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                    simpleIntInput = widget.cartItem.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                    quantityController.text =  widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                    simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
                                   });
                                 }
                               },
@@ -273,10 +273,10 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                           Container(
                             width: 273,
                             child: TextField(
-                              autofocus: widget.cartItem.unit != 'each' ? true : false,
+                              autofocus: widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? true : false,
                               controller: quantityController,
                               keyboardType: TextInputType.number,
-                              inputFormatters: widget.cartItem.unit != 'each' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
+                              inputFormatters: widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))]
                                   : <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                               textAlign: TextAlign.center,
                               decoration: InputDecoration(
@@ -286,7 +286,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                               ),
                               onChanged: (value) => setState(() {
                                 try {
-                                  simpleIntInput = widget.cartItem.unit != 'each' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', ''));
+                                  simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(value.replaceAll(',', '')): int.parse(value.replaceAll(',', ''));
                                 } catch (e) {
                                   simpleIntInput = 0;
                                 }
@@ -337,14 +337,14 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                                 if(simpleIntInput+1 < widget.cartItem.quantity!){
                                   setState(() {
                                     simpleIntInput += 1;
-                                    quantityController.text = widget.cartItem.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                    simpleIntInput =  widget.cartItem.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                    quantityController.text = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                    simpleIntInput =  widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
                                   });
                                 } else{
                                   setState(() {
                                     simpleIntInput = widget.cartItem.quantity!;
-                                    quantityController.text = widget.cartItem.unit != 'each' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
-                                    simpleIntInput = widget.cartItem.unit != 'each' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
+                                    quantityController.text = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? simpleIntInput.toStringAsFixed(2) : simpleIntInput.toString();
+                                    simpleIntInput = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse(quantityController.text.replaceAll(',', '')) : int.parse(quantityController.text.replaceAll(',', ''));
                                   });
                                 }
                               },
@@ -438,7 +438,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     try {
       temp -= simpleIntInput;
     } catch (e) {}
-    return widget.cartItem.unit! != 'each' ? temp.toStringAsFixed(2) : temp;
+    return widget.cartItem.unit! != 'each' && widget.cartItem.unit != 'each_c' ? temp.toStringAsFixed(2) : temp;
   }
 
   readAllPrinters() async {
@@ -470,7 +470,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
 
     OrderDetail cartItemOrderDetail = await PosDatabase.instance
         .readSpecificOrderDetailByLocalId(
-            int.parse(widget.cartItem.order_detail_sqlite_id!));
+        int.parse(widget.cartItem.order_detail_sqlite_id!));
     orderDetail = cartItemOrderDetail;
 
     //get modifier detail length
@@ -528,7 +528,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000),
             msg:
-                "${AppLocalizations.of(context)?.translate('user_not_found')}");
+            "${AppLocalizations.of(context)?.translate('user_not_found')}");
       }
     } catch (e) {
       print('delete error ${e}');
@@ -587,12 +587,12 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
           msg:
-              "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+          "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
     } else if (printStatus == 2) {
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
           msg:
-              "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+          "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     }
     int kitchenPrintStatus = await PrintReceipt().printKitchenDeleteList(
         printerList,
@@ -604,12 +604,12 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
           msg:
-              "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+          "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
     } else if (kitchenPrintStatus == 2) {
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
           msg:
-              "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+          "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
     }
   }
 
@@ -633,13 +633,13 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
           sync_status: 0,
           updated_at: dateTime,
           order_detail_cancel_sqlite_id:
-              orderDetailCancel.order_detail_cancel_sqlite_id);
+          orderDetailCancel.order_detail_cancel_sqlite_id);
       int uniqueKey =
-          await PosDatabase.instance.updateOrderDetailCancelUniqueKey(object);
+      await PosDatabase.instance.updateOrderDetailCancelUniqueKey(object);
       if (uniqueKey == 1) {
         OrderDetailCancel orderDetailCancelData = await PosDatabase.instance
             .readSpecificOrderDetailCancelByLocalId(
-                object.order_detail_cancel_sqlite_id!);
+            object.order_detail_cancel_sqlite_id!);
         data = orderDetailCancelData;
       }
     }
@@ -650,7 +650,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     List<String> _value = [];
     OrderDetail data = await PosDatabase.instance
         .readSpecificOrderDetailByLocalId(
-            int.parse(widget.cartItem.order_detail_sqlite_id!));
+        int.parse(widget.cartItem.order_detail_sqlite_id!));
     OrderDetailCancel object = OrderDetailCancel(
       order_detail_cancel_id: 0,
       order_detail_cancel_key: '',
@@ -668,9 +668,9 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       soft_delete: '',
     );
     OrderDetailCancel orderDetailCancel =
-        await PosDatabase.instance.insertSqliteOrderDetailCancel(object);
+    await PosDatabase.instance.insertSqliteOrderDetailCancel(object);
     OrderDetailCancel updateData =
-        await insertOrderDetailCancelKey(orderDetailCancel, dateTime);
+    await insertOrderDetailCancelKey(orderDetailCancel, dateTime);
     _value.add(jsonEncode(updateData));
     order_detail_cancel_value = _value.toString();
     //syncOrderDetailCancelToCloud(_value.toString());
@@ -691,7 +691,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     List<String> _value = [];
     num totalQty = 0;
     try{
-      totalQty = widget.cartItem.unit != 'each' ? double.parse((widget.cartItem.quantity! - simpleIntInput).toStringAsFixed(2)): widget.cartItem.quantity! - simpleIntInput;
+      totalQty = widget.cartItem.unit != 'each' && widget.cartItem.unit != 'each_c' ? double.parse((widget.cartItem.quantity! - simpleIntInput).toStringAsFixed(2)): widget.cartItem.quantity! - simpleIntInput;
       OrderDetail orderDetailObject = OrderDetail(
         updated_at: dateTime,
         sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
@@ -748,16 +748,16 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     await updateOrderDetailQuantity(dateTime, cart);
     List<String> _value = [];
     OrderDetail orderDetailObject = OrderDetail(
-        updated_at: dateTime,
-        sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
-        status: 1,
-        cancel_by: user.name,
-        cancel_by_user_id: user.user_id.toString(),
-        order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
+      updated_at: dateTime,
+      sync_status: orderDetail!.sync_status == 0 ? 0 : 2,
+      status: 1,
+      cancel_by: user.name,
+      cancel_by_user_id: user.user_id.toString(),
+      order_detail_sqlite_id: int.parse(widget.cartItem.order_detail_sqlite_id!),
     );
 
     int deleteOrderDetailData =
-        await PosDatabase.instance.updateOrderDetailStatus(orderDetailObject);
+    await PosDatabase.instance.updateOrderDetailStatus(orderDetailObject);
     if (deleteOrderDetailData == 1) {
       //await updateProductStock(orderDetailObject.branch_link_product_sqlite_id!, int.parse(orderDetailObject.quantity!), dateTime);
       //sync to cloud
@@ -864,7 +864,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         updated_at: dateTime,
         table_sqlite_id: tableId);
     int updatedStatus =
-        await PosDatabase.instance.updatePosTableStatus(posTableData);
+    await PosDatabase.instance.updatePosTableStatus(posTableData);
     int removeKey = await PosDatabase.instance
         .removePosTableTableUseDetailKey(posTableData);
     if (updatedStatus == 1 && removeKey == 1) {
@@ -886,9 +886,9 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
           cancel_by: user.name,
           cancel_by_user_id: user.user_id.toString(),
           order_cache_sqlite_id:
-              int.parse(widget.cartItem.order_cache_sqlite_id!));
+          int.parse(widget.cartItem.order_cache_sqlite_id!));
       int deletedOrderCache =
-          await PosDatabase.instance.cancelOrderCache(orderCacheObject);
+      await PosDatabase.instance.cancelOrderCache(orderCacheObject);
       //sync to cloud
       if (deletedOrderCache == 1) {
         await getOrderCacheValue(orderCacheObject);
@@ -908,7 +908,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     List<String> _orderCacheValue = [];
     OrderCache orderCacheData = await PosDatabase.instance
         .readSpecificOrderCacheByLocalId(
-            orderCacheObject.order_cache_sqlite_id!);
+        orderCacheObject.order_cache_sqlite_id!);
     if (orderCacheData.sync_status != 1) {
       _orderCacheValue.add(jsonEncode(orderCacheData));
     }
@@ -931,7 +931,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     List<String> _value = [];
     try {
       List<TableUseDetail> checkData =
-          await PosDatabase.instance.readAllTableUseDetail(currentTableUseId);
+      await PosDatabase.instance.readAllTableUseDetail(currentTableUseId);
       for (int i = 0; i < checkData.length; i++) {
         TableUseDetail tableUseDetailObject = TableUseDetail(
             updated_at: dateTime,
@@ -939,13 +939,13 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
             status: 1,
             table_use_sqlite_id: currentTableUseId,
             table_use_detail_sqlite_id:
-                checkData[i].table_use_detail_sqlite_id);
+            checkData[i].table_use_detail_sqlite_id);
         int deleteStatus = await PosDatabase.instance
             .deleteTableUseDetail(tableUseDetailObject);
         if (deleteStatus == 1) {
           TableUseDetail detailData = await PosDatabase.instance
               .readSpecificTableUseDetailByLocalId(
-                  tableUseDetailObject.table_use_detail_sqlite_id!);
+              tableUseDetailObject.table_use_detail_sqlite_id!);
           _value.add(jsonEncode(detailData));
           table_use_detail_value = _value.toString();
         }
@@ -957,7 +957,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: AppLocalizations.of(context)!
-                  .translate('delete_current_table_use_detail_error') +
+              .translate('delete_current_table_use_detail_error') +
               " $e");
     }
   }
@@ -987,12 +987,12 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         table_use_sqlite_id: currentTableUseId,
       );
       int deletedTableUse =
-          await PosDatabase.instance.deleteTableUseID(tableUseObject);
+      await PosDatabase.instance.deleteTableUseID(tableUseObject);
       if (deletedTableUse == 1) {
         //sync to cloud
         TableUse tableUseData = await PosDatabase.instance
             .readSpecificTableUseIdByLocalId(
-                tableUseObject.table_use_sqlite_id!);
+            tableUseObject.table_use_sqlite_id!);
         _value.add(jsonEncode(tableUseData));
         table_use_value = _value.toString();
         //syncTableUseIdToCloud(_value.toString());
@@ -1001,7 +1001,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
           msg: AppLocalizations.of(context)!
-                  .translate('delete_current_table_use_id_error') +
+              .translate('delete_current_table_use_id_error') +
               " ${e}");
     }
   }
@@ -1046,49 +1046,49 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                   {
                     await PosDatabase.instance
                         .updateTableUseDetailSyncStatusFromCloud(
-                            responseJson[i]['table_use_detail_key']);
+                        responseJson[i]['table_use_detail_key']);
                   }
                   break;
                 case 'tb_table_use':
                   {
                     await PosDatabase.instance
                         .updateTableUseSyncStatusFromCloud(
-                            responseJson[i]['table_use_key']);
+                        responseJson[i]['table_use_key']);
                   }
                   break;
                 case 'tb_order_detail_cancel':
                   {
                     await PosDatabase.instance
                         .updateOrderDetailCancelSyncStatusFromCloud(
-                            responseJson[i]['order_detail_cancel_key']);
+                        responseJson[i]['order_detail_cancel_key']);
                   }
                   break;
                 case 'tb_branch_link_product':
                   {
                     await PosDatabase.instance
                         .updateBranchLinkProductSyncStatusFromCloud(
-                            responseJson[i]['branch_link_product_id']);
+                        responseJson[i]['branch_link_product_id']);
                   }
                   break;
                 case 'tb_order_detail':
                   {
                     await PosDatabase.instance
                         .updateOrderDetailSyncStatusFromCloud(
-                            responseJson[i]['order_detail_key']);
+                        responseJson[i]['order_detail_key']);
                   }
                   break;
                 case 'tb_order_cache':
                   {
                     await PosDatabase.instance
                         .updateOrderCacheSyncStatusFromCloud(
-                            responseJson[i]['order_cache_key']);
+                        responseJson[i]['order_cache_key']);
                   }
                   break;
                 case 'tb_table':
                   {
                     await PosDatabase.instance
                         .updatePosTableSyncStatusFromCloud(
-                            responseJson[i]['table_id']);
+                        responseJson[i]['table_id']);
                   }
                   break;
                 default:

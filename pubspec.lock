@@ -149,10 +149,10 @@ packages:
     dependency: transitive
     description:
       name: charset_converter
-      sha256: e4827b2d623ab75c2b6767d69e03485ea5bc894db6f6bdcb2ffeda58446bbe26
+      sha256: eebf818b83552a84fc9f0d2ee7bdd151b36d10548be1c8205bb65295107c5c89
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.1"
+    version: "2.2.0"
   checkbox_grouped:
     dependency: "direct main"
     description:
@@ -350,7 +350,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "53b76d638d8c207bd25c3bbb32bdbf78371f6f9b"
+      resolved-ref: dc474e96fda2c2a3a0cfb61049aa2cbdd578c81b
       url: "https://github.com/tkygcw/esc_pos_printer.git"
     source: git
     version: "4.1.0"
@@ -366,10 +366,10 @@ packages:
     dependency: "direct main"
     description:
       name: esc_pos_utils_plus
-      sha256: dca660e2bf5622c3b9bc54ce098128606a8942ff07f1e2d2f4c88e483df3fe74
+      sha256: "518a7172ee39221de350619e04a8ea410d875bc27937fd341dd24ba5ef81360c"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.2"
+    version: "2.0.3"
   f_logs:
     dependency: "direct main"
     description:
