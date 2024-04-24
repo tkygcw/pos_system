@@ -170,22 +170,22 @@ class ServerAction {
               if(cartItem != null){
                 return result = cartItem;
               }
-              await order.callCreateNewOrder(cart, address!);
-              branchLinkProductList = order.branchLinkProductList;
+              result = await order.callCreateNewOrder(cart, address!);
+              // branchLinkProductList = order.branchLinkProductList;
             } else {
               PlaceNotDineInOrder order = PlaceNotDineInOrder();
               Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
               if(cartItem != null){
                 return result = cartItem;
               }
-              await order.callCreateNewNotDineOrder(cart, address!);
-              branchLinkProductList = order.branchLinkProductList;
+              result = await order.callCreateNewNotDineOrder(cart, address!);
+              // branchLinkProductList = order.branchLinkProductList;
             }
-            print("outside else if called!!!");
-            objectData = {
-              'tb_branch_link_product': branchLinkProductList,
-            };
-            result = {'status': '1', 'data': objectData};
+            // print("outside else if called!!!");
+            // objectData = {
+            //   'tb_branch_link_product': branchLinkProductList,
+            // };
+            // result = {'status': '1', 'data': objectData};
           } catch(e){
             result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
             print('place order request error: $e');

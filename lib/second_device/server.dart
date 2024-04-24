@@ -128,60 +128,60 @@ class Server extends ChangeNotifier {
     ServerSocket serverSocket2 = await ServerSocket.bind(ips, 8888, shared: true);
     await for(Socket clientSocket in serverSocket2){
       client2.add(clientSocket);
-      asyncQ.addJob((_) async => await handleClient2(clientSocket, client2));
-      // await handleClient2(clientSocket, client2);
+      await handleClient2(clientSocket, client2);
     }
   }
 
   Future<void> handleClient2(Socket clientSocket, List<Socket> clients) async {
-    try{
-      StringBuffer buffer = StringBuffer();
-      Map<String, dynamic>? response;
-      String receivedData = '';
-      StreamSubscription streamSubscription = clientSocket.listen((List<int> data) async {
-        print("socket2 called");
-        // receivedData += utf8.decode(data);
-        receivedData = utf8.decode(data);
-        print("received data: ${receivedData}");
-        buffer.write(receivedData);
+    StringBuffer buffer = StringBuffer();
+    Map<String, dynamic>? response;
+    String receivedData = '';
+    StreamSubscription streamSubscription = clientSocket.listen((List<int> data) async {
+      asyncQ.addJob((_) async {
+        try{
+          print("socket2 called");
+          // receivedData += utf8.decode(data);
+          receivedData = utf8.decode(data);
+          print("received data: ${receivedData}");
+          buffer.write(receivedData);
 
-        if (buffer.toString().endsWith(messageDelimiter)) {
-          final message = buffer.toString().trim();
-          var msg = jsonDecode(jsonEncode(jsonDecode(message)));
-          if(msg['param'] != ''){
-            response = await ServerAction().checkAction(action: msg['action'], param: msg['param'], address: clientSocket.remoteAddress.address);
-          } else {
-            response = await ServerAction().checkAction(action: msg['action'], address: clientSocket.remoteAddress.address);
+          if (buffer.toString().endsWith(messageDelimiter)) {
+            final message = buffer.toString().trim();
+            var msg = jsonDecode(jsonEncode(jsonDecode(message)));
+            if(msg['param'] != ''){
+              response = await ServerAction().checkAction(action: msg['action'], param: msg['param'], address: clientSocket.remoteAddress.address);
+            } else {
+              response = await ServerAction().checkAction(action: msg['action'], address: clientSocket.remoteAddress.address);
+            }
+            print("server response 2: ${response}");
+
+            clientSocket.write("${jsonEncode(response)}\n");
+            buffer.clear();
           }
-          print("server response 2: ${response}");
-
-          clientSocket.write("${jsonEncode(response)}\n");
-          buffer.clear();
+        }catch(e){
+          print("handle client 2 error: ${e}");
         }
-        // asyncQ.addJob((_) async {
-        //
-        // });
-      },cancelOnError: true,
-          onDone: (){
-            //print('Client disconnected 2: ${clientSocket.remoteAddress}:${clientSocket.remotePort}');
-            // clientSocket.flush();
-            print("client done called!!!");
-            clientSocket.close();
-            clients.remove(clientSocket);
-          },
-          onError: (error){
-            print("handle client 2 error: ${error}");
-            clientSocket.close();
-            clients.remove(clientSocket);
-          });
-      // await streamSubscription.asFuture();
-    } catch(e){
-      print("handle client 2 error: ${e}");
-    }
-    // asyncQ.addJob((_) {
-    //   print("async q length: ${asyncQ.size}");
+        print("handle client queue done!!!");
+      });
+    },cancelOnError: true,
+        onDone: (){
+          //print('Client disconnected 2: ${clientSocket.remoteAddress}:${clientSocket.remotePort}');
+          // clientSocket.flush();
+          print("client done called!!!");
+          clientSocket.close();
+          clients.remove(clientSocket);
+        },
+        onError: (error){
+          print("handle client 2 error: ${error}");
+          clientSocket.close();
+          clients.remove(clientSocket);
+        });
+    // try{
     //
-    // });
+    //   // await streamSubscription.asFuture();
+    // } catch(e){
+    //   print("handle client 2 error: ${e}");
+    // }
   }
 
 }

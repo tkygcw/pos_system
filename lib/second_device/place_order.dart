@@ -640,7 +640,8 @@ abstract class PlaceOrder {
 
 class PlaceNewDineInOrder extends PlaceOrder {
 
-  Future<void> callCreateNewOrder(CartModel cart, String address) async {
+  Future<Map<String, dynamic>> callCreateNewOrder(CartModel cart, String address) async {
+    Map<String, dynamic> objectData;
     await initData();
     if(await checkTableStatus(cart) == false){
       await createTableUseID();
@@ -661,9 +662,17 @@ class PlaceNewDineInOrder extends PlaceOrder {
       //   }
       // }
       printKitchenList(address);
+      objectData = {
+        'tb_branch_link_product': branchLinkProductList,
+      };
+      return {'status': '1', 'data': objectData};
     } else {
       // throw Exception("Contain table in-used");
       branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
+      objectData = {
+        'tb_branch_link_product': branchLinkProductList,
+      };
+      return {'status': '3', 'error': "Table is in-used", 'data': objectData};
     }
   }
 
@@ -755,17 +764,16 @@ class PlaceNewDineInOrder extends PlaceOrder {
     } catch (e) {
       print('createOrderCache error: ${e}');
     }
-
-
-    //return super.createOrderCache(cart, isAddOrder: isAddOrder);
   }
 
 }
 
 class PlaceNotDineInOrder extends PlaceOrder {
 
-  Future<void> callCreateNewNotDineOrder(CartModel cart, String address) async {
+  Future<Map<String, dynamic>> callCreateNewNotDineOrder(CartModel cart, String address) async {
     print("callCreateNewNotDineOrder");
+    Map<String, dynamic> objectData;
+
     await initData();
     await createOrderCache(cart);
     await createOrderDetail(cart);
@@ -786,6 +794,10 @@ class PlaceNotDineInOrder extends PlaceOrder {
     // }
 
     printKitchenList(address);
+    objectData = {
+      'tb_branch_link_product': branchLinkProductList,
+    };
+    return {'status': '1', 'data': objectData};
   }
 
   @override
@@ -868,17 +880,14 @@ class PlaceNotDineInOrder extends PlaceOrder {
 
 class PlaceAddOrder extends PlaceOrder {
 
-  Future<Map<String, dynamic>?> callAddOrderCache(CartModel cart, String address) async {
-    Map<String, dynamic>? result;
+  Future<Map<String, dynamic>> callAddOrderCache(CartModel cart, String address) async {
+    Map<String, dynamic> objectData;
     await initData();
     if(await checkTableStatus(cart) == true){
       if(checkIsTableSelectedInPaymentCart(cart) == false) {
-        // cart.selectedTable.removeWhere((e) => e.status == 0);
         await createOrderCache(cart);
         await createOrderDetail(cart);
         printCheckList();
-        Map<String, dynamic>? objectData = {'tb_branch_link_product': branchLinkProductList,};
-        result = {'status': '1', 'data': objectData};
         // if (_appSettingModel.autoPrintChecklist == true) {
         //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
         //   if (printStatus == 1) {
@@ -890,17 +899,27 @@ class PlaceAddOrder extends PlaceOrder {
         //   }
         // }
         printKitchenList(address);
+        Map<String, dynamic>? objectData = {'tb_branch_link_product': branchLinkProductList,};
+        return {'status': '1', 'data': objectData};
       } else {
-        result = {'status': '3', 'error': "Table are selected in payment cart"};
+        branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
+        objectData = {
+          'tb_branch_link_product': branchLinkProductList,
+        };
+        return {'status': '3', 'error': "Table is selected in payment cart", 'data': objectData};
+        // result = {'status': '3', 'error': "Table is selected in payment cart"};
         // branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
         // throw Exception("Table are selected in payment cart");
       }
     } else {
-      result = {'status': '3', 'error': "Table not in-used"};
+      branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
+      objectData = {
+        'tb_branch_link_product': branchLinkProductList,
+      };
+      return {'status': '3', 'error': "Table not in-used", 'data': objectData};
       // branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
       // throw Exception("Table not in-used");
     }
-    return result;
   }
 
   Future<List<PosTable>> checkCartTableStatus(List<PosTable> cartSelectedTable) async {

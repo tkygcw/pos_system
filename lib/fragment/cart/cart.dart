@@ -712,8 +712,9 @@ class CartPageState extends State<CartPage> {
                                                           barrierDismissible: false,
                                                           context: context,
                                                           builder: (BuildContext context) {
-                                                            return WillPopScope(
-                                                                child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true), onWillPop: () async => false);
+                                                            return PopScope(
+                                                                canPop: false,
+                                                                child: CashDialog(isCashIn: true, callBack: () {}, isCashOut: false, isNewDay: true));
                                                           });
                                                       _isSettlement = false;
                                                     } else {
@@ -726,7 +727,10 @@ class CartPageState extends State<CartPage> {
                                                           if (cart.cartNotifierItem[0].status == 1 && hasNewItem == true) {
                                                             asyncQ.addJob((_) async => await callAddOrderCache(cart));
                                                           } else if (cart.cartNotifierItem[0].status == 0) {
-                                                            asyncQ.addJob((_) async => await callCreateNewOrder(cart));
+                                                            asyncQ.addJob((_) async {
+                                                              await callCreateNewOrder(cart);
+                                                              print("local: cart add new order done");
+                                                            });
                                                           } else {
                                                             Fluttertoast.showToast(
                                                                 backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('cannot_replace_same_order'));
@@ -2218,51 +2222,10 @@ class CartPageState extends State<CartPage> {
   }
 
 /*
-  Not dine in call
-*/
-  callCreateNewNotDineOrder(CartModel cart, AppSettingModel appSettingModel) async {
-    try {
-      print("callCreateNewNotDineOrder");
-      resetValue();
-      await createOrderCache(cart, isAddOrder: false);
-      await createOrderDetail(cart);
-      if(_appSettingModel.autoPrintChecklist == true){
-        int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
-        if (printStatus == 1) {
-          Fluttertoast.showToast(
-              backgroundColor: Colors.red,
-              msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
-        } else if (printStatus == 2) {
-          Fluttertoast.showToast(
-              backgroundColor: Colors.orangeAccent,
-              msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
-        } else if (printStatus == 5) {
-          Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
-        }
-      }
-      Navigator.of(context).pop();
-      checkDirectPayment(appSettingModel, cart);
-
-      syncAllToCloud();
-      // if (this.isLogOut == true) {
-      //   openLogOutDialog();
-      //   return;
-      // }
-
-      printKitchenList();
-    } catch(e) {
-      FLog.error(
-        className: "cart",
-        text: "callCreateNewNotDineOrder error",
-        exception: e,
-      );
-    }
-  }
-
-/*
   dine in call
 */
   callCreateNewOrder(CartModel cart) async {
+    print("create new order function called!!!");
     try{
       resetValue();
       if(await checkTableStatus(cart) == false){
@@ -2368,6 +2331,51 @@ class CartPageState extends State<CartPage> {
       );
     }
   }
+
+
+/*
+  Not dine in call
+*/
+  callCreateNewNotDineOrder(CartModel cart, AppSettingModel appSettingModel) async {
+    try {
+      print("callCreateNewNotDineOrder");
+      resetValue();
+      await createOrderCache(cart, isAddOrder: false);
+      await createOrderDetail(cart);
+      if(_appSettingModel.autoPrintChecklist == true){
+        int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
+        if (printStatus == 1) {
+          Fluttertoast.showToast(
+              backgroundColor: Colors.red,
+              msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+        } else if (printStatus == 2) {
+          Fluttertoast.showToast(
+              backgroundColor: Colors.orangeAccent,
+              msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+        } else if (printStatus == 5) {
+          Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('printing_error'));
+        }
+      }
+      Navigator.of(context).pop();
+      checkDirectPayment(appSettingModel, cart);
+
+      syncAllToCloud();
+      // if (this.isLogOut == true) {
+      //   openLogOutDialog();
+      //   return;
+      // }
+
+      printKitchenList();
+    } catch(e) {
+      FLog.error(
+        className: "cart",
+        text: "callCreateNewNotDineOrder error",
+        exception: e,
+      );
+    }
+  }
+
+
 
   Future<List<cartProductItem>> checkOrderStock(CartModel cartModel) async {
     List<cartProductItem> outOfStockItem = [];
