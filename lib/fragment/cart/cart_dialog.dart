@@ -125,7 +125,7 @@ class CartDialogState extends State<CartDialog> {
               Navigator.of(context).pop();
               if (tableList[dragIndex].table_sqlite_id != tableList[targetIndex].table_sqlite_id) {
                 if (tableList[targetIndex].status == 1 && tableList[dragIndex].status == 0) {
-                  await callAddNewTableQuery(tableList[dragIndex].table_sqlite_id!, tableList[targetIndex].table_sqlite_id!);
+                  asyncQ.addJob((_) async => await callAddNewTableQuery(tableList[dragIndex].table_sqlite_id!, tableList[targetIndex].table_sqlite_id!));
                   //await _printTableAddList(dragTable: tableList[dragIndex].number, targetTable: tableList[targetIndex].number);
                   cart.removeAllTable();
                   cart.removeAllCartItem();

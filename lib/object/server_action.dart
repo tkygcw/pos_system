@@ -78,6 +78,7 @@ class ServerAction {
           var data7 = await PosDatabase.instance.readAppSetting();
           var data8 = await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
           var data9 = await PosDatabase.instance.readAllTaxLinkDining();
+          var data10 = await getBranchPromotionData();
           objectData = {
             'tb_categories': data,
             'tb_product': data2,
@@ -87,7 +88,8 @@ class ServerAction {
             'tb_product_variant': data6,
             'tb_app_setting': data7,
             'tb_branch_link_dining_option': data8,
-            'taxLinkDiningList': data9
+            'taxLinkDiningList': data9,
+            'branchPromotionList': data10
           };
           result = {'status': '1', 'action': '1', 'data': objectData};
         }
@@ -243,8 +245,12 @@ class ServerAction {
             CartDialogFunction function = CartDialogFunction();
             var jsonValue = jsonDecode(param);
             print("json value: ${jsonValue['dragTableId']}");
-            await function.callMergeTableQuery(dragTableId: jsonValue['dragTableId'], targetTableId: jsonValue['targetTableId']);
-            result = {'status': '1'};
+            int status = await function.callMergeTableQuery(dragTableId: jsonValue['dragTableId'], targetTableId: jsonValue['targetTableId']);
+            if(status == 1){
+              result = {'status': '1'};
+            } else {
+              result = {'status': '2', 'error': "Table status changed"};
+            }
           }catch(e){
             result = {'status': '4', 'exception': e.toString()};
             print("cart dialog remove merged table request error: $e");
@@ -297,6 +303,23 @@ class ServerAction {
       print('server error: $e');
       result = {'status': '2'};
       return result;
+    }
+  }
+
+  Future<List<Promotion>> getBranchPromotionData() async {
+    List<Promotion> branchPromoList = [];
+    try {
+      List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion();
+      for (int i = 0; i < data.length; i++) {
+        List<Promotion> temp = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
+        if(temp.isNotEmpty){
+          branchPromoList.add(temp.first);
+        }
+      }
+      return branchPromoList;
+    } catch (error) {
+      print('promotion list error $error');
+      return branchPromoList = [];
     }
   }
 }

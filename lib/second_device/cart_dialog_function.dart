@@ -166,14 +166,15 @@ class CartDialogFunction {
     int updatedKey = await PosDatabase.instance.removePosTableTableUseDetailKey(posTableData);
   }
 
-  callMergeTableQuery({required int dragTableId, required int targetTableId}) async {
+  Future<int> callMergeTableQuery({required int dragTableId, required int targetTableId}) async {
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     if(await checkTableStatus(dragTableId) == false && await checkTableStatus(targetTableId) == true){
       await createTableUseDetail(dragTableId, targetTableId);
       await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!, tableUseKey!, dateTime);
+      return 1;
     } else {
-      return;
+      return 2;
     }
   }
 
