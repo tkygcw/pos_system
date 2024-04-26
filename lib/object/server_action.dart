@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/rendering.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
-import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/branch_link_product.dart';
@@ -11,7 +9,6 @@ import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/product.dart';
 import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
-import 'package:pos_system/object/tax_link_dining.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
 import 'package:pos_system/second_device/place_order.dart';
 import 'package:pos_system/second_device/reprint_kitchen_list.dart';
@@ -21,7 +18,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../database/pos_database.dart';
 import '../main.dart';
 import 'branch_link_promotion.dart';
-import 'cart_product.dart';
 
 class ServerAction {
   String? action;
@@ -79,17 +75,19 @@ class ServerAction {
           var data8 = await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
           var data9 = await PosDatabase.instance.readAllTaxLinkDining();
           var data10 = await getBranchPromotionData();
-          objectData = {
-            'tb_categories': data,
-            'tb_product': data2,
-            'tb_user': data3,
-            'tb_branch_link_product': data4,
-            'tb_branch_link_modifier': data5,
-            'tb_product_variant': data6,
-            'tb_app_setting': data7,
-            'tb_branch_link_dining_option': data8,
-            'taxLinkDiningList': data9,
-            'branchPromotionList': data10
+          var data11 = appLanguage.appLocal.languageCode;
+           objectData = {
+             'tb_categories': data,
+             'tb_product': data2,
+             'tb_user': data3,
+             'tb_branch_link_product': data4,
+             'tb_branch_link_modifier': data5,
+             'tb_product_variant': data6,
+             'tb_app_setting': data7,
+             'tb_branch_link_dining_option': data8,
+             'taxLinkDiningList': data9,
+             'branchPromotionList': data10,
+             'app_language_code': data11
           };
           result = {'status': '1', 'action': '1', 'data': objectData};
         }
@@ -138,8 +136,6 @@ class ServerAction {
           await cartPageState.readAllBranchLinkDiningOption(serverCall: 1);
           await cartPageState.getPromotionData();
           objectData = {
-            // 'dining_list': cartPageState.diningList,
-            // 'branch_link_dining_id_list': cartPageState.branchLinkDiningIdList,
             'promotion_list': cartPageState.promotionList,
           };
           result = {'status': '1', 'data': objectData};
@@ -162,7 +158,6 @@ class ServerAction {
         break;
         case '8': {
           try{
-            List<BranchLinkProduct> branchLinkProductList = [];
             CartModel cart = CartModel();
             var decodeParam = jsonDecode(param);
             cart = CartModel.fromJson(decodeParam);
@@ -173,7 +168,6 @@ class ServerAction {
                 return result = cartItem;
               }
               result = await order.callCreateNewOrder(cart, address!);
-              // branchLinkProductList = order.branchLinkProductList;
             } else {
               PlaceNotDineInOrder order = PlaceNotDineInOrder();
               Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
@@ -181,13 +175,7 @@ class ServerAction {
                 return result = cartItem;
               }
               result = await order.callCreateNewNotDineOrder(cart, address!);
-              // branchLinkProductList = order.branchLinkProductList;
             }
-            // print("outside else if called!!!");
-            // objectData = {
-            //   'tb_branch_link_product': branchLinkProductList,
-            // };
-            // result = {'status': '1', 'data': objectData};
           } catch(e){
             result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
             print('place order request error: $e');
@@ -205,10 +193,6 @@ class ServerAction {
               return result = cartItem;
             }
             result = await order.callAddOrderCache(cart, address!);
-            // objectData = {
-            //   'tb_branch_link_product': order.branchLinkProductList,
-            // };
-            // result = {'status': '1', 'data': objectData};
           } catch(e){
             result = {'status': '4', 'exception': "add-order error: ${e.toString()}"};
             print('add order request error: $e');

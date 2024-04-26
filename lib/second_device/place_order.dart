@@ -7,7 +7,6 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/app_setting.dart';
-import 'package:pos_system/object/order.dart';
 import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -214,7 +213,7 @@ abstract class PlaceOrder {
     List<cartProductItem> outOfStockItem = [];
     Map<String, dynamic>? result;
     //bool hasStock = false;
-    List<cartProductItem> unitCartItem = cartModel.cartNotifierItem.where((e) => e.unit == 'each' && e.status == 0).toList();
+    List<cartProductItem> unitCartItem = cartModel.cartNotifierItem.where((e) => (e.unit == 'each' || e.unit == 'each_c') && e.status == 0).toList();
     if(unitCartItem.isNotEmpty){
       for(int i = 0 ; i < unitCartItem.length; i++){
         print("loop: $i");

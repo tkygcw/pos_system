@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../translation/AppLocalizations.dart';
+
 class OtherDevice extends StatefulWidget {
   final List<Socket> clientSocket;
   const OtherDevice({Key? key, required this.clientSocket}) : super(key: key);
@@ -24,7 +26,7 @@ class _OtherDeviceState extends State<OtherDevice> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text("Connected device ip"),
+      title: Text(AppLocalizations.of(context)!.translate('connected_device')),
       content: Container(
         width: 300,
         child: ListView.builder(

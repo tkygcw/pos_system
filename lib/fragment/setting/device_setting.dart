@@ -1,11 +1,11 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:pos_system/object/server_action.dart';
 import 'package:pos_system/second_device/other_device.dart';
 import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
+
+import '../../translation/AppLocalizations.dart';
 
 class DeviceSetting extends StatefulWidget {
   const DeviceSetting({Key? key}) : super(key: key);
@@ -17,19 +17,13 @@ class DeviceSetting extends StatefulWidget {
 class _DeviceSettingState extends State<DeviceSetting> {
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
           ListTile(
-            title: Text("Bind IP address"),
-            subtitle:  Text("Device IP: ${Server.instance.serverIp}"),
+            title: Text(AppLocalizations.of(context)!.translate('bind_ip_address')),
+            subtitle:  Text("${AppLocalizations.of(context)!.translate('device_ip')}: ${Server.instance.serverIp}"),
             trailing: Icon(Icons.link),
             onTap: () async {
               await Server.instance.bindServer();
@@ -44,20 +38,11 @@ class _DeviceSettingState extends State<DeviceSetting> {
             indent: 20,
             endIndent: 20,
           ),
-          // ElevatedButton(
-          //     onPressed: () async {
-          //       List<Socket> clientSocketList = Server.instance.clientList;
-          //       for(int i = 0; i < clientSocketList.length; i++){
-          //         Map<String, dynamic>? result = await ServerAction().checkAction(action: '1');
-          //         clientSocketList[i].write("${jsonEncode(result)}\n");
-          //       }
-          //     },
-          //     child: Text("Backend received notification"))
           Consumer<Server>(
               builder: (context, server, child) {
                 return ListTile(
-                  title: Text("Connection management"),
-                  subtitle: Text('Connected device: ${server.clientList.length}'),
+                  title: Text(AppLocalizations.of(context)!.translate('connection_management')),
+                  subtitle: Text('${AppLocalizations.of(context)?.translate('connected_device')}: ${server.clientList.length}'),
                   trailing: Visibility(child: Icon(Icons.navigate_next), visible: server.clientList.isEmpty ? false : true),
                   onTap: server.clientList.isEmpty ? null : (){
                     openDeviceDialog(clientSocket: server.clientList);

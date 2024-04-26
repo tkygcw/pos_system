@@ -39,6 +39,7 @@ final QrOrder qrOrder = QrOrder();
 final LCDDisplay lcdDisplay = LCDDisplay();
 final asyncQ = AsyncQueue.autoStart();
 DisplayManager displayManager = DisplayManager();
+AppLanguage appLanguage = AppLanguage();
 final snackBarKey = GlobalKey<ScaffoldMessengerState>();
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
@@ -63,7 +64,6 @@ Future<void> main() async {
   initLCDScreen();
 
   WidgetsFlutterBinding.ensureInitialized();
-  AppLanguage appLanguage = AppLanguage();
   //create default app color
   await appLanguage.fetchLocale();
 

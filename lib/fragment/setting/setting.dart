@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/fragment/setting/device_setting.dart';
@@ -12,7 +11,6 @@ import 'package:pos_system/fragment/setting/receipt_setting.dart';
 import 'package:pos_system/fragment/setting/table_setting.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/page/progress_bar.dart';
-import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:side_navigation/side_navigation.dart';
@@ -194,7 +192,7 @@ class _SettingMenuState extends State<SettingMenu> {
                       ),
                       SideNavigationBarItem(
                         icon: Icons.devices_other,
-                        label: "Device setting",
+                        label: AppLocalizations.of(context)!.translate("device_setting"),
                       ),
                     ],
                     onTap: (index) {
@@ -299,7 +297,7 @@ class _SettingMenuState extends State<SettingMenu> {
                         ),
                         SideNavigationBarItem(
                           icon: Icons.devices_other,
-                          label: "Device setting",
+                          label: AppLocalizations.of(context)!.translate("device_setting"),
                         ),
                       ],
                       onTap: (index) {

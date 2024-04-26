@@ -177,7 +177,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                                     visualDensity: VisualDensity(horizontal: 0, vertical: -4),
                                     title: Text('${obj!.itemList![index].product_name} ${getVariant(obj!.itemList![index])}'),
                                     leading: Text('${obj!.itemList![index].quantity}'),
-                                    trailing: Text('${obj!.itemList![index].price!}/${obj!.itemList![index].per_quantity_unit!}${obj!.itemList![index].unit!}'),
+                                    trailing: Text('${obj!.itemList![index].price!}/${obj!.itemList![index].per_quantity_unit!}${getProductUnit(obj!.itemList![index])}'),
                                   ),
                                 );
                               }
@@ -247,6 +247,16 @@ class _SecondDisplayState extends State<SecondDisplay> {
           CustomProgressBar()
       ),
     );
+  }
+
+  String getProductUnit(cartProductItem item){
+    String unit = '';
+    if(item.unit == 'each' || item.unit == 'each_c'){
+      unit = 'each';
+    } else {
+      unit = item.unit!;
+    }
+    return unit;
   }
 
   initPaymentImage({required SecondDisplayData secondDisplayData}) async {
