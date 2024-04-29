@@ -324,6 +324,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                     inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                     textAlign: TextAlign.center,
                                                     decoration: InputDecoration(
+                                                      errorText: priceController.text.isEmpty ? "${AppLocalizations.of(context)!.translate('product_price_empty')}" : null,
                                                       prefixText: 'RM ',
                                                       focusedBorder: OutlineInputBorder(
                                                         borderSide: BorderSide(color: color.backgroundColor),
@@ -331,17 +332,10 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                       hintText: "${Utils.convertTo2Dec(dialogPrice)}",
                                                     ),
                                                     onChanged: (value) async {
-                                                      try{
-                                                        double.parse(value.replaceAll(',', ''));
-                                                        dialogPrice = value;
-                                                        await getProductPrice(widget.productDetail!.product_sqlite_id);
-                                                        setState(() {});
-                                                      }catch (e){
-                                                        priceController.text = "";
-                                                      }
+                                                      await getProductPrice(widget.productDetail!.product_sqlite_id);
+                                                      setState(() {});
                                                     },
                                                     onSubmitted: (value) async {
-                                                      dialogPrice = value;
                                                       await getProductPrice(widget.productDetail!.product_sqlite_id);
                                                       setState(() {});
                                                     },
@@ -538,41 +532,45 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                       ? null
                                       : () async {
                                     if(widget.productDetail!.name!.isNotEmpty) {
-                                      await checkProductStock(widget.productDetail!, cart);
-                                      //await getBranchLinkProductItem(widget.productDetail!);
-                                      if (hasStock) {
-                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
-                                          if(simpleIntInput > 0){
-                                            if (cart.selectedTable.isNotEmpty) {
-                                              // Disable the button after it has been pressed
-                                              setState(() {
-                                                isButtonDisabled = true;
-                                              });
-                                              await addToCart(cart);
-                                              Navigator.of(context).pop();
+                                      if(priceController.text.isNotEmpty) {
+                                        await checkProductStock(widget.productDetail!, cart);
+                                        //await getBranchLinkProductItem(widget.productDetail!);
+                                        if (hasStock) {
+                                          if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
+                                            if(simpleIntInput > 0){
+                                              if (cart.selectedTable.isNotEmpty) {
+                                                // Disable the button after it has been pressed
+                                                setState(() {
+                                                  isButtonDisabled = true;
+                                                });
+                                                await addToCart(cart);
+                                                Navigator.of(context).pop();
+                                              } else {
+                                                openChooseTableDialog(cart);
+                                              }
                                             } else {
-                                              openChooseTableDialog(cart);
+                                              Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
                                             }
+                                          } else if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == false) {
+                                            // Disable the button after it has been pressed
+                                            setState(() {
+                                              isButtonDisabled = true;
+                                            });
+                                            await addToCart(cart);
+                                            Navigator.of(context).pop();
                                           } else {
-                                            Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
+                                            // Disable the button after it has been pressed
+                                            setState(() {
+                                              isButtonDisabled = true;
+                                            });
+                                            await addToCart(cart);
+                                            Navigator.of(context).pop();
                                           }
-                                        } else if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == false) {
-                                          // Disable the button after it has been pressed
-                                          setState(() {
-                                            isButtonDisabled = true;
-                                          });
-                                          await addToCart(cart);
-                                          Navigator.of(context).pop();
                                         } else {
-                                          // Disable the button after it has been pressed
-                                          setState(() {
-                                            isButtonDisabled = true;
-                                          });
-                                          await addToCart(cart);
-                                          Navigator.of(context).pop();
+                                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
                                         }
                                       } else {
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
+                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_price_empty'));
                                       }
                                     } else {
                                       Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_name_empty'));
@@ -726,24 +724,20 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                   inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                   textAlign: TextAlign.center,
                                                   decoration: InputDecoration(
+                                                    errorText: priceController.text.isEmpty ? "${AppLocalizations.of(context)!.translate('product_price_empty')}" : null,
                                                     prefixText: 'RM ',
                                                     focusedBorder: OutlineInputBorder(
                                                       borderSide: BorderSide(color: color.backgroundColor),
                                                     ),
                                                     hintText: "${Utils.convertTo2Dec(dialogPrice)}",
                                                   ),
-                                                  onChanged: (value) => setState(() {
-                                                    try{
-                                                      double.parse(value.replaceAll(',', ''));
-                                                      dialogPrice = value;
-                                                    }catch (e){
-                                                      priceController.text = "";
-                                                    }
-                                                  }),
-                                                  onSubmitted: (value) {
-                                                    setState(() {
-                                                      dialogPrice = value;
-                                                    });
+                                                  onChanged: (value) async {
+                                                    await getProductPrice(widget.productDetail!.product_sqlite_id);
+                                                    setState(() {});
+                                                  },
+                                                  onSubmitted: (value) async {
+                                                    await getProductPrice(widget.productDetail!.product_sqlite_id);
+                                                    setState(() {});
                                                   },
                                                 ),
                                               ),
@@ -929,34 +923,38 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                     ? null
                                     : () async {
                                   if(widget.productDetail!.name!.isNotEmpty) {
-                                    await checkProductStock(widget.productDetail!, cart);
-                                    //await getBranchLinkProductItem(widget.productDetail!);
-                                    if (hasStock == true) {
-                                      if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
-                                        if(simpleIntInput > 0){
-                                          if (cart.selectedTable.isNotEmpty) {
-                                            // Disable the button after it has been pressed
-                                            setState(() {
-                                              isButtonDisabled = true;
-                                            });
-                                            await addToCart(cart);
-                                            Navigator.of(context).pop();
+                                    if(priceController.text.isNotEmpty) {
+                                      await checkProductStock(widget.productDetail!, cart);
+                                      //await getBranchLinkProductItem(widget.productDetail!);
+                                      if (hasStock == true) {
+                                        if (cart.selectedOption == 'Dine in' && appSettingModel.table_order == true) {
+                                          if(simpleIntInput > 0){
+                                            if (cart.selectedTable.isNotEmpty) {
+                                              // Disable the button after it has been pressed
+                                              setState(() {
+                                                isButtonDisabled = true;
+                                              });
+                                              await addToCart(cart);
+                                              Navigator.of(context).pop();
+                                            } else {
+                                              openChooseTableDialog(cart);
+                                            }
                                           } else {
-                                            openChooseTableDialog(cart);
+                                            Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
                                           }
                                         } else {
-                                          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_qty_input'));
+                                          // Disable the button after it has been pressed
+                                          setState(() {
+                                            isButtonDisabled = true;
+                                          });
+                                          await addToCart(cart);
+                                          Navigator.of(context).pop();
                                         }
                                       } else {
-                                        // Disable the button after it has been pressed
-                                        setState(() {
-                                          isButtonDisabled = true;
-                                        });
-                                        await addToCart(cart);
-                                        Navigator.of(context).pop();
+                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
                                       }
                                     } else {
-                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_variant_sold_out'));
+                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_price_empty'));
                                     }
                                   } else {
                                     Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_name_empty'));
@@ -1141,7 +1139,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       if (data[0].has_variant == '0') {
         if(productData[0].unit == 'each_c') {
           // take new price input
-          basePrice = priceController.text;
+          if(priceController.text == "" || priceController.text.isEmpty) {
+            basePrice = "0.00";
+          } else {
+            basePrice = priceController.text;
+          }
         } else {
           // take original base price
           basePrice = data[0].price!;
@@ -1164,7 +1166,11 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       } else {
         List<BranchLinkProduct> productVariant = await PosDatabase.instance.checkProductVariant(await getProductVariant(productId!), productId.toString());
         if(productData[0].unit == 'each_c') {
-          basePrice = priceController.text;
+          if(priceController.text == "" || priceController.text.isEmpty) {
+            basePrice = "0.00";
+          } else {
+            basePrice = priceController.text;
+          }
         } else {
           basePrice = productVariant[0].price!;
         }

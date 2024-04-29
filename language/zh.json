@@ -1,4 +1,5 @@
 {
+  "accept_all": "全都接受",
   "active": "激活",
   "active_until": "有效期至",
   "add": "添加",
@@ -94,6 +95,8 @@
   "cloud_db_change_sync_from_cloud": "云数据库已更改！从云端同步",
   "collapse": "收起",
   "confirm": "确认",
+  "confirm_accept_all": "确认接受所有二维码订单?",
+  "confirm_accept_all_desc": "您想接受所有二维码订单吗？",
   "confirm_change_dining_option": "确认更改就餐选项",
   "confirm_delete": "将从购物车中删除，点击“是”继续",
   "confirm_delete_table": "桌子将被删除，点击“是”继续",
@@ -389,6 +392,7 @@
   "product_name_empty": "产品名称不能为空",
   "product_name_font_size": "产品名称字体大小",
   "product_out_of_stock": "产品缺货",
+  "product_price_empty": "产品价格不能为空",
   "product_report": "产品报告",
   "product_variant": "产品规格",
   "product_variant_sold_out": "产品规格售罄！",
