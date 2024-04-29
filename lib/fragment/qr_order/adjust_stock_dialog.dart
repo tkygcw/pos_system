@@ -59,7 +59,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       delete_order_detail_value, order_modifier_detail_value, table_value, branch_link_product_value;
   double newSubtotal = 0.0;
   bool hasNoStockProduct = false, hasNotAvailableProduct = false, tableInUsed = false;
-  bool isButtonDisabled = false, isLogOut = false;
+  bool isButtonDisabled = false, isCancelButtonDisabled = false,  isLogOut = false;
   bool willPop = true;
   late AppSettingModel _appSettingModel;
 
@@ -297,13 +297,14 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                         child: Text(AppLocalizations.of(context)!.translate('close'),
                           style: TextStyle(color: Colors.white),
                         ),
-                        onPressed: isButtonDisabled
+                        onPressed: isCancelButtonDisabled
                             ? null
                             : () {
                           // Disable the button after it has been pressed
                           setState(() {
-                            isButtonDisabled = true;
+                            isCancelButtonDisabled = true;
                           });
+                          enableCancelButton();
                           Navigator.of(context).pop();
                         },
                       ),
@@ -345,6 +346,12 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                             ? null
                             : widget.orderDetailList.isNotEmpty
                             ? () async {
+                          // Disable the button after it has been pressed
+                          setState(() {
+                            isButtonDisabled = true;
+                            willPop = false;
+                          });
+
                           await checkOrderDetailStock();
                           print('available check: ${hasNotAvailableProduct}');
                           if (hasNoStockProduct) {
@@ -352,11 +359,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                           } else if(hasNotAvailableProduct){
                             Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
                           } else {
-                            // Disable the button after it has been pressed
-                            setState(() {
-                              isButtonDisabled = true;
-                              willPop = false;
-                            });
+
                             if (removeDetailList.isNotEmpty) {
                               await removeOrderDetail();
                             }
@@ -555,13 +558,14 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                         backgroundColor: color.backgroundColor,
                       ),
                       child: Text(AppLocalizations.of(context)!.translate('close')),
-                      onPressed: isButtonDisabled
+                      onPressed: isCancelButtonDisabled
                           ? null
                           : () {
                         // Disable the button after it has been pressed
                         setState(() {
-                          isButtonDisabled = true;
+                          isCancelButtonDisabled = true;
                         });
+                        enableCancelButton();
                         Navigator.of(context).pop();
                       },
                     ),
@@ -641,6 +645,19 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
     });
   }
 
+  enableCancelButton() {
+    // Simulate some work
+    Future.delayed(Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          isCancelButtonDisabled = false;
+        });
+      }
+    });
+  }
+
+
+
   syncToCloudFunction() async {
     await syncAllToCloud();
     if (this.isLogOut == true) {
@@ -669,33 +686,39 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       BuildContext _context = MyApp.navigatorKey.currentContext!;
       String flushbarStatus = '';
       List<OrderDetail> returnData = await PrintReceipt().printQrKitchenList(printerList, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
-      if(returnData.isNotEmpty){
-        _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-        playSound();
-        Flushbar(
-          icon: Icon(Icons.error, size: 32, color: Colors.white),
-          shouldIconPulse: false,
-          title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
-          message: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
-          duration: Duration(seconds: 5),
-          backgroundColor: Colors.red,
-          messageColor: Colors.white,
-          flushbarPosition: FlushbarPosition.TOP,
-          maxWidth: 350,
-          margin: EdgeInsets.all(8),
-          borderRadius: BorderRadius.circular(8),
-          padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-          onTap: (flushbar) {
-            flushbar.dismiss(true);
-          },
-          onStatusChanged: (status) {
-            flushbarStatus = status.toString();
-          },
-        )..show(_context);
-        Future.delayed(Duration(seconds: 3), () {
-          if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
-            playSound();
-        });
+      if(returnData != null) {
+        if(returnData.isNotEmpty){
+          _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
+          playSound();
+          Flushbar(
+            icon: Icon(Icons.error, size: 32, color: Colors.white),
+            shouldIconPulse: false,
+            title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
+            message: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
+            duration: Duration(seconds: 5),
+            backgroundColor: Colors.red,
+            messageColor: Colors.white,
+            flushbarPosition: FlushbarPosition.TOP,
+            maxWidth: 350,
+            margin: EdgeInsets.all(8),
+            borderRadius: BorderRadius.circular(8),
+            padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+            onTap: (flushbar) {
+              flushbar.dismiss(true);
+            },
+            onStatusChanged: (status) {
+              flushbarStatus = status.toString();
+            },
+          )..show(_context);
+          Future.delayed(Duration(seconds: 3), () {
+            if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
+              playSound();
+          });
+        }
+      } else {
+        Fluttertoast.showToast(
+            backgroundColor: Colors.red,
+            msg: "${AppLocalizations.of(_context)?.translate('no_printer_added')}");
       }
     } catch(e) {
       print("callPrinter error: ${e}");

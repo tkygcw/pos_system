@@ -1,4 +1,5 @@
 {
+  "accept_all": "全都接受",
   "active": "激活",
   "active_until": "有效期至",
   "add": "添加",
@@ -94,6 +95,8 @@
   "cloud_db_change_sync_from_cloud": "云数据库已更改！从云端同步",
   "collapse": "收起",
   "confirm": "确认",
+  "confirm_accept_all": "确认接受所有二维码订单?",
+  "confirm_accept_all_desc": "您想接受所有二维码订单吗？",
   "confirm_change_dining_option": "确认更改就餐选项",
   "confirm_delete": "将从购物车中删除，点击“是”继续",
   "confirm_delete_table": "桌子将被删除，点击“是”继续",

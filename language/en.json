@@ -1,4 +1,5 @@
 {
+  "accept_all": "Accept All",
   "active": "Active",
   "active_until": "Active until",
   "add": "Add",
@@ -94,6 +95,8 @@
   "cloud_db_change_sync_from_cloud": "Cloud db change! sync from cloud",
   "collapse": "Collapse",
   "confirm": "Confirm",
+  "confirm_accept_all": "Accept all orders?",
+  "confirm_accept_all_desc": "Would you like to accept all the QR Orders?",
   "confirm_change_dining_option": "Confirm change dining option",
   "confirm_delete": "will be remove from cart. Click 'Yes' to proceed.",
   "confirm_delete_table": "The table will be deleted, Click 'Yes' to proceed.",
