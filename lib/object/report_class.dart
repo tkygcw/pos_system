@@ -608,56 +608,11 @@ class ReportObject{
     if (paidOrderDetail.isNotEmpty) {
       for (int i = 0; i < paidOrderDetail.length; i++) {
         dateOrderDetail!.add(paidOrderDetail[i]);
-        // DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidCategory[i].created_at!);
-        // if(currentStDate != currentEdDate){
-        //   if(convertDate.isAfter(_startDate)){
-        //     if(convertDate.isBefore(addDays(date: _endDate))){
-        //       dateCategory!.add(paidCategory[i]);
-        //     }
-        //   }
-        // } else {
-        //   if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
-        //     dateCategory!.add(paidCategory[i]);
-        //   }
-        // }
       }
     }
     ReportObject value = ReportObject(dateOrderDetail: dateOrderDetail);
     return value;
   }
-
-  // getAllPaidCategory({currentStDate, currentEdDate}) async {
-  //   dateCategory = [];
-  //   DateTime _startDate = DateTime.parse(currentStDate);
-  //   DateTime _endDate = DateTime.parse(currentEdDate);
-  //   //convert time to string
-  //   DateTime addEndDate = addDays(date: _endDate);
-  //   String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
-  //   String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
-  //   print('string start date: ${stringStDate}');
-  //   print('string end date: ${stringEdDate}');
-  //   List<Categories> categoryData = await PosDatabase.instance.readAllCategoryWithOrderDetail(stringStDate, stringEdDate);
-  //   this.paidCategory = categoryData;
-  //   if (paidCategory.isNotEmpty) {
-  //     for (int i = 0; i < paidCategory.length; i++) {
-  //       dateCategory!.add(paidCategory[i]);
-  //       // DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidCategory[i].created_at!);
-  //       // if(currentStDate != currentEdDate){
-  //       //   if(convertDate.isAfter(_startDate)){
-  //       //     if(convertDate.isBefore(addDays(date: _endDate))){
-  //       //       dateCategory!.add(paidCategory[i]);
-  //       //     }
-  //       //   }
-  //       // } else {
-  //       //   if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
-  //       //     dateCategory!.add(paidCategory[i]);
-  //       //   }
-  //       // }
-  //     }
-  //   }
-  //   ReportObject value = ReportObject(dateCategory: dateCategory);
-  //   return value;
-  // }
 
   getTotalCancelledItem({currentStDate, currentEdDate}) async {
     List<OrderDetailCancel> _list = [];
@@ -673,18 +628,6 @@ class ReportObject{
     if (_list.isNotEmpty) {
       for (int i = 0; i < _list.length; i++) {
         dateOrderDetailCancelList!.add(_list[i]);
-        // DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(cancelledOrderDetail[i].created_at!);
-        // if(currentStDate != currentEdDate){
-        //   if(convertDate.isAfter(_startDate)){
-        //     if(convertDate.isBefore(addDays(date: _endDate))){
-        //       dateOrderDetail!.add(cancelledOrderDetail[i]);
-        //     }
-        //   }
-        // } else {
-        //   if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
-        //     dateOrderDetail!.add(cancelledOrderDetail[i]);
-        //   }
-        // }
       }
     }
     ReportObject value = ReportObject(dateOrderDetailCancelList: dateOrderDetailCancelList);
@@ -698,10 +641,11 @@ class ReportObject{
     DateTime _endDate = DateTime.parse(currentEdDate);
     this.totalSales = 0.0;
     List<Order> orderData = await PosDatabase.instance.readAllOrder();
+    print("orderData length: ${orderData.length}");
     paidOrderList = orderData;
     if (paidOrderList.isNotEmpty) {
       for (int i = 0; i < paidOrderList.length; i++) {
-        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderList[i].created_at!);
+        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderList[i].counterOpenDate!);
         if(currentStDate != currentEdDate){
           if(convertDate.isAfter(_startDate)){
             if(convertDate.isBefore(addDays(date: _endDate))){
@@ -734,7 +678,7 @@ class ReportObject{
     this.paidPromotionDetail = detailData;
     if (paidPromotionDetail.isNotEmpty) {
       for (int i = 0; i < paidPromotionDetail.length; i++) {
-        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidPromotionDetail[i].created_at!);
+        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidPromotionDetail[i].counterOpenDate!);
         if(currentStDate != currentEdDate){
           if(convertDate.isAfter(_startDate)){
             if(convertDate.isBefore(addDays(date: _endDate))){
@@ -770,19 +714,6 @@ class ReportObject{
     if (paidOrderList.isNotEmpty) {
       for (int i = 0; i < paidOrderList.length; i++) {
         dateRefundOrderList!.add(paidOrderList[i]);
-        // DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderList[i].created_at!);
-        // if(currentStDate != currentEdDate){
-        //   if(convertDate.isAfter(_startDate)){
-        //     if(convertDate.isBefore(addDays(date: _endDate))){
-        //       dateRefundOrderList!.add(paidOrderList[i]);
-        //     }
-        //   }
-        // } else {
-        //   if(convertDate.isAfter(_startDate) && convertDate.isBefore(addDays(date: _endDate))){
-        //     dateRefundOrderList!.add(paidOrderList[i]);
-        //   }
-        // }
-
       }
       for (int j = 0; j < dateRefundOrderList!.length; j++) {
         sumAllOrderTotal(dateRefundOrderList![j].final_amount!);
@@ -828,7 +759,7 @@ class ReportObject{
     if(_taxData.isNotEmpty){
       paidOrderTaxDetail = _taxData;
       for(int i = 0; i < paidOrderTaxDetail.length; i++){
-        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderTaxDetail[i].created_at!);
+        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderTaxDetail[i].counterOpenDate!);
         if(currentStDate != currentEdDate){
           if(convertDate.isAfter(_startDate)){
             if(convertDate.isBefore(addDays(date: _endDate))){

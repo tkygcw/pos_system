@@ -53,6 +53,7 @@ class OrderTaxDetail {
   String? updated_at;
   String? soft_delete;
   double? total_tax_amount;
+  String? counterOpenDate;
 
   OrderTaxDetail(
       {this.order_tax_detail_sqlite_id,
@@ -70,7 +71,8 @@ class OrderTaxDetail {
         this.created_at,
         this.updated_at,
         this.soft_delete,
-        this.total_tax_amount
+        this.total_tax_amount,
+        this.counterOpenDate
       });
 
   OrderTaxDetail copy({
@@ -123,7 +125,8 @@ class OrderTaxDetail {
       created_at: json[OrderTaxDetailFields.created_at] as String?,
       updated_at: json[OrderTaxDetailFields.updated_at] as String?,
       soft_delete: json[OrderTaxDetailFields.soft_delete] as String?,
-      total_tax_amount: json['total_tax_amount'] as double?
+      total_tax_amount: json['total_tax_amount'] as double?,
+      counterOpenDate: json['counterOpenDate'] as String?,
   );
 
   Map<String, Object?> toJson() => {

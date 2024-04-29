@@ -59,6 +59,7 @@ class OrderPromotionDetail {
   String? updated_at;
   String? soft_delete;
   double? total_promotion_amount;
+  String? counterOpenDate;
 
   OrderPromotionDetail(
       {this.order_promotion_detail_sqlite_id,
@@ -78,7 +79,8 @@ class OrderPromotionDetail {
       this.created_at,
       this.updated_at,
       this.soft_delete,
-      this.total_promotion_amount});
+      this.total_promotion_amount,
+      this.counterOpenDate});
 
   OrderPromotionDetail copy({
     int? order_promotion_detail_sqlite_id,
@@ -137,7 +139,8 @@ class OrderPromotionDetail {
         created_at: json[OrderPromotionDetailFields.created_at] as String?,
         updated_at: json[OrderPromotionDetailFields.updated_at] as String?,
         soft_delete: json[OrderPromotionDetailFields.soft_delete] as String?,
-        total_promotion_amount: json['total_promotion_amount'] as double?
+        total_promotion_amount: json['total_promotion_amount'] as double?,
+        counterOpenDate: json['counterOpenDate'] as String?,
       );
 
   Map<String, Object?> toJson() => {
