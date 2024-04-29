@@ -165,7 +165,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                           ),
                         ),
                         SizedBox(
-                          height: 340,
+                          height: 300,
                           child: ListView.builder(
                               itemCount: obj!.itemList!.length,
                               shrinkWrap: true,
@@ -229,7 +229,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
-                                    Text('Total Amount: ${obj?.finalAmount}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                                    Text('Total Amount: ${obj?.finalAmount}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
                                   ],
                                 )
                               ),

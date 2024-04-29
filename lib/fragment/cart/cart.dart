@@ -2262,9 +2262,13 @@ class CartPageState extends State<CartPage> {
         cart.removeAllTable();
         // Server.instance.sendRefreshMessage();
         Navigator.of(context).pop();
-        CustomFlushbar.instance.showFlushbar("Place order failed", "Table already in-used", Colors.red, (flushbar) async {
-          flushbar.dismiss(true);
-        }, duration: Duration(seconds: 3));
+        CustomFlushbar.instance.showFlushbar(
+            AppLocalizations.of(context)!.translate('place_order_failed'),
+            AppLocalizations.of(context)!.translate('table_is_used'),
+            Colors.red, (flushbar) async {
+              flushbar.dismiss(true);
+              },
+            duration: Duration(seconds: 3));
       }
     }catch(e){
       FLog.error(
@@ -2300,7 +2304,6 @@ class CartPageState extends State<CartPage> {
           }
           cart.removeAllCartItem();
           cart.removeAllTable();
-          // Server.instance.sendRefreshMessage();
           Navigator.of(context).pop();
 
           //syncAllToCloud();
@@ -2319,7 +2322,9 @@ class CartPageState extends State<CartPage> {
         cart.removeAllTable();
         // Server.instance.sendRefreshMessage();
         Navigator.of(context).pop();
-        CustomFlushbar.instance.showFlushbar("Place order failed", "Contain table not in-used", Colors.red, (flushbar) async {
+        CustomFlushbar.instance.showFlushbar(
+            AppLocalizations.of(context)!.translate('place_order_failed'),
+            AppLocalizations.of(context)!.translate('table_not_in_use'), Colors.red, (flushbar) async {
           flushbar.dismiss(true);
         }, duration: Duration(seconds: 3));
       }

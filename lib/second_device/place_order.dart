@@ -634,7 +634,6 @@ abstract class PlaceOrder {
       print("update table error: $e");
     }
   }
-
 }
 
 class PlaceNewDineInOrder extends PlaceOrder {
@@ -671,7 +670,7 @@ class PlaceNewDineInOrder extends PlaceOrder {
       objectData = {
         'tb_branch_link_product': branchLinkProductList,
       };
-      return {'status': '3', 'error': "Table is in-used", 'data': objectData};
+      return {'status': '3', 'error': AppLocalizations.of(context)?.translate('table_is_used'), 'data': objectData};
     }
   }
 
@@ -905,7 +904,7 @@ class PlaceAddOrder extends PlaceOrder {
         objectData = {
           'tb_branch_link_product': branchLinkProductList,
         };
-        return {'status': '3', 'error': "Table is selected in payment cart", 'data': objectData};
+        return {'status': '3', 'error': AppLocalizations.of(context)?.translate('table_is_in_payment'), 'data': objectData};
         // result = {'status': '3', 'error': "Table is selected in payment cart"};
         // branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
         // throw Exception("Table are selected in payment cart");
@@ -915,7 +914,7 @@ class PlaceAddOrder extends PlaceOrder {
       objectData = {
         'tb_branch_link_product': branchLinkProductList,
       };
-      return {'status': '3', 'error': "Table not in-used", 'data': objectData};
+      return {'status': '3', 'error': AppLocalizations.of(context)?.translate('table_not_in_use'), 'data': objectData};
       // branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
       // throw Exception("Table not in-used");
     }
