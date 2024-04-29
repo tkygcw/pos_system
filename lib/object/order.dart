@@ -109,6 +109,7 @@ class Order {
   double? total_tax_amount;
   String? tax_id;
   List<OrderTaxDetail> taxDetailList = [];
+  String? counterOpenDate;
 
   generateOrderNumber(){
     String orderNum = '';
@@ -156,7 +157,8 @@ class Order {
         this.bill_no,
         this.promo_amount,
         this.total_tax_amount,
-        this.tax_id});
+        this.tax_id,
+        this.counterOpenDate});
 
   Order copy({
     int? order_sqlite_id,
@@ -263,6 +265,7 @@ class Order {
       promo_amount: json['promo_amount'] as double?,
       total_tax_amount: json['total_tax_amount'] as double?,
       tax_id: json['tax_id'] as String?,
+      counterOpenDate: json['counterOpenDate'] as String?,
   );
 
   Map<String, Object?> toJson() => {
