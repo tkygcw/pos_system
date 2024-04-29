@@ -218,7 +218,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                         )),
                                     Visibility(
                                       visible: dialogStock != '' ? true : false,
-                                      child: Text("In stock: ${dialogStock}${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
+                                      child: Text("${AppLocalizations.of(context)!.translate('in_stock')}: ${dialogStock}${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
                                           style: TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
@@ -531,8 +531,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                   onPressed: isButtonDisabled
                                       ? null
                                       : () async {
-                                    if(widget.productDetail!.name!.isNotEmpty) {
-                                      if(priceController.text.isNotEmpty) {
+                                    if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
+                                      if(priceController.text.isNotEmpty && priceController.text.trim().isNotEmpty) {
                                         await checkProductStock(widget.productDetail!, cart);
                                         //await getBranchLinkProductItem(widget.productDetail!);
                                         if (hasStock) {
@@ -623,7 +623,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                       )),
                                   Visibility(
                                     visible: dialogStock != '' ? true : false,
-                                    child: Text("In stock: ${dialogStock}${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
+                                    child: Text("${AppLocalizations.of(context)!.translate('in_stock')}: ${dialogStock}${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
                                         style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
@@ -922,8 +922,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                 onPressed: isButtonDisabled
                                     ? null
                                     : () async {
-                                  if(widget.productDetail!.name!.isNotEmpty) {
-                                    if(priceController.text.isNotEmpty) {
+                                  if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
+                                    if(priceController.text.isNotEmpty && priceController.text.trim().isNotEmpty) {
                                       await checkProductStock(widget.productDetail!, cart);
                                       //await getBranchLinkProductItem(widget.productDetail!);
                                       if (hasStock == true) {
