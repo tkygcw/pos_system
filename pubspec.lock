@@ -584,6 +584,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.0"
+  gms_check:
+    dependency: "direct main"
+    description:
+      name: gms_check
+      sha256: eec2144f952949e3199c0fb33c9a7b2985430ae3923d8faa0316fa5312cfb4cb
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   google_fonts:
     dependency: "direct main"
     description:
