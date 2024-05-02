@@ -649,6 +649,7 @@ class PrintReceipt{
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
               if (res == PosPrintResult.success) {
                 await ReceiptLayout().printCheckList80mm(false, orderCacheLocalId, value: printer);
+                await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
               } else if (res == PosPrintResult.timeout){
@@ -664,6 +665,7 @@ class PrintReceipt{
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
               if (res == PosPrintResult.success) {
                 await ReceiptLayout().printCheckList58mm(false, orderCacheLocalId, value: printer);
+                await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
               } else if (res == PosPrintResult.timeout){
@@ -727,6 +729,7 @@ class PrintReceipt{
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                 if (res == PosPrintResult.success) {
                   await ReceiptLayout().reprintCheckList80mm(false, cartModel, value: printer);
+                  await Future.delayed(Duration(milliseconds: 100));
                   printer.disconnect();
                   printStatus = 0;
                 } else if (res == PosPrintResult.timeout){
@@ -742,6 +745,7 @@ class PrintReceipt{
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                 if (res == PosPrintResult.success) {
                   await ReceiptLayout().reprintCheckList58mm(false, cartModel, value: printer);
+                  await Future.delayed(Duration(milliseconds: 100));
                   printer.disconnect();
                   printStatus = 0;
                 } else if (res == PosPrintResult.timeout){
@@ -843,6 +847,7 @@ class PrintReceipt{
                           await ReceiptLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails);
                           printCombinedKitchenList = true;
                         }
+                        await Future.delayed(Duration(milliseconds: 100));
                         printer.disconnect();
                       } else {
                         failedPrintOrderDetail.add(orderDetail[k]);
@@ -860,6 +865,7 @@ class PrintReceipt{
                           await ReceiptLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails);
                           printCombinedKitchenList = true;
                         }
+                        await Future.delayed(Duration(milliseconds: 100));
                         printer.disconnect();
                       } else {
                         failedPrintOrderDetail.add(orderDetail[k]);
@@ -879,6 +885,7 @@ class PrintReceipt{
                         currentItem++;
                         if (res == PosPrintResult.success) {
                           await ReceiptLayout().printLabel35mm(false, orderCacheLocalId, totalItem, currentItem, value: printer, orderDetail: orderDetail[k]);
+                          await Future.delayed(Duration(milliseconds: 100));
                           printer.disconnect();
                         } else {
                           failedPrintOrderDetail.add(orderDetail[k]);
@@ -1069,6 +1076,7 @@ class PrintReceipt{
 
                           printCombinedKitchenList = true;
                         }
+                        await Future.delayed(Duration(milliseconds: 100));
                         printer.disconnect();
                       } else {
                         failedPrintOrderDetail.add(reprintList[k]);
@@ -1161,6 +1169,7 @@ class PrintReceipt{
 
                           printCombinedKitchenList = true;
                         }
+                        await Future.delayed(Duration(milliseconds: 100));
                         printer.disconnect();
                       } else {
                         failedPrintOrderDetail.add(reprintList[k]);
@@ -1180,6 +1189,7 @@ class PrintReceipt{
                         currentItem++;
                         if (res == PosPrintResult.success) {
                           await ReceiptLayout().printLabel35mm(false, int.parse(reprintList[k].order_cache_sqlite_id!), totalItem, currentItem, value: printer, orderDetail: reprintList[k]);
+                          await Future.delayed(Duration(milliseconds: 100));
                           printer.disconnect();
                         } else {
                           failedPrintOrderDetail.add(reprintList[k]);
@@ -1264,13 +1274,14 @@ class PrintReceipt{
 
       for (int i = 0; i < printerList.length; i++) {
         if(printerList[i].printer_status == 1){
+          var printerDetail = jsonDecode(printerList[i].value!);
           bool printCombinedKitchenList = false;
           List<PrinterLinkCategory> data = await PosDatabase.instance.readPrinterLinkCategory(printerList[i].printer_sqlite_id!);
           for (int j = 0; j < data.length; j++) {
             for (int k = 0; k < orderDetailList.length; k++) {
               //check printer category
               if (orderDetailList[k].category_sqlite_id == data[j].category_sqlite_id && orderDetailList[k].status == 0) {
-                var printerDetail = jsonDecode(printerList[i].value!);
+
                 //check printer type
                 if (printerList[i].type == 1) {
                   //check paper size
@@ -1280,6 +1291,7 @@ class PrintReceipt{
                     final printer = NetworkPrinter(PaperSize.mm80, profile);
                     final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
 
+                    var value = 0;
                     if (res == PosPrintResult.success) {
                       // await ReceiptLayout().printQrKitchenList80mm(false, orderDetailList[k], orderCacheLocalId, value: printer);
                       if(kitchenListLayout80mm == null || kitchenListLayout80mm.print_combine_kitchen_list == 0 || orderDetailList.length == 1)
@@ -1289,7 +1301,9 @@ class PrintReceipt{
                         await ReceiptLayout().printCombinedKitchenList80mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails);
                         printCombinedKitchenList = true;
                       }
+                      await Future.delayed(Duration(milliseconds: 100));
                       printer.disconnect();
+
                     } else {
                       failedPrintOrderDetail.add(orderDetailList[k]);
                     }
@@ -1308,6 +1322,7 @@ class PrintReceipt{
                         await ReceiptLayout().printCombinedKitchenList58mm(false, orderCacheLocalId, value: printer, orderDetailList: groupedOrderDetails);
                         printCombinedKitchenList = true;
                       }
+                      await Future.delayed(Duration(milliseconds: 100));
                       printer.disconnect();
                     } else {
                       failedPrintOrderDetail.add(orderDetailList[k]);
@@ -1327,6 +1342,7 @@ class PrintReceipt{
                       currentItem++;
                       if (res == PosPrintResult.success) {
                         await ReceiptLayout().printLabel35mm(false, orderCacheLocalId, totalItem, currentItem, value: printer, orderDetail: orderDetail[k]);
+                        await Future.delayed(Duration(milliseconds: 100));
                         printer.disconnect();
                       } else {
                         failedPrintOrderDetail.add(orderDetail[k]);
@@ -1460,6 +1476,7 @@ class PrintReceipt{
 
               if (res == PosPrintResult.success) {
                 await ReceiptLayout().printDeleteItemList80mm(false, orderCacheId, dateTime, value: printer);
+                await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
               } else if (res == PosPrintResult.timeout){
@@ -1480,6 +1497,7 @@ class PrintReceipt{
 
               if (res == PosPrintResult.success) {
                 await ReceiptLayout().printDeleteItemList58mm(false, orderCacheId, dateTime, value: printer);
+                await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
               } else if (res == PosPrintResult.timeout){
@@ -1549,6 +1567,7 @@ class PrintReceipt{
 
                   if (res == PosPrintResult.success) {
                     await ReceiptLayout().printDeleteItemList80mm(false, orderCacheId, dateTime, value: printer);
+                    await Future.delayed(Duration(milliseconds: 100));
                     printer.disconnect();
                     printStatus = 0;
                   } else if (res == PosPrintResult.timeout){
@@ -1571,6 +1590,7 @@ class PrintReceipt{
 
                   if (res == PosPrintResult.success) {
                     await ReceiptLayout().printDeleteItemList58mm(false, orderCacheId, dateTime, value: printer);
+                    await Future.delayed(Duration(milliseconds: 100));
                     printer.disconnect();
                     printStatus = 0;
                   } else if (res == PosPrintResult.timeout){
@@ -1646,6 +1666,7 @@ class PrintReceipt{
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                 if (res == PosPrintResult.success) {
                   await ReceiptLayout().printSettlementList80mm(false, dateTime, settlement, value: printer);
+                  await Future.delayed(Duration(milliseconds: 100));
                   printer.disconnect();
                   printStatus = 0;
                 } else if (res == PosPrintResult.timeout){
@@ -1667,6 +1688,7 @@ class PrintReceipt{
                 final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
                 if (res == PosPrintResult.success) {
                   await ReceiptLayout().printSettlementList58mm(false, dateTime, settlement, value: printer);
+                  await Future.delayed(Duration(milliseconds: 100));
                   printer.disconnect();
                   printStatus = 0;
                 } else if (res == PosPrintResult.timeout){
@@ -1730,6 +1752,7 @@ class PrintReceipt{
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
               if (res == PosPrintResult.success) {
                 await ReceiptLayout().printCashBalanceList80mm(false, cashBalance, value: printer);
+                await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
               } else if (res == PosPrintResult.timeout){
                 print('printer time out');
@@ -1746,6 +1769,7 @@ class PrintReceipt{
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
               if (res == PosPrintResult.success) {
                 await ReceiptLayout().printCashBalanceList58mm(false, cashBalance, value: printer);
+                await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
               } else if (res == PosPrintResult.timeout){
                 print('printer time out');
@@ -1809,6 +1833,7 @@ class PrintReceipt{
               if (res == PosPrintResult.success) {
                 await ReceiptLayout().printChangeTableList80mm(false, value: printer, fromTable: lastTable, toTable: newTable);
                 printStatus = 0;
+                await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
               } else if (res == PosPrintResult.timeout) {
                 printStatus = 2;
@@ -1826,6 +1851,7 @@ class PrintReceipt{
               if (res == PosPrintResult.success) {
                 await ReceiptLayout().printChangeTableList58mm(false, value: printer, fromTable: lastTable, toTable: newTable);
                 printStatus = 0;
+                await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
               } else if(res == PosPrintResult.timeout) {
                 printStatus = 2;
