@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/qr_order/adjust_stock_dialog.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
@@ -76,7 +77,7 @@ class _QrMainPageState extends State<QrMainPage> {
                         textOK: Text('${AppLocalizations.of(context)!.translate('yes')}'),
                         textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
                       )) {
-                        await QrOrderAutoAccept(context).load();
+                        asyncQ.addJob((_) async => await QrOrderAutoAccept(context).load());
                       }
                     },
                   ),

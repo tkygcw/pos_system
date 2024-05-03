@@ -344,6 +344,11 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                         ),
                         onPressed: isButtonDisabled ? null :
                         widget.orderDetailList.isNotEmpty ? () async {
+                          // Disable the button after it has been pressed
+                          setState(() {
+                            isButtonDisabled = true;
+                            willPop = false;
+                          });
                           asyncQ.addJob((_) async {
                             await checkOrderDetailStock();
                             print('available check: ${hasNotAvailableProduct}');
@@ -352,11 +357,6 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                             } else if(hasNotAvailableProduct){
                               Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
                             } else {
-                              // Disable the button after it has been pressed
-                              setState(() {
-                                isButtonDisabled = true;
-                                willPop = false;
-                              });
                               if (removeDetailList.isNotEmpty) {
                                 await removeOrderDetail();
                               }
