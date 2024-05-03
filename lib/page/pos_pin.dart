@@ -84,12 +84,12 @@ class _PosPinPageState extends State<PosPinPage> {
       if(data['status'] == '1'){
         response = data['app_version'];
         latestVersion = response[0]['version'];
-      } else {
-        Map data =  await Domain().getAppVersion('1');
-        if(data['status'] == '1'){
-          response = data['app_version'];
-          latestVersion = response[0]['version'];
-        }
+      }
+    } else if(defaultTargetPlatform == TargetPlatform.iOS) {
+      Map data =  await Domain().getAppVersion('1');
+      if(data['status'] == '1'){
+        response = data['app_version'];
+        latestVersion = response[0]['version'];
       }
     }
   }
