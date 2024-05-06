@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/app_setting.dart';
@@ -309,10 +310,11 @@ abstract class PlaceOrder {
   }
 
   sendFailPrintOrderDetail({String? address, List<OrderDetail>? failList}){
-    print("server client list: ${ Server.instance.clientList.length}");
-    Socket client = Server.instance.clientList.firstWhere((e) => e.remoteAddress.address == address);
-    Map<String, dynamic>? result = {'status': '1', 'action': '0', 'failedPrintOrderDetail': failList};
-    client.write("${jsonEncode(result)}\n");
+    Socket? client = Server.instance.clientList.firstWhereOrNull((e) => e.remoteAddress.address == address);
+    if(client != null){
+      Map<String, dynamic>? result = {'status': '1', 'action': '0', 'failedPrintOrderDetail': failList};
+      client.write("${jsonEncode(result)}\n");
+    }
   }
 
   playSound() {

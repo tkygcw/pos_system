@@ -11,7 +11,7 @@ import 'package:pos_system/object/promotion.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/second_device/cart_dialog_function.dart';
 import 'package:pos_system/second_device/place_order.dart';
-import 'package:pos_system/second_device/reprint_kitchen_list.dart';
+import 'package:pos_system/second_device/reprint_kitchen_list_function.dart';
 import 'package:pos_system/second_device/table_function.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
