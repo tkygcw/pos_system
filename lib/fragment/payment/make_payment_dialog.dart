@@ -315,7 +315,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                       text: TextSpan(
                                                         children: <TextSpan>[
                                                           TextSpan(
-                                                            text: '${itemList[index].product_name!} (${itemList[index].price!}/${itemList[index].per_quantity_unit!}${itemList[index].unit!})\n',
+                                                            text: '${itemList[index].product_name!} (${itemList[index].price!}/${itemList[index].per_quantity_unit!}${itemList[index].unit! == 'each' || itemList[index].unit! == 'each_c' ? 'each' : itemList[index].unit!})\n',
                                                             style: TextStyle(
                                                               fontSize: MediaQuery.of(context).size.height > 500 ? 20 : 15,
                                                               color: color.backgroundColor,
@@ -806,7 +806,7 @@ class _MakePaymentState extends State<MakePayment> {
                                                     text: TextSpan(
                                                       children: <TextSpan>[
                                                         TextSpan(
-                                                          text: '${itemList[index].product_name!} (${itemList[index].price!}/${itemList[index].per_quantity_unit!}${itemList[index].unit!})\n',
+                                                          text: '${itemList[index].product_name!} (${itemList[index].price!}/${itemList[index].per_quantity_unit!}${itemList[index].unit! == 'each' || itemList[index].unit! == 'each_c' ? 'each' : itemList[index].unit!})\n',
                                                           style: TextStyle(
                                                               fontSize: 15,
                                                               color: color.backgroundColor,
@@ -1545,7 +1545,7 @@ class _MakePaymentState extends State<MakePayment> {
     await createOrder(double.parse(paymentReceived!), orderChange);
     await crateOrderTaxDetail();
     await createOrderPromotionDetail();
-    await syncAllToCloud();
+    //await syncAllToCloud();
   }
 
   readBranchPref() async {

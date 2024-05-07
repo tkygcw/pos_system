@@ -61,7 +61,7 @@ class _ReportPageState extends State<ReportPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.report.initDateTime();
-      widget.report.resetLoad();
+      //widget.report.resetLoad();
     });
     dateTimeNow = dateFormat.format(DateTime.now());
     _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pos_system/object/transfer_owner.dart';
 import 'package:pos_system/page/progress_bar.dart';
@@ -20,6 +22,8 @@ class TransferRecord extends StatefulWidget {
 }
 
 class _TransferRecordState extends State<TransferRecord> {
+  StreamController controller = StreamController();
+  late Stream contentStream;
   DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
   List<TransferOwner> transferOwnerList = [], dateTransferOwnerList = [];
   String currentStDate = '';
@@ -30,121 +34,123 @@ class _TransferRecordState extends State<TransferRecord> {
   @override
   void initState() {
     super.initState();
+    contentStream = controller.stream.asBroadcastStream();
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if(reportModel.load == 0){
-            preload(reportModel);
-            reportModel.setLoaded();
-          }
-        });
-          return LayoutBuilder(builder: (context, constraints) {
-            if(constraints.maxWidth > 800){
-              return isLoaded ?
-              Scaffold(
-                resizeToAvoidBottomInset: false,
-                body: Container(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            child: Text(AppLocalizations.of(context)!.translate('transfer_owner_report')+' (${deviceModel})',
-                                style: TextStyle(fontSize: 25, color: Colors.black)),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 5),
-                      Divider(
-                        height: 10,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 5),
-                      dateTransferOwnerList.isNotEmpty
-                          ?
-                      Expanded(
-                        child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: dateTransferOwnerList.length,
-                            itemBuilder: (BuildContext context,int index){
-                              return Card(
-                                elevation: 5,
-                                child: ListTile(
-                                  title: Text(AppLocalizations.of(context)!.translate('from')+': ${dateTransferOwnerList[index].fromUsername} to ${dateTransferOwnerList[index].toUsername}'),
-                                  subtitle: Text(AppLocalizations.of(context)!.translate('transfer_date_time')+': ${Utils.formatDate(dateTransferOwnerList[index].created_at)}'),
-                                  leading:  CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.compare_arrows, color: Colors.grey,)),
-                                  trailing: Text('${dateTransferOwnerList[index].cash_balance}'),
-                                ),
-                              );
-                            }
-                        ),
-                      )
-                      :
-                      Center(
-                        heightFactor: 12,
+        preload(reportModel);
+          return StreamBuilder(
+            stream: contentStream,
+            builder: (context, snapshot) {
+              if(snapshot.hasData){
+                return LayoutBuilder(builder: (context, constraints) {
+                  if(constraints.maxWidth > 800){
+                    return Scaffold(
+                      resizeToAvoidBottomInset: false,
+                      body: Container(
+                        padding: const EdgeInsets.all(8.0),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Icon(Icons.menu),
-                            Text(AppLocalizations.of(context)!.translate('no_record_found')),
+                            Row(
+                              children: [
+                                Container(
+                                  child: Text(AppLocalizations.of(context)!.translate('transfer_owner_report')+' (${deviceModel})',
+                                      style: TextStyle(fontSize: 25, color: Colors.black)),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 5),
+                            Divider(
+                              height: 10,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(height: 5),
+                            dateTransferOwnerList.isNotEmpty ?
+                            Expanded(
+                              child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: dateTransferOwnerList.length,
+                                  itemBuilder: (BuildContext context,int index){
+                                    return Card(
+                                      elevation: 5,
+                                      child: ListTile(
+                                        title: Text(AppLocalizations.of(context)!.translate('from')+': ${dateTransferOwnerList[index].fromUsername} to ${dateTransferOwnerList[index].toUsername}'),
+                                        subtitle: Text(AppLocalizations.of(context)!.translate('transfer_date_time')+': ${Utils.formatDate(dateTransferOwnerList[index].created_at)}'),
+                                        leading:  CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.compare_arrows, color: Colors.grey,)),
+                                        trailing: Text('${dateTransferOwnerList[index].cash_balance}'),
+                                      ),
+                                    );
+                                  }
+                              ),
+                            )
+                                :
+                            Center(
+                              heightFactor: 12,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.menu),
+                                  Text(AppLocalizations.of(context)!.translate('no_record_found')),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    );
+                  } else {
+                    ///mobile layout
+                    return Scaffold(
+                      resizeToAvoidBottomInset: false,
+                      body: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  child: Text(AppLocalizations.of(context)!.translate('transfer_owner_report')+' (${deviceModel})',
+                                      style: TextStyle(fontSize: 25, color: Colors.black)),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 5),
+                            Divider(
+                              height: 10,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(height: 5),
+                            Expanded(
+                              child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: dateTransferOwnerList.length,
+                                  itemBuilder: (BuildContext context,int index){
+                                    return Card(
+                                      elevation: 5,
+                                      child: ListTile(
+                                        title: Text(AppLocalizations.of(context)!.translate('from')+': ${dateTransferOwnerList[index].fromUsername} to ${dateTransferOwnerList[index].toUsername}'),
+                                        subtitle: Text(AppLocalizations.of(context)!.translate('transfer_date_time')+': ${dateTransferOwnerList[index].created_at}'),
+                                        leading:  CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.compare_arrows, color: Colors.grey,)),
+                                        trailing: Text('${dateTransferOwnerList[index].cash_balance}'),
+                                      ),
+                                    );
+                                  }
+                              ),
+                            )
                           ],
                         ),
                       )
-                    ],
-                  ),
-                ),
-              ) : CustomProgressBar();
-            } else {
-              ///mobile layout
-              return Scaffold(
-                resizeToAvoidBottomInset: false,
-                body: this.isLoaded ?
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            child: Text(AppLocalizations.of(context)!.translate('transfer_owner_report')+' (${deviceModel})',
-                                style: TextStyle(fontSize: 25, color: Colors.black)),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 5),
-                      Divider(
-                        height: 10,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 5),
-                      Expanded(
-                        child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: dateTransferOwnerList.length,
-                            itemBuilder: (BuildContext context,int index){
-                              return Card(
-                                elevation: 5,
-                                child: ListTile(
-                                  title: Text(AppLocalizations.of(context)!.translate('from')+': ${dateTransferOwnerList[index].fromUsername} to ${dateTransferOwnerList[index].toUsername}'),
-                                  subtitle: Text(AppLocalizations.of(context)!.translate('transfer_date_time')+': ${dateTransferOwnerList[index].created_at}'),
-                                  leading:  CircleAvatar(backgroundColor: Colors.grey.shade200,child: Icon(Icons.compare_arrows, color: Colors.grey,)),
-                                  trailing: Text('${dateTransferOwnerList[index].cash_balance}'),
-                                ),
-                              );
-                            }
-                        ),
-                      )
-                    ],
-                  ),
-                ) : CustomProgressBar(),
-              );
+                    );
+                  }
+                });
+              } else {
+                return CustomProgressBar();
+              }
             }
-          });
+          );
         }
       );
     });
@@ -155,11 +161,7 @@ class _TransferRecordState extends State<TransferRecord> {
     this.currentEdDate = reportModel.endDateTime;
     await getDeviceName();
     await getAllTransferRecord();
-    if(mounted){
-      setState(() {
-        isLoaded = true;
-      });
-    }
+    controller.sink.add("refresh");
   }
 
   getAllTransferRecord() async {

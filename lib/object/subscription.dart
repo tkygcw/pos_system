@@ -12,7 +12,8 @@ class SubscriptionFields {
     branch_amount,
     start_date,
     end_date,
-    created_at
+    created_at,
+    soft_delete
   ];
 
   static String subscription_sqlite_id = 'subscription_sqlite_id';
@@ -26,6 +27,7 @@ class SubscriptionFields {
   static String start_date = 'start_date';
   static String end_date = 'end_date';
   static String created_at = 'created_at';
+  static String soft_delete = 'soft_delete';
 }
 
 class Subscription {
@@ -40,6 +42,7 @@ class Subscription {
   String? start_date;
   String? end_date;
   String? created_at;
+  String? soft_delete;
 
   Subscription(
       {this.subscription_sqlite_id,
@@ -52,7 +55,8 @@ class Subscription {
         this.branch_amount,
         this.start_date,
         this.end_date,
-        this.created_at});
+        this.created_at,
+        this.soft_delete});
 
   Subscription copy({
     int? subscription_sqlite_id,
@@ -65,7 +69,8 @@ class Subscription {
     int? branch_amount,
     String? start_date,
     String? end_date,
-    String? created_at
+    String? created_at,
+    String? soft_delete
   }) =>
       Subscription(
           subscription_sqlite_id: subscription_sqlite_id ?? this.subscription_sqlite_id,
@@ -78,7 +83,8 @@ class Subscription {
           branch_amount: branch_amount ?? this.branch_amount,
           start_date: start_date ?? this.start_date,
           end_date: end_date ?? this.end_date,
-          created_at: created_at ?? this.created_at);
+          created_at: created_at ?? this.created_at,
+          soft_delete: soft_delete ?? this.soft_delete);
 
   static Subscription fromJson(Map<String, Object?> json) => Subscription(
     subscription_sqlite_id: json[SubscriptionFields.subscription_sqlite_id] as int?,
@@ -91,7 +97,8 @@ class Subscription {
     branch_amount: json[SubscriptionFields.branch_amount] as int?,
     start_date: json[SubscriptionFields.start_date] as String?,
     end_date: json[SubscriptionFields.end_date] as String?,
-    created_at: json[SubscriptionFields.created_at] as String?
+    created_at: json[SubscriptionFields.created_at] as String?,
+    soft_delete: json[SubscriptionFields.soft_delete] as String?
   );
 
   Map<String, Object?> toJson() => {
@@ -106,5 +113,6 @@ class Subscription {
     SubscriptionFields.start_date: start_date,
     SubscriptionFields.end_date: end_date,
     SubscriptionFields.created_at: created_at,
+    SubscriptionFields.soft_delete: soft_delete,
   };
 }

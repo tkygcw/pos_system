@@ -43,7 +43,7 @@ class _CategorySettingState extends State<CategorySetting> {
                             padding: const EdgeInsets.fromLTRB(18, 0, 0, 0),
                             child: ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
-                                    primary: color.backgroundColor),
+                                    backgroundColor: color.backgroundColor),
                                 onPressed: () async {
                                   openEditCategoryDialog(Categories());
                                 },
