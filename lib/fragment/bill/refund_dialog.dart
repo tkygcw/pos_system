@@ -57,11 +57,14 @@ class _RefundDialogState extends State<RefundDialog> {
         isButtonDisabled = true;
       });
       await readAdminData(adminPosPinController.text);
-      // if(this.isLogOut == false){
-      //   Navigator.of(context).pop();
-      //   Navigator.of(context).pop();
-      //   Navigator.of(context).pop();
-      // }
+      print("button disable");
+      setState(() {
+        isButtonDisabled = false;
+      });
+    } else {
+      setState(() {
+        isButtonDisabled = false;
+      });
     }
   }
 
@@ -108,9 +111,6 @@ class _RefundDialogState extends State<RefundDialog> {
                           child: TextField(
                             autofocus: true,
                             onSubmitted: (input){
-                              setState(() {
-                                isButtonDisabled = true;
-                              });
                               _submit(context);
                             },
                             obscureText: true,
@@ -153,9 +153,6 @@ class _RefundDialogState extends State<RefundDialog> {
                   TextButton(
                     child: Text('${AppLocalizations.of(context)?.translate('yes')}'),
                     onPressed: isButtonDisabled ? null : () async {
-                      setState(() {
-                        isButtonDisabled = true;
-                      });
                       _submit(context);
                     },
                   ),
@@ -224,9 +221,6 @@ class _RefundDialogState extends State<RefundDialog> {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('user_not_found'));
       }
-      setState(() {
-        isButtonDisabled = false;
-      });
     } catch (e) {
       print('delete error ${e}');
     }

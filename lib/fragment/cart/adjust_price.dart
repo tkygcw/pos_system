@@ -83,11 +83,10 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
   void _submit(BuildContext context, CartModel cart) async {
     setState(() => _submitted = true);
     if (errorPassword == null) {
+      setState(() {
+        isButtonDisabled = true;
+      });
       await readAdminData(adminPosPinController.text, cart);
-      // if (this.isLogOut == false) {
-      //   Navigator.of(context).pop();
-      //   Navigator.of(context).pop();
-      // }
       setState(() {
         isButtonDisabled = false;
       });
@@ -124,7 +123,6 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                                 autofocus: true,
                                 onSubmitted: (input) {
                                   setState(() {
-                                    isButtonDisabled = true;
                                     willPop = false;
                                   });
                                   _submit(context, cart);
@@ -192,7 +190,6 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                               ? null
                               : () async {
                             setState(() {
-                              isButtonDisabled = true;
                               willPop = false;
                             });
                             _submit(context, cart);
