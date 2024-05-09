@@ -218,7 +218,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                         )),
                                     Visibility(
                                       visible: dialogStock != '' ? true : false,
-                                      child: Text("In stock: ${dialogStock}${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
+                                      child: Text("${AppLocalizations.of(context)!.translate('in_stock')}: ${dialogStock}${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
                                           style: TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
@@ -272,7 +272,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                     keyboardType: TextInputType.text,
                                                     textAlign: TextAlign.center,
                                                     decoration: InputDecoration(
-                                                      errorText: nameController.text.isEmpty ? "${AppLocalizations.of(context)?.translate('product_name_empty')}" : null,
+                                                      errorText: getProductNameErrorText(nameController.text),
                                                       focusedBorder: OutlineInputBorder(
                                                         borderSide: BorderSide(color: color.backgroundColor),
                                                       ),
@@ -285,7 +285,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                       }
                                                     }),
                                                     onSubmitted: (value) {
-                                                      if(widget.productDetail!.name!.isNotEmpty) {
+                                                      if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
                                                         setState(() {
                                                           widget.productDetail!.name = value;
                                                         });
@@ -324,7 +324,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                     inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                     textAlign: TextAlign.center,
                                                     decoration: InputDecoration(
-                                                      errorText: priceController.text.isEmpty ? "${AppLocalizations.of(context)!.translate('product_price_empty')}" : null,
+                                                      errorText: getPriceErrorText(priceController.text),
                                                       prefixText: 'RM ',
                                                       focusedBorder: OutlineInputBorder(
                                                         borderSide: BorderSide(color: color.backgroundColor),
@@ -531,8 +531,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                   onPressed: isButtonDisabled
                                       ? null
                                       : () async {
-                                    if(widget.productDetail!.name!.isNotEmpty) {
-                                      if(priceController.text.isNotEmpty) {
+                                    if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
+                                      if(priceController.text.isNotEmpty && priceController.text.trim().isNotEmpty) {
                                         await checkProductStock(widget.productDetail!, cart);
                                         //await getBranchLinkProductItem(widget.productDetail!);
                                         if (hasStock) {
@@ -573,7 +573,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_price_empty'));
                                       }
                                     } else {
-                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('product_name_empty'));
+                                      Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('custom_field_required'));
                                     }
                                   },
                                 ),
@@ -623,7 +623,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                       )),
                                   Visibility(
                                     visible: dialogStock != '' ? true : false,
-                                    child: Text("In stock: ${dialogStock}${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
+                                    child: Text("${AppLocalizations.of(context)!.translate('in_stock')}: ${dialogStock}${widget.productDetail!.unit != 'each' && widget.productDetail!.unit != 'each_c' ? widget.productDetail!.unit : ''}",
                                         style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
@@ -672,7 +672,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                   keyboardType: TextInputType.text,
                                                   textAlign: TextAlign.center,
                                                   decoration: InputDecoration(
-                                                    errorText: nameController.text.isEmpty ? "${AppLocalizations.of(context)?.translate('product_name_empty')}" : null,
+                                                    errorText: getProductNameErrorText(nameController.text),
                                                     focusedBorder: OutlineInputBorder(
                                                       borderSide: BorderSide(color: color.backgroundColor),
                                                     ),
@@ -685,7 +685,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                     }
                                                   }),
                                                   onSubmitted: (value) {
-                                                    if(widget.productDetail!.name!.isNotEmpty) {
+                                                    if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
                                                       setState(() {
                                                         widget.productDetail!.name = value;
                                                       });
@@ -724,7 +724,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                                   inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                                                   textAlign: TextAlign.center,
                                                   decoration: InputDecoration(
-                                                    errorText: priceController.text.isEmpty ? "${AppLocalizations.of(context)!.translate('product_price_empty')}" : null,
+                                                    errorText: getPriceErrorText(priceController.text),
                                                     prefixText: 'RM ',
                                                     focusedBorder: OutlineInputBorder(
                                                       borderSide: BorderSide(color: color.backgroundColor),
@@ -922,8 +922,8 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
                                 onPressed: isButtonDisabled
                                     ? null
                                     : () async {
-                                  if(widget.productDetail!.name!.isNotEmpty) {
-                                    if(priceController.text.isNotEmpty) {
+                                  if(widget.productDetail!.name!.isNotEmpty && widget.productDetail!.name!.trim().isNotEmpty) {
+                                    if(priceController.text.isNotEmpty && priceController.text.trim().isNotEmpty) {
                                       await checkProductStock(widget.productDetail!, cart);
                                       //await getBranchLinkProductItem(widget.productDetail!);
                                       if (hasStock == true) {
@@ -977,6 +977,22 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
 
       });
     });
+  }
+
+  String? getProductNameErrorText(String textInController){
+    if(textInController.isEmpty || textInController.trim().isEmpty){
+      return "${AppLocalizations.of(context)?.translate('product_name_empty')}";
+    } else {
+      return null;
+    }
+  }
+
+  String? getPriceErrorText(String textInController){
+    if(textInController.isEmpty || textInController.trim().isEmpty){
+      return "${AppLocalizations.of(context)?.translate('product_price_empty')}";
+    } else {
+      return null;
+    }
   }
 
   _onSubmitted(String value) async {
@@ -1134,7 +1150,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
 
-      List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), productId.toString());
+      List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(productId.toString());
       List<Product> productData = await PosDatabase.instance.checkSpecificProduct(productId.toString());
       if (data[0].has_variant == '0') {
         if(productData[0].unit == 'each_c') {
@@ -1205,7 +1221,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     if (product.has_variant == 0) {
-      List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
+      List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
       switch(data1[0].stock_type){
         case '1': {
           dialogStock = data1[0].daily_limit.toString();
@@ -1252,7 +1268,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     if (product.has_variant == 0) {
-      List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
+      List<BranchLinkProduct> data1 = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
       print("Stock type: ${data1[0].stock_type}");
       switch(data1[0].stock_type){
         case '1' :{
@@ -1330,7 +1346,7 @@ class ProductOrderDialogState extends State<ProductOrderDialog> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final int? branch_id = prefs.getInt('branch_id');
-      List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(branch_id.toString(), product.product_sqlite_id.toString());
+      List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
       if(data.length == 1){
         branchLinkProduct_id = data[0].branch_link_product_sqlite_id.toString();
       } else {

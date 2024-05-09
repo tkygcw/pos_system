@@ -7,6 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/fragment/table/table_change_dialog.dart';
 import 'package:pos_system/fragment/table/table_dialog.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/order_cache.dart';
@@ -285,8 +286,8 @@ class _TableMenuState extends State<TableMenu> {
                         ),
                       ),
                       SizedBox(height: 20),
-                      !showAdvanced
-                          ? Expanded(
+                      !showAdvanced ?
+                      Expanded(
                         child: GridView.count(
                           shrinkWrap: true,
                           crossAxisCount: MediaQuery.of(context).size.height > 500 ? 5 : 3,
@@ -315,7 +316,8 @@ class _TableMenuState extends State<TableMenu> {
                                     onTapDisable = true;
                                   });
                                   if(tapCount == 1){
-                                    onSelect(index, cart);
+                                    asyncQ.addJob((_) async => await onSelect(index, cart));
+                                    // onSelect(index, cart);
                                   }
                                 },
                                 child: Container(
@@ -389,7 +391,7 @@ class _TableMenuState extends State<TableMenu> {
                                               visible: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? true : false,
                                               child: Container(
                                                   alignment: Alignment.bottomCenter,
-                                                  child: Text("RM ${tableList[index].total_Amount.toStringAsFixed(2)}", style: TextStyle(fontSize: 18))),
+                                                  child: Text("RM ${tableList[index].total_amount ?? '0.00'}", style: TextStyle(fontSize: 18))),
                                             ),
                                           ],
                                         ),
@@ -509,7 +511,7 @@ class _TableMenuState extends State<TableMenu> {
                                       onTapDisable = true;
                                     });
                                     if(tapCount == 1){
-                                      onSelect(index, cart);
+                                      asyncQ.addJob((_) async => await onSelect(index, cart));
                                     }
                                   },
                                   child: Container(
@@ -845,9 +847,6 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   readAllTableGroup() async {
-    priceSST = 0.0;
-    priceServeTax = 0.0;
-
     bool hasTableInUse = tableList.any((item) => item.status == 1);
     if(hasTableInUse){
       for (int i = 0; i < tableList.length; i++) {
@@ -856,13 +855,13 @@ class _TableMenuState extends State<TableMenu> {
           if (tableUseDetailData.isNotEmpty) {
             List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
             if(data.isNotEmpty){
+              double tableAmount = 0.0;
               tableList[i].group = data[0].table_use_sqlite_id;
               tableList[i].card_color = data[0].card_color;
-              //tableList[i].total_Amount = double.parse(data[0].total_amount!);
-
               for(int j = 0; j < data.length; j++){
-                tableList[i].total_Amount += double.parse(data[j].total_amount!);
+                tableAmount += double.parse(data[j].total_amount!);
               }
+              tableList[i].total_amount = tableAmount.toStringAsFixed(2);
             }
           }
         }
@@ -1083,6 +1082,7 @@ class _TableMenuState extends State<TableMenu> {
     var length = tableUseDetailList.length;
     for (int k = 0; k < length; k++) {
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[k].table_sqlite_id!);
+      tableData[0].isInPaymentCart = true;
       cart.addTable(tableData[0]);
     }
     //cart.addAllItem(cartItemList: itemList);
@@ -1140,7 +1140,7 @@ class _TableMenuState extends State<TableMenu> {
                       onTapDisable = true;
                     });
                     if(tapCount == 1){
-                      onSelect(i, cart);
+                     asyncQ.addJob((_) async => await onSelect(i, cart));
                     }
                   }
                   else if (action == 'on_double_tap') {

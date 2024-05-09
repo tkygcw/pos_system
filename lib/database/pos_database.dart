@@ -1254,7 +1254,7 @@ class PosDatabase {
 */
   Future<TaxLinkDining> insertTaxLinkDining(TaxLinkDining data) async {
     final db = await instance.database;
-    final id = await db.insert(tableTaxLinkDining!, data.toJson());
+    final id = await db.insert(tableTaxLinkDining!, data.toInsertJson());
     return data.copy(tax_link_dining_id: id);
   }
 
@@ -1883,7 +1883,7 @@ class PosDatabase {
 */
   Future<OrderDetail> insertSqliteOrderDetail(OrderDetail data) async {
     final db = await instance.database;
-    final id = await db.insert(tableOrderDetail!, data.toJson());
+    final id = await db.insert(tableOrderDetail!, data.toInsertJson());
     return data.copy(order_detail_sqlite_id: id);
   }
 
@@ -2724,9 +2724,9 @@ class PosDatabase {
 /*
   read branch link specific product
 */
-  Future<List<BranchLinkProduct>> readBranchLinkSpecificProduct(String branch_id, String product_id) async {
+  Future<List<BranchLinkProduct>> readBranchLinkSpecificProduct(String product_id) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND branch_id = ? AND product_sqlite_id = ?', ['', branch_id, product_id]);
+    final result = await db.rawQuery('SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND product_sqlite_id = ?', ['', product_id]);
 
     return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
   }
@@ -2792,6 +2792,21 @@ class PosDatabase {
   }
 
 /*
+  read specific branch link product item with no left join
+*/
+  Future<BranchLinkProduct?> readSpecificBranchLinkProduct2(String branch_link_product_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND branch_link_product_sqlite_id = ?',
+        ['', branch_link_product_sqlite_id]);
+    if(result.isNotEmpty){
+      return BranchLinkProduct.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
   read specific branch link product item
 */
   Future<BranchLinkProduct?> readSpecificAvailableBranchLinkProduct(String branch_link_product_sqlite_id) async {
@@ -2852,6 +2867,20 @@ class PosDatabase {
         ['', '', branch_id]);
 
     return result.map((json) => BranchLinkDining.fromJson(json)).toList();
+  }
+
+/*
+  read all tax link dining
+*/
+  Future<List<TaxLinkDining>> readAllTaxLinkDining() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.tax_rate, b.name AS tax_name, c.name AS dining_name '
+            'FROM $tableTaxLinkDining AS a JOIN $tableTax AS b ON a.tax_id = b.tax_id '
+            'JOIN $tableDiningOption AS c ON a.dining_id = c.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ?',
+        ['', '', '']);
+
+    return result.map((json) => TaxLinkDining.fromJson(json)).toList();
   }
 
 /*

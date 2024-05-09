@@ -73,7 +73,7 @@ class _PosPinPageState extends State<PosPinPage> {
   preload() async {
     syncRecord.syncFromCloud();
     if(notificationModel.syncCountStarted == false){
-      startTimers();
+      //startTimers();
     }
     await readAllPrinters();
   }
@@ -258,7 +258,7 @@ class _PosPinPageState extends State<PosPinPage> {
       if(qrOrder.count == 0){
         print('qr order sync');
         qrOrder.count = 1;
-        await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+        asyncQ.addJob((_) async =>  await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!));
         qrOrder.count = 0;
       }
 

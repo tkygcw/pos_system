@@ -232,7 +232,7 @@ class QrOrderAutoAccept {
         if(localSetting!.print_checklist == 1) {
           await printCheckList(qrOrderCacheList.order_cache_sqlite_id!);
         }
-        syncToCloudFunction();
+        // syncToCloudFunction();
         await callPrinter(qrOrderCacheList.order_cache_sqlite_id!);
         notificationModel.setContentLoaded();
         notificationModel.setCartContentLoaded();
@@ -309,7 +309,7 @@ class QrOrderAutoAccept {
     tableInUsed = false;
     if (tableLocalId != '') {
       print('widget table local id: ${tableLocalId}');
-      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableLocalId!);
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableLocalId);
       if (tableData[0].status == 1) {
         TableUse tableUse = await PosDatabase.instance.readSpecificTableUseByKey(tableData[0].table_use_key!);
         List<OrderCache> orderCache = await PosDatabase.instance.readTableOrderCache(tableUse.table_use_key!);

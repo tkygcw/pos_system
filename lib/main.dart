@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:async_queue/async_queue.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,6 +17,7 @@ import 'package:pos_system/object/sync_record.dart';
 import 'package:pos_system/object/sync_to_cloud.dart';
 import 'package:pos_system/page/login.dart';
 import 'package:pos_system/page/second_display.dart';
+import 'package:pos_system/second_device/server.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/translation/appLanguage.dart';
 import 'package:presentation_displays/display.dart';
@@ -35,7 +37,9 @@ final SyncToCloud mainSyncToCloud = SyncToCloud();
 final SyncRecord syncRecord = SyncRecord();
 final QrOrder qrOrder = QrOrder();
 final LCDDisplay lcdDisplay = LCDDisplay();
+final asyncQ = AsyncQueue.autoStart();
 DisplayManager displayManager = DisplayManager();
+AppLanguage appLanguage = AppLanguage();
 final snackBarKey = GlobalKey<ScaffoldMessengerState>();
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {}
@@ -60,7 +64,6 @@ Future<void> main() async {
   initLCDScreen();
 
   WidgetsFlutterBinding.ensureInitialized();
-  AppLanguage appLanguage = AppLanguage();
   //create default app color
   await appLanguage.fetchLocale();
 
@@ -152,10 +155,15 @@ class MyApp extends StatelessWidget {
           },
         ),
         ChangeNotifierProvider(
-          create: (_) => FailPrintModel(),
+          create: (_) => FailPrintModel.instance,
         ),
         ChangeNotifierProvider(
           create: (_) => notificationModel,
+        ),
+        ChangeNotifierProvider(
+          create: (_) {
+            return Server.instance;
+          },
         ),
       ],
       child: Consumer<AppLanguage>(builder: (context, model, child) {

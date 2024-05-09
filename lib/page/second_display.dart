@@ -165,7 +165,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                           ),
                         ),
                         SizedBox(
-                          height: 340,
+                          height: 300,
                           child: ListView.builder(
                               itemCount: obj!.itemList!.length,
                               shrinkWrap: true,
@@ -177,7 +177,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                                     visualDensity: VisualDensity(horizontal: 0, vertical: -4),
                                     title: Text('${obj!.itemList![index].product_name} ${getVariant(obj!.itemList![index])}'),
                                     leading: Text('${obj!.itemList![index].quantity}'),
-                                    trailing: Text('${obj!.itemList![index].price!}/${obj!.itemList![index].per_quantity_unit!}${obj!.itemList![index].unit!}'),
+                                    trailing: Text('${obj!.itemList![index].price!}/${obj!.itemList![index].per_quantity_unit!}${getProductUnit(obj!.itemList![index])}'),
                                   ),
                                 );
                               }
@@ -229,7 +229,7 @@ class _SecondDisplayState extends State<SecondDisplay> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
-                                    Text('Total Amount: ${obj?.finalAmount}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+                                    Text('Total Amount: ${obj?.finalAmount}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
                                   ],
                                 )
                               ),
@@ -247,6 +247,16 @@ class _SecondDisplayState extends State<SecondDisplay> {
           CustomProgressBar()
       ),
     );
+  }
+
+  String getProductUnit(cartProductItem item){
+    String unit = '';
+    if(item.unit == 'each' || item.unit == 'each_c'){
+      unit = 'each';
+    } else {
+      unit = item.unit!;
+    }
+    return unit;
   }
 
   initPaymentImage({required SecondDisplayData secondDisplayData}) async {

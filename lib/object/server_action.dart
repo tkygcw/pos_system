@@ -2,14 +2,22 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:pos_system/fragment/cart/cart.dart';
-import 'package:pos_system/fragment/cart/cart_dialog.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
+import 'package:pos_system/object/branch_link_product.dart';
+import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/product.dart';
+import 'package:pos_system/object/promotion.dart';
+import 'package:pos_system/object/table.dart';
+import 'package:pos_system/second_device/cart_dialog_function.dart';
+import 'package:pos_system/second_device/place_order.dart';
+import 'package:pos_system/second_device/reprint_kitchen_list_function.dart';
+import 'package:pos_system/second_device/table_function.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/pos_database.dart';
-import 'cart_product.dart';
+import '../main.dart';
+import 'branch_link_promotion.dart';
 
 class ServerAction {
   String? action;
@@ -17,30 +25,15 @@ class ServerAction {
 
   ServerAction({this.action});
 
-   encodeAllImage() async {
-    List<String> encodedImage = [];
+  Future<String> encodeImage(String imageName) async {
     final prefs = await SharedPreferences.getInstance();
     final String imagePath = prefs.getString('local_path')!;
-    final directory = Directory(imagePath);
-    final List<File> imageFiles = directory
-        .listSync()
-        .where((entity) => entity is File && entity.path.endsWith('.jpeg'))
-        .map<File>((entity) => entity as File)
-        .toList();
-
-    // for (var file in imageFiles) {
-    //   final imageBytes = file.readAsBytesSync();
-    //   final base64Image = base64Encode(imageBytes);
-    //   encodedImage.add(base64Image);
-    // }
-    final imageBytes = imageFiles[0].readAsBytesSync();
+    final imageBytes = await File(imagePath + '/' + imageName).readAsBytes();
     final base64Image = base64Encode(imageBytes);
-    encodedImage.add(base64Image);
-    print('encoded image length: ${encodedImage.length}');
-    return encodedImage;
+    return base64Image;
   }
 
-  checkAction({required String action, param}) async {
+  Future<Map<String, dynamic>?> checkAction({required String action, param, String? address}) async {
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
     Map<String, dynamic>? result;
@@ -48,6 +41,29 @@ class ServerAction {
 
     try{
       switch(action){
+        case '-1': {
+          String status = '';
+          var branchId = jsonDecode(param);
+          print("branchId: ${branchId}");
+          print("server branch id: ${branch_id.toString()}");
+          if(branchId.toString() == branch_id.toString()){
+            status = '1';
+          } else {
+            status = '2';
+          }
+          print("status: $status");
+          result = {'status': status};
+        }
+        break;
+        case '0': {
+          if(param != 'Null'){
+            objectData = {
+              'image_name': await encodeImage(param)
+            };
+            result = {'status': '1','data': objectData};
+          }
+        }
+        break;
         case '1': {
           var data = await PosDatabase.instance.readAllCategories();
           var data2 = await PosDatabase.instance.readAllClientProduct();
@@ -55,33 +71,38 @@ class ServerAction {
           var data4 = await PosDatabase.instance.readAllBranchLinkProduct();
           var data5 = await PosDatabase.instance.readAllBranchLinkModifier();
           var data6 = await PosDatabase.instance.readAllProductVariant();
-          //List<String> encodedList = await encodeAllImage();
-          objectData = {
-            'tb_categories': data,
-            'tb_product': data2,
-            'tb_user': data3,
-            'tb_branch_link_product': data4,
-            'tb_branch_link_modifier': data5,
-            'tb_product_variant': data6,
-            //'image_list': encodedList,
+          var data7 = await PosDatabase.instance.readAppSetting();
+          var data8 = await PosDatabase.instance.readBranchLinkDiningOption(branch_id!.toString());
+          var data9 = await PosDatabase.instance.readAllTaxLinkDining();
+          var data10 = await getBranchPromotionData();
+          var data11 = appLanguage.appLocal.languageCode;
+           objectData = {
+             'tb_categories': data,
+             'tb_product': data2,
+             'tb_user': data3,
+             'tb_branch_link_product': data4,
+             'tb_branch_link_modifier': data5,
+             'tb_product_variant': data6,
+             'tb_app_setting': data7,
+             'tb_branch_link_dining_option': data8,
+             'taxLinkDiningList': data9,
+             'branchPromotionList': data10,
+             'app_language_code': data11
           };
-          result = {'status': '1','data': objectData};
+          result = {'status': '1', 'action': '1', 'data': objectData};
         }
         break;
         case '2': {
           var parameter = jsonDecode(param);
           Product product = Product.fromJson(parameter);
           ProductOrderDialogState state = ProductOrderDialogState();
-          await state.readProductVariant(product.product_sqlite_id!); //await PosDatabase.instance.readSpecificTableToJson(param);
+          await state.readProductVariant(product.product_sqlite_id!);
           await state.readProductModifier(product.product_sqlite_id!);
-          await state.getProductPrice(product.product_sqlite_id!);
-          await PosDatabase.instance.readSpecificCategoryById(product.category_sqlite_id!);
+          List<BranchLinkProduct> data = await PosDatabase.instance.readBranchLinkSpecificProduct(product.product_sqlite_id.toString());
           objectData = {
             'variant': state.variantGroup,
             'modifier': state.modifierGroup,
-            'final_price': state.finalPrice,
-            'base_price': state.basePrice,
-            'dialog_price': state.dialogPrice,
+            'branch_link_product': data
           };
           result = {'status': '1','data':objectData};
         }
@@ -106,53 +127,157 @@ class ServerAction {
         }
         break;
         case '6': {
+          List<Promotion> promotionList = [];
+          List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion();
+          for (int i = 0; i < data.length; i++) {
+            promotionList = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
+          }
           CartPageState cartPageState = CartPageState();
           await cartPageState.readAllBranchLinkDiningOption(serverCall: 1);
           await cartPageState.getPromotionData();
           objectData = {
-            'dining_list': cartPageState.diningList,
-            'branch_link_dining_id_list': cartPageState.branchLinkDiningIdList,
-            'promotion_list': cartPageState.promotionList
+            'promotion_list': cartPageState.promotionList,
           };
           result = {'status': '1', 'data': objectData};
 
         }
         break;
         case '7': {
-          CartDialogState state = CartDialogState();
-          await state.readAllTable(isServerCall: true);
-          // await state.readAllTableAmount();
-          objectData = {
-            'table_list': state.tableList,
-          };
-          result = {'status': '1', 'data': objectData};
+          try{
+            CartDialogFunction function = CartDialogFunction();
+            await function.readAllTable();
+            objectData = {
+              'table_list': function.tableList,
+            };
+            result = {'status': '1', 'data': objectData};
+          }catch(e){
+            result = {'status': '4'};
+            print("cart dialog read all table error: $e");
+          }
         }
         break;
         case '8': {
-          // List<String> encodedList = await encodeAllImage();
-          // objectData = {
-          //   'image_list': encodedList,
-          // };
-          // result = {'status': '1','data':objectData};
+          try{
+            CartModel cart = CartModel();
+            var decodeParam = jsonDecode(param);
+            cart = CartModel.fromJson(decodeParam);
+            if(cart.selectedOption == 'Dine in'){
+              PlaceNewDineInOrder order = PlaceNewDineInOrder();
+              Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
+              if(cartItem != null){
+                return result = cartItem;
+              }
+              result = await order.callCreateNewOrder(cart, address!);
+            } else {
+              PlaceNotDineInOrder order = PlaceNotDineInOrder();
+              Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
+              if(cartItem != null){
+                return result = cartItem;
+              }
+              result = await order.callCreateNewNotDineOrder(cart, address!);
+            }
+          } catch(e){
+            result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
+            print('place order request error: $e');
+          }
         }
         break;
         case '9': {
           try{
             CartModel cart = CartModel();
-            CartPageState cartPageState = CartPageState();
+            PlaceAddOrder order = PlaceAddOrder();
             var decodeParam = jsonDecode(param);
-            var cartJson = decodeParam as List;
-            List<cartProductItem> cartList = cartJson.map((tagJson) => cartProductItem.fromJson(tagJson)).toList();
-            cart.addAllItem(cartItemList: cartList);
-            print("cart list length: ${cart.cartNotifierItem[0].product_name}");
-            cart.selectedOption = 'Take Away';
-            await cartPageState.readAllPrinters();
-            await cartPageState.getSubTotalMultiDevice(cart);
-            await cartPageState.callCreateNewNotDineOrder2(cart);
-            result = {'status': '1'};
+            cart = CartModel.fromJson(decodeParam);
+            Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
+            if(cartItem != null){
+              return result = cartItem;
+            }
+            result = await order.callAddOrderCache(cart, address!);
           } catch(e){
+            result = {'status': '4', 'exception': "add-order error: ${e.toString()}"};
+            print('add order request error: $e');
+          }
+        }
+        break;
+        case '10': {
+          var decodeParam = jsonDecode(param);
+          PosTable posTable = PosTable.fromJson(decodeParam);
+          CartDialogFunction function = CartDialogFunction();
+          await function.readSpecificTableDetail(posTable);
+          objectData = {
+            'order_detail': function.orderDetailList,
+            'order_cache': function.orderCacheList,
+            //'pos_table': data3,
+          };
+          result = {'status': '1', 'data':objectData};
+        }
+        break;
+        case '11': {
+          try{
+            CartDialogFunction function = CartDialogFunction();
+            var jsonValue = param;
+            await function.callRemoveTableQuery(int.parse(jsonValue));
+            result = {'status': '1', 'data': jsonValue};
+          }catch(e){
+            result = {'status': '4', 'exception': e.toString()};
+            print("cart dialog remove merged table request error: $e");
+          }
+        }
+        break;
+        case '12': {
+          try{
+            CartDialogFunction function = CartDialogFunction();
+            var jsonValue = jsonDecode(param);
+            print("json value: ${jsonValue['dragTableId']}");
+            int status = await function.callMergeTableQuery(dragTableId: jsonValue['dragTableId'], targetTableId: jsonValue['targetTableId']);
+            if(status == 1){
+              result = {'status': '1'};
+            } else {
+              result = {'status': '2', 'error': "Table status changed"};
+            }
+          }catch(e){
+            result = {'status': '4', 'exception': e.toString()};
+            print("cart dialog remove merged table request error: $e");
+          }
+        }
+        break;
+        case '13': {
+          try{
+            TableFunction function = TableFunction();
+            await function.readAllTable();
+            objectData = {
+              'table_list': function.tableList,
+            };
+            result = {'status': '1', 'data': objectData};
+          }catch(e){
             result = {'status': '4'};
-            print('place order request error: $e');
+            print("cart dialog remove merged table request error: $e");
+          }
+        }
+        break;
+        case '14': {
+          try{
+            ReprintKitchenListFunction reprintKitchenList = ReprintKitchenListFunction();
+            var decodeParam = jsonDecode(param);
+            List<OrderDetail> reprintList =  List<OrderDetail>.from(decodeParam.map((json) => OrderDetail.fromJson(json)));
+            reprintKitchenList.printFailKitchenList(reprintList);
+            result = {'status': '1'};
+          }catch(e){
+            result = {'status': '4'};
+            print("reprint fail kitchen print list request error: $e");
+          }
+        }
+        break;
+        case '15': {
+          try{
+            var data1 = await PosDatabase.instance.readAllBranchLinkProduct();
+            objectData = {
+              'tb_branch_link_product': data1,
+            };
+            result = {'status': '1', 'action': '15', 'data': objectData};
+          }catch(e){
+            result = {'status': '4'};
+            print("resend branch link product request error: $e");
           }
         }
         break;
@@ -162,6 +287,23 @@ class ServerAction {
       print('server error: $e');
       result = {'status': '2'};
       return result;
+    }
+  }
+
+  Future<List<Promotion>> getBranchPromotionData() async {
+    List<Promotion> branchPromoList = [];
+    try {
+      List<BranchLinkPromotion> data = await PosDatabase.instance.readBranchLinkPromotion();
+      for (int i = 0; i < data.length; i++) {
+        List<Promotion> temp = await PosDatabase.instance.checkPromotion(data[i].promotion_id!);
+        if(temp.isNotEmpty){
+          branchPromoList.add(temp.first);
+        }
+      }
+      return branchPromoList;
+    } catch (error) {
+      print('promotion list error $error');
+      return branchPromoList = [];
     }
   }
 }

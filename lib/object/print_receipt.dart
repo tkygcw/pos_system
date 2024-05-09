@@ -962,7 +962,7 @@ class PrintReceipt{
     }
   }
 
-  reprintKitchenList(List<Printer> printerList, context, {required List<OrderDetail> reprintList}) async {
+  reprintKitchenList(List<Printer> printerList, {required List<OrderDetail> reprintList}) async {
     List<OrderDetail>? failedPrintOrderDetail;
     List<OrderDetail> reprintListGroup = [];
     bool printCombinedKitchenList = false;

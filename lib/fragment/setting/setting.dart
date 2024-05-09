@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pos_system/fragment/setting/device_setting.dart';
 import 'package:pos_system/fragment/setting/features_setting.dart';
 import 'package:pos_system/fragment/setting/hardware_setting.dart';
 import 'package:pos_system/fragment/setting/logout_dialog.dart';
@@ -35,6 +35,7 @@ class _SettingMenuState extends State<SettingMenu> {
   String userEmail = '';
   int count = 0;
   bool isLoaded = false;
+  String serverIp = '';
 
   List<Widget> views = [
     // General Setting
@@ -58,9 +59,9 @@ class _SettingMenuState extends State<SettingMenu> {
     Container(
       child: DataProcessingSetting(),
     ),
-    // Container(
-    //   child: MultiDevicePage(),
-    // ),
+    Container(
+      child: DeviceSetting(),
+    ),
     // Container(
     //   child: TestCategorySync(),
     // ),
@@ -189,6 +190,10 @@ class _SettingMenuState extends State<SettingMenu> {
                         icon: Icons.sync,
                         label: AppLocalizations.of(context)!.translate('data_processing'),
                       ),
+                      SideNavigationBarItem(
+                        icon: Icons.devices_other,
+                        label: AppLocalizations.of(context)!.translate("device_setting"),
+                      ),
                     ],
                     onTap: (index) {
                       setState(() {
@@ -204,7 +209,7 @@ class _SettingMenuState extends State<SettingMenu> {
                 ],
               ),
             ) : CustomProgressBar(),
-          ); 
+          );
         } else {
           ///mobile layout
           return Padding(
@@ -289,6 +294,10 @@ class _SettingMenuState extends State<SettingMenu> {
                         SideNavigationBarItem(
                           icon: Icons.sync,
                           label: AppLocalizations.of(context)!.translate('data_processing'),
+                        ),
+                        SideNavigationBarItem(
+                          icon: Icons.devices_other,
+                          label: AppLocalizations.of(context)!.translate("device_setting"),
                         ),
                       ],
                       onTap: (index) {
