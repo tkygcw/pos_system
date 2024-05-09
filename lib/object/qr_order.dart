@@ -4,6 +4,7 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/qr_order_auto_accept.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
@@ -158,7 +159,7 @@ class QrOrder {
       return 1;
     }
     if(localSetting!.qr_order_auto_accept == 1){
-      QrOrderAutoAccept(context).load();
+      asyncQ.addJob((_) async => QrOrderAutoAccept(context).load());
     }
   }
 
