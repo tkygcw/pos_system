@@ -114,14 +114,7 @@ class _ReportPageState extends State<ReportPage> {
   void _submit(BuildContext context) async {
     setState(() => _submitted = true);
     if (errorPassword == null) {
-      setState(() {
-        isButtonDisabled = true;
-      });
       await readAdminData(adminPosPinController.text);
-      setState(() {
-        isButtonDisabled = false;
-      });
-      // Navigator.of(context).pop();
       return;
     } else {
       setState(() {
@@ -366,10 +359,15 @@ class _ReportPageState extends State<ReportPage> {
                                   child: TextField(
                                     autofocus: true,
                                     onSubmitted: (input) {
-                                      // setState(() {
-                                      //   isButtonDisabled = true;
-                                      // });
+                                      setState(() {
+                                        isButtonDisabled = true;
+                                      });
                                       _submit(context);
+                                      if(mounted){
+                                        setState(() {
+                                          isButtonDisabled = false;
+                                        });
+                                      }
                                     },
                                     obscureText: true,
                                     controller: adminPosPinController,
@@ -433,7 +431,15 @@ class _ReportPageState extends State<ReportPage> {
                               onPressed: isButtonDisabled
                                   ? null
                                   : () async {
+                                setState(() {
+                                  isButtonDisabled = true;
+                                });
                                 _submit(context);
+                                if(mounted){
+                                  setState(() {
+                                    isButtonDisabled = false;
+                                  });
+                                }
                               },
                             ),
                           ),
@@ -652,7 +658,15 @@ class _ReportPageState extends State<ReportPage> {
                                   child: TextField(
                                     autofocus: true,
                                     onSubmitted: (input) {
+                                      setState(() {
+                                        isButtonDisabled = true;
+                                      });
                                       _submit(context);
+                                      if(mounted){
+                                        setState(() {
+                                          isButtonDisabled = false;
+                                        });
+                                      }
                                     },
                                     obscureText: true,
                                     controller: adminPosPinController,
@@ -716,7 +730,15 @@ class _ReportPageState extends State<ReportPage> {
                               onPressed: isButtonDisabled
                                   ? null
                                   : () async {
+                                setState(() {
+                                  isButtonDisabled = true;
+                                });
                                 _submit(context);
+                                if(mounted){
+                                  setState(() {
+                                    isButtonDisabled = false;
+                                  });
+                                }
                               },
                             ),
                           ),

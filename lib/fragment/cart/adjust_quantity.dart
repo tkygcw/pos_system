@@ -99,14 +99,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     print("adjust quantity");
     setState(() => _submitted = true);
     if (errorPassword == null) {
-      setState(() {
-        isButtonDisabled = true;
-      });
       await readAdminData(adminPosPinController.text, cart);
-      setState(() {
-        isButtonDisabled = false;
-      });
-      return;
     } else {
       setState(() {
         isButtonDisabled = false;
@@ -141,10 +134,15 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                                 autofocus: true,
                                 onSubmitted: (input) {
                                   setState(() {
-                                    // isButtonDisabled = true;
+                                    isButtonDisabled = true;
                                     willPop = false;
                                   });
                                   _submit(context, cart);
+                                  if(mounted){
+                                    setState(() {
+                                      isButtonDisabled = false;
+                                    });
+                                  }
                                 },
                                 obscureText: true,
                                 controller: adminPosPinController,
@@ -209,11 +207,16 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                           onPressed: isButtonDisabled
                               ? null
                               : () async {
-                            // setState(() {
-                            //   isButtonDisabled = true;
-                            //   willPop = false;
-                            // });
+                            setState(() {
+                              isButtonDisabled = true;
+                              willPop = false;
+                            });
                             _submit(context, cart);
+                            if(mounted){
+                              setState(() {
+                                isButtonDisabled = false;
+                              });
+                            }
                           },
                         ),
                       ),
