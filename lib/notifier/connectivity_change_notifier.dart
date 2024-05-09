@@ -2,6 +2,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
+import '../second_device/server.dart';
+
 class ConnectivityChangeNotifier extends ChangeNotifier {
   bool _hasInternetAccess = false;
   ConnectivityChangeNotifier() {
@@ -21,6 +23,7 @@ class ConnectivityChangeNotifier extends ChangeNotifier {
   bool get isConnect => _connection;
 
   void resultHandler(ConnectivityResult result, bool hasAccess){
+    bindSocket();
     _connectivityResult = result;
     if(hasAccess == true){
       if (result == ConnectivityResult.none) {
@@ -35,6 +38,11 @@ class ConnectivityChangeNotifier extends ChangeNotifier {
       _connection = false;
     }
     notifyListeners();
+  }
+
+  void bindSocket() async {
+    await Server.instance.bindServer();
+    await Server.instance.bindRequestServer();
   }
 
   void initialLoad() async {
