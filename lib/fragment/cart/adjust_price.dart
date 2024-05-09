@@ -84,14 +84,6 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
     setState(() => _submitted = true);
     if (errorPassword == null) {
       await readAdminData(adminPosPinController.text, cart);
-      // if (this.isLogOut == false) {
-      //   Navigator.of(context).pop();
-      //   Navigator.of(context).pop();
-      // }
-      setState(() {
-        isButtonDisabled = false;
-      });
-      return;
     } else {
       setState(() {
         isButtonDisabled = false;
@@ -128,6 +120,11 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                                     willPop = false;
                                   });
                                   _submit(context, cart);
+                                  if(mounted){
+                                    setState(() {
+                                      isButtonDisabled = false;
+                                    });
+                                  }
                                 },
                                 obscureText: true,
                                 controller: adminPosPinController,
@@ -196,6 +193,11 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                               willPop = false;
                             });
                             _submit(context, cart);
+                            if(mounted){
+                              setState(() {
+                                isButtonDisabled = false;
+                              });
+                            }
                           },
                         ),
                       ),

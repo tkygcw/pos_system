@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -7,7 +8,6 @@ import 'package:pos_system/object/settlement_link_payment.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import '../../database/pos_database.dart';
 import '../../notifier/report_notifier.dart';
@@ -24,15 +24,11 @@ class DailySalesReport extends StatefulWidget {
 }
 
 class _DailySalesReportState extends State<DailySalesReport> {
-  late TextEditingController _controller;
+  StreamController controller = StreamController();
+  late Stream contentStream;
+  late ReportModel reportModel;
   List<DataRow> _dataRow = [];
   List<PaymentLinkCompany> paymentLinkCompanyList = [];
-  DateRangePickerController _dateRangePickerController = DateRangePickerController();
-  DateFormat dateFormat = DateFormat("dd/MM/yyyy");
-  String currentStDate = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
-  String currentEdDate = new DateFormat("yyyy-MM-dd 00:00:00").format(DateTime.now());
-  String dateTimeNow = '';
-  bool isLoaded = false;
   List<String> settlementStringList = [], paymentStringList = [], settlementPaymentStringList = [];
   List<Settlement> settlementList = [];
 
@@ -40,292 +36,287 @@ class _DailySalesReportState extends State<DailySalesReport> {
   @override
   void initState() {
     super.initState();
-    dateTimeNow = dateFormat.format(DateTime.now());
-    _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
-    _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
-    //preload();
+    contentStream = controller.stream.asBroadcastStream();
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<ReportModel>(builder: (context, ReportModel reportModel, child) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if(reportModel.load == 0){
-            preload(reportModel);
-            reportModel.setLoaded();
-          }
-        });
-        return LayoutBuilder(builder: (context, constraints) {
-          if (constraints.maxWidth > 800) {
-            return Scaffold(
-              body: Container(
-                padding: const EdgeInsets.all(8),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            child: Text(AppLocalizations.of(context)!.translate('daily_sales_report'),
-                                style: TextStyle(fontSize: 25, color: Colors.black)),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 5),
-                      Divider(
-                        height: 10,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 5),
-                      _dataRow.isNotEmpty ?
-                      Container(
-                        margin: EdgeInsets.all(10),
-                        child:  isLoaded ?
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                              border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                              headingTextStyle: TextStyle(color: Colors.white),
-                              headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                              columns: <DataColumn>[
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      AppLocalizations.of(context)!.translate('date'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
+        this.reportModel = reportModel;
+        preload();
+        return StreamBuilder(
+          stream: contentStream,
+          builder: (context, snapshot) {
+            if(snapshot.hasData){
+              return LayoutBuilder(builder: (context, constraints) {
+                if (constraints.maxWidth > 800) {
+                  return Scaffold(
+                      body: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    child: Text(AppLocalizations.of(context)!.translate('daily_sales_report'),
+                                        style: TextStyle(fontSize: 25, color: Colors.black)),
                                   ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      AppLocalizations.of(context)!.translate('total_bills'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      AppLocalizations.of(context)!.translate('total_sales'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      AppLocalizations.of(context)!.translate('total_refund_bill'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      AppLocalizations.of(context)!.translate('total_refund'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      AppLocalizations.of(context)!.translate('total_discount'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      AppLocalizations.of(context)!.translate('total_tax'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Expanded(
-                                    child: Text(
-                                      AppLocalizations.of(context)!.translate('total_cancellation'),
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                                for(int i = 0; i < paymentLinkCompanyList.length; i++)
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        '${paymentLinkCompanyList[i].name}',
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                              rows: _dataRow
-                          ),
-                        ) : Center(
-                          child: CustomProgressBar(),
-                        ),
-                      ):
-                      Center(
-                        heightFactor: 12,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(Icons.menu),
-                            Text(AppLocalizations.of(context)!.translate('no_record_found')),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            );
-          } else {
-            return Scaffold(
-              body: Container(
-                padding: const EdgeInsets.all(8),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            child: Text(AppLocalizations.of(context)!.translate('daily_sales_report'),
-                                style: TextStyle(fontSize: 25, color: Colors.black)),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 5),
-                      Divider(
-                        height: 10,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 5),
-                      _dataRow.isNotEmpty ?
-                      Container(
-                          margin: EdgeInsets.all(10),
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: DataTable(
-                                border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
-                                headingTextStyle: TextStyle(color: Colors.white),
-                                headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
-                                columns: <DataColumn>[
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('date'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('total_bills'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('total_sales'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('total_refund_bill'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('total_refund'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('total_discount'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('total_tax'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Expanded(
-                                      child: Text(
-                                        AppLocalizations.of(context)!.translate('total_cancellation'),
-                                        style: TextStyle(fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  for(int i = 0; i < paymentLinkCompanyList.length; i++)
-                                    DataColumn(
-                                      label: Expanded(
-                                        child: Text(
-                                          '${paymentLinkCompanyList[i].name}',
-                                          style: TextStyle(fontWeight: FontWeight.bold),
-                                        ),
-                                      ),
-                                    ),
                                 ],
-                                rows: _dataRow
-                            ),
-                          )
-                      ):
-                      Center(
-                        heightFactor: 4,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Icon(Icons.menu),
-                            Text(AppLocalizations.of(context)!.translate('no_record_found')),
-                          ],
+                              ),
+                              SizedBox(height: 5),
+                              Divider(
+                                height: 10,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 5),
+                              _dataRow.isNotEmpty ?
+                              Container(
+                                  margin: EdgeInsets.all(10),
+                                  child:   SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: DataTable(
+                                        border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                                        headingTextStyle: TextStyle(color: Colors.white),
+                                        headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                                        columns: <DataColumn>[
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('date'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('total_bills'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('total_sales'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('total_refund_bill'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('total_refund'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('total_discount'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('total_tax'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                AppLocalizations.of(context)!.translate('total_cancellation'),
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                          for(int i = 0; i < paymentLinkCompanyList.length; i++)
+                                            DataColumn(
+                                              label: Expanded(
+                                                child: Text(
+                                                  '${paymentLinkCompanyList[i].name}',
+                                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                        rows: _dataRow
+                                    ),
+                                  )
+                              ):
+                              Center(
+                                heightFactor: 12,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.menu),
+                                    Text(AppLocalizations.of(context)!.translate('no_record_found')),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
                         ),
                       )
-                    ],
-                  ),
-                ),
-              ),
-            );
+                  );
+                } else {
+                  return Scaffold(
+                    body: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  child: Text(AppLocalizations.of(context)!.translate('daily_sales_report'),
+                                      style: TextStyle(fontSize: 25, color: Colors.black)),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 5),
+                            Divider(
+                              height: 10,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(height: 5),
+                            _dataRow.isNotEmpty ?
+                            Container(
+                                margin: EdgeInsets.all(10),
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: DataTable(
+                                      border: TableBorder.symmetric(outside: BorderSide(color: Colors.black12)),
+                                      headingTextStyle: TextStyle(color: Colors.white),
+                                      headingRowColor: MaterialStateColor.resolveWith((states) {return Colors.black;},),
+                                      columns: <DataColumn>[
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(
+                                              AppLocalizations.of(context)!.translate('date'),
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(
+                                              AppLocalizations.of(context)!.translate('total_bills'),
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(
+                                              AppLocalizations.of(context)!.translate('total_sales'),
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(
+                                              AppLocalizations.of(context)!.translate('total_refund_bill'),
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(
+                                              AppLocalizations.of(context)!.translate('total_refund'),
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(
+                                              AppLocalizations.of(context)!.translate('total_discount'),
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(
+                                              AppLocalizations.of(context)!.translate('total_tax'),
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Expanded(
+                                            child: Text(
+                                              AppLocalizations.of(context)!.translate('total_cancellation'),
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ),
+                                        for(int i = 0; i < paymentLinkCompanyList.length; i++)
+                                          DataColumn(
+                                            label: Expanded(
+                                              child: Text(
+                                                '${paymentLinkCompanyList[i].name}',
+                                                style: TextStyle(fontWeight: FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                      rows: _dataRow
+                                  ),
+                                )
+                            ):
+                            Center(
+                              heightFactor: 4,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.menu),
+                                  Text(AppLocalizations.of(context)!.translate('no_record_found')),
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }
+              });
+            } else {
+              return CustomProgressBar();
+            }
           }
-        });
+        );
       });
-
     });
   }
-  preload(ReportModel reportModel) async {
+  preload() async {
+    controller.sink.add(null);
     await getAllPaymentLinkCompany();
     await getTotalSales();
     reportModel.addOtherValue(headerValue: paymentLinkCompanyList, valueList: settlementList);
-    if(mounted){
-      setState(() {
-        isLoaded = true;
-      });
-    }
+    controller.sink.add("refresh");
   }
 
   getAllPaymentLinkCompany() async {
@@ -333,7 +324,7 @@ class _DailySalesReportState extends State<DailySalesReport> {
     final String? user = prefs.getString('user');
     Map userObject = json.decode(user!);
     List<PaymentLinkCompany> data = await PosDatabase.instance.readAllPaymentLinkCompanyWithDeleted(userObject['company_id']);
-    print("payment link company length: ${data.length}");
+    //print("payment link company length: ${data.length}");
     if(data.isNotEmpty){
       paymentLinkCompanyList = data;
       for(int i = 0 ; i < paymentLinkCompanyList.length; i++){
@@ -345,21 +336,18 @@ class _DailySalesReportState extends State<DailySalesReport> {
   getTotalSales() async {
     _dataRow.clear();
     List<SettlementLinkPayment> settlementLinkPaymentList = [];
-    ReportObject object = await ReportObject().getAllSettlement();
-    settlementList = object.dateSettlementList!;
-    //print('dining data: ${modifierData.length}');
-    if(settlementList.isNotEmpty){
+    settlementList = await ReportObject().getAllSettlement(currentStDate:  reportModel.startDateTime, currentEdDate: reportModel.endDateTime);
+    if(settlementList.isNotEmpty && _dataRow.isEmpty){
       for(int i = 0; i < settlementList.length; i++){
+        //format datetime
+        DateTime dataDate = DateTime.parse(settlementList[i].created_at!);
+        String stringDate = new DateFormat("dd-MM-yyyy").format(dataDate);
+        settlementList[i].created_at = stringDate;
         settlementStringList.add(jsonEncode(settlementList[i]));
-        //print('settlement key: ${settlementList[i].settlement_key}');
         ReportObject object = await ReportObject().getAllSettlementPaymentDetail(settlementList[i].created_at!, paymentLinkCompanyList);
         settlementLinkPaymentList = object.dateSettlementPaymentList!;
         //add settlement payment into settlement object
         settlementList[i].settlementPayment = settlementLinkPaymentList;
-        //print('settlement payment length: ${settlementLinkPaymentList.length}');
-        DateTime dataDate = DateTime.parse(settlementList[i].created_at!);
-        String stringDate = new DateFormat("dd-MM-yyyy").format(dataDate);
-        settlementList[i].created_at = stringDate;
         _dataRow.addAll([
           DataRow(
             cells: <DataCell>[

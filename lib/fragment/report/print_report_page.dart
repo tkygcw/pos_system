@@ -37,7 +37,6 @@ class _PrintReportPageState extends State<PrintReportPage> {
   void initState() {
     super.initState();
     reportFormat.presetTextFormat();
-    print('current page: ${widget.currentPage}');
     if(widget.currentPage == -1){
       generateUrl();
     }
@@ -72,7 +71,7 @@ class _PrintReportPageState extends State<PrintReportPage> {
                   case 1:
                     return reportFormat.generateDailySalesPdf(format, 'Daily Sales Report', reportModel);
                   case 2:
-                    //generate category report
+                    //generate product report
                     return reportFormat.generateProductReportPdf(format, 'Product Report', reportModel);
                   case 3:
                     //generate category report

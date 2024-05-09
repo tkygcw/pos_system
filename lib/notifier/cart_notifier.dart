@@ -20,9 +20,38 @@ class CartModel extends ChangeNotifier {
   List<OrderCache> selectedOrderQueue = [];
   String selectedOption = '';
   String selectedOptionId = '';
+  String? subtotal;
   bool isInit = false;
   int myCount = 0;
   bool isChange = false;
+
+  CartModel({
+    List<cartProductItem>? cartNotifierItem,
+    List<PosTable>? selectedTable,
+    String? selectedOption,
+    String? selectedOptionId,
+    String? subtotal
+  }){
+    this.selectedTable = selectedTable ?? [];
+    this.cartNotifierItem = cartNotifierItem ?? [];
+    this.selectedOption = selectedOption ?? '';
+    this.selectedOptionId = selectedOptionId ?? '';
+    this.subtotal = subtotal;
+  }
+
+  static CartModel fromJson(Map<String, Object?> json) {
+    var tableJson = json['selectedTable'] as List;
+    var cartItemJson = json['cartNotifierItem'] as List;
+    List<cartProductItem> cartNotifierItem = cartItemJson.map((tagJson) => cartProductItem.fromJson(tagJson)).toList();
+    List<PosTable> selectedTable = tableJson.map((e) => PosTable.fromJson(e)).toList();
+    return CartModel(
+        selectedTable: selectedTable,
+        cartNotifierItem: cartNotifierItem,
+        selectedOption: json['selectedOption'] as String?,
+        selectedOptionId: json['selectedOptionId'] as String?,
+        subtotal: json['subtotal'] as String?
+    );
+  }
 
   readAllBranchLinkDiningOption() async {
     final prefs = await SharedPreferences.getInstance();
@@ -166,7 +195,7 @@ class CartModel extends ChangeNotifier {
 
   void addAutoApplyPromo(Promotion promo) {
     autoPromotion.add(promo);
-    notifyListeners();
+    //notifyListeners();
   }
 
   void removeAutoPromotion() {

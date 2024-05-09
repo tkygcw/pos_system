@@ -125,7 +125,7 @@ class CartDialogState extends State<CartDialog> {
               Navigator.of(context).pop();
               if (tableList[dragIndex].table_sqlite_id != tableList[targetIndex].table_sqlite_id) {
                 if (tableList[targetIndex].status == 1 && tableList[dragIndex].status == 0) {
-                  await callAddNewTableQuery(tableList[dragIndex].table_sqlite_id!, tableList[targetIndex].table_sqlite_id!);
+                  asyncQ.addJob((_) async => await callAddNewTableQuery(tableList[dragIndex].table_sqlite_id!, tableList[targetIndex].table_sqlite_id!));
                   //await _printTableAddList(dragTable: tableList[dragIndex].number, targetTable: tableList[targetIndex].number);
                   cart.removeAllTable();
                   cart.removeAllCartItem();
@@ -484,7 +484,9 @@ class CartDialogState extends State<CartDialog> {
                                   }
                                 }
                                 if (sameGroupTbList.length > 1) {
-                                  await callRemoveTableQuery(tableList[index].table_sqlite_id!);
+                                  asyncQ.addJob((_) async {
+                                    await callRemoveTableQuery(tableList[index].table_sqlite_id!);
+                                  });
                                   tableList[index].isSelected = false;
                                   tableList[index].group = null;
                                   cart.removeAllTable();
@@ -594,6 +596,7 @@ class CartDialogState extends State<CartDialog> {
   }
 
   readAllTableAmount() async {
+    double tableAmount = 0.0;
     for (int i = 0; i < tableList.length; i++) {
       if(tableList[i].status == 1){
         List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificTableUseDetail(tableList[i].table_sqlite_id!);
@@ -605,8 +608,9 @@ class CartDialogState extends State<CartDialog> {
           tableList[i].card_color = data[0].card_color;
 
           for (int j = 0; j < data.length; j++) {
-            tableList[i].total_Amount += double.parse(data[j].total_amount!);
+            tableAmount += double.parse(data[j].total_amount!);
           }
+          tableList[i].total_amount = tableAmount.toStringAsFixed(2);
         }
       }
     }
@@ -776,7 +780,6 @@ class CartDialogState extends State<CartDialog> {
           first_cache_created_date_time: orderCacheList.last.created_at,  //orderCacheList[0].created_at,
           first_cache_batch: orderCacheList.last.batch_id,
           first_cache_order_by: orderCacheList.last.order_by,
-          refColor: Colors.black,
       );
       cart.addItem(value);
     }
@@ -796,14 +799,25 @@ class CartDialogState extends State<CartDialog> {
    * concurrent here
    */
   callRemoveTableQuery(int table_id) async {
-    await deleteCurrentTableUseDetail(table_id);
-    await updatePosTableStatus(table_id, 0, '', '');
-    await syncAllToCloud();
-    if (this.isLogOut == true) {
-      openLogOutDialog();
-      return;
+    if(await checkTableStatus(table_id) == true){
+      await deleteCurrentTableUseDetail(table_id);
+      await updatePosTableStatus(table_id, 0, '', '');
+      // await syncAllToCloud();
+      // if (this.isLogOut == true) {
+      //   openLogOutDialog();
+      //   return;
+      // }
+      await readAllTable(isReset: true);
     }
-    await readAllTable(isReset: true);
+  }
+
+  Future<bool> checkTableStatus(int table_id) async {
+    bool tableInUse = false;
+    List<PosTable> table = await PosDatabase.instance.checkPosTableStatus(table_id);
+    if(table[0].status == 1){
+      tableInUse = true;
+    }
+    return tableInUse;
   }
 
   deleteCurrentTableUseDetail(int currentTableId) async {
@@ -893,12 +907,15 @@ class CartDialogState extends State<CartDialog> {
 
   callAddNewTableQuery(int dragTableId, int targetTableId) async {
     //List<TableUseDetail> checkData = await PosDatabase.instance.readSpecificTableUseDetail(targetTableId);
-    await createTableUseDetail(dragTableId, targetTableId);
-    await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!, tableUseKey!);
-    await syncAllToCloud();
-    if (this.isLogOut == true) {
-      openLogOutDialog();
-      return;
+    if(await checkTableStatus(dragTableId) == false && await checkTableStatus(targetTableId) == true){
+      await createTableUseDetail(dragTableId, targetTableId);
+      await updatePosTableStatus(dragTableId, 1, this.tableUseDetailKey!, tableUseKey!);
+      // await syncAllToCloud();
+      // if (this.isLogOut == true) {
+      //   openLogOutDialog();
+      //   return;
+      // }
+
     }
     await readAllTable(isReset: true);
   }

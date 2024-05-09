@@ -73,7 +73,7 @@ class _PosPinPageState extends State<PosPinPage> {
   preload() async {
     syncRecord.syncFromCloud();
     if(notificationModel.syncCountStarted == false){
-      startTimers();
+      //startTimers();
     }
     await readAllPrinters();
   }
@@ -84,12 +84,12 @@ class _PosPinPageState extends State<PosPinPage> {
       if(data['status'] == '1'){
         response = data['app_version'];
         latestVersion = response[0]['version'];
-      } else {
-        Map data =  await Domain().getAppVersion('1');
-        if(data['status'] == '1'){
-          response = data['app_version'];
-          latestVersion = response[0]['version'];
-        }
+      }
+    } else if(defaultTargetPlatform == TargetPlatform.iOS) {
+      Map data =  await Domain().getAppVersion('1');
+      if(data['status'] == '1'){
+        response = data['app_version'];
+        latestVersion = response[0]['version'];
       }
     }
   }
@@ -122,7 +122,7 @@ class _PosPinPageState extends State<PosPinPage> {
               return WillPopScope(
                 onWillPop: () async => false,
                 child: AlertDialog(
-                  title: Text('${AppLocalizations.of(context)!.translate('subscription_expired')} (${DateFormat('dd/MM/yyyy').format(subscriptionEndDate)} )'),
+                  title: Text(AppLocalizations.of(context)!.translate('subscription_expired')),
                   contentPadding: EdgeInsets.fromLTRB(24, 10, 24, 10),
                   content: Container(
                     height: 100,
@@ -136,7 +136,7 @@ class _PosPinPageState extends State<PosPinPage> {
                         SizedBox(height: 10),
                         Expanded(
                           child: Text(
-                            '${AppLocalizations.of(context)!.translate('subscription_expired_desc')}',
+                            AppLocalizations.of(context)!.translate('subscription_expired_desc'),
                             style: TextStyle(
                               fontSize: 16,
                             ),
@@ -258,7 +258,7 @@ class _PosPinPageState extends State<PosPinPage> {
       if(qrOrder.count == 0){
         print('qr order sync');
         qrOrder.count = 1;
-        await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+        asyncQ.addJob((_) async =>  await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!));
         qrOrder.count = 0;
       }
 

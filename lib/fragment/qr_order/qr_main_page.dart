@@ -1,13 +1,16 @@
 import 'dart:async';
 
+import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/qr_order/adjust_stock_dialog.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
+import 'package:pos_system/object/qr_order_auto_accept.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
@@ -49,7 +52,38 @@ class _QrMainPageState extends State<QrMainPage> {
             primary: false,
             elevation: 0,
             automaticallyImplyLeading: false,
-            title: Text(AppLocalizations.of(context)!.translate('qr_order'), style: TextStyle(fontSize: 25)),
+            // title: Text(AppLocalizations.of(context)!.translate('qr_order'), style: TextStyle(fontSize: 25)),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(AppLocalizations.of(context)!.translate('qr_order'), style: TextStyle(fontSize: 25)),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 10 : MediaQuery.of(context).size.width / 8,
+                  height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 20 : MediaQuery.of(context).size.height / 12,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      backgroundColor: color.backgroundColor,
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context)!.translate('accept_all'),
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: () async {
+                      if (await confirm(
+                        context,
+                        title: Text("${AppLocalizations.of(context)!.translate('confirm_accept_all')}"),
+                        content: Text('${AppLocalizations.of(context)!.translate('confirm_accept_all_desc')}'),
+                        textOK: Text('${AppLocalizations.of(context)!.translate('yes')}'),
+                        textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
+                      )) {
+                        asyncQ.addJob((_) async => await QrOrderAutoAccept(context).load());
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
           body: StreamBuilder(
               stream: controller.stream,

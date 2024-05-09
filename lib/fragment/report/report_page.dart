@@ -62,7 +62,7 @@ class _ReportPageState extends State<ReportPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.report.initDateTime();
-      widget.report.resetLoad();
+      //widget.report.resetLoad();
     });
     dateTimeNow = dateFormat.format(DateTime.now());
     _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
@@ -116,7 +116,6 @@ class _ReportPageState extends State<ReportPage> {
     setState(() => _submitted = true);
     if (errorPassword == null) {
       await readAdminData(adminPosPinController.text);
-      // Navigator.of(context).pop();
       return;
     } else {
       setState(() {
@@ -369,9 +368,11 @@ class _ReportPageState extends State<ReportPage> {
                                         isButtonDisabled = true;
                                       });
                                       _submit(context);
-                                      setState(() {
-                                        isButtonDisabled = false;
-                                      });
+                                      if(mounted){
+                                        setState(() {
+                                          isButtonDisabled = false;
+                                        });
+                                      }
                                     },
                                     obscureText: true,
                                     controller: adminPosPinController,
@@ -439,9 +440,11 @@ class _ReportPageState extends State<ReportPage> {
                                   isButtonDisabled = true;
                                 });
                                 _submit(context);
-                                setState(() {
-                                  isButtonDisabled = false;
-                                });
+                                if(mounted){
+                                  setState(() {
+                                    isButtonDisabled = false;
+                                  });
+                                }
                               },
                             ),
                           ),
@@ -667,9 +670,11 @@ class _ReportPageState extends State<ReportPage> {
                                         isButtonDisabled = true;
                                       });
                                       _submit(context);
-                                      setState(() {
-                                        isButtonDisabled = false;
-                                      });
+                                      if(mounted){
+                                        setState(() {
+                                          isButtonDisabled = false;
+                                        });
+                                      }
                                     },
                                     obscureText: true,
                                     controller: adminPosPinController,
@@ -737,9 +742,11 @@ class _ReportPageState extends State<ReportPage> {
                                   isButtonDisabled = true;
                                 });
                                 _submit(context);
-                                setState(() {
-                                  isButtonDisabled = false;
-                                });
+                                if(mounted){
+                                  setState(() {
+                                    isButtonDisabled = false;
+                                  });
+                                }
                               },
                             ),
                           ),

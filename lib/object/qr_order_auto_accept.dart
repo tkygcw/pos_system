@@ -15,6 +15,7 @@ import 'package:pos_system/fragment/logout_dialog.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
+import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
@@ -50,7 +51,7 @@ class QrOrderAutoAccept {
     final tableModel = Provider.of<TableModel>(context, listen: false);
     await readAllPrinters();
     await getAllNotAcceptedQrOrder();
-    tableModel.changeContent(true);
+    // tableModel.changeContent(true);
     await failedPrintAlert();
   }
 
@@ -209,7 +210,6 @@ class QrOrderAutoAccept {
       } else if(hasNotAvailableProduct){
         Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
       } else {
-
         if (removeDetailList.isNotEmpty) {
           await removeOrderDetail();
         }
@@ -226,9 +226,16 @@ class QrOrderAutoAccept {
         } else {
           await callOtherOrder(qrOrderCacheList);
         }
-        await printCheckList(qrOrderCacheList.order_cache_sqlite_id!);
-        syncToCloudFunction();
+        final prefs = await SharedPreferences.getInstance();
+        final int? branch_id = prefs.getInt('branch_id');
+        AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
+        if(localSetting!.print_checklist == 1) {
+          await printCheckList(qrOrderCacheList.order_cache_sqlite_id!);
+        }
+        // syncToCloudFunction();
         await callPrinter(qrOrderCacheList.order_cache_sqlite_id!);
+        notificationModel.setContentLoaded();
+        notificationModel.setCartContentLoaded();
       }
     } catch(e) {
       print("auto accept qr order error: ${e}");
@@ -302,7 +309,7 @@ class QrOrderAutoAccept {
     tableInUsed = false;
     if (tableLocalId != '') {
       print('widget table local id: ${tableLocalId}');
-      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableLocalId!);
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableLocalId);
       if (tableData[0].status == 1) {
         TableUse tableUse = await PosDatabase.instance.readSpecificTableUseByKey(tableData[0].table_use_key!);
         List<OrderCache> orderCache = await PosDatabase.instance.readTableOrderCache(tableUse.table_use_key!);

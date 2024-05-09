@@ -1969,7 +1969,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
                               ),
                               activeColor: color.backgroundColor,
                             ),
-                            // checkFirstElement: false,
+                            //checkFirstElement: false,
                             onItemSelected: isAdd? (data) {
                               print(data);
                             }:null,
