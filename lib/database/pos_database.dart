@@ -402,10 +402,10 @@ class PosDatabase {
           ${SubscriptionFields.soft_delete} $textType)''');
         }break;
         case 14: {
-          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.refund_permission} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.settlement_permission} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.report_permission} INTEGER NOT NULL DEFAULT 0");
-          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.cash_drawer_permission} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.refund_permission} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.settlement_permission} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.report_permission} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.cash_drawer_permission} INTEGER NOT NULL DEFAULT 1");
         }break;
       }
     }
