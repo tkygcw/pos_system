@@ -111,7 +111,8 @@ class Server extends ChangeNotifier {
       },
       onError: (error){
         print("server handle client error: ${error}");
-        serverSocket?.close();
+        removeClient(clientSocket);
+        clientSocket.destroy();
       },
     );
   }
