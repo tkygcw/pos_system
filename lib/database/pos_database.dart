@@ -2562,10 +2562,14 @@ class PosDatabase {
     }
   }
 
-  Future<Order> readOrderSqliteID(String orderKey) async {
+  Future<Order?> readOrderSqliteID(String orderKey) async {
     final db = await instance.database;
     final maps = await db.rawQuery('SELECT * FROM $tableOrder WHERE soft_delete = ? AND order_key = ?', ['', orderKey]);
-    return Order.fromJson(maps.first);
+    if(maps.isNotEmpty){
+      return Order.fromJson(maps.first);
+    } else {
+      return null;
+    }
   }
 
   Future<Settlement> readSettlementSqliteID(String settlementKey) async {
