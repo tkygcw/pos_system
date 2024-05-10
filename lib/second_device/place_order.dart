@@ -665,6 +665,7 @@ class PlaceNewDineInOrder extends PlaceOrder {
       objectData = {
         'tb_branch_link_product': branchLinkProductList,
       };
+      tableModel.changeContent(true);
       return {'status': '1', 'data': objectData};
     } else {
       // throw Exception("Contain table in-used");
@@ -899,7 +900,8 @@ class PlaceAddOrder extends PlaceOrder {
         //   }
         // }
         printKitchenList(address);
-        Map<String, dynamic>? objectData = {'tb_branch_link_product': branchLinkProductList,};
+        Map<String, dynamic>? objectData = {'tb_branch_link_product': branchLinkProductList};
+        tableModel.changeContent(true);
         return {'status': '1', 'data': objectData};
       } else {
         branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
