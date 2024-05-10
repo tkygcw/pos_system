@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:pos_system/notifier/connectivity_change_notifier.dart';
 import 'package:pos_system/second_device/other_device.dart';
 import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
@@ -15,19 +16,22 @@ class DeviceSetting extends StatefulWidget {
 }
 
 class _DeviceSettingState extends State<DeviceSetting> {
+  Server server = Server.instance;
+  late ConnectivityChangeNotifier connectivity;
 
   @override
   Widget build(BuildContext context) {
+    connectivity = context.watch<ConnectivityChangeNotifier>();
     return Scaffold(
       body: Column(
         children: [
           ListTile(
             title: Text(AppLocalizations.of(context)!.translate('bind_ip_address')),
-            subtitle:  Text("${AppLocalizations.of(context)!.translate('device_ip')}: ${Server.instance.serverIp}"),
-            trailing: Icon(Icons.link),
+            subtitle: Text("${AppLocalizations.of(context)!.translate('device_ip')}: ${server.serverIp}"),
+            trailing: server.serverIp != null && server.serverIp != '-' ? Icon(Icons.link) : Icon(Icons.link_off),
             onTap: () async {
-              await Server.instance.bindServer();
-              await Server.instance.bindRequestServer();
+              await server.bindServer();
+              await server.bindRequestServer();
              setState(() {});
             },
           ),
@@ -52,6 +56,12 @@ class _DeviceSettingState extends State<DeviceSetting> {
         ],
       )
     );
+  }
+
+  getServerIp(){
+    if(!connectivity.isConnect){
+      return '-';
+    }
   }
 
   Future<Future<Object?>> openDeviceDialog({required List<Socket> clientSocket}) async {

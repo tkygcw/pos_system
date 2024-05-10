@@ -126,10 +126,12 @@ class Server extends ChangeNotifier {
   bindRequestServer()async {
     List<Socket> client2 = [];
     final ips = await instance.serverIp;
-    ServerSocket serverSocket2 = await ServerSocket.bind(ips, 8888, shared: true);
-    await for(Socket clientSocket in serverSocket2){
-      client2.add(clientSocket);
-      await handleClient2(clientSocket, client2);
+    if(ips != null && ips != '-'){
+      ServerSocket serverSocket2 = await ServerSocket.bind(ips, 8888, shared: true);
+      await for(Socket clientSocket in serverSocket2){
+        client2.add(clientSocket);
+        await handleClient2(clientSocket, client2);
+      }
     }
   }
 
