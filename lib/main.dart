@@ -38,6 +38,7 @@ final SyncRecord syncRecord = SyncRecord();
 final QrOrder qrOrder = QrOrder();
 final LCDDisplay lcdDisplay = LCDDisplay();
 final asyncQ = AsyncQueue.autoStart();
+final tableModel = TableModel();
 DisplayManager displayManager = DisplayManager();
 AppLanguage appLanguage = AppLanguage();
 final snackBarKey = GlobalKey<ScaffoldMessengerState>();
@@ -142,7 +143,7 @@ class MyApp extends StatelessWidget {
           create: (_) => PrinterModel(),
         ),
         ChangeNotifierProvider(
-          create: (_) => TableModel(),
+          create: (_) => tableModel,
         ),
         ChangeNotifierProvider(
           create: (_) => ReportModel(),
