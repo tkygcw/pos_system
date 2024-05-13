@@ -32,6 +32,8 @@ class ConnectivityChangeNotifier extends ChangeNotifier {
         _connection = true;
       } else if (result == ConnectivityResult.wifi) {
         _connection = true;
+      }else if (result == ConnectivityResult.ethernet) {
+        _connection = true;
       }
     } else {
       _connectivityResult = ConnectivityResult.none;

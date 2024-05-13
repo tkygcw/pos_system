@@ -312,8 +312,10 @@ class _TableMenuState extends State<TableMenu> {
                                   }
                                 },
                                 onTap: onTapDisable ? null : () {
-                                  tapCount++;
-                                  onTapDisable = true;
+                                  setState(() {
+                                    tapCount++;
+                                    onTapDisable = true;
+                                  });
                                   openLoadingDialogBox();
                                   if(tapCount == 1){
                                     asyncQ.addJob((_) async => await onSelect(index, cart));
@@ -506,10 +508,11 @@ class _TableMenuState extends State<TableMenu> {
                                     }
                                   },
                                   onTap: onTapDisable ? null : () {
-                                    tapCount++;
                                     setState(() {
+                                      tapCount++;
                                       onTapDisable = true;
                                     });
+                                    openLoadingDialogBox();
                                     if(tapCount == 1){
                                       asyncQ.addJob((_) async => await onSelect(index, cart));
                                     }

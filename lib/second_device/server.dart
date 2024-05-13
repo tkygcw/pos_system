@@ -23,7 +23,17 @@ class Server extends ChangeNotifier {
 
 
   Future<String?> getDeviceIp() async {
-    _serverIp = await networkInfo.getWifiIP();
+    var wifiIP = await networkInfo.getWifiIP();
+    if(wifiIP == null) {
+      List<NetworkInterface> interfaces = await NetworkInterface.list();
+      for (var interface in interfaces) {
+        for (var address in interface.addresses) {
+          _serverIp = address.address;
+        }
+      }
+    } else {
+      _serverIp = wifiIP;
+    }
     return _serverIp;
   }
 
