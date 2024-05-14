@@ -85,9 +85,9 @@ class Server extends ChangeNotifier {
       String receivedData = utf8.decode(data);
       buffer.write(receivedData);
 
-      List<String> messageList = buffer.toString().split('\n');
+      List<String> messageList = buffer.toString().split(messageDelimiter);
       print("message length: ${messageList.length}");
-      List<String> messages = messageList.where((e) => e != '\n').toList();
+      List<String> messages = messageList.where((e) => e != messageDelimiter).toList();
       for(int i = 0; i < messages.length; i++){
         //print("message: ${messages[i]}");
         final message = messages[i];
@@ -100,7 +100,7 @@ class Server extends ChangeNotifier {
             response = await ServerAction().checkAction(action: msg['action']);
           }
           //Broadcast the message to all other clients
-          clientSocket.write("${jsonEncode(response)}\n");
+          clientSocket.write("${jsonEncode(response)}$messageDelimiter");
           // for (var otherClient in clients) {
           //   otherClient.write("${jsonEncode(response)}\n");
           // }
@@ -168,7 +168,7 @@ class Server extends ChangeNotifier {
             }
             print("server response 2: ${response}");
 
-            clientSocket.write("${jsonEncode(response)}\n");
+            clientSocket.write("${jsonEncode(response)}$messageDelimiter");
             buffer.clear();
           }
         }catch(e){

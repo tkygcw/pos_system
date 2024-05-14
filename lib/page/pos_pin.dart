@@ -30,6 +30,7 @@ import '../object/cash_record.dart';
 import '../object/print_receipt.dart';
 import '../object/printer.dart';
 import '../object/user.dart';
+import '../second_device/server.dart';
 
 class PosPinPage extends StatefulWidget {
   final String? cashBalance;
@@ -55,6 +56,7 @@ class _PosPinPageState extends State<PosPinPage> {
     super.initState();
     //readAllPrinters();
     preload();
+    bindSocket();
     checkVersion();
     checkSubscription();
   }
@@ -76,6 +78,14 @@ class _PosPinPageState extends State<PosPinPage> {
       //startTimers();
     }
     await readAllPrinters();
+  }
+
+/*
+  bind server socket
+*/
+  bindSocket() async {
+    await Server.instance.bindServer();
+    await Server.instance.bindRequestServer();
   }
 
   getLatestVersion() async {
