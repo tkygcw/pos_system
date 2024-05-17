@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
@@ -27,6 +28,7 @@ import '../../object/order_detail.dart';
 import '../../object/table_use.dart';
 import '../../object/table_use_detail.dart';
 import '../../translation/AppLocalizations.dart';
+import '../custom_snackbar.dart';
 import '../logout_dialog.dart';
 
 class AdjustStockDialog extends StatefulWidget {
@@ -437,108 +439,105 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                             elevation: 5,
                             child: Container(
                               margin: EdgeInsets.all(10),
-                              height: MediaQuery.of(context).size.height / 4,
                               child: Column(children: [
-                                Expanded(
-                                  child: ListTile(
-                                    onTap: null,
-                                    isThreeLine: true,
-                                    title: RichText(
-                                      text: TextSpan(
-                                        children: <TextSpan>[
-                                          TextSpan(
-                                              text: "${widget.orderDetailList[index].productName}" + "\n",
-                                              style: TextStyle(fontSize: 14, color: Colors.black)),
-                                          TextSpan(
-                                              text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
-                                        ],
-                                      ),
-                                    ),
-                                    subtitle: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Visibility(
-                                          visible: widget.orderDetailList[index].product_variant_name != '' ? true : false,
-                                          child: Text("+${widget.orderDetailList[index].product_variant_name}"),
-                                        ),
-                                        //modifier
-                                        Visibility(
-                                          visible: getOrderDetailModifier(widget.orderDetailList[index]) != '' ? true : false,
-                                          child: Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
-                                        ),
-                                        widget.orderDetailList[index].remark != '' ? Text("*${widget.orderDetailList[index].remark}") : Text('')
+                                ListTile(
+                                  onTap: null,
+                                  isThreeLine: true,
+                                  title: RichText(
+                                    text: TextSpan(
+                                      children: <TextSpan>[
+                                        TextSpan(
+                                            text: "${widget.orderDetailList[index].productName}" + "\n",
+                                            style: TextStyle(fontSize: 14, color: Colors.black)),
+                                        TextSpan(
+                                            text: "RM ${widget.orderDetailList[index].price}", style: TextStyle(fontSize: 13, color: Colors.black)),
                                       ],
                                     ),
-                                    trailing: Container(
-                                      child: FittedBox(
-                                        child: Column(
-                                          children: [
-                                            Row(
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              children: [
-                                                IconButton(
-                                                    hoverColor: Colors.transparent,
-                                                    icon: Icon(
-                                                      Icons.remove,
-                                                      size: 40,
-                                                    ),
-                                                    onPressed: () {
-                                                      print('qty remove');
-                                                      int qty = int.parse(widget.orderDetailList[index].quantity!);
-                                                      int totalQty = qty - 1;
-                                                      if (totalQty <= 0) {
-                                                        setState(() {
-                                                          widget.orderDetailList[index].isRemove = true;
-                                                          removeDetailList.add(widget.orderDetailList[index]);
-                                                          widget.orderDetailList.removeAt(index);
-                                                        });
-                                                      } else {
-                                                        setState(() {
-                                                          widget.orderDetailList[index].quantity = totalQty.toString();
-                                                        });
-                                                      }
-                                                    }),
-                                                Padding(
-                                                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                                  child: Text(
-                                                    '${widget.orderDetailList[index].quantity}',
-                                                    style: TextStyle(color: Colors.black, fontSize: 30),
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Visibility(
+                                        visible: widget.orderDetailList[index].product_variant_name != '' ? true : false,
+                                        child: Text("+${widget.orderDetailList[index].product_variant_name}"),
+                                      ),
+                                      //modifier
+                                      Visibility(
+                                        visible: getOrderDetailModifier(widget.orderDetailList[index]) != '' ? true : false,
+                                        child: Text("${getOrderDetailModifier(widget.orderDetailList[index])}"),
+                                      ),
+                                      widget.orderDetailList[index].remark != '' ? Text("*${widget.orderDetailList[index].remark}") : Text('')
+                                    ],
+                                  ),
+                                  trailing: Container(
+                                    child: FittedBox(
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              IconButton(
+                                                  hoverColor: Colors.transparent,
+                                                  icon: Icon(
+                                                    Icons.remove,
+                                                    size: 40,
                                                   ),
+                                                  onPressed: () {
+                                                    print('qty remove');
+                                                    int qty = int.parse(widget.orderDetailList[index].quantity!);
+                                                    int totalQty = qty - 1;
+                                                    if (totalQty <= 0) {
+                                                      setState(() {
+                                                        widget.orderDetailList[index].isRemove = true;
+                                                        removeDetailList.add(widget.orderDetailList[index]);
+                                                        widget.orderDetailList.removeAt(index);
+                                                      });
+                                                    } else {
+                                                      setState(() {
+                                                        widget.orderDetailList[index].quantity = totalQty.toString();
+                                                      });
+                                                    }
+                                                  }),
+                                              Padding(
+                                                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                                child: Text(
+                                                  '${widget.orderDetailList[index].quantity}',
+                                                  style: TextStyle(color: Colors.black, fontSize: 30),
                                                 ),
-                                                IconButton(
-                                                    hoverColor: Colors.transparent,
-                                                    icon: Icon(
-                                                      Icons.add,
-                                                      size: 40,
-                                                    ),
-                                                    onPressed: () {
-                                                      if(int.tryParse(widget.orderDetailList[index].available_stock!) != null){
-                                                        if (int.parse(widget.orderDetailList[index].quantity!) <
-                                                            int.parse(widget.orderDetailList[index].available_stock!)) {
-                                                          setState(() {
-                                                            int qty = int.parse(widget.orderDetailList[index].quantity!);
-                                                            int totalQty = qty + 1;
-                                                            widget.orderDetailList[index].quantity = totalQty.toString();
-                                                          });
-                                                        } else {
-                                                          Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('out_of_stock'));
-                                                        }
-                                                      } else {
+                                              ),
+                                              IconButton(
+                                                  hoverColor: Colors.transparent,
+                                                  icon: Icon(
+                                                    Icons.add,
+                                                    size: 40,
+                                                  ),
+                                                  onPressed: () {
+                                                    if(int.tryParse(widget.orderDetailList[index].available_stock!) != null){
+                                                      if (int.parse(widget.orderDetailList[index].quantity!) <
+                                                          int.parse(widget.orderDetailList[index].available_stock!)) {
                                                         setState(() {
                                                           int qty = int.parse(widget.orderDetailList[index].quantity!);
                                                           int totalQty = qty + 1;
                                                           widget.orderDetailList[index].quantity = totalQty.toString();
                                                         });
+                                                      } else {
+                                                        Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('out_of_stock'));
                                                       }
-                                                    })
-                                              ],
-                                            ),
-                                            Visibility(
-                                                visible: widget.orderDetailList[index].available_stock != '' ? true : false,
-                                                child: Text(AppLocalizations.of(context)!.translate('available_stock')+': ${widget.orderDetailList[index].available_stock}')
-                                            )
-                                          ],
-                                        ),
+                                                    } else {
+                                                      setState(() {
+                                                        int qty = int.parse(widget.orderDetailList[index].quantity!);
+                                                        int totalQty = qty + 1;
+                                                        widget.orderDetailList[index].quantity = totalQty.toString();
+                                                      });
+                                                    }
+                                                  })
+                                            ],
+                                          ),
+                                          Visibility(
+                                              visible: widget.orderDetailList[index].available_stock != '' ? true : false,
+                                              child: Text(AppLocalizations.of(context)!.translate('available_stock')+': ${widget.orderDetailList[index].available_stock}')
+                                          )
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -686,39 +685,38 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
       BuildContext _context = MyApp.navigatorKey.currentContext!;
       String flushbarStatus = '';
       List<OrderDetail> returnData = await PrintReceipt().printQrKitchenList(printerList, widget.orderCacheLocalId, orderDetailList: widget.orderDetailList);
-      if(returnData != null) {
-        if(returnData.isNotEmpty){
-          _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-          playSound();
-          Flushbar(
-            icon: Icon(Icons.error, size: 32, color: Colors.white),
-            shouldIconPulse: false,
-            title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
-            message: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
-            duration: Duration(seconds: 5),
-            backgroundColor: Colors.red,
-            messageColor: Colors.white,
-            flushbarPosition: FlushbarPosition.TOP,
-            maxWidth: 350,
-            margin: EdgeInsets.all(8),
-            borderRadius: BorderRadius.circular(8),
-            padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-            onTap: (flushbar) {
-              flushbar.dismiss(true);
-            },
-            onStatusChanged: (status) {
-              flushbarStatus = status.toString();
-            },
-          )..show(_context);
-          Future.delayed(Duration(seconds: 3), () {
-            if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
-              playSound();
-          });
-        }
-      } else {
-        Fluttertoast.showToast(
-            backgroundColor: Colors.red,
-            msg: "${AppLocalizations.of(_context)?.translate('no_printer_added')}");
+      if(returnData.isNotEmpty){
+        _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
+        CustomSnackBar.instance.showSnackBar(
+            title:"${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
+            description: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
+            playSound: true,
+            playtime: 2,
+            contentType: ContentType.failure);
+        // playSound();
+        // Flushbar(
+        //   icon: Icon(Icons.error, size: 32, color: Colors.white),
+        //   shouldIconPulse: false,
+        //   title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
+        //   message: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
+        //   duration: Duration(seconds: 5),
+        //   backgroundColor: Colors.red,
+        //   messageColor: Colors.white,
+        //   flushbarPosition: FlushbarPosition.TOP,
+        //   maxWidth: 350,
+        //   margin: EdgeInsets.all(8),
+        //   borderRadius: BorderRadius.circular(8),
+        //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+        //   onTap: (flushbar) {
+        //     flushbar.dismiss(true);
+        //   },
+        //   onStatusChanged: (status) {
+        //     flushbarStatus = status.toString();
+        //   },
+        // )..show(_context);
+        // Future.delayed(Duration(seconds: 3), () {
+        //   playSound();
+        // });
       }
     } catch(e) {
       print("callPrinter error: ${e}");

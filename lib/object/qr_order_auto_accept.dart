@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -28,6 +29,8 @@ import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../fragment/custom_snackbar.dart';
 
 class QrOrderAutoAccept {
   BuildContext context;
@@ -105,31 +108,36 @@ class QrOrderAutoAccept {
     String flushbarStatus = '';
     final _failPrintModel = Provider.of<FailPrintModel>(context, listen: false);
     if(_failPrintModel.failedPrintOrderDetail.length >= 1) {
-      playSound();
-      Flushbar(
-        icon: Icon(Icons.error, size: 32, color: Colors.white),
-        shouldIconPulse: false,
-        title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-        message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
-        duration: Duration(seconds: 5),
-        backgroundColor: Colors.red,
-        messageColor: Colors.white,
-        flushbarPosition: FlushbarPosition.TOP,
-        maxWidth: 350,
-        margin: EdgeInsets.all(8),
-        borderRadius: BorderRadius.circular(8),
-        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-        onTap: (flushbar) {
-          flushbar.dismiss(true);
-        },
-        onStatusChanged: (status) {
-          flushbarStatus = status.toString();
-        },
-      )..show(context);
-      Future.delayed(Duration(seconds: 3), () {
-        if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
-          playSound();
-      });
+      CustomSnackBar.instance.showSnackBar(
+          title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
+          description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+          contentType: ContentType.failure,
+          playSound: true,
+          playtime: 2);
+      // playSound();
+      // Flushbar(
+      //   icon: Icon(Icons.error, size: 32, color: Colors.white),
+      //   shouldIconPulse: false,
+      //   title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
+      //   message: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+      //   duration: Duration(seconds: 5),
+      //   backgroundColor: Colors.red,
+      //   messageColor: Colors.white,
+      //   flushbarPosition: FlushbarPosition.TOP,
+      //   maxWidth: 350,
+      //   margin: EdgeInsets.all(8),
+      //   borderRadius: BorderRadius.circular(8),
+      //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+      //   onTap: (flushbar) {
+      //     flushbar.dismiss(true);
+      //   },
+      //   onStatusChanged: (status) {
+      //     flushbarStatus = status.toString();
+      //   },
+      // )..show(context);
+      // Future.delayed(Duration(seconds: 3), () {
+      //   playSound();
+      // });
     }
   }
 

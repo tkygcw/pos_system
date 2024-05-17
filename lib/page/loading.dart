@@ -1351,7 +1351,7 @@ getAllRefund() async {
     if (data['status'] == '1') {
       List responseJson = data['refund'];
       for (var i = 0; i < responseJson.length; i++) {
-        Order orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
+        Order? orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
         Refund data = await PosDatabase.instance.insertRefund(Refund(
           refund_id: responseJson[i]['refund_id'],
           refund_key: responseJson[i]['refund_key'],
@@ -1359,7 +1359,7 @@ getAllRefund() async {
           branch_id: responseJson[i]['branch_id'],
           order_cache_sqlite_id: '',
           order_cache_key: '',
-          order_sqlite_id: orderData.order_sqlite_id.toString(),
+          order_sqlite_id: orderData != null ? orderData.order_sqlite_id.toString() : '',
           order_key: responseJson[i]['order_key'],
           refund_by: responseJson[i]['refund_by'],
           refund_by_user_id: responseJson[i]['refund_by_user_id'],
@@ -1370,7 +1370,9 @@ getAllRefund() async {
           soft_delete: responseJson[i]['soft_delete'],
         ));
         try {
-          updateOrderRefundSqliteId(data.refund_sqlite_id.toString(), orderData.order_sqlite_id!);
+          if(orderData != null){
+            updateOrderRefundSqliteId(data.refund_sqlite_id.toString(), orderData.order_sqlite_id!);
+          }
         } catch(e) {
           FLog.error(
             className: "loading",
@@ -2009,13 +2011,13 @@ getAllOrderPromotionDetail() async {
     if (data['status'] == '1') {
       List responseJson = data['order'];
       for (var i = 0; i < responseJson.length; i++) {
-        Order orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
+        Order? orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
         try {
           OrderPromotionDetail data = await PosDatabase.instance.insertOrderPromotionDetail(OrderPromotionDetail(
             order_promotion_detail_id: responseJson[i]['order_promotion_detail_id'],
             order_promotion_detail_key: responseJson[i]['order_promotion_detail_key'],
-            order_sqlite_id: orderData.order_sqlite_id.toString(),
-            order_id: orderData.order_id.toString(),
+            order_sqlite_id:  orderData != null ? orderData.order_sqlite_id.toString() : '',
+            order_id: orderData != null ? orderData.order_id.toString() : '',
             order_key: responseJson[i]['order_key'],
             promotion_name: responseJson[i]['promotion_name'],
             rate: responseJson[i]['rate'],
@@ -2060,13 +2062,13 @@ getAllOrderTaxDetail() async {
     if (data['status'] == '1') {
       List responseJson = data['order'];
       for (var i = 0; i < responseJson.length; i++) {
-        Order orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
+        Order? orderData = await PosDatabase.instance.readOrderSqliteID(responseJson[i]['order_key']);
         try {
           OrderTaxDetail data = await PosDatabase.instance.insertOrderTaxDetail(OrderTaxDetail(
             order_tax_detail_id: responseJson[i]['order_tax_detail_id'],
             order_tax_detail_key: responseJson[i]['order_tax_detail_key'],
-            order_sqlite_id: orderData.order_sqlite_id.toString(),
-            order_id: orderData.order_id.toString(),
+            order_sqlite_id:  orderData != null ? orderData.order_sqlite_id.toString() : '',
+            order_id: orderData != null ? orderData.order_id.toString() : '',
             order_key: responseJson[i]['order_key'],
             tax_name: responseJson[i]['tax_name'],
             rate: responseJson[i]['rate'],
@@ -2125,8 +2127,8 @@ getAllOrderCache() async {
 
         if (cloudData.order_key != '' && cloudData.order_key != null) {
           // print("order key in order cache sync: ${cloudData.order_key}");
-          Order orderData = await PosDatabase.instance.readOrderSqliteID(cloudData.order_key!);
-          orderLocalId = orderData.order_sqlite_id.toString();
+          Order? orderData = await PosDatabase.instance.readOrderSqliteID(cloudData.order_key!);
+          orderLocalId =  orderData != null ? orderData.order_sqlite_id.toString() : '';
         } else {
           orderLocalId = '';
         }
