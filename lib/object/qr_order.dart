@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/custom_snackbar.dart';
@@ -141,6 +142,7 @@ class QrOrder {
       CustomSnackBar.instance.showSnackBar(
           title: "${AppLocalizations.of(context)?.translate('qr_order')}",
           description: "${AppLocalizations.of(context)?.translate('new_qr_order_received')}",
+          contentType: ContentType.success,
           playSound: true,
           playtime: 2
       );

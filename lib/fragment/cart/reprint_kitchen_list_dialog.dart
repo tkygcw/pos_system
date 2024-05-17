@@ -1,5 +1,6 @@
 import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/custom_snackbar.dart';
@@ -367,7 +368,10 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
       _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
       CustomSnackBar.instance.showSnackBar(
           title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
-          description: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}", playSound: true, playtime: 2);
+          description: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
+          contentType: ContentType.failure,
+          playSound: true,
+          playtime: 2);
       // playSound();
       // Flushbar(
       //   icon: Icon(Icons.error, size: 32, color: Colors.white),

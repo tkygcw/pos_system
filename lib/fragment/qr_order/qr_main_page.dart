@@ -204,30 +204,34 @@ class _QrMainPageState extends State<QrMainPage> {
   }
 
   checkOrderDetail(int orderCacheLocalId, int index) async {
-    List<OrderDetail> detailData = await PosDatabase.instance.readAllOrderDetailByOrderCache(orderCacheLocalId);
-    orderDetailList = detailData;
-    for (int i = 0; i < orderDetailList.length; i++) {
-      orderDetailList[i].tableNumber.add(qrOrderCacheList[index].table_number!);
-      List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
-      List<OrderModifierDetail> modDetailData = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[i].order_detail_sqlite_id.toString());
+    try{
+      List<OrderDetail> detailData = await PosDatabase.instance.readAllOrderDetailByOrderCache(orderCacheLocalId);
+      orderDetailList = detailData;
+      for (int i = 0; i < orderDetailList.length; i++) {
+        orderDetailList[i].tableNumber.add(qrOrderCacheList[index].table_number!);
+        List<BranchLinkProduct> data = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[i].branch_link_product_sqlite_id!);
+        List<OrderModifierDetail> modDetailData = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[i].order_detail_sqlite_id.toString());
 
-      orderDetailList[i].orderModifierDetail = modDetailData;
-      if(data.isNotEmpty){
-        switch(data[0].stock_type){
-          case '1': {
-            orderDetailList[i].available_stock = data[0].daily_limit!;
-          }break;
-          case '2': {
-            orderDetailList[i].available_stock = data[0].stock_quantity!;
-          } break;
-          default: {
-            orderDetailList[i].available_stock = '';
+        orderDetailList[i].orderModifierDetail = modDetailData;
+        if(data.isNotEmpty){
+          switch(data[0].stock_type){
+            case '1': {
+              orderDetailList[i].available_stock = data[0].daily_limit!;
+            }break;
+            case '2': {
+              orderDetailList[i].available_stock = data[0].stock_quantity!;
+            } break;
+            default: {
+              orderDetailList[i].available_stock = '';
+            }
           }
+        } else {
+          orderDetailList[i].available_stock = '';
         }
-      } else {
-        orderDetailList[i].available_stock = '';
+        orderDetailList[i].isRemove = false;
       }
-      orderDetailList[i].isRemove = false;
+    }catch(e){
+      print("check order detail error: ${e}");
     }
   }
 

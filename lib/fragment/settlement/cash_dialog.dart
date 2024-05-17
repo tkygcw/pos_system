@@ -108,21 +108,200 @@ class _CashDialogState extends State<CashDialog> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return Consumer<ConnectivityChangeNotifier>(builder: (context, ConnectivityChangeNotifier connectivity, child) {
         return Center(
-          child: SingleChildScrollView(
-            physics: NeverScrollableScrollPhysics(),
-            child: LayoutBuilder(builder: (context, constraints) {
-              if (constraints.maxWidth > 800) {
-                return AlertDialog(
+          child: LayoutBuilder(builder: (context, constraints) {
+            if (constraints.maxWidth > 800) {
+              return AlertDialog(
+                title: widget.isNewDay
+                    ? Text(AppLocalizations.of(context)!.translate('opening_balance'))
+                    : widget.isCashIn
+                        ? Text(AppLocalizations.of(context)!.translate('cash_in'))
+                        : Text(AppLocalizations.of(context)!.translate('cash_out')),
+                content: Container(
+                  height: widget.isNewDay ? MediaQuery.of(context).size.height / 6 : MediaQuery.of(context).size.height / 4,
+                  width: widget.isNewDay ? MediaQuery.of(context).size.height / 2 : MediaQuery.of(context).size.width / 4,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          child: Visibility(
+                            visible: widget.isNewDay ? false : true,
+                            child: ValueListenableBuilder(
+                                // Note: pass _controller to the animation argument
+                                valueListenable: remarkController,
+                                builder: (context, TextEditingValue value, __) {
+                                  return SizedBox(
+                                    height: 100,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: TextField(
+                                        controller: remarkController,
+                                        decoration: InputDecoration(
+                                          errorText: _submitted
+                                              ? errorRemark == null
+                                                  ? errorRemark
+                                                  : AppLocalizations.of(context)?.translate(errorRemark!)
+                                              : null,
+                                          border: OutlineInputBorder(
+                                            borderSide: BorderSide(color: color.backgroundColor),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(color: color.backgroundColor),
+                                          ),
+                                          labelText: AppLocalizations.of(context)!.translate('remark'),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                          ),
+                        ),
+                        Container(
+                          child: ValueListenableBuilder(
+                              // Note: pass _controller to the animation argument
+                              valueListenable: amountController,
+                              builder: (context, TextEditingValue value, __) {
+                                return SizedBox(
+                                  height: 85,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: TextField(
+                                      onSubmitted: (input) async {
+                                        try {
+                                          double.parse(input);
+                                          await _submit(context);
+                                        } catch (e) {
+                                          Fluttertoast.showToast(
+                                            backgroundColor: Color(0xFFFF0000),
+                                            msg: AppLocalizations.of(context)!.translate('invalid_input'),
+                                          );
+                                        }
+                                      },
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                                      ],
+                                      keyboardType: TextInputType.number,
+                                      controller: amountController,
+                                      decoration: InputDecoration(
+                                        errorText: _submitted
+                                            ? errorAmount == null
+                                                ? errorAmount
+                                                : AppLocalizations.of(context)?.translate(errorAmount!)
+                                            : null,
+                                        border: OutlineInputBorder(
+                                          borderSide: BorderSide(color: color.backgroundColor),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: color.backgroundColor),
+                                        ),
+                                        labelText: AppLocalizations.of(context)!.translate('amount'),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                        ),
+                        widget.isNewDay && _isLoad && this.amount != ''
+                            ? Container(
+                                margin: EdgeInsets.only(left: 10),
+                                alignment: Alignment.topLeft,
+                                height: MediaQuery.of(context).size.height / 18,
+                                child: Row(
+                                  children: [
+                                    Container(child: Text(AppLocalizations.of(context)!.translate('last_settlement_opening_balance')+': ${amount}')),
+                                    Spacer(),
+                                    Container(
+                                        child: ElevatedButton(
+                                      child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                                      onPressed: () {
+                                        amountController.text = amount;
+                                      },
+                                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                    ))
+                                  ],
+                                ))
+                            : Container()
+                      ],
+                    ),
+                  ),
+                ),
+                actions: [
+                  Visibility(
+                    visible: widget.isNewDay ? false : true,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width / 5,
+                      height: MediaQuery.of(context).size.height / 12,
+                          child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                              onPressed: isButtonDisabled
+                                  ? null
+                                  : () {
+                                      // Disable the button after it has been pressed
+                                      setState(() {
+                                        isButtonDisabled = true;
+                                      });
+                                      Navigator.of(context).pop();
+                                    },
+                          ),
+                    ),
+                  ),
+                  widget.isNewDay ?
+                  Center(
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width / 7,
+                      height: MediaQuery.of(context).size.height / 12,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                        child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                        onPressed: isButtonDisabled
+                            ? null
+                            : () async {
+                          try {
+                            double.parse(amountController.text);
+                            await _submit(context);
+                          } catch (e) {
+                            Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                          }
+                        },
+                      ),
+                    ),
+                  ) :
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 5,
+                    height: MediaQuery.of(context).size.height / 12,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
+                      child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                      onPressed: isButtonDisabled
+                          ? null
+                          : () async {
+                              try {
+                                double.parse(amountController.text);
+                                await _submit(context);
+                              } catch (e) {
+                                Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_input'));
+                              }
+                            },
+                    ),
+                  )
+                ],
+              );
+            } else {
+              ///mobile layout
+              return SingleChildScrollView(
+                child: AlertDialog(
                   title: widget.isNewDay
                       ? Text(AppLocalizations.of(context)!.translate('opening_balance'))
                       : widget.isCashIn
                           ? Text(AppLocalizations.of(context)!.translate('cash_in'))
                           : Text(AppLocalizations.of(context)!.translate('cash_out')),
                   content: Container(
-                    height: widget.isNewDay ? MediaQuery.of(context).size.height / 6 : MediaQuery.of(context).size.height / 4,
-                    width: widget.isNewDay ? MediaQuery.of(context).size.height / 2 : MediaQuery.of(context).size.width / 4,
+                    height: widget.isNewDay ? MediaQuery.of(context).size.height / 3 : 150,
+                    width: widget.isNewDay ? MediaQuery.of(context).size.height / 1 : MediaQuery.of(context).size.width / 2,
                     child: SingleChildScrollView(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
@@ -132,26 +311,24 @@ class _CashDialogState extends State<CashDialog> {
                                   // Note: pass _controller to the animation argument
                                   valueListenable: remarkController,
                                   builder: (context, TextEditingValue value, __) {
-                                    return SizedBox(
-                                      height: 100,
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: TextField(
-                                          controller: remarkController,
-                                          decoration: InputDecoration(
-                                            errorText: _submitted
-                                                ? errorRemark == null
-                                                    ? errorRemark
-                                                    : AppLocalizations.of(context)?.translate(errorRemark!)
-                                                : null,
-                                            border: OutlineInputBorder(
-                                              borderSide: BorderSide(color: color.backgroundColor),
-                                            ),
-                                            focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(color: color.backgroundColor),
-                                            ),
-                                            labelText: AppLocalizations.of(context)!.translate('remark'),
+                                    return Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: TextField(
+                                        autofocus: true,
+                                        controller: remarkController,
+                                        decoration: InputDecoration(
+                                          errorText: _submitted
+                                              ? errorRemark == null
+                                                  ? errorRemark
+                                                  : AppLocalizations.of(context)?.translate(errorRemark!)
+                                              : null,
+                                          border: OutlineInputBorder(
+                                            borderSide: BorderSide(color: color.backgroundColor),
                                           ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderSide: BorderSide(color: color.backgroundColor),
+                                          ),
+                                          labelText: AppLocalizations.of(context)!.translate('remark'),
                                         ),
                                       ),
                                     );
@@ -163,263 +340,83 @@ class _CashDialogState extends State<CashDialog> {
                                 // Note: pass _controller to the animation argument
                                 valueListenable: amountController,
                                 builder: (context, TextEditingValue value, __) {
-                                  return SizedBox(
-                                    height: 85,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: TextField(
-                                        onSubmitted: (input) async {
-                                          try {
-                                            double.parse(input);
-                                            await _submit(context);
-                                          } catch (e) {
-                                            Fluttertoast.showToast(
-                                              backgroundColor: Color(0xFFFF0000),
-                                              msg: AppLocalizations.of(context)!.translate('invalid_input'),
-                                            );
-                                          }
-                                        },
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-                                        ],
-                                        keyboardType: TextInputType.number,
-                                        controller: amountController,
-                                        decoration: InputDecoration(
-                                          errorText: _submitted
-                                              ? errorAmount == null
-                                                  ? errorAmount
-                                                  : AppLocalizations.of(context)?.translate(errorAmount!)
-                                              : null,
-                                          border: OutlineInputBorder(
-                                            borderSide: BorderSide(color: color.backgroundColor),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(color: color.backgroundColor),
-                                          ),
-                                          labelText: AppLocalizations.of(context)!.translate('amount'),
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: TextField(
+                                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+                                      keyboardType: TextInputType.number,
+                                      controller: amountController,
+                                      decoration: InputDecoration(
+                                        errorText: _submitted
+                                            ? errorAmount == null
+                                                ? errorAmount
+                                                : AppLocalizations.of(context)?.translate(errorAmount!)
+                                            : null,
+                                        border: OutlineInputBorder(
+                                          borderSide: BorderSide(color: color.backgroundColor),
                                         ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: color.backgroundColor),
+                                        ),
+                                        labelText: AppLocalizations.of(context)!.translate('amount'),
                                       ),
                                     ),
                                   );
                                 }),
                           ),
-                          widget.isNewDay && _isLoad && this.amount != ''
-                              ? Container(
-                                  margin: EdgeInsets.only(left: 10),
-                                  alignment: Alignment.topLeft,
-                                  height: MediaQuery.of(context).size.height / 18,
-                                  child: Row(
-                                    children: [
-                                      Container(child: Text(AppLocalizations.of(context)!.translate('last_settlement_opening_balance')+': ${amount}')),
-                                      Spacer(),
-                                      Container(
-                                          child: ElevatedButton(
-                                        child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                                        onPressed: () {
-                                          amountController.text = amount;
-                                        },
-                                        style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                      ))
-                                    ],
-                                  ))
-                              : Container()
+                          Visibility(
+                            visible: widget.isNewDay && _isLoad && this.amount != '' ? true : false,
+                            child: Container(
+                                margin: EdgeInsets.only(left: 10),
+                                alignment: Alignment.topLeft,
+                                height: MediaQuery.of(context).size.height / 9,
+                                child: Row(
+                                  children: [
+                                    Container(child: Text(AppLocalizations.of(context)!.translate('last_settlement_opening_balance')+': ${amount}')),
+                                    Spacer(),
+                                    Container(
+                                        child: ElevatedButton(
+                                      child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                                      onPressed: () {
+                                        amountController.text = amount;
+                                      },
+                                      style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
+                                    ))
+                                  ],
+                                )),
+                          )
                         ],
                       ),
                     ),
                   ),
                   actions: [
-                    Visibility(
-                      visible: widget.isNewDay ? false : true,
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width / 5,
-                        height: MediaQuery.of(context).size.height / 12,
-                            child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                                onPressed: isButtonDisabled
-                                    ? null
-                                    : () {
-                                        // Disable the button after it has been pressed
-                                        setState(() {
-                                          isButtonDisabled = true;
-                                        });
-                                        Navigator.of(context).pop();
-                                      },
-                            ),
-                      ),
-                    ),
-                    widget.isNewDay ?
-                    Center(
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width / 7,
-                        height: MediaQuery.of(context).size.height / 12,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
-                          child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                          onPressed: isButtonDisabled
-                              ? null
-                              : () async {
-                            try {
-                              double.parse(amountController.text);
+                    widget.isNewDay
+                        ? Container()
+                        : TextButton(
+                            child: Text('${AppLocalizations.of(context)?.translate('close')}'),
+                            onPressed: isButtonDisabled
+                                ? null
+                                : () {
+                                    // Disable the button after it has been pressed
+                                    setState(() {
+                                      isButtonDisabled = true;
+                                    });
+                                    Navigator.of(context).pop();
+                                  },
+                          ),
+                    TextButton(
+                      child: Text('${AppLocalizations.of(context)?.translate('add')}'),
+                      onPressed: isButtonDisabled
+                          ? null
+                          : () async {
                               await _submit(context);
-                            } catch (e) {
-                              Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                            }
-                          },
-                        ),
-                      ),
-                    ) :
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width / 5,
-                      height: MediaQuery.of(context).size.height / 12,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: color.buttonColor),
-                        child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                        onPressed: isButtonDisabled
-                            ? null
-                            : () async {
-                                try {
-                                  double.parse(amountController.text);
-                                  await _submit(context);
-                                } catch (e) {
-                                  Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: AppLocalizations.of(context)!.translate('invalid_input'));
-                                }
-                              },
-                      ),
+                            },
                     )
                   ],
-                );
-              } else {
-                ///mobile layout
-                return SingleChildScrollView(
-                  child: AlertDialog(
-                    title: widget.isNewDay
-                        ? Text(AppLocalizations.of(context)!.translate('opening_balance'))
-                        : widget.isCashIn
-                            ? Text(AppLocalizations.of(context)!.translate('cash_in'))
-                            : Text(AppLocalizations.of(context)!.translate('cash_out')),
-                    content: Container(
-                      height: widget.isNewDay ? MediaQuery.of(context).size.height / 3 : 150,
-                      width: widget.isNewDay ? MediaQuery.of(context).size.height / 1 : MediaQuery.of(context).size.width / 2,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              child: Visibility(
-                                visible: widget.isNewDay ? false : true,
-                                child: ValueListenableBuilder(
-                                    // Note: pass _controller to the animation argument
-                                    valueListenable: remarkController,
-                                    builder: (context, TextEditingValue value, __) {
-                                      return Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: TextField(
-                                          autofocus: true,
-                                          controller: remarkController,
-                                          decoration: InputDecoration(
-                                            errorText: _submitted
-                                                ? errorRemark == null
-                                                    ? errorRemark
-                                                    : AppLocalizations.of(context)?.translate(errorRemark!)
-                                                : null,
-                                            border: OutlineInputBorder(
-                                              borderSide: BorderSide(color: color.backgroundColor),
-                                            ),
-                                            focusedBorder: OutlineInputBorder(
-                                              borderSide: BorderSide(color: color.backgroundColor),
-                                            ),
-                                            labelText: AppLocalizations.of(context)!.translate('remark'),
-                                          ),
-                                        ),
-                                      );
-                                    }),
-                              ),
-                            ),
-                            Container(
-                              child: ValueListenableBuilder(
-                                  // Note: pass _controller to the animation argument
-                                  valueListenable: amountController,
-                                  builder: (context, TextEditingValue value, __) {
-                                    return Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: TextField(
-                                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
-                                        keyboardType: TextInputType.number,
-                                        controller: amountController,
-                                        decoration: InputDecoration(
-                                          errorText: _submitted
-                                              ? errorAmount == null
-                                                  ? errorAmount
-                                                  : AppLocalizations.of(context)?.translate(errorAmount!)
-                                              : null,
-                                          border: OutlineInputBorder(
-                                            borderSide: BorderSide(color: color.backgroundColor),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(color: color.backgroundColor),
-                                          ),
-                                          labelText: AppLocalizations.of(context)!.translate('amount'),
-                                        ),
-                                      ),
-                                    );
-                                  }),
-                            ),
-                            Visibility(
-                              visible: widget.isNewDay && _isLoad && this.amount != '' ? true : false,
-                              child: Container(
-                                  margin: EdgeInsets.only(left: 10),
-                                  alignment: Alignment.topLeft,
-                                  height: MediaQuery.of(context).size.height / 9,
-                                  child: Row(
-                                    children: [
-                                      Container(child: Text(AppLocalizations.of(context)!.translate('last_settlement_opening_balance')+': ${amount}')),
-                                      Spacer(),
-                                      Container(
-                                          child: ElevatedButton(
-                                        child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                                        onPressed: () {
-                                          amountController.text = amount;
-                                        },
-                                        style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),
-                                      ))
-                                    ],
-                                  )),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                    actions: [
-                      widget.isNewDay
-                          ? Container()
-                          : TextButton(
-                              child: Text('${AppLocalizations.of(context)?.translate('close')}'),
-                              onPressed: isButtonDisabled
-                                  ? null
-                                  : () {
-                                      // Disable the button after it has been pressed
-                                      setState(() {
-                                        isButtonDisabled = true;
-                                      });
-                                      Navigator.of(context).pop();
-                                    },
-                            ),
-                      TextButton(
-                        child: Text('${AppLocalizations.of(context)?.translate('add')}'),
-                        onPressed: isButtonDisabled
-                            ? null
-                            : () async {
-                                await _submit(context);
-                              },
-                      )
-                    ],
-                  ),
-                );
-              }
-            }),
-          ),
+                ),
+              );
+            }
+          }),
         );
       });
     });

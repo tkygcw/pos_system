@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:another_flushbar/flushbar.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
@@ -2355,7 +2356,10 @@ class CartPageState extends State<CartPage> {
           _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
           CustomSnackBar.instance.showSnackBar(
               title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-              description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}", playSound: true, playtime: 1);
+              description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+              contentType: ContentType.failure,
+              playSound: true,
+              playtime: 2);
           // playSound();
           // Flushbar(
           //   icon: Icon(Icons.error, size: 32, color: Colors.white),
@@ -2378,9 +2382,9 @@ class CartPageState extends State<CartPage> {
           //   },
           // )
           //   ..show(context);
-          Future.delayed(Duration(seconds: 3), () {
-            playSound();
-          });
+          // Future.delayed(Duration(seconds: 3), () {
+          //   playSound();
+          // });
         }
       } else {
         Fluttertoast.showToast(backgroundColor: Colors.red, msg: "${AppLocalizations.of(context)?.translate('no_printer_added')}");

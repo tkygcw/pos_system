@@ -23,26 +23,26 @@ class CustomSnackBar {
 
   getDescription(String? description){
     if(description != null){
-      return '';
-    } else {
       return description;
+    } else {
+      return '';
     }
   }
 
-  showSnackBar({required String title, String? description, bool? playSound, int? playtime}){
+
+  showSnackBar({required String title, required ContentType contentType, String? description, bool? playSound, int? playtime}){
     ScaffoldMessenger.of(_context).showSnackBar(SnackBar(
       padding: EdgeInsets.only(top: 20),
       elevation: 0,
       content: AwesomeSnackbarContent(
           title: title,
           message: getDescription(description),
-          contentType: ContentType.failure),
+          contentType: contentType),
       behavior: SnackBarBehavior.floating,
       backgroundColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
       ),
-      // showCloseIcon: true,
       margin: EdgeInsets.only(bottom: MediaQuery.of(_context).size.height - 120),
     ));
     if(playSound != null && playSound == true){

@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:f_logs/model/flog/flog.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -109,7 +110,10 @@ class QrOrderAutoAccept {
     if(_failPrintModel.failedPrintOrderDetail.length >= 1) {
       CustomSnackBar.instance.showSnackBar(
           title: "${AppLocalizations.of(context)?.translate('error')}${AppLocalizations.of(context)?.translate('kitchen_printer_timeout')}",
-          description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}", playSound: true, playtime: 2);
+          description: "${AppLocalizations.of(context)?.translate('please_try_again_later')}",
+          contentType: ContentType.failure,
+          playSound: true,
+          playtime: 2);
       // playSound();
       // Flushbar(
       //   icon: Icon(Icons.error, size: 32, color: Colors.white),
