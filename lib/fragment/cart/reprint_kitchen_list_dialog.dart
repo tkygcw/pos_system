@@ -1,7 +1,9 @@
 import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:pos_system/fragment/custom_snackbar.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/second_device/reprint_kitchen_list_function.dart';
 import 'package:provider/provider.dart';
@@ -366,33 +368,37 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
       reprintList.clear();
       checkSubPosOrderDetail(returnData);
       _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
-      playSound();
-      Flushbar(
-        icon: Icon(Icons.error, size: 32, color: Colors.white),
-        shouldIconPulse: false,
-        title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
-        message: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
-        duration: Duration(seconds: 5),
-        backgroundColor: Colors.red,
-        messageColor: Colors.white,
-        flushbarPosition: FlushbarPosition.TOP,
-        maxWidth: 350,
-        margin: EdgeInsets.all(8),
-        borderRadius: BorderRadius.circular(8),
-        padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
-        onTap: (flushbar) {
-          flushbar.dismiss(true);
-        },
-        onStatusChanged: (status) {
-          flushbarStatus = status.toString();
-          print("onStatusChanged: ${status}");
-        },
-      )..show(_context);
-      Future.delayed(Duration(seconds: 3), () {
-        print("status change: ${flushbarStatus}");
-        if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
-          playSound();
-      });
+      CustomSnackBar.instance.showSnackBar(
+          title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
+          description: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
+          contentType: ContentType.failure,
+          playSound: true,
+          playtime: 2);
+      // playSound();
+      // Flushbar(
+      //   icon: Icon(Icons.error, size: 32, color: Colors.white),
+      //   shouldIconPulse: false,
+      //   title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
+      //   message: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
+      //   duration: Duration(seconds: 5),
+      //   backgroundColor: Colors.red,
+      //   messageColor: Colors.white,
+      //   flushbarPosition: FlushbarPosition.TOP,
+      //   maxWidth: 350,
+      //   margin: EdgeInsets.all(8),
+      //   borderRadius: BorderRadius.circular(8),
+      //   padding: EdgeInsets.fromLTRB(40, 20, 40, 20),
+      //   onTap: (flushbar) {
+      //     flushbar.dismiss(true);
+      //   },
+      //   onStatusChanged: (status) {
+      //     flushbarStatus = status.toString();
+      //     print("onStatusChanged: ${status}");
+      //   },
+      // )..show(_context);
+      // Future.delayed(Duration(seconds: 3), () {
+      //   playSound();
+      // });
 
     } else {
       reprintList.clear();
