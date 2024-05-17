@@ -45,6 +45,7 @@ class Domain {
   static Uri checklist = Uri.parse(domain + 'mobile-api/checklist/index.php');
   static Uri kitchen_list = Uri.parse(domain + 'mobile-api/kitchen_list/index.php');
   static Uri second_screen = Uri.parse(domain + 'mobile-api/second_screen/index.php');
+  static Uri local_data_export = Uri.parse(domain + 'mobile-api/local_data_export/index.php');
 
 
 /*
