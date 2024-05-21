@@ -265,9 +265,7 @@ class CartDialogState extends State<CartDialog> {
                               child: Text(AppLocalizations.of(context)!.translate('close'),
                                 style: TextStyle(color: Colors.white),
                               ),
-                              onPressed: isButtonDisabled
-                                  ? null
-                                  : () {
+                              onPressed: isButtonDisabled ? null : () {
                                       setState(() {
                                         isButtonDisabled = true;
                                       });
@@ -287,11 +285,10 @@ class CartDialogState extends State<CartDialog> {
                               child: Text(AppLocalizations.of(context)!.translate('select_table'),
                                 style: TextStyle(color: Colors.white),
                               ),
-                              onPressed: !checkIsSelected()
-                                  ? null
-                                  : () async {
+                              onPressed: !checkIsSelected() || isButtonDisabled ? null : () async {
                                       cart.removeAllTable();
                                       cart.removeAllCartItem();
+                                      isButtonDisabled = true;
                                       for (int index = 0; index < tableList.length; index++) {
                                         //if using table is selected
                                         if (tableList[index].status == 1 && tableList[index].isSelected == true) {

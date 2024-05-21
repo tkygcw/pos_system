@@ -8,7 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:pos_system/notifier/fail_print_notifier.dart';
 import 'package:pos_system/object/printer.dart';
 import 'package:pos_system/second_device/server.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
+import '../fragment/custom_snackbar.dart';
 import '../main.dart';
 import '../object/order_detail.dart';
 import '../object/print_receipt.dart';
@@ -33,13 +35,19 @@ class ReprintKitchenListFunction {
         List<OrderDetail> returnData = await printReceipt.reprintKitchenList(printerList, reprintList: selectedList);
         if (returnData.isNotEmpty) {
           splitOrderDetail(returnData);
-          showFlushBar();
-          playSound();
-          Future.delayed(Duration(seconds: 3), () {
-            print("status change: ${flushbarStatus}");
-            if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
-              playSound();
-          });
+          CustomSnackBar.instance.showSnackBar(
+              title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
+              description: "${AppLocalizations.of(_context)?.translate('please_try_again_later')}",
+              contentType: ContentType.failure,
+              playSound: true,
+              playtime: 2);
+          // showFlushBar();
+          // playSound();
+          // Future.delayed(Duration(seconds: 3), () {
+          //   print("status change: ${flushbarStatus}");
+          //   if(flushbarStatus != "FlushbarStatus.IS_HIDING" && flushbarStatus != "FlushbarStatus.DISMISSED")
+          //     playSound();
+          // });
 
         } else {
           //remove all success printed failed order detail

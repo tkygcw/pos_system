@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../notifier/theme_color.dart';
 
 class QrMainPage extends StatefulWidget {
@@ -29,13 +31,14 @@ class _QrMainPageState extends State<QrMainPage> {
   late StreamController controller;
   List<OrderCache> qrOrderCacheList = [];
   List<OrderDetail> orderDetailList = [], noStockOrderDetailList = [];
-  bool _isLoaded = false, hasNoStockProduct = false;
+  bool _isLoaded = false, hasNoStockProduct = false, hasAccess = true;
 
   @override
   void initState() {
     super.initState();
     controller = StreamController();
-    preload();
+    // preload();
+    checkStatus();
   }
 
   @override
@@ -47,7 +50,8 @@ class _QrMainPageState extends State<QrMainPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Scaffold(
+      return hasAccess ?
+        Scaffold(
           appBar: AppBar(
             primary: false,
             elevation: 0,
@@ -89,8 +93,7 @@ class _QrMainPageState extends State<QrMainPage> {
               stream: controller.stream,
               builder: (context, snapshot) {
                 preload();
-                return _isLoaded
-                    ?
+                return _isLoaded ?
                 Container(
                   padding: EdgeInsets.all(10),
                   child: qrOrderCacheList.isNotEmpty
@@ -167,7 +170,14 @@ class _QrMainPageState extends State<QrMainPage> {
                 )
                     :
                 CustomProgressBar();
-              }));
+              })) :
+      Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.lock),
+          Text(AppLocalizations.of(context)!.translate('upgrade_to_use_qr_order'))
+        ],
+      );
     });
   }
 
@@ -202,6 +212,17 @@ class _QrMainPageState extends State<QrMainPage> {
 
   preload() async {
     await getAllNotAcceptedQrOrder();
+  }
+
+  Future<void> checkStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    if(branchObject['qr_order_status'] == '1'){
+      setState(() {
+        hasAccess = false;
+      });
+    }
   }
 
   checkOrderDetail(int orderCacheLocalId, int index) async {

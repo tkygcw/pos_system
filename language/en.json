@@ -552,6 +552,8 @@
   "update_printer_error_please_try_again": "update printer error, Please try again",
   "update_success": "Update successful",
   "update_table_layout": "Update Table Layout",
+  "upgrade_to_use_qr_order": "Upgrade to use Qr ordering feature",
+  "upgrade_to_use_sub_pos": "Upgrade to use Sub POS feature",
   "usb_printer_not_connect": "Printer not connected. Please check your usb plugin",
   "user": "User",
   "user_not_found": "User not Found.",

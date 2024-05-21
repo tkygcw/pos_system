@@ -86,36 +86,6 @@ class PosDatabase {
     if (oldVersion < newVersion) {
       // you can execute drop table and create table
       switch (oldVersion) {
-        case 2:
-          {
-            await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.header_font_size} INTEGER NOT NULL DEFAULT 0");
-            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.direct_payment} INTEGER NOT NULL DEFAULT 0");
-          }
-          break;
-        case 3:
-          {
-            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.direct_payment} INTEGER NOT NULL DEFAULT 0");
-          }
-          break;
-        case 4:
-          {
-            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_checklist} INTEGER NOT NULL DEFAULT 1");
-            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_sku} INTEGER NOT NULL DEFAULT 0");
-            await db.execute('''CREATE TABLE $tableChecklist(
-          ${ChecklistFields.checklist_sqlite_id} $idType,
-          ${ChecklistFields.checklist_id} $integerType,
-          ${ChecklistFields.checklist_key} $textType,
-          ${ChecklistFields.branch_id} $textType,
-          ${ChecklistFields.product_name_font_size} $integerType,
-          ${ChecklistFields.other_font_size} $integerType,
-          ${ChecklistFields.paper_size} $textType,
-          ${ChecklistFields.sync_status} $integerType,
-          ${ChecklistFields.created_at} $textType,
-          ${ChecklistFields.updated_at} $textType,
-          ${ChecklistFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dy} TEXT NOT NULL DEFAULT '' ");
-          await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dx} TEXT NOT NULL DEFAULT '' ");
-        }break;
         case 5: {
           await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dy} TEXT NOT NULL DEFAULT '' ");
           await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dx} TEXT NOT NULL DEFAULT '' ");
@@ -402,10 +372,15 @@ class PosDatabase {
           ${SubscriptionFields.soft_delete} $textType)''');
         }break;
         case 14: {
+          print("case 14 called");
           await db.execute("ALTER TABLE $tableUser ADD ${UserFields.refund_permission} INTEGER NOT NULL DEFAULT 1");
           await db.execute("ALTER TABLE $tableUser ADD ${UserFields.settlement_permission} INTEGER NOT NULL DEFAULT 1");
           await db.execute("ALTER TABLE $tableUser ADD ${UserFields.report_permission} INTEGER NOT NULL DEFAULT 1");
           await db.execute("ALTER TABLE $tableUser ADD ${UserFields.cash_drawer_permission} INTEGER NOT NULL DEFAULT 1");
+          //branch table
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.qr_order_status} $textType DEFAULT '0'");
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.sub_pos_status} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.attendance_status} INTEGER NOT NULL DEFAULT 0");
         }break;
       }
     }
@@ -792,7 +767,10 @@ class PosDatabase {
            ${BranchFields.email} $textType,
            ${BranchFields.ipay_merchant_code} $textType,
            ${BranchFields.ipay_merchant_key} $textType,
-           ${BranchFields.notification_token} $textType)''');
+           ${BranchFields.notification_token} $textType,
+           ${BranchFields.qr_order_status} $textType,
+           ${BranchFields.sub_pos_status} $integerType,
+           ${BranchFields.attendance_status} $integerType)''');
 
 /*
     create app color table
@@ -5555,8 +5533,8 @@ class PosDatabase {
 */
   Future<int> updateBranch(Branch data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ? WHERE branchID = ? ',
-        [data.name, data.address, data.phone, data.email, data.branchID]);
+    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, qr_order_status = ?, sub_pos_status = ?, attendance_status = ? WHERE branchID = ? ',
+        [data.name, data.address, data.phone, data.email, data.qr_order_status, data.sub_pos_status, data.attendance_status, data.branchID]);
   }
 
 /*

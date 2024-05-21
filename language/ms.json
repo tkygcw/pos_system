@@ -552,6 +552,8 @@
   "update_printer_error_please_try_again": "Ralat mengemas kini pencetak, Sila cuba lagi",
   "update_success": "Berjaya dikemas kini",
   "update_table_layout": "Kemas kini susun atur meja",
+  "upgrade_to_use_qr_order": "Naik taraf untuk menggunakan fungsi pesanan Qr",
+  "upgrade_to_use_sub_pos": "Naik taraf untuk menggunakan fungsi Sub POS",
   "usb_printer_not_connect": "Pencetak USB tidak disambungkan. Sila periksa pemasangan USB anda",
   "user": "Pengguna",
   "user_not_found": "Pengguna tidak dijumpai",

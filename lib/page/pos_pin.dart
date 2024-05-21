@@ -75,7 +75,7 @@ class _PosPinPageState extends State<PosPinPage> {
   preload() async {
     syncRecord.syncFromCloud();
     if(notificationModel.syncCountStarted == false){
-      //startTimers();
+      startTimers();
     }
     await readAllPrinters();
   }
@@ -84,8 +84,11 @@ class _PosPinPageState extends State<PosPinPage> {
   bind server socket
 */
   bindSocket() async {
-    await Server.instance.bindServer();
-    await Server.instance.bindRequestServer();
+    try{
+      await Server.instance.bindAllSocket();
+    }catch(e){
+      print("init bind error: ${e}");
+    }
   }
 
   getLatestVersion() async {

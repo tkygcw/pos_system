@@ -6,6 +6,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/object/server_action.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../database/pos_database.dart';
+import '../object/branch.dart';
 
 
 class Server extends ChangeNotifier {
@@ -14,7 +18,7 @@ class Server extends ChangeNotifier {
   List<Socket> requestClient = [];
   List<Socket> clientList = [];
   ServerSocket? serverSocket;
-  static String? _serverIp;
+  static String _serverIp = '-';
   static final Server instance = Server.init();
 
   Server.init();
@@ -37,7 +41,22 @@ class Server extends ChangeNotifier {
     return _serverIp;
   }
 
-  closeSocket(){
+  bindAllSocket() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    print("sub pos status: ${branchObject['sub_pos_status']}");
+    if(branchObject['sub_pos_status'] == 0){
+      await bindServer();
+      await bindRequestServer();
+    } else if (branchObject['sub_pos_status'] == null){
+      //update share pref
+      Branch? branch = await PosDatabase.instance.readSpecificBranch(branchObject['branchID']);
+      await prefs.setString('branch', json.encode(branch!));
+    }
+  }
+
+  void closeSocket(){
     serverSocket!.close();
   }
 
@@ -59,13 +78,16 @@ class Server extends ChangeNotifier {
   bindServer()async {
     print("server socket value: $serverSocket");
     print("server ip value: ${instance.serverIp}");
-    // if(serverSocket != null){
-    //   closeSocket();
-    // }
     final ips = await instance.getDeviceIp();
     print("server ip running at: ${ips}");
     if(ips != null){
-      serverSocket = await ServerSocket.bind(ips, 9999, shared: true);
+      try{
+        serverSocket = await ServerSocket.bind(ips, 9999, shared: true);
+      }catch(e){
+        print("bind server error: ${e}");
+        _serverIp = "-";
+       return;
+      }
       serverSocket!.listen((currentClient) async {
         addClient(currentClient);
         //print("client length in bind: ${server.clientList.length}");
@@ -135,13 +157,19 @@ class Server extends ChangeNotifier {
 
   bindRequestServer()async {
     List<Socket> client2 = [];
+    ServerSocket serverSocket2;
     final ips = await instance.serverIp;
     if(ips != null && ips != '-'){
-      ServerSocket serverSocket2 = await ServerSocket.bind(ips, 8888, shared: true);
-      await for(Socket clientSocket in serverSocket2){
+      try{
+        serverSocket2 = await ServerSocket.bind(ips, 8888, shared: true);
+      }catch(e){
+        print("bind request server error: ${e}");
+        return;
+      }
+      serverSocket2.listen((clientSocket) async  {
         client2.add(clientSocket);
         await handleClient2(clientSocket, client2);
-      }
+      });
     }
   }
 
