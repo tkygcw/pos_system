@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:f_logs/model/flog/flog.dart';
 import 'package:pos_system/fragment/cart/cart.dart';
 import 'package:pos_system/fragment/product/product_order_dialog.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
@@ -178,7 +179,11 @@ class ServerAction {
             }
           } catch(e){
             result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
-            print('place order request error: $e');
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 8 error",
+              exception: "$e",
+            );
           }
         }
         break;

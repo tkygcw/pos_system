@@ -2264,13 +2264,20 @@ class CartPageState extends State<CartPage> {
         cart.removeAllTable();
         // Server.instance.sendRefreshMessage();
         Navigator.of(context).pop();
-        CustomFlushbar.instance.showFlushbar(
-            AppLocalizations.of(context)!.translate('place_order_failed'),
-            AppLocalizations.of(context)!.translate('table_is_used'),
-            Colors.red, (flushbar) async {
-              flushbar.dismiss(true);
-              },
-            duration: Duration(seconds: 3));
+        CustomSnackBar.instance.showSnackBar(
+            title: "${AppLocalizations.of(context)!.translate('place_order_failed')}",
+            description: "${AppLocalizations.of(context)!.translate('table_is_used')}",
+            contentType: ContentType.failure,
+            playSound: true,
+            playtime: 2
+        );
+        // CustomFlushbar.instance.showFlushbar(
+        //     AppLocalizations.of(context)!.translate('place_order_failed'),
+        //     AppLocalizations.of(context)!.translate('table_is_used'),
+        //     Colors.red, (flushbar) async {
+        //       flushbar.dismiss(true);
+        //       },
+        //     duration: Duration(seconds: 3));
       }
     }catch(e){
       FLog.error(
@@ -2324,11 +2331,18 @@ class CartPageState extends State<CartPage> {
         cart.removeAllTable();
         // Server.instance.sendRefreshMessage();
         Navigator.of(context).pop();
-        CustomFlushbar.instance.showFlushbar(
-            AppLocalizations.of(context)!.translate('place_order_failed'),
-            AppLocalizations.of(context)!.translate('table_not_in_use'), Colors.red, (flushbar) async {
-          flushbar.dismiss(true);
-        }, duration: Duration(seconds: 3));
+        CustomSnackBar.instance.showSnackBar(
+            title: "${AppLocalizations.of(context)!.translate('place_order_failed')}",
+            description: "${ AppLocalizations.of(context)!.translate('table_not_in_use')}",
+            contentType: ContentType.failure,
+            playSound: true,
+            playtime: 2
+        );
+        // CustomFlushbar.instance.showFlushbar(
+        //     AppLocalizations.of(context)!.translate('place_order_failed'),
+        //     AppLocalizations.of(context)!.translate('table_not_in_use'), Colors.red, (flushbar) async {
+        //   flushbar.dismiss(true);
+        // }, duration: Duration(seconds: 3));
       }
     }catch(e){
       FLog.error(
