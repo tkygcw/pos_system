@@ -800,9 +800,6 @@ class _ReportPageState extends State<ReportPage> {
   }
 
   checkAccess() async {
-    print("checkAccess called");
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
     final String? pos_user = prefs.getString('pos_pin_user');
     Map<String, dynamic> userMap = json.decode(pos_user!);

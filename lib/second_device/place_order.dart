@@ -251,9 +251,9 @@ abstract class PlaceOrder {
     return result;
   }
 
-  printCheckList() async {
+  printCheckList(String order_by) async {
     if(appSetting?.print_checklist == 1){
-      int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheSqliteId));
+      int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheSqliteId), order_by: order_by);
     }
   }
 
@@ -648,7 +648,7 @@ abstract class PlaceOrder {
 
 class PlaceNewDineInOrder extends PlaceOrder {
 
-  Future<Map<String, dynamic>> callCreateNewOrder(CartModel cart, String address) async {
+  Future<Map<String, dynamic>> callCreateNewOrder(CartModel cart, String address, String orderBy) async {
     Map<String, dynamic> objectData;
     await initData();
     if(await checkTableStatus(cart) == false){
@@ -658,7 +658,7 @@ class PlaceNewDineInOrder extends PlaceOrder {
       await createOrderDetail(cart);
       await updatePosTable(cart);
       //print check list
-      printCheckList();
+      printCheckList(orderBy);
       // if (_appSettingModel.autoPrintChecklist == true) {
       //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
       //   if (printStatus == 1) {
@@ -779,14 +779,14 @@ class PlaceNewDineInOrder extends PlaceOrder {
 
 class PlaceNotDineInOrder extends PlaceOrder {
 
-  Future<Map<String, dynamic>> callCreateNewNotDineOrder(CartModel cart, String address) async {
+  Future<Map<String, dynamic>> callCreateNewNotDineOrder(CartModel cart, String address, String orderBy) async {
     print("callCreateNewNotDineOrder");
     Map<String, dynamic> objectData;
 
     await initData();
     await createOrderCache(cart);
     await createOrderDetail(cart);
-    printCheckList();
+    printCheckList(orderBy);
     // if (_appSettingModel.autoPrintChecklist == true) {
     //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
     //   if (printStatus == 1) {
@@ -889,14 +889,14 @@ class PlaceNotDineInOrder extends PlaceOrder {
 
 class PlaceAddOrder extends PlaceOrder {
 
-  Future<Map<String, dynamic>> callAddOrderCache(CartModel cart, String address) async {
+  Future<Map<String, dynamic>> callAddOrderCache(CartModel cart, String address, String orderBy) async {
     Map<String, dynamic> objectData;
     await initData();
     if(await checkTableStatus(cart) == true){
       if(checkIsTableSelectedInPaymentCart(cart) == false) {
         await createOrderCache(cart);
         await createOrderDetail(cart);
-        printCheckList();
+        printCheckList(orderBy);
         // if (_appSettingModel.autoPrintChecklist == true) {
         //   int printStatus = await printReceipt.printCheckList(printerList, int.parse(this.orderCacheId));
         //   if (printStatus == 1) {

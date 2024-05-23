@@ -210,19 +210,15 @@ class _SettlementPageState extends State<SettlementPage> {
                                   ElevatedButton(
                                     child: Text(AppLocalizations.of(context)!.translate('transfer_ownership')),
                                     onPressed: () async {
-                                      if(cashRecordList.isNotEmpty){
-                                        if (await confirm(
-                                          context,
-                                          title: Text('${AppLocalizations.of(context)?.translate('confirm_pos_pin')}'),
-                                          content: Text('${AppLocalizations.of(context)?.translate('to_pos_pin')}'),
-                                          textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
-                                          textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
-                                        )) {
-                                          // return openPosPinDialog();
-                                          return toPosPinPage();
-                                        }
-                                      } else {
-                                        Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('close_counter_warn')}");
+                                      if (await confirm(
+                                        context,
+                                        title: Text('${AppLocalizations.of(context)?.translate('confirm_pos_pin')}'),
+                                        content: Text('${AppLocalizations.of(context)?.translate('to_pos_pin')}'),
+                                        textOK: Text('${AppLocalizations.of(context)?.translate('yes')}'),
+                                        textCancel: Text('${AppLocalizations.of(context)?.translate('no')}'),
+                                      )) {
+                                        // return openPosPinDialog();
+                                        return toPosPinPage();
                                       }
                                     },
                                     style: ElevatedButton.styleFrom(backgroundColor: color.backgroundColor),

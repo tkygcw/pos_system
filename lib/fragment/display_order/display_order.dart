@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
+import 'package:pos_system/notifier/notification_notifier.dart';
 import 'package:pos_system/notifier/table_notifier.dart';
 import 'package:pos_system/object/dining_option.dart';
 import 'package:pos_system/object/order_cache.dart';
@@ -106,162 +107,169 @@ class _DisplayOrderPageState extends State<DisplayOrderPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Consumer<CartModel>(builder: (context, CartModel cart, child) {
+      return Consumer<NotificationModel>(builder: (context, notificationModel, child) {
+        return Consumer<CartModel>(builder: (context, CartModel cart, child) {
+          if(notificationModel.contentLoaded == true){
+            notificationModel.resetContentLoaded();
+            notificationModel.resetContentLoad();
+            getOrderList();
+          }
           return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
             if (tableModel.isChange) {
               getOrderList(model: tableModel);
             }
-              return Scaffold(
-                appBar: AppBar(
-                  automaticallyImplyLeading: false,
-                  elevation: 0,
-                  title: Text(AppLocalizations.of(context)!.translate('other_order'), style: TextStyle(fontSize: 25)),
-                  actions: [
-                    Container(
-                      width: MediaQuery.of(context).size.height / 3,
-                      padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                      child: DropdownButton<String>(
-                        onChanged: (String? value) {
-                          setState(() {
-                            selectDiningOption = value!;
-                          });
-                          getOrderList();
-                        },
-                        menuMaxHeight: 300,
-                        value: selectDiningOption,
-                        // Hide the default underline
-                        underline: Container(),
-                        icon: Icon(
-                          Icons.arrow_drop_down,
-                          color: color.backgroundColor,
-                        ),
-                        isExpanded: true,
-                        // The list of options
-                        items: list
-                            .map((e) => DropdownMenuItem(
-                          value: e,
-                          child: Container(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              AppLocalizations.of(context)!.translate(getDiningOption(e)),
-                              style: TextStyle(fontSize: 18),
-                            ),
-                          ),
-                        ))
-                            .toList(),
-                        // Customize the selected item
-                        selectedItemBuilder: (BuildContext context) => list
-                            .map((e) => Center(
-                          child: Text(AppLocalizations.of(context)!.translate(getDiningOption(e))),
-                        ))
-                            .toList(),
+            return Scaffold(
+              appBar: AppBar(
+                automaticallyImplyLeading: false,
+                elevation: 0,
+                title: Text(AppLocalizations.of(context)!.translate('other_order'), style: TextStyle(fontSize: 25)),
+                actions: [
+                  Container(
+                    width: MediaQuery.of(context).size.height / 3,
+                    padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                    child: DropdownButton<String>(
+                      onChanged: (String? value) {
+                        setState(() {
+                          selectDiningOption = value!;
+                        });
+                        getOrderList();
+                      },
+                      menuMaxHeight: 300,
+                      value: selectDiningOption,
+                      // Hide the default underline
+                      underline: Container(),
+                      icon: Icon(
+                        Icons.arrow_drop_down,
+                        color: color.backgroundColor,
                       ),
-                    ),
-                  ],
-                ),
-                resizeToAvoidBottomInset: false,
-                body: Container(
-                  padding: EdgeInsets.all(10),
-                  child: orderCacheList.isNotEmpty
-                      ?
-                  ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: orderCacheList.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Card(
-                          elevation: 5,
-                          shape: orderCacheList[index].is_selected
-                              ? new RoundedRectangleBorder(
-                              side: new BorderSide(
-                                  color: color.backgroundColor, width: 3.0),
-                              borderRadius: BorderRadius.circular(4.0))
-                              : new RoundedRectangleBorder(
-                              side: new BorderSide(
-                                  color: Colors.white, width: 3.0),
-                              borderRadius: BorderRadius.circular(4.0)),
-                          child: InkWell(
-                            onTap: () async {
-                              if(orderCacheList[index].is_selected == false){
-                                //reset other selected order
-                                for(int i = 0; i < orderCacheList.length; i++){
-                                  orderCacheList[i].is_selected = false;
-                                  cart.notDineInInitLoad();
-                                }
-                                orderCacheList[index].is_selected = true;
-                                await getOrderDetail(orderCacheList[index]);
-                                await addToCart(cart, orderCacheList[index]);
-
-
-                              } else if(orderCacheList[index].is_selected == true) {
-                                orderCacheList[index].is_selected = false;
-                                cart.notDineInInitLoad();
-                              }
-                              //openViewOrderDialog(orderCacheList[index]);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: ListTile(
-                                  leading:
-                                      orderCacheList[index].dining_name == 'Take Away'
-                                          ? Icon(
-                                              Icons.fastfood_sharp,
-                                              color: color.backgroundColor,
-                                              size: 30.0,
-                                            )
-                                      : orderCacheList[index].dining_name == 'Delivery'
-                                          ? Icon(
-                                              Icons.delivery_dining,
-                                              color: color.backgroundColor,
-                                              size: 30.0,
-                                            )
-                                          : Icon(
-                                              Icons.local_dining_sharp,
-                                              color: color.backgroundColor,
-                                              size: 30.0,
-                                            ),
-                                  trailing: Text(
-                                    '#'+orderCacheList[index].batch_id.toString(),
-                                    style: TextStyle(fontSize: 20),
-                                  ),
-                                  subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(AppLocalizations.of(context)!.translate('order_by')+': ' + orderCacheList[index].order_by!,
-                                        style: TextStyle(fontSize: 14),
-                                      ),
-                                      Text(AppLocalizations.of(context)!.translate('order_at')+': ' + Utils.formatDate(orderCacheList[index].created_at!),
-                                        style: TextStyle(fontSize: 14),
-                                      ),
-                                    ],
-                                  ),
-                                  title: Text(
-                                    "${Utils.convertTo2Dec(orderCacheList[index].total_amount!,)}",
-                                    style: TextStyle(fontSize: 20),
-                                  )),
-                            ),
+                      isExpanded: true,
+                      // The list of options
+                      items: list
+                          .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Container(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            AppLocalizations.of(context)!.translate(getDiningOption(e)),
+                            style: TextStyle(fontSize: 18),
                           ),
-                        );
-                      })
-                      :
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.list,
-                          color: Colors.grey,
-                          size: 36.0,
                         ),
-                        Text(AppLocalizations.of(context)!.translate('no_order'), style: TextStyle(fontSize: 24),),
-                      ],
+                      ))
+                          .toList(),
+                      // Customize the selected item
+                      selectedItemBuilder: (BuildContext context) => list
+                          .map((e) => Center(
+                        child: Text(AppLocalizations.of(context)!.translate(getDiningOption(e))),
+                      ))
+                          .toList(),
                     ),
                   ),
+                ],
+              ),
+              resizeToAvoidBottomInset: false,
+              body: Container(
+                padding: EdgeInsets.all(10),
+                child: orderCacheList.isNotEmpty
+                    ?
+                ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: orderCacheList.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Card(
+                        elevation: 5,
+                        shape: orderCacheList[index].is_selected
+                            ? new RoundedRectangleBorder(
+                            side: new BorderSide(
+                                color: color.backgroundColor, width: 3.0),
+                            borderRadius: BorderRadius.circular(4.0))
+                            : new RoundedRectangleBorder(
+                            side: new BorderSide(
+                                color: Colors.white, width: 3.0),
+                            borderRadius: BorderRadius.circular(4.0)),
+                        child: InkWell(
+                          onTap: () async {
+                            if(orderCacheList[index].is_selected == false){
+                              //reset other selected order
+                              for(int i = 0; i < orderCacheList.length; i++){
+                                orderCacheList[i].is_selected = false;
+                                cart.notDineInInitLoad();
+                              }
+                              orderCacheList[index].is_selected = true;
+                              await getOrderDetail(orderCacheList[index]);
+                              await addToCart(cart, orderCacheList[index]);
+
+
+                            } else if(orderCacheList[index].is_selected == true) {
+                              orderCacheList[index].is_selected = false;
+                              cart.notDineInInitLoad();
+                            }
+                            //openViewOrderDialog(orderCacheList[index]);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: ListTile(
+                                leading:
+                                orderCacheList[index].dining_name == 'Take Away'
+                                    ? Icon(
+                                  Icons.fastfood_sharp,
+                                  color: color.backgroundColor,
+                                  size: 30.0,
+                                )
+                                    : orderCacheList[index].dining_name == 'Delivery'
+                                    ? Icon(
+                                  Icons.delivery_dining,
+                                  color: color.backgroundColor,
+                                  size: 30.0,
+                                )
+                                    : Icon(
+                                  Icons.local_dining_sharp,
+                                  color: color.backgroundColor,
+                                  size: 30.0,
+                                ),
+                                trailing: Text(
+                                  '#'+orderCacheList[index].batch_id.toString(),
+                                  style: TextStyle(fontSize: 20),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(AppLocalizations.of(context)!.translate('order_by')+': ' + orderCacheList[index].order_by!,
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                    Text(AppLocalizations.of(context)!.translate('order_at')+': ' + Utils.formatDate(orderCacheList[index].created_at!),
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                                title: Text(
+                                  "${Utils.convertTo2Dec(orderCacheList[index].total_amount!,)}",
+                                  style: TextStyle(fontSize: 20),
+                                )),
+                          ),
+                        ),
+                      );
+                    })
+                    :
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.list,
+                        color: Colors.grey,
+                        size: 36.0,
+                      ),
+                      Text(AppLocalizations.of(context)!.translate('no_order'), style: TextStyle(fontSize: 24),),
+                    ],
+                  ),
                 ),
-              );
-            }
+              ),
+            );
+          }
           );
         }
-      );
+        );
+      });
     });
   }
 

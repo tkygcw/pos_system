@@ -3477,8 +3477,8 @@ class PosDatabase {
           'a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, '
           'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
           'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ?',
-          ['', '', '', '', name]);
+          'WHERE a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.table_use_key = ?',
+          ['', '', '', '', name, '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {

@@ -159,23 +159,24 @@ class ServerAction {
         break;
         case '8': {
           try{
+
             CartModel cart = CartModel();
             var decodeParam = jsonDecode(param);
-            cart = CartModel.fromJson(decodeParam);
+            cart = CartModel.fromJson(decodeParam['cart']);
             if(cart.selectedOption == 'Dine in'){
               PlaceNewDineInOrder order = PlaceNewDineInOrder();
               Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
               if(cartItem != null){
                 return result = cartItem;
               }
-              result = await order.callCreateNewOrder(cart, address!);
+              result = await order.callCreateNewOrder(cart, address!, decodeParam['order_by']);
             } else {
               PlaceNotDineInOrder order = PlaceNotDineInOrder();
               Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
               if(cartItem != null){
                 return result = cartItem;
               }
-              result = await order.callCreateNewNotDineOrder(cart, address!);
+              result = await order.callCreateNewNotDineOrder(cart, address!, decodeParam['order_by']);
             }
           } catch(e){
             result = {'status': '4', 'exception': "New-order error: ${e.toString()}"};
@@ -192,15 +193,19 @@ class ServerAction {
             CartModel cart = CartModel();
             PlaceAddOrder order = PlaceAddOrder();
             var decodeParam = jsonDecode(param);
-            cart = CartModel.fromJson(decodeParam);
+            cart = CartModel.fromJson(decodeParam['cart']);
             Map<String, dynamic>? cartItem = await order.checkOrderStock(cart);
             if(cartItem != null){
               return result = cartItem;
             }
-            result = await order.callAddOrderCache(cart, address!);
+            result = await order.callAddOrderCache(cart, address!, decodeParam['order_by']);
           } catch(e){
             result = {'status': '4', 'exception': "add-order error: ${e.toString()}"};
-            print('add order request error: $e');
+            FLog.error(
+              className: "checkAction",
+              text: "Server action 9 error",
+              exception: "$e",
+            );
           }
         }
         break;

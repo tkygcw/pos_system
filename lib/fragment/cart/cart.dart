@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:assets_audio_player/assets_audio_player.dart';
-import 'package:another_flushbar/flushbar.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:f_logs/model/flog/flog.dart';
@@ -38,7 +37,6 @@ import 'package:pos_system/object/table_use_detail.dart';
 import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/page/loading_dialog.dart';
 import 'package:pos_system/page/progress_bar.dart';
-import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -59,7 +57,6 @@ import '../../object/tax.dart';
 import '../../translation/AppLocalizations.dart';
 import '../../utils/Utils.dart';
 import '../custom_snackbar.dart';
-import '../custom_flushbar.dart';
 import '../logout_dialog.dart';
 import '../settlement/cash_dialog.dart';
 import '../payment/payment_select_dialog.dart';
@@ -220,6 +217,7 @@ class CartPageState extends State<CartPage> {
                   cart.removeAllCartItem();
                   cart.removeAllTable();
                   cart.removeAllPromotion();
+                  cart.removePaymentDetail();
                 });
                 Future.delayed(const Duration(seconds: 1), () {
                   readAllBranchLinkDiningOption(cart: cart);
