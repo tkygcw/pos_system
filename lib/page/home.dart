@@ -27,6 +27,7 @@ import '../fragment/report/init_report_page.dart';
 import '../fragment/settlement/cash_dialog.dart';
 import '../object/app_setting.dart';
 import '../object/branch.dart';
+import '../object/order_cache.dart';
 import '../object/user.dart';
 import '../translation/AppLocalizations.dart';
 import 'progress_bar.dart';
@@ -394,28 +395,29 @@ class _HomePageState extends State<HomePage> {
       }
       //set timer when new order come in
       int no = 1;
-      if (mounted) {
-        snackBarKey.currentState!.showSnackBar(SnackBar(
-          content: Text(AppLocalizations.of(context)!.translate('new_order_is_received')),
-          backgroundColor: themeColor.backgroundColor,
-          action: SnackBarAction(
-            textColor: themeColor.iconColor,
-            label: AppLocalizations.of(context)!.translate('check_it_now'),
-            onPressed: () {
-              if (mounted) {
-                setState(() {
-                  currentPage = 'qr_order';
-                  notificationTimer!.cancel();
-                });
-              }
-              no = 3;
-            },
-          ),
-        ));
-      }
-      playSound();
+      // if (mounted) {
+      //   snackBarKey.currentState!.showSnackBar(SnackBar(
+      //     content: Text(AppLocalizations.of(context)!.translate('new_order_is_received')),
+      //     backgroundColor: themeColor.backgroundColor,
+      //     action: SnackBarAction(
+      //       textColor: themeColor.iconColor,
+      //       label: AppLocalizations.of(context)!.translate('check_it_now'),
+      //       onPressed: () {
+      //         if (mounted) {
+      //           setState(() {
+      //             currentPage = 'qr_order';
+      //             notificationTimer!.cancel();
+      //           });
+      //         }
+      //         no = 3;
+      //       },
+      //     ),
+      //   ));
+      // }
+      // playSound();
       notificationTimer = Timer.periodic(Duration(seconds: 5), (timer) async {
-        if (no <= 3 && mounted) {
+        List<OrderCache> data = await PosDatabase.instance.readNotAcceptedQROrderCache();
+        if (no <= 3 && mounted && data.isNotEmpty) {
           //showSnackBar();
           snackBarKey.currentState!.showSnackBar(SnackBar(
             content: Text(AppLocalizations.of(context)!.translate('new_order_is_received')),

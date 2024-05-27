@@ -43,6 +43,7 @@ class CartRemoveDialog extends StatefulWidget {
 }
 
 class _CartRemoveDialogState extends State<CartRemoveDialog> {
+  BuildContext globalContext = MyApp.navigatorKey.currentContext!;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   final adminPosPinController = TextEditingController();
   bool _submitted = false;
@@ -97,7 +98,6 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
         Navigator.of(context).pop();
         Navigator.of(context).pop();
       }
-      return;
     } else {
       setState(() {
         isButtonDisabled = false;
@@ -427,14 +427,14 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           //
           //   //syncUpdatedPosTableToCloud(_posTableValue.toString());
           // }
-          Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(context)!.translate('delete_successful'));
+          Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(globalContext)!.translate('delete_successful'));
           tableModel.changeContent(true);
           cart.removeAllTable();
           cart.removeAllCartItem();
           cart.removePromotion();
 
           //sync to cloud
-          syncAllToCloud();
+          // syncAllToCloud();
           // if(this.isLogOut == true){
           //   openLogOutDialog();
           //   return;
@@ -484,12 +484,12 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     table_value = _posTableValue.toString();
     callPrinter(dateTime, cart);
 
-    Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(context)!.translate('delete_successful'));
+    Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(globalContext)!.translate('delete_successful'));
     tableModel.changeContent(true);
     cart.removeAllTable();
     cart.removeAllCartItem();
     cart.removePromotion();
-    syncAllToCloud();
+    // syncAllToCloud();
   }
 
   callPrinter(String dateTime, CartModel cart) async {
@@ -497,21 +497,21 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     if(printStatus == 1){
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
-          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+          msg: "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
     } else if (printStatus == 2){
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
-          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+          msg: "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
     }
     int kitchenPrintStatus = await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
     if(kitchenPrintStatus == 1){
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
-          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+          msg: "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
     } else if (kitchenPrintStatus == 2){
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
-          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+          msg: "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
     }
   }
 
