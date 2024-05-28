@@ -439,11 +439,6 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           //   openLogOutDialog();
           //   return;
           // }
-
-          if (this.isLogOut == false) {
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
-          }
         } else {
           Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('no_permission')}");
         }
