@@ -43,6 +43,7 @@ class CartRemoveDialog extends StatefulWidget {
 }
 
 class _CartRemoveDialogState extends State<CartRemoveDialog> {
+  BuildContext globalContext = MyApp.navigatorKey.currentContext!;
   FlutterUsbPrinter flutterUsbPrinter = FlutterUsbPrinter();
   final adminPosPinController = TextEditingController();
   bool _submitted = false;
@@ -92,18 +93,11 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     setState(() => _submitted = true);
     if (errorPassword == null && _isLoaded == true) {
       // Disable the button after it has been pressed
-      setState(() {
-        isButtonDisabled = true;
-      });
       await readAdminData(adminPosPinController.text, cart);
-      // if(this.isLogOut == false){
-      //   Navigator.of(context).pop();
-      //   Navigator.of(context).pop();
-      // }
-      setState(() {
-        isButtonDisabled = false;
-      });
-      return;
+      if(this.isLogOut == false){
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
+      }
     } else {
       setState(() {
         isButtonDisabled = false;
@@ -127,7 +121,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
               child: SingleChildScrollView(
                 physics: NeverScrollableScrollPhysics(),
                 child: AlertDialog(
-                  title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
+                  title: Text(AppLocalizations.of(context)!.translate('enter_current_user_pin')),
                   content: SizedBox(
                     height: 100.0,
                     width: 350.0,
@@ -140,7 +134,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                               autofocus: true,
                               onSubmitted: (input) {
                                 setState(() {
-                                  // isButtonDisabled = true;
+                                  isButtonDisabled = true;
                                   willPop = false;
                                 });
                                 _submit(context, cart);
@@ -206,10 +200,10 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                         onPressed: isButtonDisabled
                             ? null
                             : () async {
-                          // setState(() {
-                          //   isButtonDisabled = true;
-                          //   willPop = false;
-                          // });
+                          setState(() {
+                            isButtonDisabled = true;
+                            willPop = false;
+                          });
                           _submit(context, cart);
                         },
                       ),
@@ -387,7 +381,6 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
   }
 
   readAdminData(String pin, CartModel cart) async {
-    print("readAdminData");
     List<String> _posTableValue = [];
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -434,14 +427,18 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           //
           //   //syncUpdatedPosTableToCloud(_posTableValue.toString());
           // }
-          Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(context)!.translate('delete_successful'));
+          Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(globalContext)!.translate('delete_successful'));
           tableModel.changeContent(true);
           cart.removeAllTable();
           cart.removeAllCartItem();
           cart.removePromotion();
 
           //sync to cloud
-          syncAllToCloud();
+          // syncAllToCloud();
+          // if(this.isLogOut == true){
+          //   openLogOutDialog();
+          //   return;
+          // }
 
           if (this.isLogOut == false) {
             Navigator.of(context).pop();
@@ -491,12 +488,12 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     table_value = _posTableValue.toString();
     callPrinter(dateTime, cart);
 
-    Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(context)!.translate('delete_successful'));
+    Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(globalContext)!.translate('delete_successful'));
     tableModel.changeContent(true);
     cart.removeAllTable();
     cart.removeAllCartItem();
     cart.removePromotion();
-    syncAllToCloud();
+    // syncAllToCloud();
   }
 
   callPrinter(String dateTime, CartModel cart) async {
@@ -504,21 +501,21 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
     if(printStatus == 1){
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
-          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+          msg: "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
     } else if (printStatus == 2){
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
-          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+          msg: "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
     }
     int kitchenPrintStatus = await PrintReceipt().printKitchenDeleteList(printerList, widget.cartItem!.order_cache_sqlite_id!, widget.cartItem!.category_sqlite_id!, dateTime, cart);
     if(kitchenPrintStatus == 1){
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
-          msg: "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+          msg: "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
     } else if (kitchenPrintStatus == 2){
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
-          msg: "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+          msg: "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
     }
   }
 

@@ -43,6 +43,7 @@ class AdjustQuantityDialog extends StatefulWidget {
 }
 
 class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
+  BuildContext globalContext = MyApp.navigatorKey.currentContext!;
   num simpleIntInput = 0;
   late num currentQuantity;
   final adminPosPinController = TextEditingController();
@@ -534,7 +535,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000),
             msg:
-            "${AppLocalizations.of(context)?.translate('user_not_found')}");
+            "${AppLocalizations.of(globalContext)?.translate('user_not_found')}");
       }
     } catch (e) {
       print('delete error ${e}');
@@ -578,7 +579,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     }
     callPrinter(dateTime, cart);
 
-    Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(context)!.translate('delete_successful'));
+    Fluttertoast.showToast(backgroundColor: Color(0xFF24EF10), msg: AppLocalizations.of(globalContext)!.translate('delete_successful'));
     tableModel.changeContent(true);
     cart.removeAllTable();
     cart.removeAllCartItem();
@@ -593,12 +594,12 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
           msg:
-          "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+          "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
     } else if (printStatus == 2) {
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
           msg:
-          "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+          "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
     }
     int kitchenPrintStatus = await PrintReceipt().printKitchenDeleteList(
         printerList,
@@ -610,12 +611,12 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       Fluttertoast.showToast(
           backgroundColor: Colors.red,
           msg:
-          "${AppLocalizations.of(context)?.translate('printer_not_connected')}");
+          "${AppLocalizations.of(globalContext)?.translate('printer_not_connected')}");
     } else if (kitchenPrintStatus == 2) {
       Fluttertoast.showToast(
           backgroundColor: Colors.orangeAccent,
           msg:
-          "${AppLocalizations.of(context)?.translate('printer_connection_timeout')}");
+          "${AppLocalizations.of(globalContext)?.translate('printer_connection_timeout')}");
     }
   }
 
@@ -962,7 +963,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       print(e);
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: AppLocalizations.of(context)!
+          msg: AppLocalizations.of(globalContext)!
               .translate('delete_current_table_use_detail_error') +
               " $e");
     }
@@ -1006,7 +1007,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
     } catch (e) {
       Fluttertoast.showToast(
           backgroundColor: Color(0xFFFF0000),
-          msg: AppLocalizations.of(context)!
+          msg: AppLocalizations.of(globalContext)!
               .translate('delete_current_table_use_id_error') +
               " ${e}");
     }
