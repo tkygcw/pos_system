@@ -139,7 +139,7 @@ class MyApp extends StatelessWidget {
           create: (_) => PrinterModel(),
         ),
         ChangeNotifierProvider(
-          create: (_) => TableModel(),
+          create: (_) => TableModel.instance,
         ),
         ChangeNotifierProvider(
           create: (_) => ReportModel(),

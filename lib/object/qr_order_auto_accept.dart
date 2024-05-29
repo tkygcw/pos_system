@@ -242,8 +242,9 @@ class QrOrderAutoAccept {
         }
         syncToCloudFunction();
         await callPrinter(qrOrderCacheList.order_cache_sqlite_id!);
-        notificationModel.setContentLoaded();
-        notificationModel.setCartContentLoaded();
+        // notificationModel.setContentLoaded();
+        TableModel.instance.changeContent(true);
+        // notificationModel.setCartContentLoaded();
       }
     } catch(e) {
       print("auto accept qr order error: ${e}");

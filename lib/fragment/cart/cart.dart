@@ -1494,7 +1494,7 @@ class CartPageState extends State<CartPage> {
                     if (!autoApplyPromotionList.contains(promotionList[j])) {
                       autoApplyPromotionList.add(promotionList[j]);
                       if (widget.currentPage != 'menu') {
-                        cart.addAutoApplyPromo(promotionList[j]);
+                        // cart.addAutoApplyPromo(promotionList[j]);
                       }
                     }
                     autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
@@ -1506,7 +1506,7 @@ class CartPageState extends State<CartPage> {
                   hasPromo = true;
                   autoApplyPromotionList.add(promotionList[j]);
                   if (widget.currentPage != 'menu') {
-                    cart.addAutoApplyPromo(promotionList[j]);
+                    // cart.addAutoApplyPromo(promotionList[j]);
                   }
                   promoName = promotionList[j].name!;
                   autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
@@ -1526,7 +1526,7 @@ class CartPageState extends State<CartPage> {
                           if (!autoApplyPromotionList.contains(promotionList[j])) {
                             autoApplyPromotionList.add(promotionList[j]);
                             if (widget.currentPage != 'menu') {
-                              cart.addAutoApplyPromo(promotionList[j]);
+                              // cart.addAutoApplyPromo(promotionList[j]);
                             }
                           }
                           autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
@@ -1538,7 +1538,7 @@ class CartPageState extends State<CartPage> {
                         hasPromo = true;
                         autoApplyPromotionList.add(promotionList[j]);
                         if (widget.currentPage != 'menu') {
-                          cart.addAutoApplyPromo(promotionList[j]);
+                          // cart.addAutoApplyPromo(promotionList[j]);
                         }
                         promoName = promotionList[j].name!;
                         autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
@@ -1562,7 +1562,7 @@ class CartPageState extends State<CartPage> {
                           if (!autoApplyPromotionList.contains(promotionList[j])) {
                             autoApplyPromotionList.add(promotionList[j]);
                             if (widget.currentPage != 'menu') {
-                              cart.addAutoApplyPromo(promotionList[j]);
+                              // cart.addAutoApplyPromo(promotionList[j]);
                             }
                           }
                           autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
@@ -1574,7 +1574,7 @@ class CartPageState extends State<CartPage> {
                         hasPromo = true;
                         autoApplyPromotionList.add(promotionList[j]);
                         if (widget.currentPage != 'menu') {
-                          cart.addAutoApplyPromo(promotionList[j]);
+                          // cart.addAutoApplyPromo(promotionList[j]);
                         }
                         promoName = promotionList[j].name!;
                         autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
@@ -1595,7 +1595,7 @@ class CartPageState extends State<CartPage> {
                           if (!autoApplyPromotionList.contains(promotionList[j])) {
                             autoApplyPromotionList.add(promotionList[j]);
                             if (widget.currentPage != 'menu') {
-                              cart.addAutoApplyPromo(promotionList[j]);
+                              // cart.addAutoApplyPromo(promotionList[j]);
                             }
                           }
                           autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
@@ -1607,7 +1607,7 @@ class CartPageState extends State<CartPage> {
                         hasPromo = true;
                         autoApplyPromotionList.add(promotionList[j]);
                         if (widget.currentPage != 'menu') {
-                          cart.addAutoApplyPromo(promotionList[j]);
+                          // cart.addAutoApplyPromo(promotionList[j]);
                         }
                         promoName = promotionList[j].name!;
                         autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
@@ -1627,7 +1627,7 @@ class CartPageState extends State<CartPage> {
                           if (!autoApplyPromotionList.contains(promotionList[j])) {
                             autoApplyPromotionList.add(promotionList[j]);
                             if (widget.currentPage != 'menu') {
-                              cart.addAutoApplyPromo(promotionList[j]);
+                              // cart.addAutoApplyPromo(promotionList[j]);
                             }
                           }
                           autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
@@ -1639,7 +1639,7 @@ class CartPageState extends State<CartPage> {
                         hasPromo = true;
                         autoApplyPromotionList.add(promotionList[j]);
                         if (widget.currentPage != 'menu') {
-                          cart.addAutoApplyPromo(promotionList[j]);
+                          // cart.addAutoApplyPromo(promotionList[j]);
                         }
                         promoName = promotionList[j].name!;
                         autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
@@ -1660,7 +1660,7 @@ class CartPageState extends State<CartPage> {
                           if (!autoApplyPromotionList.contains(promotionList[j])) {
                             autoApplyPromotionList.add(promotionList[j]);
                             if (widget.currentPage != 'menu') {
-                              cart.addAutoApplyPromo(promotionList[j]);
+                              // cart.addAutoApplyPromo(promotionList[j]);
                             }
                           }
                           autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
@@ -1672,7 +1672,7 @@ class CartPageState extends State<CartPage> {
                         hasPromo = true;
                         autoApplyPromotionList.add(promotionList[j]);
                         if (widget.currentPage != 'menu') {
-                          cart.addAutoApplyPromo(promotionList[j]);
+                          // cart.addAutoApplyPromo(promotionList[j]);
                         }
                         promoName = promotionList[j].name!;
                         autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
@@ -1692,7 +1692,7 @@ class CartPageState extends State<CartPage> {
                           if (!autoApplyPromotionList.contains(promotionList[j])) {
                             autoApplyPromotionList.add(promotionList[j]);
                             if (widget.currentPage != 'menu') {
-                              cart.addAutoApplyPromo(promotionList[j]);
+                              // cart.addAutoApplyPromo(promotionList[j]);
                             }
                           }
                           autoApplySpecificCategoryAmount(promotionList[j], cart.cartNotifierItem[m]);
@@ -1704,7 +1704,7 @@ class CartPageState extends State<CartPage> {
                         hasPromo = true;
                         autoApplyPromotionList.add(promotionList[j]);
                         if (widget.currentPage != 'menu') {
-                          cart.addAutoApplyPromo(promotionList[j]);
+                          // cart.addAutoApplyPromo(promotionList[j]);
                         }
                         promoName = promotionList[j].name!;
                         autoApplyNonSpecificCategoryAmount(promotionList[j], cart);
