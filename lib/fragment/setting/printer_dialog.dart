@@ -1288,12 +1288,11 @@ class _PrinterDialogState extends State<PrinterDialog> {
       context: context,
       builder: (BuildContext context) {
         // return alert dialog object
-        return AlertDialog(
-          title: Text("${AppLocalizations.of(context)!.translate('add_printer')}"),
-          content: SingleChildScrollView(
-            child: Container(
-              height: 150,
-              child: Column(
+        return Center(
+          child: SingleChildScrollView(
+            child: AlertDialog(
+              title: Text("${AppLocalizations.of(context)!.translate('add_printer')}"),
+              content: Column(
                 children: [
                   TextField(
                     keyboardType: TextInputType.numberWithOptions(decimal: true),
@@ -1310,26 +1309,26 @@ class _PrinterDialogState extends State<PrinterDialog> {
                   ),
                 ],
               ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('${AppLocalizations.of(context)!.translate('cancel')}'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text(
+                    '${AppLocalizations.of(context)!.translate('confirm')}',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  onPressed: () async {
+                    addPrinterValue('"${ip.text}"');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
             ),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('${AppLocalizations.of(context)!.translate('cancel')}'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text(
-                '${AppLocalizations.of(context)!.translate('confirm')}',
-                style: TextStyle(color: Colors.red),
-              ),
-              onPressed: () async {
-                addPrinterValue('"${ip.text}"');
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
         );
       },
     );

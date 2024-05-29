@@ -75,4 +75,8 @@ class ReportModel extends ChangeNotifier {
     this.headerValue = [];
     this.reportValue2 = valueList;
   }
+
+  void refresh() {
+    notifyListeners();
+  }
 }
