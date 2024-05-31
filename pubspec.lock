@@ -205,10 +205,10 @@ packages:
     dependency: "direct main"
     description:
       name: collapsible_sidebar
-      sha256: a4878660718795e9a42865e2a1c7ad8e5399bebe273586eba877f26e43ffee14
+      sha256: cdaa339abbd14ded6c23ce7b4577767e444029be487659bfe97f4a88d8cb47d7
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.3+3"
+    version: "2.0.7"
   collection:
     dependency: "direct main"
     description:

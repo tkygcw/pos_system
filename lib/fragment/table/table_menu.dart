@@ -56,7 +56,7 @@ class _TableMenuState extends State<TableMenu> {
   double scrollContainerHeight = 130;
   double priceSST = 0.0;
   double priceServeTax = 0.0;
-  int tapCount = 0;
+  int tapCount = 0, loadCount = 0;
   bool isLoaded = false;
   bool showAdvanced = false;
   bool productDetailLoaded = false;
@@ -137,7 +137,7 @@ class _TableMenuState extends State<TableMenu> {
               Future.delayed(const Duration(seconds: 1), () {
                 readAllTable(notification: true);
               });
-            }else {
+            } else {
               if (tableModel.isChange && cart.cartNotifierItem.isEmpty) {
                 readAllTable(model: tableModel);
               }
@@ -785,25 +785,29 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   readAllTable({model, notification}) async {
-    if(notification == null){
-      isLoaded = false;
-    }
-    if (model != null) {
-      model.changeContent2(false);
-    }
+    if(loadCount == 0){
+      loadCount++;
+      if(notification == null){
+        isLoaded = false;
+      }
+      if (model != null) {
+        model.changeContent2(false);
+      }
 
-    tableList = await PosDatabase.instance.readAllTable();
-    //for compare purpose
-    initialTableList = await PosDatabase.instance.readAllTable();
+      tableList = await PosDatabase.instance.readAllTable();
+      //for compare purpose
+      initialTableList = await PosDatabase.instance.readAllTable();
 
-    //table number sorting
-    sortTable();
+      //table number sorting
+      sortTable();
 
-    await readAllTableGroup();
-    if (mounted) {
-      setState(() {
-        isLoaded = true;
-      });
+      await readAllTableGroup();
+      if (mounted) {
+        setState(() {
+          loadCount = 0;
+          isLoaded = true;
+        });
+      }
     }
   }
 

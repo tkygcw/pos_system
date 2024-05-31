@@ -23,6 +23,7 @@ import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
 import 'package:pos_system/object/print_receipt.dart';
 import 'package:pos_system/object/printer.dart';
+import 'package:pos_system/object/qr_order.dart';
 import 'package:pos_system/object/table.dart';
 import 'package:pos_system/object/table_use.dart';
 import 'package:pos_system/object/table_use_detail.dart';
@@ -31,6 +32,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../fragment/custom_snackbar.dart';
+import '../notifier/cart_notifier.dart';
 
 class QrOrderAutoAccept {
   BuildContext context;
@@ -143,7 +145,6 @@ class QrOrderAutoAccept {
 
   callPrinter(int orderCacheLocalId) async {
     try {
-      print("callPrinter called");
       final _failPrintModel = Provider.of<FailPrintModel>(context, listen: false);
       List<OrderDetail> returnData = await PrintReceipt().printQrKitchenList(printerList, orderCacheLocalId, orderDetailList: orderDetailList);
       if(returnData.isNotEmpty){
@@ -151,18 +152,24 @@ class QrOrderAutoAccept {
       }
     } catch(e) {
       print("callPrinter error: ${e}");
+      FLog.error(
+        className: "printer",
+        text: "print qr kitchen list error",
+        exception: e,
+      );
     }
   }
 
   getAllNotAcceptedQrOrder() async {
-    List<OrderCache> data = await PosDatabase.instance.readNotAcceptedQROrderCache();
-    qrOrderCacheList = data;
+    qrOrderCacheList.addAll(QrOrder.instance.qrOrderCacheList);
     if (qrOrderCacheList.isNotEmpty) {
       for (int i = 0; i < qrOrderCacheList.length; i++) {
         if (qrOrderCacheList[i].qr_order_table_id != '') {
-          PosTable tableData = await PosDatabase.instance.readTableByCloudId(qrOrderCacheList[i].qr_order_table_id!);
-          await updateQrOrderTableLocalId(qrOrderCacheList[i].order_cache_sqlite_id!, tableData.table_sqlite_id.toString());
-          qrOrderCacheList[i].qr_order_table_sqlite_id = tableData.table_sqlite_id.toString();
+          if(qrOrderCacheList[i].qr_order_table_sqlite_id == ''){
+            PosTable tableData = await PosDatabase.instance.readTableByCloudId(qrOrderCacheList[i].qr_order_table_id!);
+            await updateQrOrderTableLocalId(qrOrderCacheList[i].order_cache_sqlite_id!, tableData.table_sqlite_id.toString());
+            qrOrderCacheList[i].qr_order_table_sqlite_id = tableData.table_sqlite_id.toString();
+          }
         } else {
           qrOrderCacheList[i].table_number = '';
         }
@@ -170,10 +177,6 @@ class QrOrderAutoAccept {
         await autoAcceptQrOrder(qrOrderCacheList[i], orderDetailList, i);
       }
     }
-    // _isLoaded = true;
-    // if (!controller.isClosed) {
-    //   controller.sink.add('refresh');
-    // }
   }
 
   updateQrOrderTableLocalId(int orderCacheId, String tableLocalId) async {
@@ -224,9 +227,13 @@ class QrOrderAutoAccept {
         if (qrOrderCacheList.qr_order_table_sqlite_id != '') {
           await checkTable(qrOrderCacheList.qr_order_table_sqlite_id!);
           if (tableInUsed == true) {
-            await updateOrderDetail();
-            await updateOrderCache(qrOrderCacheList.batch_id!, qrOrderCacheList.order_cache_sqlite_id!);
-            await updateProductStock();
+            if(checkIsTableSelectedInPaymentCart(qrOrderCacheList.qr_order_table_sqlite_id!) == true){
+              return;
+            } else {
+              await updateOrderDetail();
+              await updateOrderCache(qrOrderCacheList.batch_id!, qrOrderCacheList.order_cache_sqlite_id!);
+              await updateProductStock();
+            }
           } else {
             await callNewOrder(qrOrderCacheList);
             await updateProductStock();
@@ -234,6 +241,7 @@ class QrOrderAutoAccept {
         } else {
           await callOtherOrder(qrOrderCacheList);
         }
+        QrOrder.instance.removeSpecificQrOrder(qrOrderCacheList.order_cache_sqlite_id!);
         final prefs = await SharedPreferences.getInstance();
         final int? branch_id = prefs.getInt('branch_id');
         AppSetting? localSetting = await PosDatabase.instance.readLocalAppSetting(branch_id.toString());
@@ -242,9 +250,7 @@ class QrOrderAutoAccept {
         }
         syncToCloudFunction();
         await callPrinter(qrOrderCacheList.order_cache_sqlite_id!);
-        // notificationModel.setContentLoaded();
         TableModel.instance.changeContent(true);
-        // notificationModel.setCartContentLoaded();
       }
     } catch(e) {
       print("auto accept qr order error: ${e}");
@@ -257,7 +263,6 @@ class QrOrderAutoAccept {
   }
 
   checkOrderDetailStock() async {
-    print('detail length: ${orderDetailList.length}');
     noStockOrderDetailList = [];
     hasNoStockProduct = false;
     hasNotAvailableProduct = false;
@@ -312,6 +317,15 @@ class QrOrderAutoAccept {
       }
     }
     this.delete_order_detail_value = value.toString();
+  }
+
+  checkIsTableSelectedInPaymentCart(String qr_table_sqlite_id){
+    bool isTableSelected = false;
+    List<PosTable> inCartTableList = Provider.of<CartModel>(context, listen: false).selectedTable.where((e) => e.isInPaymentCart == true).toList();
+    if(inCartTableList.isNotEmpty){
+      isTableSelected = inCartTableList.any((e) => e.table_sqlite_id.toString() == qr_table_sqlite_id);
+    }
+    return isTableSelected;
   }
 
   checkTable(String tableLocalId) async {
