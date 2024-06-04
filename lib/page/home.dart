@@ -16,6 +16,7 @@ import 'package:pos_system/fragment/table/table.dart';
 import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/app_setting_notifier.dart';
 import 'package:pos_system/notifier/theme_color.dart';
+import 'package:pos_system/object/qr_order.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -51,7 +52,7 @@ class _HomePageState extends State<HomePage> {
   String? branchName;
   Timer? timer, notificationTimer;
   bool hasNotification = false, willPop = false, isLoad = false;
-  int loaded = 0;
+  int loaded = 0, qr_length = 0;
   late ThemeColor themeColor;
   List<AppSetting> appSettingList = [];
   bool tableEnable = false;
@@ -69,13 +70,15 @@ class _HomePageState extends State<HomePage> {
     getRoleName();
 
     getBranchName();
+
+    QrOrder.instance.getAllNotAcceptedQrOrder();
     //callback after context is build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      AppSettingModel appSettingModel = context.read<AppSettingModel>();
       currentPage = 'menu';
       _items = _generateItems;
       isLoad = true;
 
-      AppSettingModel appSettingModel = context.read<AppSettingModel>();
       _appSettingModel = appSettingModel;
 
       if (widget.isNewDay) {
@@ -165,59 +168,63 @@ class _HomePageState extends State<HomePage> {
     return isLoad
         ? Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
             return Consumer<AppSettingModel>(builder: (context, AppSettingModel appSettingModel, child) {
-              _appSettingModel = appSettingModel;
-              _items = _generateItems;
-              this.themeColor = color;
-              return WillPopScope(
-                onWillPop: () async {
-                  showSecondDialog(context, color);
-                  return willPop;
-                },
-                child: Scaffold(
-                    resizeToAvoidBottomInset: false,
-                    body: SafeArea(
-                      //side nav bar
-                      child: CollapsibleSidebar(
-                          sidebarBoxShadow: [
-                            BoxShadow(
-                              color: Colors.transparent,
-                            ),
-                          ],
-                          // maxWidth: 80,
-                          isCollapsed: true,
-                          items: _items,
-                          avatarImg: AssetImage("drawable/logo.png"),
-                          title: widget.user!.name! + "\n" + (branchName ?? '') + " - " + AppLocalizations.of(context)!.translate(role.toLowerCase()),
-                          backgroundColor: color.backgroundColor,
-                          selectedTextColor: color.iconColor,
-                          textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
-                          titleStyle: TextStyle(fontSize: 17, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
-                          toggleTitleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                          selectedIconColor: color.iconColor,
-                          selectedIconBox: color.buttonColor,
-                          unselectedIconColor: Colors.white,
-                          body: Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: _body(size, context),
+              return Consumer<QrOrder>(builder: (context, order, child) {
+                qr_length = order.qrOrderCacheList.length;
+                _appSettingModel = appSettingModel;
+                _items = _generateItems;
+                this.themeColor = color;
+                return WillPopScope(
+                  onWillPop: () async {
+                    showSecondDialog(context, color);
+                    return willPop;
+                  },
+                  child: Scaffold(
+                      resizeToAvoidBottomInset: false,
+                      body: SafeArea(
+                        //side nav bar
+                        child: CollapsibleSidebar(
+                            sidebarBoxShadow: [
+                              BoxShadow(
+                                color: Colors.transparent,
                               ),
-                              //cart page
-                              Visibility(
-                                visible: currentPage != 'product' && currentPage != 'setting' && currentPage != 'settlement' && currentPage != 'qr_order' && currentPage != 'report'
-                                    ? true
-                                    : false,
-                                child: Expanded(
-                                    flex: MediaQuery.of(context).size.height > 500 ? 1 : 2,
-                                    child: CartPage(
-                                      currentPage: currentPage,
-                                      parentContext: context,
-                                    )),
-                              )
                             ],
-                          )),
-                    )),
-              );
+                            // maxWidth: 80,
+                            badgeBackgroundColor: Colors.red,
+                            isCollapsed: true,
+                            items: _items,
+                            avatarImg: AssetImage("drawable/logo.png"),
+                            title: widget.user!.name! + "\n" + (branchName ?? '') + " - " + AppLocalizations.of(context)!.translate(role.toLowerCase()),
+                            backgroundColor: color.backgroundColor,
+                            selectedTextColor: color.iconColor,
+                            textStyle: TextStyle(fontSize: 15, fontStyle: FontStyle.italic),
+                            titleStyle: TextStyle(fontSize: 17, fontStyle: FontStyle.italic, fontWeight: FontWeight.bold),
+                            toggleTitleStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            selectedIconColor: color.iconColor,
+                            selectedIconBox: color.buttonColor,
+                            unselectedIconColor: Colors.white,
+                            body: Row(
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: _body(size, context),
+                                ),
+                                //cart page
+                                Visibility(
+                                  visible: currentPage != 'product' && currentPage != 'setting' && currentPage != 'settlement' && currentPage != 'qr_order' && currentPage != 'report'
+                                      ? true
+                                      : false,
+                                  child: Expanded(
+                                      flex: MediaQuery.of(context).size.height > 500 ? 1 : 2,
+                                      child: CartPage(
+                                        currentPage: currentPage,
+                                        parentContext: context,
+                                      )),
+                                )
+                              ],
+                            )),
+                      )),
+                );
+              });
             });
           })
         : CustomProgressBar();
@@ -240,6 +247,7 @@ class _HomePageState extends State<HomePage> {
       CollapsibleItem(
         text: AppLocalizations.of(context)!.translate('qr_order'),
         icon: Icons.qr_code_2,
+        badgeCount: qr_length,
         onPressed: () => setState(() => currentPage = 'qr_order'),
       ),
       CollapsibleItem(
@@ -362,7 +370,7 @@ class _HomePageState extends State<HomePage> {
         if (message.data['type'] == '0') {
           if (qrOrder.count == 0) {
             qrOrder.count = 1;
-            await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+            await QrOrder.instance.getQrOrder(MyApp.navigatorKey.currentContext!);
             manageNotificationTimer();
             qrOrder.count = 0;
           }

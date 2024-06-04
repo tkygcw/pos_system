@@ -5,8 +5,11 @@ import '../database/pos_database.dart';
 import '../object/table.dart';
 
 class TableModel extends ChangeNotifier {
+  static final TableModel instance = TableModel.init();
   List<PosTable> notifierTableList = [];
   bool isChange = false;
+
+  TableModel.init();
 
   void initialLoad() async {
     print('table notifier called');

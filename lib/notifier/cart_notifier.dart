@@ -88,14 +88,12 @@ class CartModel extends ChangeNotifier {
   }
 
   void addItem(cartProductItem object) {
-    print('add item called');
     cartNotifierItem.add(object);
     notifyListeners();
   }
 
   void addAllItem({required List<cartProductItem> cartItemList}) {
-    print('addAllItem called');
-    cartNotifierItem = cartItemList;
+    cartNotifierItem.addAll(cartItemList);
     notifyListeners();
   }
 

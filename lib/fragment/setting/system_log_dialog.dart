@@ -418,7 +418,6 @@ class _SystemLogDialogState extends State<SystemLogDialog> {
           return StatefulBuilder(builder: (context, StateSetter setState) {
             return Center(
               child: SingleChildScrollView(
-                physics: NeverScrollableScrollPhysics(),
                 child: AlertDialog(
                   title: Text(AppLocalizations.of(context)!.translate('enter_debug_pin')),
                   content: !inProgress ? SizedBox(

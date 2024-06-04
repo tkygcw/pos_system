@@ -136,7 +136,6 @@ class _ReceiptSettingState extends State<ReceiptSetting> {
           final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
           return Center(
             child: SingleChildScrollView(
-              physics: NeverScrollableScrollPhysics(),
               child: AlertDialog(
                 title: Text(
                     AppLocalizations.of(context)!.translate('update_order_starting_number')),
