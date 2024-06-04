@@ -430,6 +430,7 @@
   "remove_layout_error": "remove layout error, Please try again",
   "remove_printer": "Confirm remove printer?",
   "report": "Report",
+  "report_calculate_based_on_opening_balance": "The report will calculate based on the opening balance",
   "reprint": "Reprint",
   "reprint_latest_settlement": "Reprint latest settlement",
   "reset_all_table": "Reset all table",
