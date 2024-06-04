@@ -131,7 +131,6 @@ class _TableMenuState extends State<TableMenu> {
         return Consumer<TableModel>(builder: (context, TableModel tableModel, child) {
           return Consumer<NotificationModel>(builder: (context, NotificationModel notificationModel, child) {
             if(notificationModel.contentLoaded == true){
-              isLoaded = false;
               notificationModel.resetContentLoaded();
               notificationModel.resetContentLoad();
               Future.delayed(const Duration(seconds: 1), () {
@@ -155,11 +154,6 @@ class _TableMenuState extends State<TableMenu> {
                     !showAdvanced ?
                     NormalTableMap(context, color, cart) :
                     AdvancedTableMap(cart, editingMode),
-                    //         : LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints){
-                    //   print('Max Width: ' + constraints.maxWidth.toString() + ', Max Height: ' + constraints.maxHeight.toString());
-                    //
-                    //   return AdvancedTableMap(cart, editingMode);
-                    // }
                   ],
                 )
                     : Container(child: CustomProgressBar()),
@@ -787,7 +781,7 @@ class _TableMenuState extends State<TableMenu> {
   readAllTable({model, notification}) async {
     if(loadCount == 0){
       loadCount++;
-      if(notification == null){
+      if(notification != null){
         isLoaded = false;
       }
       if (model != null) {
@@ -1055,8 +1049,8 @@ class _TableMenuState extends State<TableMenu> {
   addToCart(CartModel cart, PosTable posTable) async {
     var value;
     List<TableUseDetail> tableUseDetailList = [];
+    List<cartProductItem> cartItemList = [];
     var detailLength = orderDetailList.length;
-    //print('tb order detail length: ${detailLength}');
     for (int i = 0; i < detailLength; i++) {
       value = cartProductItem(
         branch_link_product_sqlite_id: orderDetailList[i].branch_link_product_sqlite_id!,
@@ -1064,10 +1058,7 @@ class _TableMenuState extends State<TableMenu> {
         category_id: orderDetailList[i].product_category_id!,
         price: orderDetailList[i].price!,
         quantity: int.tryParse(orderDetailList[i].quantity!) != null ? int.parse(orderDetailList[i].quantity!) : double.parse(orderDetailList[i].quantity!),
-        // checkedModifierItem: [],
         orderModifierDetail: orderDetailList[i].orderModifierDetail,
-        //modifier: getModifierGroupItem(orderDetailList[i]),
-        //variant: getVariantGroupItem(orderDetailList[i]),
         productVariantName: orderDetailList[i].product_variant_name,
         remark: orderDetailList[i].remark!,
         unit: orderDetailList[i].unit,
@@ -1080,21 +1071,21 @@ class _TableMenuState extends State<TableMenu> {
         base_price: orderDetailList[i].original_price,
         refColor: Colors.black,
       );
-      cart.addItem(value);
+      cartItemList.add(value);
     }
     var cacheLength = orderCacheList.length;
     for (int j = 0; j < cacheLength; j++) {
       //Get specific table use detail
-      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance
-          .readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
+      List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readAllTableUseDetail(orderCacheList[j].table_use_sqlite_id!);
       tableUseDetailList = List.from(tableUseDetailData);
     }
     var length = tableUseDetailList.length;
     for (int k = 0; k < length; k++) {
       List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[k].table_sqlite_id!);
+      tableData[0].isInPaymentCart = true;
       cart.addTable(tableData[0]);
     }
-    //cart.addAllItem(cartItemList: itemList);
+    cart.addAllItem(cartItemList: cartItemList);
   }
 
   removeFromCart(CartModel cart, PosTable posTable) async {
@@ -1121,7 +1112,6 @@ class _TableMenuState extends State<TableMenu> {
       for (int k = 0; k < length; k++) {
         List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableUseDetailList[k].table_sqlite_id!);
         cart.removeSpecificTable(tableData[0]);
-        //cart.addTable(tableData[0]);
       }
     }
   }

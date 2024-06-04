@@ -88,7 +88,7 @@ class _QrMainPageState extends State<QrMainPage> {
                   textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
                 )) {
                   if(mounted){
-                    await QrOrderAutoAccept(context).load();
+                    await QrOrderAutoAccept().load();
                   }
                 }
               },

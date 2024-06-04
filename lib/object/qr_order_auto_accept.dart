@@ -35,8 +35,7 @@ import '../fragment/custom_snackbar.dart';
 import '../notifier/cart_notifier.dart';
 
 class QrOrderAutoAccept {
-  BuildContext context;
-  QrOrderAutoAccept(this.context);
+  BuildContext context = MyApp.navigatorKey.currentContext!;
   DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
   List<Printer> printerList = [];
   List<OrderCache> qrOrderCacheList = [];
@@ -53,10 +52,8 @@ class QrOrderAutoAccept {
   // late FailPrintModel _failPrintModel;
 
   load() async {
-    final tableModel = Provider.of<TableModel>(context, listen: false);
     await readAllPrinters();
     await getAllNotAcceptedQrOrder();
-    // tableModel.changeContent(true);
     await failedPrintAlert();
   }
 
@@ -228,6 +225,7 @@ class QrOrderAutoAccept {
           await checkTable(qrOrderCacheList.qr_order_table_sqlite_id!);
           if (tableInUsed == true) {
             if(checkIsTableSelectedInPaymentCart(qrOrderCacheList.qr_order_table_sqlite_id!) == true){
+              QrOrder.instance.getAllNotAcceptedQrOrder();
               return;
             } else {
               await updateOrderDetail();
@@ -248,7 +246,7 @@ class QrOrderAutoAccept {
         if(localSetting!.print_checklist == 1) {
           await printCheckList(qrOrderCacheList.order_cache_sqlite_id!);
         }
-        syncToCloudFunction();
+        // syncToCloudFunction();
         await callPrinter(qrOrderCacheList.order_cache_sqlite_id!);
         TableModel.instance.changeContent(true);
       }
@@ -331,8 +329,7 @@ class QrOrderAutoAccept {
   checkTable(String tableLocalId) async {
     tableInUsed = false;
     if (tableLocalId != '') {
-      print('widget table local id: ${tableLocalId}');
-      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableLocalId!);
+      List<PosTable> tableData = await PosDatabase.instance.readSpecificTable(tableLocalId);
       if (tableData[0].status == 1) {
         TableUse tableUse = await PosDatabase.instance.readSpecificTableUseByKey(tableData[0].table_use_key!);
         List<OrderCache> orderCache = await PosDatabase.instance.readTableOrderCache(tableUse.table_use_key!);

@@ -28,19 +28,9 @@ class QrOrder extends ChangeNotifier {
 
   QrOrder.init();
 
-  getAllNotAcceptedQrOrder({bool? refresh}) async {
+  getAllNotAcceptedQrOrder() async {
     List<OrderCache> data = await PosDatabase.instance.readNotAcceptedQROrderCache();
     qrOrderCacheList = data;
-    // List<OrderCache> noTableLocalIdList = data.where((e) => e.qr_order_table_sqlite_id == '' && e.qr_order_table_id != '').toList();
-    // if(noTableLocalIdList.isNotEmpty){
-    //   for (int i = 0; i < noTableLocalIdList.length; i++) {
-    //     await updateQrOrderTableLocalId(noTableLocalIdList[i].order_cache_sqlite_id!, noTableLocalIdList[i].qr_order_table_id!);
-    //   }
-    //   List<OrderCache> afterUpdate = await PosDatabase.instance.readNotAcceptedQROrderCache();
-    //   qrOrderCacheList = afterUpdate;
-    // } else {
-    //   qrOrderCacheList = data;
-    // }
     notifyListeners();
   }
 
@@ -51,7 +41,6 @@ class QrOrder extends ChangeNotifier {
 
   getQrOrder(context) async {
     String categoryLocalId;
-    OrderCache? newOrderCache;
     DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
     String dateTime = dateFormat.format(DateTime.now());
     final prefs = await SharedPreferences.getInstance();
@@ -101,7 +90,7 @@ class QrOrder extends ChangeNotifier {
 
         OrderCache data = await PosDatabase.instance.insertSqLiteOrderCache(orderCache);
 
-        newOrderCache = await updateQrOrderTableLocalId(data.order_cache_sqlite_id!, data.qr_order_table_id!);
+        await updateQrOrderTableLocalId(data.order_cache_sqlite_id!, data.qr_order_table_id!);
 
         for(int j = 0; j < response['data'][i]['order_detail'].length; j++){
           BranchLinkProduct? branchLinkProductData =
@@ -179,7 +168,7 @@ class QrOrder extends ChangeNotifier {
           playtime: 2
       );
       if(localSetting!.qr_order_auto_accept == 1){
-        QrOrderAutoAccept(context).load();
+        QrOrderAutoAccept().load();
         return;
       }
       // Flushbar(
