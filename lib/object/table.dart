@@ -79,7 +79,7 @@ class PosTable{
         this.group,
         this.card_color,
         this.qrOrderUrl,
-        this.isInPaymentCart
+        this.isInPaymentCart,
         this.total_amount
       });
 

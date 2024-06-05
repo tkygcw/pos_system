@@ -169,8 +169,8 @@ class QrOrder extends ChangeNotifier {
           playtime: 2
       );
       if(localSetting!.qr_order_auto_accept == 1){
-        asyncQ.addJob((_) async => QrOrderAutoAccept(context).load());
-
+        QrOrderAutoAccept().load();
+        // asyncQ.addJob((_) async => QrOrderAutoAccept().load());
         return;
       }
       // Flushbar(

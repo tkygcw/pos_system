@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:another_flushbar/flushbar.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +18,7 @@ import '../fragment/custom_snackbar.dart';
 import '../main.dart';
 import '../notifier/cart_notifier.dart';
 import '../notifier/fail_print_notifier.dart';
+import '../notifier/table_notifier.dart';
 import '../object/branch_link_product.dart';
 import '../object/cart_product.dart';
 import '../object/modifier_item.dart';
@@ -673,7 +673,7 @@ class PlaceNewDineInOrder extends PlaceOrder {
       objectData = {
         'tb_branch_link_product': branchLinkProductList,
       };
-      tableModel.changeContent(true);
+      TableModel.instance.changeContent(true);
       return {'status': '1', 'data': objectData};
     } else {
       // throw Exception("Contain table in-used");
@@ -909,7 +909,7 @@ class PlaceAddOrder extends PlaceOrder {
         // }
         printKitchenList(address);
         Map<String, dynamic>? objectData = {'tb_branch_link_product': branchLinkProductList};
-        tableModel.changeContent(true);
+        TableModel.instance.changeContent(true);
         return {'status': '1', 'data': objectData};
       } else {
         branchLinkProductList = await PosDatabase.instance.readAllBranchLinkProduct();
