@@ -101,7 +101,6 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
               onWillPop: () async => willPop,
               child: Center(
                 child: SingleChildScrollView(
-                  physics: NeverScrollableScrollPhysics(),
                   child: AlertDialog(
                     title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
                     content: SizedBox(
@@ -218,7 +217,6 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
           this.tableModel = tableModel;
           return Center(
             child: SingleChildScrollView(
-              physics: NeverScrollableScrollPhysics(),
               child: AlertDialog(
                 title: Text(AppLocalizations.of(context)!.translate('adjust_price')),
                 content: Column(

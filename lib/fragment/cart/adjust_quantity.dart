@@ -65,6 +65,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
   bool _isLoaded = false;
   bool _submitted = false;
   bool isButtonDisabled = false;
+  bool isButtonDisabled2 = false;
   bool willPop = true;
 
   late TableModel tableModel;
@@ -103,7 +104,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
       await readAdminData(adminPosPinController.text, cart);
     } else {
       setState(() {
-        isButtonDisabled = false;
+        isButtonDisabled2 = false;
       });
     }
   }
@@ -119,7 +120,6 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
               onWillPop: () async => willPop,
               child: Center(
                 child: SingleChildScrollView(
-                  physics: NeverScrollableScrollPhysics(),
                   child: AlertDialog(
                     title: Text(AppLocalizations.of(context)!
                         .translate('enter_admin_pin')),
@@ -135,7 +135,7 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                                 autofocus: true,
                                 onSubmitted: (input) {
                                   setState(() {
-                                    isButtonDisabled = true;
+                                    isButtonDisabled2 = true;
                                     willPop = false;
                                   });
                                   _submit(context, cart);
@@ -181,15 +181,15 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                             AppLocalizations.of(context)!.translate('close'),
                             style: TextStyle(color: Colors.white),
                           ),
-                          onPressed: isButtonDisabled
+                          onPressed: isButtonDisabled2
                               ? null
                               : () {
                             setState(() {
-                              isButtonDisabled = true;
+                              isButtonDisabled2 = true;
                             });
                             Navigator.of(context).pop();
                             setState(() {
-                              isButtonDisabled = false;
+                              isButtonDisabled2 = false;
                             });
                           },
                         ),
@@ -205,11 +205,11 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                             AppLocalizations.of(context)!.translate('yes'),
                             style: TextStyle(color: Colors.white),
                           ),
-                          onPressed: isButtonDisabled
+                          onPressed: isButtonDisabled2
                               ? null
                               : () async {
                             setState(() {
-                              isButtonDisabled = true;
+                              isButtonDisabled2 = true;
                               willPop = false;
                             });
                             _submit(context, cart);
@@ -238,7 +238,6 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
           this.tableModel = tableModel;
           return Center(
             child: SingleChildScrollView(
-              physics: NeverScrollableScrollPhysics(),
               child: AlertDialog(
                 title: Text(
                     AppLocalizations.of(context)!.translate('adjust_quantity')),
@@ -383,7 +382,13 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                         style: TextStyle(color: Colors.white),
                       ),
                       onPressed: () {
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
                         Navigator.of(context).pop();
+                        setState(() {
+                          isButtonDisabled = false;
+                        });
                       },
                     ),
                   ),
@@ -401,6 +406,9 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                       onPressed: isButtonDisabled
                           ? null
                           : () async {
+                        setState(() {
+                          isButtonDisabled = true;
+                        });
                         if(simpleIntInput != 0 && simpleIntInput != 0.00){
                           DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
                           String dateTime = dateFormat.format(DateTime.now());
@@ -414,6 +422,9 @@ class _AdjustQuantityDialogState extends State<AdjustQuantityDialog> {
                                 backgroundColor: Color(0xFFFF0000),
                                 msg:
                                 AppLocalizations.of(context)!.translate('quantity_invalid'));
+                            setState(() {
+                              isButtonDisabled = false;
+                            });
                           } else {
                             if(userData.edit_price_without_pin != 1) {
                               await showSecondDialog(context, color, cart);

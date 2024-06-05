@@ -119,7 +119,6 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
             onWillPop: () async => willPop,
             child: Center(
               child: SingleChildScrollView(
-                physics: NeverScrollableScrollPhysics(),
                 child: AlertDialog(
                   title: Text(AppLocalizations.of(context)!.translate('enter_current_user_pin')),
                   content: SizedBox(
@@ -295,6 +294,9 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                   onPressed: isButtonDisabled
                       ? null
                       : () async {
+                    setState(() {
+                      isButtonDisabled = true;
+                    });
                     if (widget.currentPage == 'menu') {
                       cart.removeItem(widget.cartItem!);
                       if (cart.cartNotifierItem.isEmpty) {
@@ -319,6 +321,9 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
                         openDialog(cartItem: widget.cartItem, currentPage: widget.currentPage);
                       }
                     }
+                    setState(() {
+                      isButtonDisabled = false;
+                    });
                   },
                 ),
               ),

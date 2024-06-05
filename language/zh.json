@@ -439,6 +439,7 @@
   "remove_layout_error": "删除布局错误，请重试",
   "remove_printer": "确认删除打印机？",
   "report": "报告",
+  "report_calculate_based_on_opening_balance": "所有的报告将根据期初余额进行计算",
   "reprint": "重印",
   "reprint_latest_settlement": "重新打印最新的结算单",
   "reset_all_table": "重置所有桌子",

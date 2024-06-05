@@ -35,10 +35,9 @@ import 'utils/notification_plugin.dart';
 final NotificationModel notificationModel = NotificationModel();
 final SyncToCloud mainSyncToCloud = SyncToCloud();
 final SyncRecord syncRecord = SyncRecord();
-final QrOrder qrOrder = QrOrder();
+final QrOrder qrOrder = QrOrder.instance;
 final LCDDisplay lcdDisplay = LCDDisplay();
 final asyncQ = AsyncQueue.autoStart();
-final tableModel = TableModel();
 DisplayManager displayManager = DisplayManager();
 AppLanguage appLanguage = AppLanguage();
 final snackBarKey = GlobalKey<ScaffoldMessengerState>();
@@ -143,7 +142,7 @@ class MyApp extends StatelessWidget {
           create: (_) => PrinterModel(),
         ),
         ChangeNotifierProvider(
-          create: (_) => tableModel,
+          create: (_) => TableModel.instance,
         ),
         ChangeNotifierProvider(
           create: (_) => ReportModel(),
@@ -160,6 +159,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => notificationModel,
+        ),
+        ChangeNotifierProvider(
+          create: (_) => QrOrder.instance,
         ),
         ChangeNotifierProvider(
           create: (_) {

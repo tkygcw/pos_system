@@ -4183,6 +4183,18 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, b.name AS name FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ?',
+        ['', '', date1, date2]);
+    return result.map((json) => CashRecord.fromJson(json)).toList();
+  }
+
+/*
+  read all cash record with opening balance
+*/
+  Future<List<CashRecord>> readAllTodayCashRecordWithOB(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.created_at, a.type, a.user_id, a.amount, a.remark, b.name AS name FROM $tableCashRecord AS a JOIN $tableUser AS b on a.user_id = b.user_id '
             'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.settlement_key IN (SELECT settlement_key FROM $tableCashRecord WHERE remark = ? AND '
             'soft_delete = ? AND soft_delete = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ?)',
         ['', '', 'Opening Balance', '', '', date1, date2]);
@@ -4225,11 +4237,25 @@ class PosDatabase {
   Future<List<Settlement>> readAllSettlement(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, SUM(total_bill) AS all_bill, SUM(total_sales) AS all_sales, SUM(total_refund_bill) AS all_refund_bill, '
+        'SELECT *, SUM(total_bill) AS all_bill, SUM(total_sales) AS all_sales, SUM(total_refund_bill) AS all_refund_bill, '
         'SUM(total_refund_amount) AS all_refund_amount, SUM(total_discount) AS all_discount, '
         'SUM(total_tax) AS all_tax_amount, SUM(total_cancellation) AS all_cancellation '
-        'FROM $tableSettlement AS a JOIN $tableCashRecord AS b ON b.settlement_key = a.settlement_key AND b.remark = ?'
-        'WHERE a.soft_delete = ? AND a.status = ? AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY SUBSTR(b.created_at, 1, 10) ORDER BY SUBSTR(b.created_at, 1, 10) DESC ',
+        'FROM $tableSettlement WHERE soft_delete = ? AND status = ? AND SUBSTR(created_at, 1, 10) >= ? AND SUBSTR(created_at, 1, 10) < ? GROUP BY SUBSTR(created_at, 1, 10) ORDER BY SUBSTR(created_at, 1, 10) DESC ',
+        ['', 0, date1, date2]);
+    return result.map((json) => Settlement.fromJson(json)).toList();
+  }
+
+/*
+  read all settlement with opening balance
+*/
+  Future<List<Settlement>> readAllSettlementWithOB(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, SUM(total_bill) AS all_bill, SUM(total_sales) AS all_sales, SUM(total_refund_bill) AS all_refund_bill, '
+            'SUM(total_refund_amount) AS all_refund_amount, SUM(total_discount) AS all_discount, '
+            'SUM(total_tax) AS all_tax_amount, SUM(total_cancellation) AS all_cancellation '
+            'FROM $tableSettlement AS a JOIN $tableCashRecord AS b ON b.settlement_key = a.settlement_key AND b.remark = ?'
+            'WHERE a.soft_delete = ? AND a.status = ? AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY SUBSTR(b.created_at, 1, 10) ORDER BY SUBSTR(b.created_at, 1, 10) DESC ',
         ['Opening Balance', '', 0, date1, date2]);
     return result.map((json) => Settlement.fromJson(json)).toList();
   }
@@ -4270,9 +4296,25 @@ class PosDatabase {
         '(SELECT COALESCE(SUM(tax_amount), 0.0) FROM $tableOrderTaxDetail WHERE order_sqlite_id = a.order_sqlite_id) AS total_tax_amount, '
         '(SELECT SUM(promotion_amount) FROM $tableOrderPromotionDetail WHERE order_sqlite_id = a.order_sqlite_id) AS promo_amount '
         'FROM $tableOrder AS a JOIN $tableRefund AS b ON a.refund_sqlite_id = b.refund_sqlite_id '
-        'JOIN $tableCashRecord AS c on a.settlement_key = c.settlement_key AND c.remark = ?'
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.payment_status = ? '
-        'AND SUBSTR(c.created_at, 1, 10) >= ? AND SUBSTR(c.created_at, 1, 10) < ? ',
+        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? ',
+        ['', '', 2, date1, date2]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read all refunded order with opening balance
+*/
+  Future<List<Order>> readAllRefundedOrderWithOB(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.bill_id AS bill_no, b.refund_by AS refund_name, b.created_at AS refund_at, '
+            '(SELECT COALESCE(SUM(tax_amount), 0.0) FROM $tableOrderTaxDetail WHERE order_sqlite_id = a.order_sqlite_id) AS total_tax_amount, '
+            '(SELECT SUM(promotion_amount) FROM $tableOrderPromotionDetail WHERE order_sqlite_id = a.order_sqlite_id) AS promo_amount '
+            'FROM $tableOrder AS a JOIN $tableRefund AS b ON a.refund_sqlite_id = b.refund_sqlite_id '
+            'JOIN $tableCashRecord AS c on a.settlement_key = c.settlement_key AND c.remark = ?'
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.payment_status = ? '
+            'AND SUBSTR(c.created_at, 1, 10) >= ? AND SUBSTR(c.created_at, 1, 10) < ? ',
         ['Opening Balance', '', '', 2, date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4285,9 +4327,24 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT a.*, SUM(c.quantity) AS item_sum, SUM(c.quantity * a.mod_price + 0.0) AS net_sales '
         'FROM $tableOrderModifierDetail AS a JOIN $tableOrderDetail AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
-        'JOIN $tableOrderDetailCancel AS c ON b.order_detail_sqlite_id = c.order_detail_sqlite_id JOIN $tableCashRecord AS d on c.settlement_key = d.settlement_key AND d.remark = ?'
+        'JOIN $tableOrderDetailCancel AS c ON b.order_detail_sqlite_id = c.order_detail_sqlite_id  '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.mod_group_id = ? '
-        'AND SUBSTR(d.created_at, 1, 10) >= ? AND SUBSTR(d.created_at, 1, 10) < ? GROUP BY a.mod_name ',
+        'AND SUBSTR(c.created_at, 1, 10) >= ? AND SUBSTR(c.created_at, 1, 10) < ? GROUP BY a.mod_name ',
+        ['', '', '', mod_group_id, date1, date2]);
+    return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all cancelled modifier with opening balance
+*/
+  Future<List<OrderModifierDetail>> readAllCancelledModifierWithOB(String mod_group_id, String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, SUM(c.quantity) AS item_sum, SUM(c.quantity * a.mod_price + 0.0) AS net_sales '
+            'FROM $tableOrderModifierDetail AS a JOIN $tableOrderDetail AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
+            'JOIN $tableOrderDetailCancel AS c ON b.order_detail_sqlite_id = c.order_detail_sqlite_id JOIN $tableCashRecord AS d on c.settlement_key = d.settlement_key AND d.remark = ?'
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND a.mod_group_id = ? '
+            'AND SUBSTR(d.created_at, 1, 10) >= ? AND SUBSTR(d.created_at, 1, 10) < ? GROUP BY a.mod_name ',
         ['Opening Balance', '', '', '', mod_group_id, date1, date2]);
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
   }
@@ -4301,9 +4358,25 @@ class PosDatabase {
         'SELECT d.created_at, b.*, SUM(d.quantity * a.mod_price + 0.0) AS net_sales, SUM(d.quantity) AS item_sum '
         'FROM $tableOrderModifierDetail AS a JOIN $tableModifierGroup AS b ON a.mod_group_id = b.mod_group_id '
         'JOIN $tableOrderDetail AS c ON a.order_detail_sqlite_id = c.order_detail_sqlite_id '
-        'JOIN $tableOrderDetailCancel AS d ON c.order_detail_sqlite_id = d.order_detail_sqlite_id JOIN $tableCashRecord AS e on d.settlement_key = e.settlement_key AND e.remark = ?'
+        'JOIN $tableOrderDetailCancel AS d ON c.order_detail_sqlite_id = d.order_detail_sqlite_id '
         'WHERE a.soft_delete = ? AND c.soft_delete = ? AND d.soft_delete = ? '
-        'AND SUBSTR(e.created_at, 1, 10) >= ? AND SUBSTR(e.created_at, 1, 10) < ? GROUP BY b.mod_group_id ',
+        'AND SUBSTR(d.created_at, 1, 10) >= ? AND SUBSTR(d.created_at, 1, 10) < ? GROUP BY b.mod_group_id ',
+        ['', '', '', date1, date2]);
+    return result.map((json) => ModifierGroup.fromJson(json)).toList();
+  }
+
+/*
+  read all cancelled modifier group with opening balance
+*/
+  Future<List<ModifierGroup>> readAllCancelledModifierGroupWithOB(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT d.created_at, b.*, SUM(d.quantity * a.mod_price + 0.0) AS net_sales, SUM(d.quantity) AS item_sum '
+            'FROM $tableOrderModifierDetail AS a JOIN $tableModifierGroup AS b ON a.mod_group_id = b.mod_group_id '
+            'JOIN $tableOrderDetail AS c ON a.order_detail_sqlite_id = c.order_detail_sqlite_id '
+            'JOIN $tableOrderDetailCancel AS d ON c.order_detail_sqlite_id = d.order_detail_sqlite_id JOIN $tableCashRecord AS e on d.settlement_key = e.settlement_key AND e.remark = ?'
+            'WHERE a.soft_delete = ? AND c.soft_delete = ? AND d.soft_delete = ? '
+            'AND SUBSTR(e.created_at, 1, 10) >= ? AND SUBSTR(e.created_at, 1, 10) < ? GROUP BY b.mod_group_id ',
         ['Opening Balance', '', '', '', date1, date2]);
     return result.map((json) => ModifierGroup.fromJson(json)).toList();
   }
@@ -4329,6 +4402,25 @@ class PosDatabase {
   read all cancelled order detail with category
 */
   Future<List<OrderDetail>> readAllCancelledOrderDetailWithCategory2(String category_name, String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+      //CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE b.quantity END
+        'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, b.cancel_by, SUM(b.quantity * a.price + 0.0) AS gross_price, '
+            'SUM(b.quantity * a.original_price + 0.0) AS net_sales, '
+            'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * b.quantity ELSE b.quantity END) AS item_sum, '
+            'SUM(CASE WHEN a.unit != ? THEN 1 ELSE 0 END) AS item_qty '
+            'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND a.category_name = ? '
+            'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? '
+            'GROUP BY a.product_name, a.product_variant_name ORDER BY a.product_name',
+        ['each', 'each_c', 'each', '', '', category_name, date1, date2]);
+    return result.map((json) => OrderDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all cancelled order detail with category with opening balance
+*/
+  Future<List<OrderDetail>> readAllCancelledOrderDetailWithCategory2WithOB(String category_name, String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
       //CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE b.quantity END
@@ -4372,10 +4464,26 @@ class PosDatabase {
         'SELECT a.*, SUM(b.quantity * a.original_price + 0.0) AS category_net_sales, SUM(b.quantity * a.price + 0.0) AS category_gross_sales,'
         'SUM(CASE WHEN a.unit != ? OR a.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
         'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
-        'JOIN $tableCashRecord AS c on b.settlement_key = c.settlement_key AND c.remark = ? '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? '
-        'AND SUBSTR(c.created_at, 1, 10) >= ? AND SUBSTR(c.created_at, 1, 10) < ? GROUP BY a.category_name '
+        'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY a.category_name '
         'ORDER BY a.category_name DESC',
+        ['each', '', '', '', date1, date2]);
+    return result.map((json) => OrderDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all cancelled category with order detail with opening balance
+*/
+  Future<List<OrderDetail>> readAllCancelledCategoryWithOrderDetail2WithOB(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, SUM(b.quantity * a.original_price + 0.0) AS category_net_sales, SUM(b.quantity * a.price + 0.0) AS category_gross_sales,'
+            'SUM(CASE WHEN a.unit != ? OR a.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
+            'FROM $tableOrderDetail AS a JOIN $tableOrderDetailCancel AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
+            'JOIN $tableCashRecord AS c on b.settlement_key = c.settlement_key AND c.remark = ? '
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? '
+            'AND SUBSTR(c.created_at, 1, 10) >= ? AND SUBSTR(c.created_at, 1, 10) < ? GROUP BY a.category_name '
+            'ORDER BY a.category_name DESC',
         ['each', '', 'Opening Balance', '', '', date1, date2]);
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
@@ -4387,8 +4495,21 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, c.order_number, c.branch_id, c.created_at as order_created_at FROM $tableOrderDetail AS a JOIN $tableOrderCache '
-        'AS b ON a.order_cache_key = b.order_cache_key JOIN $tableOrder AS c ON b.order_key = c.order_key JOIN $tableCashRecord AS d on c.settlement_key = d.settlement_key AND d.remark = ?'
-        'WHERE a.soft_delete = ? AND a.edited_by_user_id != ? AND a.status = ? AND SUBSTR(d.created_at, 1, 10) >= ? AND SUBSTR(d.created_at, 1, 10) < ? AND b.order_key != ? ',
+        'AS b ON a.order_cache_key = b.order_cache_key JOIN $tableOrder AS c ON b.order_key = c.order_key '
+        'WHERE a.soft_delete = ? AND a.edited_by_user_id != ? AND a.status = ? AND SUBSTR(a.updated_at, 1, 10) >= ? AND SUBSTR(a.updated_at, 1, 10) < ? AND b.order_key != ? ',
+        ['', '', 0, date1, date2, '']);
+    return result.map((json) => OrderDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all edited order with opening balance
+*/
+  Future<List<OrderDetail>> readAllEditedOrderDetailWithOB(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, c.order_number, c.branch_id, c.created_at as order_created_at FROM $tableOrderDetail AS a JOIN $tableOrderCache '
+            'AS b ON a.order_cache_key = b.order_cache_key JOIN $tableOrder AS c ON b.order_key = c.order_key JOIN $tableCashRecord AS d on c.settlement_key = d.settlement_key AND d.remark = ?'
+            'WHERE a.soft_delete = ? AND a.edited_by_user_id != ? AND a.status = ? AND SUBSTR(d.created_at, 1, 10) >= ? AND SUBSTR(d.created_at, 1, 10) < ? AND b.order_key != ? ',
         ['Opening Balance', '', '', 0, date1, date2, '']);
     return result.map((json) => OrderDetail.fromJson(json)).toList();
   }
@@ -4401,9 +4522,23 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT a.*, b.name AS name, COUNT(order_sqlite_id) AS item_sum, SUM(final_amount + 0.0) AS gross_sales, SUM(subtotal + 0.0) AS net_sales '
         'FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-        'JOIN $tableCashRecord AS c on a.settlement_key = c.settlement_key AND c.remark = ? '
         'WHERE a.soft_delete = ? AND a.payment_status = ? '
-        'AND SUBSTR(c.created_at, 1, 10) >= ? AND SUBSTR(c.created_at, 1, 10) < ? GROUP BY a.payment_link_company_id ',
+        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.payment_link_company_id ',
+        ['', 1, date1, date2]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read all paid payment with opening balance
+*/
+  Future<List<Order>> readAllPaidPaymentTypeWithOB(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.name AS name, COUNT(order_sqlite_id) AS item_sum, SUM(final_amount + 0.0) AS gross_sales, SUM(subtotal + 0.0) AS net_sales '
+            'FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+            'JOIN $tableCashRecord AS c on a.settlement_key = c.settlement_key AND c.remark = ? '
+            'WHERE a.soft_delete = ? AND a.payment_status = ? '
+            'AND SUBSTR(c.created_at, 1, 10) >= ? AND SUBSTR(c.created_at, 1, 10) < ? GROUP BY a.payment_link_company_id ',
         ['Opening Balance', '', 1, date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4415,8 +4550,21 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, COUNT(order_sqlite_id) AS item_sum, SUM(final_amount + 0.0) AS gross_sales, SUM(subtotal + 0.0) AS net_sales '
-        'FROM $tableOrder AS a  JOIN $tableCashRecord AS b on a.settlement_key = b.settlement_key AND b.remark = ? WHERE a.soft_delete = ? AND a.payment_status = ? '
-        'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY a.dining_id',
+        'FROM $tableOrder AS a WHERE a.soft_delete = ? AND a.payment_status = ? '
+        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.dining_id',
+        ['', 1, date1, date2]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read all paid Dining with opening balance
+*/
+  Future<List<Order>> readAllPaidDiningWithOB(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, COUNT(order_sqlite_id) AS item_sum, SUM(final_amount + 0.0) AS gross_sales, SUM(subtotal + 0.0) AS net_sales '
+            'FROM $tableOrder AS a  JOIN $tableCashRecord AS b on a.settlement_key = b.settlement_key AND b.remark = ? WHERE a.soft_delete = ? AND a.payment_status = ? '
+            'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY a.dining_id',
         ['Opening Balance', '', 1, date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4430,10 +4578,27 @@ class PosDatabase {
         'SELECT a.*, COUNT(a.order_modifier_detail_sqlite_id) AS item_sum, SUM(a.mod_price + 0.0) AS net_sales '
         'FROM $tableOrderModifierDetail AS a JOIN $tableOrderDetail AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
         'JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
-        'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id JOIN $tableCashRecord AS e on d.settlement_key = e.settlement_key AND e.remark = ?'
+        'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? '
         'AND a.mod_group_id = ? AND b.status = ? AND d.payment_status = ? '
-        'AND SUBSTR(e.created_at, 1, 10) >= ? AND SUBSTR(e.created_at, 1, 10) < ? GROUP BY a.mod_name  ',
+        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY a.mod_name  ',
+        ['', '', '', 0, '', '', mod_group_id, 0, 1, date1, date2]);
+    return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all paid modifier with opening balance
+*/
+  Future<List<OrderModifierDetail>> readAllPaidModifierWithOB(String mod_group_id, String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, COUNT(a.order_modifier_detail_sqlite_id) AS item_sum, SUM(a.mod_price + 0.0) AS net_sales '
+            'FROM $tableOrderModifierDetail AS a JOIN $tableOrderDetail AS b ON a.order_detail_sqlite_id = b.order_detail_sqlite_id '
+            'JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
+            'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id JOIN $tableCashRecord AS e on d.settlement_key = e.settlement_key AND e.remark = ?'
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? '
+            'AND a.mod_group_id = ? AND b.status = ? AND d.payment_status = ? '
+            'AND SUBSTR(e.created_at, 1, 10) >= ? AND SUBSTR(e.created_at, 1, 10) < ? GROUP BY a.mod_name  ',
         ['Opening Balance', '', '', '', 0, '', '', mod_group_id, 0, 1, date1, date2]);
     return result.map((json) => OrderModifierDetail.fromJson(json)).toList();
   }
@@ -4448,10 +4613,28 @@ class PosDatabase {
         'FROM $tableOrderModifierDetail AS a JOIN $tableModifierGroup AS b ON a.mod_group_id = b.mod_group_id '
         'JOIN $tableOrderDetail AS c ON a.order_detail_sqlite_id = c.order_detail_sqlite_id '
         'JOIN $tableOrderCache AS d ON c.order_cache_sqlite_id = d.order_cache_sqlite_id '
-        'JOIN $tableOrder AS e ON d.order_sqlite_id = e.order_sqlite_id JOIN $tableCashRecord AS f on e.settlement_key = f.settlement_key AND f.remark = ?'
+        'JOIN $tableOrder AS e ON d.order_sqlite_id = e.order_sqlite_id '
         'WHERE a.soft_delete = ? AND c.soft_delete = ? AND d.soft_delete = ? AND e.soft_delete = ? '
         'AND c.status = ? AND d.accepted = ? AND d.cancel_by = ? AND e.payment_status = ? '
-        'AND SUBSTR(f.created_at, 1, 10) >= ? AND SUBSTR(f.created_at, 1, 10) < ? GROUP BY b.mod_group_id  ',
+        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? GROUP BY b.mod_group_id  ',
+        ['', '', '', '', 0, 0, '', 1, date1, date2]);
+    return result.map((json) => ModifierGroup.fromJson(json)).toList();
+  }
+
+/*
+  read all paid modifier group with opening balance
+*/
+  Future<List<ModifierGroup>> readAllPaidModifierGroupWithOB(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.created_at, b.*, SUM(a.mod_price + 0.0) AS net_sales, COUNT(a.order_modifier_detail_sqlite_id) AS item_sum '
+            'FROM $tableOrderModifierDetail AS a JOIN $tableModifierGroup AS b ON a.mod_group_id = b.mod_group_id '
+            'JOIN $tableOrderDetail AS c ON a.order_detail_sqlite_id = c.order_detail_sqlite_id '
+            'JOIN $tableOrderCache AS d ON c.order_cache_sqlite_id = d.order_cache_sqlite_id '
+            'JOIN $tableOrder AS e ON d.order_sqlite_id = e.order_sqlite_id JOIN $tableCashRecord AS f on e.settlement_key = f.settlement_key AND f.remark = ?'
+            'WHERE a.soft_delete = ? AND c.soft_delete = ? AND d.soft_delete = ? AND e.soft_delete = ? '
+            'AND c.status = ? AND d.accepted = ? AND d.cancel_by = ? AND e.payment_status = ? '
+            'AND SUBSTR(f.created_at, 1, 10) >= ? AND SUBSTR(f.created_at, 1, 10) < ? GROUP BY b.mod_group_id  ',
         ['Opening Balance', '', '', '', '', 0, 0, '', 1, date1, date2]);
     return result.map((json) => ModifierGroup.fromJson(json)).toList();
   }
@@ -4463,8 +4646,23 @@ class PosDatabase {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_net_sales, SUM(b.price * b.quantity + 0.0) AS category_gross_sales, '
-        // 'IFNULL( (SELECT category_sqlite_id FROM $tableCategories WHERE category_sqlite_id = b.category_sqlite_id), 0) AS category_sqlite_id, '
-        // 'IFNULL( (SELECT name FROM $tableCategories WHERE category_sqlite_id = b.category_sqlite_id), "Other") AS name, '
+            'SUM(CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
+            'FROM $tableOrderDetail AS b JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
+            'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id '
+            'WHERE b.soft_delete = ? AND c.soft_delete = ? AND c.accepted = ? AND c.cancel_by = ? AND d.soft_delete = ? AND b.status = ? AND d.payment_status = ? '
+            'AND SUBSTR(b.created_at, 1, 10) >= ? AND SUBSTR(b.created_at, 1, 10) < ? GROUP BY b.category_name '
+            'ORDER BY b.category_name DESC',
+        ['each', 'each_c', '', '', 0, '', '', 0, 1, date1, date2]);
+    return result.map((json) => OrderDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all category with product with opening balance
+*/
+  Future<List<OrderDetail>> readAllCategoryWithOrderDetail2WithOB(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT b.*, SUM(b.original_price * b.quantity + 0.0) AS category_net_sales, SUM(b.price * b.quantity + 0.0) AS category_gross_sales, '
             'SUM(CASE WHEN b.unit != ? OR b.unit != ? THEN 1 ELSE b.quantity END) AS category_item_sum '
             'FROM $tableOrderDetail AS b JOIN $tableOrderCache AS c ON b.order_cache_sqlite_id = c.order_cache_sqlite_id '
             'JOIN $tableOrder AS d ON c.order_sqlite_id = d.order_sqlite_id JOIN $tableCashRecord AS e on d.settlement_key = e.settlement_key AND e.remark = ?'
@@ -4479,6 +4677,24 @@ class PosDatabase {
   read all order detail with category
 */
   Future<List<OrderDetail>> readAllPaidOrderDetailWithCategory2(String category_name, String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, SUM(a.original_price * a.quantity + 0.0) AS net_sales, SUM(a.price * a.quantity + 0.0) AS gross_price, '
+            'SUM(CASE WHEN a.unit != ? AND a.unit != ? THEN a.per_quantity_unit * a.quantity ELSE a.quantity END) AS item_sum, '
+            'SUM(CASE WHEN a.unit != ? THEN 1 ELSE 0 END) AS item_qty '
+            'FROM $tableOrderDetail AS a JOIN $tableOrderCache AS b ON a.order_cache_sqlite_id = b.order_cache_sqlite_id '
+            'JOIN $tableOrder AS c ON b.order_sqlite_id = c.order_sqlite_id '
+            'WHERE a.soft_delete = ? AND a.status = ? AND b.soft_delete = ? AND b.accepted = ? AND c.soft_delete = ? AND c.payment_status = ? AND a.category_name = ? '
+            'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? '
+            'GROUP BY a.product_name, a.product_variant_name ORDER BY a.product_name',
+        ['each', 'each_c', 'each', '', 0, '', 0, '', 1, category_name, date1, date2]);
+    return result.map((json) => OrderDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all order detail with category with opening balance
+*/
+  Future<List<OrderDetail>> readAllPaidOrderDetailWithCategory2WithOB(String category_name, String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.created_at, a.product_name, a.product_variant_name, a.unit, SUM(a.original_price * a.quantity + 0.0) AS net_sales, SUM(a.price * a.quantity + 0.0) AS gross_price, '
@@ -4511,10 +4727,26 @@ class PosDatabase {
     final result = await db.rawQuery(
         'SELECT a.*, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a '
         'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
-        'JOIN $tableRefund AS c ON a.refund_key = c.refund_key JOIN $tableCashRecord AS d on a.settlement_key = d.settlement_key AND d.remark = ?'
+        'JOIN $tableRefund AS c ON a.refund_key = c.refund_key '
         'WHERE a.payment_status = ? AND a.refund_key != ? AND a.soft_delete = ? AND c.soft_delete = ? '
-        'AND SUBSTR(d.created_at, 1, 10) >= ? AND SUBSTR(d.created_at, 1, 10) < ? '
+        'AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? '
         'ORDER BY a.created_at DESC',
+        [2, '', '', '', date1, date2]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read all refund order with opening balance
+*/
+  Future<List<Order>> readAllRefundOrderWithOB(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.payment_type_id, c.refund_by AS refund_name, c.created_at AS refund_at FROM $tableOrder AS a '
+            'JOIN $tablePaymentLinkCompany AS b ON a.payment_link_company_id = b.payment_link_company_id '
+            'JOIN $tableRefund AS c ON a.refund_key = c.refund_key JOIN $tableCashRecord AS d on a.settlement_key = d.settlement_key AND d.remark = ?'
+            'WHERE a.payment_status = ? AND a.refund_key != ? AND a.soft_delete = ? AND c.soft_delete = ? '
+            'AND SUBSTR(d.created_at, 1, 10) >= ? AND SUBSTR(d.created_at, 1, 10) < ? '
+            'ORDER BY a.created_at DESC',
         ['Opening Balance', 2, '', '', '', date1, date2]);
     return result.map((json) => Order.fromJson(json)).toList();
   }
@@ -4562,12 +4794,28 @@ class PosDatabase {
   Future<List<OrderTaxDetail>> readAllPaidOrderTax() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, c.created_at AS counterOpenDate, '
+        'SELECT a.*, '
         '(SELECT SUM(tax_amount + 0.0) FROM $tableOrderTaxDetail WHERE order_tax_detail_sqlite_id = a.order_tax_detail_sqlite_id) '
         'AS total_tax_amount FROM $tableOrderTaxDetail AS a '
         'JOIN $tableOrder AS b ON a.order_sqlite_id = b.order_sqlite_id '
-        'JOIN $tableCashRecord AS c on b.settlement_key = c.settlement_key AND c.remark = ?'
         'WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.payment_status = ?',
+        ['', '', 1]);
+
+    return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all order tax detail with opening balance
+*/
+  Future<List<OrderTaxDetail>> readAllPaidOrderTaxWithOB() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, c.created_at AS counterOpenDate, '
+            '(SELECT SUM(tax_amount + 0.0) FROM $tableOrderTaxDetail WHERE order_tax_detail_sqlite_id = a.order_tax_detail_sqlite_id) '
+            'AS total_tax_amount FROM $tableOrderTaxDetail AS a '
+            'JOIN $tableOrder AS b ON a.order_sqlite_id = b.order_sqlite_id '
+            'JOIN $tableCashRecord AS c on b.settlement_key = c.settlement_key AND c.remark = ?'
+            'WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.payment_status = ?',
         ['Opening Balance' ,'', '', 1]);
 
     return result.map((json) => OrderTaxDetail.fromJson(json)).toList();
@@ -4589,6 +4837,19 @@ class PosDatabase {
   read all cancel item
 */
   Future<List<OrderDetailCancel>> readAllCancelItem2(String date1, String date2) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE a.quantity END) AS total_item '
+            'FROM $tableOrderDetailCancel AS a JOIN $tableOrderDetail AS b ON a.order_detail_key = b.order_detail_key '
+            'WHERE a.soft_delete = ? AND SUBSTR(a.created_at, 1, 10) >= ? AND SUBSTR(a.created_at, 1, 10) < ? ',
+        ['each', '', '', date1, date2]);
+    return result.map((json) => OrderDetailCancel.fromJson(json)).toList();
+  }
+
+/*
+  read all cancel item with opening balance
+*/
+  Future<List<OrderDetailCancel>> readAllCancelItem2WithOB(String date1, String date2) async {
     final db = await instance.database;
     final result = await db.rawQuery(
         'SELECT a.*, SUM(CASE WHEN b.unit != ? AND b.unit != ? THEN 1 ELSE a.quantity END) AS total_item '
@@ -4615,8 +4876,20 @@ class PosDatabase {
   Future<List<OrderPromotionDetail>> readAllPaidOrderPromotionDetail() async {
     final db = await instance.database;
     final result = await db.rawQuery(
+        'SELECT a.* FROM $tableOrderPromotionDetail AS a JOIN '
+        '$tableOrder AS b ON a.order_sqlite_id = b.order_sqlite_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.payment_status = ?',
+        ['', '', 1]);
+    return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
+  }
+
+/*
+  read all paid promotion detail with opening balance
+*/
+  Future<List<OrderPromotionDetail>> readAllPaidOrderPromotionDetailWithOB() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
         'SELECT a.*, c.created_at AS counterOpenDate FROM $tableOrderPromotionDetail AS a JOIN '
-        '$tableOrder AS b ON a.order_sqlite_id = b.order_sqlite_id JOIN $tableCashRecord AS c on b.settlement_key = c.settlement_key AND c.remark = ?'
+            '$tableOrder AS b ON a.order_sqlite_id = b.order_sqlite_id JOIN $tableCashRecord AS c on b.settlement_key = c.settlement_key AND c.remark = ?'
             'WHERE a.soft_delete = ? AND b.soft_delete = ? AND b.payment_status = ?',
         ['Opening Balance', '', '', 1]);
     return result.map((json) => OrderPromotionDetail.fromJson(json)).toList();
@@ -4628,11 +4901,25 @@ class PosDatabase {
   Future<List<Order>> readAllOrder() async {
     final db = await instance.database;
     final result = await db.rawQuery(
-        'SELECT a.*, b.payment_type_id, c.created_at AS counterOpenDate '
+        'SELECT a.*, b.payment_type_id '
         'FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b '
         'ON a.payment_link_company_id = b.payment_link_company_id '
-        'JOIN $tableCashRecord AS c on a.settlement_key = c.settlement_key AND c.remark = ?'
-        'WHERE a.soft_delete = ? AND a.payment_status != ? ORDER BY c.created_at DESC',
+        'WHERE a.soft_delete = ? AND a.payment_status != ? ORDER BY a.created_at DESC',
+        ['', 0]);
+    return result.map((json) => Order.fromJson(json)).toList();
+  }
+
+/*
+  read all order with opening balance
+*/
+  Future<List<Order>> readAllOrderWithOB() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.payment_type_id, c.created_at AS counterOpenDate '
+            'FROM $tableOrder AS a JOIN $tablePaymentLinkCompany AS b '
+            'ON a.payment_link_company_id = b.payment_link_company_id '
+            'JOIN $tableCashRecord AS c on a.settlement_key = c.settlement_key AND c.remark = ?'
+            'WHERE a.soft_delete = ? AND a.payment_status != ? ORDER BY c.created_at DESC',
         ['Opening Balance', '', 0]);
     return result.map((json) => Order.fromJson(json)).toList();
   }

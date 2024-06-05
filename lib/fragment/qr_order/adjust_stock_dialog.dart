@@ -359,6 +359,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                             } else if(hasNotAvailableProduct){
                               Fluttertoast.showToast(backgroundColor: Colors.red, msg: AppLocalizations.of(context)!.translate('contain_not_available_product'));
                             } else {
+
                               if (removeDetailList.isNotEmpty) {
                                 await removeOrderDetail();
                               }
@@ -379,7 +380,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                 await printCheckList();
                               }
                               syncToCloudFunction();
-                              widget.callBack;
+                              widget.callBack();
                               Navigator.of(context).pop();
                               await callPrinter();
                             }
@@ -627,7 +628,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                                 await printCheckList();
                               }
                               syncToCloudFunction();
-                              widget.callBack;
+                              widget.callBack();
                               Navigator.of(context).pop();
                               await callPrinter();
                             }
@@ -756,7 +757,7 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
 
   callRejectOrder() async {
     await rejectOrder(widget.orderCacheLocalId);
-    widget.callBack;
+    widget.callBack();
     Navigator.of(context).pop();
   }
 

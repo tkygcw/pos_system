@@ -1,3 +1,4 @@
+import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/object/cash_record.dart';
 import 'package:pos_system/object/modifier_group.dart';
@@ -6,6 +7,7 @@ import 'package:pos_system/object/payment_link_company.dart';
 import 'package:pos_system/object/settlement.dart';
 import 'package:pos_system/object/settlement_link_payment.dart';
 import 'package:pos_system/object/transfer_owner.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../database/pos_database.dart';
 import 'branch_link_tax.dart';
@@ -45,6 +47,8 @@ class ReportObject{
   List<SettlementLinkPayment>? dateSettlementPaymentList = [];
   List<OrderDetailCancel>? dateOrderDetailCancelList = [];
   List<TransferOwner>? dateTransferList = [];
+  bool _isChecked = false;
+  late SharedPreferences prefs;
 
   ReportObject(
       {this.totalSales,
@@ -67,13 +71,32 @@ class ReportObject{
       this.dateTransferList});
 
   Future<List<CashRecord>> getAllCashRecord({currentStDate, currentEdDate}) async {
+    await getPrefData();
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
     //convert time to string
     DateTime addEndDate = addDays(date: _endDate);
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
-    return await PosDatabase.instance.readAllTodayCashRecord(stringStDate, stringEdDate);
+    List<CashRecord> cashRecordData = [];
+
+    if(_isChecked) {
+      cashRecordData = await PosDatabase.instance.readAllTodayCashRecordWithOB(stringStDate, stringEdDate);
+    } else {
+      cashRecordData = await PosDatabase.instance.readAllTodayCashRecord(stringStDate, stringEdDate);
+    }
+
+    return cashRecordData;
+  }
+
+  getPrefData() async {
+    prefs = await SharedPreferences.getInstance();
+    if(prefs.getBool('reportBasedOnOB') != null) {
+      _isChecked = prefs.getBool('reportBasedOnOB')!;
+    } else {
+      _isChecked = false;
+      prefs.setBool('reportBasedOnOB', _isChecked);
+    }
   }
 
   getAllTransferRecord({currentStDate, currentEdDate}) async {
@@ -111,13 +134,22 @@ class ReportObject{
   }
 
   Future<List<Settlement>> getAllSettlement({required currentStDate, required currentEdDate}) async {
+    await getPrefData();
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
     //convert time to string
     DateTime addEndDate = addDays(date: _endDate);
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
-    return await PosDatabase.instance.readAllSettlement(stringStDate, stringEdDate);
+    List<Settlement> settlementData = [];
+
+    if(_isChecked) {
+      settlementData = await PosDatabase.instance.readAllSettlementWithOB(stringStDate, stringEdDate);
+    } else {
+      settlementData = await PosDatabase.instance.readAllSettlement(stringStDate, stringEdDate);
+    }
+
+    return settlementData;
   }
 
   getAllTaxDetail(int order_sqlite_id, {currentStDate, currentEdDate}) async {
@@ -155,6 +187,7 @@ class ReportObject{
   }
 
   getAllRefundedOrder({currentStDate, currentEdDate}) async {
+    await getPrefData();
     dateRefundOrderList = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -162,7 +195,14 @@ class ReportObject{
     DateTime addEndDate = addDays(date: _endDate);
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
-    List<Order> orderData = await PosDatabase.instance.readAllRefundedOrder(stringStDate, stringEdDate);
+    List<Order> orderData = [];
+
+    if(_isChecked) {
+      orderData = await PosDatabase.instance.readAllRefundedOrderWithOB(stringStDate, stringEdDate);
+    } else {
+      orderData = await PosDatabase.instance.readAllRefundedOrder(stringStDate, stringEdDate);
+    }
+
     paidOrderList = orderData;
     if (paidOrderList.isNotEmpty) {
       for (int i = 0; i < paidOrderList.length; i++) {
@@ -187,6 +227,7 @@ class ReportObject{
   }
 
   getAllCancelledOrderModifierDetail(String mod_group_id, {currentStDate, currentEdDate}) async {
+    await getPrefData();
     dateModifier = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -195,7 +236,14 @@ class ReportObject{
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     //get data
-    List<OrderModifierDetail> detailData = await PosDatabase.instance.readAllCancelledModifier(mod_group_id, stringStDate, stringEdDate);
+    List<OrderModifierDetail> detailData = [];
+
+    if(_isChecked) {
+      detailData = await PosDatabase.instance.readAllCancelledModifierWithOB(mod_group_id, stringStDate, stringEdDate);
+    } else {
+      detailData = await PosDatabase.instance.readAllCancelledModifier(mod_group_id, stringStDate, stringEdDate);
+    }
+
     this.paidModifier = detailData;
     if (paidModifier.isNotEmpty) {
       for (int i = 0; i < paidModifier.length; i++) {
@@ -220,6 +268,7 @@ class ReportObject{
   }
 
   getAllCancelledModifierGroup({currentStDate, currentEdDate}) async {
+    await getPrefData();
     dateModifierGroup = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -230,7 +279,14 @@ class ReportObject{
     print('date1: ${stringStDate}');
     print('date2: ${stringEdDate}');
     //get data
-    List<ModifierGroup> modifierGroupData = await PosDatabase.instance.readAllCancelledModifierGroup(stringStDate, stringEdDate);
+    List<ModifierGroup> modifierGroupData = [];
+
+    if(_isChecked) {
+      modifierGroupData = await PosDatabase.instance.readAllCancelledModifierGroupWithOB(stringStDate, stringEdDate);
+    } else {
+      modifierGroupData = await PosDatabase.instance.readAllCancelledModifierGroup(stringStDate, stringEdDate);
+    }
+
     print('modifier group data 1: ${modifierGroupData.length}');
     this.paidModifierGroup = modifierGroupData;
     if (paidModifierGroup.isNotEmpty) {
@@ -287,6 +343,7 @@ class ReportObject{
   // }
 
   getAllCancelOrderDetailWithCategory(String category_name, {currentStDate, currentEdDate}) async {
+    await getPrefData();
     dateOrderDetail = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -295,7 +352,14 @@ class ReportObject{
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     //get data
-    List<OrderDetail> detailData = await PosDatabase.instance.readAllCancelledOrderDetailWithCategory2(category_name, stringStDate, stringEdDate);
+    List<OrderDetail> detailData = [];
+
+    if(_isChecked) {
+      detailData = await PosDatabase.instance.readAllCancelledOrderDetailWithCategory2WithOB(category_name, stringStDate, stringEdDate);
+    } else {
+      detailData = await PosDatabase.instance.readAllCancelledOrderDetailWithCategory2(category_name, stringStDate, stringEdDate);
+    }
+
     this.paidOrderDetail = detailData;
     if (paidOrderDetail.isNotEmpty) {
       for (int i = 0; i < paidOrderDetail.length; i++) {
@@ -308,6 +372,7 @@ class ReportObject{
   }
 
   getAllEditedOrderDetail({currentStDate, currentEdDate}) async {
+    await getPrefData();
     dateOrderDetail = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -316,7 +381,14 @@ class ReportObject{
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     //get data
-    List<OrderDetail> detailData = await PosDatabase.instance.readAllEditedOrderDetail(stringStDate, stringEdDate);
+    List<OrderDetail> detailData = [];
+
+    if(_isChecked) {
+      detailData = await PosDatabase.instance.readAllEditedOrderDetailWithOB(stringStDate, stringEdDate);
+    } else {
+      detailData = await PosDatabase.instance.readAllEditedOrderDetail(stringStDate, stringEdDate);
+    }
+
     print("detailData: ${detailData.length}");
     this.editedOrderDetail = detailData;
     if (editedOrderDetail.isNotEmpty) {
@@ -330,6 +402,7 @@ class ReportObject{
   }
 
   getAllCancelItemCategory({currentStDate, currentEdDate}) async {
+    await getPrefData();
     dateOrderDetail = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -339,7 +412,14 @@ class ReportObject{
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     print('string start date: ${stringStDate}');
     print('string end date: ${stringEdDate}');
-    List<OrderDetail> orderDetailData = await PosDatabase.instance.readAllCancelledCategoryWithOrderDetail2(stringStDate, stringEdDate);
+    List<OrderDetail> orderDetailData = [];
+
+    if(_isChecked) {
+      orderDetailData = await PosDatabase.instance.readAllCancelledCategoryWithOrderDetail2WithOB(stringStDate, stringEdDate);
+    } else {
+      orderDetailData = await PosDatabase.instance.readAllCancelledCategoryWithOrderDetail2(stringStDate, stringEdDate);
+    }
+
     this.paidOrderDetail = orderDetailData;
     if (paidOrderDetail.isNotEmpty) {
       for (int i = 0; i < paidOrderDetail.length; i++) {
@@ -396,6 +476,7 @@ class ReportObject{
   // }
 
   getAllPaymentData({currentStDate, currentEdDate}) async {
+    await getPrefData();
     datePayment = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -404,7 +485,14 @@ class ReportObject{
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     //get data
-    List<Order> paymentData = await PosDatabase.instance.readAllPaidPaymentType(stringStDate, stringEdDate);
+    List<Order> paymentData = [];
+
+    if(_isChecked) {
+      paymentData = await PosDatabase.instance.readAllPaidPaymentTypeWithOB(stringStDate, stringEdDate);
+    } else {
+      paymentData = await PosDatabase.instance.readAllPaidPaymentType(stringStDate, stringEdDate);
+    }
+
     this.paidPayment = paymentData;
     if (paidPayment.isNotEmpty) {
       for (int i = 0; i < paidPayment.length; i++) {
@@ -428,6 +516,7 @@ class ReportObject{
   }
 
   getAllPaidDiningData({currentStDate, currentEdDate}) async {
+    await getPrefData();
     dateDining = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -435,7 +524,14 @@ class ReportObject{
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     //get data
-    List<Order> diningData = await PosDatabase.instance.readAllPaidDining(stringStDate, stringEdDate);
+    List<Order> diningData = [];
+
+    if(_isChecked) {
+      diningData = await PosDatabase.instance.readAllPaidDiningWithOB(stringStDate, stringEdDate);
+    } else {
+      diningData = await PosDatabase.instance.readAllPaidDining(stringStDate, stringEdDate);
+    }
+
     this.paidDining = diningData;
     if (paidDining.isNotEmpty) {
       for (int i = 0; i < paidDining.length; i++) {
@@ -461,6 +557,7 @@ class ReportObject{
 
 
   getAllPaidOrderModifierDetail(String mod_group_id, {currentStDate, currentEdDate}) async {
+    await getPrefData();
     dateModifier = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -469,7 +566,14 @@ class ReportObject{
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     //get data
-    List<OrderModifierDetail> detailData = await PosDatabase.instance.readAllPaidModifier(mod_group_id, stringStDate, stringEdDate);
+    List<OrderModifierDetail> detailData = [];
+
+    if(_isChecked) {
+      detailData = await PosDatabase.instance.readAllPaidModifierWithOB(mod_group_id, stringStDate, stringEdDate);
+    } else {
+      detailData = await PosDatabase.instance.readAllPaidModifier(mod_group_id, stringStDate, stringEdDate);
+    }
+
     this.paidModifier = detailData;
     if (paidModifier.isNotEmpty) {
       for (int i = 0; i < paidModifier.length; i++) {
@@ -494,6 +598,7 @@ class ReportObject{
   }
 
   getAllPaidModifierGroup({currentStDate, currentEdDate}) async {
+    await getPrefData();
     dateModifierGroup = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -504,7 +609,14 @@ class ReportObject{
     print('date1: ${stringStDate}');
     print('date2: ${stringEdDate}');
     //get data
-    List<ModifierGroup> modifierGroupData = await PosDatabase.instance.readAllPaidModifierGroup(stringStDate, stringEdDate);
+    List<ModifierGroup> modifierGroupData = [];
+
+    if(_isChecked) {
+      modifierGroupData = await PosDatabase.instance.readAllPaidModifierGroupWithOB(stringStDate, stringEdDate);
+    } else {
+      modifierGroupData = await PosDatabase.instance.readAllPaidModifierGroup(stringStDate, stringEdDate);
+    }
+
     print('modifier group data 1: ${modifierGroupData.length}');
     this.paidModifierGroup = modifierGroupData;
     if (paidModifierGroup.isNotEmpty) {
@@ -530,6 +642,7 @@ class ReportObject{
   }
 
   getAllPaidOrderDetailWithCategory(String category_name, {currentStDate, currentEdDate}) async {
+    await getPrefData();
     dateOrderDetail = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -538,7 +651,14 @@ class ReportObject{
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     //get data
-    List<OrderDetail> detailData = await PosDatabase.instance.readAllPaidOrderDetailWithCategory2(category_name, stringStDate, stringEdDate);
+    List<OrderDetail> detailData = [];
+
+    if(_isChecked) {
+      detailData = await PosDatabase.instance.readAllPaidOrderDetailWithCategory2WithOB(category_name, stringStDate, stringEdDate);
+    } else {
+      detailData = await PosDatabase.instance.readAllPaidOrderDetailWithCategory2(category_name, stringStDate, stringEdDate);
+    }
+
     this.paidOrderDetail = detailData;
     if (paidOrderDetail.isNotEmpty) {
       for (int i = 0; i < paidOrderDetail.length; i++) {
@@ -594,6 +714,7 @@ class ReportObject{
   // }
 
   getAllPaidCategory({currentStDate, currentEdDate}) async {
+    await getPrefData();
     dateOrderDetail = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -603,7 +724,14 @@ class ReportObject{
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     print('string start date: ${stringStDate}');
     print('string end date: ${stringEdDate}');
-    List<OrderDetail> orderDetailData = await PosDatabase.instance.readAllCategoryWithOrderDetail2(stringStDate, stringEdDate);
+    List<OrderDetail> orderDetailData = [];
+
+    if(_isChecked) {
+      orderDetailData = await PosDatabase.instance.readAllCategoryWithOrderDetail2WithOB(stringStDate, stringEdDate);
+    } else {
+      orderDetailData = await PosDatabase.instance.readAllCategoryWithOrderDetail2(stringStDate, stringEdDate);
+    }
+
     this.paidOrderDetail = orderDetailData;
     if (paidOrderDetail.isNotEmpty) {
       for (int i = 0; i < paidOrderDetail.length; i++) {
@@ -615,6 +743,7 @@ class ReportObject{
   }
 
   getTotalCancelledItem({currentStDate, currentEdDate}) async {
+    await getPrefData();
     List<OrderDetailCancel> _list = [];
     dateOrderDetailCancelList = [];
     DateTime _startDate = DateTime.parse(currentStDate);
@@ -623,7 +752,14 @@ class ReportObject{
     DateTime addEndDate = addDays(date: _endDate);
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
-    List<OrderDetailCancel> detailData = await PosDatabase.instance.readAllCancelItem2(stringStDate, stringEdDate);
+    List<OrderDetailCancel> detailData = [];
+
+    if(_isChecked) {
+      detailData = await PosDatabase.instance.readAllCancelItem2WithOB(stringStDate, stringEdDate);
+    } else {
+      detailData = await PosDatabase.instance.readAllCancelItem2(stringStDate, stringEdDate);
+    }
+
     _list = detailData;
     if (_list.isNotEmpty) {
       for (int i = 0; i < _list.length; i++) {
@@ -636,16 +772,24 @@ class ReportObject{
 
 
   getAllPaidOrder({currentStDate, currentEdDate}) async {
+    await getPrefData();
     dateOrderList = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
     this.totalSales = 0.0;
-    List<Order> orderData = await PosDatabase.instance.readAllOrder();
+    List<Order> orderData = [];
+
+    if(_isChecked) {
+      orderData = await PosDatabase.instance.readAllOrderWithOB();
+    } else {
+      orderData = await PosDatabase.instance.readAllOrder();
+    }
+
     print("orderData length: ${orderData.length}");
     paidOrderList = orderData;
     if (paidOrderList.isNotEmpty) {
       for (int i = 0; i < paidOrderList.length; i++) {
-        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderList[i].counterOpenDate!);
+        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(_isChecked ? paidOrderList[i].counterOpenDate! : paidOrderList[i].created_at!);
         if(currentStDate != currentEdDate){
           if(convertDate.isAfter(_startDate)){
             if(convertDate.isBefore(addDays(date: _endDate))){
@@ -670,15 +814,23 @@ class ReportObject{
   }
 
   getAllPaidOrderPromotionDetail({currentStDate, currentEdDate}) async {
+    await getPrefData();
     datePromotionDetail = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
     this.totalPromotionAmount = 0.0;
-    List<OrderPromotionDetail> detailData = await PosDatabase.instance.readAllPaidOrderPromotionDetail();
+    List<OrderPromotionDetail> detailData = [];
+
+    if(_isChecked) {
+      detailData = await PosDatabase.instance.readAllPaidOrderPromotionDetailWithOB();
+    } else {
+      detailData = await PosDatabase.instance.readAllPaidOrderPromotionDetail();
+    }
+
     this.paidPromotionDetail = detailData;
     if (paidPromotionDetail.isNotEmpty) {
       for (int i = 0; i < paidPromotionDetail.length; i++) {
-        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidPromotionDetail[i].counterOpenDate!);
+        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(_isChecked ? paidPromotionDetail[i].counterOpenDate! : paidPromotionDetail[i].created_at!);
         if(currentStDate != currentEdDate){
           if(convertDate.isAfter(_startDate)){
             if(convertDate.isBefore(addDays(date: _endDate))){
@@ -700,6 +852,7 @@ class ReportObject{
   }
 
   getAllRefundOrder({currentStDate, currentEdDate}) async {
+    await getPrefData();
     dateRefundOrderList = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
@@ -708,8 +861,13 @@ class ReportObject{
     String stringStDate = new DateFormat("yyyy-MM-dd").format(_startDate);
     String stringEdDate = new DateFormat("yyyy-MM-dd").format(addEndDate);
     this.totalSales = 0.0;
+    List<Order> orderData = [];
 
-    List<Order> orderData = await PosDatabase.instance.readAllRefundOrder(stringStDate, stringEdDate);
+    if(_isChecked) {
+      orderData = await PosDatabase.instance.readAllRefundOrderWithOB(stringStDate, stringEdDate);
+    } else {
+      orderData = await PosDatabase.instance.readAllRefundOrder(stringStDate, stringEdDate);
+    }
     paidOrderList = orderData;
     if (paidOrderList.isNotEmpty) {
       for (int i = 0; i < paidOrderList.length; i++) {
@@ -750,16 +908,24 @@ class ReportObject{
   }
 
   getAllPaidOrderTaxDetail({currentStDate, currentEdDate}) async {
+    await getPrefData();
     branchTaxList = [];
     dateTaxDetail = [];
     DateTime _startDate = DateTime.parse(currentStDate);
     DateTime _endDate = DateTime.parse(currentEdDate);
-    List<OrderTaxDetail> _taxData = await PosDatabase.instance.readAllPaidOrderTax();
+    List<OrderTaxDetail> _taxData = [];
+
+    if(_isChecked) {
+      _taxData = await PosDatabase.instance.readAllPaidOrderTaxWithOB();
+    } else {
+      _taxData = await PosDatabase.instance.readAllPaidOrderTax();
+    }
+
     List<BranchLinkTax> _data = await PosDatabase.instance.readBranchLinkTax();
     if(_taxData.isNotEmpty){
       paidOrderTaxDetail = _taxData;
       for(int i = 0; i < paidOrderTaxDetail.length; i++){
-        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(paidOrderTaxDetail[i].counterOpenDate!);
+        DateTime convertDate = new DateFormat("yyyy-MM-dd HH:mm:ss").parse(_isChecked ? paidOrderTaxDetail[i].counterOpenDate! : paidOrderTaxDetail[i].created_at!);
         if(currentStDate != currentEdDate){
           if(convertDate.isAfter(_startDate)){
             if(convertDate.isBefore(addDays(date: _endDate))){

@@ -49,6 +49,8 @@ class _ReportPageState extends State<ReportPage> {
   List<Widget> views = [];
   int selectedIndex = 0;
   int currentPage = 0;
+  bool _isChecked = false;
+  late SharedPreferences prefs;
   final adminPosPinController = TextEditingController();
   bool isButtonDisabled = false;
   bool _submitted = false;
@@ -67,6 +69,7 @@ class _ReportPageState extends State<ReportPage> {
     _controller = new TextEditingController(text: '${dateTimeNow} - ${dateTimeNow}');
     _dateRangePickerController.selectedRange = PickerDateRange(DateTime.now(), DateTime.now());
     currentPage = 0;
+    getPrefData();
     preload();
   }
 
@@ -143,19 +146,47 @@ class _ReportPageState extends State<ReportPage> {
           return LayoutBuilder(builder: (context, constraints) {
             if(constraints.maxWidth > 800){
               if(reportPermission) {
-                return Scaffold(
-                  resizeToAvoidBottomInset: false,
-                  appBar: AppBar(
-                    primary: false,
-                    automaticallyImplyLeading: false,
-                    title: Row(
-                      children: [
-                        Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
-                        Spacer(),
-                        Visibility(
-                          visible: this.currentPage != 11 ? true : false,
-                          child: Container(
-                            child: IconButton(
+              return Scaffold(
+                resizeToAvoidBottomInset: false,
+                appBar: AppBar(
+                  primary: false,
+                  automaticallyImplyLeading: false,
+                  title: Row(
+                    children: [
+                      Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
+                      Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Checkbox(
+                            value: _isChecked,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _isChecked = !_isChecked;
+                                prefs.setBool('reportBasedOnOB', _isChecked);
+                                reportModel.refresh();
+                              });
+                            },
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('report_calculate_based_on_opening_balance'));
+                            },
+                            child: Row(
+                              children: <Widget>[
+                                Text(AppLocalizations.of(context)!.translate('advanced')),
+                                SizedBox(width: 4),
+                                Icon(Icons.info, color: color.backgroundColor, size: 22,),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(width: 25),
+                      Visibility(
+                        visible: this.currentPage != 12 ? true : false,
+                        child: Container(
+                          child: IconButton(
                               icon: Icon(Icons.print),
                               color: color.backgroundColor,
                               onPressed: (){
@@ -460,6 +491,34 @@ class _ReportPageState extends State<ReportPage> {
                       children: [
                         Text(AppLocalizations.of(context)!.translate('report'), style: TextStyle(fontSize: 25, color: Colors.black)),
                         Spacer(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Checkbox(
+                              value: _isChecked,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  _isChecked = !_isChecked;
+                                  prefs.setBool('reportBasedOnOB', _isChecked);
+                                  reportModel.refresh();
+                                });
+                              },
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Fluttertoast.showToast(msg: AppLocalizations.of(context)!.translate('report_calculate_based_on_opening_balance'));
+                              },
+                              child: Row(
+                                children: <Widget>[
+                                  Text(AppLocalizations.of(context)!.translate('advanced')),
+                                  SizedBox(width: 4),
+                                  Icon(Icons.info, color: color.backgroundColor, size: 22,),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(width: 10),
                         Visibility(
                           visible: this.currentPage != 11 ? true : false,
                           child: IconButton(
@@ -754,6 +813,21 @@ class _ReportPageState extends State<ReportPage> {
       );
     });
   }
+
+  getPrefData() async {
+    try {
+      prefs = await SharedPreferences.getInstance();
+      if(prefs.getBool('reportBasedOnOB') != null) {
+        _isChecked = prefs.getBool('reportBasedOnOB')!;
+      } else {
+        _isChecked = false;
+        prefs.setBool('reportBasedOnOB', _isChecked);
+      }
+    } catch (e) {
+      _isChecked = false;
+    }
+  }
+
   preload(){
     checkAccess();
     views.addAll([

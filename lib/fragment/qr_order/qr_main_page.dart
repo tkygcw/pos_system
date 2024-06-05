@@ -11,9 +11,9 @@ import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
 import 'package:pos_system/object/order_modifier_detail.dart';
+import 'package:pos_system/object/qr_order.dart';
 import 'package:pos_system/object/qr_order_auto_accept.dart';
 import 'package:pos_system/object/table.dart';
-import 'package:pos_system/page/progress_bar.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
@@ -28,7 +28,6 @@ class QrMainPage extends StatefulWidget {
 }
 
 class _QrMainPageState extends State<QrMainPage> {
-  late StreamController controller;
   List<OrderCache> qrOrderCacheList = [];
   List<OrderDetail> orderDetailList = [], noStockOrderDetailList = [];
   bool _isLoaded = false, hasNoStockProduct = false, hasAccess = true;
@@ -36,14 +35,11 @@ class _QrMainPageState extends State<QrMainPage> {
   @override
   void initState() {
     super.initState();
-    controller = StreamController();
-    // preload();
     checkStatus();
   }
 
   @override
   void deactivate() {
-    controller.sink.close();
     super.deactivate();
   }
 
@@ -52,133 +48,146 @@ class _QrMainPageState extends State<QrMainPage> {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return hasAccess ?
         Scaffold(
-          appBar: AppBar(
-            primary: false,
-            elevation: 0,
-            automaticallyImplyLeading: false,
-            // title: Text(AppLocalizations.of(context)!.translate('qr_order'), style: TextStyle(fontSize: 25)),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(AppLocalizations.of(context)!.translate('qr_order'), style: TextStyle(fontSize: 25)),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 10 : MediaQuery.of(context).size.width / 8,
-                  height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 20 : MediaQuery.of(context).size.height / 12,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      backgroundColor: color.backgroundColor,
-                    ),
-                    child: Text(
-                      AppLocalizations.of(context)!.translate('accept_all'),
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    onPressed: () async {
-                      if (await confirm(
-                        context,
-                        title: Text("${AppLocalizations.of(context)!.translate('confirm_accept_all')}"),
-                        content: Text('${AppLocalizations.of(context)!.translate('confirm_accept_all_desc')}'),
-                        textOK: Text('${AppLocalizations.of(context)!.translate('yes')}'),
-                        textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
-                      )) {
-                        asyncQ.addJob((_) async => await QrOrderAutoAccept(context).load());
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          body: StreamBuilder(
-              stream: controller.stream,
-              builder: (context, snapshot) {
-                preload();
-                return _isLoaded ?
-                Container(
-                  padding: EdgeInsets.all(10),
-                  child: qrOrderCacheList.isNotEmpty
-                      ? ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: qrOrderCacheList.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return Card(
-                          elevation: 5,
-                          child: ListTile(
-                            contentPadding: EdgeInsets.all(10),
-                            //isThreeLine: true,
-                            title: qrOrderCacheList[index].dining_name == 'Dine in'
-                                ? Text(AppLocalizations.of(context)!.translate('table_no')+': ${qrOrderCacheList[index].table_number}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
-                                : qrOrderCacheList[index].dining_name == 'Take Away'
-                                ? Text(AppLocalizations.of(context)!.translate('take_away'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
-                                : Text(AppLocalizations.of(context)!.translate('delivery'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                            subtitle: RichText(
-                              text: TextSpan(
-                                style: TextStyle(color: Colors.black, fontSize: 16),
-                                children: <TextSpan>[
-                                  TextSpan(
-                                      text: AppLocalizations.of(context)!.translate('date')+': ${Utils.formatDate(qrOrderCacheList[index].created_at)}',
-                                      style: TextStyle(color: Colors.blueGrey, fontSize: 14)),
-                                  TextSpan(text: '\n'),
-                                  TextSpan(
-                                    text: AppLocalizations.of(context)!.translate('amount')+': ${Utils.convertTo2Dec(qrOrderCacheList[index].total_amount)}',
-                                    style: TextStyle(color: Colors.black87, fontSize: 14),
-                                  ),
-                                  TextSpan(text: '\n'),
-                                  TextSpan(text: 'Batch ID: #${qrOrderCacheList[index].batch_id}',
-                                    style: TextStyle(color: Colors.black54, fontSize: 14)),
-                                ],
-                              ),
-                            ),
-                            leading: CircleAvatar(
-                                backgroundColor: Colors.grey.shade200,
-                                child: Icon(
-                                  Icons.qr_code,
-                                  color: Colors.grey,
-                                )),
-                            trailing: Container(
-                              width: 130,
-                              padding: EdgeInsets.all(8.0),
-                              child: Text(
-                                '${getDuration(qrOrderCacheList[index].created_at)}',
-                                style: TextStyle(fontSize: 18, color: Colors.white),
-                                textAlign: TextAlign.center,
-                              ),// as needed
-                              decoration: BoxDecoration(
-                                color: getBackgroundColor(qrOrderCacheList[index].created_at),
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                            ),
-                            onTap: () async {
-                              await checkOrderDetail(qrOrderCacheList[index].order_cache_sqlite_id!, index);
-                              //pop stock adjust dialog
-                              openAdjustStockDialog(orderDetailList, qrOrderCacheList[index].order_cache_sqlite_id!,
-                                  qrOrderCacheList[index].qr_order_table_sqlite_id!, qrOrderCacheList[index].batch_id!);
-                            },
-                          ),
-                        );
-                      })
-                      :
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.qr_code_2, size: 40.0),
-                        Text(AppLocalizations.of(context)!.translate('no_order'), style: TextStyle(fontSize: 24)),
-                      ],
-                    ),
-                  ),
-                )
-                    :
-                CustomProgressBar();
-              })) :
-      Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.lock),
-          Text(AppLocalizations.of(context)!.translate('upgrade_to_use_qr_order'))
-        ],
+          appBar: QrAppBar(context, color),
+          body: Consumer<QrOrder>(builder: (context, order, child) {
+            getAllNotAcceptedQrOrder(order);
+            return Container(
+              padding: const EdgeInsets.all(10),
+              child: qrOrderCacheList.isNotEmpty ?
+              OrderListView()
+                  :
+              NoOrderView(context),
+            );
+          })
+      ) :
+      Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.qr_code_2, size: 40.0),
+            Text(AppLocalizations.of(context)!.translate('no_order'), style: TextStyle(fontSize: 24)),
+          ],
+        ),
       );
     });
+  }
+
+  AppBar QrAppBar(BuildContext context, ThemeColor color) {
+    return AppBar(
+      primary: false,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(AppLocalizations.of(context)!.translate('qr_order'), style: TextStyle(fontSize: 25)),
+          SizedBox(
+            width: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.width / 10 : MediaQuery.of(context).size.width / 8,
+            height: MediaQuery.of(context).size.width > 900 && MediaQuery.of(context).size.height > 500 ? MediaQuery.of(context).size.height / 20 : MediaQuery.of(context).size.height / 12,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.zero,
+                backgroundColor: color.backgroundColor,
+              ),
+              child: Text(
+                AppLocalizations.of(context)!.translate('accept_all'),
+                style: TextStyle(color: Colors.white),
+              ),
+              onPressed: () async {
+                if (await confirm(
+                  context,
+                  title: Text("${AppLocalizations.of(context)!.translate('confirm_accept_all')}"),
+                  content: Text('${AppLocalizations.of(context)!.translate('confirm_accept_all_desc')}'),
+                  textOK: Text('${AppLocalizations.of(context)!.translate('yes')}'),
+                  textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
+                )) {
+                  if(mounted){
+                    asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
+                  }
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget NoOrderView(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.qr_code_2, size: 40.0),
+          Text(AppLocalizations.of(context)!.translate('no_order'), style: TextStyle(fontSize: 24)),
+        ],
+      ),
+    );
+  }
+
+  Widget OrderListView() {
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: qrOrderCacheList.length,
+      itemBuilder: (BuildContext context, int index) {
+        return Card(
+          elevation: 5,
+          child: ListTile(
+            contentPadding: EdgeInsets.all(10),
+            //isThreeLine: true,
+            title: qrOrderCacheList[index].dining_name == 'Dine in'
+                ? Text(AppLocalizations.of(context)!.translate('table_no')+': ${qrOrderCacheList[index].table_number}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
+                : qrOrderCacheList[index].dining_name == 'Take Away'
+                ? Text(AppLocalizations.of(context)!.translate('take_away'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey))
+                : Text(AppLocalizations.of(context)!.translate('delivery'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+            subtitle: RichText(
+              text: TextSpan(
+                style: TextStyle(color: Colors.black, fontSize: 16),
+                children: <TextSpan>[
+                  TextSpan(
+                      text: AppLocalizations.of(context)!.translate('date')+': ${Utils.formatDate(qrOrderCacheList[index].created_at)}',
+                      style: TextStyle(color: Colors.blueGrey, fontSize: 14)),
+                  TextSpan(text: '\n'),
+                  TextSpan(
+                    text: AppLocalizations.of(context)!.translate('amount')+': ${Utils.convertTo2Dec(qrOrderCacheList[index].total_amount)}',
+                    style: TextStyle(color: Colors.black87, fontSize: 14),
+                  ),
+                  TextSpan(text: '\n'),
+                  TextSpan(text: 'Batch ID: #${qrOrderCacheList[index].batch_id}',
+                      style: TextStyle(color: Colors.black54, fontSize: 14)),
+                ],
+              ),
+            ),
+            leading: CircleAvatar(
+                backgroundColor: Colors.grey.shade200,
+                child: Icon(
+                  Icons.qr_code,
+                  color: Colors.grey,
+                )),
+            trailing: Container(
+              width: 130,
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                '${getDuration(qrOrderCacheList[index].created_at)}',
+                style: TextStyle(fontSize: 18, color: Colors.white),
+                textAlign: TextAlign.center,
+              ),// as needed
+              decoration: BoxDecoration(
+                color: getBackgroundColor(qrOrderCacheList[index].created_at),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+            onTap: () async {
+              print("table sqlite id: ${qrOrderCacheList[index].qr_order_table_sqlite_id!}");
+              await checkOrderDetail(qrOrderCacheList[index].order_cache_sqlite_id!, index);
+              //pop stock adjust dialog
+              openAdjustStockDialog(orderDetailList, qrOrderCacheList[index].order_cache_sqlite_id!,
+                  qrOrderCacheList[index].qr_order_table_sqlite_id!, qrOrderCacheList[index].batch_id!);
+            },
+          ),
+        );
+      },
+    );
   }
 
   openAdjustStockDialog(List<OrderDetail> orderDetail, int localId, String tableLocalId, String batchNumber) async {
@@ -194,7 +203,7 @@ class _QrMainPageState extends State<QrMainPage> {
                 orderDetailList: orderDetail,
                 tableLocalId: tableLocalId,
                 orderCacheLocalId: localId,
-                callBack: () => preload(),
+                callBack: () => QrOrder.instance.getAllNotAcceptedQrOrder(),
                 orderCacheList: qrOrderCacheList,
                 currentBatch: batchNumber,
               ),
@@ -210,8 +219,24 @@ class _QrMainPageState extends State<QrMainPage> {
         });
   }
 
-  preload() async {
-    await getAllNotAcceptedQrOrder();
+  getAllNotAcceptedQrOrder(QrOrder order) async {
+    qrOrderCacheList = order.qrOrderCacheList;
+    if (qrOrderCacheList.isNotEmpty) {
+      for (int i = 0; i < qrOrderCacheList.length; i++) {
+        if (qrOrderCacheList[i].qr_order_table_id != '') {
+          if(qrOrderCacheList[i].qr_order_table_sqlite_id == ''){
+            PosTable tableData = await PosDatabase.instance.readTableByCloudId(qrOrderCacheList[i].qr_order_table_id!);
+            int status = await updateQrOrderTableLocalId(qrOrderCacheList[i].order_cache_sqlite_id!, tableData.table_sqlite_id.toString());
+            if(status == 1){
+              qrOrderCacheList[i].qr_order_table_sqlite_id = tableData.table_sqlite_id.toString();
+            }
+          }
+        } else {
+          qrOrderCacheList[i].table_number = '';
+        }
+        //callUpdateCloud(qrOrderCacheList[i].order_cache_key!);
+      }
+    }
   }
 
   Future<void> checkStatus() async {
@@ -257,29 +282,10 @@ class _QrMainPageState extends State<QrMainPage> {
     }
   }
 
-  updateQrOrderTableLocalId(int orderCacheId, String tableLocalId) async {
+  Future<int> updateQrOrderTableLocalId(int orderCacheId, String tableLocalId) async {
     OrderCache orderCache = OrderCache(order_cache_sqlite_id: orderCacheId, qr_order_table_sqlite_id: tableLocalId);
-    int data = await PosDatabase.instance.updateOrderCacheTableLocalId(orderCache);
-  }
-
-  getAllNotAcceptedQrOrder() async {
-    List<OrderCache> data = await PosDatabase.instance.readNotAcceptedQROrderCache();
-    qrOrderCacheList = data;
-    if (qrOrderCacheList.isNotEmpty) {
-      for (int i = 0; i < qrOrderCacheList.length; i++) {
-        if (qrOrderCacheList[i].qr_order_table_id != '') {
-          PosTable tableData = await PosDatabase.instance.readTableByCloudId(qrOrderCacheList[i].qr_order_table_id!);
-          await updateQrOrderTableLocalId(qrOrderCacheList[i].order_cache_sqlite_id!, tableData.table_sqlite_id.toString());
-        } else {
-          qrOrderCacheList[i].table_number = '';
-        }
-        //callUpdateCloud(qrOrderCacheList[i].order_cache_key!);
-      }
-    }
-    _isLoaded = true;
-    if (!controller.isClosed) {
-      controller.sink.add('refresh');
-    }
+    int status = await PosDatabase.instance.updateOrderCacheTableLocalId(orderCache);
+    return status;
   }
 
   String getDuration(String? created_at) {
