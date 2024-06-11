@@ -52,7 +52,7 @@ class PosTable{
   String? created_at;
   String? updated_at;
   String? soft_delete;
-  double total_Amount = 0.0;
+  String? total_amount;
   String? group;
   String? card_color;
   bool isSelected = false;
@@ -79,7 +79,8 @@ class PosTable{
         this.group,
         this.card_color,
         this.qrOrderUrl,
-        this.isInPaymentCart
+        this.isInPaymentCart,
+        this.total_amount
       });
 
   PosTable copy({
@@ -137,6 +138,7 @@ class PosTable{
     soft_delete: json[PosTableFields .soft_delete] as String?,
     group: json['group'] as String?,
     card_color: json['card_color'] as String?,
+    total_amount: json['total_amount'] as String?
 
   );
 
@@ -158,7 +160,7 @@ class PosTable{
     PosTableFields.soft_delete: soft_delete,
     'group': group,
     'card_color': card_color,
-
+    'total_amount': total_amount
   };
 
 

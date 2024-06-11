@@ -604,7 +604,7 @@ class PrintReceipt{
     }
   }
 
-  printCheckList(List<Printer> printerList, int orderCacheLocalId) async {
+  printCheckList(List<Printer> printerList, int orderCacheLocalId, {String? order_by}) async {
     print('check list call');
     try {
       int printStatus = 0;
@@ -615,7 +615,7 @@ class PrintReceipt{
           if (printerList[i].type == 0) {
             //print USB 80mm
             if (printerList[i].paper_size == 0) {
-              var data = Uint8List.fromList(await ReceiptLayout().printCheckList80mm(true, orderCacheLocalId));
+              var data = Uint8List.fromList(await ReceiptLayout().printCheckList80mm(true, orderCacheLocalId, order_by: order_by));
               bool? isConnected = await flutterUsbPrinter.connect(int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
               if (isConnected == true) {
                 await flutterUsbPrinter.write(data);
@@ -628,7 +628,7 @@ class PrintReceipt{
               }
             } else {
               //print 58mm
-              var data = Uint8List.fromList(await ReceiptLayout().printCheckList58mm(true, orderCacheLocalId));
+              var data = Uint8List.fromList(await ReceiptLayout().printCheckList58mm(true, orderCacheLocalId, order_by: order_by));
               bool? isConnected = await flutterUsbPrinter.connect(
                   int.parse(printerDetail['vendorId']), int.parse(printerDetail['productId']));
               if (isConnected == true) {
@@ -648,7 +648,7 @@ class PrintReceipt{
               final printer = NetworkPrinter(PaperSize.mm80, profile);
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
               if (res == PosPrintResult.success) {
-                await ReceiptLayout().printCheckList80mm(false, orderCacheLocalId, value: printer);
+                await ReceiptLayout().printCheckList80mm(false, orderCacheLocalId, value: printer, order_by: order_by);
                 await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
@@ -664,7 +664,7 @@ class PrintReceipt{
               final printer = NetworkPrinter(PaperSize.mm58, profile);
               final PosPrintResult res = await printer.connect(printerDetail, port: 9100, timeout: duration);
               if (res == PosPrintResult.success) {
-                await ReceiptLayout().printCheckList58mm(false, orderCacheLocalId, value: printer);
+                await ReceiptLayout().printCheckList58mm(false, orderCacheLocalId, value: printer, order_by: order_by);
                 await Future.delayed(Duration(milliseconds: 100));
                 printer.disconnect();
                 printStatus = 0;
@@ -962,7 +962,7 @@ class PrintReceipt{
     }
   }
 
-  reprintKitchenList(List<Printer> printerList, context, {required List<OrderDetail> reprintList}) async {
+  reprintKitchenList(List<Printer> printerList, {required List<OrderDetail> reprintList}) async {
     List<OrderDetail>? failedPrintOrderDetail;
     List<OrderDetail> reprintListGroup = [];
     bool printCombinedKitchenList = false;

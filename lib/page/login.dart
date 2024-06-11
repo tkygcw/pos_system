@@ -17,6 +17,8 @@ import '../fragment/network_dialog.dart';
 import '../notifier/theme_color.dart';
 import 'package:flutter_login/flutter_login.dart';
 
+import '../second_device/server.dart';
+
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 

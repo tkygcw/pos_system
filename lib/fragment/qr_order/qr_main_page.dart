@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/database/pos_database.dart';
 import 'package:pos_system/fragment/qr_order/adjust_stock_dialog.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/branch_link_product.dart';
 import 'package:pos_system/object/order_cache.dart';
 import 'package:pos_system/object/order_detail.dart';
@@ -15,6 +17,7 @@ import 'package:pos_system/object/table.dart';
 import 'package:pos_system/translation/AppLocalizations.dart';
 import 'package:pos_system/utils/Utils.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../notifier/theme_color.dart';
 
 class QrMainPage extends StatefulWidget {
@@ -27,11 +30,12 @@ class QrMainPage extends StatefulWidget {
 class _QrMainPageState extends State<QrMainPage> {
   List<OrderCache> qrOrderCacheList = [];
   List<OrderDetail> orderDetailList = [], noStockOrderDetailList = [];
-  bool _isLoaded = false, hasNoStockProduct = false;
+  bool _isLoaded = false, hasNoStockProduct = false, hasAccess = true;
 
   @override
   void initState() {
     super.initState();
+    checkStatus();
   }
 
   @override
@@ -42,7 +46,8 @@ class _QrMainPageState extends State<QrMainPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
-      return Scaffold(
+      return hasAccess ?
+        Scaffold(
           appBar: QrAppBar(context, color),
           body: Consumer<QrOrder>(builder: (context, order, child) {
             getAllNotAcceptedQrOrder(order);
@@ -54,6 +59,15 @@ class _QrMainPageState extends State<QrMainPage> {
               NoOrderView(context),
             );
           })
+      ) :
+      Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.qr_code_2, size: 40.0),
+            Text(AppLocalizations.of(context)!.translate('no_order'), style: TextStyle(fontSize: 24)),
+          ],
+        ),
       );
     });
   }
@@ -88,7 +102,7 @@ class _QrMainPageState extends State<QrMainPage> {
                   textCancel: Text('${AppLocalizations.of(context)!.translate('no')}'),
                 )) {
                   if(mounted){
-                    await QrOrderAutoAccept().load();
+                    asyncQ.addJob((_) async => await QrOrderAutoAccept().load());
                   }
                 }
               },
@@ -222,6 +236,17 @@ class _QrMainPageState extends State<QrMainPage> {
         }
         //callUpdateCloud(qrOrderCacheList[i].order_cache_key!);
       }
+    }
+  }
+
+  Future<void> checkStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? branch = prefs.getString('branch');
+    Map branchObject = json.decode(branch!);
+    if(branchObject['qr_order_status'] == '1'){
+      setState(() {
+        hasAccess = false;
+      });
     }
   }
 

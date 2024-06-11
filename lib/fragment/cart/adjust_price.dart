@@ -84,11 +84,6 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
     setState(() => _submitted = true);
     if (errorPassword == null) {
       await readAdminData(adminPosPinController.text, cart);
-      if (this.isLogOut == false) {
-        Navigator.of(context).pop();
-        Navigator.of(context).pop();
-      }
-      return;
     } else {
       setState(() {
         isButtonDisabled = false;
@@ -107,7 +102,7 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
               child: Center(
                 child: SingleChildScrollView(
                   child: AlertDialog(
-                    title: Text(AppLocalizations.of(context)!.translate('enter_current_user_pin')),
+                    title: Text(AppLocalizations.of(context)!.translate('enter_admin_pin')),
                     content: SizedBox(
                       height: 75.0,
                       width: 350.0,
@@ -124,6 +119,11 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                                     willPop = false;
                                   });
                                   _submit(context, cart);
+                                  if(mounted){
+                                    setState(() {
+                                      isButtonDisabled = false;
+                                    });
+                                  }
                                 },
                                 obscureText: true,
                                 controller: adminPosPinController,
@@ -192,6 +192,11 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
                               willPop = false;
                             });
                             _submit(context, cart);
+                            if(mounted){
+                              setState(() {
+                                isButtonDisabled = false;
+                              });
+                            }
                           },
                         ),
                       ),
@@ -407,8 +412,18 @@ class _AdjustPriceDialogState extends State<AdjustPriceDialog> {
 
       //List<User> userData = await PosDatabase.instance.readSpecificUserWithRole(pin);
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
+      print("adjustPrice userData: ${userData}");
       if (userData != null) {
-        await callUpdateCart(userData, dateTime, cart);
+        if(userData.edit_price_without_pin == 1) {
+          await callUpdateCart(userData, dateTime, cart);
+          if (this.isLogOut == false) {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          }
+        } else {
+          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('no_permission')}");
+        }
+
       } else {
         Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");
       }

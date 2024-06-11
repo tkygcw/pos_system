@@ -47,6 +47,7 @@ import 'package:pos_system/object/variant_group.dart';
 import 'package:pos_system/object/variant_item.dart';
 import 'package:pos_system/page/pos_pin.dart';
 import 'package:pos_system/page/progress_bar.dart';
+import 'package:pos_system/second_device/server.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
@@ -1370,7 +1371,7 @@ getAllRefund() async {
           soft_delete: responseJson[i]['soft_delete'],
         ));
         try {
-          if(orderData != null){
+          if(orderData != null) {
             updateOrderRefundSqliteId(data.refund_sqlite_id.toString(), orderData.order_sqlite_id!);
           }
         } catch(e) {

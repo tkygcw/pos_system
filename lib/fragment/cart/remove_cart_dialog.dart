@@ -398,7 +398,7 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
         // if (userData.user_id == userObject['user_id']) {
-
+        if(userData.edit_price_without_pin == 1) {
           if(cartTableCacheList.length <= 1 && cartOrderDetailList.length > 1){
             print('delete order detail called');
             await callDeleteOrderDetail(userData, dateTime, cart);
@@ -444,11 +444,10 @@ class _CartRemoveDialogState extends State<CartRemoveDialog> {
           //   openLogOutDialog();
           //   return;
           // }
+        } else {
+          Fluttertoast.showToast(backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('no_permission')}");
+        }
 
-        // } else {
-        //   Fluttertoast.showToast(
-        //       backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('pin_not_match')}");
-        // }
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000), msg: "${AppLocalizations.of(context)?.translate('user_not_found')}");

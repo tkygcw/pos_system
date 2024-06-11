@@ -72,7 +72,7 @@ class PosDatabase {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
-    return await openDatabase(path, version: 14, onCreate: _createDB, onUpgrade: _onUpgrade);
+    return await openDatabase(path, version: 15, onCreate: _createDB, onUpgrade: _onUpgrade);
   }
 
   void _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -86,36 +86,6 @@ class PosDatabase {
     if (oldVersion < newVersion) {
       // you can execute drop table and create table
       switch (oldVersion) {
-        case 2:
-          {
-            await db.execute("ALTER TABLE $tableReceipt ADD ${ReceiptFields.header_font_size} INTEGER NOT NULL DEFAULT 0");
-            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.direct_payment} INTEGER NOT NULL DEFAULT 0");
-          }
-          break;
-        case 3:
-          {
-            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.direct_payment} INTEGER NOT NULL DEFAULT 0");
-          }
-          break;
-        case 4:
-          {
-            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.print_checklist} INTEGER NOT NULL DEFAULT 1");
-            await db.execute("ALTER TABLE $tableAppSetting ADD ${AppSettingFields.show_sku} INTEGER NOT NULL DEFAULT 0");
-            await db.execute('''CREATE TABLE $tableChecklist(
-          ${ChecklistFields.checklist_sqlite_id} $idType,
-          ${ChecklistFields.checklist_id} $integerType,
-          ${ChecklistFields.checklist_key} $textType,
-          ${ChecklistFields.branch_id} $textType,
-          ${ChecklistFields.product_name_font_size} $integerType,
-          ${ChecklistFields.other_font_size} $integerType,
-          ${ChecklistFields.paper_size} $textType,
-          ${ChecklistFields.sync_status} $integerType,
-          ${ChecklistFields.created_at} $textType,
-          ${ChecklistFields.updated_at} $textType,
-          ${ChecklistFields.soft_delete} $textType)''');
-          await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dy} TEXT NOT NULL DEFAULT '' ");
-          await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dx} TEXT NOT NULL DEFAULT '' ");
-        }break;
         case 5: {
           await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dy} TEXT NOT NULL DEFAULT '' ");
           await db.execute("ALTER TABLE $tablePosTable ADD ${PosTableFields.dx} TEXT NOT NULL DEFAULT '' ");
@@ -401,6 +371,17 @@ class PosDatabase {
           ${SubscriptionFields.created_at} $textType,
           ${SubscriptionFields.soft_delete} $textType)''');
         }break;
+        case 14: {
+          print("case 14 called");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.refund_permission} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.settlement_permission} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.report_permission} INTEGER NOT NULL DEFAULT 1");
+          await db.execute("ALTER TABLE $tableUser ADD ${UserFields.cash_drawer_permission} INTEGER NOT NULL DEFAULT 1");
+          //branch table
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.qr_order_status} $textType DEFAULT '0'");
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.sub_pos_status} INTEGER NOT NULL DEFAULT 0");
+          await db.execute("ALTER TABLE $tableBranch ADD ${BranchFields.attendance_status} INTEGER NOT NULL DEFAULT 0");
+        }break;
       }
     }
   }
@@ -415,7 +396,9 @@ class PosDatabase {
 */
     await db.execute('''CREATE TABLE $tableUser ( ${UserFields.user_id} $idType, ${UserFields.name} $textType, ${UserFields.email} $textType, 
            ${UserFields.phone} $textType, ${UserFields.role} $integerType, ${UserFields.pos_pin} $textType, ${UserFields.edit_price_without_pin} $integerType, 
-           ${UserFields.status} $integerType, ${UserFields.created_at} $textType, ${UserFields.updated_at} $textType, ${UserFields.soft_delete} $textType)''');
+           ${UserFields.refund_permission} $integerType, ${UserFields.cash_drawer_permission} $integerType, ${UserFields.settlement_permission} $integerType, 
+           ${UserFields.report_permission} $integerType, ${UserFields.status} $integerType, ${UserFields.created_at} $textType, 
+           ${UserFields.updated_at} $textType, ${UserFields.soft_delete} $textType)''');
 /*
     create subscription table
 */
@@ -784,7 +767,10 @@ class PosDatabase {
            ${BranchFields.email} $textType,
            ${BranchFields.ipay_merchant_code} $textType,
            ${BranchFields.ipay_merchant_key} $textType,
-           ${BranchFields.notification_token} $textType)''');
+           ${BranchFields.notification_token} $textType,
+           ${BranchFields.qr_order_status} $textType,
+           ${BranchFields.sub_pos_status} $integerType,
+           ${BranchFields.attendance_status} $integerType)''');
 
 /*
     create app color table
@@ -1246,7 +1232,7 @@ class PosDatabase {
 */
   Future<TaxLinkDining> insertTaxLinkDining(TaxLinkDining data) async {
     final db = await instance.database;
-    final id = await db.insert(tableTaxLinkDining!, data.toJson());
+    final id = await db.insert(tableTaxLinkDining!, data.toInsertJson());
     return data.copy(tax_link_dining_id: id);
   }
 
@@ -1875,7 +1861,7 @@ class PosDatabase {
 */
   Future<OrderDetail> insertSqliteOrderDetail(OrderDetail data) async {
     final db = await instance.database;
-    final id = await db.insert(tableOrderDetail!, data.toJson());
+    final id = await db.insert(tableOrderDetail!, data.toInsertJson());
     return data.copy(order_detail_sqlite_id: id);
   }
 
@@ -2720,9 +2706,9 @@ class PosDatabase {
 /*
   read branch link specific product
 */
-  Future<List<BranchLinkProduct>> readBranchLinkSpecificProduct(String branch_id, String product_id) async {
+  Future<List<BranchLinkProduct>> readBranchLinkSpecificProduct(String product_id) async {
     final db = await instance.database;
-    final result = await db.rawQuery('SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND branch_id = ? AND product_sqlite_id = ?', ['', branch_id, product_id]);
+    final result = await db.rawQuery('SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND product_sqlite_id = ?', ['', product_id]);
 
     return result.map((json) => BranchLinkProduct.fromJson(json)).toList();
   }
@@ -2788,6 +2774,21 @@ class PosDatabase {
   }
 
 /*
+  read specific branch link product item with no left join
+*/
+  Future<BranchLinkProduct?> readSpecificBranchLinkProduct2(String branch_link_product_sqlite_id) async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT * FROM $tableBranchLinkProduct WHERE soft_delete = ? AND branch_link_product_sqlite_id = ?',
+        ['', branch_link_product_sqlite_id]);
+    if(result.isNotEmpty){
+      return BranchLinkProduct.fromJson(result.first);
+    } else {
+      return null;
+    }
+  }
+
+/*
   read specific branch link product item
 */
   Future<BranchLinkProduct?> readSpecificAvailableBranchLinkProduct(String branch_link_product_sqlite_id) async {
@@ -2848,6 +2849,20 @@ class PosDatabase {
         ['', '', branch_id]);
 
     return result.map((json) => BranchLinkDining.fromJson(json)).toList();
+  }
+
+/*
+  read all tax link dining
+*/
+  Future<List<TaxLinkDining>> readAllTaxLinkDining() async {
+    final db = await instance.database;
+    final result = await db.rawQuery(
+        'SELECT a.*, b.tax_rate, b.name AS tax_name, c.name AS dining_name '
+            'FROM $tableTaxLinkDining AS a JOIN $tableTax AS b ON a.tax_id = b.tax_id '
+            'JOIN $tableDiningOption AS c ON a.dining_id = c.dining_id WHERE a.soft_delete = ? AND b.soft_delete = ? AND c.soft_delete = ?',
+        ['', '', '']);
+
+    return result.map((json) => TaxLinkDining.fromJson(json)).toList();
   }
 
 /*
@@ -3462,8 +3477,8 @@ class PosDatabase {
           'a.order_sqlite_id, a.order_by, a.order_key, a.cancel_by, a.total_amount, a.customer_id, '
           'a.created_at, a.updated_at, a.soft_delete, b.name AS name '
           'FROM tb_order_cache as a JOIN tb_dining_option as b ON a.dining_id = b.dining_id '
-          'WHERE a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ?',
-          ['', '', '', '', name]);
+          'WHERE a.order_key = ? AND a.soft_delete=? AND b.soft_delete=? AND a.cancel_by = ? AND b.name = ? AND a.table_use_key = ?',
+          ['', '', '', '', name, '']);
 
       return result.map((json) => OrderCache.fromJson(json)).toList();
     } catch (e) {
@@ -5683,8 +5698,10 @@ class PosDatabase {
 */
   Future<int> updateUser(User data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableUser SET name = ?, email = ?, phone = ?, role = ?, pos_pin = ?, edit_price_without_pin = ?, status = ?, updated_at = ?, soft_delete = ? WHERE user_id = ? ',
-        [data.name, data.email, data.phone, data.role, data.pos_pin, data.edit_price_without_pin, data.status, data.updated_at, data.soft_delete, data.user_id]);
+    return await db.rawUpdate('UPDATE $tableUser SET name = ?, email = ?, phone = ?, role = ?, pos_pin = ?, edit_price_without_pin = ?, refund_permission = ?, '
+        'cash_drawer_permission = ?, settlement_permission = ?, report_permission = ?, status = ?, updated_at = ?, soft_delete = ? WHERE user_id = ? ',
+        [data.name, data.email, data.phone, data.role, data.pos_pin, data.edit_price_without_pin, data.refund_permission, data.cash_drawer_permission,
+          data.settlement_permission, data.report_permission, data.status, data.updated_at, data.soft_delete, data.user_id]);
   }
 
 /*
@@ -5803,8 +5820,8 @@ class PosDatabase {
 */
   Future<int> updateBranch(Branch data) async {
     final db = await instance.database;
-    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ? WHERE branchID = ? ',
-        [data.name, data.address, data.phone, data.email, data.branchID]);
+    return await db.rawUpdate('UPDATE $tableBranch SET name = ?, address = ?, phone = ?, email = ?, qr_order_status = ?, sub_pos_status = ?, attendance_status = ? WHERE branchID = ? ',
+        [data.name, data.address, data.phone, data.email, data.qr_order_status, data.sub_pos_status, data.attendance_status, data.branchID]);
   }
 
 /*

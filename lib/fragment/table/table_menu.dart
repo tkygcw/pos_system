@@ -7,6 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pos_system/database/domain.dart';
 import 'package:pos_system/fragment/table/table_change_dialog.dart';
 import 'package:pos_system/fragment/table/table_dialog.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/notifier/cart_notifier.dart';
 import 'package:pos_system/object/categories.dart';
 import 'package:pos_system/object/order_cache.dart';
@@ -240,12 +241,13 @@ class _TableMenuState extends State<TableMenu> {
                                     }
                                   },
                                   onTap: onTapDisable ? null : () {
-                                    tapCount++;
                                     setState(() {
+                                      tapCount++;
                                       onTapDisable = true;
                                     });
+                                    openLoadingDialogBox();
                                     if(tapCount == 1){
-                                      onSelect(index, cart);
+                                      asyncQ.addJob((_) async => await onSelect(index, cart));
                                     }
                                   },
                                   child: Container(
@@ -343,12 +345,13 @@ class _TableMenuState extends State<TableMenu> {
                 }
               },
               onTap: onTapDisable ? null : () {
-                tapCount++;
                 setState(() {
+                  tapCount++;
                   onTapDisable = true;
                 });
+                openLoadingDialogBox();
                 if(tapCount == 1){
-                  onSelect(index, cart);
+                  asyncQ.addJob((_) async => await onSelect(index, cart));
                 }
               },
               child: Container(
@@ -422,7 +425,7 @@ class _TableMenuState extends State<TableMenu> {
                             visible: MediaQuery.of(context).size.height > 500 && MediaQuery.of(context).size.width > 900 ? true : false,
                             child: Container(
                                 alignment: Alignment.bottomCenter,
-                                child: Text("RM ${tableList[index].total_Amount.toStringAsFixed(2)}", style: TextStyle(fontSize: 18))),
+                                child: Text("RM ${tableList[index].total_amount ?? '0.00'}", style: TextStyle(fontSize: 18))),
                           ),
                         ],
                       ),
@@ -583,12 +586,11 @@ class _TableMenuState extends State<TableMenu> {
 
   onSelect(index, cart) async {
     try{
-      openLoadingDialogBox();
       timer = Timer(Duration(milliseconds: 500), () async {
         try{
           await readSpecificTableDetail(tableList[index]);
           if (!editingMode) {
-            if (this.productDetailLoaded) {
+            if (productDetailLoaded) {
               if (tableList[index].status == 1) {
                 // table in use (colored)
                 for (int i = 0; i < tableList.length; i++) {
@@ -848,9 +850,6 @@ class _TableMenuState extends State<TableMenu> {
   }
 
   readAllTableGroup() async {
-    priceSST = 0.0;
-    priceServeTax = 0.0;
-
     bool hasTableInUse = tableList.any((item) => item.status == 1);
     if(hasTableInUse){
       for (int i = 0; i < tableList.length; i++) {
@@ -859,13 +858,13 @@ class _TableMenuState extends State<TableMenu> {
           if (tableUseDetailData.isNotEmpty) {
             List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
             if(data.isNotEmpty){
+              double tableAmount = 0.0;
               tableList[i].group = data[0].table_use_sqlite_id;
               tableList[i].card_color = data[0].card_color;
-              //tableList[i].total_Amount = double.parse(data[0].total_amount!);
-
               for(int j = 0; j < data.length; j++){
-                tableList[i].total_Amount += double.parse(data[j].total_amount!);
+                tableAmount += double.parse(data[j].total_amount!);
               }
+              tableList[i].total_amount = tableAmount.toStringAsFixed(2);
             }
           }
         }
@@ -876,34 +875,26 @@ class _TableMenuState extends State<TableMenu> {
   readSpecificTableDetail(PosTable posTable) async {
     orderDetailList.clear();
     orderCacheList.clear();
-
     //Get specific table use detail
     List<TableUseDetail> tableUseDetailData = await PosDatabase.instance.readSpecificInUsedTableUseDetail(posTable.table_sqlite_id!);
     if (tableUseDetailData.isNotEmpty) {
       //Get all order table cache
       List<OrderCache> data = await PosDatabase.instance.readTableOrderCache(tableUseDetailData[0].table_use_key!);
-
       //loop all table order cache
       for (int i = 0; i < data.length; i++) {
         if (!orderCacheList.contains(data)) {
           orderCacheList = List.from(data);
         }
         //Get all order detail based on order cache id
-        //print('order cache key: ${data[i].order_cache_key!}');
         List<OrderDetail> detailData = await PosDatabase.instance.readTableOrderDetail(data[i].order_cache_key!);
-        //print('order detail length 2 : ${detailData.length}');
         //add all order detail from db
         if (!orderDetailList.contains(detailData)) {
           orderDetailList..addAll(detailData);
         }
       }
     }
-
     //loop all order detail
     for (int k = 0; k < orderDetailList.length; k++) {
-      //Get data from branch link product
-      //List<BranchLinkProduct> result = await PosDatabase.instance.readSpecificBranchLinkProduct(orderDetailList[k].branch_link_product_sqlite_id!);
-
       //Get product category
       if(orderDetailList[k].category_sqlite_id! == '0'){
         orderDetailList[k].product_category_id = '0';
@@ -911,64 +902,10 @@ class _TableMenuState extends State<TableMenu> {
         Categories category = await PosDatabase.instance.readSpecificCategoryByLocalId(orderDetailList[k].category_sqlite_id!);
         orderDetailList[k].product_category_id = category.category_id.toString();
       }
-      // List<Product> productResult = await PosDatabase.instance.readSpecificProductCategory(result[0].product_id!);
-      // orderDetailList[k].product_category_id = productResult[0].category_id;
-
-      // if (result[0].has_variant == '1') {
-      //   //Get product variant
-      //   List<BranchLinkProduct> variant = await PosDatabase.instance.readBranchLinkProductVariant(orderDetailList[k].branch_link_product_sqlite_id!);
-      //   orderDetailList[k].productVariant = ProductVariant(
-      //       product_variant_id: int.parse(variant[0].product_variant_id!),
-      //       variant_name: variant[0].variant_name);
-      //
-      //   //Get product variant detail
-      //   List<ProductVariantDetail> productVariantDetail = await PosDatabase.instance.readProductVariantDetail(variant[0].product_variant_id!);
-      //   orderDetailList[k].variantItem.clear();
-      //   for (int v = 0; v < productVariantDetail.length; v++) {
-      //     //Get product variant item
-      //     List<VariantItem> variantItemDetail = await PosDatabase.instance.readProductVariantItemByVariantID(productVariantDetail[v].variant_item_id!);
-      //     orderDetailList[k].variantItem.add(VariantItem(
-      //         variant_item_id: int.parse(productVariantDetail[v].variant_item_id!),
-      //         variant_group_id: variantItemDetail[0].variant_group_id,
-      //         name: variant[0].variant_name,
-      //         isSelected: true));
-      //     productVariantDetail.clear();
-      //   }
-      // }
-
       //check product modifier
       await getOrderModifierDetail(orderDetailList[k]);
-      // List<ModifierLinkProduct> productMod = await PosDatabase.instance.readProductModifier(result[0].product_sqlite_id!);
-      // if (productMod.isNotEmpty) {
-      //   orderDetailList[k].hasModifier = true;
-      //   await getOrderModifierDetail(orderDetailList[k]);
-      // }
-
-      // if (orderDetailList[k].hasModifier == true) {
-      //   //Get order modifier detail
-      //   gerOrderModifierDetail(orderDetailList[k]);
-      //   // List<OrderModifierDetail> modDetail = await PosDatabase.instance.readOrderModifierDetail(orderDetailList[k].order_detail_sqlite_id.toString());
-      //   // if (modDetail.length > 0) {
-      //   //   orderDetailList[k].modifierItem.clear();
-      //   //   for (int m = 0; m < modDetail.length; m++) {
-      //   //     // print('mod detail length: ${modDetail.length}');
-      //   //     if (!orderDetailList[k].modifierItem.contains(modDetail[m].mod_group_id!)) {
-      //   //       orderDetailList[k].modifierItem.add(ModifierItem(
-      //   //           mod_group_id: modDetail[m].mod_group_id!,
-      //   //           mod_item_id: int.parse(modDetail[m].mod_item_id!),
-      //   //           name: modDetail[m].modifier_name!));
-      //   //       orderDetailList[k].mod_group_id.add(modDetail[m].mod_group_id!);
-      //   //       orderDetailList[k].mod_item_id = modDetail[m].mod_item_id;
-      //   //     }
-      //   //   }
-      //   // }
-      // }
     }
-    if(mounted){
-      setState(() {
-        productDetailLoaded = true;
-      });
-    }
+    productDetailLoaded = true;
   }
 
   getOrderModifierDetail(OrderDetail orderDetail) async {
@@ -1139,7 +1076,7 @@ class _TableMenuState extends State<TableMenu> {
                       onTapDisable = true;
                     });
                     if(tapCount == 1){
-                      onSelect(i, cart);
+                     asyncQ.addJob((_) async => await onSelect(i, cart));
                     }
                   }
                   else if (action == 'on_double_tap') {

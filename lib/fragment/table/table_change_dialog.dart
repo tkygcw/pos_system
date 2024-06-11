@@ -395,7 +395,7 @@ class _TableChangeDialogState extends State<TableChangeDialog> {
       setState(() {
         enableTextField = false;
       });
-      await updateTable();
+      asyncQ.addJob((_) async => await updateTable());
     } else {
       setState(() {
         isButtonDisabled = false;

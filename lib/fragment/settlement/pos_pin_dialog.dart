@@ -13,8 +13,9 @@ import '../../translation/AppLocalizations.dart';
 
 class PosPinDialog extends StatefulWidget {
   final Function() callBack;
+  final bool transfer_ownership;
 
-  const PosPinDialog({Key? key, required this.callBack}) : super(key: key);
+  const PosPinDialog({Key? key, required this.callBack, required this.transfer_ownership}) : super(key: key);
 
   @override
   State<PosPinDialog> createState() => _PosPinDialogState();
@@ -57,8 +58,8 @@ class _PosPinDialogState extends State<PosPinDialog> {
       return Center(
         child: SingleChildScrollView(
           child: AlertDialog(
-            title: Text(AppLocalizations.of(context)!
-                .translate('enter_current_user_pin')),
+            title: Text('${widget.transfer_ownership ? AppLocalizations.of(context)!.translate('enter_current_user_pin')
+                : AppLocalizations.of(context)!.translate('enter_admin_pin')}'),
             content: SizedBox(
               height: 100.0,
               width: 350.0,
@@ -137,20 +138,38 @@ class _PosPinDialogState extends State<PosPinDialog> {
       Map userObject = json.decode(pos_user!);
       User? userData = await PosDatabase.instance.readSpecificUserWithPin(pin);
       if (userData != null) {
-        if (userData.user_id == userObject['user_id']) {
-          // Disable the button after it has been pressed
-          setState(() {
-            isButtonDisabled = true;
-          });
-          // notificationModel.setTimer(true);
-          closeDialog(context);
-          widget.callBack();
+        if(widget.transfer_ownership) {
+          if (userData.user_id == userObject['user_id']) {
+            // Disable the button after it has been pressed
+            setState(() {
+              isButtonDisabled = true;
+            });
+            // notificationModel.setTimer(true);
+            closeDialog(context);
+            widget.callBack();
+          } else {
+            Fluttertoast.showToast(
+                backgroundColor: Color(0xFFFF0000),
+                msg:
+                "${AppLocalizations.of(context)?.translate('pin_not_match')}");
+          }
         } else {
-          Fluttertoast.showToast(
-              backgroundColor: Color(0xFFFF0000),
-              msg:
-                  "${AppLocalizations.of(context)?.translate('pin_not_match')}");
+          if (userData.cash_drawer_permission == 1) {
+            // Disable the button after it has been pressed
+            setState(() {
+              isButtonDisabled = true;
+            });
+            // notificationModel.setTimer(true);
+            closeDialog(context);
+            widget.callBack();
+          } else {
+            Fluttertoast.showToast(
+                backgroundColor: Color(0xFFFF0000),
+                msg:
+                "${AppLocalizations.of(context)?.translate('no_permission')}");
+          }
         }
+
       } else {
         Fluttertoast.showToast(
             backgroundColor: Color(0xFFFF0000),

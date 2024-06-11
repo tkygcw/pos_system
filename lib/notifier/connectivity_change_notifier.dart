@@ -1,6 +1,9 @@
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+
+import '../second_device/server.dart';
 
 class ConnectivityChangeNotifier extends ChangeNotifier {
   bool _hasInternetAccess = false;
@@ -20,22 +23,30 @@ class ConnectivityChangeNotifier extends ChangeNotifier {
 
   bool get isConnect => _connection;
 
-  void resultHandler(ConnectivityResult result, bool hasAccess){
+  void resultHandler(ConnectivityResult result, bool hasAccess) async {
+    await Server.instance.bindAllSocket();
     _connectivityResult = result;
-    if(hasAccess == true){
-      if (result == ConnectivityResult.none) {
-        _connection = false;
-      } else if (result == ConnectivityResult.mobile) {
-        _connection = true;
-      } else if (result == ConnectivityResult.wifi) {
-        _connection = true;
-      }
-    } else {
-      _connectivityResult = ConnectivityResult.none;
+    if (result == ConnectivityResult.none) {
       _connection = false;
+    } else if (result == ConnectivityResult.mobile) {
+      _connection = true;
+    } else if (result == ConnectivityResult.wifi) {
+      _connection = true;
+    }else if (result == ConnectivityResult.ethernet) {
+      _connection = true;
+    }else if (result == ConnectivityResult.other) {
+      _connection = true;
     }
+    // if(hasAccess == true){
+    //
+    // } else {
+    //   _connectivityResult = ConnectivityResult.none;
+    //   _connection = false;
+    // }
+    print("change notifier");
     notifyListeners();
   }
+
 
   void initialLoad() async {
     ConnectivityResult connectivityResult = await (Connectivity().checkConnectivity());

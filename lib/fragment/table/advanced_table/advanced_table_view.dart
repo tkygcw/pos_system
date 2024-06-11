@@ -121,7 +121,7 @@ class _AdvancedTableViewState extends State<AdvancedTableView> {
                   bottom: 5,
                   child: Container(
                     child: Text(
-                      "RM ${widget.table.total_Amount.toStringAsFixed(2)}",
+                      "RM ${widget.table.total_amount ?? '0.00'} ",
                       style: TextStyle(fontSize: 16),
                     ),
                   ),

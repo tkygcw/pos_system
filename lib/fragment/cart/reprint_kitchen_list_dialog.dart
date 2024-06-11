@@ -5,6 +5,7 @@ import 'package:confirm_dialog/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:pos_system/fragment/custom_snackbar.dart';
 import 'package:pos_system/main.dart';
+import 'package:pos_system/second_device/reprint_kitchen_list_function.dart';
 import 'package:provider/provider.dart';
 
 import '../../notifier/fail_print_notifier.dart';
@@ -220,8 +221,7 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
                     ),
                   );
                 },
-              )
-                  : Column(
+              ) : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.print_disabled),
@@ -236,7 +236,8 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
                 child: ElevatedButton(
                     onPressed: isButtonDisable || orderDetail.isEmpty  ? null : () async {
                       disableButton();
-                      await callPrinter();
+                      asyncQ.addJob((_) async => await callPrinter());
+                      //await callPrinter();
                     },
                     child: Text(AppLocalizations.of(context)!.translate('reprint'))),
               ),
@@ -362,9 +363,10 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
     _failPrintModel.removeAllFailedOrderDetail();
     Navigator.of(context).pop();
     reprintList = printList.where((element) => element.isSelected == true).toList();
-    List<OrderDetail> returnData = await printReceipt.reprintKitchenList(printerList, context, reprintList: reprintList);
+    List<OrderDetail> returnData = await printReceipt.reprintKitchenList(printerList, reprintList: reprintList);
     if (returnData.isNotEmpty) {
       reprintList.clear();
+      checkSubPosOrderDetail(returnData);
       _failPrintModel.addAllFailedOrderDetail(orderDetailList: returnData);
       CustomSnackBar.instance.showSnackBar(
           title: "${AppLocalizations.of(_context)?.translate('error')}${AppLocalizations.of(_context)?.translate('kitchen_printer_timeout')}",
@@ -401,6 +403,15 @@ class _ReprintKitchenListDialogState extends State<ReprintKitchenListDialog> {
     } else {
       reprintList.clear();
       _failPrintModel.removeAllFailedOrderDetail();
+    }
+  }
+
+  checkSubPosOrderDetail(List<OrderDetail> orderDetail){
+    ReprintKitchenListFunction reprintFunction = ReprintKitchenListFunction();
+    List<OrderDetail> subPosOrder = orderDetail.where((e) => e.failPrintBatch != null).toList();
+    print("sub pos order length: ${subPosOrder.length}");
+    if(subPosOrder.isNotEmpty){
+      reprintFunction.splitOrderDetail(subPosOrder);
     }
   }
 

@@ -6,6 +6,7 @@ import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_system/fragment/custom_snackbar.dart';
+import 'package:pos_system/main.dart';
 import 'package:pos_system/object/app_setting.dart';
 import 'package:pos_system/object/qr_order_auto_accept.dart';
 import 'package:pos_system/object/table.dart';
@@ -169,6 +170,7 @@ class QrOrder extends ChangeNotifier {
       );
       if(localSetting!.qr_order_auto_accept == 1){
         QrOrderAutoAccept().load();
+        // asyncQ.addJob((_) async => QrOrderAutoAccept().load());
         return;
       }
       // Flushbar(

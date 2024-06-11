@@ -295,12 +295,6 @@ class SyncRecord {
                 syncRecordIdList.add(responseJson[i]['id']);
               }
               break;
-            case '28':
-              bool status = await callSubscriptionQuery(data: responseJson[i]['data'], method: responseJson[i]['method']);
-              if(status == true){
-                syncRecordIdList.add(responseJson[i]['id']);
-              }
-              break;
           }
         }
         print('sync record length: ${syncRecordIdList.length}');
@@ -873,9 +867,17 @@ class SyncRecord {
         isComplete = true;
       }
     } else {
+      final prefs = await SharedPreferences.getInstance();
+      final String? pos_user = prefs.getString('pos_pin_user');
+      Map<String, dynamic> userMap = json.decode(pos_user!);
       //update
       int data = await PosDatabase.instance.updateUser(userData);
       if(data == 1){
+        //check is current pos pin user same with sync record user
+        if(userData.user_id == userMap['user_id']){
+          print("inside call!");
+          await prefs.setString("pos_pin_user", jsonEncode(userData));
+        }
         isComplete = true;
       }
     }

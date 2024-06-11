@@ -9,6 +9,10 @@ class UserFields {
     phone,
     pos_pin,
     edit_price_without_pin,
+    refund_permission,
+    cash_drawer_permission,
+    settlement_permission,
+    report_permission,
     status,
     created_at,
     updated_at,
@@ -22,6 +26,10 @@ class UserFields {
   static String phone = 'phone';
   static String pos_pin = 'pos_pin';
   static String edit_price_without_pin = 'edit_price_without_pin';
+  static String refund_permission = 'refund_permission';
+  static String cash_drawer_permission = 'cash_drawer_permission';
+  static String settlement_permission = 'settlement_permission';
+  static String report_permission = 'report_permission';
   static String status = 'status';
   static String created_at = 'created_at';
   static String updated_at = 'updated_at';
@@ -36,6 +44,10 @@ class User {
   String? phone;
   String? pos_pin;
   int? edit_price_without_pin;
+  int? refund_permission;
+  int? cash_drawer_permission;
+  int? settlement_permission;
+  int? report_permission;
   int? status;
   String? created_at;
   String? updated_at;
@@ -49,6 +61,10 @@ class User {
       this.phone,
       this.pos_pin,
       this.edit_price_without_pin,
+      this.refund_permission,
+      this.cash_drawer_permission,
+      this.settlement_permission,
+      this.report_permission,
       this.status,
       this.created_at,
       this.updated_at,
@@ -62,6 +78,10 @@ class User {
     String? phone,
     String? pos_pin,
     int? edit_price_without_pin,
+    int? refund_permission,
+    int? cash_drawer_permission,
+    int? settlement_permission,
+    int? report_permission,
     int? status,
     String? created_at,
     String? updated_at,
@@ -75,6 +95,10 @@ class User {
           phone: phone ?? this.phone,
           pos_pin: pos_pin ?? this.pos_pin,
           edit_price_without_pin: edit_price_without_pin ?? this.edit_price_without_pin,
+          refund_permission: refund_permission ?? this.refund_permission,
+          cash_drawer_permission: cash_drawer_permission ?? this.cash_drawer_permission,
+          settlement_permission: settlement_permission ?? this.settlement_permission,
+          report_permission: report_permission ?? this.report_permission,
           status: status ?? this.status,
           created_at: created_at ?? this.created_at,
           updated_at: updated_at ?? this.updated_at,
@@ -88,6 +112,10 @@ class User {
         phone: json[UserFields.phone] as String?,
         pos_pin: json[UserFields.pos_pin] as String?,
         edit_price_without_pin: json[UserFields.edit_price_without_pin] as int?,
+        refund_permission: json[UserFields.refund_permission] as int?,
+        cash_drawer_permission: json[UserFields.cash_drawer_permission] as int?,
+        settlement_permission: json[UserFields.settlement_permission] as int?,
+        report_permission: json[UserFields.report_permission] as int?,
         status: json[UserFields.status] as int?,
         created_at: json[UserFields.created_at] as String?,
         updated_at: json[UserFields.updated_at] as String?,
@@ -102,6 +130,10 @@ class User {
         UserFields.phone: phone,
         UserFields.pos_pin: pos_pin,
         UserFields.edit_price_without_pin: edit_price_without_pin,
+        UserFields.refund_permission: refund_permission,
+        UserFields.cash_drawer_permission: cash_drawer_permission,
+        UserFields.settlement_permission: settlement_permission,
+        UserFields.report_permission: report_permission,
         UserFields.status: status,
         UserFields.created_at: created_at,
         UserFields.updated_at: updated_at,

@@ -2231,7 +2231,7 @@ class ReceiptLayout{
 /*
   Check list layout 80mm
 */
-  printCheckList80mm(bool isUSB, int localId, {value, isQrOrder}) async {
+  printCheckList80mm(bool isUSB, int localId, {value, isQrOrder, String? order_by}) async {
     Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('80');
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -2266,6 +2266,8 @@ class ReceiptLayout{
       bytes += generator.text('Batch No: #${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}');
       if(isQrOrder != null){
         bytes += generator.text('Order By: QrOrder');
+      } else if (order_by != null){
+        bytes += generator.text('Order By: ${order_by}', containsChinese: true);
       } else {
         bytes += generator.text('Order By: ${orderCache!.order_by}', containsChinese: true);
       }
@@ -2355,7 +2357,7 @@ class ReceiptLayout{
 /*
   Check list layout 58mm
 */
-  printCheckList58mm(bool isUSB, int localId, {value}) async {
+  printCheckList58mm(bool isUSB, int localId, {value, isQrOrder, String? order_by}) async {
     Checklist? checklistLayout = await PosDatabase.instance.readSpecificChecklist('58');
     final prefs = await SharedPreferences.getInstance();
     final int? branch_id = prefs.getInt('branch_id');
@@ -2394,7 +2396,13 @@ class ReceiptLayout{
       bytes += generator.text('Batch No', styles: PosStyles(align: PosAlign.center));
       bytes += generator.text('#${orderCache!.batch_id}-${branch_id.toString().padLeft(3 ,'0')}', styles: PosStyles(align: PosAlign.center));
       bytes += generator.text('Order By', styles: PosStyles(align: PosAlign.center));
-      bytes += generator.text('${orderCache!.order_by}', containsChinese: true, styles: PosStyles(align: PosAlign.center));
+      if(isQrOrder != null){
+        bytes += generator.text('QrOrder');
+      } else if (order_by != null){
+        bytes += generator.text(order_by, containsChinese: true, styles: PosStyles(align: PosAlign.center));
+      } else {
+        bytes += generator.text(orderCache!.order_by, containsChinese: true, styles: PosStyles(align: PosAlign.center));
+      }
       bytes += generator.text('Order time', styles: PosStyles(align: PosAlign.center));
       bytes += generator.text('${Utils.formatDate(orderCache!.created_at)}', styles: PosStyles(align: PosAlign.center));
       bytes += generator.hr();

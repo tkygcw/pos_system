@@ -125,7 +125,7 @@ class _MultiDevicePageState extends State<MultiDevicePage> {
         }),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          ServerAction().encodeAllImage();
+          //ServerAction().encodeAllImage();
           // List<Product> data = await PosDatabase.instance.readAllClientProduct();
           // print('product length: ${data.length}');
         },

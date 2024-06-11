@@ -30,6 +30,7 @@ import '../object/cash_record.dart';
 import '../object/print_receipt.dart';
 import '../object/printer.dart';
 import '../object/user.dart';
+import '../second_device/server.dart';
 
 class PosPinPage extends StatefulWidget {
   final String? cashBalance;
@@ -55,6 +56,7 @@ class _PosPinPageState extends State<PosPinPage> {
     super.initState();
     //readAllPrinters();
     preload();
+    bindSocket();
     checkVersion();
     checkSubscription();
   }
@@ -76,6 +78,17 @@ class _PosPinPageState extends State<PosPinPage> {
       startTimers();
     }
     await readAllPrinters();
+  }
+
+/*
+  bind server socket
+*/
+  bindSocket() async {
+    try{
+      await Server.instance.bindAllSocket();
+    }catch(e){
+      print("init bind error: ${e}");
+    }
   }
 
   getLatestVersion() async {
@@ -238,37 +251,37 @@ class _PosPinPageState extends State<PosPinPage> {
     notificationModel.setSyncCountAsStarted();
     notificationModel.resetTimer();
     Timer.periodic(Duration(seconds: 30), (timer) async {
-      print('sync record count: ${syncRecord.count}');
+      // print('sync record count: ${syncRecord.count}');
       bool _status = notificationModel.notificationStatus;
       bool stopTimer = notificationModel.stopTimer;
       if (stopTimer == true) {
-        print('timer cancelled called');
+        // print('timer cancelled called');
         timer.cancel();
         return;
       }
       if (_status == true) {
-        print('timer reset');
+        // print('timer reset');
         timerCount = 0;
         notificationModel.resetNotification();
         return;
       }
-      print("sync to cloud count in 30 sec: ${mainSyncToCloud.count}");
-      print('timer count: ${timerCount}');
+      // print("sync to cloud count in 30 sec: ${mainSyncToCloud.count}");
+      // print('timer count: ${timerCount}');
       //sync qr order
       if(qrOrder.count == 0){
-        print('qr order sync');
+        // print('qr order sync');
         qrOrder.count = 1;
-        await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!);
+        asyncQ.addJob((_) async =>  await qrOrder.getQrOrder(MyApp.navigatorKey.currentContext!));
         qrOrder.count = 0;
       }
 
       //sync subscription
       if(syncRecord.count == 0){
-        print('subscription sync');
+        // print('subscription sync');
         syncRecord.count = 1;
         int syncStatus = await syncRecord.syncSubscriptionFromCloud();
         syncRecord.count = 0;
-        print('is log out: ${syncStatus}');
+        // print('is log out: ${syncStatus}');
         if (syncStatus == 1) {
           openLogOutDialog();
           return;
@@ -454,9 +467,9 @@ class _PosPinPageState extends State<PosPinPage> {
   Widget build(BuildContext context) {
     return Consumer<ThemeColor>(builder: (context, ThemeColor color, child) {
       return LayoutBuilder(builder: (context, constraints) {
-        if (constraints.maxWidth > 800) {
-          return WillPopScope(
-            onWillPop: () async => false,
+        if (constraints.maxWidth > 900 && constraints.maxHeight > 500) {
+          return PopScope(
+            canPop: false,
             child: Scaffold(
               body: Container(
                 decoration: BoxDecoration(
@@ -504,8 +517,8 @@ class _PosPinPageState extends State<PosPinPage> {
             ),
           );
         } else {
-          return WillPopScope(
-            onWillPop: () async => false,
+          return PopScope(
+            canPop: false,
             child: Scaffold(
               backgroundColor: color.backgroundColor,
               body: Center(
